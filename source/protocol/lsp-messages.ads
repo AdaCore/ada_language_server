@@ -18,7 +18,6 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 with Ada.Streams;
-with Ada.Strings.Wide_Unbounded.Wide_Hash;
 
 with LSP.Generic_Optional;
 with LSP.Types; use LSP.Types;
@@ -516,8 +515,8 @@ package LSP.Messages is
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_String,
       Element_Type    => TextEdit_Vector,
-      Hash            => Ada.Strings.Wide_Unbounded.Wide_Hash,
-      Equivalent_Keys => Ada.Strings.Wide_Unbounded."=");
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=");
 
    --```typescript
    --export interface WorkspaceEdit {

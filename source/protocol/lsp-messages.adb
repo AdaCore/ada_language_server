@@ -527,7 +527,6 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InitializeParams)
    is
-      use type LSP.Types.LSP_String;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
       Trace : LSP.Types.Optional_String;

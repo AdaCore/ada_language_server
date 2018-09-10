@@ -20,7 +20,6 @@ with Ada.Strings.UTF_Encoding.Wide_Strings;
 with LSP.JSON_Streams;
 
 package body LSP.Types is
-   use Ada.Strings.Wide_Unbounded;
 
    --------------
    -- Assigned --
@@ -39,6 +38,20 @@ package body LSP.Types is
    begin
       return Length (Text) = 0;
    end Is_Empty;
+
+   ----------
+   -- Read --
+   ----------
+
+   not overriding procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Types.LSP_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := To_LSP_String (JS.Read.Get);
+   end Read;
 
    ---------------------------
    -- Read_Number_Or_String --
@@ -122,5 +135,19 @@ package body LSP.Types is
    begin
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
    end To_UTF_8_String;
+
+   -----------
+   -- Write --
+   -----------
+
+   not overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Types.LSP_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V)));
+   end Write;
 
 end LSP.Types;

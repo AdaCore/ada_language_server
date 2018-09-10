@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
-with Ada.Strings.Wide_Unbounded.Wide_Hash;
 
 with LSP.Messages;
 
@@ -49,8 +48,8 @@ private
    package Document_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Messages.DocumentUri,
       Element_Type    => LSP.Ada_Documents.Document_Access,
-      Hash            => Ada.Strings.Wide_Unbounded.Wide_Hash,
-      Equivalent_Keys => Ada.Strings.Wide_Unbounded."=",
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=",
       "="             => LSP.Ada_Documents."=");
 
    type Context is tagged limited record

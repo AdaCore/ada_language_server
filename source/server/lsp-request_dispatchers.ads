@@ -17,7 +17,6 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Streams;
-with Ada.Strings.Wide_Unbounded.Wide_Hash;
 
 with LSP.Messages;
 with LSP.Message_Handlers;
@@ -50,8 +49,8 @@ private
    package Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_String,
       Element_Type    => Parameter_Handler_Access,
-      Hash            => Ada.Strings.Wide_Unbounded.Wide_Hash,
-      Equivalent_Keys => Ada.Strings.Wide_Unbounded."=",
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=",
       "="             => "=");
 
    type Request_Dispatcher is tagged limited record

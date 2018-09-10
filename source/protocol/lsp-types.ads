@@ -16,8 +16,9 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers.Vectors;
+with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.Wide_Unbounded;
+with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with GNATCOLL.JSON;
 with LSP.Generic_Optional;
 
@@ -28,15 +29,26 @@ package LSP.Types is
 
    subtype LSP_Any is GNATCOLL.JSON.JSON_Value;
    subtype LSP_Number is Natural;
-   subtype LSP_String is Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+   type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
+   not overriding procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Types.LSP_String);
+
+   for LSP_String'Read use Read;
+
+   not overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Types.LSP_String);
+
+   for LSP_String'Write use Write;
    package LSP_String_Vectors is new Ada.Containers.Vectors
-     (Positive, LSP_String, Ada.Strings.Wide_Unbounded."=");
+     (Positive, LSP_String, "=");
 
    type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
 
-   Empty_LSP_String : LSP_String renames
-     Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String;
+   Empty_LSP_String : constant LSP_String :=
+     LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
 
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;
@@ -45,6 +57,10 @@ package LSP.Types is
      return Ada.Strings.UTF_Encoding.UTF_8_String;
 
    function Is_Empty (Text : LSP_String) return Boolean;
+
+   function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
+     (Ada.Strings.Wide_Unbounded.Wide_Hash
+        (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Text)));
 
    type LSP_Number_Or_String (Is_Number : Boolean := False) is record
       case Is_Number is

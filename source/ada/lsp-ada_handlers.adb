@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.Wide_Unbounded;    use Ada.Strings.Wide_Unbounded;
 
-with LSP.Types;
+with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
 
