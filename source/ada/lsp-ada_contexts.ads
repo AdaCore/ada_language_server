@@ -15,17 +15,47 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Wide_Unbounded.Wide_Hash;
 
-project LSP is
+with LSP.Messages;
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+with LSP.Ada_Documents;
+with LSP.Types;
 
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
+package LSP.Ada_Contexts is
+   type Context is tagged limited private;
 
-end LSP;
+   not overriding procedure Initialize
+     (Self : in out Context;
+      Root : LSP.Types.LSP_String);
 
+   not overriding procedure Load_Document
+     (Self  : in out Context;
+      Item  : LSP.Messages.TextDocumentItem);
+
+   not overriding function Get_Document
+     (Self : Context;
+      URI  : LSP.Messages.DocumentUri)
+        return LSP.Ada_Documents.Document_Access;
+
+   not overriding procedure Update_Document
+     (Self : in out Context;
+      Item : not null LSP.Ada_Documents.Document_Access);
+   --  Reparse document after changes
+
+private
+
+   package Document_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Messages.DocumentUri,
+      Element_Type    => LSP.Ada_Documents.Document_Access,
+      Hash            => Ada.Strings.Wide_Unbounded.Wide_Hash,
+      Equivalent_Keys => Ada.Strings.Wide_Unbounded."=",
+      "="             => LSP.Ada_Documents."=");
+
+   type Context is tagged limited record
+      Root        : LSP.Types.LSP_String;
+      Documents   : Document_Maps.Map;
+   end record;
+
+end LSP.Ada_Contexts;

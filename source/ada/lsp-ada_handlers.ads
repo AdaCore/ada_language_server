@@ -15,17 +15,44 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with LSP.Message_Handlers;
+with LSP.Messages;
+with LSP.Servers;
 
-project LSP is
+with LSP.Ada_Contexts;
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+package LSP.Ada_Handlers is
 
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
+   type Message_Handler
+     (Server  : access LSP.Servers.Server;
+      Context : access LSP.Ada_Contexts.Context) is
+   limited new LSP.Message_Handlers.Request_Handler
+     and LSP.Message_Handlers.Notification_Handler with private;
 
-end LSP;
+private
 
+   type Message_Handler
+     (Server : access LSP.Servers.Server;
+      Context : access LSP.Ada_Contexts.Context)
+   is limited new LSP.Message_Handlers.Request_Handler
+     and LSP.Message_Handlers.Notification_Handler with record
+      null;
+   end record;
+
+   overriding procedure Exit_Notification
+     (Self : access Message_Handler);
+
+   overriding procedure Initialize_Request
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.InitializeParams;
+      Response : in out LSP.Messages.Initialize_Response);
+
+   overriding procedure Text_Document_Did_Change
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
+
+   overriding procedure Text_Document_Did_Open
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
+
+end LSP.Ada_Handlers;

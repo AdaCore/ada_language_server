@@ -15,17 +15,18 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with "lsp";
 
-project LSP is
+project LSP_Server is
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+   for Source_Dirs use ("../source/server", "../source/ada");
+   for Object_Dir use "../.obj/server";
+   for Main use ("lsp-ada_driver");
 
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
+   package Compiler renames LSP.Compiler;
 
-end LSP;
+   package Binder is
+      for Switches ("ada") use ("-E");
+   end Binder;
 
+end LSP_Server;

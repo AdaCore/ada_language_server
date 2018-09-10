@@ -15,17 +15,38 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with LSP.Messages;
 
-project LSP is
+package LSP.Ada_Documents is
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+   type Document is tagged limited private;
+   type Document_Access is access all LSP.Ada_Documents.Document;
+   type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
 
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
+   not overriding procedure Initialize
+     (Self : in out Document;
+      Item : LSP.Messages.TextDocumentItem);
 
-end LSP;
+   not overriding procedure Update
+     (Self     : aliased in out Document);
+   --  Reparse document
 
+   not overriding procedure Apply_Changes
+     (Self   : aliased in out Document;
+      Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
+
+   not overriding procedure Get_Errors
+     (Self   : Document;
+      Errors : out LSP.Messages.Diagnostic_Vector);
+
+   not overriding procedure Get_Symbols
+     (Self   : Document;
+      Result : out LSP.Messages.SymbolInformation_Vector);
+
+private
+
+   type Document is tagged limited record
+      URI : LSP.Messages.DocumentUri;
+   end record;
+
+end LSP.Ada_Documents;

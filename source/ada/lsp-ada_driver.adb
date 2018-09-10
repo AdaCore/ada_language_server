@@ -15,17 +15,24 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with LSP.Servers;
+with LSP.Stdio_Streams;
 
-project LSP is
+with LSP.Ada_Contexts;
+with LSP.Ada_Handlers;
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+procedure LSP.Ada_Driver is
 
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
+   Server  : aliased LSP.Servers.Server;
+   Stream  : aliased LSP.Stdio_Streams.Stdio_Stream;
+   Context : aliased LSP.Ada_Contexts.Context;
+   Handler : aliased LSP.Ada_Handlers.Message_Handler
+     (Server'Access, Context'Access);
+begin
+   Server.Initialize
+     (Stream'Unchecked_Access,
+      Handler'Unchecked_Access,
+      Handler'Unchecked_Access);
 
-end LSP;
-
+   Server.Run;
+end LSP.Ada_Driver;
