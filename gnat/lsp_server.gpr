@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 
 with "gpr2";
+with "libadalang";
+
 with "lsp";
 
 project LSP_Server is

@@ -38,6 +38,74 @@ package body LSP.Ada_Contexts is
       return Self.Documents (URI);
    end Get_Document;
 
+   -----------------------
+   -- Get_Unit_Filename --
+   -----------------------
+
+   overriding function Get_Unit_Filename
+     (Self : Unit_Provider;
+      Name : Wide_Wide_String;
+      Kind : Libadalang.Common.Unit_Kind)
+      return String
+   is
+      URI : constant LSP.Types.LSP_String := Self.Get_Unit_URI (Name, Kind);
+   begin
+      if not LSP.Types.Is_Empty (URI) then
+         return LSP.Types.To_UTF_8_String
+           (LSP.Types.Delete (URI, 1, 7));  --  Drop 'file://'
+      end if;
+
+      return "";
+   end Get_Unit_Filename;
+
+   --------------
+   -- Get_Unit --
+   --------------
+
+   overriding function Get_Unit
+     (Self    : Unit_Provider;
+      Context : Libadalang.Analysis.Analysis_Context'Class;
+      Name    : Wide_Wide_String;
+      Kind    : Libadalang.Common.Unit_Kind;
+      Charset : String := "";
+      Reparse : Boolean := False)
+      return Libadalang.Analysis.Analysis_Unit'Class
+   is
+      File : constant String := Self.Get_Unit_Filename (Name, Kind);
+   begin
+      return Libadalang.Analysis.Get_From_File
+        (Context  => Context,
+         Filename => String (File),
+         Charset  => Charset,
+         Reparse  => Reparse);
+   end Get_Unit;
+
+   ------------------
+   -- Get_Unit_URI --
+   ------------------
+
+   not overriding function Get_Unit_URI
+     (Self : Unit_Provider;
+      Name : Wide_Wide_String;
+      Kind : Libadalang.Common.Unit_Kind)
+      return LSP.Types.LSP_String
+   is
+      Cursor : Unit_Maps.Cursor;
+   begin
+      case Kind is
+         when Libadalang.Common.Unit_Specification =>
+            Cursor := Self.Context.Specs.Find (Name);
+         when Libadalang.Common.Unit_Body =>
+            Cursor := Self.Context.Bodies.Find (Name);
+      end case;
+
+      if Unit_Maps.Has_Element (Cursor) then
+         return Unit_Maps.Element (Cursor);
+      end if;
+
+      return LSP.Types.Empty_LSP_String;
+   end Get_Unit_URI;
+
    ----------------
    -- Initialize --
    ----------------
@@ -76,6 +144,8 @@ package body LSP.Ada_Contexts is
           (Name      => "gnat/lsp.gpr",
            Directory => Dir);
    begin
+      Self.Root := Root;
+
       Self.Project_Tree.Load
         (Filename => Path,
          Context  => Self.GPR_Context);
@@ -95,7 +165,11 @@ package body LSP.Ada_Contexts is
          end;
       end loop;
 
-      Self.Root := Root;
+      Self.LAL_Context := Libadalang.Analysis.Create_Context
+        (Unit_Provider => Libadalang.Analysis.Create_Unit_Provider_Reference
+          (Self.Unit_Provider),
+         With_Trivia   => True,
+         Charset       => "utf-8");
    end Initialize;
 
    -------------------
