@@ -127,7 +127,7 @@ package body LSP.Ada_Contexts is
       Object : constant LSP.Ada_Documents.Document_Access :=
         new LSP.Ada_Documents.Document;
    begin
-      Object.Initialize (Item);
+      Object.Initialize (Self.LAL_Context, Item);
       Object.Update;
       Self.Documents.Insert (Item.uri, Object);
    end Load_Document;

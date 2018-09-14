@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with LSP.Messages;
+with Libadalang.Analysis;
 
 package LSP.Ada_Documents is
 
@@ -25,6 +26,7 @@ package LSP.Ada_Documents is
 
    not overriding procedure Initialize
      (Self : in out Document;
+      LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem);
 
    not overriding procedure Update
@@ -46,7 +48,8 @@ package LSP.Ada_Documents is
 private
 
    type Document is tagged limited record
-      URI : LSP.Messages.DocumentUri;
+      URI  : LSP.Messages.DocumentUri;
+      Unit : Libadalang.Analysis.Analysis_Unit;
    end record;
 
 end LSP.Ada_Documents;

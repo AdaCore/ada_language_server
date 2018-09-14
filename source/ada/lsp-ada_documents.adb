@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.Wide_Wide_Unbounded;
+with LSP.Types;
+
 package body LSP.Ada_Documents is
 
    -------------------
@@ -41,9 +45,33 @@ package body LSP.Ada_Documents is
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector)
    is
-      pragma Unreferenced (Self);
+      Item : LSP.Messages.Diagnostic;
    begin
       Errors.Clear;
+
+      if Self.Unit.Has_Diagnostics then
+         for Error of Self.Unit.Diagnostics loop
+            Item.span.first.line :=
+              LSP.Types.Line_Number (Error.Sloc_Range.Start_Line);
+            Item.span.last.line :=
+              LSP.Types.Line_Number (Error.Sloc_Range.End_Line);
+
+            Item.span.first.character :=  --  FIXME!
+              LSP.Types.UTF_16_Index
+                (Error.Sloc_Range.Start_Column);
+
+            Item.span.last.character :=  --  FIXME!
+              LSP.Types.UTF_16_Index
+                (Error.Sloc_Range.End_Column);
+
+            Item.message := LSP.Types.To_LSP_String
+              (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
+                 (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
+                      (Error.Message)));
+
+            Errors.Append (Item);
+         end loop;
+      end if;
    end Get_Errors;
 
    -----------------
@@ -65,9 +93,16 @@ package body LSP.Ada_Documents is
 
    not overriding procedure Initialize
      (Self : in out Document;
+      LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem)
    is
+      File : constant LSP.Types.LSP_String :=
+        LSP.Types.Delete (Item.uri, 1, 7);  --  Delete file://
    begin
+      Self.Unit := LAL.Get_From_Buffer
+        (Filename => LSP.Types.To_UTF_8_String (File),
+         Charset  => "utf-8",
+         Buffer   => LSP.Types.To_UTF_8_String (Item.text));
       Self.URI := Item.uri;
    end Initialize;
 
