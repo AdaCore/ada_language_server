@@ -555,7 +555,7 @@ package body LSP.Servers is
         & New_Line & New_Line;
    begin
       String'Write (Stream, Header);
-      Ada.Strings.Unbounded.Unbounded_String'Write (Stream, Vector);
+      String'Write (Stream, Ada.Strings.Unbounded.To_String (Vector));
    end Write_JSON_RPC;
 
 end LSP.Servers;
