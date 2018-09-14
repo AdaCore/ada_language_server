@@ -17,10 +17,7 @@
 
 with Ada.Containers.Hashed_Maps;
 
-private with Ada.Containers.Indefinite_Hashed_Maps;
-private with Ada.Strings.Wide_Wide_Hash;
-private with GPR2.Context;
-private with GPR2.Project.Tree;
+private with GNATCOLL.Projects;
 private with Libadalang.Analysis;
 private with Libadalang.Common;
 
@@ -70,12 +67,6 @@ private
       Reparse : Boolean := False)
       return Libadalang.Analysis.Analysis_Unit'Class;
 
-   not overriding function Get_Unit_URI
-     (Self : Unit_Provider;
-      Name : Wide_Wide_String;
-      Kind : Libadalang.Common.Unit_Kind)
-      return LSP.Types.LSP_String;
-
    overriding procedure Release (Self : in out Unit_Provider) is null;
 
    package Document_Maps is new Ada.Containers.Hashed_Maps
@@ -85,24 +76,13 @@ private
       Equivalent_Keys => LSP.Types."=",
       "="             => LSP.Ada_Documents."=");
 
-   package Unit_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-     (Key_Type        => Wide_Wide_String,
-      Element_Type    => LSP.Messages.DocumentUri,
-      Hash            => Ada.Strings.Wide_Wide_Hash,
-      Equivalent_Keys => "=",
-      "="             => LSP.Types."=");
-   --  Map from LAL unit name to LSP document uri
-
    type Context is tagged limited record
       Unit_Provider : Ada_Contexts.Unit_Provider (Context'Unchecked_Access);
       LAL_Context   : Libadalang.Analysis.Analysis_Context;
 
-      GPR_Context   : GPR2.Context.Object;
-      Project_Tree  : GPR2.Project.Tree.Object;
+      Project_Env   : GNATCOLL.Projects.Project_Environment_Access;
+      Project_Tree  : aliased GNATCOLL.Projects.Project_Tree;
       Root          : LSP.Types.LSP_String;
-
-      Specs         : Unit_Maps.Map;
-      Bodies        : Unit_Maps.Map;
 
       Documents     : Document_Maps.Map;
    end record;

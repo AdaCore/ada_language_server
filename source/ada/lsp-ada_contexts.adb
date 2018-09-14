@@ -17,12 +17,7 @@
 
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
-with GPR2.Path_Name;
-with GPR2.Project.Source.Set;
-pragma Unreferenced (GPR2.Project.Source.Set);
-
-with GPR2.Source;
-with Ada.Wide_Wide_Characters.Unicode;
+with GNATCOLL.VFS;
 
 package body LSP.Ada_Contexts is
 
@@ -48,14 +43,29 @@ package body LSP.Ada_Contexts is
       Kind : Libadalang.Common.Unit_Kind)
       return String
    is
-      URI : constant LSP.Types.LSP_String := Self.Get_Unit_URI (Name, Kind);
+      Map : constant array (Libadalang.Common.Unit_Kind) of
+        GNATCOLL.Projects.Unit_Parts :=
+          (Libadalang.Common.Unit_Specification =>
+             GNATCOLL.Projects.Unit_Spec,
+           Libadalang.Common.Unit_Body =>
+             GNATCOLL.Projects.Unit_Body);
+
+      Unit_Name : constant String :=
+        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Name);
+
+      File : constant GNATCOLL.VFS.Filesystem_String :=
+        Self.Context.Project_Tree.Root_Project.File_From_Unit
+          (Unit_Name => Unit_Name,
+           Part      => Map (Kind),
+           Language  => "Ada");
    begin
-      if not LSP.Types.Is_Empty (URI) then
-         return LSP.Types.To_UTF_8_String
-           (LSP.Types.Delete (URI, 1, 7));  --  Drop 'file://'
+      if File'Length = 0 then
+         return "";
       end if;
 
-      return "";
+      return String
+        (GNATCOLL.VFS.Filesystem_String'
+           (Self.Context.Project_Tree.Create (File).Full_Name));
    end Get_Unit_Filename;
 
    --------------
@@ -75,36 +85,10 @@ package body LSP.Ada_Contexts is
    begin
       return Libadalang.Analysis.Get_From_File
         (Context  => Context,
-         Filename => String (File),
+         Filename => File,
          Charset  => Charset,
          Reparse  => Reparse);
    end Get_Unit;
-
-   ------------------
-   -- Get_Unit_URI --
-   ------------------
-
-   not overriding function Get_Unit_URI
-     (Self : Unit_Provider;
-      Name : Wide_Wide_String;
-      Kind : Libadalang.Common.Unit_Kind)
-      return LSP.Types.LSP_String
-   is
-      Cursor : Unit_Maps.Cursor;
-   begin
-      case Kind is
-         when Libadalang.Common.Unit_Specification =>
-            Cursor := Self.Context.Specs.Find (Name);
-         when Libadalang.Common.Unit_Body =>
-            Cursor := Self.Context.Bodies.Find (Name);
-      end case;
-
-      if Unit_Maps.Has_Element (Cursor) then
-         return Unit_Maps.Element (Cursor);
-      end if;
-
-      return LSP.Types.Empty_LSP_String;
-   end Get_Unit_URI;
 
    ----------------
    -- Initialize --
@@ -114,56 +98,16 @@ package body LSP.Ada_Contexts is
      (Self : in out Context;
       Root : LSP.Types.LSP_String)
    is
-      function To_Unit_Name (Name : GPR2.Name_Type) return Wide_Wide_String;
-      function To_URI
-        (Path : GPR2.Path_Name.Full_Name) return LSP.Messages.DocumentUri;
-
-      function To_Unit_Name (Name : GPR2.Name_Type) return Wide_Wide_String is
-         Result : Wide_Wide_String :=
-           Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode
-             (Ada.Strings.UTF_Encoding.UTF_8_String (Name));
-      begin
-         for X of Result loop
-            X := Ada.Wide_Wide_Characters.Unicode.To_Lower_Case (X);
-         end loop;
-
-         return Result;
-      end To_Unit_Name;
-
-      function To_URI
-        (Path : GPR2.Path_Name.Full_Name) return LSP.Messages.DocumentUri is
-      begin
-         return LSP.Types.To_LSP_String ("file://" & Path);
-      end To_URI;
-
-      Dir  : constant GPR2.Name_Type :=
-        GPR2.Name_Type (LSP.Types.To_UTF_8_String (Root));
-
-      Path : constant GPR2.Path_Name.Object :=
-        GPR2.Path_Name.Create_File
-          (Name      => "gnat/lsp.gpr",
-           Directory => Dir);
+      Dir  : constant GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.Create
+          (GNATCOLL.VFS.Filesystem_String
+             (LSP.Types.To_UTF_8_String (Root)));
    begin
       Self.Root := Root;
-
+      GNATCOLL.Projects.Initialize (Self.Project_Env);
       Self.Project_Tree.Load
-        (Filename => Path,
-         Context  => Self.GPR_Context);
-
-      for Source of Self.Project_Tree.Root_Project.Sources loop
-         declare
-            Object : constant GPR2.Source.Object := Source.Source;
-            Name   : constant GPR2.Name_Type := Object.Unit_Name;
-            Kind   : constant GPR2.Source.Kind_Type := Object.Kind;
-            File   : constant GPR2.Path_Name.Object := Object.Path_Name;
-         begin
-            if Kind in GPR2.Source.S_Spec then
-               Self.Specs.Insert (To_Unit_Name (Name), To_URI (File.Value));
-            else
-               Self.Bodies.Insert (To_Unit_Name (Name), To_URI (File.Value));
-            end if;
-         end;
-      end loop;
+        (GNATCOLL.VFS.Create_From_Dir (Dir, "gnat/lsp.gpr"),
+         Self.Project_Env);
 
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Libadalang.Analysis.Create_Unit_Provider_Reference
