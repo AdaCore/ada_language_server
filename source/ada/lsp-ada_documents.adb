@@ -29,11 +29,17 @@ package body LSP.Ada_Documents is
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
-      pragma Unreferenced (Self);
+      File : constant LSP.Types.LSP_String :=
+        LSP.Types.Delete (Self.URI, 1, 7);  --  Delete file://
    begin
-      --  FIX ME Sort Vector before applying?
       for Change of reverse Vector loop
-         null;
+         --  If whole document then reparse it
+         if not Change.span.Is_Set then
+            Self.Unit := Self.LAL.Get_From_Buffer
+              (Filename => LSP.Types.To_UTF_8_String (File),
+               Charset  => "utf-8",
+               Buffer   => LSP.Types.To_UTF_8_String (Change.text));
+         end if;
       end loop;
    end Apply_Changes;
 
@@ -104,6 +110,7 @@ package body LSP.Ada_Documents is
          Charset  => "utf-8",
          Buffer   => LSP.Types.To_UTF_8_String (Item.text));
       Self.URI := Item.uri;
+      Self.LAL := LAL;
    end Initialize;
 
    ------------

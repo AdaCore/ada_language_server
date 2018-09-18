@@ -49,6 +49,7 @@ private
 
    type Document is tagged limited record
       URI  : LSP.Messages.DocumentUri;
+      LAL  : Libadalang.Analysis.Analysis_Context;
       Unit : Libadalang.Analysis.Analysis_Unit;
    end record;
 
