@@ -47,6 +47,8 @@ package body LSP.Ada_Handlers is
    is
       Root : LSP.Types.LSP_String;
    begin
+      Response.result.capabilities.documentSymbolProvider :=
+        LSP.Types.Optional_True;
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
 
@@ -90,5 +92,20 @@ package body LSP.Ada_Handlers is
    begin
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
+
+   ----------------------------------
+   -- Text_Document_Symbol_Request --
+   ----------------------------------
+
+   overriding procedure Text_Document_Symbol_Request
+    (Self     : access Message_Handler;
+     Value    : LSP.Messages.DocumentSymbolParams;
+     Response : in out LSP.Messages.Symbol_Response)
+   is
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+   begin
+      Document.Get_Symbols (Response.result);
+   end Text_Document_Symbol_Request;
 
 end LSP.Ada_Handlers;

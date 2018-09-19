@@ -55,4 +55,9 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams);
 
+   overriding procedure Text_Document_Symbol_Request
+    (Self     : access Message_Handler;
+     Value    : LSP.Messages.DocumentSymbolParams;
+     Response : in out LSP.Messages.Symbol_Response);
+
 end LSP.Ada_Handlers;
