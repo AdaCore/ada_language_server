@@ -33,7 +33,7 @@ package body LSP.Ada_Documents is
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
-   function Get_Synbol_Kind
+   function Get_Symbol_Kind
      (Node : Libadalang.Analysis.Ada_Node)
       return LSP.Messages.SymbolKind;
 
@@ -108,7 +108,7 @@ package body LSP.Ada_Documents is
 
       while Cursor.Next (Element) loop
          Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Synbol_Kind (Element);
+         Item.kind := Get_Symbol_Kind (Element);
          Item.location :=
            (uri  => Self.URI,
             span => To_Span (Element.Sloc_Range));
@@ -118,10 +118,10 @@ package body LSP.Ada_Documents is
    end Get_Symbols;
 
    ---------------------
-   -- Get_Synbol_Kind --
+   -- Get_Symbol_Kind --
    ---------------------
 
-   function Get_Synbol_Kind
+   function Get_Symbol_Kind
      (Node : Libadalang.Analysis.Ada_Node)
       return LSP.Messages.SymbolKind
    is
@@ -213,7 +213,7 @@ package body LSP.Ada_Documents is
       end loop;
 
       return LSP.Messages.A_Function;
-   end Get_Synbol_Kind;
+   end Get_Symbol_Kind;
 
    ----------------
    -- Initialize --
