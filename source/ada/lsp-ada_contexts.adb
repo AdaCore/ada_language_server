@@ -40,10 +40,10 @@ package body LSP.Ada_Contexts is
    overriding function Get_Unit_Filename
      (Self : Unit_Provider;
       Name : Wide_Wide_String;
-      Kind : Libadalang.Common.Unit_Kind)
+      Kind : Libadalang.Common.Analysis_Unit_Kind)
       return String
    is
-      Map : constant array (Libadalang.Common.Unit_Kind) of
+      Map : constant array (Libadalang.Common.Analysis_Unit_Kind) of
         GNATCOLL.Projects.Unit_Parts :=
           (Libadalang.Common.Unit_Specification =>
              GNATCOLL.Projects.Unit_Spec,
@@ -76,7 +76,7 @@ package body LSP.Ada_Contexts is
      (Self    : Unit_Provider;
       Context : Libadalang.Analysis.Analysis_Context'Class;
       Name    : Wide_Wide_String;
-      Kind    : Libadalang.Common.Unit_Kind;
+      Kind    : Libadalang.Common.Analysis_Unit_Kind;
       Charset : String := "";
       Reparse : Boolean := False)
       return Libadalang.Analysis.Analysis_Unit'Class
