@@ -128,21 +128,7 @@ package body LSP.Ada_Contexts is
         new LSP.Ada_Documents.Document;
    begin
       Object.Initialize (Self.LAL_Context, Item);
-      Object.Update;
       Self.Documents.Insert (Item.uri, Object);
    end Load_Document;
-
-   ---------------------
-   -- Update_Document --
-   ---------------------
-
-   not overriding procedure Update_Document
-     (Self : in out Context;
-      Item : not null LSP.Ada_Documents.Document_Access)
-   is
-      pragma Unreferenced (Self);
-   begin
-      Item.Update;
-   end Update_Document;
 
 end LSP.Ada_Contexts;

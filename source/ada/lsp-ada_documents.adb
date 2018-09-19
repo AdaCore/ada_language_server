@@ -113,14 +113,4 @@ package body LSP.Ada_Documents is
       Self.LAL := LAL;
    end Initialize;
 
-   ------------
-   -- Update --
-   ------------
-
-   not overriding procedure Update
-     (Self     : aliased in out Document) is
-   begin
-      null;
-   end Update;
-
 end LSP.Ada_Documents;

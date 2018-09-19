@@ -42,11 +42,6 @@ package LSP.Ada_Contexts is
       URI  : LSP.Messages.DocumentUri)
         return LSP.Ada_Documents.Document_Access;
 
-   not overriding procedure Update_Document
-     (Self : in out Context;
-      Item : not null LSP.Ada_Documents.Document_Access);
-   --  Reparse document after changes
-
 private
 
    type Unit_Provider (Context : access LSP.Ada_Contexts.Context) is

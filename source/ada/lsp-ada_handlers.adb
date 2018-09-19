@@ -72,7 +72,6 @@ package body LSP.Ada_Handlers is
       Note     : LSP.Messages.PublishDiagnostics_Notification;
    begin
       Document.Apply_Changes (Value.contentChanges);
-      Self.Context.Update_Document (Document);
       Document.Get_Errors (Note.params.diagnostics);
 
       Note.method := +"textDocument/publishDiagnostics";

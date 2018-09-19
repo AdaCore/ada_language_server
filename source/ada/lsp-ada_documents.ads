@@ -29,10 +29,6 @@ package LSP.Ada_Documents is
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem);
 
-   not overriding procedure Update
-     (Self     : aliased in out Document);
-   --  Reparse document
-
    not overriding procedure Apply_Changes
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
