@@ -96,11 +96,10 @@ package body LSP.Ada_Documents is
       Item    : LSP.Messages.SymbolInformation;
 
       Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
-        new Libadalang.Iterators.Ada_Node_Kind_Filter'
-          (Kind => Libadalang.Common.Ada_Defining_Name);
+        Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Defining_Name);
       --  This object will be deallocated by Cursor's finalization
 
-      Cursor : Libadalang.Iterators.Find_Iterator :=
+      Cursor : Libadalang.Iterators.Traverse_Iterator'Class :=
         Libadalang.Iterators.Find (Self.Unit.Root, Is_Defining_Name);
 
    begin
