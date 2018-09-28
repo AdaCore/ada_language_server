@@ -17,8 +17,6 @@
 
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
-with GNATCOLL.VFS;
-
 package body LSP.Ada_Contexts is
 
    ------------------
@@ -130,5 +128,13 @@ package body LSP.Ada_Contexts is
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
    end Load_Document;
+
+   ----------------------
+   -- Get_Source_Files --
+   ----------------------
+
+   not overriding function Get_Source_Files
+     (Self : Context) return GNATCOLL.VFS.File_Array_Access is
+     (Self.Project_Tree.Root_Project.Source_Files);
 
 end LSP.Ada_Contexts;

@@ -55,6 +55,11 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams);
 
+   overriding procedure Text_Document_References_Request
+    (Self     : access Message_Handler;
+     Value    : LSP.Messages.ReferenceParams;
+     Response : in out LSP.Messages.Location_Response);
+
    overriding procedure Text_Document_Symbol_Request
     (Self     : access Message_Handler;
      Value    : LSP.Messages.DocumentSymbolParams;

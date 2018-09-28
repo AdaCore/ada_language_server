@@ -21,11 +21,19 @@ with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
 
+with LSP.Ada_Cross_Reference_Services;
+--  Temporary dependency, see note in package's spec file
+
+with Langkit_Support.Slocs;
+
+with Libadalang.Analysis;
+with Libadalang.Common;
+
 package body LSP.Ada_Handlers is
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
+                 return LSP.Types.LSP_String renames
+     LSP.Types.To_LSP_String;
 
    -----------------------
    -- Exit_Notification --
@@ -47,6 +55,8 @@ package body LSP.Ada_Handlers is
    is
       Root : LSP.Types.LSP_String;
    begin
+      Response.result.capabilities.referencesProvider :=
+        LSP.Types.Optional_True;
       Response.result.capabilities.documentSymbolProvider :=
         LSP.Types.Optional_True;
       Response.result.capabilities.textDocumentSync :=
@@ -93,14 +103,72 @@ package body LSP.Ada_Handlers is
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
 
+   --------------------------------------
+   -- Text_Document_References_Request --
+   --------------------------------------
+
+   procedure Text_Document_References_Request
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.ReferenceParams;
+      Response : in out LSP.Messages.Location_Response)
+   is
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+
+      References : constant LSP.Ada_Cross_Reference_Services.Ref_Vector :=
+        LSP.Ada_Cross_Reference_Services.Find_All_References
+          (Definition         => Document.Get_Declaration_At (Value.position),
+           Sources            => Self.Context.Get_Source_Files,
+           Include_Definition => Value.context.includeDeclaration);
+      --  This call to `Find_All_References` will later be replaced by a call
+      --  to a subprogram in Libadalang with the same functionality
+
+   begin
+
+      for N in 1 .. Integer (References.Length) loop
+
+         declare
+
+            Node : constant Libadalang.Analysis.Ada_Node :=
+              References.Element (N);
+
+            use Libadalang.Common;
+
+            Start_Sloc_Range :
+            constant Langkit_Support.Slocs.Source_Location_Range :=
+              Sloc_Range (Data (Node.Token_Start));
+            End_Sloc_Range   :
+            constant Langkit_Support.Slocs.Source_Location_Range :=
+              Sloc_Range (Data (Node.Token_End));
+
+            First_Position : constant LSP.Messages.Position :=
+              (Line_Number (Start_Sloc_Range.Start_Line) - 1,
+               UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
+            Last_Position  : constant LSP.Messages.Position :=
+              (Line_Number (End_Sloc_Range.End_Line) - 1,
+               UTF_16_Index (End_Sloc_Range.End_Column) - 1);
+
+            Location : constant LSP.Messages.Location :=
+              (uri  => +("file://" & Node.Unit.Get_Filename),
+               span => LSP.Messages.Span'(First_Position, Last_Position));
+
+         begin
+            Response.result.Append (Location);
+         end;
+
+      end loop;
+
+   end Text_Document_References_Request;
+
    ----------------------------------
    -- Text_Document_Symbol_Request --
    ----------------------------------
 
    overriding procedure Text_Document_Symbol_Request
-    (Self     : access Message_Handler;
-     Value    : LSP.Messages.DocumentSymbolParams;
-     Response : in out LSP.Messages.Symbol_Response)
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.DocumentSymbolParams;
+      Response : in out LSP.Messages.Symbol_Response)
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
