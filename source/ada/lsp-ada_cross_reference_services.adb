@@ -28,44 +28,55 @@ package body LSP.Ada_Cross_Reference_Services is
       Include_Definition : Boolean := False) return Ref_Vector
    is
 
-      Context    : constant Analysis_Context := Definition.Unit.Context;
-
       References : Ref_Vector;
 
    begin
 
-      for N in Sources'Range loop
+      if not Definition.Is_Null then
 
          declare
 
-            Unit : constant Analysis_Unit := Context.Get_From_File
-              (Sources (N).Display_Full_Name);
-
-            Match_Iterator : Traverse_Iterator'Class := Find
-              (Unit.Root,
-               Kind_Is (Ada_Identifier) and Text_Is (Definition.Text));
-
-            Node : Ada_Node;
-            Node_Definition : Defining_Name;
+            Context : constant Analysis_Context := Definition.Unit.Context;
 
          begin
 
-            while (Match_Iterator.Next (Node)) loop
+            for N in Sources'Range loop
 
-               Node_Definition := Node.P_Xref;
+               declare
 
-               if Node_Definition = Definition and then
-                 (Include_Definition or else
-                  Node.As_Identifier /= Definition.F_Name)
-               then
-                  References.Append (Node);
-               end if;
+                  Unit            : constant Analysis_Unit :=
+                    Context.Get_From_File
+                      (Sources (N).Display_Full_Name);
+
+                  Match_Iterator  : Traverse_Iterator'Class := Find
+                    (Unit.Root,
+                     Kind_Is (Ada_Identifier) and Text_Is (Definition.Text));
+
+                  Node            : Ada_Node;
+                  Node_Definition : Defining_Name;
+
+               begin
+
+                  while (Match_Iterator.Next (Node)) loop
+
+                     Node_Definition := Node.P_Xref;
+
+                     if Node_Definition = Definition and then
+                       (Include_Definition or else
+                        Node.As_Identifier /= Definition.F_Name)
+                     then
+                        References.Append (Node);
+                     end if;
+
+                  end loop;
+
+               end;
 
             end loop;
 
          end;
 
-      end loop;
+      end if;
 
       return References;
 

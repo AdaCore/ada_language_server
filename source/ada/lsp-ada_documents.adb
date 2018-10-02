@@ -116,47 +116,39 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Symbols;
 
-   ------------------------
-   -- Get_Declaration_At --
-   ------------------------
+   -----------------------
+   -- Get_Definition_At --
+   -----------------------
 
-   not overriding function Get_Declaration_At
+   not overriding function Get_Definition_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Defining_Name
    is
 
-      function Predicate (Node : Libadalang.Analysis.Ada_Node) return Boolean;
+      use Libadalang.Common;
+      use Langkit_Support.Slocs;
 
-      function Predicate
-        (Node : Libadalang.Analysis.Ada_Node) return Boolean
-      is
-
-         use Libadalang.Common;
-         use LSP.Types;
-
-         Node_Start_Range :
-         constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Node.Token_Start));
-
-         Node_End_Range :
-         constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Node.Token_End));
-
-         Line   : constant Line_Number  := Position.line;
-         Column : constant UTF_16_Index := Position.character;
-
-      begin
-         return Node.Kind = Ada_Defining_Name and
-           Line_Number (Node_Start_Range.Start_Line) - 1 = Line and
-           UTF_16_Index (Node_Start_Range.Start_Column) - 1 <= Column and
-           UTF_16_Index (Node_End_Range.End_Column) - 1 >= Column;
-      end Predicate;
+      Node : Libadalang.Analysis.Ada_Node := Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
 
    begin
-      return Libadalang.Iterators.Find_First
-        (Self.Unit.Root, Predicate'Access).As_Defining_Name;
-   end Get_Declaration_At;
+
+      while not Node.Is_Null and
+        Node.Kind /= Ada_Defining_Name and
+        Node.Kind /= Ada_Compilation_Unit
+      loop
+         Node := Node.Parent;
+      end loop;
+
+      if Node.Kind = Ada_Compilation_Unit then
+         raise No_Defining_Name_At_Position;
+      else
+         return Node.As_Defining_Name;
+      end if;
+
+   end Get_Definition_At;
 
    ---------------------
    -- Get_Symbol_Kind --
@@ -302,7 +294,7 @@ package body LSP.Ada_Documents is
         (first =>
            (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
             character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
-                           (Value.Start_Column) - 1),
+              (Value.Start_Column) - 1),
          last =>
            (line => LSP.Types.Line_Number (Value.End_Line) - 1,
             character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!

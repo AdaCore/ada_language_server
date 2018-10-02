@@ -41,7 +41,9 @@ package LSP.Ada_Documents is
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector);
 
-   not overriding function Get_Declaration_At
+   No_Defining_Name_At_Position : exception;
+
+   not overriding function Get_Definition_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Defining_Name;

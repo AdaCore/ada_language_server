@@ -113,18 +113,27 @@ package body LSP.Ada_Handlers is
       Response : in out LSP.Messages.Location_Response)
    is
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
+      Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      References : constant LSP.Ada_Cross_Reference_Services.Ref_Vector :=
-        LSP.Ada_Cross_Reference_Services.Find_All_References
-          (Definition         => Document.Get_Declaration_At (Value.position),
-           Sources            => Self.Context.Get_Source_Files,
-           Include_Definition => Value.context.includeDeclaration);
-      --  This call to `Find_All_References` will later be replaced by a call
-      --  to a subprogram in Libadalang with the same functionality
+      Definition : Libadalang.Analysis.Defining_Name;
+
+      References : LSP.Ada_Cross_Reference_Services.Ref_Vector;
 
    begin
+
+      begin
+         Definition := Document.Get_Definition_At (Value.position);
+      exception
+         when LSP.Ada_Documents.No_Defining_Name_At_Position => return;
+      end;
+
+      References := LSP.Ada_Cross_Reference_Services.Find_All_References
+        (Definition         => Definition,
+         Sources            => Self.Context.Get_Source_Files,
+         Include_Definition => Value.context.includeDeclaration);
+      --  TODO: This call to `Find_All_References` should later be replaced by
+      --  a call to a subprogram in Libadalang with the same functionality
 
       for N in 1 .. Integer (References.Length) loop
 
@@ -136,11 +145,11 @@ package body LSP.Ada_Handlers is
             use Libadalang.Common;
 
             Start_Sloc_Range :
-            constant Langkit_Support.Slocs.Source_Location_Range :=
-              Sloc_Range (Data (Node.Token_Start));
+              constant Langkit_Support.Slocs.Source_Location_Range :=
+                Sloc_Range (Data (Node.Token_Start));
             End_Sloc_Range   :
-            constant Langkit_Support.Slocs.Source_Location_Range :=
-              Sloc_Range (Data (Node.Token_End));
+              constant Langkit_Support.Slocs.Source_Location_Range :=
+                Sloc_Range (Data (Node.Token_End));
 
             First_Position : constant LSP.Messages.Position :=
               (Line_Number (Start_Sloc_Range.Start_Line) - 1,
