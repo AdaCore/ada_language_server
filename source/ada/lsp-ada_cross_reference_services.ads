@@ -15,43 +15,27 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Messages;
-with Libadalang.Analysis;
+--  This is a temporary package providing functionality to find all references
+--  to a definition in a set of source files. This functionality will later be
+--  integrated into Libadalang and this package will be removed.
 
-package LSP.Ada_Documents is
+with Ada.Containers.Vectors;
 
-   type Document is tagged limited private;
-   type Document_Access is access all LSP.Ada_Documents.Document;
-   type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
+with GNATCOLL.VFS; use GNATCOLL.VFS;
 
-   not overriding procedure Initialize
-     (Self : in out Document;
-      LAL  : Libadalang.Analysis.Analysis_Context;
-      Item : LSP.Messages.TextDocumentItem);
+with Libadalang.Analysis; use Libadalang.Analysis;
 
-   not overriding procedure Apply_Changes
-     (Self   : aliased in out Document;
-      Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
+package LSP.Ada_Cross_Reference_Services is
 
-   not overriding procedure Get_Errors
-     (Self   : Document;
-      Errors : out LSP.Messages.Diagnostic_Vector);
+   package Ref_Vectors is new Ada.Containers.Vectors
+     (Index_Type   => Positive,
+      Element_Type => Ada_Node);
 
-   not overriding procedure Get_Symbols
-     (Self   : Document;
-      Result : out LSP.Messages.SymbolInformation_Vector);
+   subtype Ref_Vector is Ref_Vectors.Vector;
 
-   not overriding function Get_Definition_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Defining_Name;
+   function Find_All_References
+     (Definition         : Defining_Name;
+      Sources            : File_Array_Access;
+      Include_Definition : Boolean := False) return Ref_Vector;
 
-private
-
-   type Document is tagged limited record
-      URI  : LSP.Messages.DocumentUri;
-      LAL  : Libadalang.Analysis.Analysis_Context;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-   end record;
-
-end LSP.Ada_Documents;
+end LSP.Ada_Cross_Reference_Services;

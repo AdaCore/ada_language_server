@@ -116,6 +116,40 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Symbols;
 
+   -----------------------
+   -- Get_Definition_At --
+   -----------------------
+
+   not overriding function Get_Definition_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Defining_Name
+   is
+
+      use Libadalang.Common;
+      use Langkit_Support.Slocs;
+
+      Node : Libadalang.Analysis.Ada_Node := Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
+
+   begin
+
+      while not Node.Is_Null and
+        Node.Kind /= Ada_Defining_Name and
+        Node.Kind /= Ada_Compilation_Unit
+      loop
+         Node := Node.Parent;
+      end loop;
+
+      if Node.Kind = Ada_Compilation_Unit then
+         return Libadalang.Analysis.No_Defining_Name;
+      else
+         return Node.As_Defining_Name;
+      end if;
+
+   end Get_Definition_At;
+
    ---------------------
    -- Get_Symbol_Kind --
    ---------------------
@@ -260,7 +294,7 @@ package body LSP.Ada_Documents is
         (first =>
            (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
             character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
-                           (Value.Start_Column) - 1),
+              (Value.Start_Column) - 1),
          last =>
            (line => LSP.Types.Line_Number (Value.End_Line) - 1,
             character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!

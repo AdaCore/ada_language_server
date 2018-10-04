@@ -18,6 +18,8 @@
 with Ada.Containers.Hashed_Maps;
 
 private with GNATCOLL.Projects;
+with GNATCOLL.VFS;
+
 private with Libadalang.Analysis;
 private with Libadalang.Common;
 
@@ -40,7 +42,10 @@ package LSP.Ada_Contexts is
    not overriding function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
-        return LSP.Ada_Documents.Document_Access;
+      return LSP.Ada_Documents.Document_Access;
+
+   not overriding function Get_Source_Files
+     (Self : Context) return GNATCOLL.VFS.File_Array_Access;
 
 private
 
