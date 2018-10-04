@@ -143,7 +143,7 @@ package body LSP.Ada_Documents is
       end loop;
 
       if Node.Kind = Ada_Compilation_Unit then
-         raise No_Defining_Name_At_Position;
+         return Libadalang.Analysis.No_Defining_Name;
       else
          return Node.As_Defining_Name;
       end if;

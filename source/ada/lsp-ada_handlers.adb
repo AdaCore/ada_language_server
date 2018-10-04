@@ -116,17 +116,18 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Definition : Libadalang.Analysis.Defining_Name;
+      Definition : constant Libadalang.Analysis.Defining_Name :=
+        Document.Get_Definition_At (Value.position);
 
       References : LSP.Ada_Cross_Reference_Services.Ref_Vector;
 
+      use Libadalang.Analysis;
+
    begin
 
-      begin
-         Definition := Document.Get_Definition_At (Value.position);
-      exception
-         when LSP.Ada_Documents.No_Defining_Name_At_Position => return;
-      end;
+      if Definition = No_Defining_Name then
+         return;
+      end if;
 
       References := LSP.Ada_Cross_Reference_Services.Find_All_References
         (Definition         => Definition,

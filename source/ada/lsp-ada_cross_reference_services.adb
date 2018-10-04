@@ -44,11 +44,10 @@ package body LSP.Ada_Cross_Reference_Services is
 
                declare
 
-                  Unit            : constant Analysis_Unit :=
-                    Context.Get_From_File
-                      (Sources (N).Display_Full_Name);
+                  Unit : constant Analysis_Unit := Context.Get_From_File
+                    (Sources (N).Display_Full_Name);
 
-                  Match_Iterator  : Traverse_Iterator'Class := Find
+                  Match_Iterator : Traverse_Iterator'Class := Find
                     (Unit.Root,
                      Kind_Is (Ada_Identifier) and Text_Is (Definition.Text));
 
@@ -59,14 +58,20 @@ package body LSP.Ada_Cross_Reference_Services is
 
                   while (Match_Iterator.Next (Node)) loop
 
-                     Node_Definition := Node.P_Xref;
+                     begin
 
-                     if Node_Definition = Definition and then
-                       (Include_Definition or else
-                        Node.As_Identifier /= Definition.F_Name)
-                     then
-                        References.Append (Node);
-                     end if;
+                        Node_Definition := Node.P_Xref;
+
+                        if Node_Definition = Definition and then
+                          (Include_Definition or else
+                           Node.As_Identifier /= Definition.F_Name)
+                        then
+                           References.Append (Node);
+                        end if;
+
+                     exception
+                        when Property_Error => null;
+                     end;
 
                   end loop;
 
