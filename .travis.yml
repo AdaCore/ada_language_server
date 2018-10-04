@@ -1,0 +1,14 @@
+os:
+  - linux
+
+services:
+  - docker
+
+language: generic
+
+before_install:
+  - integration/travis/travis.sh before_install
+
+script:
+  - integration/travis/travis.sh script
+
