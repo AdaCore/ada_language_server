@@ -1,6 +1,8 @@
 all:
 	gprbuild -P gnat/lsp.gpr -p
 	gprbuild -P gnat/lsp_server.gpr -p
+	gprbuild -P gnat/spawn_tests.gpr -p
+	rm -rf integration/vscode/ada/server
 	ln -s ../../../.obj/server/lsp-ada_driver integration/vscode/ada/server
 
 clean:
