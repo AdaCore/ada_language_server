@@ -27,10 +27,10 @@ package body LSP.Messages is
       return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   procedure Read_IRI
+   procedure Read_If_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Messages.DocumentUri);
+     Item   : out LSP.Types.LSP_String);
 
    procedure Read_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -417,7 +417,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Read_IRI (JS, +"uri", V.uri);
+      Read_If_String (JS, +"uri", V.uri);
       Read_String (JS, +"languageId", V.languageId);
       Read_Number (JS, +"version", LSP.Types.LSP_Number (V.version));
       Read_String (JS, +"text", V.text);
@@ -484,6 +484,23 @@ package body LSP.Messages is
       JS.End_Array;
    end Read_TextEdit_Vector;
 
+   --------------------------
+   -- Read_documentChanges --
+   --------------------------
+
+   not overriding procedure Read_documentChanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out documentChanges)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"documentChanges", Optional_Boolean (V));
+      JS.End_Object;
+   end Read_documentChanges;
+
    ------------------------------
    -- Read_dynamicRegistration --
    ------------------------------
@@ -533,8 +550,9 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Optional_Number (JS, +"processId", V.processId);
-      Read_String (JS, +"rootPath", V.rootPath);
-      Read_IRI (JS, +"rootUri", V.rootUri);
+      JS.Key (+"rootPath");
+      Read_If_String (JS, +"rootPath", V.rootPath);
+      Read_If_String (JS, +"rootUri", V.rootUri);
       JS.Key (+"capabilities");
       LSP.Messages.ClientCapabilities'Read (S, V.capabilities);
       Read_Optional_String (JS, +"trace", Trace);
@@ -691,7 +709,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Optional_Boolean (JS, +"applyEdit", V.applyEdit);
-      Read_Optional_Boolean (JS, +"workspaceEdit", V.workspaceEdit);
+      JS.Key (+"workspaceEdit");
+      documentChanges'Read (S, V.workspaceEdit);
       JS.Key (+"didChangeConfiguration");
       dynamicRegistration'Read (S, V.didChangeConfiguration);
       JS.Key (+"didChangeWatchedFiles");
@@ -703,14 +722,14 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceClientCapabilities;
 
-   --------------
-   -- Read_IRI --
-   --------------
+   --------------------
+   -- Read_If_String --
+   --------------------
 
-   procedure Read_IRI
+   procedure Read_If_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Messages.DocumentUri)
+     Item   : out LSP.Types.LSP_String)
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
@@ -723,7 +742,7 @@ package body LSP.Messages is
          --  Item := League.IRIs.From_Universal_String (Stream.Read.To_String);
          Item := To_LSP_String (Stream.Read.Get);
       end if;
-   end Read_IRI;
+   end Read_If_String;
 
    -----------------
    -- Read_Number --

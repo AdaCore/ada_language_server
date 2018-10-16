@@ -631,7 +631,7 @@ package LSP.Messages is
    type DocumentSelector is new DocumentFilter_Vectors.Vector with null record;
 
    type dynamicRegistration is new Optional_Boolean;
-
+   type documentChanges is new Optional_Boolean;
    --+M
    --```typescript
    --/**
@@ -695,9 +695,10 @@ package LSP.Messages is
    --	};
    --}
    --```
+   
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
-      workspaceEdit: Optional_Boolean;
+      workspaceEdit: documentChanges;
       didChangeConfiguration: dynamicRegistration;
       didChangeWatchedFiles: dynamicRegistration;
       symbol: dynamicRegistration;
@@ -2877,6 +2878,10 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentSymbolParams);
 
+   not overriding procedure Read_documentChanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out documentChanges);
+
    not overriding procedure Read_dynamicRegistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out dynamicRegistration);
@@ -3060,6 +3065,7 @@ private
    for DidOpenTextDocumentParams'Read use Read_DidOpenTextDocumentParams;
    for DidSaveTextDocumentParams'Read use Read_DidSaveTextDocumentParams;
    for DocumentSymbolParams'Read use Read_DocumentSymbolParams;
+   for documentChanges'Read use Read_documentChanges;
    for dynamicRegistration'Read use Read_dynamicRegistration;
    for ExecuteCommandParams'Read use Read_ExecuteCommandParams;
    for InitializeParams'Read use Read_InitializeParams;
