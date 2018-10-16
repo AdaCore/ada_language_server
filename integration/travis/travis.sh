@@ -12,7 +12,7 @@ function linux_before_install()
 function linux_script()
 {
     docker run -i -t lsp /bin/bash -c \
- 'tar xzf /tmp/lsp.tar.gz && make -C ada_language_server LIBRARY_TYPE=relocatable'
+ 'tar xzf /tmp/lsp.tar.gz && make -C ada_language_server LIBRARY_TYPE=relocatable check'
 
 }
 

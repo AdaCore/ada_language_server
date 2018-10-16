@@ -1,0 +1,12 @@
+[
+    {
+        "start": {
+            "cmd": [".obj/server/lsp-ada_driver"]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 1
+        }
+    }
+]
