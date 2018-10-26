@@ -36,8 +36,12 @@ package LSP.Ada_Contexts is
       Root : LSP.Types.LSP_String);
 
    not overriding procedure Load_Document
-     (Self  : in out Context;
-      Item  : LSP.Messages.TextDocumentItem);
+     (Self : in out Context;
+      Item : LSP.Messages.TextDocumentItem);
+
+   not overriding procedure Unload_Document
+     (Self : in out Context;
+      Item : LSP.Messages.TextDocumentIdentifier);
 
    not overriding function Get_Document
      (Self : Context;

@@ -35,15 +35,6 @@ package body LSP.Ada_Handlers is
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
 
-   -----------------------
-   -- Exit_Notification --
-   -----------------------
-
-   overriding procedure Exit_Notification (Self : access Message_Handler) is
-   begin
-      Self.Server.Stop;
-   end Exit_Notification;
-
    ------------------------
    -- Initialize_Request --
    ------------------------
@@ -55,12 +46,12 @@ package body LSP.Ada_Handlers is
    is
       Root : LSP.Types.LSP_String;
    begin
+      Response.result.capabilities.textDocumentSync :=
+        (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
       Response.result.capabilities.referencesProvider :=
         LSP.Types.Optional_True;
       Response.result.capabilities.documentSymbolProvider :=
         LSP.Types.Optional_True;
-      Response.result.capabilities.textDocumentSync :=
-        (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := Delete (Value.rootUri, 1, 7);
@@ -70,38 +61,6 @@ package body LSP.Ada_Handlers is
 
       Self.Context.Initialize (Root);
    end Initialize_Request;
-
-   ------------------------------
-   -- Text_Document_Did_Change --
-   ------------------------------
-
-   overriding procedure Text_Document_Did_Change
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams)
-   is
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
-      Note     : LSP.Messages.PublishDiagnostics_Notification;
-   begin
-      Document.Apply_Changes (Value.contentChanges);
-      Document.Get_Errors (Note.params.diagnostics);
-
-      Note.method := +"textDocument/publishDiagnostics";
-      Note.params.uri := Value.textDocument.uri;
-      Self.Server.Send_Notification (Note);
-   end Text_Document_Did_Change;
-
-   ----------------------------
-   -- Text_Document_Did_Open --
-   ----------------------------
-
-   overriding procedure Text_Document_Did_Open
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams)
-   is
-   begin
-      Self.Context.Load_Document (Value.textDocument);
-   end Text_Document_Did_Open;
 
    --------------------------------------
    -- Text_Document_References_Request --
@@ -185,5 +144,58 @@ package body LSP.Ada_Handlers is
    begin
       Document.Get_Symbols (Response.result);
    end Text_Document_Symbol_Request;
+
+   ----------------------------
+   -- Text_Document_Did_Open --
+   ----------------------------
+
+   overriding procedure Text_Document_Did_Open
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidOpenTextDocumentParams)
+   is
+   begin
+      Self.Context.Load_Document (Value.textDocument);
+   end Text_Document_Did_Open;
+
+   ------------------------------
+   -- Text_Document_Did_Change --
+   ------------------------------
+
+   overriding procedure Text_Document_Did_Change
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeTextDocumentParams)
+   is
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+      Note     : LSP.Messages.PublishDiagnostics_Notification;
+   begin
+      Document.Apply_Changes (Value.contentChanges);
+      Document.Get_Errors (Note.params.diagnostics);
+
+      Note.method := +"textDocument/publishDiagnostics";
+      Note.params.uri := Value.textDocument.uri;
+      Self.Server.Send_Notification (Note);
+   end Text_Document_Did_Change;
+
+   -----------------------------
+   -- Text_Document_Did_Close --
+   -----------------------------
+
+   overriding procedure Text_Document_Did_Close
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidCloseTextDocumentParams)
+   is
+   begin
+      Self.Context.Unload_Document (Value.textDocument);
+   end Text_Document_Did_Close;
+
+   -----------------------
+   -- Exit_Notification --
+   -----------------------
+
+   overriding procedure Exit_Notification (Self : access Message_Handler) is
+   begin
+      Self.Server.Stop;
+   end Exit_Notification;
 
 end LSP.Ada_Handlers;
