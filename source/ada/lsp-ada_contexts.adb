@@ -119,8 +119,8 @@ package body LSP.Ada_Contexts is
    -------------------
 
    not overriding procedure Load_Document
-     (Self  : in out Context;
-      Item  : LSP.Messages.TextDocumentItem)
+     (Self : in out Context;
+      Item : LSP.Messages.TextDocumentItem)
    is
       Object : constant LSP.Ada_Documents.Document_Access :=
         new LSP.Ada_Documents.Document;
@@ -128,6 +128,18 @@ package body LSP.Ada_Contexts is
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
    end Load_Document;
+
+   ---------------------
+   -- Unload_Document --
+   ---------------------
+
+   not overriding procedure Unload_Document
+     (Self : in out Context;
+      Item : LSP.Messages.TextDocumentIdentifier)
+   is
+   begin
+      Self.Documents.Delete (Item.uri);
+   end Unload_Document;
 
    ----------------------
    -- Get_Source_Files --

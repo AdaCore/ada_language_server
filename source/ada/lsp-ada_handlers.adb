@@ -91,6 +91,18 @@ package body LSP.Ada_Handlers is
       Self.Server.Send_Notification (Note);
    end Text_Document_Did_Change;
 
+   -----------------------------
+   -- Text_Document_Did_Close --
+   -----------------------------
+
+   overriding procedure Text_Document_Did_Close
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidCloseTextDocumentParams)
+   is
+   begin
+      Self.Context.Unload_Document (Value.textDocument);
+   end Text_Document_Did_Close;
+
    ----------------------------
    -- Text_Document_Did_Open --
    ----------------------------
