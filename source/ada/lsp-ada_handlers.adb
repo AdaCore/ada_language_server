@@ -71,6 +71,66 @@ package body LSP.Ada_Handlers is
       Self.Context.Initialize (Root);
    end Initialize_Request;
 
+   --------------------------------------
+   -- Text_Document_Definition_Request --
+   --------------------------------------
+
+   procedure Text_Document_Definition_Request
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.TextDocumentPositionParams;
+      Response : in out LSP.Messages.Location_Response)
+   is
+
+      Document   : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+
+      Node       : constant Libadalang.Analysis.Ada_Node :=
+        Document.Get_Node_At (Value.position);
+
+      Definition : Libadalang.Analysis.Defining_Name;
+
+      use Libadalang.Analysis;
+
+   begin
+
+      if Node = No_Ada_Node then
+         return;
+      end if;
+
+      Definition := Node.P_Xref;
+
+      if Definition = No_Defining_Name then
+         return;
+      end if;
+
+      declare
+
+         use Libadalang.Common;
+
+         Start_Sloc_Range :
+         constant Langkit_Support.Slocs.Source_Location_Range :=
+           Sloc_Range (Data (Definition.Token_Start));
+         End_Sloc_Range   :
+         constant Langkit_Support.Slocs.Source_Location_Range :=
+           Sloc_Range (Data (Definition.Token_End));
+
+         First_Position : constant LSP.Messages.Position :=
+           (Line_Number (Start_Sloc_Range.Start_Line) - 1,
+            UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
+         Last_Position  : constant LSP.Messages.Position :=
+           (Line_Number (End_Sloc_Range.End_Line) - 1,
+            UTF_16_Index (End_Sloc_Range.End_Column) - 1);
+
+         Location : constant LSP.Messages.Location :=
+           (uri  => +("file://" & Definition.Unit.Get_Filename),
+            span => LSP.Messages.Span'(First_Position, Last_Position));
+
+      begin
+         Response.result.Append (Location);
+      end;
+
+   end Text_Document_Definition_Request;
+
    ------------------------------
    -- Text_Document_Did_Change --
    ------------------------------

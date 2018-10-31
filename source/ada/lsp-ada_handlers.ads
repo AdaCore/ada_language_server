@@ -47,6 +47,11 @@ private
       Value    : LSP.Messages.InitializeParams;
       Response : in out LSP.Messages.Initialize_Response);
 
+   overriding procedure Text_Document_Definition_Request
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.TextDocumentPositionParams;
+      Response : in out LSP.Messages.Location_Response);
+
    overriding procedure Text_Document_Did_Change
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams);

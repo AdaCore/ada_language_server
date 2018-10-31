@@ -116,6 +116,22 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Symbols;
 
+   -----------------
+   -- Get_Node_At --
+   -----------------
+
+   not overriding function Get_Node_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Langkit_Support.Slocs;
+   begin
+      return Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
+   end Get_Node_At;
+
    -----------------------
    -- Get_Definition_At --
    -----------------------
@@ -127,11 +143,8 @@ package body LSP.Ada_Documents is
    is
 
       use Libadalang.Common;
-      use Langkit_Support.Slocs;
 
-      Node : Libadalang.Analysis.Ada_Node := Self.Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
+      Node : Libadalang.Analysis.Ada_Node := Self.Get_Node_At (Position);
 
    begin
 

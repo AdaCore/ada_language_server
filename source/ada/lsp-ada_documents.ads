@@ -41,6 +41,11 @@ package LSP.Ada_Documents is
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector);
 
+   not overriding function Get_Node_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Ada_Node;
+
    not overriding function Get_Definition_At
      (Self     : Document;
       Position : LSP.Messages.Position)
