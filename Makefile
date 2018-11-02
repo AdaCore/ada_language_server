@@ -19,4 +19,5 @@ vscode:
 
 check: all
 	$(TESTER) $(TD)/0001-start_stop.json
+	$(TESTER) $(TD)/0002-shutdown.json
 	@echo All test passed!

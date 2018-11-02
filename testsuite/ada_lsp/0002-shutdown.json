@@ -1,0 +1,30 @@
+[
+    {
+        "start": {
+            "cmd": [".obj/server/lsp-ada_driver"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"file:///home/max/net/ada-lsp",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0 }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "id": 1, "method":"shutdown", "params":null},
+            "wait":[{ "id": 1 }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
