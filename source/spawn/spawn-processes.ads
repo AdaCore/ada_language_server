@@ -33,9 +33,11 @@ package Spawn.Processes is
 
    not overriding procedure Standard_Output_Available
     (Self : in out Process_Listener) is null;
+   --  Called once when it's possible to read data again.
 
    not overriding procedure Standard_Error_Available
     (Self : in out Process_Listener) is null;
+   --  Called once when it's possible to read data again.
 
    not overriding procedure Standard_Input_Available
     (Self : in out Process_Listener) is null;
@@ -113,7 +115,8 @@ package Spawn.Processes is
      (Self : in out Process'Class;
       Data : Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset);
-   --  Do nothing if Self.Status /= Running
+   --  Do nothing if Self.Status /= Running. If no data was written you will
+   --  get Standard_Input_Available notification latter.
 
    procedure Close_Standard_Output (Self : in out Process'Class);
    --  Do nothing if Self.Status /= Running
@@ -122,8 +125,8 @@ package Spawn.Processes is
      (Self : in out Process'Class;
       Data : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset);
-   --  Returns available data received throgh standard output stream. Returns
-   --  immidiately when there is no information available.
+   --  Returns available data received throgh standard output stream. If no
+   --  data was read you will get Standard_Output_Available notification latter
 
    procedure Close_Standard_Error (Self : in out Process'Class);
    --  Do nothing if Self.Status /= Running

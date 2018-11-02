@@ -99,10 +99,25 @@ package Spawn.Posix is
 
    WNOHANG : constant := 1;
 
+   function fcntl
+     (fd    : Interfaces.C.int;
+      cmd   : Interfaces.C.int;
+      flags : Interfaces.C.int;
+      dummy : Interfaces.C.C_float := 0.0)
+        return Interfaces.C.int
+          with Import, Convention => C, Link_Name => "fcntl";
+   --  An extra float argument is used to make this binding compatible
+   --  with amd64 ABI for C functions with ellipsis (...).
+
+   F_SETFL : constant := 4;
+
    subtype constrained_chars_ptr_array is
      Interfaces.C.Strings.chars_ptr_array (1 .. Interfaces.C.size_t'Last);
 
    environ : constrained_chars_ptr_array
      with Import, Convention => C, Link_Name => "environ";
+
+   --  Errno values
+   EAGAIN : constant := 11;
 
 end Spawn.Posix;
