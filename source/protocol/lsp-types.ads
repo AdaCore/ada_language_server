@@ -58,6 +58,10 @@ package LSP.Types is
 
    function Is_Empty (Text : LSP_String) return Boolean;
 
+   function Starts_With
+     (Text   : LSP_String;
+      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String) return Boolean;
+
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash
         (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Text)));

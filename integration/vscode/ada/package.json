@@ -70,11 +70,23 @@
                 "type": "object",
                 "title": "Project file",
                 "properties": {
-                    "ada.project_file": {
+                    "ada.projectFile": {
                         "scope": "resource",
                         "type": "string",
                         "default": "",
                         "description": "Project file (*.gpr) for given workspace."
+                    }
+                }
+            },
+            {
+                "type": "object",
+                "title": "Scenario variables",
+                "properties": {
+                    "ada.scenarioVariables": {
+                        "scope": "resource",
+                        "type": "object",
+                        "default": {},
+                        "description": "Scenario variables."
                     }
                 }
             }

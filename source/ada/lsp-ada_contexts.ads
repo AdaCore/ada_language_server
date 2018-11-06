@@ -35,6 +35,11 @@ package LSP.Ada_Contexts is
      (Self : in out Context;
       Root : LSP.Types.LSP_String);
 
+   not overriding procedure Load_Project
+     (Self     : in out Context;
+      File     : LSP.Types.LSP_String;
+      Scenario : LSP.Types.LSP_Any);
+
    not overriding procedure Load_Document
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentItem);
@@ -90,5 +95,10 @@ private
 
       Documents     : Document_Maps.Map;
    end record;
+
+   not overriding function Find_Project_File
+     (Self : in out Context;
+      File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
+   --  Find GPR file
 
 end LSP.Ada_Contexts;

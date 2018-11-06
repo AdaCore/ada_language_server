@@ -112,6 +112,20 @@ package body LSP.Types is
       Item := To_LSP_String (Stream.Read.Get);
    end Read_String;
 
+   -----------------
+   -- Starts_With --
+   -----------------
+
+   function Starts_With
+     (Text   : LSP_String;
+      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String) return Boolean
+   is
+      Value : constant String := To_UTF_8_String (Text);
+   begin
+      return Value'Length >= Prefix'Length
+        and then Value (1 .. Prefix'Length) = Prefix;
+   end Starts_With;
+
    -------------------
    -- To_LSP_String --
    -------------------
