@@ -17,7 +17,6 @@
 
 --  Temporary package, see note in corresponding spec file.
 
-with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Iterators; use Libadalang.Iterators;
 
 package body LSP.Ada_Cross_Reference_Services is
@@ -25,66 +24,30 @@ package body LSP.Ada_Cross_Reference_Services is
    function Find_All_References
      (Definition         : Defining_Name;
       Sources            : File_Array_Access;
-      Include_Definition : Boolean := False) return Ref_Vector
+      Include_Definition : Boolean := False) return Ada_Node_Array
    is
-
-      References : Ref_Vector;
-
+      Context : constant Analysis_Context := Definition.Unit.Context;
+      Source_Units : Analysis_Unit_Array (Sources'Range);
    begin
-
       if not Definition.Is_Null then
+         for N in Sources'Range loop
+            Source_Units (N) := Context.Get_From_File
+              (Sources (N).Display_Full_Name);
+         end loop;
 
          declare
-
-            Context : constant Analysis_Context := Definition.Unit.Context;
-
+            References : constant Ada_Node_Array :=
+              Definition.P_Find_All_References (Source_Units);
          begin
-
-            for N in Sources'Range loop
-
-               declare
-
-                  Unit : constant Analysis_Unit := Context.Get_From_File
-                    (Sources (N).Display_Full_Name);
-
-                  Match_Iterator : Traverse_Iterator'Class := Find
-                    (Unit.Root,
-                     Kind_Is (Ada_Identifier) and Text_Is (Definition.Text));
-
-                  Node            : Ada_Node;
-                  Node_Definition : Defining_Name;
-
-               begin
-
-                  while (Match_Iterator.Next (Node)) loop
-
-                     begin
-
-                        Node_Definition := Node.P_Xref;
-
-                        if Node_Definition = Definition and then
-                          (Include_Definition or else
-                           Node.As_Identifier /= Definition.F_Name)
-                        then
-                           References.Append (Node);
-                        end if;
-
-                     exception
-                        when Property_Error => null;
-                     end;
-
-                  end loop;
-
-               end;
-
-            end loop;
-
+            if Include_Definition then
+               return References & (1 => Definition.As_Ada_Node);
+            else
+               return References;
+            end if;
          end;
-
       end if;
 
-      return References;
-
+      return (1 .. 0 => <>);
    end Find_All_References;
 
 end LSP.Ada_Cross_Reference_Services;

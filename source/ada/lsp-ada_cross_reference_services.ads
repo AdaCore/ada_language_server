@@ -19,23 +19,15 @@
 --  to a definition in a set of source files. This functionality will later be
 --  integrated into Libadalang and this package will be removed.
 
-with Ada.Containers.Vectors;
-
 with GNATCOLL.VFS; use GNATCOLL.VFS;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
 package LSP.Ada_Cross_Reference_Services is
 
-   package Ref_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => Positive,
-      Element_Type => Ada_Node);
-
-   subtype Ref_Vector is Ref_Vectors.Vector;
-
    function Find_All_References
      (Definition         : Defining_Name;
       Sources            : File_Array_Access;
-      Include_Definition : Boolean := False) return Ref_Vector;
+      Include_Definition : Boolean := False) return Ada_Node_Array;
 
 end LSP.Ada_Cross_Reference_Services;
