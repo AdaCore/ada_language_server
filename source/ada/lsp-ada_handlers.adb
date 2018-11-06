@@ -65,10 +65,16 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
 
-      if not LSP.Types.Is_Empty (Value.rootUri) then
+      --  Turn URI into path by stripping schema from it
+      if LSP.Types.Starts_With (Value.rootUri, "file://") then
          Root := Delete (Value.rootUri, 1, 7);
-      elsif not LSP.Types.Is_Empty (Value.rootPath) then
-         Root := "file://" & Value.rootPath;
+      elsif LSP.Types.Starts_With (Value.rootUri, "file:") then
+         Root := Delete (Value.rootUri, 1, 5);
+      elsif not LSP.Types.Is_Empty (Value.rootUri) then
+         raise Constraint_Error with "Unsupported URI schema";
+      else
+         --  URI isn't provided, rollback to depricated rootPath
+         Root := Value.rootPath;
       end if;
 
       Self.Context.Initialize (Root);
