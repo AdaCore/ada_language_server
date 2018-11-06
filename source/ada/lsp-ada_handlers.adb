@@ -17,6 +17,8 @@
 
 with Ada.Strings.UTF_Encoding;
 
+with GNATCOLL.JSON;
+
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
@@ -257,5 +259,44 @@ package body LSP.Ada_Handlers is
    begin
       Document.Get_Symbols (Response.result);
    end Text_Document_Symbol_Request;
+
+   ----------------------------------------
+   -- Workspace_Did_Change_Configuration --
+   ----------------------------------------
+
+   overriding procedure Workspace_Did_Change_Configuration
+     (Self     : access Message_Handler;
+      Value    : LSP.Messages.DidChangeConfigurationParams)
+   is
+      use type GNATCOLL.JSON.JSON_Value_Type;
+
+      projectFile       : constant String := "projectFile";
+      scenarioVariables : constant String := "scenarioVariables";
+
+      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
+      File      : LSP.Types.LSP_String;
+      Variables : LSP.Types.LSP_Any;
+   begin
+      if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
+         if Ada.Has_Field (projectFile) then
+            File := LSP.Types.To_LSP_String (Ada.Get (projectFile).Get);
+
+            --  Drop uri scheme if present
+            if LSP.Types.Starts_With (File, "file://") then
+               LSP.Types.Delete (File, 1, 7);
+            elsif LSP.Types.Starts_With (File, "file:") then
+               LSP.Types.Delete (File, 1, 5);
+            end if;
+         end if;
+
+         if Ada.Has_Field (scenarioVariables) and then
+           Ada.Get (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
+         then
+            Variables := Ada.Get (scenarioVariables);
+         end if;
+      end if;
+
+      Self.Context.Load_Project (File, Variables);
+   end Workspace_Did_Change_Configuration;
 
 end LSP.Ada_Handlers;
