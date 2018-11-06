@@ -1,11 +1,12 @@
 TESTER=.obj/tester/tester-run
 TD=testsuite/ada_lsp
+GPRBUILD=gprbuild -j0
 
 all:
-	gprbuild -P gnat/lsp.gpr -p
-	gprbuild -P gnat/lsp_server.gpr -p
-	gprbuild -P gnat/spawn_tests.gpr -p
-	gprbuild -P gnat/tester.gpr -p
+	$(GPRBUILD) -P gnat/lsp.gpr -p
+	$(GPRBUILD) -P gnat/lsp_server.gpr -p
+	$(GPRBUILD) -P gnat/spawn_tests.gpr -p
+	$(GPRBUILD) -P gnat/tester.gpr -p
 	rm -rf integration/vscode/ada/server
 	ln -s ../../../.obj/server/lsp-ada_driver integration/vscode/ada/server
 
