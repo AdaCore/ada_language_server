@@ -122,8 +122,8 @@ package body LSP.Ada_Contexts is
    begin
       if Name /= "" then
          Result := GNATCOLL.VFS.Create_From_Base
-           (GNATCOLL.VFS.Filesystem_String (Root),
-            GNATCOLL.VFS.Filesystem_String (Name));
+           (Base_Dir  => GNATCOLL.VFS.Filesystem_String (Root),
+            Base_Name => GNATCOLL.VFS.Filesystem_String (Name));
 
          if Result.Is_Regular_File then
             return Result;
