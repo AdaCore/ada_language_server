@@ -55,6 +55,8 @@ package body LSP.Ada_Handlers is
    is
       Root : LSP.Types.LSP_String;
    begin
+      Response.result.capabilities.definitionProvider :=
+        LSP.Types.Optional_True;
       Response.result.capabilities.referencesProvider :=
         LSP.Types.Optional_True;
       Response.result.capabilities.documentSymbolProvider :=
