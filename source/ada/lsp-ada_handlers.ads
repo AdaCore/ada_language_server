@@ -78,4 +78,9 @@ private
      (Self     : access Message_Handler;
       Value    : LSP.Messages.DidChangeConfigurationParams);
 
+   overriding procedure Text_Document_Completion_Request
+    (Self     : access Message_Handler;
+     Value    : LSP.Messages.TextDocumentPositionParams;
+     Response : in out LSP.Messages.Completion_Response);
+
 end LSP.Ada_Handlers;

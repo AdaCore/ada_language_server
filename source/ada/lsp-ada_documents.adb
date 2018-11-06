@@ -38,6 +38,25 @@ package body LSP.Ada_Documents is
       return LSP.Messages.SymbolKind;
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
 
+   function To_Completion_Kind
+     (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
+   is
+     (case K is
+        when LSP.Messages.A_Function => LSP.Messages.A_Function,
+        when LSP.Messages.Field      => LSP.Messages.Field,
+        when LSP.Messages.Variable   => LSP.Messages.Variable,
+        when LSP.Messages.A_Package  => LSP.Messages.Module,
+        when LSP.Messages.Module     => LSP.Messages.Module,
+        when LSP.Messages.Class      => LSP.Messages.Class,
+        when LSP.Messages.Number     => LSP.Messages.Value,
+        when LSP.Messages.Enum       => LSP.Messages.Enum,
+        when LSP.Messages.String     => LSP.Messages.Value,
+        when LSP.Messages.A_Constant => LSP.Messages.Value,
+        when others                  => LSP.Messages.Reference);
+   --  Convert a SymbolKind to a CompletionItemKind.
+   --  TODO: It might be better to have a unified kind, and then convert to
+   --  specific kind types, but for the moment this is good enough.
+
    -------------------
    -- Apply_Changes --
    -------------------
@@ -320,4 +339,32 @@ package body LSP.Ada_Documents is
       return Result;
    end To_Span;
 
+
+   not overriding procedure Get_Completions_At
+     (Self     : Document;
+      Position : LSP.Messages.Position;
+      Result   : out LSP.Messages.CompletionList)
+   is
+
+      Node       : constant Libadalang.Analysis.Ada_Node :=
+        Self.Get_Node_At (Position);
+
+      use Libadalang.Analysis;
+      use LSP.Messages;
+      Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
+   begin
+      for BD of Raw_Completions loop
+         if not BD.Is_Null then
+            for DN of BD.P_Defining_Names loop
+               declare
+                  R : CompletionItem;
+               begin
+                  R.label := To_LSP_String (DN.Text);
+                  R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
+                  Result.items.Append (R);
+               end;
+            end loop;
+         end if;
+      end loop;
+   end Get_Completions_At;
 end LSP.Ada_Documents;
