@@ -69,21 +69,6 @@ package body LSP.Servers.Handlers is
    end DidCloseTextDocument;
 
    -------------------------
-   -- DidSaveTextDocument --
-   -------------------------
-
-   procedure DidSaveTextDocument
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access)
-   is
-      Params : LSP.Messages.DidSaveTextDocumentParams;
-   begin
-      LSP.Messages.DidSaveTextDocumentParams'Read (Stream, Params);
-
-      Handler.Text_Document_Did_Save (Params);
-   end DidSaveTextDocument;
-
-   -------------------------
    -- DidOpenTextDocument --
    -------------------------
 
@@ -97,6 +82,21 @@ package body LSP.Servers.Handlers is
 
       Handler.Text_Document_Did_Open (Params);
    end DidOpenTextDocument;
+
+   -------------------------
+   -- DidSaveTextDocument --
+   -------------------------
+
+   procedure DidSaveTextDocument
+    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+     Handler : not null LSP.Message_Handlers.Notification_Handler_Access)
+   is
+      Params : LSP.Messages.DidSaveTextDocumentParams;
+   begin
+      LSP.Messages.DidSaveTextDocumentParams'Read (Stream, Params);
+
+      Handler.Text_Document_Did_Save (Params);
+   end DidSaveTextDocument;
 
    --------------------
    -- Do_Code_Action --
