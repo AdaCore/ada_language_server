@@ -191,17 +191,6 @@ package body LSP.JSON_Streams is
       end case;
    end Read;
 
-   -----------
-   -- Write --
-   -----------
-
-   procedure Write
-    (Self : in out JSON_Stream'Class;
-     Item : GNATCOLL.JSON.JSON_Value) is
-   begin
-      Self.Update (Item);
-   end Write;
-
    -----------------------
    -- Set_JSON_Document --
    -----------------------
@@ -318,6 +307,17 @@ package body LSP.JSON_Streams is
 
       Self.Current.Modified := True;
    end Update;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+    (Self : in out JSON_Stream'Class;
+     Item : GNATCOLL.JSON.JSON_Value) is
+   begin
+      Self.Update (Item);
+   end Write;
 
    -----------
    -- Write --

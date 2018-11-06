@@ -59,79 +59,6 @@ package body LSP.Ada_Documents is
       end loop;
    end Apply_Changes;
 
-   ----------------
-   -- Get_Errors --
-   ----------------
-
-   not overriding procedure Get_Errors
-     (Self   : Document;
-      Errors : out LSP.Messages.Diagnostic_Vector)
-   is
-      Item : LSP.Messages.Diagnostic;
-   begin
-      Errors.Clear;
-
-      if Self.Unit.Has_Diagnostics then
-         for Error of Self.Unit.Diagnostics loop
-            Item.span := To_Span (Error.Sloc_Range);
-
-            Item.message := To_LSP_String
-              (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-                 (Error.Message));
-
-            Errors.Append (Item);
-         end loop;
-      end if;
-   end Get_Errors;
-
-   -----------------
-   -- Get_Symbols --
-   -----------------
-
-   not overriding procedure Get_Symbols
-     (Self   : Document;
-      Result : out LSP.Messages.SymbolInformation_Vector)
-   is
-      Element : Libadalang.Analysis.Ada_Node;
-      Item    : LSP.Messages.SymbolInformation;
-
-      Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
-        Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Defining_Name);
-      --  This object will be deallocated by Cursor's finalization
-
-      Cursor : Libadalang.Iterators.Traverse_Iterator'Class :=
-        Libadalang.Iterators.Find (Self.Unit.Root, Is_Defining_Name);
-
-   begin
-      Result.Clear;
-
-      while Cursor.Next (Element) loop
-         Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Symbol_Kind (Element);
-         Item.location :=
-           (uri  => Self.URI,
-            span => To_Span (Element.Sloc_Range));
-
-         Result.Append (Item);
-      end loop;
-   end Get_Symbols;
-
-   -----------------
-   -- Get_Node_At --
-   -----------------
-
-   not overriding function Get_Node_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Ada_Node
-   is
-      use Langkit_Support.Slocs;
-   begin
-      return Self.Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
-   end Get_Node_At;
-
    -----------------------
    -- Get_Definition_At --
    -----------------------
@@ -162,6 +89,47 @@ package body LSP.Ada_Documents is
       end if;
 
    end Get_Definition_At;
+
+   ----------------
+   -- Get_Errors --
+   ----------------
+
+   not overriding procedure Get_Errors
+     (Self   : Document;
+      Errors : out LSP.Messages.Diagnostic_Vector)
+   is
+      Item : LSP.Messages.Diagnostic;
+   begin
+      Errors.Clear;
+
+      if Self.Unit.Has_Diagnostics then
+         for Error of Self.Unit.Diagnostics loop
+            Item.span := To_Span (Error.Sloc_Range);
+
+            Item.message := To_LSP_String
+              (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
+                 (Error.Message));
+
+            Errors.Append (Item);
+         end loop;
+      end if;
+   end Get_Errors;
+
+   -----------------
+   -- Get_Node_At --
+   -----------------
+
+   not overriding function Get_Node_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Langkit_Support.Slocs;
+   begin
+      return Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
+   end Get_Node_At;
 
    ---------------------
    -- Get_Symbol_Kind --
@@ -260,6 +228,38 @@ package body LSP.Ada_Documents is
 
       return LSP.Messages.A_Function;
    end Get_Symbol_Kind;
+
+   -----------------
+   -- Get_Symbols --
+   -----------------
+
+   not overriding procedure Get_Symbols
+     (Self   : Document;
+      Result : out LSP.Messages.SymbolInformation_Vector)
+   is
+      Element : Libadalang.Analysis.Ada_Node;
+      Item    : LSP.Messages.SymbolInformation;
+
+      Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
+        Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Defining_Name);
+      --  This object will be deallocated by Cursor's finalization
+
+      Cursor : Libadalang.Iterators.Traverse_Iterator'Class :=
+        Libadalang.Iterators.Find (Self.Unit.Root, Is_Defining_Name);
+
+   begin
+      Result.Clear;
+
+      while Cursor.Next (Element) loop
+         Item.name := To_LSP_String (Element.Text);
+         Item.kind := Get_Symbol_Kind (Element);
+         Item.location :=
+           (uri  => Self.URI,
+            span => To_Span (Element.Sloc_Range));
+
+         Result.Append (Item);
+      end loop;
+   end Get_Symbols;
 
    ----------------
    -- Initialize --

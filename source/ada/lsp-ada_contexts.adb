@@ -31,6 +31,28 @@ package body LSP.Ada_Contexts is
       return Self.Documents (URI);
    end Get_Document;
 
+   --------------
+   -- Get_Unit --
+   --------------
+
+   overriding function Get_Unit
+     (Self    : Unit_Provider;
+      Context : Libadalang.Analysis.Analysis_Context'Class;
+      Name    : Wide_Wide_String;
+      Kind    : Libadalang.Common.Analysis_Unit_Kind;
+      Charset : String := "";
+      Reparse : Boolean := False)
+      return Libadalang.Analysis.Analysis_Unit'Class
+   is
+      File : constant String := Self.Get_Unit_Filename (Name, Kind);
+   begin
+      return Libadalang.Analysis.Get_From_File
+        (Context  => Context,
+         Filename => File,
+         Charset  => Charset,
+         Reparse  => Reparse);
+   end Get_Unit;
+
    -----------------------
    -- Get_Unit_Filename --
    -----------------------
@@ -65,28 +87,6 @@ package body LSP.Ada_Contexts is
         (GNATCOLL.VFS.Filesystem_String'
            (Self.Context.Project_Tree.Create (File).Full_Name));
    end Get_Unit_Filename;
-
-   --------------
-   -- Get_Unit --
-   --------------
-
-   overriding function Get_Unit
-     (Self    : Unit_Provider;
-      Context : Libadalang.Analysis.Analysis_Context'Class;
-      Name    : Wide_Wide_String;
-      Kind    : Libadalang.Common.Analysis_Unit_Kind;
-      Charset : String := "";
-      Reparse : Boolean := False)
-      return Libadalang.Analysis.Analysis_Unit'Class
-   is
-      File : constant String := Self.Get_Unit_Filename (Name, Kind);
-   begin
-      return Libadalang.Analysis.Get_From_File
-        (Context  => Context,
-         Filename => File,
-         Charset  => Charset,
-         Reparse  => Reparse);
-   end Get_Unit;
 
    ----------------
    -- Initialize --

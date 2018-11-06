@@ -173,21 +173,6 @@ package body LSP.Servers is
         (Response   : in out LSP.Messages.ResponseMessage'Class;
          Request_Id : LSP.Types.LSP_Number_Or_String);
 
-      procedure Send_Response
-        (Response   : in out LSP.Messages.ResponseMessage'Class;
-         Request_Id : LSP.Types.LSP_Number_Or_String)
-      is
-         Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-         Output     : Ada.Strings.Unbounded.Unbounded_String;
-      begin
-         Response.jsonrpc := +"2.0";
-         Response.id := Request_Id;
-         LSP.Messages.ResponseMessage'Class'Write
-           (Out_Stream'Access, Response);
-         Output := To_Unbounded_String (Out_Stream);
-         Write_JSON_RPC (Self.Stream, Output);
-      end Send_Response;
-
       --------------------------
       -- Send_Not_Initialized --
       --------------------------
@@ -204,6 +189,25 @@ package body LSP.Servers is
                        others  => <>));
          Send_Response (Response, Request_Id);
       end Send_Not_Initialized;
+
+      -------------------
+      -- Send_Response --
+      -------------------
+
+      procedure Send_Response
+        (Response   : in out LSP.Messages.ResponseMessage'Class;
+         Request_Id : LSP.Types.LSP_Number_Or_String)
+      is
+         Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+         Output     : Ada.Strings.Unbounded.Unbounded_String;
+      begin
+         Response.jsonrpc := +"2.0";
+         Response.id := Request_Id;
+         LSP.Messages.ResponseMessage'Class'Write
+           (Out_Stream'Access, Response);
+         Output := To_Unbounded_String (Out_Stream);
+         Write_JSON_RPC (Self.Stream, Output);
+      end Send_Response;
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (Stream.all);
