@@ -29,25 +29,21 @@ package body LSP.Ada_Cross_Reference_Services is
       Context : constant Analysis_Context := Definition.Unit.Context;
       Source_Units : Analysis_Unit_Array (Sources'Range);
    begin
-      if not Definition.Is_Null then
-         for N in Sources'Range loop
-            Source_Units (N) := Context.Get_From_File
-              (Sources (N).Display_Full_Name);
-         end loop;
+      for N in Sources'Range loop
+         Source_Units (N) := Context.Get_From_File
+           (Sources (N).Display_Full_Name);
+      end loop;
 
-         declare
-            References : constant Ada_Node_Array :=
-              Definition.P_Find_All_References (Source_Units);
-         begin
-            if Include_Definition then
-               return References & (1 => Definition.As_Ada_Node);
-            else
-               return References;
-            end if;
-         end;
-      end if;
-
-      return (1 .. 0 => <>);
+      declare
+         References : constant Ada_Node_Array :=
+           Definition.P_Find_All_References (Source_Units);
+      begin
+         if Include_Definition then
+            return References & (1 => Definition.As_Ada_Node);
+         else
+            return References;
+         end if;
+      end;
    end Find_All_References;
 
 end LSP.Ada_Cross_Reference_Services;

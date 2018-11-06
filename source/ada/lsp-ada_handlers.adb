@@ -196,7 +196,7 @@ package body LSP.Ada_Handlers is
       use Libadalang.Analysis;
 
    begin
-      if Definition = No_Defining_Name then
+      if Definition.Is_Null then
          return;
       end if;
 
