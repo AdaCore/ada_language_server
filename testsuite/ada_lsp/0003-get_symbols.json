@@ -1,0 +1,110 @@
+[
+    {
+        "start": {
+            "cmd": [".obj/server/lsp-ada_driver"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"file://.",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0,
+                      "result":{
+                          "capabilities":{
+                              "textDocumentSync":1,
+                              "documentSymbolProvider":true
+                          }
+                      }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "file:aaa.ads",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package Aaa is\n   type Enum (A, B);\n   Variable : Enum;\n   procedure Proc is null;\n   package Nested_Package is\n   end Nested_Package;\nend Aaa;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"docSymbol",
+                "method":"textDocument/documentSymbol",
+                "params":{
+                    "textDocument": {
+                        "uri": "file:aaa.ads"
+                    }
+                }
+            },
+            "wait":[{
+                "id": "docSymbol",
+                "result":[
+                    {"name":"Aaa",
+                     "kind":4,
+                     "location":{"range":{
+                         "start":{"line":0,"character":8},
+                         "end":{"line":0,"character":11}}}},
+                    {"name":"Variable",
+                     "kind":13,
+                     "location":{"range":{
+                         "start":{"line":2,"character":3},
+                         "end":{"line":2,"character":11}}}},
+                    {"name":"Proc",
+                     "kind":12,
+                     "location":{"range":{
+                         "start":{"line":3,"character":13},
+                         "end":{"line":3,"character":17}}}},
+                    {"name":"Nested_Package",
+                     "kind":4,
+                     "location":{"range":{
+                         "start":{"line":4,"character":11},
+                         "end":{"line":4,"character":25}}}}
+                ]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown" }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
