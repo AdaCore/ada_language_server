@@ -42,7 +42,6 @@ Property value - an object:
  * "request" - JSON object to send to LSP server as request.
  * "wait" - array of _wait_ objects to expect them in any order.
 
- Where _wait_ object is one of
-  * "response" - expected server ansver. Each propert of this object should
-                 be in server response
-  * "notification" - TBD
+Where _wait_ object is expected server answer. Each propert of this object
+should be in server response.
+

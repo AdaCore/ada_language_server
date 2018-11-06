@@ -66,8 +66,7 @@ package body Spawn.Processes.Monitor is
 
    Map : Process_Maps.Map;
 
-   Pipe_Flags : constant Interfaces.C.int :=
-     Posix.O_NONBLOCK + Posix.O_CLOEXEC;
+   Pipe_Flags : constant Interfaces.C.int := Posix.O_CLOEXEC;
 
    protected SIGCHLD is
       entry Wait;
@@ -287,10 +286,12 @@ package body Spawn.Processes.Monitor is
 
                if (fds (Index).revents and fds (Index).events) /= 0 then
                   IO_Callback (Process, Kind);
+                  fds (Index).revents :=
+                    fds (Index).revents - fds (Index).events;
                   fds (Index).events := 0;  --  Do nothing until users action
                end if;
 
-               if (fds (Index).revents and not fds (Index).events) /= 0 then
+               if fds (Index).revents /= 0 then
                   --  Some error happend
                   End_Callback (Process, Kind);
                   --  Don't listen this fd since error
@@ -616,6 +617,17 @@ package body Spawn.Processes.Monitor is
       --  Close unused ends
       if (for some X in std'Range =>
             Posix.close (std (X) (Child_Ends (X))) /= 0)
+      then
+         Self.Listener.Error_Occurred (GNAT.OS_Lib.Errno);
+         return;
+      end if;
+
+      --  Make stdio non-blocking
+      if (for some X in Standard_Pipe =>
+            Posix.fcntl
+              (std (X) (Parent_Ends (X)),
+               Posix.F_SETFL,
+               Posix.O_NONBLOCK) /= 0)
       then
          Self.Listener.Error_Occurred (GNAT.OS_Lib.Errno);
          return;
