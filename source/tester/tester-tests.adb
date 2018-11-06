@@ -375,7 +375,26 @@ package body Tester.Tests is
                         end if;
 
                      when GNATCOLL.JSON.JSON_Array_Type =>
-                        raise Program_Error with "Unimplemented";
+                        declare
+                           L : constant GNATCOLL.JSON.JSON_Array := Prop.Get;
+                           R : constant GNATCOLL.JSON.JSON_Array := Value.Get;
+                           Len : constant Natural := GNATCOLL.JSON.Length (L);
+                        begin
+                           if Len /= GNATCOLL.JSON.Length (R) then
+                              Success := False;
+                              return;
+                           end if;
+
+                           for J in 1 .. Len loop
+                              if not Match
+                                (GNATCOLL.JSON.Get (L, J),
+                                 GNATCOLL.JSON.Get (R, J))
+                              then
+                                 Success := False;
+                                 return;
+                              end if;
+                           end loop;
+                        end;
 
                      when others =>
                         if Prop /= Value then
