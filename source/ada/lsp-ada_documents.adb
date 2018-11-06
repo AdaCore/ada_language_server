@@ -33,9 +33,10 @@ package body LSP.Ada_Documents is
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
-   function Get_Symbol_Kind
-     (Node : Libadalang.Analysis.Ada_Node)
+   function Get_Decl_Kind
+     (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.SymbolKind;
+   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
 
    -------------------
    -- Apply_Changes --
@@ -124,120 +125,6 @@ package body LSP.Ada_Documents is
    end Get_Errors;
 
    -----------------
-   -- Get_Node_At --
-   -----------------
-
-   not overriding function Get_Node_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Ada_Node
-   is
-      use Langkit_Support.Slocs;
-   begin
-      return Self.Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
-   end Get_Node_At;
-
-   ---------------------
-   -- Get_Symbol_Kind --
-   ---------------------
-
-   function Get_Symbol_Kind
-     (Node : Libadalang.Analysis.Ada_Node)
-      return LSP.Messages.SymbolKind
-   is
-      use Libadalang.Common;
-
-      Element : Libadalang.Analysis.Ada_Node := Node.Parent;
-   begin
-      while not Element.Is_Null loop
-         case Element.Kind is
-            when Ada_Generic_Formal_Subp_Decl |
-                 Ada_Subtype_Decl |
-                 Ada_Abstract_Subp_Decl |
-                 Ada_Abstract_Formal_Subp_Decl |
-                 Ada_Concrete_Formal_Subp_Decl |
-                 Ada_Null_Subp_Decl |
-                 Ada_Subp_Decl |
-                 Ada_Subp_Renaming_Decl |
-                 Ada_Expr_Function |
-                 Ada_Subp_Body |
-                 Ada_Subp_Body_Stub |
-                 Ada_Entry_Body |
-                 Ada_Entry_Decl |
-                 Ada_Generic_Subp_Decl |
-                 Ada_Generic_Subp_Instantiation |
-                 Ada_Generic_Subp_Renaming_Decl =>
-               return LSP.Messages.A_Function;
-
-            when Ada_Component_Decl |
-                 Ada_Discriminant_Spec =>
-               return LSP.Messages.Field;
-
-            when Ada_Generic_Formal_Obj_Decl |
-                 Ada_Param_Spec |
-                 Ada_Exception_Handler |
-                 Ada_Object_Decl |
-                 Ada_Extended_Return_Stmt_Object_Decl |
-                 Ada_Single_Protected_Decl |
-                 Ada_Single_Task_Decl =>
-               return LSP.Messages.Variable;
-
-            when Ada_Generic_Formal_Package |
-                 Ada_Package_Decl |
-                 Ada_Generic_Package_Decl |
-                 Ada_Generic_Package_Instantiation |
-                 Ada_Generic_Package_Renaming_Decl |
-                 Ada_Package_Renaming_Decl =>
-               return LSP.Messages.A_Package;
-
-            when
-                 Ada_Package_Body_Stub |
-                 Ada_Protected_Body_Stub |
-                 Ada_Task_Body_Stub |
-                 Ada_Package_Body |
-                 Ada_Protected_Body |
-                 Ada_Task_Body =>
-               return LSP.Messages.Module;
-
-            when Ada_Generic_Formal_Type_Decl |
-                 Ada_Classwide_Type_Decl |
-                 Ada_Incomplete_Type_Decl |
-                 Ada_Incomplete_Tagged_Type_Decl |
-                 Ada_Protected_Type_Decl |
-                 Ada_Task_Type_Decl |
-                 Ada_Type_Decl |
-                 Ada_Anonymous_Type_Decl |
-                 Ada_Synth_Anonymous_Type_Decl =>
-               return LSP.Messages.Class;
-
-            when Ada_Entry_Index_Spec |
-                 Ada_Number_Decl =>
-               return LSP.Messages.Number;
-
-            when Ada_Enum_Literal_Decl =>
-               return LSP.Messages.Enum;
-
-            when Ada_Exception_Decl =>
-               return LSP.Messages.String;
-
-            when Ada_For_Loop_Var_Decl |
-                 Ada_Label_Decl |
-                 Ada_Named_Stmt_Decl =>
-               return LSP.Messages.A_Constant;
-
-            when others
-               => null;
-         end case;
-
-         Element := Element.Parent;
-      end loop;
-
-      return LSP.Messages.A_Function;
-   end Get_Symbol_Kind;
-
-   -----------------
    -- Get_Symbols --
    -----------------
 
@@ -260,7 +147,7 @@ package body LSP.Ada_Documents is
 
       while Cursor.Next (Element) loop
          Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Symbol_Kind (Element);
+         Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
          Item.location :=
            (uri  => Self.URI,
             span => To_Span (Element.Sloc_Range));
@@ -268,6 +155,115 @@ package body LSP.Ada_Documents is
          Result.Append (Item);
       end loop;
    end Get_Symbols;
+
+   -----------------
+   -- Get_Node_At --
+   -----------------
+
+   not overriding function Get_Node_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Langkit_Support.Slocs;
+   begin
+      return Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
+   end Get_Node_At;
+
+   -------------------
+   -- Get_Decl_Kind --
+   -------------------
+
+   function Get_Decl_Kind
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.SymbolKind
+   is
+      use Libadalang.Common;
+
+   begin
+      case Node.Kind is
+         when Ada_Generic_Formal_Subp_Decl |
+              Ada_Subtype_Decl |
+              Ada_Abstract_Subp_Decl |
+              Ada_Abstract_Formal_Subp_Decl |
+              Ada_Concrete_Formal_Subp_Decl |
+              Ada_Null_Subp_Decl |
+              Ada_Subp_Decl |
+              Ada_Subp_Renaming_Decl |
+              Ada_Expr_Function |
+              Ada_Subp_Body |
+              Ada_Subp_Body_Stub |
+              Ada_Entry_Body |
+              Ada_Entry_Decl |
+              Ada_Generic_Subp_Decl |
+              Ada_Generic_Subp_Instantiation |
+              Ada_Generic_Subp_Renaming_Decl =>
+            return LSP.Messages.A_Function;
+
+         when Ada_Component_Decl |
+              Ada_Discriminant_Spec =>
+            return LSP.Messages.Field;
+
+         when Ada_Generic_Formal_Obj_Decl |
+              Ada_Param_Spec |
+              Ada_Exception_Handler |
+              Ada_Object_Decl |
+              Ada_Extended_Return_Stmt_Object_Decl |
+              Ada_Single_Protected_Decl |
+              Ada_Single_Task_Decl =>
+            return LSP.Messages.Variable;
+
+         when Ada_Generic_Formal_Package |
+              Ada_Package_Decl |
+              Ada_Generic_Package_Decl |
+              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Renaming_Decl |
+              Ada_Package_Renaming_Decl =>
+            return LSP.Messages.A_Package;
+
+         when
+              Ada_Package_Body_Stub |
+              Ada_Protected_Body_Stub |
+              Ada_Task_Body_Stub |
+              Ada_Package_Body |
+              Ada_Protected_Body |
+              Ada_Task_Body =>
+            return LSP.Messages.Module;
+
+         when Ada_Generic_Formal_Type_Decl |
+              Ada_Classwide_Type_Decl |
+              Ada_Incomplete_Type_Decl |
+              Ada_Incomplete_Tagged_Type_Decl |
+              Ada_Protected_Type_Decl |
+              Ada_Task_Type_Decl |
+              Ada_Type_Decl |
+              Ada_Anonymous_Type_Decl |
+              Ada_Synth_Anonymous_Type_Decl =>
+            return LSP.Messages.Class;
+
+         when Ada_Entry_Index_Spec |
+              Ada_Number_Decl =>
+            return LSP.Messages.Number;
+
+         when Ada_Enum_Literal_Decl =>
+            return LSP.Messages.Enum;
+
+         when Ada_Exception_Decl =>
+            return LSP.Messages.String;
+
+         when Ada_For_Loop_Var_Decl |
+              Ada_Label_Decl |
+              Ada_Named_Stmt_Decl =>
+            return LSP.Messages.A_Constant;
+
+         when others
+            => null;
+      end case;
+
+      return LSP.Messages.A_Function;
+   end Get_Decl_Kind;
 
    ----------------
    -- Initialize --
