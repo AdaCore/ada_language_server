@@ -21,13 +21,12 @@ with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
 
-with LSP.Ada_Cross_Reference_Services;
---  Temporary dependency, see note in package's spec file
-
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
+
+with GNATCOLL.VFS;
 
 package body LSP.Ada_Handlers is
 
@@ -186,63 +185,85 @@ package body LSP.Ada_Handlers is
       Value    : LSP.Messages.ReferenceParams;
       Response : in out LSP.Messages.Location_Response)
    is
+      use Libadalang.Analysis;
+
+      function Find_All_References
+        (Definition         : Defining_Name;
+         Sources            : GNATCOLL.VFS.File_Array_Access;
+         Include_Definition : Boolean := False)
+      return Ada_Node_Array;
+      --  Helper function, finds all references of a given defining name in a
+      --  given list of units.
+
+      function Find_All_References
+        (Definition         : Defining_Name;
+         Sources            : GNATCOLL.VFS.File_Array_Access;
+         Include_Definition : Boolean := False)
+      return Ada_Node_Array
+      is
+         Context : constant Analysis_Context := Definition.Unit.Context;
+         Source_Units : Analysis_Unit_Array (Sources'Range);
+      begin
+         for N in Sources'Range loop
+            Source_Units (N) := Context.Get_From_File
+              (Sources (N).Display_Full_Name);
+         end loop;
+
+         declare
+            References : constant Ada_Node_Array :=
+              Definition.P_Find_All_References (Source_Units);
+         begin
+            if Include_Definition then
+               return References & (1 => Definition.As_Ada_Node);
+            else
+               return References;
+            end if;
+         end;
+      end Find_All_References;
 
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Definition : constant Libadalang.Analysis.Defining_Name :=
+      Definition : constant Defining_Name :=
         Document.Get_Definition_At (Value.position);
 
-      References : LSP.Ada_Cross_Reference_Services.Ref_Vector;
-
-      use Libadalang.Analysis;
-
    begin
-
-      if Definition = No_Defining_Name then
+      if Definition.Is_Null then
          return;
       end if;
 
-      References := LSP.Ada_Cross_Reference_Services.Find_All_References
-        (Definition         => Definition,
-         Sources            => Self.Context.Get_Source_Files,
-         Include_Definition => Value.context.includeDeclaration);
-      --  TODO: This call to `Find_All_References` should later be replaced by
-      --  a call to a subprogram in Libadalang with the same functionality
+      declare
+         References : constant Ada_Node_Array := Find_All_References
+             (Definition         => Definition,
+              Sources            => Self.Context.Get_Source_Files,
+              Include_Definition => Value.context.includeDeclaration);
+      begin
+         for Node of References loop
+            declare
+               use Libadalang.Common;
 
-      for N in 1 .. Integer (References.Length) loop
+               Start_Sloc_Range :
+               constant Langkit_Support.Slocs.Source_Location_Range :=
+                 Sloc_Range (Data (Node.Token_Start));
+               End_Sloc_Range   :
+               constant Langkit_Support.Slocs.Source_Location_Range :=
+                 Sloc_Range (Data (Node.Token_End));
 
-         declare
+               First_Position : constant LSP.Messages.Position :=
+                 (Line_Number (Start_Sloc_Range.Start_Line) - 1,
+                  UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
+               Last_Position  : constant LSP.Messages.Position :=
+                 (Line_Number (End_Sloc_Range.End_Line) - 1,
+                  UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
-            Node : constant Libadalang.Analysis.Ada_Node :=
-              References.Element (N);
-
-            use Libadalang.Common;
-
-            Start_Sloc_Range :
-              constant Langkit_Support.Slocs.Source_Location_Range :=
-                Sloc_Range (Data (Node.Token_Start));
-            End_Sloc_Range   :
-              constant Langkit_Support.Slocs.Source_Location_Range :=
-                Sloc_Range (Data (Node.Token_End));
-
-            First_Position : constant LSP.Messages.Position :=
-              (Line_Number (Start_Sloc_Range.Start_Line) - 1,
-               UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
-            Last_Position  : constant LSP.Messages.Position :=
-              (Line_Number (End_Sloc_Range.End_Line) - 1,
-               UTF_16_Index (End_Sloc_Range.End_Column) - 1);
-
-            Location : constant LSP.Messages.Location :=
-              (uri  => +("file://" & Node.Unit.Get_Filename),
-               span => LSP.Messages.Span'(First_Position, Last_Position));
-
-         begin
-            Response.result.Append (Location);
-         end;
-
-      end loop;
-
+               Location : constant LSP.Messages.Location :=
+                 (uri  => +("file://" & Node.Unit.Get_Filename),
+                  span => LSP.Messages.Span'(First_Position, Last_Position));
+            begin
+               Response.result.Append (Location);
+            end;
+         end loop;
+      end;
    end Text_Document_References_Request;
 
    ----------------------------------

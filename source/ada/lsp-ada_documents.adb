@@ -63,6 +63,8 @@ package body LSP.Ada_Documents is
    -- Get_Definition_At --
    -----------------------
 
+
+
    not overriding function Get_Definition_At
      (Self     : Document;
       Position : LSP.Messages.Position)
@@ -71,21 +73,27 @@ package body LSP.Ada_Documents is
 
       use Libadalang.Common;
 
-      Node : Libadalang.Analysis.Ada_Node := Self.Get_Node_At (Position);
+      Node : constant Libadalang.Analysis.Ada_Node :=
+        Self.Get_Node_At (Position);
 
    begin
 
-      while not Node.Is_Null and
-        Node.Kind /= Ada_Defining_Name and
-        Node.Kind /= Ada_Compilation_Unit
-      loop
-         Node := Node.Parent;
-      end loop;
-
-      if Node.Kind = Ada_Compilation_Unit then
-         return Libadalang.Analysis.No_Defining_Name;
+      if not Node.Is_Null and Node.Kind in Ada_Name then
+         declare
+            Name : constant Libadalang.Analysis.Name := Node.As_Name;
+         begin
+            if Name.P_Is_Defining then
+               --  If this name is part of a definition, return that exact
+               --  definition.
+               return Name.P_Enclosing_Defining_Name;
+            else
+               --  Else return the name of the definition which is referred by
+               --  this name.
+               return Name.P_Xref;
+            end if;
+         end;
       else
-         return Node.As_Defining_Name;
+         return Libadalang.Analysis.No_Defining_Name;
       end if;
 
    end Get_Definition_At;
