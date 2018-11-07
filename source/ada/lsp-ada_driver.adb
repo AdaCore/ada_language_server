@@ -15,6 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.Traces;
+with GNATCOLL.VFS;
+
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -28,7 +31,28 @@ procedure LSP.Ada_Driver is
    Context : aliased LSP.Ada_Contexts.Context;
    Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Context'Access);
+
+   use GNATCOLL.VFS, GNATCOLL.Traces;
+
+   ALS_Dir : constant Virtual_File := Get_Home_Directory / ".als";
+
 begin
+
+   --  If we can find the .als directory in the home directory, then we want
+   --  to init the traces.
+
+   if ALS_Dir.Is_Directory then
+      --  Search for custom traces config in traces.cfg
+      Parse_Config_File
+        (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
+
+      --  For the moment, use a unique log file with append mode
+      Set_Default_Stream
+        (">>"
+         & (+Virtual_File'(ALS_Dir / "als.log").Full_Name)
+        & ":buffer_size=0");
+   end if;
+
    Server.Initialize
      (Stream'Unchecked_Access,
       Handler'Unchecked_Access,

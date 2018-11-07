@@ -15,6 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.Traces; use GNATCOLL.Traces;
+
 package LSP is
-   pragma Pure;
+   Server_Trace : Trace_Handle := Create ("ALS", From_Config);
+   --  Main trace for the LSP.
 end LSP;
