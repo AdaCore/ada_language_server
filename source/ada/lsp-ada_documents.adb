@@ -339,32 +339,54 @@ package body LSP.Ada_Documents is
       return Result;
    end To_Span;
 
+   ------------------------
+   -- Get_Completions_At --
+   ------------------------
 
    not overriding procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList)
    is
-
-      Node       : constant Libadalang.Analysis.Ada_Node :=
-        Self.Get_Node_At (Position);
-
+      use LSP.Types;
       use Libadalang.Analysis;
       use LSP.Messages;
-      Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
+
+      Real_Pos : constant LSP.Messages.Position :=
+        (Position.line,
+         UTF_16_Index'Max (0, Position.character - 1));
+      --  Compute the position we want for completion, which is one character
+      --  before the cursor.
+
+      Node       : constant Libadalang.Analysis.Ada_Node :=
+        Self.Get_Node_At (Real_Pos);
+      --  Get the corresponding LAL node
+
    begin
-      for BD of Raw_Completions loop
-         if not BD.Is_Null then
-            for DN of BD.P_Defining_Names loop
-               declare
-                  R : CompletionItem;
-               begin
-                  R.label := To_LSP_String (DN.Text);
-                  R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
-                  Result.items.Append (R);
-               end;
-            end loop;
-         end if;
-      end loop;
+      Server_Trace.Trace
+        ("Getting completions, Pos = ("
+         & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
+         & Image (Node));
+
+      declare
+         Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
+      begin
+         Server_Trace.Trace
+           ("Number of raw completions : " & Raw_Completions'Length'Image);
+         for BD of Raw_Completions loop
+            if not BD.Is_Null then
+               for DN of BD.P_Defining_Names loop
+                  declare
+                     R : CompletionItem;
+                  begin
+                     R.label := To_LSP_String (DN.Text);
+                     R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
+                     Result.items.Append (R);
+                  end;
+               end loop;
+            end if;
+         end loop;
+      end;
    end Get_Completions_At;
+
 end LSP.Ada_Documents;
