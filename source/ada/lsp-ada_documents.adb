@@ -379,7 +379,7 @@ package body LSP.Ada_Documents is
                   declare
                      R : CompletionItem;
                   begin
-                     R.label := To_LSP_String (DN.Text);
+                     R.label := To_LSP_String (DN.P_Relative_Name.Text);
                      R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
                      Result.items.Append (R);
                   end;
