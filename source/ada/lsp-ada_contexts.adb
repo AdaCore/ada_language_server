@@ -16,11 +16,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Directories;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.UTF_Encoding;
 with Ada.Text_IO;
 
 with GNATCOLL.JSON;
 with GNAT.OS_Lib;
+
+with Libadalang.Project_Provider;
 
 package body LSP.Ada_Contexts is
 
@@ -180,63 +182,6 @@ package body LSP.Ada_Contexts is
       return Self.Documents (URI);
    end Get_Document;
 
-   --------------
-   -- Get_Unit --
-   --------------
-
-   overriding function Get_Unit
-     (Self    : Unit_Provider;
-      Context : Libadalang.Analysis.Analysis_Context'Class;
-      Name    : Wide_Wide_String;
-      Kind    : Libadalang.Common.Analysis_Unit_Kind;
-      Charset : String := "";
-      Reparse : Boolean := False)
-      return Libadalang.Analysis.Analysis_Unit'Class
-   is
-      File : constant String := Self.Get_Unit_Filename (Name, Kind);
-   begin
-      return Libadalang.Analysis.Get_From_File
-        (Context  => Context,
-         Filename => File,
-         Charset  => Charset,
-         Reparse  => Reparse);
-   end Get_Unit;
-
-   -----------------------
-   -- Get_Unit_Filename --
-   -----------------------
-
-   overriding function Get_Unit_Filename
-     (Self : Unit_Provider;
-      Name : Wide_Wide_String;
-      Kind : Libadalang.Common.Analysis_Unit_Kind)
-      return String
-   is
-      Map : constant array (Libadalang.Common.Analysis_Unit_Kind) of
-        GNATCOLL.Projects.Unit_Parts :=
-          (Libadalang.Common.Unit_Specification =>
-             GNATCOLL.Projects.Unit_Spec,
-           Libadalang.Common.Unit_Body =>
-             GNATCOLL.Projects.Unit_Body);
-
-      Unit_Name : constant String :=
-        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Name);
-
-      File : constant GNATCOLL.VFS.Filesystem_String :=
-        Self.Context.Project_Tree.Root_Project.File_From_Unit
-          (Unit_Name => Unit_Name,
-           Part      => Map (Kind),
-           Language  => "Ada");
-   begin
-      if File'Length = 0 then
-         return "";
-      end if;
-
-      return String
-        (GNATCOLL.VFS.Filesystem_String'
-           (Self.Context.Project_Tree.Create (File).Full_Name));
-   end Get_Unit_Filename;
-
    ----------------
    -- Initialize --
    ----------------
@@ -274,6 +219,8 @@ package body LSP.Ada_Contexts is
    is
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
 
+      Project_Env   : GNATCOLL.Projects.Project_Environment_Access;
+
       ------------------
       -- Add_Variable --
       ------------------
@@ -284,25 +231,34 @@ package body LSP.Ada_Contexts is
          use type GNATCOLL.JSON.JSON_Value_Type;
       begin
          if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-            Self.Project_Env.Change_Environment (Name, Value.Get);
+            Project_Env.Change_Environment (Name, Value.Get);
          end if;
       end Add_Variable;
 
       GPR : constant GNATCOLL.VFS.Virtual_File :=
         Self.Find_Project_File (File);
+
    begin
-      GNATCOLL.Projects.Free (Self.Project_Env);
-      GNATCOLL.Projects.Initialize (Self.Project_Env);
+      --  Here, we overwrite previous content of Self.Project_Tree without
+      --  freeing. That's OK because the Unit provider owns it and will free
+      --  the old project tree when we renew the provider.
+
+      Self.Project_Tree := new GNATCOLL.Projects.Project_Tree;
+
+      Project_Env := new GNATCOLL.Projects.Project_Environment;
 
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
       end if;
 
-      Self.Project_Tree.Load (GPR, Self.Project_Env);
+      Self.Project_Tree.Load (GPR, Project_Env);
+
+      Self.Unit_Provider :=
+        Libadalang.Project_Provider.Create_Project_Unit_Provider_Reference
+          (Self.Project_Tree, Project_Env);
 
       Self.LAL_Context := Libadalang.Analysis.Create_Context
-        (Unit_Provider => Libadalang.Analysis.Create_Unit_Provider_Reference
-          (Self.Unit_Provider),
+        (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
          Charset       => "utf-8");
    end Load_Project;
@@ -314,8 +270,7 @@ package body LSP.Ada_Contexts is
    procedure Reload (Self : in out Context) is
    begin
       Self.LAL_Context := Libadalang.Analysis.Create_Context
-        (Unit_Provider => Libadalang.Analysis.Create_Unit_Provider_Reference
-          (Self.Unit_Provider),
+        (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
          Charset       => "utf-8");
    end Reload;
