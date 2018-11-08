@@ -17,6 +17,7 @@
 
 with GNAT.Sockets;
 with Interfaces.C;
+with Ada.IO_Exceptions;
 with Ada.Unchecked_Conversion;
 
 package body LSP.Stdio_Streams is
@@ -62,7 +63,7 @@ package body LSP.Stdio_Streams is
       Last := Item'First + Ada.Streams.Stream_Element_Offset (Done) - 1;
 
       if Last < Item'First then
-         raise Constraint_Error with "end of file";
+         raise Ada.IO_Exceptions.End_Error with "end of file";
       end if;
    end Read;
 
