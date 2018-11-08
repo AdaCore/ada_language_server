@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
+with Ada.Command_Line;
 with Ada.Streams;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
@@ -57,6 +58,7 @@ package body Tester.Tests is
       pragma Unreferenced (Self);
    begin
       Ada.Text_IO.Put_Line ("Test failed:" & Message);
+      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    end Do_Fail;
 
    -------------
