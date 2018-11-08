@@ -184,8 +184,13 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
    is
+      use Libadalang.Analysis;
       use Langkit_Support.Slocs;
    begin
+      if Self.Unit.Root = No_Ada_Node then
+         return No_Ada_Node;
+      end if;
+
       return Self.Unit.Root.Lookup
         ((Line   => Line_Number (Position.line) + 1,
           Column => Column_Number (Position.character) + 1));
