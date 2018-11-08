@@ -20,6 +20,7 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Text_IO;
 
 with GNATCOLL.JSON;
+with GNAT.OS_Lib;
 
 package body LSP.Ada_Contexts is
 
@@ -31,31 +32,46 @@ package body LSP.Ada_Contexts is
      (Self : in out Context;
       File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File
    is
+      use GNATCOLL.VFS;
+
       procedure Search_GPR_File
         (Root   : Ada.Strings.UTF_Encoding.UTF_8_String;
          Result : out GNATCOLL.VFS.Virtual_File);
       --  Look for suitable GPR file under given directory
 
-      procedure Create_Default
-        (Root   : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result : out GNATCOLL.VFS.Virtual_File);
-      --  Create default.gpr project file
+      function Create_Default return GNATCOLL.VFS.Virtual_File;
+      --  Create default project file in temp directory
+
+      Root : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        LSP.Types.To_UTF_8_String (Self.Root);
 
       --------------------
       -- Create_Default --
       --------------------
 
-      procedure Create_Default
-        (Root   : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result : out GNATCOLL.VFS.Virtual_File)
+      function Create_Default return GNATCOLL.VFS.Virtual_File
       is
+         use GNAT.OS_Lib;
+
          Output : Ada.Text_IO.File_Type;
+         Pid_Image : constant String :=
+           Pid_To_Integer (Current_Process_Id)'Image;
+
+         Prj_Name  : constant String :=
+           "ALS_default_"
+           & Pid_Image (Pid_Image'First + 1 .. Pid_Image'Last);
+
          Name   : constant String :=
-           Ada.Directories.Compose (Root, "default", "gpr");
+           Ada.Directories.Compose
+             (+GNATCOLL.VFS.Get_Tmp_Directory.Full_Name, Prj_Name, "gpr");
+         --  Create a project file in the temp directory
+
       begin
+
          Ada.Text_IO.Create (Output, Ada.Text_IO.Out_File, Name);
-         Ada.Text_IO.Put_Line (Output, "project Default is");
-         Ada.Text_IO.Put_Line (Output, "   for Source_Dirs use (""./**"");");
+         Ada.Text_IO.Put_Line (Output, "project " & Prj_Name & " is");
+         Ada.Text_IO.Put_Line
+           (Output, "   for Source_Dirs use (""" & Root & "/**"");");
          Ada.Text_IO.Put_Line (Output, "   package Compiler is");
          Ada.Text_IO.Put_Line (Output, "      for Switches (""ada"") use (");
          Ada.Text_IO.Put_Line (Output, "        ""-gnatW8"",");
@@ -63,10 +79,10 @@ package body LSP.Ada_Contexts is
          Ada.Text_IO.Put_Line (Output, "        ""-gnaty""");
          Ada.Text_IO.Put_Line (Output, "      );");
          Ada.Text_IO.Put_Line (Output, "   end Compiler;");
-         Ada.Text_IO.Put_Line (Output, "end Default;");
+         Ada.Text_IO.Put_Line (Output, "end " & Prj_Name & ";");
          Ada.Text_IO.Close (Output);
 
-         Result := GNATCOLL.VFS.Create
+         return GNATCOLL.VFS.Create
            (GNATCOLL.VFS.Filesystem_String (Ada.Directories.Full_Name (Name)));
       end Create_Default;
 
@@ -112,15 +128,15 @@ package body LSP.Ada_Contexts is
          Ada.Directories.Search (Root, "", Dirs_Only, On_Dir'Access);
       end Search_GPR_File;
 
-      Root : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        LSP.Types.To_UTF_8_String (Self.Root);
-
       Name : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         LSP.Types.To_UTF_8_String (File);
 
       Result : GNATCOLL.VFS.Virtual_File;
    begin
+      --  If Name was provided, search for the corresponding project
       if Name /= "" then
+
+         --  First, search the project file relatively to the root
          Result := GNATCOLL.VFS.Create_From_Base
            (Base_Dir  => GNATCOLL.VFS.Filesystem_String (Root),
             Base_Name => GNATCOLL.VFS.Filesystem_String (Name));
@@ -128,15 +144,27 @@ package body LSP.Ada_Contexts is
          if Result.Is_Regular_File then
             return Result;
          end if;
-      end if;
 
-      Search_GPR_File (Root, Result);
+         --  If not found, perform a comprehensive search everywhere below
+         --  root.
+         Search_GPR_File (Root, Result);
+      end if;
 
       if Result.Is_Regular_File then
          return Result;
       end if;
 
-      Create_Default (Root, Result);
+      Server_Trace.Trace
+        ("No project file provided or found: Creating one by default");
+
+      --  At this stage, either a project file name was provided but not found,
+      --  either it wasn't provided at all. In any case, create a default
+      --  project.
+      Result := Create_Default;
+
+      Server_Trace.Trace
+        ("Using project file " & (+Result.Full_Name.all));
+
       return Result;
    end Find_Project_File;
 
