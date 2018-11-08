@@ -307,6 +307,19 @@ package body LSP.Ada_Contexts is
          Charset       => "utf-8");
    end Load_Project;
 
+   ------------
+   -- Reload --
+   ------------
+
+   procedure Reload (Self : in out Context) is
+   begin
+      Self.LAL_Context := Libadalang.Analysis.Create_Context
+        (Unit_Provider => Libadalang.Analysis.Create_Unit_Provider_Reference
+          (Self.Unit_Provider),
+         With_Trivia   => True,
+         Charset       => "utf-8");
+   end Reload;
+
    ---------------------
    -- Unload_Document --
    ---------------------
