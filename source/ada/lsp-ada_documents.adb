@@ -39,6 +39,9 @@ package body LSP.Ada_Documents is
       return LSP.Messages.SymbolKind;
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
 
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+
    function To_Completion_Kind
      (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
    is
@@ -210,7 +213,6 @@ package body LSP.Ada_Documents is
    begin
       case Node.Kind is
          when Ada_Generic_Formal_Subp_Decl |
-              Ada_Subtype_Decl |
               Ada_Abstract_Subp_Decl |
               Ada_Abstract_Formal_Subp_Decl |
               Ada_Concrete_Formal_Subp_Decl |
@@ -264,6 +266,7 @@ package body LSP.Ada_Documents is
               Ada_Protected_Type_Decl |
               Ada_Task_Type_Decl |
               Ada_Type_Decl |
+              Ada_Subtype_Decl |
               Ada_Anonymous_Type_Decl |
               Ada_Synth_Anonymous_Type_Decl =>
             return LSP.Messages.Class;
@@ -345,6 +348,54 @@ package body LSP.Ada_Documents is
       return Result;
    end To_Span;
 
+   --------------------
+   -- Compute_Detail --
+   --------------------
+
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+      use LSP.Messages;
+      use LSP.Types;
+
+      Ret : LSP_String;
+   begin
+      case Get_Decl_Kind (BD) is
+         when A_Function =>
+            Append (Ret, "(subprogram) ");
+
+         when Variable =>
+            case BD.Kind is
+               when Ada_Param_Spec =>
+                  Append (Ret, "(param) ");
+               when others =>
+                  Append (Ret, "(var) ");
+            end case;
+
+            declare
+               TE : constant Type_Expr := BD.As_Basic_Decl.P_Type_Expression;
+            begin
+               if not TE.Is_Null then
+                  Append
+                    (Ret,
+                     To_LSP_String (TE.Text));
+               end if;
+            end;
+         when LSP.Messages.Class =>
+
+            Append (Ret, "(type) ");
+
+         when LSP.Messages.A_Package =>
+            Append (Ret, "(package) ");
+
+         when others => null;
+      end case;
+
+      return Ret;
+   end Compute_Completion_Detail;
+
    ------------------------
    -- Get_Completions_At --
    ------------------------
@@ -387,6 +438,7 @@ package body LSP.Ada_Documents is
                   begin
                      R.label := To_LSP_String (DN.P_Relative_Name.Text);
                      R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
+                     R.detail := (True, Compute_Completion_Detail (BD));
                      Result.items.Append (R);
                   end;
                end loop;
