@@ -64,6 +64,10 @@ package body LSP.Ada_Handlers is
         LSP.Types.Optional_True;
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
+      Response.result.capabilities.completionProvider :=
+        (True,
+         (resolveProvider => (True, False),
+          triggerCharacters => Empty_Vector & To_LSP_String (".")));
 
       --  Turn URI into path by stripping schema from it
       if LSP.Types.Starts_With (Value.rootUri, "file://") then
@@ -327,5 +331,20 @@ package body LSP.Ada_Handlers is
 
       Self.Context.Load_Project (File, Variables);
    end Workspace_Did_Change_Configuration;
+
+   --------------------------------------
+   -- Text_Document_Completion_Request --
+   --------------------------------------
+
+   overriding procedure Text_Document_Completion_Request
+    (Self     : access Message_Handler;
+     Value    : LSP.Messages.TextDocumentPositionParams;
+     Response : in out LSP.Messages.Completion_Response)
+   is
+      Document   : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+   begin
+      Document.Get_Completions_At (Value.position, Response.result);
+   end Text_Document_Completion_Request;
 
 end LSP.Ada_Handlers;

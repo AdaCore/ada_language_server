@@ -33,9 +33,29 @@ package body LSP.Ada_Documents is
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
-   function Get_Symbol_Kind
-     (Node : Libadalang.Analysis.Ada_Node)
+   function Get_Decl_Kind
+     (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.SymbolKind;
+   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+
+   function To_Completion_Kind
+     (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
+   is
+     (case K is
+        when LSP.Messages.A_Function => LSP.Messages.A_Function,
+        when LSP.Messages.Field      => LSP.Messages.Field,
+        when LSP.Messages.Variable   => LSP.Messages.Variable,
+        when LSP.Messages.A_Package  => LSP.Messages.Module,
+        when LSP.Messages.Module     => LSP.Messages.Module,
+        when LSP.Messages.Class      => LSP.Messages.Class,
+        when LSP.Messages.Number     => LSP.Messages.Value,
+        when LSP.Messages.Enum       => LSP.Messages.Enum,
+        when LSP.Messages.String     => LSP.Messages.Value,
+        when LSP.Messages.A_Constant => LSP.Messages.Value,
+        when others                  => LSP.Messages.Reference);
+   --  Convert a SymbolKind to a CompletionItemKind.
+   --  TODO: It might be better to have a unified kind, and then convert to
+   --  specific kind types, but for the moment this is good enough.
 
    -------------------
    -- Apply_Changes --
@@ -124,120 +144,6 @@ package body LSP.Ada_Documents is
    end Get_Errors;
 
    -----------------
-   -- Get_Node_At --
-   -----------------
-
-   not overriding function Get_Node_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Ada_Node
-   is
-      use Langkit_Support.Slocs;
-   begin
-      return Self.Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
-   end Get_Node_At;
-
-   ---------------------
-   -- Get_Symbol_Kind --
-   ---------------------
-
-   function Get_Symbol_Kind
-     (Node : Libadalang.Analysis.Ada_Node)
-      return LSP.Messages.SymbolKind
-   is
-      use Libadalang.Common;
-
-      Element : Libadalang.Analysis.Ada_Node := Node.Parent;
-   begin
-      while not Element.Is_Null loop
-         case Element.Kind is
-            when Ada_Generic_Formal_Subp_Decl |
-                 Ada_Subtype_Decl |
-                 Ada_Abstract_Subp_Decl |
-                 Ada_Abstract_Formal_Subp_Decl |
-                 Ada_Concrete_Formal_Subp_Decl |
-                 Ada_Null_Subp_Decl |
-                 Ada_Subp_Decl |
-                 Ada_Subp_Renaming_Decl |
-                 Ada_Expr_Function |
-                 Ada_Subp_Body |
-                 Ada_Subp_Body_Stub |
-                 Ada_Entry_Body |
-                 Ada_Entry_Decl |
-                 Ada_Generic_Subp_Decl |
-                 Ada_Generic_Subp_Instantiation |
-                 Ada_Generic_Subp_Renaming_Decl =>
-               return LSP.Messages.A_Function;
-
-            when Ada_Component_Decl |
-                 Ada_Discriminant_Spec =>
-               return LSP.Messages.Field;
-
-            when Ada_Generic_Formal_Obj_Decl |
-                 Ada_Param_Spec |
-                 Ada_Exception_Handler |
-                 Ada_Object_Decl |
-                 Ada_Extended_Return_Stmt_Object_Decl |
-                 Ada_Single_Protected_Decl |
-                 Ada_Single_Task_Decl =>
-               return LSP.Messages.Variable;
-
-            when Ada_Generic_Formal_Package |
-                 Ada_Package_Decl |
-                 Ada_Generic_Package_Decl |
-                 Ada_Generic_Package_Instantiation |
-                 Ada_Generic_Package_Renaming_Decl |
-                 Ada_Package_Renaming_Decl =>
-               return LSP.Messages.A_Package;
-
-            when
-                 Ada_Package_Body_Stub |
-                 Ada_Protected_Body_Stub |
-                 Ada_Task_Body_Stub |
-                 Ada_Package_Body |
-                 Ada_Protected_Body |
-                 Ada_Task_Body =>
-               return LSP.Messages.Module;
-
-            when Ada_Generic_Formal_Type_Decl |
-                 Ada_Classwide_Type_Decl |
-                 Ada_Incomplete_Type_Decl |
-                 Ada_Incomplete_Tagged_Type_Decl |
-                 Ada_Protected_Type_Decl |
-                 Ada_Task_Type_Decl |
-                 Ada_Type_Decl |
-                 Ada_Anonymous_Type_Decl |
-                 Ada_Synth_Anonymous_Type_Decl =>
-               return LSP.Messages.Class;
-
-            when Ada_Entry_Index_Spec |
-                 Ada_Number_Decl =>
-               return LSP.Messages.Number;
-
-            when Ada_Enum_Literal_Decl =>
-               return LSP.Messages.Enum;
-
-            when Ada_Exception_Decl =>
-               return LSP.Messages.String;
-
-            when Ada_For_Loop_Var_Decl |
-                 Ada_Label_Decl |
-                 Ada_Named_Stmt_Decl =>
-               return LSP.Messages.A_Constant;
-
-            when others
-               => null;
-         end case;
-
-         Element := Element.Parent;
-      end loop;
-
-      return LSP.Messages.A_Function;
-   end Get_Symbol_Kind;
-
-   -----------------
    -- Get_Symbols --
    -----------------
 
@@ -260,7 +166,7 @@ package body LSP.Ada_Documents is
 
       while Cursor.Next (Element) loop
          Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Symbol_Kind (Element);
+         Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
          Item.location :=
            (uri  => Self.URI,
             span => To_Span (Element.Sloc_Range));
@@ -268,6 +174,120 @@ package body LSP.Ada_Documents is
          Result.Append (Item);
       end loop;
    end Get_Symbols;
+
+   -----------------
+   -- Get_Node_At --
+   -----------------
+
+   not overriding function Get_Node_At
+     (Self     : Document;
+      Position : LSP.Messages.Position)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Libadalang.Analysis;
+      use Langkit_Support.Slocs;
+   begin
+      if Self.Unit.Root = No_Ada_Node then
+         return No_Ada_Node;
+      end if;
+
+      return Self.Unit.Root.Lookup
+        ((Line   => Line_Number (Position.line) + 1,
+          Column => Column_Number (Position.character) + 1));
+   end Get_Node_At;
+
+   -------------------
+   -- Get_Decl_Kind --
+   -------------------
+
+   function Get_Decl_Kind
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.SymbolKind
+   is
+      use Libadalang.Common;
+
+   begin
+      case Node.Kind is
+         when Ada_Generic_Formal_Subp_Decl |
+              Ada_Subtype_Decl |
+              Ada_Abstract_Subp_Decl |
+              Ada_Abstract_Formal_Subp_Decl |
+              Ada_Concrete_Formal_Subp_Decl |
+              Ada_Null_Subp_Decl |
+              Ada_Subp_Decl |
+              Ada_Subp_Renaming_Decl |
+              Ada_Expr_Function |
+              Ada_Subp_Body |
+              Ada_Subp_Body_Stub |
+              Ada_Entry_Body |
+              Ada_Entry_Decl |
+              Ada_Generic_Subp_Decl |
+              Ada_Generic_Subp_Instantiation |
+              Ada_Generic_Subp_Renaming_Decl =>
+            return LSP.Messages.A_Function;
+
+         when Ada_Component_Decl |
+              Ada_Discriminant_Spec =>
+            return LSP.Messages.Field;
+
+         when Ada_Generic_Formal_Obj_Decl |
+              Ada_Param_Spec |
+              Ada_Exception_Handler |
+              Ada_Object_Decl |
+              Ada_Extended_Return_Stmt_Object_Decl |
+              Ada_Single_Protected_Decl |
+              Ada_Single_Task_Decl =>
+            return LSP.Messages.Variable;
+
+         when Ada_Generic_Formal_Package |
+              Ada_Package_Decl |
+              Ada_Generic_Package_Decl |
+              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Renaming_Decl |
+              Ada_Package_Renaming_Decl =>
+            return LSP.Messages.A_Package;
+
+         when
+              Ada_Package_Body_Stub |
+              Ada_Protected_Body_Stub |
+              Ada_Task_Body_Stub |
+              Ada_Package_Body |
+              Ada_Protected_Body |
+              Ada_Task_Body =>
+            return LSP.Messages.Module;
+
+         when Ada_Generic_Formal_Type_Decl |
+              Ada_Classwide_Type_Decl |
+              Ada_Incomplete_Type_Decl |
+              Ada_Incomplete_Tagged_Type_Decl |
+              Ada_Protected_Type_Decl |
+              Ada_Task_Type_Decl |
+              Ada_Type_Decl |
+              Ada_Anonymous_Type_Decl |
+              Ada_Synth_Anonymous_Type_Decl =>
+            return LSP.Messages.Class;
+
+         when Ada_Entry_Index_Spec |
+              Ada_Number_Decl =>
+            return LSP.Messages.Number;
+
+         when Ada_Enum_Literal_Decl =>
+            return LSP.Messages.Enum;
+
+         when Ada_Exception_Decl =>
+            return LSP.Messages.String;
+
+         when Ada_For_Loop_Var_Decl |
+              Ada_Label_Decl |
+              Ada_Named_Stmt_Decl =>
+            return LSP.Messages.A_Constant;
+
+         when others
+            => null;
+      end case;
+
+      return LSP.Messages.A_Function;
+   end Get_Decl_Kind;
 
    ----------------
    -- Initialize --
@@ -323,5 +343,55 @@ package body LSP.Ada_Documents is
    begin
       return Result;
    end To_Span;
+
+   ------------------------
+   -- Get_Completions_At --
+   ------------------------
+
+   not overriding procedure Get_Completions_At
+     (Self     : Document;
+      Position : LSP.Messages.Position;
+      Result   : out LSP.Messages.CompletionList)
+   is
+      use LSP.Types;
+      use Libadalang.Analysis;
+      use LSP.Messages;
+
+      Real_Pos : constant LSP.Messages.Position :=
+        (Position.line,
+         UTF_16_Index'Max (0, Position.character - 1));
+      --  Compute the position we want for completion, which is one character
+      --  before the cursor.
+
+      Node       : constant Libadalang.Analysis.Ada_Node :=
+        Self.Get_Node_At (Real_Pos);
+      --  Get the corresponding LAL node
+
+   begin
+      Server_Trace.Trace
+        ("Getting completions, Pos = ("
+         & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
+         & Image (Node));
+
+      declare
+         Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
+      begin
+         Server_Trace.Trace
+           ("Number of raw completions : " & Raw_Completions'Length'Image);
+         for BD of Raw_Completions loop
+            if not BD.Is_Null then
+               for DN of BD.P_Defining_Names loop
+                  declare
+                     R : CompletionItem;
+                  begin
+                     R.label := To_LSP_String (DN.P_Relative_Name.Text);
+                     R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
+                     Result.items.Append (R);
+                  end;
+               end loop;
+            end if;
+         end loop;
+      end;
+   end Get_Completions_At;
 
 end LSP.Ada_Documents;

@@ -47,6 +47,9 @@ package LSP.Types is
 
    type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
 
+   Empty_Vector : constant LSP_String_Vector :=
+     (LSP_String_Vectors.Vector with null record);
+
    Empty_LSP_String : constant LSP_String :=
      LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
 

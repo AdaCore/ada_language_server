@@ -51,6 +51,11 @@ package LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Defining_Name;
 
+   not overriding procedure Get_Completions_At
+     (Self     : Document;
+      Position : LSP.Messages.Position;
+      Result   : out LSP.Messages.CompletionList);
+
 private
 
    type Document is tagged limited record
