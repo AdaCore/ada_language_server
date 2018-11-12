@@ -1,0 +1,7 @@
+install:
+ - choco install gnat-gpl
+ - echo C:/Projects /Projects ntfs auto 1 1 >> c:\msys64\etc\fstab
+ - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh install"
+
+build_script:
+ - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh build"
