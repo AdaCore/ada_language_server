@@ -15,29 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
-
-project LSP is
-
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
-
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
-
-   package Naming is
-      case GnatColl.OS is
-         when "windows" =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-              use "lsp-stdio_streams-init_windows.adb";
-
-         when others =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-            use "lsp-stdio_streams-init_others.adb";
-
-      end case;
-   end Naming;
-end LSP;
-
+separate (LSP.Stdio_Streams)
+procedure Initialize is
+begin
+   null;
+end Initialize;

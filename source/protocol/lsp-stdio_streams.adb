@@ -22,6 +22,11 @@ package body LSP.Stdio_Streams is
 
    package C renames Interfaces.C;
 
+   procedure Initialize;
+   --  Do OS dependent lowlevel initialization, if required.
+
+   procedure Initialize is separate;
+
    ----------
    -- Read --
    ----------
@@ -73,4 +78,6 @@ package body LSP.Stdio_Streams is
       null;
    end Write;
 
+begin
+   Initialize;
 end LSP.Stdio_Streams;

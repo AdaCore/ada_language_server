@@ -15,29 +15,16 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+separate (LSP.Stdio_Streams)
+procedure Initialize is
+   procedure setmode (df, mode : Interfaces.C.int)
+     with Import,
+          Convention => C,
+          External_Name => "_setmode";
 
-project LSP is
-
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
-
-   package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
-   end Compiler;
-
-   package Naming is
-      case GnatColl.OS is
-         when "windows" =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-              use "lsp-stdio_streams-init_windows.adb";
-
-         when others =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-            use "lsp-stdio_streams-init_others.adb";
-
-      end case;
-   end Naming;
-end LSP;
-
+   O_BINARY : constant := 16#8000#;
+begin
+   --  Process stdin/stdout in binary mode to be compatible with linux
+   setmode (0, O_BINARY);
+   setmode (1, O_BINARY);
+end Initialize;
