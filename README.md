@@ -3,6 +3,67 @@
 This repository contains a prototype implementation of the Microsoft Language
 Server Protocol for Ada/SPARK
 
+# Supported LSP Server Requests
+
+### General Requests
+
+| Request                               | Supported          |
+| :------------------------------------ | :----------------: |
+| `initialize`                          | :white_check_mark: |
+| `initialized`                         | :white_check_mark: |
+| `shutdown`                            | :white_check_mark: |
+| `exit`                                | :white_check_mark: |
+| `$/cancelRequest`                     | :white_check_mark: |
+
+### Workspace Requests
+
+| Request                               | Supported          |
+| :------------------------------------ | :----------------: |
+| `workspace/didChangeWorkspaceFolders` |                    |
+| `workspace/didChangeConfiguration`    | :white_check_mark: |
+| `workspace/didChangeWatchedFiles`     |                    |
+| `workspace/symbol`                    |                    |
+| `workspace/executeCommand`            |                    |
+
+### Synchronization Requests
+
+| Request                               | Supported          |
+| :------------------------------------ | :----------------: |
+| `textDocument/didOpen`                | :white_check_mark: |
+| `textDocument/didChange`              | :white_check_mark: |
+| `textDocument/willSave`               |                    |
+| `textDocument/willSaveWaitUntil`      |                    |
+| `textDocument/didSave`                |                    |
+| `textDocument/didClose`               | :white_check_mark: |
+
+### Text Document Requests
+
+| Request                               | Supported          |
+| :------------------------------------ | :----------------: |
+| `textDocument/completion`             | :white_check_mark: |
+| `completionItem/resolve`              |                    |
+| `textDocument/hover`                  |                    |
+| `textDocument/signatureHelp`          |                    |
+| `textDocument/definition`             | :white_check_mark: |
+| `textDocument/typeDefinition`         |                    |
+| `textDocument/implementation`         |                    |
+| `textDocument/references`             | :white_check_mark: |
+| `textDocument/documentHighlight`      |                    |
+| `textDocument/documentSymbol`         | :white_check_mark: |
+| `textDocument/codeAction`             |                    |
+| `textDocument/codeLens`               |                    |
+| `codeLens/resolve`                    |                    |
+| `textDocument/documentLink`           |                    |
+| `documentLink/resolve`                |                    |
+| `textDocument/documentColor`          |                    |
+| `textDocument/colorPresentation`      |                    |
+| `textDocument/formatting`             |                    |
+| `textDocument/rangeFormatting`        |                    |
+| `textDocument/onTypeFormatting`       |                    |
+| `textDocument/rename`                 |                    |
+| `textDocument/prepareRename`          |                    |
+| `textDocument/foldingRange`           |                    |
+
 # How to build
 
 This projects needs at least a version of the GNAT compiler, and the
