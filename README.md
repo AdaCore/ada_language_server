@@ -1,7 +1,7 @@
 # Ada Language Server
 
 This repository contains a prototype implementation of the Microsoft Language
-Server Protocol for Ada/SPARK
+Server Protocol for Ada/SPARK.
 
 # Supported LSP Server Requests
 
