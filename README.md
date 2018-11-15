@@ -13,7 +13,7 @@ Server Protocol for Ada/SPARK.
 | `initialized`                         | :white_check_mark: |
 | `shutdown`                            | :white_check_mark: |
 | `exit`                                | :white_check_mark: |
-| `$/cancelRequest`                     | :white_check_mark: |
+| `$/cancelRequest`                     |                    |
 
 ### Workspace Requests
 
