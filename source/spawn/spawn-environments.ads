@@ -19,10 +19,9 @@
 --  On case insensitive platforms original casing is returned by Keys function.
 
 with Spawn.String_Vectors;
-with Spawn.Posix;
 
-private with Ada.Containers.Indefinite_Hashed_Maps;
-private with Ada.Strings.Hash;
+private with Ada.Containers.Indefinite_Ordered_Maps;
+private with Spawn.Internal;
 
 package Spawn.Environments is
 
@@ -56,17 +55,13 @@ package Spawn.Environments is
 
    function System_Environment return Process_Environment;
 
-   function Internal (Self : Process_Environment'Class)
-     return Spawn.Posix.chars_ptr_array;
-
 private
 
-   package UTF_8_String_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-     (Key_Type        => UTF_8_String,
-      Element_Type    => UTF_8_String,
-      Hash            => Ada.Strings.Hash,
-      Equivalent_Keys => "=",
-      "="             => "=");
+   package UTF_8_String_Maps is new Ada.Containers.Indefinite_Ordered_Maps
+     (Key_Type     => UTF_8_String,
+      Element_Type => UTF_8_String,
+      "<"          => Spawn.Internal.Environments."<",
+      "="          => Spawn.Internal.Environments."=");
 
    type Process_Environment is tagged record
       Map : UTF_8_String_Maps.Map;

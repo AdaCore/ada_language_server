@@ -15,8 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Interfaces.C.Strings;
+with Spawn.Environments.Internal;
+pragma Elaborate (Spawn.Environments.Internal);
 
 package body Spawn.Environments is
 
@@ -69,29 +69,6 @@ package body Spawn.Environments is
             UTF_8_String_Maps.Element (J));
       end loop;
    end Insert;
-
-   --------------
-   -- Internal --
-   --------------
-
-   function Internal (Self : Process_Environment'Class)
-                      return Spawn.Posix.chars_ptr_array
-   is
-      Index : Positive := 1;
-   begin
-      return Result : Spawn.Posix.chars_ptr_array
-        (1 .. Natural (Self.Map.Length) + 1)
-      do
-         for J in Self.Map.Iterate loop
-            Result (Index) := Interfaces.C.Strings.New_String
-              (UTF_8_String_Maps.Key (J) & "=" &
-                 UTF_8_String_Maps.Element (J));
-            Index := Index + 1;
-         end loop;
-
-         Result (Index) := Interfaces.C.Strings.Null_Ptr;
-      end return;
-   end Internal;
 
    ----------
    -- Keys --
@@ -147,27 +124,6 @@ package body Spawn.Environments is
       end if;
    end Value;
 
-   use type Interfaces.C.Strings.chars_ptr;
-
 begin
-   for J in Spawn.Posix.environ'Range loop
-
-      declare
-         Item : constant Interfaces.C.Strings.chars_ptr :=
-           Spawn.Posix.environ (J);
-
-         Text : constant UTF_8_String :=
-           (if Item = Interfaces.C.Strings.Null_Ptr then ""
-            else Interfaces.C.Strings.Value (Item));
-
-         Separator : constant Natural := Ada.Strings.Fixed.Index (Text, "=");
-      begin
-         exit when Separator = 0;
-         Default.Insert
-           (Text (Text'First .. Separator - 1),
-            Text (Separator + 1 .. Text'Last));
-      end;
-
-   end loop;
-
+   Spawn.Environments.Internal.Initialize_Default (Default);
 end Spawn.Environments;

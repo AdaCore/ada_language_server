@@ -31,4 +31,8 @@ project LSP_Server is
       for Switches ("ada") use ("-E");
    end Binder;
 
+   package Builder is
+      for Executable ("lsp-ada_driver") use "lsp-ada_driver.exe";
+   end Builder;
+
 end LSP_Server;

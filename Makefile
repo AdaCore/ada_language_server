@@ -5,11 +5,10 @@ GPRBUILD=gprbuild -j0
 all:
 	$(GPRBUILD) -P gnat/lsp.gpr -p
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p
-	-echo | .obj/server/lsp-ada_driver
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p
 	$(GPRBUILD) -P gnat/tester.gpr -p
 	rm -rf integration/vscode/ada/server
-	ln -s ../../../.obj/server/lsp-ada_driver integration/vscode/ada/server
+	ln -s ../../../.obj/server/lsp-ada_driver.exe integration/vscode/ada/server
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/server

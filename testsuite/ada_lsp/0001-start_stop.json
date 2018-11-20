@@ -1,7 +1,7 @@
 [
     {
         "start": {
-            "cmd": [".obj/server/lsp-ada_driver"]
+            "cmd": [".obj/server/lsp-ada_driver.exe"]
         }
     },
     {
