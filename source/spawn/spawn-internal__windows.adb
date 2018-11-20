@@ -15,24 +15,46 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-private package Spawn.Processes.Monitor is
+with Ada.Strings.UTF_Encoding.Wide_Strings;
+with Ada.Wide_Characters.Unicode;
 
-   type Command_Kind is
-     (Start, Close_Pipe, Watch_Pipe);
+package body Spawn.Internal is
 
-   type Command (Kind : Command_Kind := Start) is record
-      Process : access Spawn.Processes.Process'Class;
-      case Kind is
-         when Start =>
-            null;
-         when Close_Pipe | Watch_Pipe =>
-            Pipe : Standard_Pipe;
-      end case;
-   end record;
+   package body Environments is
 
-   procedure Enqueue (Value : Command);
+      ---------
+      -- "=" --
+      ---------
 
-   procedure Loop_Cycle (Timeout : Integer);
-   --  Timeout in milliseconds. Dont wait if zero. Wait forever if < 0
+      function "=" (Left, Right : UTF_8_String) return Boolean is
+      begin
+         return To_Key (Left) = To_Key (Right);
+      end "=";
 
-end Spawn.Processes.Monitor;
+      ---------
+      -- "<" --
+      ---------
+
+      function "<" (Left, Right : UTF_8_String) return Boolean is
+      begin
+         return To_Key (Left) < To_Key (Right);
+      end "<";
+
+      ------------
+      -- To_Key --
+      ------------
+
+      function To_Key (Text : UTF_8_String) return Wide_String is
+         Value : Wide_String :=
+           Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Text);
+      begin
+         for Char of Value loop
+            Char := Ada.Wide_Characters.Unicode.To_Upper_Case (Char);
+         end loop;
+
+         return Value;
+      end To_Key;
+
+   end Environments;
+
+end Spawn.Internal;

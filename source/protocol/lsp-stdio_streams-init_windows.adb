@@ -15,24 +15,16 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-private package Spawn.Processes.Monitor is
+separate (LSP.Stdio_Streams)
+procedure Initialize is
+   procedure setmode (df, mode : Interfaces.C.int)
+     with Import,
+          Convention => C,
+          External_Name => "_setmode";
 
-   type Command_Kind is
-     (Start, Close_Pipe, Watch_Pipe);
-
-   type Command (Kind : Command_Kind := Start) is record
-      Process : access Spawn.Processes.Process'Class;
-      case Kind is
-         when Start =>
-            null;
-         when Close_Pipe | Watch_Pipe =>
-            Pipe : Standard_Pipe;
-      end case;
-   end record;
-
-   procedure Enqueue (Value : Command);
-
-   procedure Loop_Cycle (Timeout : Integer);
-   --  Timeout in milliseconds. Dont wait if zero. Wait forever if < 0
-
-end Spawn.Processes.Monitor;
+   O_BINARY : constant := 16#8000#;
+begin
+   --  Process stdin/stdout in binary mode to be compatible with linux
+   setmode (0, O_BINARY);
+   setmode (1, O_BINARY);
+end Initialize;

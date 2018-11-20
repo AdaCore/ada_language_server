@@ -25,11 +25,13 @@ with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 
 with Spawn.Posix;
+with Spawn.Environments.Internal;
 with Interfaces.C.Strings;
---  with Ada.Text_IO;
 
 package body Spawn.Processes.Monitor is
    use type Interfaces.C.int;
+
+   type Process_Access is access all Process'Class;
 
    procedure Start_Process (Self : Process_Access);
 
@@ -73,7 +75,7 @@ package body Spawn.Processes.Monitor is
 
       procedure Handle
         with Interrupt_Handler,
-        Attach_Handler => Ada.Interrupts.Names.SIGCHLD;
+             Attach_Handler => Ada.Interrupts.Names.SIGCHLD;
    private
       Fired : Boolean := False;
    end SIGCHLD;
@@ -418,7 +420,7 @@ package body Spawn.Processes.Monitor is
 
          case Command.Kind is
             when Start =>
-               Start_Process (Command.Process);
+               Start_Process (Process_Access (Command.Process));
             when Close_Pipe =>
                Do_Close_Pipe (Command.Process, Command.Pipe);
             when Watch_Pipe =>
@@ -567,7 +569,8 @@ package body Spawn.Processes.Monitor is
              (To_String (Self.Directory)));
 
       argv : Posix.chars_ptr_array (0 .. Natural (Self.Arguments.Length) + 1);
-      envp : Posix.chars_ptr_array := Self.Environment.Internal;
+      envp : Posix.chars_ptr_array :=
+        Spawn.Environments.Internal.Raw (Self.Environment);
    begin
       --  Create pipes for children's strio
       if (for some X of std => Posix.pipe2 (X, Pipe_Flags) /= 0) then

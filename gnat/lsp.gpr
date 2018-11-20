@@ -27,5 +27,17 @@ project LSP is
       for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
    end Compiler;
 
+   package Naming is
+      case GnatColl.OS is
+         when "windows" =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_windows.adb";
+
+         when others =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+            use "lsp-stdio_streams-init_others.adb";
+
+      end case;
+   end Naming;
 end LSP;
 

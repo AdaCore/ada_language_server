@@ -18,13 +18,12 @@
 --  Asynchronous API with listener pattern
 
 with Ada.Streams;
+with Ada.Strings.Unbounded;
 
 with Spawn.Environments;
 with Spawn.String_Vectors;
 
-private with Ada.Finalization;
-private with Ada.Strings.Unbounded;
-private with Interfaces.C;
+private with Spawn.Internal;
 
 package Spawn.Processes is
 
@@ -138,17 +137,11 @@ package Spawn.Processes is
 
 private
 
-   type Pipe_Kinds is (Stdin, Stdout, Stderr, Launch);
-   --  Launch is an extra pipe to report starting errors
+   use all type Internal.Pipe_Kinds;
+   subtype Pipe_Kinds is Internal.Pipe_Kinds;
    subtype Standard_Pipe is Pipe_Kinds range Stdin .. Stderr;
 
-   type Pipe_Array is array (Pipe_Kinds) of Interfaces.C.int;
-   --  File descriptors array
-
-   type Index_Array is array (Pipe_Kinds) of Natural;
-   --  Index in poll for each descriptors array
-
-   type Process is new Ada.Finalization.Limited_Controlled with record
+   type Process is new Spawn.Internal.Process with record
       Arguments   : Spawn.String_Vectors.UTF_8_String_Vector;
       Environment : Spawn.Environments.Process_Environment :=
         Spawn.Environments.System_Environment;
@@ -157,14 +150,8 @@ private
       Listener    : Process_Listener_Access;
       Program     : Ada.Strings.Unbounded.Unbounded_String;
       Directory   : Ada.Strings.Unbounded.Unbounded_String;
-
-      pid   : Interfaces.C.int := 0;
-      pipe  : Pipe_Array := (others => 0);
-      Index : Index_Array := (others => 0);
    end record;
 
    overriding procedure Finalize (Self : in out Process);
-
-   type Process_Access is access all Process'Class;
 
 end Spawn.Processes;

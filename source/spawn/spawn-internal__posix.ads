@@ -15,24 +15,30 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-private package Spawn.Processes.Monitor is
+with Ada.Finalization;
+with Interfaces.C;
 
-   type Command_Kind is
-     (Start, Close_Pipe, Watch_Pipe);
+private package Spawn.Internal is
 
-   type Command (Kind : Command_Kind := Start) is record
-      Process : access Spawn.Processes.Process'Class;
-      case Kind is
-         when Start =>
-            null;
-         when Close_Pipe | Watch_Pipe =>
-            Pipe : Standard_Pipe;
-      end case;
+   package Environments is
+
+      function "=" (Left, Right : UTF_8_String) return Boolean;
+      function "<" (Left, Right : UTF_8_String) return Boolean;
+
+   end Environments;
+
+   type Pipe_Kinds is (Stdin, Stdout, Stderr, Launch);
+
+   type Pipe_Array is array (Pipe_Kinds) of Interfaces.C.int;
+   --  File descriptors array
+
+   type Index_Array is array (Pipe_Kinds) of Natural;
+   --  Index in poll for each descriptors array
+
+   type Process is new Ada.Finalization.Limited_Controlled with record
+      pid   : Interfaces.C.int := 0;
+      pipe  : Pipe_Array := (others => 0);
+      Index : Index_Array := (others => 0);
    end record;
 
-   procedure Enqueue (Value : Command);
-
-   procedure Loop_Cycle (Timeout : Integer);
-   --  Timeout in milliseconds. Dont wait if zero. Wait forever if < 0
-
-end Spawn.Processes.Monitor;
+end Spawn.Internal;

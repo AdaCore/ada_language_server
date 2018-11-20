@@ -15,24 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-private package Spawn.Processes.Monitor is
+with Interfaces.C;
 
-   type Command_Kind is
-     (Start, Close_Pipe, Watch_Pipe);
+package Spawn.Environments.Internal is
 
-   type Command (Kind : Command_Kind := Start) is record
-      Process : access Spawn.Processes.Process'Class;
-      case Kind is
-         when Start =>
-            null;
-         when Close_Pipe | Watch_Pipe =>
-            Pipe : Standard_Pipe;
-      end case;
-   end record;
+   procedure Initialize_Default (Default : out Process_Environment);
 
-   procedure Enqueue (Value : Command);
+   function Raw (Self : Process_Environment'Class)
+     return Interfaces.C.wchar_array;
 
-   procedure Loop_Cycle (Timeout : Integer);
-   --  Timeout in milliseconds. Dont wait if zero. Wait forever if < 0
-
-end Spawn.Processes.Monitor;
+end Spawn.Environments.Internal;

@@ -8,7 +8,7 @@ all:
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p
 	$(GPRBUILD) -P gnat/tester.gpr -p
 	rm -rf integration/vscode/ada/server
-	ln -s ../../../.obj/server/lsp-ada_driver integration/vscode/ada/server
+	ln -s ../../../.obj/server/lsp-ada_driver.exe integration/vscode/ada/server
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/server
@@ -19,7 +19,7 @@ vscode:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
 check: all
-	$(TESTER) $(TD)/0001-start_stop.json > 0001.err || (cat 0001.err ; false )
+	$(TESTER) $(TD)/0001-start_stop.json
 	$(TESTER) $(TD)/0002-shutdown.json
 	$(TESTER) $(TD)/0003-get_symbols.json
 	@echo All test passed!

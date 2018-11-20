@@ -15,17 +15,17 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.Sockets;
 with Interfaces.C;
 with Ada.IO_Exceptions;
-with Ada.Unchecked_Conversion;
 
 package body LSP.Stdio_Streams is
 
    package C renames Interfaces.C;
 
-   function To_Ada is new Ada.Unchecked_Conversion
-     (Integer, GNAT.Sockets.Socket_Type);
+   procedure Initialize;
+   --  Do OS dependent lowlevel initialization, if required.
+
+   procedure Initialize is separate;
 
    ----------
    -- Read --
@@ -46,20 +46,9 @@ package body LSP.Stdio_Streams is
            with Import => True,
                 Convention => C,
                 External_Name => "read";
-      Stdin   : constant GNAT.Sockets.Socket_Type := To_Ada (0);
-      Request : GNAT.Sockets.Request_Type (GNAT.Sockets.N_Bytes_To_Read);
-      Length  : Natural;
       Done    : C.size_t;
    begin
-      GNAT.Sockets.Control_Socket (Stdin, Request);
-
-      if Request.Size = 0 then
-         Length := 1;
-      else
-         Length := Natural'Min (Item'Length, Request.Size);
-      end if;
-
-      Done := read (0, Item, C.size_t (Length));
+      Done := read (0, Item, Item'Length);
       Last := Item'First + Ada.Streams.Stream_Element_Offset (Done) - 1;
 
       if Last < Item'First then
@@ -89,4 +78,6 @@ package body LSP.Stdio_Streams is
       null;
    end Write;
 
+begin
+   Initialize;
 end LSP.Stdio_Streams;
