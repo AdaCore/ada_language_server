@@ -213,4 +213,14 @@ package Spawn.Windows_API is
          with Import, Convention => Stdcall,
               External_Name => "FreeEnvironmentStringsW";
 
+   function Get_Handle
+     (fd : Interfaces.C.int)
+       return HANDLE
+         with Import, Convention => Stdcall,
+              External_Name => "_get_osfhandle";
+
+   ERROR_OPERATION_ABORTED : constant DWORD := 995;
+   --  he I/O operation has been aborted because of either a thread exit or an
+   --  application request.
+
 end Spawn.Windows_API;

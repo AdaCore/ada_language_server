@@ -15,7 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-project Spawn is
+with "gtkada";
+
+project Spawn_Glib is
 
    type OS_API_Kind is ("Windows_NT", "Posix");
    OS_API : OS_API_Kind := external ("OS", "Posix");
@@ -24,8 +26,9 @@ project Spawn is
    for Object_Dir use "../.obj/spawn";
 
    Common_Excluded :=
-     ("glib-spawns.ads",
-      "glib-io_channels.ads");
+     ("spawn-processes-monitor.ads",
+      "spawn-processes-monitor_loop.ads",
+      "spawn-processes-monitor_loop.adb");
 
    case OS_API is
       when "Posix" =>
@@ -46,20 +49,18 @@ project Spawn is
       case OS_API is
          when "Posix" =>
             for Spec ("Spawn.Internal")
-               use "spawn-internal__posix.ads";
+               use "spawn-internal__glib.ads";
             for Body ("Spawn.Internal")
                use "spawn-internal__posix.adb";
             for Spec ("Spawn.Environments.Internal")
-               use "spawn-environments-internal__posix.ads";
+               use "spawn-environments-internal__glib.ads";
             for Body ("Spawn.Environments.Internal")
-               use "spawn-environments-internal__posix.adb";
+               use "spawn-environments-internal__glib.adb";
             for Body ("Spawn.Processes")
-               use "spawn-processes__posix.adb";
-            for Body ("Spawn.Processes.Monitor")
-               use "spawn-processes-monitor__posix.adb";
+               use "spawn-processes__glib.adb";
          when "Windows_NT" =>
             for Spec ("Spawn.Internal")
-               use "spawn-internal__windows.ads";
+               use "spawn-internal__glib_windows.ads";
             for Body ("Spawn.Internal")
                use "spawn-internal__windows.adb";
             for Spec ("Spawn.Environments.Internal")
@@ -67,11 +68,9 @@ project Spawn is
             for Body ("Spawn.Environments.Internal")
                use "spawn-environments-internal__windows.adb";
             for Body ("Spawn.Processes")
-               use "spawn-processes__windows.adb";
-            for Body ("Spawn.Processes.Monitor")
-               use "spawn-processes-monitor__windows.adb";
+               use "spawn-processes__glib_windows.adb";
       end case;
    end Naming;
 
-end Spawn;
+end Spawn_Glib;
 
