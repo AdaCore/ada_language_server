@@ -17,10 +17,12 @@
 
 with LSP.Messages;
 with Libadalang.Analysis;
+limited with LSP.Ada_Contexts;
 
 package LSP.Ada_Documents is
 
-   type Document is tagged limited private;
+   type Document (Context : access LSP.Ada_Contexts.Context'Class)
+     is tagged limited private;
    type Document_Access is access all LSP.Ada_Documents.Document;
    type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
 
@@ -58,7 +60,9 @@ package LSP.Ada_Documents is
 
 private
 
-   type Document is tagged limited record
+   type Document (Context : access LSP.Ada_Contexts.Context'Class) is
+     tagged limited
+   record
       URI  : LSP.Messages.DocumentUri;
       LAL  : Libadalang.Analysis.Analysis_Context;
       Unit : Libadalang.Analysis.Analysis_Unit;

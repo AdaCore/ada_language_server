@@ -22,6 +22,7 @@ with Langkit_Support.Slocs;
 with Libadalang.Common;
 with Libadalang.Iterators;
 
+with LSP.Ada_Contexts;
 with LSP.Types;
 
 package body LSP.Ada_Documents is
@@ -66,7 +67,7 @@ package body LSP.Ada_Documents is
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
       File : constant LSP.Types.LSP_String :=
-        LSP.Types.Delete (Self.URI, 1, 7);  --  Delete file://
+        Self.Context.URI_To_File (Self.URI);  --  Delete file://
    begin
       for Change of reverse Vector loop
          --  If whole document then reparse it
@@ -299,7 +300,7 @@ package body LSP.Ada_Documents is
       Item : LSP.Messages.TextDocumentItem)
    is
       File : constant LSP.Types.LSP_String :=
-        LSP.Types.Delete (Item.uri, 1, 7);  --  Delete file://
+        Self.Context.URI_To_File (Item.uri);  --  Delete file://
    begin
       Self.Unit := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),

@@ -43,7 +43,7 @@ package LSP.Ada_Contexts is
    --  Libadalang related data, and recreate it from scratch.
 
    not overriding procedure Load_Document
-     (Self : in out Context;
+     (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem);
 
    not overriding procedure Unload_Document
@@ -57,6 +57,16 @@ package LSP.Ada_Contexts is
 
    not overriding function Get_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;
+
+   not overriding function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+   --  Turn URI into path by stripping schema from it
+
+   not overriding function File_To_URI
+     (Self : Context;
+      File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+   --  Convert file name to URI
 
 private
 

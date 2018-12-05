@@ -69,13 +69,8 @@ package body LSP.Ada_Handlers is
          (resolveProvider => (True, False),
           triggerCharacters => Empty_Vector & To_LSP_String (".")));
 
-      --  Turn URI into path by stripping schema from it
-      if LSP.Types.Starts_With (Value.rootUri, "file://") then
-         Root := Delete (Value.rootUri, 1, 7);
-      elsif LSP.Types.Starts_With (Value.rootUri, "file:") then
-         Root := Delete (Value.rootUri, 1, 5);
-      elsif not LSP.Types.Is_Empty (Value.rootUri) then
-         raise Constraint_Error with "Unsupported URI schema";
+      if not LSP.Types.Is_Empty (Value.rootUri) then
+         Root := Self.Context.URI_To_File (Value.rootUri);
       else
          --  URI isn't provided, rollback to depricated rootPath
          Root := Value.rootPath;
@@ -135,7 +130,7 @@ package body LSP.Ada_Handlers is
             UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
          Location : constant LSP.Messages.Location :=
-           (uri  => +("file://" & Definition.Unit.Get_Filename),
+           (uri  => Self.Context.File_To_URI (+Definition.Unit.Get_Filename),
             span => LSP.Messages.Span'(First_Position, Last_Position));
 
       begin
@@ -269,7 +264,7 @@ package body LSP.Ada_Handlers is
                   UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
                Location : constant LSP.Messages.Location :=
-                 (uri  => +("file://" & Node.Unit.Get_Filename),
+                 (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
                   span => LSP.Messages.Span'(First_Position, Last_Position));
             begin
                Response.result.Append (Location);
@@ -312,13 +307,11 @@ package body LSP.Ada_Handlers is
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (projectFile) then
-            File := LSP.Types.To_LSP_String (Ada.Get (projectFile).Get);
+            File := +Ada.Get (projectFile).Get;
 
             --  Drop uri scheme if present
-            if LSP.Types.Starts_With (File, "file://") then
-               LSP.Types.Delete (File, 1, 7);
-            elsif LSP.Types.Starts_With (File, "file:") then
-               LSP.Types.Delete (File, 1, 5);
+            if LSP.Types.Starts_With (File, "file:") then
+               File := Self.Context.URI_To_File (File);
             end if;
          end if;
 
