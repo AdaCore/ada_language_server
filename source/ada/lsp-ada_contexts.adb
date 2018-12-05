@@ -26,6 +26,27 @@ with Libadalang.Project_Provider;
 
 package body LSP.Ada_Contexts is
 
+   -----------------
+   -- File_To_URI --
+   -----------------
+
+   not overriding function File_To_URI
+     (Self : Context;
+      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      pragma Unreferenced (Self);
+      use type LSP.Types.LSP_String;
+   begin
+      --  See URI_To_File for comments
+      if LSP.Types.Length (File) > 1 and then
+        LSP.Types.Element (File, 2) = ':'
+      then
+         return "file:///" & File;
+      else
+         return "file://" & File;
+      end if;
+   end File_To_URI;
+
    -----------------------
    -- Find_Project_File --
    -----------------------
@@ -198,11 +219,11 @@ package body LSP.Ada_Contexts is
    -------------------
 
    not overriding procedure Load_Document
-     (Self : in out Context;
+     (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem)
    is
       Object : constant LSP.Ada_Documents.Document_Access :=
-        new LSP.Ada_Documents.Document;
+        new LSP.Ada_Documents.Document (Self'Unchecked_Access);
    begin
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
@@ -294,5 +315,36 @@ package body LSP.Ada_Contexts is
    not overriding function Get_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access is
      (Self.Project_Tree.Root_Project.Source_Files);
+
+   -----------------
+   -- URI_To_File --
+   -----------------
+
+   not overriding function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      pragma Unreferenced (Self);
+      Result : LSP.Types.LSP_String;
+   begin
+      if LSP.Types.Starts_With (URI, "file://") then
+         if LSP.Types.Length (URI) > 9 and then
+           LSP.Types.Element (URI, 10) = ':'
+         then
+            --  On Windows URI has form file:///C:\PATH, so drop slash also
+            Result := LSP.Types.Delete (URI, 1, 8);
+         else
+            --  On Linux URI has form file:///path, so keep the slash
+            Result := LSP.Types.Delete (URI, 1, 7);
+         end if;
+      elsif LSP.Types.Starts_With (URI, "file:") then
+         Result := LSP.Types.Delete (URI, 1, 5);
+      else
+         raise Constraint_Error with "Unknown URI schema: " &
+           LSP.Types.To_UTF_8_String (URI);
+      end if;
+
+      return Result;
+   end URI_To_File;
 
 end LSP.Ada_Contexts;
