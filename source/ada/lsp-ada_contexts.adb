@@ -266,7 +266,7 @@ package body LSP.Ada_Contexts is
 
       Self.Project_Tree := new GNATCOLL.Projects.Project_Tree;
 
-      Project_Env := new GNATCOLL.Projects.Project_Environment;
+      GNATCOLL.Projects.Initialize (Project_Env);
 
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
