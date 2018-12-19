@@ -1203,6 +1203,11 @@ package LSP.Messages is
    --```
    type TextDocumentSyncKind is (None, Full, Incremental);
 
+   not overriding procedure Read_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncKind);
+   for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
+
    not overriding procedure Write_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncKind);
@@ -1240,6 +1245,11 @@ package LSP.Messages is
       triggerCharacters: LSP.Types.LSP_String_Vector;
    end record;
 
+   not overriding procedure Read_CompletionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionOptions);
+   for CompletionOptions'Read use Read_CompletionOptions;
+
    not overriding procedure Write_CompletionOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionOptions);
@@ -1254,6 +1264,12 @@ package LSP.Messages is
    type SignatureHelpOptions is record
       triggerCharacters: LSP.Types.LSP_String_Vector;
    end record;
+
+   not overriding procedure Read_SignatureHelpOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpOptions);
+
+   for SignatureHelpOptions'Read use Read_SignatureHelpOptions;
 
    not overriding procedure Write_SignatureHelpOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1287,6 +1303,12 @@ package LSP.Messages is
       firstTriggerCharacter: LSP.Types.LSP_String;
       moreTriggerCharacter: LSP.Types.LSP_String_Vector;
    end record;
+
+   not overriding procedure Read_DocumentOnTypeFormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingOptions);
+
+   for DocumentOnTypeFormattingOptions'Read use Read_DocumentOnTypeFormattingOptions;
 
    not overriding procedure Write_DocumentOnTypeFormattingOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1343,6 +1365,10 @@ package LSP.Messages is
 
    type Initialize_Response is new ResponseMessage with record
       result: InitializeResult;
+   end record;
+
+   type Initialize_Request is new RequestMessage with record
+      params: InitializeParams;
    end record;
 
    --```typescript
@@ -2882,17 +2908,37 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out documentChanges);
 
+   not overriding procedure Read_DocumentLinkOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentLinkOptions);
+
    not overriding procedure Read_dynamicRegistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out dynamicRegistration);
+
+   not overriding procedure Read_ExecuteCommandOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ExecuteCommandOptions);
 
    not overriding procedure Read_ExecuteCommandParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ExecuteCommandParams);
 
+   not overriding procedure Read_Initialize_Response
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Initialize_Response);
+
    not overriding procedure Read_InitializeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InitializeParams);
+
+   not overriding procedure Read_InitializeResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InitializeResult);
+
+   not overriding procedure Read_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_TextDocumentSyncOptions);
 
    not overriding procedure Read_ReferenceContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2901,6 +2947,10 @@ private
    not overriding procedure Read_ReferenceParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ReferenceParams);
+
+   not overriding procedure Read_ServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ServerCapabilities);
 
    not overriding procedure Read_synchronization
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2913,6 +2963,10 @@ private
    not overriding procedure Read_TextDocumentItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentItem);
+
+   not overriding procedure Read_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncOptions);
 
    not overriding procedure Read_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2930,6 +2984,10 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
 
+   not overriding procedure Write_ClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ClientCapabilities);
+
    not overriding procedure Write_CodeAction_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeAction_Response);
@@ -2937,6 +2995,10 @@ private
    not overriding procedure Write_Command_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Command_Vector);
+
+   not overriding procedure Write_completion
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : completion);
 
    not overriding procedure Write_Completion_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2950,9 +3012,17 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Diagnostic_Vector);
 
+   not overriding procedure Write_documentChanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : documentChanges);
+
    not overriding procedure Write_DocumentLinkOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentLinkOptions);
+
+   not overriding procedure Write_dynamicRegistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : dynamicRegistration);
 
    not overriding procedure Write_ExecuteCommand_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2974,9 +3044,17 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Hover_Response);
 
+   not overriding procedure Write_Initialize_Request
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Initialize_Request);
+
    not overriding procedure Write_Initialize_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Initialize_Response);
+
+   not overriding procedure Write_InitializeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InitializeParams);
 
    not overriding procedure Write_InitializeResult
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -3018,9 +3096,21 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SymbolInformation_Vector);
 
+   not overriding procedure Write_synchronization
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : synchronization);
+
+   not overriding procedure Write_TextDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentClientCapabilities);
+
    not overriding procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncOptions);
+
+   not overriding procedure Write_WorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceClientCapabilities);
 
    not overriding procedure Write_WorkspaceEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -3028,18 +3118,24 @@ private
 
    for ApplyWorkspaceEdit_Request'Write use Write_ApplyWorkspaceEdit_Request;
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
+   for ClientCapabilities'Write use Write_ClientCapabilities;
    for CodeAction_Response'Write use Write_CodeAction_Response;
    for Command_Vector'Write use Write_Command_Vector;
+   for completion'Write use Write_completion;
    for Completion_Response'Write use Write_Completion_Response;
    for CompletionList'Write use Write_CompletionList;
    for Diagnostic_Vector'Write use Write_Diagnostic_Vector;
+   for documentChanges'Write use Write_documentChanges;
+   for dynamicRegistration'Write use Write_dynamicRegistration;
    for DocumentLinkOptions'Write use Write_DocumentLinkOptions;
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
    for ExecuteCommandOptions'Write use Write_ExecuteCommandOptions;
    for Highlight_Response'Write use Write_Highlight_Response;
    for Hover'Write use Write_Hover;
    for Hover_Response'Write use Write_Hover_Response;
+   for Initialize_Request'Write use Write_Initialize_Request;
    for Initialize_Response'Write use Write_Initialize_Response;
+   for InitializeParams'Write use Write_InitializeParams;
    for InitializeResult'Write use Write_InitializeResult;
    for Location_Response'Write use Write_Location_Response;
    for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
@@ -3050,8 +3146,11 @@ private
    for SignatureHelp_Response'Write use Write_SignatureHelp_Response;
    for Symbol_Response'Write use Write_Symbol_Response;
    for SymbolInformation_Vector'Write use Write_SymbolInformation_Vector;
+   for synchronization'Write use Write_synchronization;
+   for TextDocumentClientCapabilities'Write use Write_TextDocumentClientCapabilities;
    for TextDocumentItem'Read use Read_TextDocumentItem;
    for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
+   for WorkspaceClientCapabilities'Write use Write_WorkspaceClientCapabilities;
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
 
    for ClientCapabilities'Read use Read_ClientCapabilities;
@@ -3066,13 +3165,20 @@ private
    for DidSaveTextDocumentParams'Read use Read_DidSaveTextDocumentParams;
    for DocumentSymbolParams'Read use Read_DocumentSymbolParams;
    for documentChanges'Read use Read_documentChanges;
+   for DocumentLinkOptions'Read use Read_DocumentLinkOptions;
    for dynamicRegistration'Read use Read_dynamicRegistration;
+   for ExecuteCommandOptions'Read use Read_ExecuteCommandOptions;
    for ExecuteCommandParams'Read use Read_ExecuteCommandParams;
+   for Initialize_Response'Read use Read_Initialize_Response;
    for InitializeParams'Read use Read_InitializeParams;
+   for InitializeResult'Read use Read_InitializeResult;
+   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
    for ReferenceContext'Read use Read_ReferenceContext;
    for ReferenceParams'Read use Read_ReferenceParams;
+   for ServerCapabilities'Read use Read_ServerCapabilities;
    for synchronization'Read use Read_synchronization;
    for TextDocumentClientCapabilities'Read use Read_TextDocumentClientCapabilities;
+   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
    for WorkspaceClientCapabilities'Read use Read_WorkspaceClientCapabilities;
    for WorkspaceSymbolParams'Read use Read_WorkspaceSymbolParams;
 
