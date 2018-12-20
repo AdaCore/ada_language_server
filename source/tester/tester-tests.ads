@@ -19,7 +19,7 @@ with Ada.Strings.Unbounded;
 
 with GNATCOLL.JSON;
 
-with Spawn.Processes;
+with LSP.Raw_Clients;
 
 package Tester.Tests is
 
@@ -31,32 +31,19 @@ package Tester.Tests is
 
 private
 
-   type Listener (Test : access Tester.Tests.Test) is limited
-     new Spawn.Processes.Process_Listener with null record;
-
-   overriding procedure Error_Occurred
-    (Self          : in out Listener;
-     Process_Error : Integer);
-
-   overriding procedure Standard_Output_Available (Self : in out Listener);
-   overriding procedure Standard_Input_Available (Self : in out Listener);
-   overriding procedure Standard_Error_Available (Self : in out Listener);
-
-   type Test is tagged limited record
-      Server    : Spawn.Processes.Process;
-      Listener  : aliased Tester.Tests.Listener (Test'Unchecked_Access);
+   type Test is new LSP.Raw_Clients.Raw_Client with record
       Index     : Positive := 1;
-      Can_Write : Boolean := False;
-      To_Write  : Ada.Strings.Unbounded.Unbounded_String;
-      Written   : Natural := 0;
       Waits     : GNATCOLL.JSON.JSON_Array;
       --  Array of JSON object to wait
-      To_Read   : Natural := 0;
-      --  How much we should read in the Buffer to get complete JSON
-      --  Zero means we should read protocol headers
-      Buffer    : Ada.Strings.Unbounded.Unbounded_String;
-      --  Part of input
    end record;
+
+   overriding procedure On_Error
+     (Self  : in out Test;
+      Error : String);
+
+   overriding procedure On_Raw_Message
+     (Self : in out Test;
+      Data : Ada.Strings.Unbounded.Unbounded_String);
 
    not overriding procedure Execute_Command
      (Self    : in out Test;
