@@ -15,19 +15,34 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with LSP.Messages;
 
-project Tester is
+package LSP.Notification_Handlers is
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+   type Notification_Handler is limited interface;
+   type Notification_Handler_Access is access all Notification_Handler'Class;
 
-   package Compiler renames LSP_Client.Compiler;
+   not overriding procedure Workspace_Did_Change_Configuration
+    (Self     : access Notification_Handler;
+     Value    : LSP.Messages.DidChangeConfigurationParams) is null;
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
+   not overriding procedure Text_Document_Did_Open
+     (Self  : access Notification_Handler;
+      Value : LSP.Messages.DidOpenTextDocumentParams) is null;
 
-end Tester;
+   not overriding procedure Text_Document_Did_Change
+     (Self  : access Notification_Handler;
+      Value : LSP.Messages.DidChangeTextDocumentParams) is null;
+
+   not overriding procedure Text_Document_Did_Save
+     (Self  : access Notification_Handler;
+      Value : LSP.Messages.DidSaveTextDocumentParams) is null;
+
+   not overriding procedure Text_Document_Did_Close
+     (Self  : access Notification_Handler;
+      Value : LSP.Messages.DidCloseTextDocumentParams) is null;
+
+   not overriding procedure Exit_Notification
+    (Self : access Notification_Handler) is null;
+
+end LSP.Notification_Handlers;

@@ -15,19 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with LSP.Types;
 
-project Tester is
+package LSP.Clients.Request_Handlers is
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+   type Request_Handler is limited interface;
 
-   package Compiler renames LSP_Client.Compiler;
+   not overriding procedure Workspace_Apply_Edit
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.ApplyWorkspaceEditParams) is null;
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-end Tester;
+end LSP.Clients.Request_Handlers;

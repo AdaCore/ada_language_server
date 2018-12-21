@@ -15,19 +15,24 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with Ada.Streams;
 
-project Tester is
+generic
+   type RequestMessage is tagged private;
+   type T is private;
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+   with procedure Write_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RequestMessage'Class);
 
-   package Compiler renames LSP_Client.Compiler;
+package LSP.Generic_Requests is
+   type Request is new RequestMessage with record
+      params : T;
+   end record;
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
+   not overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Request);
 
-end Tester;
+   for Request'Write use Write;
+end LSP.Generic_Requests;

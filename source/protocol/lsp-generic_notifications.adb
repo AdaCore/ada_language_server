@@ -15,19 +15,49 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with Ada.Strings.UTF_Encoding;
 
-project Tester is
+with LSP.JSON_Streams;
+with LSP.Types;
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+package body LSP.Generic_Notifications is
 
-   package Compiler renames LSP_Client.Compiler;
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+      return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
+   ----------
+   -- Read --
+   ----------
 
-end Tester;
+   not overriding procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class; V : out Notification)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Prefix (S, V);
+      JS.Key (+"params");
+      T'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
+   -----------
+   -- Write --
+   -----------
+
+   not overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class; V : Notification)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Prefix (S, V);
+      JS.Key (+"params");
+      T'Write (S, V.params);
+      JS.End_Object;
+   end Write;
+
+end LSP.Generic_Notifications;

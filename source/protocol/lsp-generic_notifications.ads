@@ -15,19 +15,33 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with Ada.Streams;
 
-project Tester is
+generic
+   type NotificationMessage is tagged private;
+   type T is private;
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+   with procedure Read_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NotificationMessage'Class);
 
-   package Compiler renames LSP_Client.Compiler;
+   with procedure Write_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NotificationMessage'Class);
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
+package LSP.Generic_Notifications is
+   type Notification is new NotificationMessage with record
+      params : T;
+   end record;
 
-end Tester;
+   not overriding procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Notification);
+
+   not overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Notification);
+
+   for Notification'Read use Read;
+   for Notification'Write use Write;
+end LSP.Generic_Notifications;

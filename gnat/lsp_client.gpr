@@ -15,19 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp_client";
-with "gnatcoll";
+with "lsp";
+with "spawn";
 
-project Tester is
+project LSP_Client is
 
-   for Source_Dirs use ("../source/tester");
-   for Object_Dir use "../.obj/tester";
-   for Main use ("tester-run.adb");
+   for Source_Dirs use ("../source/client");
+   for Object_Dir use "../.obj/client";
 
-   package Compiler renames LSP_Client.Compiler;
+   package Compiler renames LSP.Compiler;
 
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-end Tester;
+end LSP_Client;
