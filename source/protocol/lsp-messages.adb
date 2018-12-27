@@ -51,10 +51,6 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ResponseMessage'Class);
 
-   procedure Write_Request_Prexif
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.RequestMessage'Class);
-
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -102,6 +98,23 @@ package body LSP.Messages is
       ServerNotInitialized => -32002,
       UnknownErrorCode     => -32001,
       RequestCancelled     => -32800);
+
+   -----------------------------------
+   -- Read_ApplyWorkspaceEditParams --
+   -----------------------------------
+
+   not overriding procedure Read_ApplyWorkspaceEditParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ApplyWorkspaceEditParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"edit");
+      WorkspaceEdit'Read (S, V.edit);
+      JS.End_Object;
+   end Read_ApplyWorkspaceEditParams;
 
    -----------------------------
    -- Read_ClientCapabilities --
@@ -160,9 +173,69 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CodeActionParams;
 
-   ----------
-   -- Read --
-   ----------
+   --------------------------
+   -- Read_CodeLensOptions --
+   --------------------------
+
+   not overriding procedure Read_CodeLensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
+      JS.End_Object;
+   end Read_CodeLensOptions;
+
+   ------------------
+   -- Read_Command --
+   ------------------
+
+   not overriding procedure Read_Command
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Command)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"title", V.title);
+      Read_String (JS, +"command", V.command);
+      JS.Key (+"arguments");
+      V.arguments := JS.Read;
+      JS.End_Object;
+   end Read_Command;
+
+   -------------------------
+   -- Read_Command_Vector --
+   -------------------------
+
+   not overriding procedure Read_Command_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Command_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : Command;
+         begin
+            Command'Read (S, Item);
+            V.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+   end Read_Command_Vector;
+
+   ---------------------
+   -- Read_completion --
+   ---------------------
 
    not overriding procedure Read_completion
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -177,6 +250,82 @@ package body LSP.Messages is
       Read_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
       JS.End_Object;
    end Read_completion;
+
+   -------------------------
+   -- Read_CompletionList --
+   -------------------------
+
+   not overriding procedure Read_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionList)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"isIncomplete");
+      V.isIncomplete := JS.Read.Get;
+      JS.Key (+"items");
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : CompletionItem;
+         begin
+            CompletionItem'Read (S, Item);
+            V.items.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+      JS.End_Object;
+   end Read_CompletionList;
+
+   -------------------------
+   -- Read_CompletionItem --
+   -------------------------
+
+   not overriding procedure Read_CompletionItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"label", V.label);
+      JS.Key (+"kind");
+      Optional_CompletionItemKind'Read (S, V.kind);
+      Read_Optional_String (JS, +"detail", V.detail);
+      Read_Optional_String (JS, +"documentation", V.documentation);
+      Read_Optional_String (JS, +"sortText", V.sortText);
+      Read_Optional_String (JS, +"filterText", V.filterText);
+      Read_Optional_String (JS, +"insertText", V.insertText);
+      JS.Key (+"insertTextFormat");
+      Optional_InsertTextFormat'Read (S, V.insertTextFormat);
+      JS.Key (+"textEdit");
+      Optional_TextEdit'Read (S, V.textEdit);
+      JS.Key (+"additionalTextEdits");
+      TextEdit_Vector'Read (S, V.additionalTextEdits);
+      Read_String_Vector (JS, +"commitCharacters", V.commitCharacters);
+      JS.Key (+"command");
+      Command'Read (S, V.command);
+      JS.End_Object;
+   end Read_CompletionItem;
+
+   -----------------------------
+   -- Read_CompletionItemKind --
+   -----------------------------
+
+   not overriding procedure Read_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItemKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := CompletionItemKind'Val (JS.Read.Get - 1);
+   end Read_CompletionItemKind;
 
    ----------------------------
    -- Read_CompletionOptions --
@@ -240,6 +389,20 @@ package body LSP.Messages is
       end loop;
       JS.End_Array;
    end Read_Diagnostic_Vector;
+
+   -----------------------------
+   -- Read_DiagnosticSeverity --
+   -----------------------------
+
+   not overriding procedure Read_DiagnosticSeverity
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DiagnosticSeverity)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := DiagnosticSeverity'Val (JS.Read.Get - 1);
+   end Read_DiagnosticSeverity;
 
    ---------------------------------------
    -- Read_DidChangeConfigurationParams --
@@ -346,6 +509,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_documentChanges;
 
+   ----------------------------
+   -- Read_DocumentHighlight --
+   ----------------------------
+
+   not overriding procedure Read_DocumentHighlight
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentHighlight)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"range");
+      Span'Read (S, V.span);
+      JS.Key (+"kind");
+      V.kind := DocumentHighlightKind'Val (JS.Read.Get - 1);
+      JS.End_Object;
+   end Read_DocumentHighlight;
+
    ------------------------------
    -- Read_DocumentLinkOptions --
    ------------------------------
@@ -448,6 +630,36 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ExecuteCommandParams;
 
+   ----------------
+   -- Read_Hover --
+   ----------------
+
+   not overriding procedure Read_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Hover)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"contents");
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : MarkedString;
+         begin
+            MarkedString'Read (S, Item);
+            V.contents.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+      JS.Key (+"range");
+      Optional_Span'Read (S, V.Span);
+      JS.End_Object;
+   end Read_Hover;
+
    --------------------
    -- Read_If_String --
    --------------------
@@ -538,6 +750,71 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_InitializeResult;
 
+   ---------------------------
+   -- Read_InsertTextFormat --
+   ---------------------------
+
+   not overriding procedure Read_InsertTextFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertTextFormat)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := InsertTextFormat'Val (JS.Read.Get - 1);
+   end Read_InsertTextFormat;
+
+   -------------------
+   -- Read_Location --
+   -------------------
+
+   not overriding procedure Read_Location
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Location)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"uri");
+      DocumentUri'Read (S, V.uri);
+      JS.Key (+"range");
+      Span'Read (S, V.span);
+      JS.End_Object;
+   end Read_Location;
+
+   -----------------------
+   -- Read_MarkedString --
+   -----------------------
+
+   not overriding procedure Read_MarkedString
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkedString)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"language", V.language);
+      Read_String (JS, +"value", V.value);
+      JS.End_Object;
+   end Read_MarkedString;
+
+   ------------------------------
+   -- Read_Notification_Prexif --
+   ------------------------------
+
+   procedure Read_Notification_Prexif
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.NotificationMessage'Class)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      Read_String (JS, +"jsonrpc", V.jsonrpc);
+      Read_String (JS, +"method", V.method);
+   end Read_Notification_Prexif;
+
    -----------------
    -- Read_Number --
    -----------------
@@ -616,6 +893,23 @@ package body LSP.Messages is
       end if;
    end Read_Optional_TextDocumentSyncOptions;
 
+   -------------------------------
+   -- Read_ParameterInformation --
+   -------------------------------
+
+   not overriding procedure Read_ParameterInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ParameterInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"label", V.label);
+      Read_Optional_String (JS, +"documentation", V.documentation);
+      JS.End_Object;
+   end Read_ParameterInformation;
+
    -------------------
    -- Read_Position --
    -------------------
@@ -632,6 +926,25 @@ package body LSP.Messages is
       Read_Number (JS, +"character", LSP_Number (V.character));
       JS.End_Object;
    end Read_Position;
+
+   -----------------------------------
+   -- Read_PublishDiagnosticsParams --
+   -----------------------------------
+
+   not overriding procedure Read_PublishDiagnosticsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PublishDiagnosticsParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"uri");
+      DocumentUri'Read (S, V.uri);
+      JS.Key (+"diagnostics");
+      Diagnostic_Vector'Read (S, V.diagnostics);
+      JS.End_Object;
+   end Read_PublishDiagnosticsParams;
 
    ---------------------------
    -- Read_ReferenceContext --
@@ -747,6 +1060,66 @@ package body LSP.Messages is
    end Read_ServerCapabilities;
 
    -------------------------------
+   -- Read_SignatureInformation --
+   -------------------------------
+
+   not overriding procedure Read_SignatureInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"label", V.label);
+      Read_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key (+"parameters");
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : ParameterInformation;
+         begin
+            ParameterInformation'Read (S, Item);
+            V.parameters.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+      JS.End_Object;
+   end Read_SignatureInformation;
+
+   ------------------------
+   -- Read_SignatureHelp --
+   ------------------------
+
+   not overriding procedure Read_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelp)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"signatures");
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : SignatureInformation;
+         begin
+            SignatureInformation'Read (S, Item);
+            V.signatures.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+      Read_Optional_Number (JS, +"activeSignature", V.activeSignature);
+      Read_Optional_Number (JS, +"activeParameter", V.activeParameter);
+      JS.End_Object;
+   end Read_SignatureHelp;
+
+   -------------------------------
    -- Read_SignatureHelpOptions --
    -------------------------------
 
@@ -799,6 +1172,53 @@ package body LSP.Messages is
 
       Stream.End_Array;
    end Read_String_Vector;
+
+   ----------------------------
+   -- Read_SymbolInformation --
+   ----------------------------
+
+   not overriding procedure Read_SymbolInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"name", V.name);
+      JS.Key (+"kind");
+      V.kind := SymbolKind'Val (JS.Read.Get - 1);
+      JS.Key (+"location");
+      Location'Read (S, V.location);
+      JS.Key (+"edits");
+      Read_Optional_String (JS, +"containerName", V.containerName);
+      JS.End_Object;
+   end Read_SymbolInformation;
+
+   -----------------------------------
+   -- Read_SymbolInformation_Vector --
+   -----------------------------------
+
+   not overriding procedure Read_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolInformation_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : SymbolInformation;
+         begin
+            SymbolInformation'Read (S, Item);
+            V.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+   end Read_SymbolInformation_Vector;
 
    --------------------------
    -- Read_synchronization --
@@ -1107,6 +1527,78 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceClientCapabilities;
 
+   ------------------------
+   -- Read_WorkspaceEdit --
+   ------------------------
+
+   not overriding procedure Read_WorkspaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceEdit)
+   is
+      procedure Each
+        (Name  : GNATCOLL.JSON.UTF8_String;
+         Value : GNATCOLL.JSON.JSON_Value);
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      ----------
+      -- Each --
+      ----------
+
+      procedure Each
+        (Name  : GNATCOLL.JSON.UTF8_String;
+         Value : GNATCOLL.JSON.JSON_Value)
+      is
+         pragma Unreferenced (Value);
+         Key    : constant LSP.Types.LSP_String := +Name;
+         Vector : TextEdit_Vector;
+      begin
+         JS.Key (Key);
+         JS.Start_Array;
+         while not JS.End_Of_Array loop
+            declare
+               Item : TextEdit;
+            begin
+               TextEdit'Read (S, Item);
+               Vector.Append (Item);
+            end;
+         end loop;
+         JS.End_Array;
+
+         V.changes.Insert (Key, Vector);
+      end Each;
+
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      JS.Start_Object;
+      JS.Key (+"changes");
+      Value := JS.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Object_Type then
+         JS.Key (+"changes");
+         JS.Start_Object;
+         Value.Map_JSON_Object (Each'Access);
+         JS.End_Object;
+      else
+         JS.Key (+"documentChanges");
+         JS.Start_Array;
+
+         while not JS.End_Of_Array loop
+            declare
+               Item : TextDocumentEdit;
+            begin
+               TextDocumentEdit'Read (S, Item);
+               V.documentChanges.Append (Item);
+            end;
+         end loop;
+
+         JS.End_Array;
+      end if;
+
+      JS.End_Object;
+   end Read_WorkspaceEdit;
+
    --------------------------------
    -- Read_WorkspaceSymbolParams --
    --------------------------------
@@ -1198,6 +1690,44 @@ package body LSP.Messages is
       end if;
       JS.End_Object;
    end Write_CodeAction_Response;
+
+   -----------------------------
+   -- Write_CodeActionContext --
+   -----------------------------
+
+   not overriding procedure Write_CodeActionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"diagnostics");
+      Diagnostic_Vector'Write (S, V.diagnostics);
+      JS.End_Object;
+   end Write_CodeActionContext;
+
+   ----------------------------
+   -- Write_CodeActionParams --
+   ----------------------------
+
+   not overriding procedure Write_CodeActionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key (+"range");
+      Span'Write (S, V.span);
+      JS.Key (+"context");
+      CodeActionContext'Write (S, V.context);
+      JS.End_Object;
+   end Write_CodeActionParams;
 
    ---------------------------
    -- Write_CodeLensOptions --
@@ -1448,6 +1978,77 @@ package body LSP.Messages is
            (Integer'(DiagnosticSeverity'Pos (V)) + 1));
    end Write_DiagnosticSeverity;
 
+   ----------------------------------------
+   -- Write_DidChangeConfigurationParams --
+   ----------------------------------------
+
+   not overriding procedure Write_DidChangeConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeConfigurationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"settings");
+      JS.Write (V.settings);
+      JS.End_Object;
+   end Write_DidChangeConfigurationParams;
+
+   ---------------------------------------
+   -- Write_DidChangeTextDocumentParams --
+   ---------------------------------------
+
+   not overriding procedure Write_DidChangeTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeTextDocumentParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      VersionedTextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key (+"contentChanges");
+      TextDocumentContentChangeEvent_Vector'Write (S, V.contentChanges);
+      JS.End_Object;
+   end Write_DidChangeTextDocumentParams;
+
+   -------------------------------------
+   -- Write_DidOpenTextDocumentParams --
+   -------------------------------------
+
+   not overriding procedure Write_DidOpenTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidOpenTextDocumentParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentItem'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_DidOpenTextDocumentParams;
+
+   -------------------------------------
+   -- Write_DidSaveTextDocumentParams --
+   -------------------------------------
+
+   not overriding procedure Write_DidSaveTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidSaveTextDocumentParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      Write_Optional_String (JS, +"text", V.text);
+      JS.End_Object;
+   end Write_DidSaveTextDocumentParams;
+
    ---------------------------
    -- Write_documentChanges --
    ---------------------------
@@ -1521,6 +2122,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_DocumentOnTypeFormattingOptions;
 
+   --------------------------------
+   -- Write_DocumentSymbolParams --
+   --------------------------------
+
+   not overriding procedure Write_DocumentSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbolParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_DocumentSymbolParams;
+
    -------------------------------
    -- Write_dynamicRegistration --
    -------------------------------
@@ -1571,6 +2189,24 @@ package body LSP.Messages is
       Write_String_Vector (JS, +"commands", V.commands);
       JS.End_Object;
    end Write_ExecuteCommandOptions;
+
+   --------------------------------
+   -- Write_ExecuteCommandParams --
+   --------------------------------
+
+   not overriding procedure Write_ExecuteCommandParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ExecuteCommandParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"command", V.command);
+      JS.Key (+"arguments");
+      JS.Write (V.arguments);
+      JS.End_Object;
+   end Write_ExecuteCommandParams;
 
    ------------------------------
    -- Write_Highlight_Response --
@@ -1645,24 +2281,6 @@ package body LSP.Messages is
       Hover'Write (S, V.result);
       JS.End_Object;
    end Write_Hover_Response;
-
-   ------------------------------
-   -- Write_Initialize_Request --
-   ------------------------------
-
-   not overriding procedure Write_Initialize_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Initialize_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prexif (S, V);
-      JS.Key (+"params");
-      InitializeParams'Write (S, V.params);
-      JS.End_Object;
-   end Write_Initialize_Request;
 
    -------------------------------
    -- Write_Initialize_Response --
@@ -1822,6 +2440,21 @@ package body LSP.Messages is
       end if;
    end Write_MarkedString;
 
+   -------------------------------
+   -- Write_Notification_Prexif --
+   -------------------------------
+
+   procedure Write_Notification_Prexif
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.NotificationMessage'Class)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      Write_String (JS, +"jsonrpc", V.jsonrpc);
+      Write_String (JS, +"method", V.method);
+   end Write_Notification_Prexif;
+
    ------------------
    -- Write_Number --
    ------------------
@@ -1929,25 +2562,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Position;
 
-   -------------------------------------------
-   -- Write_PublishDiagnostics_Notification --
-   -------------------------------------------
-
-   not overriding procedure Write_PublishDiagnostics_Notification
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PublishDiagnostics_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-      Write_String (JS, +"method", V.method);
-      JS.Key (+"params");
-      PublishDiagnosticsParams'Write (S, V.params);
-      JS.End_Object;
-   end Write_PublishDiagnostics_Notification;
-
    ------------------------------------
    -- Write_PublishDiagnosticsParams --
    ------------------------------------
@@ -1972,6 +2586,44 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_PublishDiagnosticsParams;
+
+   ----------------------------
+   -- Write_ReferenceContext --
+   ----------------------------
+
+   not overriding procedure Write_ReferenceContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ReferenceContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"includeDeclaration");
+      JS.Write (GNATCOLL.JSON.Create (V.includeDeclaration));
+      JS.End_Object;
+   end Write_ReferenceContext;
+
+   ---------------------------
+   -- Write_ReferenceParams --
+   ---------------------------
+
+   not overriding procedure Write_ReferenceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ReferenceParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key (+"position");
+      Position'Write (S, V.position);
+      JS.Key (+"context");
+      ReferenceContext'Write (S, V.context);
+      JS.End_Object;
+   end Write_ReferenceParams;
 
    --------------------------
    -- Write_Request_Prexif --
@@ -2102,6 +2754,22 @@ package body LSP.Messages is
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
       JS.End_Object;
    end Write_ServerCapabilities;
+
+   ----------------------------
+   -- Write_Shutdown_Request --
+   ----------------------------
+
+   not overriding procedure Write_Shutdown_Request
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Shutdown_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Request_Prexif (S, V);
+      JS.End_Object;
+   end Write_Shutdown_Request;
 
    -------------------------
    -- Write_SignatureHelp --
@@ -2378,6 +3046,49 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
 
+   ------------------------------------------
+   -- Write_TextDocumentContentChangeEvent --
+   ------------------------------------------
+
+   not overriding procedure Write_TextDocumentContentChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentContentChangeEvent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"range");
+      Optional_Span'Write (S, V.span);
+      Write_Optional_Number (JS, +"rangeLength", V.rangeLength);
+      Write_String (JS, +"text", V.text);
+      JS.End_Object;
+   end Write_TextDocumentContentChangeEvent;
+
+   -------------------------------------------------
+   -- Write_TextDocumentContentChangeEvent_Vector --
+   -------------------------------------------------
+
+   not overriding procedure Write_TextDocumentContentChangeEvent_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentContentChangeEvent_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Array;
+
+      for Item of V loop
+         declare
+            Item : TextDocumentContentChangeEvent;
+         begin
+            TextDocumentContentChangeEvent'Write (S, Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+   end Write_TextDocumentContentChangeEvent_Vector;
+
    ----------------------------
    -- Write_TextDocumentEdit --
    ----------------------------
@@ -2396,6 +3107,61 @@ package body LSP.Messages is
       TextEdit_Vector'Write (S, V.edits);
       JS.End_Object;
    end Write_TextDocumentEdit;
+
+   ----------------------------------
+   -- Write_TextDocumentIdentifier --
+   ----------------------------------
+
+   not overriding procedure Write_TextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentIdentifier)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"uri");
+      DocumentUri'Write (S, V.uri);
+      JS.End_Object;
+   end Write_TextDocumentIdentifier;
+
+   ----------------------------
+   -- Write_TextDocumentItem --
+   ----------------------------
+
+   not overriding procedure Write_TextDocumentItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"uri", V.uri);
+      Write_String (JS, +"languageId", V.languageId);
+      Write_Number (JS, +"version", LSP.Types.LSP_Number (V.version));
+      Write_String (JS, +"text", V.text);
+      JS.End_Object;
+   end Write_TextDocumentItem;
+
+   --------------------------------------
+   -- Write_TextDocumentPositionParams --
+   --------------------------------------
+
+   not overriding procedure Write_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentPositionParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key (+"textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key (+"position");
+      Position'Write (S, V.position);
+      JS.End_Object;
+   end Write_TextDocumentPositionParams;
 
    --------------------------------
    -- Write_TextDocumentSyncKind --
@@ -2553,5 +3319,21 @@ package body LSP.Messages is
       end if;
       JS.End_Object;
    end Write_WorkspaceEdit;
+
+   ---------------------------------
+   -- Write_WorkspaceSymbolParams --
+   ---------------------------------
+
+   not overriding procedure Write_WorkspaceSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceSymbolParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"query", V.query);
+      JS.End_Object;
+   end Write_WorkspaceSymbolParams;
 
 end LSP.Messages;
