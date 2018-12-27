@@ -175,7 +175,7 @@ package body LSP.Clients is
       Value.method := +Method;
       LSP.Messages.NotificationMessage'Class'Write (JS'Access, Value);
       JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Request (JSON.Write);
+      Self.Send_Message (JSON.Write);
    end Send_Notification;
 
    ------------------
@@ -201,7 +201,7 @@ package body LSP.Clients is
       Value.id := (True, Request);
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
       JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Request (JSON.Write);
+      Self.Send_Message (JSON.Write);
    end Send_Request;
 
    -------------------------
@@ -437,7 +437,7 @@ package body LSP.Clients is
    begin
       LSP.Messages.ApplyWorkspaceEdit_Response'Write (JS'Access, Message);
       JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Request (JSON.Write);
+      Self.Send_Message (JSON.Write);
    end Workspace_Apply_Edit;
 
    ----------------------------------------

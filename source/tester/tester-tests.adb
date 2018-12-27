@@ -72,7 +72,7 @@ package body Tester.Tests is
         Request.Write;
    begin
       Self.Waits := Wait;
-      Self.Send_Request (Text);
+      Self.Send_Message (Text);
 
       loop
          Spawn.Processes.Monitor_Loop (Timeout => 1);
