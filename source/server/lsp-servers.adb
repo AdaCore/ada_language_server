@@ -88,7 +88,7 @@ package body LSP.Servers is
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
-      Notification : not null LSP.Message_Handlers.
+      Notification : not null LSP.Notification_Handlers.
         Notification_Handler_Access)
    is
       type Request_Info is record
