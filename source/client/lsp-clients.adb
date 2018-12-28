@@ -144,7 +144,18 @@ package body LSP.Clients is
                      Params  => Params);
                end;
             else
-               raise Constraint_Error with "Unknown request";
+               declare
+                  Error : LSP.Messages.ResponseMessage :=
+                    (error =>
+                       (True,
+                        (code => LSP.Messages.MethodNotFound,
+                         message =>
+                           +("Unknown method:" & Value.Get ("method")),
+                         data => <>)),
+                     others => <>);
+               begin
+                  Self.Send_Response (Id, Error);
+               end;
             end if;
          else
             --  Response from server
@@ -238,6 +249,25 @@ package body LSP.Clients is
    begin
       Self.Send_Request (Request, "shutdown", null, Message);
    end Shutdown_Request;
+
+   -------------------
+   -- Send_Response --
+   -------------------
+
+   procedure Send_Response
+     (Self    : in out Client'Class;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Value   : in out LSP.Messages.ResponseMessage'Class)
+   is
+      JS : aliased LSP.JSON_Streams.JSON_Stream;
+      JSON : GNATCOLL.JSON.JSON_Value;
+   begin
+      Value.jsonrpc := +"2.0";
+      Value.id := Request;
+      LSP.Messages.ResponseMessage'Class'Write (JS'Access, Value);
+      JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
+      Self.Send_Message (JSON.Write);
+   end Send_Response;
 
    ---------------------------------------
    -- Text_Document_Code_Action_Request --
@@ -426,18 +456,11 @@ package body LSP.Clients is
       Request : LSP.Types.LSP_Number_Or_String;
       Applied : Boolean)
    is
-      Message : constant LSP.Messages.ApplyWorkspaceEdit_Response :=
-        (result  => (applied => Applied),
-         jsonrpc => +"2.0",
-         id      => Request,
-         error   => (Is_Set => False));
-
-      JS : aliased LSP.JSON_Streams.JSON_Stream;
-      JSON : GNATCOLL.JSON.JSON_Value;
+      Message : LSP.Messages.ApplyWorkspaceEdit_Response :=
+        (result => (applied => Applied),
+         others => <>);
    begin
-      LSP.Messages.ApplyWorkspaceEdit_Response'Write (JS'Access, Message);
-      JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Message (JSON.Write);
+      Self.Send_Response (Request, Message);
    end Workspace_Apply_Edit;
 
    ----------------------------------------

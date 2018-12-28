@@ -110,7 +110,7 @@ package LSP.Clients is
       Request  : out LSP.Types.LSP_Number;
       Value    : LSP.Messages.WorkspaceSymbolParams);
 
-   --  Notification sennding procedures:
+   --  Notification sending procedures:
 
    overriding procedure Workspace_Did_Change_Configuration
      (Self  : access Client;
@@ -184,5 +184,10 @@ private
       Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class);
+
+   procedure Send_Response
+     (Self    : in out Client'Class;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Value   : in out LSP.Messages.ResponseMessage'Class);
 
 end LSP.Clients;
