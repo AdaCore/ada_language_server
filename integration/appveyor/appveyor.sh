@@ -26,7 +26,7 @@ function do_install()
 function do_build()
 {
   cd $BUILD_FOLDER
-  make all check
+  make deploy USER=appveyor
 }
 
 do_$1

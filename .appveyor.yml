@@ -5,3 +5,8 @@ install:
 
 build_script:
  - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh build"
+
+artifacts:
+  - path: win32.zip
+    name: Ada_Language_Server
+

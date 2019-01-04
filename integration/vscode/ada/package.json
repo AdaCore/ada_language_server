@@ -4,7 +4,7 @@
     "description": "A Language Server and Language Support for Ada for Visual Studio Code",
     "version": "0.0.1",
     "publisher": "AdaCore",
-    "license": "GPL-3",
+    "license": "GPL-3.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/AdaCore/ada_language_server"
@@ -13,12 +13,21 @@
         "vscode": "^1.17.0"
     },
     "categories": [
-        "Languages"
+        "Programming Languages"
     ],
     "activationEvents": [
         "onLanguage:ada"
     ],
     "main": "./extension",
+    "preview": true,
+    "icon": "icons/ada.png",
+    "bugs": "https://github.com/AdaCore/ada_language_server/issues",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AdaCore/ada_language_server.git"
+    },
+    "os": [ "linux" ],
+    "cpu": [ "x64" ],
     "contributes": {
         "languages": [
             {
@@ -103,6 +112,7 @@
     },
     "dependencies": {
         "vscode": "^1.1.5",
-        "vscode-languageclient": "^3.4.2"
+        "vscode-languageclient": "^3.4.2",
+        "process": "^0.10.0"
     }
 }
