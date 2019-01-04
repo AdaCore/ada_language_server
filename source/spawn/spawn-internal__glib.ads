@@ -16,11 +16,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Finalization;
-with Interfaces.C;
 
-with Glib.IO_Channels;
+with Glib.IOChannel;
 with Glib.Main;
-with Glib.Spawns;
+with Glib.Spawn;
 
 private package Spawn.Internal is
 
@@ -34,8 +33,8 @@ private package Spawn.Internal is
    type Pipe_Kinds is (Stdin, Stdout, Stderr);
 
    type Pipe_Record is record
-      FD      : aliased Interfaces.C.int;
-      Channel : Glib.IO_Channels.Channel;
+      FD      : aliased Glib.Gint;
+      Channel : Glib.IOChannel.Giochannel;
       Event   : Glib.Main.G_Source_Id;
       --  Pipe is watched if Event /= No_Source_Id
       Watch   : Boolean;
@@ -57,7 +56,7 @@ private package Spawn.Internal is
    type Process is new Ada.Finalization.Limited_Controlled with record
       Reference : aliased Process_Reference;
       Event     : Glib.Main.G_Source_Id := 0;
-      pid       : aliased Glib.Spawns.GPid := 0;
+      pid       : aliased Glib.Spawn.GPid := 0;
       pipe      : Pipe_Array :=
         (others => (0, null, Glib.Main.No_Source_Id, False));
    end record;

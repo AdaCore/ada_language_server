@@ -20,9 +20,9 @@ with Interfaces.C;
 with Spawn.Environments.Internal;
 
 with Glib.Error;
-with Glib.IO_Channels;
+with Glib.IOChannel;
 with Glib.Main;
-with Glib.Spawns;
+with Glib.Spawn;
 with Gtkada.Types;
 
 package body Spawn.Processes is
@@ -39,30 +39,34 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset;
       Kind : Standard_Pipe);
 
-   function IO_Watch is new Glib.IO_Channels.Generic_Add_Watch
+   function IO_Watch is new Glib.IOChannel.Generic_Add_Watch
      (User_Data => Internal.Process_Reference);
 
-   function Child_Watch is new Glib.Spawns.Generic_Child_Add_Watch
+   function Child_Watch is new Glib.Main.Generic_Child_Add_Watch
      (User_Data => Internal.Process_Reference);
 
    procedure My_Death_Collback
-     (pid    : Glib.Spawns.GPid;
+     (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
         with Convention => C;
 
    function My_IO_Callback
-     (source    : Glib.IO_Channels.Channel;
-      condition : Glib.IO_Channels.GIOCondition;
+     (source    : Glib.IOChannel.Giochannel;
+      condition : Glib.IOChannel.GIOCondition;
       data      : access Internal.Process_Reference) return Glib.Gboolean
         with Convention => C;
 
    type Process_Access is access all Process'Class;
 
-   Map : constant array (Standard_Pipe) of Glib.IO_Channels.GIOCondition :=
-     (Stdin  => Glib.IO_Channels.G_IO_OUT,
-      Stdout => Glib.IO_Channels.G_IO_IN,
-      Stderr => Glib.IO_Channels.G_IO_IN);
+   Map : constant array (Standard_Pipe) of Glib.IOChannel.GIOCondition :=
+     (Stdin  => Glib.IOChannel.G_Io_Out,
+      Stdout => Glib.IOChannel.G_Io_In,
+      Stderr => Glib.IOChannel.G_Io_In);
+
+   function Spawn_Async_With_Pipes is
+     new Glib.Spawn.Generic_Spawn_Async_With_Pipes
+       (User_Data => Integer);
 
    ---------------
    -- Arguments --
@@ -109,16 +113,16 @@ package body Spawn.Processes is
      (Self : in out Process'Class;
       Kind : Standard_Pipe)
    is
-      use type Glib.IO_Channels.Channel;
-      use type Glib.IO_Channels.GIOStatus;
+      use type Glib.IOChannel.Giochannel;
+      use type Glib.IOChannel.GIOStatus;
       Pipe  : Internal.Pipe_Record renames Self.pipe (Kind);
       Error : aliased Glib.Error.GError;
    begin
       if Pipe.Channel /= null then
-         if Glib.IO_Channels.Shutdown (Pipe.Channel, 1, Error'Access)
-           = Glib.IO_Channels.G_IO_STATUS_NORMAL
+         if Glib.IOChannel.Shutdown (Pipe.Channel, 1, Error'Access)
+           = Glib.IOChannel.G_Io_Status_Normal
          then
-            Glib.IO_Channels.Unref (Pipe.Channel);
+            Glib.IOChannel.Unref (Pipe.Channel);
             Pipe.Channel := null;
          else
             Self.Listener.Error_Occurred
@@ -142,27 +146,26 @@ package body Spawn.Processes is
       Pipe   : Internal.Pipe_Record renames Self.pipe (Kind);
       Error  : aliased Glib.Error.GError;
       Count  : aliased Glib.Gsize := 0;
-      Status : constant Glib.IO_Channels.GIOStatus :=
-        Glib.IO_Channels.Read_Chars
-          (channel    => Pipe.Channel,
-           buf        => Data,
-           count      => Data'Length,
-           bytes_read => Count'Access,
-           error      => Error'Access);
+      Status : constant Glib.IOChannel.GIOStatus :=
+        Glib.IOChannel.Read_Chars
+          (Self       => Pipe.Channel,
+           Buf        => Data,
+           Bytes_Read => Count'Access,
+           Error      => Error'Access);
 
       In_Callback : constant Boolean :=
         Pipe.Event not in Glib.Main.No_Source_Id;
    begin
       case Status is
-         when Glib.IO_Channels.G_IO_STATUS_EOF =>
+         when Glib.IOChannel.G_Io_Status_Eof =>
             --  Reading is completed, so no watching is required
             Last := Data'First - 1;
 
-         when Glib.IO_Channels.G_IO_STATUS_NORMAL =>
+         when Glib.IOChannel.G_Io_Status_Normal =>
             --  Read success, so no watching is required
             Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
 
-         when Glib.IO_Channels.G_IO_STATUS_AGAIN =>
+         when Glib.IOChannel.G_Io_Status_Again =>
             --  No data to read, so start to watching again
             pragma Assert (Count in 0);
             Last := Data'First - 1;
@@ -178,11 +181,9 @@ package body Spawn.Processes is
                   My_IO_Callback'Access,
                   Self.Reference'Access);
             end if;
-         when Glib.IO_Channels.G_IO_STATUS_ERROR =>
+         when Glib.IOChannel.G_Io_Status_Error =>
             Self.Listener.Error_Occurred
               (Integer (Glib.Error.Get_Code (Error)));
-         when others =>
-            raise Program_Error;
       end case;
    end Do_Read;
 
@@ -193,7 +194,7 @@ package body Spawn.Processes is
    procedure Do_Start_Process (Self : aliased in out Process'Class) is
       use Ada.Strings.Unbounded;
       use type Interfaces.C.size_t;
-      use type Glib.IO_Channels.GIOStatus;
+      use type Glib.IOChannel.GIOStatus;
 
       procedure Prepare_Arguments (argv : out Gtkada.Types.Chars_Ptr_Array);
       --  Allocate argumnets
@@ -220,10 +221,10 @@ package body Spawn.Processes is
            else Gtkada.Types.New_String
              (To_String (Self.Directory)));
 
-      argv : Gtkada.Types.Chars_Ptr_Array
-        (0 .. Interfaces.C.size_t (Self.Arguments.Length) + 1);
+      argv : aliased Gtkada.Types.Chars_Ptr_Array :=
+        (0 .. Interfaces.C.size_t (Self.Arguments.Length) + 1 => <>);
 
-      envp : Gtkada.Types.Chars_Ptr_Array :=
+      envp : aliased Gtkada.Types.Chars_Ptr_Array :=
         Spawn.Environments.Internal.Raw (Self.Environment);
 
       Error : aliased Glib.Error.GError;
@@ -231,16 +232,18 @@ package body Spawn.Processes is
       Self.Reference.Self := Self'Unchecked_Access;
       Prepare_Arguments (argv);
 
-      if Glib.Spawns.g_spawn_async_with_pipes
-        (working_directory => dir,
-         argv              => argv,
-         envp              => envp,
-         flags             => Glib.Spawns.G_SPAWN_DO_NOT_REAP_CHILD,
-         child_pid         => Self.pid'Access,
-         standard_input    => Self.pipe (Stdin).FD'Access,
-         standard_output   => Self.pipe (Stdout).FD'Access,
-         standard_error    => Self.pipe (Stderr).FD'Access,
-         error             => Error'Access) in 0
+      if Spawn_Async_With_Pipes
+        (Working_Directory => dir,
+         Argv              => argv'Access,
+         Envp              => envp'Access,
+         Flags             => Glib.Spawn.G_Spawn_Do_Not_Reap_Child,
+         Child_Setup       => null,
+         Data              => null,
+         Child_Pid         => Self.pid'Access,
+         Standard_Input    => Self.pipe (Stdin).FD'Access,
+         Standard_Output   => Self.pipe (Stdout).FD'Access,
+         Standard_Error    => Self.pipe (Stderr).FD'Access,
+         Error             => Error'Access) in 0
       then
          Self.Listener.Error_Occurred (Integer (Glib.Error.Get_Code (Error)));
          return;
@@ -255,27 +258,27 @@ package body Spawn.Processes is
          declare
             Pipe : Spawn.Internal.Pipe_Record renames Self.pipe (J);
          begin
-            Pipe.Channel := Glib.IO_Channels.Unix_New (Pipe.FD);
+            Pipe.Channel := Glib.IOChannel.Giochannel_Unix_New (Pipe.FD);
 
-            if Glib.IO_Channels.Set_Flags
+            if Glib.IOChannel.Set_Flags
               (Pipe.Channel,
-               Glib.IO_Channels.G_IO_FLAG_NONBLOCK,
-               Error'Access) /= Glib.IO_Channels.G_IO_STATUS_NORMAL
+               Glib.IOChannel.G_Io_Flag_Nonblock,
+               Error'Access) /= Glib.IOChannel.G_Io_Status_Normal
             then
                Self.Listener.Error_Occurred
                  (Integer (Glib.Error.Get_Code (Error)));
                return;
-            elsif Glib.IO_Channels.Set_Encoding
+            elsif Glib.IOChannel.Set_Encoding
               (Pipe.Channel,
-               null,
-               Error'Access) /= Glib.IO_Channels.G_IO_STATUS_NORMAL
+               "",
+               Error'Access) /= Glib.IOChannel.G_Io_Status_Normal
             then
                Self.Listener.Error_Occurred
                  (Integer (Glib.Error.Get_Code (Error)));
                return;
             end if;
 
-            Glib.IO_Channels.Set_Buffered (Pipe.Channel, 0);
+            Glib.IOChannel.Set_Buffered (Pipe.Channel, False);
 
             if J /= Stdin then
                Pipe.Event := IO_Watch
@@ -342,12 +345,10 @@ package body Spawn.Processes is
    -----------------------
 
    procedure My_Death_Collback
-     (pid    : Glib.Spawns.GPid;
+     (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
    is
-      use type Glib.Gboolean;
-
       Process : constant Process_Access := Process_Access (data.Self);
       Error   : aliased Glib.Error.GError;
    begin
@@ -355,14 +356,14 @@ package body Spawn.Processes is
          Do_Close_Pipe (Process.all, J);
       end loop;
 
-      Glib.Spawns.g_spawn_close_pid (pid);
+      Glib.Spawn.Spawn_Close_Pid (pid);
 
-      if Glib.Spawns.g_spawn_check_exit_status
-        (status, Error'Access) = 0
+      if Glib.Spawn.Spawn_Check_Exit_Status
+        (status, Error'Access)
       then
-         Process.Exit_Code := Integer (Glib.Error.Get_Code (Error));
-      else
          Process.Exit_Code := 0;
+      else
+         Process.Exit_Code := Integer (Glib.Error.Get_Code (Error));
       end if;
 
       Process.Status := Not_Running;
@@ -374,16 +375,16 @@ package body Spawn.Processes is
    --------------------
 
    function My_IO_Callback
-     (source    : Glib.IO_Channels.Channel;
-      condition : Glib.IO_Channels.GIOCondition;
+     (source    : Glib.IOChannel.Giochannel;
+      condition : Glib.IOChannel.GIOCondition;
       data      : access Internal.Process_Reference) return Glib.Gboolean
    is
-      use type Glib.IO_Channels.Channel;
+      use type Glib.IOChannel.Giochannel;
       Process : constant Process_Access := Process_Access (data.Self);
       Watch   : Glib.Gboolean := 0;
    begin
       case condition is
-         when Glib.IO_Channels.G_IO_IN =>
+         when Glib.IOChannel.G_Io_In =>
             if Process.pipe (Stdout).Channel = source then
                pragma Assert
                  (Process.pipe (Stdout).Event not in Glib.Main.No_Source_Id);
@@ -411,7 +412,7 @@ package body Spawn.Processes is
                   Watch := 0;
                end if;
             end if;
-         when Glib.IO_Channels.G_IO_OUT =>
+         when Glib.IOChannel.G_Io_Out =>
             pragma Assert
               (Process.pipe (Stdin).Event not in Glib.Main.No_Source_Id);
             Process.pipe (Stdout).Watch := False;
@@ -562,23 +563,22 @@ package body Spawn.Processes is
       Error  : aliased Glib.Error.GError;
       Count  : aliased Glib.Gsize;
 
-      Status : constant Glib.IO_Channels.GIOStatus :=
-        Glib.IO_Channels.Write_Chars
-          (channel    => Pipe.Channel,
-           buf        => Data,
-           count      => Data'Length,
-           bytes_read => Count'Access,
-           error      => Error'Access);
+      Status : constant Glib.IOChannel.GIOStatus :=
+        Glib.IOChannel.Write_Chars
+          (Self          => Pipe.Channel,
+           Buf           => Data,
+           Bytes_Written => Count'Access,
+           Error         => Error'Access);
 
       In_Callback : constant Boolean :=
         Pipe.Event not in Glib.Main.No_Source_Id;
    begin
       case Status is
-         when Glib.IO_Channels.G_IO_STATUS_NORMAL =>
+         when Glib.IOChannel.G_Io_Status_Normal =>
             Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
 
 
-         when Glib.IO_Channels.G_IO_STATUS_AGAIN =>
+         when Glib.IOChannel.G_Io_Status_Again =>
             --  No space in the buffer to write, so start watching again
             pragma Assert (Count in 0);
             Last := Data'First - 1;
@@ -595,7 +595,7 @@ package body Spawn.Processes is
                   Self.Reference'Access);
             end if;
 
-         when Glib.IO_Channels.G_IO_STATUS_ERROR =>
+         when Glib.IOChannel.G_Io_Status_Error =>
             Self.Listener.Error_Occurred
               (Integer (Glib.Error.Get_Code (Error)));
 

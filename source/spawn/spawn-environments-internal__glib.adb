@@ -20,8 +20,7 @@ with Interfaces.C;
 
 with GNAT.Strings;
 
-with Gtkada.Bindings;
-with Glib.Spawns;
+with Glib.Spawn;
 
 package body Spawn.Environments.Internal is
 
@@ -32,8 +31,7 @@ package body Spawn.Environments.Internal is
    procedure Initialize_Default
      (Default : out Spawn.Environments.Process_Environment)
    is
-      List : GNAT.Strings.String_List :=
-        Gtkada.Bindings.To_String_List_And_Free (Glib.Spawns.g_get_environ);
+      List : GNAT.Strings.String_List := Glib.Spawn.Get_Environ;
    begin
       for Text of List loop
          declare

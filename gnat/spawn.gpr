@@ -23,9 +23,7 @@ project Spawn is
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
 
-   Common_Excluded :=
-     ("glib-spawns.ads",
-      "glib-io_channels.ads");
+   Common_Excluded := ();
 
    case OS_API is
       when "Posix" =>
