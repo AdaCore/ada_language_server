@@ -67,7 +67,7 @@ package LSP.Raw_Clients is
    function Exit_Code (Self : Raw_Client'Class) return Integer;
    --  Check is LSP server is running
 
-   procedure Send_Request
+   procedure Send_Message
      (Self : in out Raw_Client'Class;
       Text : Ada.Strings.Unbounded.Unbounded_String);
    --  Send a request to LSP server. Text should contain valid JSON in

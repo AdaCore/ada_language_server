@@ -19,6 +19,7 @@ with Ada.Streams;
 
 with LSP.Messages;
 with LSP.Message_Handlers;
+with LSP.Notification_Handlers;
 with LSP.Types;
 
 private with LSP.Notification_Dispatchers;
@@ -35,7 +36,7 @@ package LSP.Servers is
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
-      Notification : not null LSP.Message_Handlers.
+      Notification : not null LSP.Notification_Handlers.
         Notification_Handler_Access);
 
    not overriding procedure Send_Notification
@@ -61,7 +62,7 @@ private
       --  Mark Server as uninitialized until get 'initalize' request
       Stream        : access Ada.Streams.Root_Stream_Type'Class;
       Req_Handler   : LSP.Message_Handlers.Request_Handler_Access;
-      Notif_Handler : LSP.Message_Handlers.Notification_Handler_Access;
+      Notif_Handler : LSP.Notification_Handlers.Notification_Handler_Access;
       Requests      : aliased LSP.Request_Dispatchers.Request_Dispatcher;
       Notifications : aliased LSP.Notification_Dispatchers
         .Notification_Dispatcher;

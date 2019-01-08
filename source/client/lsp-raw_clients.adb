@@ -56,10 +56,10 @@ package body LSP.Raw_Clients is
    end Is_Server_Running;
 
    ------------------
-   -- Send_Request --
+   -- Send_Message --
    ------------------
 
-   procedure Send_Request
+   procedure Send_Message
      (Self : in out Raw_Client'Class;
       Text : Ada.Strings.Unbounded.Unbounded_String)
    is
@@ -75,7 +75,7 @@ package body LSP.Raw_Clients is
       if Self.Can_Write then
          Self.Listener.Standard_Input_Available;
       end if;
-   end Send_Request;
+   end Send_Message;
 
    -------------------
    -- Set_Arguments --

@@ -19,8 +19,8 @@ with "gtkada";
 
 project Spawn_Glib is
 
-   type OS_API_Kind is ("Windows_NT", "Posix");
-   OS_API : OS_API_Kind := external ("OS", "Posix");
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind := external ("OS", "unix");
 
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
@@ -31,7 +31,7 @@ project Spawn_Glib is
       "spawn-processes-monitor_loop.adb");
 
    case OS_API is
-      when "Posix" =>
+      when "unix" | "osx" =>
          for Excluded_Source_Files use Common_Excluded &
            ("spawn-windows_api.ads",
             "spawn-processes-windows.ads",
@@ -47,7 +47,7 @@ project Spawn_Glib is
 
    package Naming is
       case OS_API is
-         when "Posix" =>
+         when "unix" | "osx" =>
             for Spec ("Spawn.Internal")
                use "spawn-internal__glib.ads";
             for Body ("Spawn.Internal")
