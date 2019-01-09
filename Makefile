@@ -8,7 +8,7 @@ all:
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p
 	$(GPRBUILD) -P gnat/tester.gpr -p
 	rm -rf integration/vscode/ada/server
-	ln -s ../../../.obj/server/lsp-ada_driver.exe integration/vscode/ada/server
+	ln -s ../../../.obj/server/ada_language_server integration/vscode/ada/server
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/server
