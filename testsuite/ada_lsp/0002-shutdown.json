@@ -1,7 +1,7 @@
 [
     {
         "start": {
-            "cmd": [".obj/server/lsp-ada_driver.exe"]
+            "cmd": [".obj/server/ada_language_server"]
         }
     },  {
         "send": {

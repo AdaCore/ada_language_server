@@ -38,6 +38,8 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
 
+   Is_Windows : constant Boolean := GNAT.OS_Lib.Directory_Separator = '\';
+
    --------------
    -- Do_Abort --
    --------------
@@ -94,7 +96,13 @@ package body Tester.Tests is
       for J in 2 .. GNATCOLL.JSON.Length (Cmd) loop
          Args.Append (GNATCOLL.JSON.Get (Cmd, J).Get);
       end loop;
-      Self.Set_Program (GNATCOLL.JSON.Get (Cmd, 1).Get);
+
+      if Is_Windows then
+         Self.Set_Program (GNATCOLL.JSON.Get (Cmd, 1).Get & ".exe");
+      else
+         Self.Set_Program (GNATCOLL.JSON.Get (Cmd, 1).Get);
+      end if;
+
       Self.Set_Arguments (Args);
       Self.Start;
 

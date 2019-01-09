@@ -32,7 +32,7 @@ project LSP_Server is
    end Binder;
 
    package Builder is
-      for Executable ("lsp-ada_driver") use "lsp-ada_driver.exe";
+      for Executable ("lsp-ada_driver") use "ada_language_server";
    end Builder;
 
 end LSP_Server;
