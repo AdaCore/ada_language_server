@@ -21,21 +21,21 @@ with Interfaces.C.Strings;
 package Spawn.Posix is
 
    function close (fd : Interfaces.C.int) return Interfaces.C.int
-     with Import, Convention => C, Link_Name => "close";
+     with Import, Convention => C, External_Name => "close";
 
    function read
      (fd    : Interfaces.C.int;
       buf   : out Ada.Streams.Stream_Element_Array;
       count : Interfaces.C.size_t)
         return Interfaces.C.size_t
-          with Import, Convention => C, Link_Name => "read";
+          with Import, Convention => C, External_Name => "read";
 
    function write
      (fd    : Interfaces.C.int;
       buf   : Ada.Streams.Stream_Element_Array;
       count : Interfaces.C.size_t)
         return Interfaces.C.size_t
-          with Import, Convention => C, Link_Name => "write";
+          with Import, Convention => C, External_Name => "write";
 
    type Pipe_Ends is (Read_End, Write_End);
 
@@ -44,7 +44,7 @@ package Spawn.Posix is
 
    function pipe2 (pipefd : out Fd_Pair; flags : Interfaces.C.int)
      return Interfaces.C.int
-        with Import, Convention => C, Link_Name => "pipe2";
+        with Import, Convention => C, External_Name => "pipe2";
 
    O_CLOEXEC  : constant := 16#80000#;
    O_NONBLOCK : constant := 16#800#;
@@ -55,17 +55,17 @@ package Spawn.Posix is
    POLLNVAL   : constant := 16#0020#;
 
    function fork  return Interfaces.C.int
-     with Import, Convention => C, Link_Name => "fork";
+     with Import, Convention => C, External_Name => "fork";
 
    function dup2
      (oldfd : Interfaces.C.int;
       newfd : Interfaces.C.int)
         return Interfaces.C.int
-          with Import, Convention => C, Link_Name => "dup2";
+          with Import, Convention => C, External_Name => "dup2";
 
    function chdir (path : Interfaces.C.Strings.chars_ptr)
      return Interfaces.C.int
-       with Import, Convention => C, Link_Name => "chdir";
+       with Import, Convention => C, External_Name => "chdir";
 
    type chars_ptr_array is array (Natural range <>) of
      aliased Interfaces.C.Strings.chars_ptr;
@@ -75,7 +75,7 @@ package Spawn.Posix is
       argv : chars_ptr_array;
       anvp : chars_ptr_array)
      return Interfaces.C.int
-        with Import, Convention => C, Link_Name => "execve";
+        with Import, Convention => C, External_Name => "execve";
 
    type pollfd is record
       fd      : Interfaces.C.int;
@@ -89,13 +89,13 @@ package Spawn.Posix is
      (fds     : in out pollfd_array;
       nfds    : Interfaces.C.unsigned_long;
       timeout : Interfaces.C.int) return Interfaces.C.int
-        with Import, Convention => C, Link_Name => "poll";
+        with Import, Convention => C, External_Name => "poll";
 
    function waitpid
      (pid     : Interfaces.C.int;
       wstatus : access Interfaces.C.unsigned;
       options : Interfaces.C.int) return Interfaces.C.int
-        with Import, Convention => C, Link_Name => "waitpid";
+        with Import, Convention => C, External_Name => "waitpid";
 
    WNOHANG : constant := 1;
 
@@ -105,7 +105,7 @@ package Spawn.Posix is
       flags : Interfaces.C.int;
       dummy : Interfaces.C.C_float := 0.0)
         return Interfaces.C.int
-          with Import, Convention => C, Link_Name => "fcntl";
+          with Import, Convention => C, External_Name => "fcntl";
    --  An extra float argument is used to make this binding compatible
    --  with amd64 ABI for C functions with ellipsis (...).
 
@@ -115,7 +115,7 @@ package Spawn.Posix is
      Interfaces.C.Strings.chars_ptr_array (1 .. Interfaces.C.size_t'Last);
 
    environ : constrained_chars_ptr_array
-     with Import, Convention => C, Link_Name => "environ";
+     with Import, Convention => C, External_Name => "environ";
 
    --  Errno values
    EAGAIN : constant := 11;
