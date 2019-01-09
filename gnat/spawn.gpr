@@ -17,23 +17,25 @@
 
 project Spawn is
 
-   type OS_API_Kind is ("Windows_NT", "Posix");
-   OS_API : OS_API_Kind := external ("OS", "Posix");
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind := external ("OS", "unix");
 
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
+   for Languages use ("Ada", "c");
 
    Common_Excluded := ();
 
    case OS_API is
-      when "Posix" =>
+      when "unix" =>
          for Excluded_Source_Files use Common_Excluded &
-           ("spawn-windows_api.ads",
+           ("pipe2.c",
+            "spawn-windows_api.ads",
             "spawn-processes-windows.ads",
             "spawn-processes-windows.adb");
 
       when "Windows_NT" =>
-         for Excluded_Source_Files use Common_Excluded;
+         for Excluded_Source_Files use Common_Excluded & ("pipe2.c");
    end case;
 
    package Compiler is
@@ -42,7 +44,7 @@ project Spawn is
 
    package Naming is
       case OS_API is
-         when "Posix" =>
+         when "unix" | "osx" =>
             for Spec ("Spawn.Internal")
                use "spawn-internal__posix.ads";
             for Body ("Spawn.Internal")
