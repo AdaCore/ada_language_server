@@ -1,8 +1,8 @@
 {
     "package": {
         "subject": "reznikmm",
-        "repo": "ada-lsp",
-        "name": "ada_language_server",
+        "repo": "ada-language-server",
+        "name": "ada-language-server",
         "desc": "Binary release of master and stable branches of ada_language_server",
         "labels": ["ada"],
         "licenses": ["GPL-3.0"],

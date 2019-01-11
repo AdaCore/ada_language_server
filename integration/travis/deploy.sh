@@ -62,4 +62,26 @@ function darwin_deploy()
     tar czvf upload/$PLATFORM.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
 
+function vsix_deploy()
+{
+    pushd integration/vscode/ada
+
+    wget -nv -Owin32.zip \
+         "https://dl.bintray.com/reznikmm/ada-language-server/win32.zip"
+    unzip win32.zip
+
+    for J in darwin linux ; do
+        wget -nv -O- \
+             "https://dl.bintray.com/reznikmm/ada-language-server/$J.tar.gz" |\
+             tar xzvf -
+    done
+
+    npm install
+    npm install -g vsce
+    vsce package
+    popd
+    mkdir upload
+    cp -v integration/vscode/ada/*.vsix upload/
+}
+
 ${PLATFORM}_deploy
