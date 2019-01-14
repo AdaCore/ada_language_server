@@ -69,8 +69,8 @@ package body LSP.Ada_Documents is
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
-      File : String :=
-        To_UTF_8_String
+      File : constant String :=
+        Types.To_UTF_8_String
           (Self.Context.URI_To_File (Self.URI));  --  Delete file://
    begin
       Server_Trace.Trace ("Applying changes for document " & File);
@@ -78,7 +78,7 @@ package body LSP.Ada_Documents is
          --  If whole document then reparse it
          if not Change.span.Is_Set then
             Self.Unit := Self.LAL.Get_From_Buffer
-              (Filename => To_UTF_8_String (File),
+              (Filename => File,
                Charset  => "utf-8",
                Buffer   => LSP.Types.To_UTF_8_String (Change.text));
          end if;

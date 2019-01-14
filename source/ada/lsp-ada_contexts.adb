@@ -35,7 +35,6 @@ package body LSP.Ada_Contexts is
       File : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
       pragma Unreferenced (Self);
-      use type LSP.Types.LSP_String;
    begin
       --  See URI_To_File for comments
       if LSP.Types.Length (File) > 1 and then
