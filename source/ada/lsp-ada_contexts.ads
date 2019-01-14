@@ -27,11 +27,15 @@ with LSP.Ada_Documents;
 with LSP.Types;
 
 package LSP.Ada_Contexts is
+
    type Context is tagged limited private;
 
    not overriding procedure Initialize
      (Self : in out Context;
       Root : LSP.Types.LSP_String);
+
+   function Is_Initialized (Self : Context) return Boolean;
+   function Has_Project (Self : Context) return Boolean;
 
    not overriding procedure Load_Project
      (Self     : in out Context;
@@ -69,6 +73,8 @@ package LSP.Ada_Contexts is
    --  Convert file name to URI
 
 private
+   use type Types.LSP_String;
+   use type GNATCOLL.Projects.Project_Tree_Access;
 
    package Document_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Messages.DocumentUri,
@@ -78,18 +84,26 @@ private
       "="             => LSP.Ada_Documents."=");
 
    type Context is tagged limited record
-      Unit_Provider : Libadalang.Analysis.Unit_Provider_Reference;
-      LAL_Context   : Libadalang.Analysis.Analysis_Context;
+      Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
+      LAL_Context    : Libadalang.Analysis.Analysis_Context;
 
-      Project_Tree  : GNATCOLL.Projects.Project_Tree_Access;
-      Root          : LSP.Types.LSP_String;
+      Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
+      Root           : LSP.Types.LSP_String;
 
-      Documents     : Document_Maps.Map;
+      Documents      : Document_Maps.Map;
    end record;
 
    not overriding function Find_Project_File
      (Self : in out Context;
       File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
    --  Find GPR file
+
+   function Is_Initialized (Self : Context) return Boolean
+   is
+     (Self.Root /= Types.Empty_LSP_String);
+
+   function Has_Project (Self : Context) return Boolean
+   is
+     (Self.Project_Tree /= null);
 
 end LSP.Ada_Contexts;

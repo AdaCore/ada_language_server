@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Directories;
 
 with GNATCOLL.JSON;
 
@@ -29,6 +30,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with GNATCOLL.VFS;
+with GNATCOLL.Traces;
 
 package body LSP.Ada_Handlers is
 
@@ -72,7 +74,7 @@ package body LSP.Ada_Handlers is
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := Self.Context.URI_To_File (Value.rootUri);
       else
-         --  URI isn't provided, rollback to depricated rootPath
+         --  URI isn't provided, rollback to deprecated rootPath
          Root := Value.rootPath;
       end if;
 
@@ -180,6 +182,37 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
    begin
+
+      GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
+      GNATCOLL.Traces.Trace
+        (Server_Trace, "Uri : " & To_UTF_8_String (Value.textDocument.uri));
+
+      --  Some clients don't properly call initialize, in which case we want to
+      --  call it anyway at the first open file request.
+
+      if not Self.Context.Is_Initialized then
+         GNATCOLL.Traces.Trace
+           (Server_Trace, "No project loaded, creating default one ...");
+
+         declare
+            Root : LSP.Types.LSP_String :=
+              Self.Context.URI_To_File (Value.textDocument.uri);
+         begin
+            Root := To_LSP_String
+              (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
+
+            GNATCOLL.Traces.Trace
+              (Server_Trace, "Root : " & To_UTF_8_String (Root));
+
+            Self.Context.Initialize (Root);
+
+         end;
+      end if;
+
+      if not Self.Context.Has_Project then
+         Self.Context.Load_Project (Empty_LSP_String, GNATCOLL.JSON.JSON_Null);
+      end if;
+
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
 
