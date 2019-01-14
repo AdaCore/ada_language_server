@@ -9,8 +9,8 @@ all:
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p
 	$(GPRBUILD) -P gnat/tester.gpr -p
 	mkdir -p integration/vscode/ada/$(PLATFORM)
-	cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM) ||\
-	    cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM)
+	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
+	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/$(PLATFORM)
