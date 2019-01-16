@@ -23,6 +23,7 @@ with GNATCOLL.JSON;
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
+with LSP.Lal_Utils;
 
 with Langkit_Support.Slocs;
 
@@ -94,20 +95,12 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Node       : constant Libadalang.Analysis.Ada_Node :=
-        Document.Get_Node_At (Value.position);
-
-      Definition : Libadalang.Analysis.Defining_Name;
+      Definition : constant Libadalang.Analysis.Defining_Name :=
+        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
 
       use Libadalang.Analysis;
 
    begin
-
-      if Node = No_Ada_Node then
-         return;
-      end if;
-
-      Definition := Node.P_Xref;
 
       if Definition = No_Defining_Name then
          return;
@@ -265,7 +258,7 @@ package body LSP.Ada_Handlers is
         Self.Context.Get_Document (Value.textDocument.uri);
 
       Definition : constant Defining_Name :=
-        Document.Get_Definition_At (Value.position);
+        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
 
    begin
       if Definition.Is_Null then
