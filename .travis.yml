@@ -28,5 +28,6 @@ jobs:
   include:
     - stage: deploy
       os: linux
+      if: branch = master
       before_install: echo before_install
       script: integration/travis/deploy.sh vsix
