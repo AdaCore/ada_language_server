@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Text_IO;
 with GNAT.OS_Lib;
 
@@ -90,6 +91,22 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value)
    is
+      function Program_Name (Path : String) return String;
+      --  Return full path to an exacutable designated by Path
+
+      ------------------
+      -- Program_Name --
+      ------------------
+
+      function Program_Name (Path : String) return String is
+      begin
+         if Is_Windows then
+            return Ada.Directories.Full_Name (Path & ".exe");
+         else
+            return Ada.Directories.Full_Name (Path);
+         end if;
+      end Program_Name;
+
       Cmd  : constant GNATCOLL.JSON.JSON_Array := Command.Get ("cmd");
       Args : Spawn.String_Vectors.UTF_8_String_Vector;
    begin
@@ -97,12 +114,7 @@ package body Tester.Tests is
          Args.Append (GNATCOLL.JSON.Get (Cmd, J).Get);
       end loop;
 
-      if Is_Windows then
-         Self.Set_Program (GNATCOLL.JSON.Get (Cmd, 1).Get & ".exe");
-      else
-         Self.Set_Program (GNATCOLL.JSON.Get (Cmd, 1).Get);
-      end if;
-
+      Self.Set_Program (Program_Name (GNATCOLL.JSON.Get (Cmd, 1).Get));
       Self.Set_Arguments (Args);
       Self.Start;
 

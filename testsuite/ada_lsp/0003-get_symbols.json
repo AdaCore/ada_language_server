@@ -7,7 +7,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"file:.",
+                "rootUri":"file://${TD}/0003-get_symbols",
                 "capabilities":{}}
             },
             "wait":[{ "id": 0,
@@ -40,7 +40,7 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "file:aaa.ads",
+                        "uri": "file://${TD}/0003-get_symbols/aaa.ads",
                         "languageId": "ada",
                         "version": 1,
                         "text": "package Aaa is\n   type Enum (A, B);\n   Variable : Enum;\n   procedure Proc is null;\n   package Nested_Package is\n   end Nested_Package;\nend Aaa;\n"
@@ -57,7 +57,7 @@
                 "method":"textDocument/documentSymbol",
                 "params":{
                     "textDocument": {
-                        "uri": "file:aaa.ads"
+                        "uri": "file://${TD}/0003-get_symbols/aaa.ads"
                     }
                 }
             },

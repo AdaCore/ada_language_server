@@ -45,3 +45,10 @@ Property value - an object:
 Where _wait_ object is expected server answer. Each propert of this object
 should be in server response.
 
+JSON file preprocessing
+-----------------------
+
+Before execution Tester does some text substitution in each string literal.
+Each substring `${TD}` is replaced by full path of the directory where .json
+file is located.
+
