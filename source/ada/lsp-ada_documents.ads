@@ -48,11 +48,6 @@ package LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
 
-   not overriding function Get_Definition_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Defining_Name;
-
    not overriding procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
