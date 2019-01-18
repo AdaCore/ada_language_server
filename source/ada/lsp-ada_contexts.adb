@@ -167,11 +167,11 @@ package body LSP.Ada_Contexts is
          if Result.Is_Regular_File then
             return Result;
          end if;
-
-         --  If not found, perform a comprehensive search everywhere below
-         --  root.
-         Search_GPR_File (Root, Result);
       end if;
+
+      --  If not found, perform a comprehensive search everywhere below
+      --  root.
+      Search_GPR_File (Root, Result);
 
       if Result.Is_Regular_File then
          return Result;
