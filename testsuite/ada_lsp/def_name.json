@@ -1,5 +1,10 @@
 [
     {
+        "comment":[
+            "This test check corresponding definition for Aaa in call stmt",
+            "and New_Line for Ada.Text_IO.New_Line; statement"
+        ]
+    },  {
         "start": {
             "cmd": [".obj/server/ada_language_server"]
         }
@@ -10,13 +15,14 @@
                 "rootUri":"file://${TD}/def_name",
                 "capabilities":{}}
             },
-            "wait":[{ "id": 0,
-                      "result":{
-                          "capabilities":{
-                              "textDocumentSync":1,
-                              "definitionProvider":true
-                          }
-                      }
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "definitionProvider":true
+                    }
+                }
             }]
         }
     },  {

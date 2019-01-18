@@ -45,6 +45,15 @@ Property value - an object:
 Where _wait_ object is expected server answer. Each propert of this object
 should be in server response.
 
+### Command `comment`
+
+Property value - array of string.
+
+Tester just ignore this command. We use it to add test desription and other
+comments to JSON test script.
+
+
+
 JSON file preprocessing
 -----------------------
 

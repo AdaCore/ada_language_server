@@ -25,7 +25,7 @@ with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
 
-   type Command_Kind is (Start, Stop, Send);
+   type Command_Kind is (Start, Stop, Send, Comment);
 
    procedure Do_Start
      (Self    : in out Test'Class;
@@ -323,6 +323,8 @@ package body Tester.Tests is
                Self.Do_Stop (Value);
             when Send =>
                Self.Do_Send (Value);
+            when Comment =>
+               null;  --  Do nothing on comments
          end case;
       end Execute;
 
