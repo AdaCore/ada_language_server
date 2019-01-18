@@ -48,7 +48,7 @@ function darwin_deploy()
         /usr/local/opt/gmp/lib/libgmp.10
     do
         cp -v $J.dylib $DIR
-        drop_rpath $DIR/$J.dylib
+        drop_rpath $DIR/`basename $J.dylib`
     done
 
     for J in $DIR/libgnatcoll_gmp.dylib $DIR/ada_language_server; do
