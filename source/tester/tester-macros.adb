@@ -16,8 +16,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Directories;
-with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with GNAT.Regpat;
+
+with URIs;
 
 package body Tester.Macros is
 
@@ -25,6 +28,14 @@ package body Tester.Macros is
      (Value    : GNATCOLL.JSON.JSON_Value;
       Test_Dir : String) return GNATCOLL.JSON.JSON_Value;
    --  Expand recursively
+
+   function Expand_URI
+     (Path     : String;
+      Test_Dir : String) return String;
+   --  Turn Path into URI with scheme 'file://'
+
+   Pattern : constant GNAT.Regpat.Pattern_Matcher :=
+     GNAT.Regpat.Compile ("\${TD}|\$URI{([^}]*)}");
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;
@@ -60,20 +71,29 @@ package body Tester.Macros is
 
       function Expand_in_String (Text : String) return Unbounded_String
       is
-         Macro  : constant String := "${TD}";
          Result : Unbounded_String;
          Next   : Positive := 1;
       begin
          while Next < Text'Length loop
             declare
-               Pos : constant Natural :=
-                 Ada.Strings.Fixed.Index (Text, Macro, Next);
+               Found : GNAT.Regpat.Match_Array (0 .. 1);
             begin
-               exit when Pos = 0;
+               GNAT.Regpat.Match (Pattern, Text, Found, Next);
+               exit when Found (0) in GNAT.Regpat.No_Match;
 
-               Append (Result, Text (Next .. Pos - 1));
-               Append (Result, Test_Dir);
-               Next := Pos + Macro'Length;
+               Append (Result, Text (Next .. Found (0).First - 1));
+
+               if Found (1) in GNAT.Regpat.No_Match then   --  ${TD}
+                  Append (Result, Test_Dir);
+               else  --  $URI{x}
+                  Append
+                    (Result,
+                     Expand_URI
+                       (Text (Found (1).First .. Found (1).Last),
+                        Test_Dir));
+               end if;
+
+               Next := Found (0).Last + 1;
             end;
          end loop;
 
@@ -132,5 +152,22 @@ package body Tester.Macros is
    begin
       Test := Expand (Test, Directory);
    end Expand;
+
+   ----------------
+   -- Expand_URI --
+   ----------------
+
+   function Expand_URI
+     (Path     : String;
+      Test_Dir : String) return String is
+   begin
+      if Ada.Directories.Full_Name (Path) /= Path then
+         --  Turn Path into absolute path
+         return URIs.Conversions.From_File
+                  (Ada.Directories.Full_Name (Test_Dir & "/" & Path));
+      else
+         return URIs.Conversions.From_File (Path);
+      end if;
+   end Expand_URI;
 
 end Tester.Macros;

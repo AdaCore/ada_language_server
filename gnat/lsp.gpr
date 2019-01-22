@@ -24,7 +24,8 @@ project LSP is
    for Main use ();
 
    package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
+      for Switches ("ada") use
+        ("-g", "-gnatwa", "-gnatyy", "-gnatwe", "-gnata", "-gnatVa");
    end Compiler;
 
    package Naming is

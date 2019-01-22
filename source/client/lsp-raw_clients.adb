@@ -198,7 +198,7 @@ package body LSP.Raw_Clients is
          function Skip (Pattern : String) return Boolean;
          --  Find Pattern in current position of Buffer and skip it
 
-         Next : Positive := Buffer'First;
+         Next : Natural := Buffer'First;
          --  Current position in Buffer
 
          ----------

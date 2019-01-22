@@ -26,5 +26,8 @@ package Tester.Macros is
    --
    --  Currently only one macro is supported:
    --  * ${TD} - expands with test directory, a directory of .json file
+   --
+   --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
+   --  directory if x isn't an absolute path
 
 end Tester.Macros;

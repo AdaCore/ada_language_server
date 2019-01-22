@@ -58,6 +58,9 @@ JSON file preprocessing
 -----------------------
 
 Before execution Tester does some text substitution in each string literal.
-Each substring `${TD}` is replaced by full path of the directory where .json
-file is located.
+ * Each substring `${TD}` is replaced by full path of the directory where
+`.json` file is located.
+
+ * Each substring `$URI{x}` is replaced by corresponding URI `file:///test_dir/x`.
+where `x` should be path relative to the directory where `.json` file is located.
 

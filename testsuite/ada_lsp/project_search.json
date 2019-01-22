@@ -13,7 +13,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"file://${TD}/project_search",
+                "rootUri":"$URI{project_search}",
                 "capabilities":{}}
             },
             "wait":[{
@@ -45,7 +45,7 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "file://${TD}/project_search/aaa.adb",
+                        "uri": "$URI{project_search/aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
                         "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
@@ -62,7 +62,7 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "file://${TD}/project_search/aaa.adb"
+                        "uri": "$URI{project_search/aaa.adb}"
                     },
                     "position": {
                         "line": 4,
@@ -73,7 +73,7 @@
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "file://${TD}/project_search/second.ads",
+                    "uri": "$URI{project_search/second.ads}",
                     "range": {
                         "start": {
                             "line": 0,

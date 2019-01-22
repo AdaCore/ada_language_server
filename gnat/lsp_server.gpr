@@ -21,7 +21,7 @@ with "lsp";
 
 project LSP_Server is
 
-   for Source_Dirs use ("../source/server", "../source/ada");
+   for Source_Dirs use ("../source/server", "../source/ada", "../source/uri");
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver");
 

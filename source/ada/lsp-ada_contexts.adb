@@ -22,6 +22,8 @@ with Ada.Text_IO;
 with GNATCOLL.JSON;
 with GNAT.OS_Lib;
 
+with URIs;
+
 with Libadalang.Project_Provider;
 
 package body LSP.Ada_Contexts is
@@ -35,16 +37,11 @@ package body LSP.Ada_Contexts is
       File : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
       pragma Unreferenced (Self);
-      use type LSP.Types.LSP_String;
+
+      Result : constant URIs.URI_String :=
+        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
    begin
-      --  See URI_To_File for comments
-      if LSP.Types.Length (File) > 1 and then
-        LSP.Types.Element (File, 2) = ':'
-      then
-         return "file:///" & File;
-      else
-         return "file://" & File;
-      end if;
+      return LSP.Types.To_LSP_String (Result);
    end File_To_URI;
 
    -----------------------
@@ -325,26 +322,11 @@ package body LSP.Ada_Contexts is
       URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
       pragma Unreferenced (Self);
-      Result : LSP.Types.LSP_String;
-   begin
-      if LSP.Types.Starts_With (URI, "file://") then
-         if LSP.Types.Length (URI) > 9 and then
-           LSP.Types.Element (URI, 10) = ':'
-         then
-            --  On Windows URI has form file:///C:\PATH, so drop slash also
-            Result := LSP.Types.Delete (URI, 1, 8);
-         else
-            --  On Linux URI has form file:///path, so keep the slash
-            Result := LSP.Types.Delete (URI, 1, 7);
-         end if;
-      elsif LSP.Types.Starts_With (URI, "file:") then
-         Result := LSP.Types.Delete (URI, 1, 5);
-      else
-         raise Constraint_Error with "Unknown URI schema: " &
-           LSP.Types.To_UTF_8_String (URI);
-      end if;
 
-      return Result;
+      Result : constant String := URIs.Conversions.To_File
+        (LSP.Types.To_UTF_8_String (URI));
+   begin
+      return LSP.Types.To_LSP_String (Result);
    end URI_To_File;
 
 end LSP.Ada_Contexts;
