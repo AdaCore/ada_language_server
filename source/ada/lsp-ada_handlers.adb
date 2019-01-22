@@ -16,12 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Directories;
 
 with GNATCOLL.JSON;
 
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
+with LSP.Lal_Utils;
 
 with Langkit_Support.Slocs;
 
@@ -29,6 +31,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with GNATCOLL.VFS;
+with GNATCOLL.Traces;
 
 package body LSP.Ada_Handlers is
 
@@ -72,7 +75,7 @@ package body LSP.Ada_Handlers is
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := Self.Context.URI_To_File (Value.rootUri);
       else
-         --  URI isn't provided, rollback to depricated rootPath
+         --  URI isn't provided, rollback to deprecated rootPath
          Root := Value.rootPath;
       end if;
 
@@ -92,20 +95,12 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Node       : constant Libadalang.Analysis.Ada_Node :=
-        Document.Get_Node_At (Value.position);
-
-      Definition : Libadalang.Analysis.Defining_Name;
+      Definition : constant Libadalang.Analysis.Defining_Name :=
+        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
 
       use Libadalang.Analysis;
 
    begin
-
-      if Node = No_Ada_Node then
-         return;
-      end if;
-
-      Definition := Node.P_Xref;
 
       if Definition = No_Defining_Name then
          return;
@@ -180,6 +175,37 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
    begin
+
+      GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
+      GNATCOLL.Traces.Trace
+        (Server_Trace, "Uri : " & To_UTF_8_String (Value.textDocument.uri));
+
+      --  Some clients don't properly call initialize, in which case we want to
+      --  call it anyway at the first open file request.
+
+      if not Self.Context.Is_Initialized then
+         GNATCOLL.Traces.Trace
+           (Server_Trace, "No project loaded, creating default one ...");
+
+         declare
+            Root : LSP.Types.LSP_String :=
+              Self.Context.URI_To_File (Value.textDocument.uri);
+         begin
+            Root := To_LSP_String
+              (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
+
+            GNATCOLL.Traces.Trace
+              (Server_Trace, "Root : " & To_UTF_8_String (Root));
+
+            Self.Context.Initialize (Root);
+
+         end;
+      end if;
+
+      if not Self.Context.Has_Project then
+         Self.Context.Load_Project (Empty_LSP_String, GNATCOLL.JSON.JSON_Null);
+      end if;
+
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
 
@@ -232,7 +258,7 @@ package body LSP.Ada_Handlers is
         Self.Context.Get_Document (Value.textDocument.uri);
 
       Definition : constant Defining_Name :=
-        Document.Get_Definition_At (Value.position);
+        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
 
    begin
       if Definition.Is_Null then
