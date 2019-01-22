@@ -26,7 +26,7 @@
         "type": "git",
         "url": "https://github.com/AdaCore/ada_language_server.git"
     },
-    "os": [ "linux" ],
+    "os": [ "linux", "win32", "darwin" ],
     "cpu": [ "x64" ],
     "contributes": {
         "languages": [

@@ -15,30 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "gnatcoll";
+with GNATCOLL.JSON;
 
-project LSP is
+package Tester.Macros is
 
-   for Source_Dirs use ("../source/protocol");
-   for Object_Dir use "../.obj/lsp";
-   for Main use ();
+   procedure Expand
+     (Test : in out GNATCOLL.JSON.JSON_Value;
+      Path : String);
+   --  Expand macros in given JSON test
+   --
+   --  Currently only one macro is supported:
+   --  * ${TD} - expands with test directory, a directory of .json file
+   --
+   --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
+   --  directory if x isn't an absolute path
 
-   package Compiler is
-      for Switches ("ada") use
-        ("-g", "-gnatwa", "-gnatyy", "-gnatwe", "-gnata", "-gnatVa");
-   end Compiler;
-
-   package Naming is
-      case GnatColl.OS is
-         when "windows" =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-              use "lsp-stdio_streams-init_windows.adb";
-
-         when others =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-            use "lsp-stdio_streams-init_others.adb";
-
-      end case;
-   end Naming;
-end LSP;
-
+end Tester.Macros;

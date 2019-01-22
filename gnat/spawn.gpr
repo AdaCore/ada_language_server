@@ -36,6 +36,12 @@ project Spawn is
 
       when "Windows_NT" =>
          for Excluded_Source_Files use Common_Excluded & ("pipe2.c");
+
+      when "osx" =>
+         for Excluded_Source_Files use Common_Excluded &
+           ("spawn-windows_api.ads",
+            "spawn-processes-windows.ads",
+            "spawn-processes-windows.adb");
    end case;
 
    package Compiler is
