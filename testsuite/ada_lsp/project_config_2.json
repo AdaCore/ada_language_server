@@ -1,0 +1,103 @@
+[
+    {
+        "comment":[
+            "This test check language server is able to find a project file",
+            "specified in configuration. It tries to load wrong project and",
+            "get error after search for a custom named subprogram."
+        ]
+    },  {
+        "start": {
+            "cmd": [".obj/server/ada_language_server"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{project_config}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                            "projectFile": "wrong_project.gpr"
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{project_config/aaa.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{project_config/aaa.adb}"
+                    },
+                    "position": {
+                        "line": 4,
+                        "character": 11
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "error":{
+                    "code": -32603
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown" }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

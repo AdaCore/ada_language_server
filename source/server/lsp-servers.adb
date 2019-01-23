@@ -227,6 +227,13 @@ package body LSP.Servers is
          Result := JS.Read;
          JS.Key (+"error");
          LSP.Messages.Optional_ResponseError'Read (Stream, Error);
+         --  We have got error from LSP client. Save it in the trace:
+         Server_Trace.Trace ("Got Error responce:");
+
+         if Error.Is_Set then
+            Server_Trace.Trace
+              (LSP.Types.To_UTF_8_String (Error.Value.message));
+         end if;
 
          return;
       elsif LSP.Types.Assigned (Request_Id) then

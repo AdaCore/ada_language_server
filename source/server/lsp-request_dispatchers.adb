@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with GNATCOLL.JSON;
+
 package body LSP.Request_Dispatchers is
 
    --------------
@@ -35,6 +39,17 @@ package body LSP.Request_Dispatchers is
       end if;
 
       return Maps.Element (Cursor) (Stream, Handler);
+   exception
+      when E : others =>
+         --  Unexpected exception, reply to client with an error
+         return Response : LSP.Messages.ResponseMessage do
+            Response.error :=
+              (Is_Set => True,
+               Value => (code => LSP.Messages.InternalError,
+                         data => GNATCOLL.JSON.Create_Object,
+                         message => LSP.Types.To_LSP_String
+                           (Ada.Exceptions.Exception_Information (E))));
+         end return;
    end Dispatch;
 
    --------------
