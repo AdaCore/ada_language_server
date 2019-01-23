@@ -90,14 +90,26 @@ package LSP.Types is
    package Optional_Numbers is new LSP.Generic_Optional (LSP_Number);
    type Optional_Number is new Optional_Numbers.Optional_Type;
 
+   ----------------------
+   -- Optional_Boolean --
+   ----------------------
+
    package Optional_Booleans is new LSP.Generic_Optional (Boolean);
    type Optional_Boolean is new Optional_Booleans.Optional_Type;
 
+   function False return Optional_Boolean
+     is ((Is_Set => Standard.True, Value => Standard.False));
+   function True return Optional_Boolean
+     is ((Is_Set => Standard.True, Value => Standard.True));
+   function None return Optional_Boolean
+     is ((Is_Set => Standard.False));
+
+   ---------------------
+   -- Optional_String --
+   ---------------------
+
    package Optional_Strings is new LSP.Generic_Optional (LSP_String);
    type Optional_String is new Optional_Strings.Optional_Type;
-
-   Optional_False : constant Optional_Boolean := (True, False);
-   Optional_True  : constant Optional_Boolean := (True, True);
 
    subtype MessageActionItem_Vector is LSP_String_Vector;
 
