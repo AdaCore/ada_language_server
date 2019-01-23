@@ -92,12 +92,20 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Definition : constant Libadalang.Analysis.Defining_Name :=
-        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
-
       use Libadalang.Analysis;
 
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Document.Get_Node_At (Value.position));
+
+      Definition : Defining_Name;
+
    begin
+
+      if Name_Node = No_Name then
+         return;
+      end if;
+
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
       if Definition = No_Defining_Name then
          return;
@@ -254,11 +262,20 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Definition : constant Defining_Name :=
-        LSP.Lal_Utils.Resolve_Node (Document.Get_Node_At (Value.position));
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Document.Get_Node_At (Value.position));
+
+      Definition : Defining_Name;
 
    begin
-      if Definition.Is_Null then
+
+      if Name_Node = No_Name then
+         return;
+      end if;
+
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+
+      if Definition = No_Defining_Name then
          return;
       end if;
 
@@ -294,6 +311,7 @@ package body LSP.Ada_Handlers is
             end;
          end loop;
       end;
+
    end Text_Document_References_Request;
 
    ----------------------------------
