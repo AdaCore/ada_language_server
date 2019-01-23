@@ -1,0 +1,5 @@
+project Right_Project is
+   package Naming is
+      for Spec ("To_Be_Called") use "second.ads";
+   end Naming;
+end Right_Project;

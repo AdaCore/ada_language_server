@@ -26,6 +26,8 @@ check: all
 	$(TESTER) $(TD)/0003-get_symbols.json
 	$(TESTER) $(TD)/def_name.json
 	$(TESTER) $(TD)/project_search.json
+	$(TESTER) $(TD)/project_config.json
+	$(TESTER) $(TD)/project_config_2.json
 	@echo All test passed!
 
 deploy: check
