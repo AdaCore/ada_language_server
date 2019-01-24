@@ -19,8 +19,10 @@ with Libadalang.Analysis; use Libadalang.Analysis;
 
 package LSP.Lal_Utils is
 
-   function Get_Definition_In_Node (Node : Ada_Node) return Defining_Name;
+   function Get_Node_As_Name (Node : Ada_Node) return Name;
 
-   function Resolve_Node (Node : Ada_Node) return Defining_Name;
+   function Get_Name_As_Defining (Name_Node : Name) return Defining_Name;
+
+   function Resolve_Name (Name_Node : Name) return Defining_Name;
 
 end LSP.Lal_Utils;

@@ -19,50 +19,75 @@ with Libadalang.Common; use Libadalang.Common;
 
 package body LSP.Lal_Utils is
 
-   ----------------------------
-   -- Get_Definition_In_Node --
-   ----------------------------
+   ----------------------
+   -- Get_Node_As_Name --
+   ----------------------
 
-   function Get_Definition_In_Node (Node : Ada_Node) return Defining_Name is
+   function Get_Node_As_Name (Node : Ada_Node) return Name is
    begin
 
-      if Node /= No_Ada_Node and then Node.Kind in Ada_Name then
-         declare
-            Name : constant Libadalang.Analysis.Name := Node.As_Name;
-         begin
-            if Name.P_Is_Defining then
-               return Name.P_Enclosing_Defining_Name;
-            end if;
-         end;
+      if Node = No_Ada_Node or else Node.Kind not in Ada_Name then
+         return No_Name;
       end if;
 
-      return No_Defining_Name;
+      return Node.As_Name;
 
-   end Get_Definition_In_Node;
+   end Get_Node_As_Name;
+
+   --------------------------
+   -- Get_Name_As_Defining --
+   --------------------------
+
+   function Get_Name_As_Defining (Name_Node : Name) return Defining_Name is
+   begin
+
+      if Name_Node = No_Name or else not Name_Node.P_Is_Defining then
+         return No_Defining_Name;
+      end if;
+
+      return Name_Node.P_Enclosing_Defining_Name;
+
+   end Get_Name_As_Defining;
 
    ------------------
-   -- Resolve_Node --
+   -- Resolve_Name --
    ------------------
 
-   function Resolve_Node (Node : Ada_Node) return Defining_Name is
+   function Resolve_Name (Name_Node : Name) return Defining_Name is
 
-      Definition : Defining_Name := Get_Definition_In_Node (Node);
+      Definition : Defining_Name := Get_Name_As_Defining (Name_Node);
 
    begin
 
       if Definition = No_Defining_Name then
 
-         Definition :=
-           Node.P_Referenced_Decl.P_Canonical_Part.P_Defining_Name;
+         declare
+            Names : constant Defining_Name_Array :=
+              Name_Node.P_Referenced_Decl (Imprecise_Fallback => True)
+              .P_Canonical_Part.P_Defining_Names;
+         begin
 
-         if Definition = No_Defining_Name then
-            return No_Defining_Name;
-         end if;
+            for I in Names'Range loop
+
+               declare
+                  Decl_Name : constant Defining_Name := Names (I);
+               begin
+
+                  if P_Name_Matches (Decl_Name, Name_Node) then
+                     Definition := Decl_Name;
+                     exit;
+                  end if;
+
+               end;
+
+            end loop;
+
+         end;
 
       end if;
 
       return Definition;
 
-   end Resolve_Node;
+   end Resolve_Name;
 
 end LSP.Lal_Utils;

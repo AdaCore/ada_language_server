@@ -2,8 +2,8 @@
     {
         "comment":[
             "This test check language server is able to find a project file",
-            "specified in configuration. It tries to load wrong project and",
-            "get error after search for a custom named subprogram."
+            "specified in configuration. It tries to load 'wrong project' and",
+            "get other reply after search for a custom named subprogram."
         ]
     },  {
         "start": {
@@ -75,9 +75,19 @@
             },
             "wait":[{
                 "id": "defname-1",
-                "error":{
-                    "code": -32603
-                }
+                "result":[{
+                    "uri": "$URI{project_config/third.ads}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 10
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 22
+                        }
+                    }
+                }]
             }]
         }
     },  {
