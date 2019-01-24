@@ -1,3 +1,4 @@
-generic
-package To_Be_Called is
-end;
+
+
+
+procedure To_Be_Called (Text : String);
