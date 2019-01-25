@@ -88,6 +88,8 @@ package body LSP.Lal_Utils is
 
       return Definition;
 
+   exception
+      when Property_Error => return No_Defining_Name;
    end Resolve_Name;
 
 end LSP.Lal_Utils;
