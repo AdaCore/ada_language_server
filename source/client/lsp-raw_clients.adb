@@ -294,6 +294,29 @@ package body LSP.Raw_Clients is
       Self.Server.Start;
    end Start;
 
+   -------------
+   -- Started --
+   -------------
+
+   overriding procedure Started (Self : in out Listener) is
+   begin
+      Self.Client.On_Started;
+   end Started;
+
+   --------------
+   -- Finished --
+   --------------
+
+   overriding procedure Finished
+    (Self      : in out Listener;
+     Exit_Code : Integer)
+   is
+      pragma Unreferenced (Exit_Code);
+
+   begin
+      Self.Client.On_Finished;
+   end Finished;
+
    ----------
    -- Stop --
    ----------
