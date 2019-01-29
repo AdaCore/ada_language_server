@@ -750,6 +750,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_InitializeResult;
 
+   ----------------------------
+   -- Read_InitializedParams --
+   ----------------------------
+
+   not overriding procedure Read_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InitializedParams)
+   is
+      pragma Unreferenced (V);
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.End_Object;
+   end Read_InitializedParams;
+
    ---------------------------
    -- Read_InsertTextFormat --
    ---------------------------
@@ -2357,6 +2374,23 @@ package body LSP.Messages is
       ServerCapabilities'Write (S, V.capabilities);
       JS.End_Object;
    end Write_InitializeResult;
+
+   -----------------------------
+   -- Write_InitializedParams --
+   -----------------------------
+
+   not overriding procedure Write_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InitializedParams)
+   is
+      pragma Unreferenced (V);
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.End_Object;
+   end Write_InitializedParams;
 
    ----------------------------
    -- Write_InsertTextFormat --
