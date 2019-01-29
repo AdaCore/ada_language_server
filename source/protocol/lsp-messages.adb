@@ -3079,11 +3079,7 @@ package body LSP.Messages is
       JS.Start_Array;
 
       for Item of V loop
-         declare
-            Item : TextDocumentContentChangeEvent;
-         begin
-            TextDocumentContentChangeEvent'Write (S, Item);
-         end;
+         TextDocumentContentChangeEvent'Write (S, Item);
       end loop;
 
       JS.End_Array;
