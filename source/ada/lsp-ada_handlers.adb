@@ -83,7 +83,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Definition_Request --
    --------------------------------------
 
-   procedure Text_Document_Definition_Request
+   overriding procedure Text_Document_Definition_Request
      (Self     : access Message_Handler;
       Value    : LSP.Messages.TextDocumentPositionParams;
       Response : in out LSP.Messages.Location_Response)
@@ -218,7 +218,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_References_Request --
    --------------------------------------
 
-   procedure Text_Document_References_Request
+   overriding procedure Text_Document_References_Request
      (Self     : access Message_Handler;
       Value    : LSP.Messages.ReferenceParams;
       Response : in out LSP.Messages.Location_Response)

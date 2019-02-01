@@ -31,7 +31,7 @@ package body LSP.Stdio_Streams is
    -- Read --
    ----------
 
-   procedure Read
+   overriding procedure Read
      (Stream : in out Stdio_Stream;
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset)
@@ -60,7 +60,7 @@ package body LSP.Stdio_Streams is
    -- Write --
    -----------
 
-   procedure Write
+   overriding procedure Write
      (Stream : in out Stdio_Stream;
       Item   : Ada.Streams.Stream_Element_Array)
    is
