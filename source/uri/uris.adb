@@ -179,31 +179,31 @@ package body URIs is
          Parent : access constant URI;
       end record;
 
-      function First (Self : Iterator) return Path_Cursor;
-      function Last (Self : Iterator) return Path_Cursor;
+      overriding function First (Self : Iterator) return Path_Cursor;
+      overriding function Last (Self : Iterator) return Path_Cursor;
 
-      function Next
+      overriding function Next
         (Self     : Iterator;
          Position : Path_Cursor) return Path_Cursor;
 
-      function Previous
+      overriding function Previous
         (Self     : Iterator;
          Position : Path_Cursor) return Path_Cursor;
    end Iterators;
 
    package body Iterators is
 
-      function First (Self : Iterator) return Path_Cursor is
+      overriding function First (Self : Iterator) return Path_Cursor is
       begin
          return (Value => Self.Parent.Path.First);
       end First;
 
-      function Last (Self : Iterator) return Path_Cursor is
+      overriding function Last (Self : Iterator) return Path_Cursor is
       begin
          return (Value => Self.Parent.Path.Last);
       end Last;
 
-      function Next
+      overriding function Next
         (Self     : Iterator;
          Position : Path_Cursor) return Path_Cursor
       is
@@ -212,7 +212,7 @@ package body URIs is
          return (Value => Unbounded_String_Lists.Next (Position.Value));
       end Next;
 
-      function Previous
+      overriding function Previous
         (Self     : Iterator;
          Position : Path_Cursor) return Path_Cursor
       is

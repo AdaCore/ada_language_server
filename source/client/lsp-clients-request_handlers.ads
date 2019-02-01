@@ -21,7 +21,7 @@ package LSP.Clients.Request_Handlers is
 
    type Request_Handler is limited interface;
 
-   not overriding procedure Workspace_Apply_Edit
+   procedure Workspace_Apply_Edit
      (Self    : not null access Request_Handler;
       Request : LSP.Types.LSP_Number_Or_String;
       Params  : LSP.Messages.ApplyWorkspaceEditParams) is null;

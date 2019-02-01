@@ -21,62 +21,62 @@ package LSP.Clients.Response_Handlers is
 
    type Response_Handler is limited interface;
 
-   not overriding procedure Initialize_Response
+   procedure Initialize_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Initialize_Response) is null;
 
-   not overriding procedure Shutdown_Response
+   procedure Shutdown_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.ResponseMessage) is null;
 
-   not overriding procedure Text_Document_Code_Action_Response
+   procedure Text_Document_Code_Action_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.CodeAction_Response) is null;
 
-   not overriding procedure Text_Document_Completion_Response
+   procedure Text_Document_Completion_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Completion_Response) is null;
 
-   not overriding procedure Text_Document_Definition_Response
+   procedure Text_Document_Definition_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Location_Response) is null;
 
-   not overriding procedure Text_Document_Hover_Response
+   procedure Text_Document_Hover_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Hover_Response) is null;
 
-   not overriding procedure Text_Document_Highlight_Response
+   procedure Text_Document_Highlight_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Highlight_Response) is null;
 
-   not overriding procedure Text_Document_References_Response
+   procedure Text_Document_References_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Location_Response) is null;
 
-   not overriding procedure Text_Document_Signature_Help_Response
+   procedure Text_Document_Signature_Help_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.SignatureHelp_Response) is null;
 
-   not overriding procedure Text_Document_Symbol_Response
+   procedure Text_Document_Symbol_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Symbol_Response) is null;
 
-   not overriding procedure Workspace_Execute_Command_Response
+   procedure Workspace_Execute_Command_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.ExecuteCommand_Response) is null;
 
-   not overriding procedure Workspace_Symbol_Response
+   procedure Workspace_Symbol_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Symbol_Response) is null;

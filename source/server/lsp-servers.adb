@@ -84,7 +84,7 @@ package body LSP.Servers is
    -- Initialize --
    ----------------
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
@@ -446,7 +446,7 @@ package body LSP.Servers is
    -- Run --
    ---------
 
-   not overriding procedure Run (Self  : in out Server) is
+   procedure Run (Self  : in out Server) is
       Result     : LSP.Types.LSP_Any;
       Error      : LSP.Messages.Optional_ResponseError;
    begin
@@ -457,7 +457,7 @@ package body LSP.Servers is
    -- Send_Notification --
    -----------------------
 
-   not overriding procedure Send_Notification
+   procedure Send_Notification
      (Self  : in out Server;
       Value : in out LSP.Messages.NotificationMessage'Class)
    is
@@ -474,7 +474,7 @@ package body LSP.Servers is
    -- Stop --
    ----------
 
-   not overriding procedure Stop (Self  : in out Server) is
+   procedure Stop (Self  : in out Server) is
    begin
       Self.Stop := True;
    end Stop;
@@ -520,7 +520,7 @@ package body LSP.Servers is
    -- Workspace_Apply_Edit --
    --------------------------
 
-   not overriding procedure Workspace_Apply_Edit
+   procedure Workspace_Apply_Edit
      (Self     : in out Server;
       Params   : LSP.Messages.ApplyWorkspaceEditParams;
       Applied  : out Boolean;

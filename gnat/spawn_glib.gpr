@@ -42,7 +42,7 @@ project Spawn_Glib is
    end case;
 
    package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
+      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyyO", "-gnatwe");
    end Compiler;
 
    package Naming is

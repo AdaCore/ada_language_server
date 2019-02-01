@@ -32,12 +32,12 @@ package LSP.Request_Dispatchers is
      Handler    : not null LSP.Message_Handlers.Request_Handler_Access)
        return LSP.Messages.ResponseMessage'Class;
 
-   not overriding procedure Register
+   procedure Register
     (Self   : in out Request_Dispatcher;
      Method : LSP.Types.LSP_String;
      Value  : Parameter_Handler_Access);
 
-   not overriding function Dispatch
+   function Dispatch
      (Self    : in out Request_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;

@@ -65,7 +65,7 @@ package body LSP.Ada_Documents is
    -- Apply_Changes --
    -------------------
 
-   not overriding procedure Apply_Changes
+   procedure Apply_Changes
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
@@ -90,7 +90,7 @@ package body LSP.Ada_Documents is
    -- Get_Errors --
    ----------------
 
-   not overriding procedure Get_Errors
+   procedure Get_Errors
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector)
    is
@@ -115,7 +115,7 @@ package body LSP.Ada_Documents is
    -- Get_Symbols --
    -----------------
 
-   not overriding procedure Get_Symbols
+   procedure Get_Symbols
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector)
    is
@@ -147,7 +147,7 @@ package body LSP.Ada_Documents is
    -- Get_Node_At --
    -----------------
 
-   not overriding function Get_Node_At
+   function Get_Node_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
@@ -261,7 +261,7 @@ package body LSP.Ada_Documents is
    -- Initialize --
    ----------------
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self : in out Document;
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem)
@@ -364,7 +364,7 @@ package body LSP.Ada_Documents is
    -- Get_Completions_At --
    ------------------------
 
-   not overriding procedure Get_Completions_At
+   procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList)

@@ -137,12 +137,12 @@ package LSP.Messages is
       data: LSP_Any;
    end record;
 
-   not overriding procedure Read_ResponseError
+   procedure Read_ResponseError
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ResponseError);
    for ResponseError'Read use Read_ResponseError;
 
-   not overriding procedure Write_ResponseError
+   procedure Write_ResponseError
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseError);
    for ResponseError'Write use Write_ResponseError;
@@ -156,7 +156,7 @@ package LSP.Messages is
       error: Optional_ResponseError;
    end record;
 
-   not overriding procedure Write_ResponseMessage
+   procedure Write_ResponseMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage);
 
@@ -229,12 +229,12 @@ package LSP.Messages is
       character: UTF_16_Index;
    end record;
 
-   not overriding procedure Read_Position
+   procedure Read_Position
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Position);
    for Position'Read use Read_Position;
 
-   not overriding procedure Write_Position
+   procedure Write_Position
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Position);
    for Position'Write use Write_Position;
@@ -257,12 +257,12 @@ package LSP.Messages is
       last: Position;  --  end: is reserved work
    end record;
 
-   not overriding procedure Read_Span
+   procedure Read_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Span);
    for Span'Read use Read_Span;
 
-   not overriding procedure Write_Span
+   procedure Write_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Span);
    for Span'Write use Write_Span;
@@ -281,10 +281,10 @@ package LSP.Messages is
       span: LSP.Messages.Span;  --  range: is reserved word
    end record;
 
-   not overriding procedure Read_Location
+   procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Location);
-   not overriding procedure Write_Location
+   procedure Write_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Location);
    for Location'Read use Read_Location;
@@ -316,10 +316,10 @@ package LSP.Messages is
    --```
    type DiagnosticSeverity is (Error, Warning, Information, Hint);
 
-   not overriding procedure Read_DiagnosticSeverity
+   procedure Read_DiagnosticSeverity
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DiagnosticSeverity);
-   not overriding procedure Write_DiagnosticSeverity
+   procedure Write_DiagnosticSeverity
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DiagnosticSeverity);
    for DiagnosticSeverity'Read use Read_DiagnosticSeverity;
@@ -366,12 +366,12 @@ package LSP.Messages is
       message: LSP_String;
    end record;
 
-   not overriding procedure Read_Diagnostic
+   procedure Read_Diagnostic
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Diagnostic);
    for Diagnostic'Read use Read_Diagnostic;
 
-   not overriding procedure Write_Diagnostic
+   procedure Write_Diagnostic
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Diagnostic);
    for Diagnostic'Write use Write_Diagnostic;
@@ -381,11 +381,11 @@ package LSP.Messages is
 
    type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
 
-   not overriding procedure Read_Diagnostic_Vector
+   procedure Read_Diagnostic_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Diagnostic_Vector);
 
-   not overriding procedure Write_Diagnostic_Vector
+   procedure Write_Diagnostic_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Diagnostic_Vector);
 
@@ -415,10 +415,10 @@ package LSP.Messages is
       arguments: LSP_Any;
    end record;
 
-   not overriding procedure Read_Command
+   procedure Read_Command
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Command);
-   not overriding procedure Write_Command
+   procedure Write_Command
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Command);
    for Command'Read use Read_Command;
@@ -449,12 +449,12 @@ package LSP.Messages is
       newText: LSP_String;
    end record;
 
-   not overriding procedure Read_TextEdit
+   procedure Read_TextEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextEdit);
    for TextEdit'Read use Read_TextEdit;
 
-   not overriding procedure Write_TextEdit
+   procedure Write_TextEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextEdit);
    for TextEdit'Write use Write_TextEdit;
@@ -465,12 +465,12 @@ package LSP.Messages is
    package TextEdit_Vectors is new Ada.Containers.Vectors (Positive, TextEdit);
    type TextEdit_Vector is new TextEdit_Vectors.Vector with null record;
 
-   not overriding procedure Read_TextEdit_Vector
+   procedure Read_TextEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextEdit_Vector);
    for TextEdit_Vector'Read use Read_TextEdit_Vector;
 
-   not overriding procedure Write_TextEdit_Vector
+   procedure Write_TextEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextEdit_Vector);
    for TextEdit_Vector'Write use Write_TextEdit_Vector;
@@ -488,10 +488,10 @@ package LSP.Messages is
       uri: DocumentUri;
    end record;
 
-   not overriding procedure Read_TextDocumentIdentifier
+   procedure Read_TextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentIdentifier);
-   not overriding procedure Write_TextDocumentIdentifier
+   procedure Write_TextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentIdentifier);
    for TextDocumentIdentifier'Read use Read_TextDocumentIdentifier;
@@ -510,13 +510,13 @@ package LSP.Messages is
       version: Version_Id;
    end record;
 
-   not overriding procedure Read_VersionedTextDocumentIdentifier
+   procedure Read_VersionedTextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VersionedTextDocumentIdentifier);
    for VersionedTextDocumentIdentifier'Read use
      Read_VersionedTextDocumentIdentifier;
 
-   not overriding procedure Write_VersionedTextDocumentIdentifier
+   procedure Write_VersionedTextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : VersionedTextDocumentIdentifier);
    for VersionedTextDocumentIdentifier'Write use
@@ -540,12 +540,12 @@ package LSP.Messages is
       edits: TextEdit_Vector;
    end record;
 
-   not overriding procedure Read_TextDocumentEdit
+   procedure Read_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentEdit);
    for TextDocumentEdit'Read use Read_TextDocumentEdit;
 
-   not overriding procedure Write_TextDocumentEdit
+   procedure Write_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentEdit);
    for TextDocumentEdit'Write use Write_TextDocumentEdit;
@@ -611,11 +611,11 @@ package LSP.Messages is
       text: LSP_String;
    end record;
 
-   not overriding procedure Read_TextDocumentItem
+   procedure Read_TextDocumentItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentItem);
 
-   not overriding procedure Write_TextDocumentItem
+   procedure Write_TextDocumentItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentItem);
 
@@ -640,10 +640,10 @@ package LSP.Messages is
       position: LSP.Messages.Position;
    end record;
 
-   not overriding procedure Read_TextDocumentPositionParams
+   procedure Read_TextDocumentPositionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentPositionParams);
-   not overriding procedure Write_TextDocumentPositionParams
+   procedure Write_TextDocumentPositionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentPositionParams);
    for TextDocumentPositionParams'Read use Read_TextDocumentPositionParams;
@@ -688,11 +688,11 @@ package LSP.Messages is
 
    type dynamicRegistration is new Optional_Boolean;
 
-   not overriding procedure Read_dynamicRegistration
+   procedure Read_dynamicRegistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out dynamicRegistration);
 
-   not overriding procedure Write_dynamicRegistration
+   procedure Write_dynamicRegistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : dynamicRegistration);
 
@@ -701,11 +701,11 @@ package LSP.Messages is
 
    type documentChanges is new Optional_Boolean;
 
-   not overriding procedure Read_documentChanges
+   procedure Read_documentChanges
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out documentChanges);
 
-   not overriding procedure Write_documentChanges
+   procedure Write_documentChanges
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : documentChanges);
 
@@ -784,11 +784,11 @@ package LSP.Messages is
       executeCommand: dynamicRegistration;
    end record;
 
-   not overriding procedure Read_WorkspaceClientCapabilities
+   procedure Read_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceClientCapabilities);
 
-   not overriding procedure Write_WorkspaceClientCapabilities
+   procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceClientCapabilities);
 
@@ -989,11 +989,11 @@ package LSP.Messages is
       didSave : Optional_Boolean;
    end record;
 
-   not overriding procedure Read_synchronization
+   procedure Read_synchronization
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out synchronization);
 
-   not overriding procedure Write_synchronization
+   procedure Write_synchronization
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : synchronization);
 
@@ -1005,11 +1005,11 @@ package LSP.Messages is
       snippetSupport : Optional_Boolean;
    end record;
 
-   not overriding procedure Read_completion
+   procedure Read_completion
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out completion);
 
-   not overriding procedure Write_completion
+   procedure Write_completion
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : completion);
 
@@ -1034,11 +1034,11 @@ package LSP.Messages is
       rename: dynamicRegistration;
    end record;
 
-   not overriding procedure Read_TextDocumentClientCapabilities
+   procedure Read_TextDocumentClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentClientCapabilities);
 
-   not overriding procedure Write_TextDocumentClientCapabilities
+   procedure Write_TextDocumentClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentClientCapabilities);
 
@@ -1069,11 +1069,11 @@ package LSP.Messages is
       --  experimental?: any;
    end record;
 
-   not overriding procedure Read_ClientCapabilities
+   procedure Read_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ClientCapabilities);
 
-   not overriding procedure Write_ClientCapabilities
+   procedure Write_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ClientCapabilities);
 
@@ -1129,11 +1129,11 @@ package LSP.Messages is
       trace: Trace_Kinds;
    end record;
 
-   not overriding procedure Read_InitializeParams
+   procedure Read_InitializeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InitializeParams);
 
-   not overriding procedure Write_InitializeParams
+   procedure Write_InitializeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : InitializeParams);
 
@@ -1348,12 +1348,12 @@ package LSP.Messages is
    --```
    type TextDocumentSyncKind is (None, Full, Incremental);
 
-   not overriding procedure Read_TextDocumentSyncKind
+   procedure Read_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentSyncKind);
    for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
 
-   not overriding procedure Write_TextDocumentSyncKind
+   procedure Write_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncKind);
    for TextDocumentSyncKind'Write use Write_TextDocumentSyncKind;
@@ -1390,12 +1390,12 @@ package LSP.Messages is
       triggerCharacters: LSP.Types.LSP_String_Vector;
    end record;
 
-   not overriding procedure Read_CompletionOptions
+   procedure Read_CompletionOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CompletionOptions);
    for CompletionOptions'Read use Read_CompletionOptions;
 
-   not overriding procedure Write_CompletionOptions
+   procedure Write_CompletionOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionOptions);
    for CompletionOptions'Write use Write_CompletionOptions;
@@ -1410,13 +1410,13 @@ package LSP.Messages is
       triggerCharacters: LSP.Types.LSP_String_Vector;
    end record;
 
-   not overriding procedure Read_SignatureHelpOptions
+   procedure Read_SignatureHelpOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SignatureHelpOptions);
 
    for SignatureHelpOptions'Read use Read_SignatureHelpOptions;
 
-   not overriding procedure Write_SignatureHelpOptions
+   procedure Write_SignatureHelpOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureHelpOptions);
 
@@ -1432,10 +1432,10 @@ package LSP.Messages is
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
-   not overriding procedure Read_CodeLensOptions
+   procedure Read_CodeLensOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CodeLensOptions);
-   not overriding procedure Write_CodeLensOptions
+   procedure Write_CodeLensOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeLensOptions);
    for CodeLensOptions'Read use Read_CodeLensOptions;
@@ -1452,13 +1452,13 @@ package LSP.Messages is
       moreTriggerCharacter: LSP.Types.LSP_String_Vector;
    end record;
 
-   not overriding procedure Read_DocumentOnTypeFormattingOptions
+   procedure Read_DocumentOnTypeFormattingOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentOnTypeFormattingOptions);
 
    for DocumentOnTypeFormattingOptions'Read use Read_DocumentOnTypeFormattingOptions;
 
-   not overriding procedure Write_DocumentOnTypeFormattingOptions
+   procedure Write_DocumentOnTypeFormattingOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentOnTypeFormattingOptions);
 
@@ -1877,10 +1877,10 @@ package LSP.Messages is
       settings: LSP.Types.LSP_Any;
    end record;
 
-   not overriding procedure Read_DidChangeConfigurationParams
+   procedure Read_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidChangeConfigurationParams);
-   not overriding procedure Write_DidChangeConfigurationParams
+   procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidChangeConfigurationParams);
    for DidChangeConfigurationParams'Read use Read_DidChangeConfigurationParams;
@@ -1898,11 +1898,11 @@ package LSP.Messages is
       textDocument: TextDocumentItem;
    end record;
 
-   not overriding procedure Read_DidOpenTextDocumentParams
+   procedure Read_DidOpenTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidOpenTextDocumentParams);
 
-   not overriding procedure Write_DidOpenTextDocumentParams
+   procedure Write_DidOpenTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidOpenTextDocumentParams);
 
@@ -1953,10 +1953,10 @@ package LSP.Messages is
       text: LSP_String;
    end record;
 
-   not overriding procedure Read_TextDocumentContentChangeEvent
+   procedure Read_TextDocumentContentChangeEvent
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentContentChangeEvent);
-   not overriding procedure Write_TextDocumentContentChangeEvent
+   procedure Write_TextDocumentContentChangeEvent
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentContentChangeEvent);
    for TextDocumentContentChangeEvent'Read use Read_TextDocumentContentChangeEvent;
@@ -1968,10 +1968,10 @@ package LSP.Messages is
    type TextDocumentContentChangeEvent_Vector is
      new TextDocumentContentChangeEvent_Vectors.Vector with null record;
 
-   not overriding procedure Read_TextDocumentContentChangeEvent_Vector
+   procedure Read_TextDocumentContentChangeEvent_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentContentChangeEvent_Vector);
-   not overriding procedure Write_TextDocumentContentChangeEvent_Vector
+   procedure Write_TextDocumentContentChangeEvent_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentContentChangeEvent_Vector);
    for TextDocumentContentChangeEvent_Vector'Read use Read_TextDocumentContentChangeEvent_Vector;
@@ -1982,10 +1982,10 @@ package LSP.Messages is
       contentChanges: TextDocumentContentChangeEvent_Vector;
    end record;
 
-   not overriding procedure Read_DidChangeTextDocumentParams
+   procedure Read_DidChangeTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidChangeTextDocumentParams);
-   not overriding procedure Write_DidChangeTextDocumentParams
+   procedure Write_DidChangeTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidChangeTextDocumentParams);
    for DidChangeTextDocumentParams'Read use Read_DidChangeTextDocumentParams;
@@ -2055,10 +2055,10 @@ package LSP.Messages is
       text: Optional_String;
    end record;
 
-   not overriding procedure Read_DidSaveTextDocumentParams
+   procedure Read_DidSaveTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidSaveTextDocumentParams);
-   not overriding procedure Write_DidSaveTextDocumentParams
+   procedure Write_DidSaveTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidSaveTextDocumentParams);
    for DidSaveTextDocumentParams'Read use Read_DidSaveTextDocumentParams;
@@ -2076,7 +2076,7 @@ package LSP.Messages is
       textDocument: TextDocumentIdentifier;
    end record;
 
-   not overriding procedure Read_DidCloseTextDocumentParams
+   procedure Read_DidCloseTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidCloseTextDocumentParams);
 
@@ -2153,10 +2153,10 @@ package LSP.Messages is
       diagnostics: Diagnostic_Vector;
    end record;
 
-   not overriding procedure Read_PublishDiagnosticsParams
+   procedure Read_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out PublishDiagnosticsParams);
-   not overriding procedure Write_PublishDiagnosticsParams
+   procedure Write_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : PublishDiagnosticsParams);
    for PublishDiagnosticsParams'Read use Read_PublishDiagnosticsParams;
@@ -2304,10 +2304,10 @@ package LSP.Messages is
    --```
    type InsertTextFormat is (PlainText, Snippet);
 
-   not overriding procedure Read_InsertTextFormat
+   procedure Read_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InsertTextFormat);
-   not overriding procedure Write_InsertTextFormat
+   procedure Write_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : InsertTextFormat);
    for InsertTextFormat'Read use Read_InsertTextFormat;
@@ -2336,10 +2336,10 @@ package LSP.Messages is
       File,
       Reference);
 
-   not overriding procedure Read_CompletionItemKind
+   procedure Read_CompletionItemKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CompletionItemKind);
-   not overriding procedure Write_CompletionItemKind
+   procedure Write_CompletionItemKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionItemKind);
    for CompletionItemKind'Read use Read_CompletionItemKind;
@@ -2364,10 +2364,10 @@ package LSP.Messages is
    --	data?: any
    end record;
 
-   not overriding procedure Read_CompletionItem
+   procedure Read_CompletionItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CompletionItem);
-   not overriding procedure Write_CompletionItem
+   procedure Write_CompletionItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionItem);
    for CompletionItem'Read use Read_CompletionItem;
@@ -2412,10 +2412,10 @@ package LSP.Messages is
       end case;
    end record;
 
-   not overriding procedure Read_MarkedString
+   procedure Read_MarkedString
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out MarkedString);
-   not overriding procedure Write_MarkedString
+   procedure Write_MarkedString
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : MarkedString);
    for MarkedString'Read use Read_MarkedString;
@@ -2532,10 +2532,10 @@ package LSP.Messages is
       documentation: Optional_String;
    end record;
 
-   not overriding procedure Read_ParameterInformation
+   procedure Read_ParameterInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ParameterInformation);
-   not overriding procedure Write_ParameterInformation
+   procedure Write_ParameterInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ParameterInformation);
    for ParameterInformation'Read use Read_ParameterInformation;
@@ -2550,10 +2550,10 @@ package LSP.Messages is
       parameters: ParameterInformation_Vectors.Vector;
    end record;
 
-   not overriding procedure Read_SignatureInformation
+   procedure Read_SignatureInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SignatureInformation);
-   not overriding procedure Write_SignatureInformation
+   procedure Write_SignatureInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureInformation);
    for SignatureInformation'Read use Read_SignatureInformation;
@@ -2584,10 +2584,10 @@ package LSP.Messages is
       includeDeclaration: Boolean;
    end record;
 
-   not overriding procedure Read_ReferenceContext
+   procedure Read_ReferenceContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ReferenceContext);
-   not overriding procedure Write_ReferenceContext
+   procedure Write_ReferenceContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ReferenceContext);
    for ReferenceContext'Read use Read_ReferenceContext;
@@ -2602,10 +2602,10 @@ package LSP.Messages is
       context: ReferenceContext;
    end record;
 
-   not overriding procedure Read_ReferenceParams
+   procedure Read_ReferenceParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ReferenceParams);
-   not overriding procedure Write_ReferenceParams
+   procedure Write_ReferenceParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ReferenceParams);
    for ReferenceParams'Read use Read_ReferenceParams;
@@ -2657,10 +2657,10 @@ package LSP.Messages is
       kind: DocumentHighlightKind;
    end record;
 
-   not overriding procedure Read_DocumentHighlight
+   procedure Read_DocumentHighlight
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentHighlight);
-   not overriding procedure Write_DocumentHighlight
+   procedure Write_DocumentHighlight
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentHighlight);
    for DocumentHighlight'Read use Read_DocumentHighlight;
@@ -2685,10 +2685,10 @@ package LSP.Messages is
       textDocument: TextDocumentIdentifier;
    end record;
 
-   not overriding procedure Read_DocumentSymbolParams
+   procedure Read_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentSymbolParams);
-   not overriding procedure Write_DocumentSymbolParams
+   procedure Write_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentSymbolParams);
    for DocumentSymbolParams'Read use Read_DocumentSymbolParams;
@@ -2783,10 +2783,10 @@ package LSP.Messages is
       containerName: Optional_String;
    end record;
 
-   not overriding procedure Read_SymbolInformation
+   procedure Read_SymbolInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SymbolInformation);
-   not overriding procedure Write_SymbolInformation
+   procedure Write_SymbolInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SymbolInformation);
    for SymbolInformation'Read use Read_SymbolInformation;
@@ -2817,10 +2817,10 @@ package LSP.Messages is
       query: LSP_String;
    end record;
 
-   not overriding procedure Read_WorkspaceSymbolParams
+   procedure Read_WorkspaceSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceSymbolParams);
-   not overriding procedure Write_WorkspaceSymbolParams
+   procedure Write_WorkspaceSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceSymbolParams);
    for WorkspaceSymbolParams'Read use Read_WorkspaceSymbolParams;
@@ -2862,10 +2862,10 @@ package LSP.Messages is
       diagnostics: Diagnostic_Vector;
    end record;
 
-   not overriding procedure Read_CodeActionContext
+   procedure Read_CodeActionContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CodeActionContext);
-   not overriding procedure Write_CodeActionContext
+   procedure Write_CodeActionContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionContext);
    for CodeActionContext'Read use Read_CodeActionContext;
@@ -2877,10 +2877,10 @@ package LSP.Messages is
       context: CodeActionContext;
    end record;
 
-   not overriding procedure Read_CodeActionParams
+   procedure Read_CodeActionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CodeActionParams);
-   not overriding procedure Write_CodeActionParams
+   procedure Write_CodeActionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionParams);
    for CodeActionParams'Read use Read_CodeActionParams;
@@ -3109,10 +3109,10 @@ package LSP.Messages is
       arguments: LSP_Any;
    end record;
 
-   not overriding procedure Read_ExecuteCommandParams
+   procedure Read_ExecuteCommandParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ExecuteCommandParams);
-   not overriding procedure Write_ExecuteCommandParams
+   procedure Write_ExecuteCommandParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommandParams);
    for ExecuteCommandParams'Read use Read_ExecuteCommandParams;
@@ -3310,155 +3310,155 @@ package LSP.Messages is
 
 private
 
-   not overriding procedure Read_ApplyWorkspaceEditParams
+   procedure Read_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ApplyWorkspaceEditParams);
 
-   not overriding procedure Read_Command_Vector
+   procedure Read_Command_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Command_Vector);
 
-   not overriding procedure Read_CompletionList
+   procedure Read_CompletionList
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CompletionList);
 
-   not overriding procedure Read_DocumentLinkOptions
+   procedure Read_DocumentLinkOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentLinkOptions);
 
-   not overriding procedure Read_ExecuteCommandOptions
+   procedure Read_ExecuteCommandOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ExecuteCommandOptions);
 
-   not overriding procedure Read_Hover
+   procedure Read_Hover
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Hover);
 
-   not overriding procedure Read_Initialize_Response
+   procedure Read_Initialize_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Initialize_Response);
 
-   not overriding procedure Read_InitializeResult
+   procedure Read_InitializeResult
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InitializeResult);
 
-   not overriding procedure Read_Optional_TextDocumentSyncOptions
+   procedure Read_Optional_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Optional_TextDocumentSyncOptions);
 
-   not overriding procedure Read_ServerCapabilities
+   procedure Read_ServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ServerCapabilities);
 
-   not overriding procedure Read_SignatureHelp
+   procedure Read_SignatureHelp
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SignatureHelp);
 
-   not overriding procedure Read_SymbolInformation_Vector
+   procedure Read_SymbolInformation_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SymbolInformation_Vector);
 
-   not overriding procedure Read_TextDocumentSyncOptions
+   procedure Read_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentSyncOptions);
 
-   not overriding procedure Read_WorkspaceEdit
+   procedure Read_WorkspaceEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceEdit);
 
-   not overriding procedure Write_ApplyWorkspaceEdit_Request
+   procedure Write_ApplyWorkspaceEdit_Request
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEdit_Request);
 
-   not overriding procedure Write_ApplyWorkspaceEditParams
+   procedure Write_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
 
-   not overriding procedure Write_CodeAction_Response
+   procedure Write_CodeAction_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeAction_Response);
 
-   not overriding procedure Write_Command_Vector
+   procedure Write_Command_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Command_Vector);
 
-   not overriding procedure Write_Completion_Response
+   procedure Write_Completion_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Completion_Response);
 
-   not overriding procedure Write_CompletionList
+   procedure Write_CompletionList
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionList);
 
-   not overriding procedure Write_DocumentLinkOptions
+   procedure Write_DocumentLinkOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentLinkOptions);
 
-   not overriding procedure Write_ExecuteCommand_Response
+   procedure Write_ExecuteCommand_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommand_Response);
 
-   not overriding procedure Write_ExecuteCommandOptions
+   procedure Write_ExecuteCommandOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommandOptions);
 
-   not overriding procedure Write_Highlight_Response
+   procedure Write_Highlight_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Highlight_Response);
 
-   not overriding procedure Write_Hover
+   procedure Write_Hover
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Hover);
 
-   not overriding procedure Write_Hover_Response
+   procedure Write_Hover_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Hover_Response);
 
-   not overriding procedure Write_Initialize_Response
+   procedure Write_Initialize_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Initialize_Response);
 
-   not overriding procedure Write_InitializeResult
+   procedure Write_InitializeResult
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : InitializeResult);
 
-   not overriding procedure Write_Location_Response
+   procedure Write_Location_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Location_Response);
 
-   not overriding procedure Write_Optional_TextDocumentSyncOptions
+   procedure Write_Optional_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Optional_TextDocumentSyncOptions);
 
-   not overriding procedure Write_Shutdown_Request
+   procedure Write_Shutdown_Request
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Shutdown_Request);
 
-   not overriding procedure Write_ServerCapabilities
+   procedure Write_ServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ServerCapabilities);
 
-   not overriding procedure Write_SignatureHelp
+   procedure Write_SignatureHelp
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureHelp);
 
-   not overriding procedure Write_SignatureHelp_Response
+   procedure Write_SignatureHelp_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureHelp_Response);
 
-   not overriding procedure Write_Symbol_Response
+   procedure Write_Symbol_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Symbol_Response);
 
-   not overriding procedure Write_SymbolInformation_Vector
+   procedure Write_SymbolInformation_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SymbolInformation_Vector);
 
-   not overriding procedure Write_TextDocumentSyncOptions
+   procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncOptions);
 
-   not overriding procedure Write_WorkspaceEdit
+   procedure Write_WorkspaceEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceEdit);
 

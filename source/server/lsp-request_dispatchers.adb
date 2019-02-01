@@ -25,7 +25,7 @@ package body LSP.Request_Dispatchers is
    -- Dispatch --
    --------------
 
-   not overriding function Dispatch
+   function Dispatch
      (Self    : in out Request_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -56,7 +56,7 @@ package body LSP.Request_Dispatchers is
    -- Register --
    --------------
 
-   not overriding procedure Register
+   procedure Register
      (Self   : in out Request_Dispatcher;
      Method : LSP.Types.LSP_String;
       Value  : Parameter_Handler_Access) is

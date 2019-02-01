@@ -30,25 +30,25 @@ package Spawn.Processes is
    type Process_Listener is limited interface;
    type Process_Listener_Access is access all Process_Listener'Class;
 
-   not overriding procedure Standard_Output_Available
+   procedure Standard_Output_Available
     (Self : in out Process_Listener) is null;
    --  Called once when it's possible to read data again.
 
-   not overriding procedure Standard_Error_Available
+   procedure Standard_Error_Available
     (Self : in out Process_Listener) is null;
    --  Called once when it's possible to read data again.
 
-   not overriding procedure Standard_Input_Available
+   procedure Standard_Input_Available
     (Self : in out Process_Listener) is null;
    --  Called once when it's possible to write data again.
 
-   not overriding procedure Started (Self : in out Process_Listener) is null;
+   procedure Started (Self : in out Process_Listener) is null;
 
-   not overriding procedure Finished
+   procedure Finished
     (Self      : in out Process_Listener;
      Exit_Code : Integer) is null;
 
-   not overriding procedure Error_Occurred
+   procedure Error_Occurred
     (Self          : in out Process_Listener;
      Process_Error : Integer) is null;
 
