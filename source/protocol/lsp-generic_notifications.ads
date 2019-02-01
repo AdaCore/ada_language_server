@@ -34,11 +34,11 @@ package LSP.Generic_Notifications is
       params : T;
    end record;
 
-   not overriding procedure Read
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Notification);
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Notification);
 

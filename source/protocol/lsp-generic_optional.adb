@@ -24,7 +24,7 @@ package body LSP.Generic_Optional is
    -- Read --
    ----------
 
-   not overriding procedure Read
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Optional_Type)
    is
@@ -45,7 +45,7 @@ package body LSP.Generic_Optional is
    -- Write --
    -----------
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Optional_Type) is
    begin

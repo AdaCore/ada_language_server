@@ -31,13 +31,13 @@ package LSP.Types is
    subtype LSP_Number is Natural;
    type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
-   not overriding procedure Read
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Types.LSP_String);
 
    for LSP_String'Read use Read;
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String);
 

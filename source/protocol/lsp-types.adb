@@ -43,7 +43,7 @@ package body LSP.Types is
    -- Read --
    ----------
 
-   not overriding procedure Read
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Types.LSP_String)
    is
@@ -154,7 +154,7 @@ package body LSP.Types is
    -- Write --
    -----------
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String)
    is

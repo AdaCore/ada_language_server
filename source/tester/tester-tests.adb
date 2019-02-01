@@ -45,7 +45,7 @@ package body Tester.Tests is
    -- Do_Abort --
    --------------
 
-   not overriding procedure Do_Abort (Self : Test) is
+   procedure Do_Abort (Self : Test) is
    begin
       GNAT.OS_Lib.OS_Exit (1);
    end Do_Abort;
@@ -54,7 +54,7 @@ package body Tester.Tests is
    -- Do_Fail --
    -------------
 
-   not overriding procedure Do_Fail (Self : Test; Message : String) is
+   procedure Do_Fail (Self : Test; Message : String) is
       pragma Unreferenced (Self);
    begin
       Ada.Text_IO.Put_Line ("Test failed:" & Message);
@@ -301,7 +301,7 @@ package body Tester.Tests is
    -- Execute_Command --
    ---------------------
 
-   not overriding procedure Execute_Command
+   procedure Execute_Command
      (Self    : in out Test;
       Command : GNATCOLL.JSON.JSON_Value)
    is
@@ -336,7 +336,7 @@ package body Tester.Tests is
    -- Run --
    ---------
 
-   not overriding procedure Run
+   procedure Run
      (Self     : in out Test;
       Commands : GNATCOLL.JSON.JSON_Array)
    is

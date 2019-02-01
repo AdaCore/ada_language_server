@@ -25,7 +25,7 @@ package Tester.Tests is
 
    type Test is tagged limited private;
 
-   not overriding procedure Run
+   procedure Run
      (Self     : in out Test;
       Commands : GNATCOLL.JSON.JSON_Array);
 
@@ -45,13 +45,13 @@ private
      (Self : in out Test;
       Data : Ada.Strings.Unbounded.Unbounded_String);
 
-   not overriding procedure Execute_Command
+   procedure Execute_Command
      (Self    : in out Test;
       Command : GNATCOLL.JSON.JSON_Value);
 
-   not overriding procedure Do_Abort (Self : Test);
+   procedure Do_Abort (Self : Test);
 
-   not overriding procedure Do_Fail (Self : Test; Message : String);
+   procedure Do_Fail (Self : Test; Message : String);
    --  Mark tes as failed with given message
 
 end Tester.Tests;

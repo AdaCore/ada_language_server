@@ -30,7 +30,7 @@ package body LSP.Generic_Notifications is
    -- Read --
    ----------
 
-   not overriding procedure Read
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class; V : out Notification)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
@@ -47,7 +47,7 @@ package body LSP.Generic_Notifications is
    -- Write --
    -----------
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class; V : Notification)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames

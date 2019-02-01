@@ -30,14 +30,14 @@ package LSP.Ada_Contexts is
 
    type Context is tagged limited private;
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self : in out Context;
       Root : LSP.Types.LSP_String);
 
    function Is_Initialized (Self : Context) return Boolean;
    function Has_Project (Self : Context) return Boolean;
 
-   not overriding procedure Load_Project
+   procedure Load_Project
      (Self     : in out Context;
       File     : LSP.Types.LSP_String;
       Scenario : LSP.Types.LSP_Any);
@@ -46,28 +46,28 @@ package LSP.Ada_Contexts is
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
 
-   not overriding procedure Load_Document
+   procedure Load_Document
      (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem);
 
-   not overriding procedure Unload_Document
+   procedure Unload_Document
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentIdentifier);
 
-   not overriding function Get_Document
+   function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
 
-   not overriding function Get_Source_Files
+   function Get_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;
 
-   not overriding function URI_To_File
+   function URI_To_File
      (Self : Context;
       URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path by stripping schema from it
 
-   not overriding function File_To_URI
+   function File_To_URI
      (Self : Context;
       File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
@@ -93,7 +93,7 @@ private
       Documents      : Document_Maps.Map;
    end record;
 
-   not overriding function Find_Project_File
+   function Find_Project_File
      (Self : in out Context;
       File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
    --  Find GPR file

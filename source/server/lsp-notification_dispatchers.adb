@@ -21,7 +21,7 @@ package body LSP.Notification_Dispatchers is
    -- Dispatch --
    --------------
 
-   not overriding procedure Dispatch
+   procedure Dispatch
      (Self    : in out Notification_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -41,7 +41,7 @@ package body LSP.Notification_Dispatchers is
    -- Register --
    --------------
 
-   not overriding procedure Register
+   procedure Register
      (Self   : in out Notification_Dispatcher;
      Method : LSP.Types.LSP_String;
       Value  : Parameter_Handler_Access) is

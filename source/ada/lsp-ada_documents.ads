@@ -26,29 +26,29 @@ package LSP.Ada_Documents is
    type Document_Access is access all LSP.Ada_Documents.Document;
    type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self : in out Document;
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem);
 
-   not overriding procedure Apply_Changes
+   procedure Apply_Changes
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
 
-   not overriding procedure Get_Errors
+   procedure Get_Errors
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector);
 
-   not overriding procedure Get_Symbols
+   procedure Get_Symbols
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector);
 
-   not overriding function Get_Node_At
+   function Get_Node_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
 
-   not overriding procedure Get_Completions_At
+   procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList);

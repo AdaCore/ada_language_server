@@ -30,7 +30,7 @@ package body LSP.Generic_Requests is
    -- Write --
    -----------
 
-   not overriding procedure Write
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class; V : Request)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames

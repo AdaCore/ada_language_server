@@ -22,27 +22,27 @@ package LSP.Notification_Handlers is
    type Notification_Handler is limited interface;
    type Notification_Handler_Access is access all Notification_Handler'Class;
 
-   not overriding procedure Workspace_Did_Change_Configuration
+   procedure Workspace_Did_Change_Configuration
     (Self     : access Notification_Handler;
      Value    : LSP.Messages.DidChangeConfigurationParams) is null;
 
-   not overriding procedure Text_Document_Did_Open
+   procedure Text_Document_Did_Open
      (Self  : access Notification_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams) is null;
 
-   not overriding procedure Text_Document_Did_Change
+   procedure Text_Document_Did_Change
      (Self  : access Notification_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams) is null;
 
-   not overriding procedure Text_Document_Did_Save
+   procedure Text_Document_Did_Save
      (Self  : access Notification_Handler;
       Value : LSP.Messages.DidSaveTextDocumentParams) is null;
 
-   not overriding procedure Text_Document_Did_Close
+   procedure Text_Document_Did_Close
      (Self  : access Notification_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams) is null;
 
-   not overriding procedure Exit_Notification
+   procedure Exit_Notification
     (Self : access Notification_Handler) is null;
 
 end LSP.Notification_Handlers;

@@ -32,23 +32,23 @@ package LSP.Servers is
 
    type Server is tagged limited private;
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
       Notification : not null LSP.Notification_Handlers.
         Notification_Handler_Access);
 
-   not overriding procedure Send_Notification
+   procedure Send_Notification
      (Self  : in out Server;
       Value : in out LSP.Messages.NotificationMessage'Class);
 
-   not overriding procedure Run (Self  : in out Server);
+   procedure Run (Self  : in out Server);
 
-   not overriding procedure Stop (Self  : in out Server);
+   procedure Stop (Self  : in out Server);
    --  Ask server to stop after processing current message
 
-   not overriding procedure Workspace_Apply_Edit
+   procedure Workspace_Apply_Edit
      (Self     : in out Server;
       Params   : LSP.Messages.ApplyWorkspaceEditParams;
       Applied  : out Boolean;

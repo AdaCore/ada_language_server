@@ -25,20 +25,20 @@ with Spawn.String_Vectors;
 package LSP.Raw_Clients is
    type Raw_Client is tagged limited private;
 
-   not overriding procedure On_Error
+   procedure On_Error
      (Self  : in out Raw_Client;
       Error : String) is null;
    --  Callback to be called on LSP server termination.
 
-   not overriding procedure On_Raw_Message
+   procedure On_Raw_Message
      (Self : in out Raw_Client;
       Data : Ada.Strings.Unbounded.Unbounded_String) is null;
    --  Callback to be called on new message from LSP server.
 
-   not overriding procedure On_Started (Self : in out Raw_Client) is null;
+   procedure On_Started (Self : in out Raw_Client) is null;
    --  Callback to be called on successful startup of the server process.
 
-   not overriding procedure On_Finished (Self : in out Raw_Client) is null;
+   procedure On_Finished (Self : in out Raw_Client) is null;
    --  Callback to be called on finish of server process.
 
    procedure Set_Arguments

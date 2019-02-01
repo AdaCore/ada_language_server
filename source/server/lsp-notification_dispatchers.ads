@@ -31,12 +31,12 @@ package LSP.Notification_Dispatchers is
       Handler : not null
         LSP.Notification_Handlers.Notification_Handler_Access);
 
-   not overriding procedure Register
+   procedure Register
     (Self   : in out Notification_Dispatcher;
      Method : LSP.Types.LSP_String;
      Value  : Parameter_Handler_Access);
 
-   not overriding procedure Dispatch
+   procedure Dispatch
      (Self    : in out Notification_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
