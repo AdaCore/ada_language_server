@@ -112,6 +112,8 @@ package LSP.Clients is
 
    --  Notification sending procedures:
 
+   overriding procedure Initialized (Self : access Client);
+
    overriding procedure Workspace_Did_Change_Configuration
      (Self  : access Client;
       Value : LSP.Messages.DidChangeConfigurationParams);

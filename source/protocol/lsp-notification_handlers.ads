@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,8 @@ package LSP.Notification_Handlers is
 
    type Notification_Handler is limited interface;
    type Notification_Handler_Access is access all Notification_Handler'Class;
+
+   procedure Initialized (Self : access Notification_Handler) is null;
 
    procedure Workspace_Did_Change_Configuration
     (Self     : access Notification_Handler;

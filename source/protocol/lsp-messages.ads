@@ -1516,6 +1516,30 @@ package LSP.Messages is
    end record;
 
    --```typescript
+   --void
+   --```
+   --
+   --  Note, LSP version 3.14 define parameters of 'initialized' notification
+   --  as below, and they are defined in this way.
+   --
+   --'''typescript
+   --interface InitializedParams {
+   --}
+   --'''
+   type InitializedParams is null record;
+
+   not overriding procedure Read_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InitializedParams);
+
+   not overriding procedure Write_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InitializedParams);
+
+   for InitializedParams'Read use Read_InitializedParams;
+   for InitializedParams'Write use Write_InitializedParams;
+
+   --```typescript
    --/**
    -- * Known error codes for an `InitializeError`;
    -- */
@@ -3157,6 +3181,16 @@ package LSP.Messages is
 
    subtype PublishDiagnostics_Notification is
      PublishDiagnostics_Notifications.Notification;
+
+   package Initialized_Notifications is new
+     LSP.Generic_Notifications
+       (NotificationMessage,
+        InitializedParams,
+        Read_Notification_Prexif,
+        Write_Notification_Prexif);
+
+   subtype Initialized_Notification is
+     Initialized_Notifications.Notification;
 
    package DidChangeConfiguration_Notifications is new
      LSP.Generic_Notifications

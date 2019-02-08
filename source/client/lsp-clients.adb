@@ -463,6 +463,17 @@ package body LSP.Clients is
       Self.Send_Response (Request, Message);
    end Workspace_Apply_Edit;
 
+   -----------------
+   -- Initialized --
+   -----------------
+
+   overriding procedure Initialized (Self : access Client) is
+      Message : LSP.Messages.Initialized_Notification :=
+                  (others => <>);
+   begin
+      Self.Send_Notification ("initialized", Message);
+   end Initialized;
+
    ----------------------------------------
    -- Workspace_Did_Change_Configuration --
    ----------------------------------------
