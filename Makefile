@@ -28,6 +28,7 @@ check: all
 	$(TESTER) $(TD)/project_search.json
 	$(TESTER) $(TD)/project_config.json
 	$(TESTER) $(TD)/project_config_2.json
+	$(TESTER) $(TD)/uri_with_slash.json
 	@echo All test passed!
 
 deploy: check

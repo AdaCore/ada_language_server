@@ -145,7 +145,9 @@ package body URIs is
                --  append backslash here.
                Result := Ada.Strings.Unbounded.To_Unbounded_String
                  (Path & "\");
-            else
+            elsif Path /= "" then
+               --  We skip empty path segments, for URI like "file:///a//b/"
+               --  converts to "/a/b"
                Result := Ada.Strings.Unbounded.To_Unbounded_String
                  (Ada.Directories.Compose
                     (Ada.Strings.Unbounded.To_String (Result),
