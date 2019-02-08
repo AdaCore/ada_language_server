@@ -1522,10 +1522,10 @@ package LSP.Messages is
    --  Note, LSP version 3.14 define parameters of 'initialized' notification
    --  as below, and they are defined in this way.
    --
-   --```typescript
+   --'''typescript
    --interface InitializedParams {
    --}
-   --```
+   --'''
    type InitializedParams is null record;
 
    not overriding procedure Read_InitializedParams
