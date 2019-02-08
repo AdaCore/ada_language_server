@@ -26,7 +26,7 @@ package body LSP.Notification_Dispatchers is
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access)
+        LSP.Server_Notifications.Server_Notification_Handler_Access)
    is
       Cursor : Maps.Cursor := Self.Map.Find (Method);
    begin

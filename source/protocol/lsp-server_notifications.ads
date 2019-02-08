@@ -17,34 +17,35 @@
 
 with LSP.Messages;
 
-package LSP.Notification_Handlers is
+package LSP.Server_Notifications is
 
-   type Notification_Handler is limited interface;
-   type Notification_Handler_Access is access all Notification_Handler'Class;
+   type Server_Notification_Handler is limited interface;
+   type Server_Notification_Handler_Access is
+     access all Server_Notification_Handler'Class;
 
-   procedure Initialized (Self : access Notification_Handler) is null;
+   procedure Initialized (Self : access Server_Notification_Handler) is null;
 
    procedure Workspace_Did_Change_Configuration
-    (Self     : access Notification_Handler;
+    (Self     : access Server_Notification_Handler;
      Value    : LSP.Messages.DidChangeConfigurationParams) is null;
 
    procedure Text_Document_Did_Open
-     (Self  : access Notification_Handler;
+     (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams) is null;
 
    procedure Text_Document_Did_Change
-     (Self  : access Notification_Handler;
+     (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams) is null;
 
    procedure Text_Document_Did_Save
-     (Self  : access Notification_Handler;
+     (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidSaveTextDocumentParams) is null;
 
    procedure Text_Document_Did_Close
-     (Self  : access Notification_Handler;
+     (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams) is null;
 
    procedure Exit_Notification
-    (Self : access Notification_Handler) is null;
+    (Self : access Server_Notification_Handler) is null;
 
-end LSP.Notification_Handlers;
+end LSP.Server_Notifications;
