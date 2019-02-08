@@ -21,27 +21,27 @@ private package LSP.Servers.Handlers is
    procedure DidChangeConfiguration
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidOpenTextDocument
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidCloseTextDocument
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidChangeTextDocument
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidSaveTextDocument
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    function Do_Code_Action
     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -71,7 +71,7 @@ private package LSP.Servers.Handlers is
    procedure Do_Exit
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-        LSP.Notification_Handlers.Notification_Handler_Access);
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    function Do_Highlight
     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -116,6 +116,6 @@ private package LSP.Servers.Handlers is
    procedure Ignore_Notification
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
-       LSP.Notification_Handlers.Notification_Handler_Access);
+       LSP.Server_Notifications.Server_Notification_Handler_Access);
 
 end LSP.Servers.Handlers;

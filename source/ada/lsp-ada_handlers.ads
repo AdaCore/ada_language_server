@@ -16,8 +16,8 @@
 ------------------------------------------------------------------------------
 
 with LSP.Message_Handlers;
-with LSP.Notification_Handlers;
 with LSP.Messages;
+with LSP.Server_Notifications;
 with LSP.Servers;
 
 with LSP.Ada_Contexts;
@@ -28,7 +28,7 @@ package LSP.Ada_Handlers is
      (Server  : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context) is
    limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Notification_Handlers.Notification_Handler with private;
+     and LSP.Server_Notifications.Server_Notification_Handler with private;
 
 private
 
@@ -36,7 +36,7 @@ private
      (Server : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context)
    is limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Notification_Handlers.Notification_Handler with record
+     and LSP.Server_Notifications.Server_Notification_Handler with record
       null;
    end record;
 

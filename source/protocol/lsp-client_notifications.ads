@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2019, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,37 +14,26 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--  Interface to process notifications sent to the client.
 
 with LSP.Messages;
 
-package LSP.Notification_Handlers is
+package LSP.Client_Notifications is
 
-   type Notification_Handler is limited interface;
-   type Notification_Handler_Access is access all Notification_Handler'Class;
+   type Client_Notification_Handler is limited interface;
+   type Client_Notification_Handler_Access is
+     access all Client_Notification_Handler'Class;
 
-   procedure Initialized (Self : access Notification_Handler) is null;
+   procedure Show_Message
+     (Self   : in out Client_Notification_Handler;
+      Params : LSP.Messages.ShowMessageParams) is null;
 
-   procedure Workspace_Did_Change_Configuration
-    (Self     : access Notification_Handler;
-     Value    : LSP.Messages.DidChangeConfigurationParams) is null;
+   procedure Log_Message
+     (Self   : in out Client_Notification_Handler;
+      Params : LSP.Messages.LogMessageParams) is null;
 
-   procedure Text_Document_Did_Open
-     (Self  : access Notification_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams) is null;
+   procedure Publish_Diagnostics
+     (Self   : in out Client_Notification_Handler;
+      Params : LSP.Messages.PublishDiagnosticsParams) is null;
 
-   procedure Text_Document_Did_Change
-     (Self  : access Notification_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams) is null;
-
-   procedure Text_Document_Did_Save
-     (Self  : access Notification_Handler;
-      Value : LSP.Messages.DidSaveTextDocumentParams) is null;
-
-   procedure Text_Document_Did_Close
-     (Self  : access Notification_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams) is null;
-
-   procedure Exit_Notification
-    (Self : access Notification_Handler) is null;
-
-end LSP.Notification_Handlers;
+end LSP.Client_Notifications;
