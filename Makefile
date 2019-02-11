@@ -1,6 +1,7 @@
 TESTER=.obj/tester/tester-run
 TD=testsuite/ada_lsp
 GPRBUILD=gprbuild -j0
+DESTDIR=
 
 all:
 	$(GPRBUILD) -P gnat/lsp.gpr -p
@@ -9,6 +10,9 @@ all:
 	$(GPRBUILD) -P gnat/tester.gpr -p
 	rm -rf integration/vscode/ada/server
 	ln -s ../../../.obj/server/lsp-ada_driver integration/vscode/ada/server
+
+install:
+	gprinstall -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR)
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/server
