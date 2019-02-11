@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -145,7 +145,9 @@ package body URIs is
                --  append backslash here.
                Result := Ada.Strings.Unbounded.To_Unbounded_String
                  (Path & "\");
-            else
+            elsif Path /= "" then
+               --  We skip empty path segments, for URI like "file:///a//b/"
+               --  converts to "/a/b"
                Result := Ada.Strings.Unbounded.To_Unbounded_String
                  (Ada.Directories.Compose
                     (Ada.Strings.Unbounded.To_String (Result),
