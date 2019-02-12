@@ -18,6 +18,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
 with LSP.Messages;
@@ -27,6 +28,7 @@ with LSP.Types;
 
 limited with LSP.Clients.Request_Handlers;
 limited with LSP.Clients.Response_Handlers;
+limited with LSP.Client_Notifications;
 
 package LSP.Clients is
 
@@ -48,6 +50,11 @@ package LSP.Clients is
      (Self  : in out Client'Class;
       Value : access LSP.Clients.Request_Handlers.Request_Handler'Class);
    --  Set request handler
+
+   procedure Set_Notification_Handler
+     (Self  : in out Client'Class;
+      Value : access Client_Notifications.Client_Notification_Handler'Class);
+   --  Set notification handler
 
    --  Routines to send request to the LSP server
 
@@ -160,15 +167,28 @@ private
       Hash            => Hash,
       Equivalent_Keys => "=");
 
+   type Notification_Decoder is access procedure
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : access Client_Notifications.Client_Notification_Handler'Class);
+
+   package Notification_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Ada.Strings.Unbounded.Unbounded_String,
+      Element_Type    => Notification_Decoder,
+      Hash            => Ada.Strings.Unbounded.Hash,
+      Equivalent_Keys => Ada.Strings.Unbounded."=");
+
    type Client is new LSP.Raw_Clients.Raw_Client
      and LSP.Server_Notifications.Server_Notification_Handler
    with record
       Request_Id       : LSP.Types.LSP_Number := 0;  --  Id of prev request
       Request_Map      : Request_Maps.Map;  --  issued requests
+      Notif_Decoders   : Notification_Maps.Map;  --  notification decoders
       Response_Handler : access
         LSP.Clients.Response_Handlers.Response_Handler'Class;
       Request_Handler  : access
         LSP.Clients.Request_Handlers.Request_Handler'Class;
+      Notification     : access
+        LSP.Client_Notifications.Client_Notification_Handler'Class;
    end record;
 
    overriding procedure On_Raw_Message
