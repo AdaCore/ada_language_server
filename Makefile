@@ -1,6 +1,7 @@
 TESTER=.obj/tester/tester-run
 TD=testsuite/ada_lsp
 GPRBUILD=gprbuild -j0
+DESTDIR=
 PLATFORM=$(shell node -e 'console.log(require("process").platform)')
 
 all:
@@ -11,6 +12,9 @@ all:
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
+
+install:
+	gprinstall -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR)
 
 clean:
 	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/$(PLATFORM)
