@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,6 +22,7 @@ with Langkit_Support.Slocs;
 with Libadalang.Common;
 with Libadalang.Iterators;
 
+with LSP.Ada_Contexts;
 with LSP.Types;
 
 package body LSP.Ada_Documents is
@@ -37,6 +38,9 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.SymbolKind;
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
 
    function To_Completion_Kind
      (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
@@ -61,68 +65,32 @@ package body LSP.Ada_Documents is
    -- Apply_Changes --
    -------------------
 
-   not overriding procedure Apply_Changes
+   procedure Apply_Changes
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
-      File : constant LSP.Types.LSP_String :=
-        LSP.Types.Delete (Self.URI, 1, 7);  --  Delete file://
+      File : constant String :=
+        Types.To_UTF_8_String
+          (Self.Context.URI_To_File (Self.URI));  --  Delete file://
    begin
+      Server_Trace.Trace ("Applying changes for document " & File);
       for Change of reverse Vector loop
          --  If whole document then reparse it
          if not Change.span.Is_Set then
             Self.Unit := Self.LAL.Get_From_Buffer
-              (Filename => LSP.Types.To_UTF_8_String (File),
+              (Filename => File,
                Charset  => "utf-8",
                Buffer   => LSP.Types.To_UTF_8_String (Change.text));
          end if;
       end loop;
+      Server_Trace.Trace ("Done applying changes for document " & File);
    end Apply_Changes;
-
-   -----------------------
-   -- Get_Definition_At --
-   -----------------------
-
-
-
-   not overriding function Get_Definition_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return Libadalang.Analysis.Defining_Name
-   is
-
-      use Libadalang.Common;
-
-      Node : constant Libadalang.Analysis.Ada_Node :=
-        Self.Get_Node_At (Position);
-
-   begin
-
-      if not Node.Is_Null and Node.Kind in Ada_Name then
-         declare
-            Name : constant Libadalang.Analysis.Name := Node.As_Name;
-         begin
-            if Name.P_Is_Defining then
-               --  If this name is part of a definition, return that exact
-               --  definition.
-               return Name.P_Enclosing_Defining_Name;
-            else
-               --  Else return the name of the definition which is referred by
-               --  this name.
-               return Name.P_Xref;
-            end if;
-         end;
-      else
-         return Libadalang.Analysis.No_Defining_Name;
-      end if;
-
-   end Get_Definition_At;
 
    ----------------
    -- Get_Errors --
    ----------------
 
-   not overriding procedure Get_Errors
+   procedure Get_Errors
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector)
    is
@@ -147,7 +115,7 @@ package body LSP.Ada_Documents is
    -- Get_Symbols --
    -----------------
 
-   not overriding procedure Get_Symbols
+   procedure Get_Symbols
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector)
    is
@@ -179,7 +147,7 @@ package body LSP.Ada_Documents is
    -- Get_Node_At --
    -----------------
 
-   not overriding function Get_Node_At
+   function Get_Node_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
@@ -209,7 +177,6 @@ package body LSP.Ada_Documents is
    begin
       case Node.Kind is
          when Ada_Generic_Formal_Subp_Decl |
-              Ada_Subtype_Decl |
               Ada_Abstract_Subp_Decl |
               Ada_Abstract_Formal_Subp_Decl |
               Ada_Concrete_Formal_Subp_Decl |
@@ -263,6 +230,7 @@ package body LSP.Ada_Documents is
               Ada_Protected_Type_Decl |
               Ada_Task_Type_Decl |
               Ada_Type_Decl |
+              Ada_Subtype_Decl |
               Ada_Anonymous_Type_Decl |
               Ada_Synth_Anonymous_Type_Decl =>
             return LSP.Messages.Class;
@@ -293,13 +261,13 @@ package body LSP.Ada_Documents is
    -- Initialize --
    ----------------
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self : in out Document;
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem)
    is
       File : constant LSP.Types.LSP_String :=
-        LSP.Types.Delete (Item.uri, 1, 7);  --  Delete file://
+        Self.Context.URI_To_File (Item.uri);  --  Delete file://
    begin
       Self.Unit := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
@@ -344,11 +312,59 @@ package body LSP.Ada_Documents is
       return Result;
    end To_Span;
 
+   --------------------
+   -- Compute_Detail --
+   --------------------
+
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+      use LSP.Messages;
+      use LSP.Types;
+
+      Ret : LSP_String;
+   begin
+      case Get_Decl_Kind (BD) is
+         when A_Function =>
+            Append (Ret, "(subprogram) ");
+
+         when Variable =>
+            case BD.Kind is
+               when Ada_Param_Spec =>
+                  Append (Ret, "(param) ");
+               when others =>
+                  Append (Ret, "(var) ");
+            end case;
+
+            declare
+               TE : constant Type_Expr := BD.As_Basic_Decl.P_Type_Expression;
+            begin
+               if not TE.Is_Null then
+                  Append
+                    (Ret,
+                     To_LSP_String (TE.Text));
+               end if;
+            end;
+         when LSP.Messages.Class =>
+
+            Append (Ret, "(type) ");
+
+         when LSP.Messages.A_Package =>
+            Append (Ret, "(package) ");
+
+         when others => null;
+      end case;
+
+      return Ret;
+   end Compute_Completion_Detail;
+
    ------------------------
    -- Get_Completions_At --
    ------------------------
 
-   not overriding procedure Get_Completions_At
+   procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList)
@@ -386,6 +402,7 @@ package body LSP.Ada_Documents is
                   begin
                      R.label := To_LSP_String (DN.P_Relative_Name.Text);
                      R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
+                     R.detail := (True, Compute_Completion_Detail (BD));
                      Result.items.Append (R);
                   end;
                end loop;

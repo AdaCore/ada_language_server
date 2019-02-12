@@ -1,5 +1,6 @@
 FROM debian
 ENV PATH=/opt/gnat/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV USER=travis
 RUN apt-get update && apt-get install -y \
  libx11-xcb1 \
  fontconfig \
@@ -8,6 +9,8 @@ RUN apt-get update && apt-get install -y \
  make \
  libc-dev \
  git \
+ nodejs-legacy \
+ chrpath \
  libgmp-dev \
  && git clone https://github.com/AdaCore/gnat_community_install_script.git \
  && wget -nv -O ./gnat-install \

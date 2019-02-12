@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,11 +21,12 @@ package body LSP.Notification_Dispatchers is
    -- Dispatch --
    --------------
 
-   not overriding procedure Dispatch
+   procedure Dispatch
      (Self    : in out Notification_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Handler : not null LSP.Message_Handlers.Notification_Handler_Access)
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access)
    is
       Cursor : Maps.Cursor := Self.Map.Find (Method);
    begin
@@ -40,7 +41,7 @@ package body LSP.Notification_Dispatchers is
    -- Register --
    --------------
 
-   not overriding procedure Register
+   procedure Register
      (Self   : in out Notification_Dispatcher;
      Method : LSP.Types.LSP_String;
       Value  : Parameter_Handler_Access) is

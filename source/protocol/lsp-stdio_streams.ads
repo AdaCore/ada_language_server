@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,12 +21,12 @@ package LSP.Stdio_Streams is
 
    type Stdio_Stream is new Ada.Streams.Root_Stream_Type with null record;
 
-   procedure Read
+   overriding procedure Read
      (Stream : in out Stdio_Stream;
       Item   : out Ada.Streams.Stream_Element_Array;
       Last   : out Ada.Streams.Stream_Element_Offset);
 
-   procedure Write
+   overriding procedure Write
      (Stream : in out Stdio_Stream;
       Item   : Ada.Streams.Stream_Element_Array);
 

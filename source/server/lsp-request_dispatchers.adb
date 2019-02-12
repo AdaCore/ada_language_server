@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,13 +15,17 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with GNATCOLL.JSON;
+
 package body LSP.Request_Dispatchers is
 
    --------------
    -- Dispatch --
    --------------
 
-   not overriding function Dispatch
+   function Dispatch
      (Self    : in out Request_Dispatcher;
       Method  : LSP.Types.LSP_String;
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -35,13 +39,24 @@ package body LSP.Request_Dispatchers is
       end if;
 
       return Maps.Element (Cursor) (Stream, Handler);
+   exception
+      when E : others =>
+         --  Unexpected exception, reply to client with an error
+         return Response : LSP.Messages.ResponseMessage do
+            Response.error :=
+              (Is_Set => True,
+               Value => (code => LSP.Messages.InternalError,
+                         data => GNATCOLL.JSON.Create_Object,
+                         message => LSP.Types.To_LSP_String
+                           (Ada.Exceptions.Exception_Information (E))));
+         end return;
    end Dispatch;
 
    --------------
    -- Register --
    --------------
 
-   not overriding procedure Register
+   procedure Register
      (Self   : in out Request_Dispatcher;
      Method : LSP.Types.LSP_String;
       Value  : Parameter_Handler_Access) is

@@ -1,0 +1,76 @@
+------------------------------------------------------------------------------
+--                         Language Server Protocol                         --
+--                                                                          --
+--                        Copyright (C) 2018, AdaCore                       --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.  You should have  received  a copy of the GNU --
+-- General  Public  License  distributed  with  this  software;   see  file --
+-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+-- of the license.                                                          --
+------------------------------------------------------------------------------
+
+with "gtkada";
+
+project Spawn_Glib is
+
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind := external ("OS", "unix");
+
+   for Source_Dirs use ("../source/spawn");
+   for Object_Dir use "../.obj/spawn";
+
+   Common_Excluded :=
+     ("spawn-processes-monitor.ads",
+      "spawn-processes-monitor_loop.ads",
+      "spawn-processes-monitor_loop.adb");
+
+   case OS_API is
+      when "unix" | "osx" =>
+         for Excluded_Source_Files use Common_Excluded &
+           ("spawn-windows_api.ads",
+            "spawn-processes-windows.ads",
+            "spawn-processes-windows.adb");
+
+      when "Windows_NT" =>
+         for Excluded_Source_Files use Common_Excluded;
+   end case;
+
+   package Compiler is
+      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyyO", "-gnatwe");
+   end Compiler;
+
+   package Naming is
+      case OS_API is
+         when "unix" | "osx" =>
+            for Spec ("Spawn.Internal")
+               use "spawn-internal__glib.ads";
+            for Body ("Spawn.Internal")
+               use "spawn-internal__posix.adb";
+            for Spec ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__glib.ads";
+            for Body ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__glib.adb";
+            for Body ("Spawn.Processes")
+               use "spawn-processes__glib.adb";
+         when "Windows_NT" =>
+            for Spec ("Spawn.Internal")
+               use "spawn-internal__glib_windows.ads";
+            for Body ("Spawn.Internal")
+               use "spawn-internal__windows.adb";
+            for Spec ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__windows.ads";
+            for Body ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__windows.adb";
+            for Body ("Spawn.Processes")
+               use "spawn-processes__glib_windows.adb";
+      end case;
+   end Naming;
+
+end Spawn_Glib;
+

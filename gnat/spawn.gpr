@@ -17,12 +17,67 @@
 
 project Spawn is
 
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind := external ("OS", "unix");
+
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
+   for Languages use ("Ada", "c");
+
+   Common_Excluded := ();
+
+   case OS_API is
+      when "unix" =>
+         for Excluded_Source_Files use Common_Excluded &
+           ("pipe2.c",
+            "spawn-windows_api.ads",
+            "spawn-processes-windows.ads",
+            "spawn-processes-windows.adb");
+
+      when "Windows_NT" =>
+         for Excluded_Source_Files use Common_Excluded & ("pipe2.c");
+
+      when "osx" =>
+         for Excluded_Source_Files use Common_Excluded &
+           ("spawn-windows_api.ads",
+            "spawn-processes-windows.ads",
+            "spawn-processes-windows.adb");
+   end case;
 
    package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyy", "-gnatwe");
+      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyyO", "-gnatwe");
    end Compiler;
+
+   package Naming is
+      case OS_API is
+         when "unix" | "osx" =>
+            for Spec ("Spawn.Internal")
+               use "spawn-internal__posix.ads";
+            for Body ("Spawn.Internal")
+               use "spawn-internal__posix.adb";
+            for Spec ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__posix.ads";
+            for Body ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__posix.adb";
+            for Body ("Spawn.Processes")
+               use "spawn-processes__posix.adb";
+            for Body ("Spawn.Processes.Monitor")
+               use "spawn-processes-monitor__posix.adb";
+         when "Windows_NT" =>
+            for Spec ("Spawn.Internal")
+               use "spawn-internal__windows.ads";
+            for Body ("Spawn.Internal")
+               use "spawn-internal__windows.adb";
+            for Spec ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__windows.ads";
+            for Body ("Spawn.Environments.Internal")
+               use "spawn-environments-internal__windows.adb";
+            for Body ("Spawn.Processes")
+               use "spawn-processes__windows.adb";
+            for Body ("Spawn.Processes.Monitor")
+               use "spawn-processes-monitor__windows.adb";
+      end case;
+   end Naming;
 
 end Spawn;
 

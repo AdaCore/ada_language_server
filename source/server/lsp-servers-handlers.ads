@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,24 +19,29 @@ private package LSP.Servers.Handlers is
 --   pragma Preelaborate;
 
    procedure DidChangeConfiguration
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidOpenTextDocument
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidCloseTextDocument
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidChangeTextDocument
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure DidSaveTextDocument
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    function Do_Code_Action
     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -64,8 +69,9 @@ private package LSP.Servers.Handlers is
       return LSP.Messages.ResponseMessage'Class;
 
    procedure Do_Exit
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    function Do_Highlight
     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -108,7 +114,8 @@ private package LSP.Servers.Handlers is
       return LSP.Messages.ResponseMessage'Class;
 
    procedure Ignore_Notification
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Notification_Handler_Access);
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+       LSP.Server_Notifications.Server_Notification_Handler_Access);
 
 end LSP.Servers.Handlers;

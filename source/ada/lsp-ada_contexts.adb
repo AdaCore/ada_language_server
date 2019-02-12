@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,15 +22,33 @@ with Ada.Text_IO;
 with GNATCOLL.JSON;
 with GNAT.OS_Lib;
 
+with URIs;
+
 with Libadalang.Project_Provider;
 
 package body LSP.Ada_Contexts is
+
+   -----------------
+   -- File_To_URI --
+   -----------------
+
+   function File_To_URI
+     (Self : Context;
+      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      pragma Unreferenced (Self);
+
+      Result : constant URIs.URI_String :=
+        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
+   begin
+      return LSP.Types.To_LSP_String (Result);
+   end File_To_URI;
 
    -----------------------
    -- Find_Project_File --
    -----------------------
 
-   not overriding function Find_Project_File
+   function Find_Project_File
      (Self : in out Context;
       File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File
    is
@@ -146,11 +164,11 @@ package body LSP.Ada_Contexts is
          if Result.Is_Regular_File then
             return Result;
          end if;
-
-         --  If not found, perform a comprehensive search everywhere below
-         --  root.
-         Search_GPR_File (Root, Result);
       end if;
+
+      --  If not found, perform a comprehensive search everywhere below
+      --  root.
+      Search_GPR_File (Root, Result);
 
       if Result.Is_Regular_File then
          return Result;
@@ -174,7 +192,7 @@ package body LSP.Ada_Contexts is
    -- Get_Document --
    ------------------
 
-   not overriding function Get_Document
+   function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
         return LSP.Ada_Documents.Document_Access is
@@ -186,7 +204,7 @@ package body LSP.Ada_Contexts is
    -- Initialize --
    ----------------
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self : in out Context;
       Root : LSP.Types.LSP_String) is
    begin
@@ -197,12 +215,12 @@ package body LSP.Ada_Contexts is
    -- Load_Document --
    -------------------
 
-   not overriding procedure Load_Document
-     (Self : in out Context;
+   procedure Load_Document
+     (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem)
    is
       Object : constant LSP.Ada_Documents.Document_Access :=
-        new LSP.Ada_Documents.Document;
+        new LSP.Ada_Documents.Document (Self'Unchecked_Access);
    begin
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
@@ -212,7 +230,7 @@ package body LSP.Ada_Contexts is
    -- Load_Project --
    ------------------
 
-   not overriding procedure Load_Project
+   procedure Load_Project
      (Self     : in out Context;
       File     : LSP.Types.LSP_String;
       Scenario : LSP.Types.LSP_Any)
@@ -245,7 +263,7 @@ package body LSP.Ada_Contexts is
 
       Self.Project_Tree := new GNATCOLL.Projects.Project_Tree;
 
-      Project_Env := new GNATCOLL.Projects.Project_Environment;
+      GNATCOLL.Projects.Initialize (Project_Env);
 
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
@@ -279,7 +297,7 @@ package body LSP.Ada_Contexts is
    -- Unload_Document --
    ---------------------
 
-   not overriding procedure Unload_Document
+   procedure Unload_Document
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentIdentifier)
    is
@@ -291,8 +309,24 @@ package body LSP.Ada_Contexts is
    -- Get_Source_Files --
    ----------------------
 
-   not overriding function Get_Source_Files
+   function Get_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access is
      (Self.Project_Tree.Root_Project.Source_Files);
+
+   -----------------
+   -- URI_To_File --
+   -----------------
+
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      pragma Unreferenced (Self);
+
+      Result : constant String := URIs.Conversions.To_File
+        (LSP.Types.To_UTF_8_String (URI));
+   begin
+      return LSP.Types.To_LSP_String (Result);
+   end URI_To_File;
 
 end LSP.Ada_Contexts;

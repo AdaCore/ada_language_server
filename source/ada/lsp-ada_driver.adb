@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,6 +61,8 @@ begin
          & (+Virtual_File'(ALS_Dir / "als.log").Full_Name)
         & ":buffer_size=0");
    end if;
+
+   Server_Trace.Trace ("Initializing server ...");
 
    Server.Initialize
      (Stream'Unchecked_Access,

@@ -21,7 +21,7 @@ with "lsp";
 
 project LSP_Server is
 
-   for Source_Dirs use ("../source/server", "../source/ada");
+   for Source_Dirs use ("../source/server", "../source/ada", "../source/uri");
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver");
 
@@ -30,5 +30,9 @@ project LSP_Server is
    package Binder is
       for Switches ("ada") use ("-E");
    end Binder;
+
+   package Builder is
+      for Executable ("lsp-ada_driver") use "ada_language_server";
+   end Builder;
 
 end LSP_Server;

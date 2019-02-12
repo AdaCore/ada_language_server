@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,7 +21,7 @@ private package Spawn.Processes.Monitor is
      (Start, Close_Pipe, Watch_Pipe);
 
    type Command (Kind : Command_Kind := Start) is record
-      Process : Process_Access;
+      Process : access Spawn.Processes.Process'Class;
       case Kind is
          when Start =>
             null;

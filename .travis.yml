@@ -1,5 +1,6 @@
 os:
   - linux
+  - osx
 
 services:
   - docker
@@ -12,3 +13,21 @@ before_install:
 script:
   - integration/travis/travis.sh script
 
+deploy:
+  on:
+    branch:
+      - master
+  skip_cleanup: true
+  provider: bintray
+  file: integration/travis/bintray.json
+  user: reznikmm
+  key:
+    secure: "YXIjjteooikFPr+lsZ3+Rg/NjSmUI346yKte7wmOWDjcm8q/pp6YtdKj9jYz/sjoUQMc0HHJjlmWfAz7ZR1iH9doIGVmEcnkTqB63DAowBfvq0NIn0pjzwJ91Wu3k8BnDjMWBjwiOwqwsSj7tHRxrIMTQqtxMu8v8OWSLcBukIFxqyxNcnX1MCAXci9ePigBCB4sRUzVdXIMTsKSjk4JFHxKgAaavSxQnn326UsnKoiMw9SAO3uZfmKAMlofKxQO4q2cuERl4iYwiL+lAsbGoadZvXPH6ThKmMhoBdJRLPZNzFD8pOKEWS43/AiIaHeWIw6NEg2NsyiXE6b69/s44LwnSEckPFZBjIdiceOLTH7v5ZzDH/pNg2GmnzszHup6a+/ocCjA9pSltIEVRF0ZsX1KEQScWneJqRaTCT1+uBYmDturKy4hmcnNhBFx3pfpoCgdqz5HOxWGsln4zCpRrb0K+W/p445uWHUu7ze5XRzB7ylfHJbYrYLC9p+GKseYC6qkYt8q9wah8bUQxD8RFCdKJIt+jD3PvETjGAn0Q4cSXLsMOjtDuvRSzetAzAMs15+TzaMHIHnHn5P2uAvTucb0btfwP6nUIg7VEKT6MURxjW4bRjryriJmxYEFxaCU0pVfSuONYal8bXL8dxyoFHYP6dWbaCqURurzy8WxyJM="
+
+jobs:
+  include:
+    - stage: deploy
+      os: linux
+      if: branch = master
+      before_install: echo before_install
+      script: integration/travis/deploy.sh vsix

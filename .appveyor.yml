@@ -1,0 +1,30 @@
+install:
+ - choco install gnat-gpl
+ - echo C:/Projects /Projects ntfs auto 1 1 >> c:\msys64\etc\fstab
+ - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh install"
+
+build_script:
+ - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh build"
+
+for:
+-
+  branches:
+    only:
+      - master
+  artifacts:
+      - path: win32.zip
+
+deploy:
+  - provider: BinTray
+    on:
+      branch: master
+    username: reznikmm
+    api_key:
+      secure: A1Zo2PTNbMuel5lJMl2ymTrMMTYyQm2bc3sp04HIW8A4Dw3AP9038+5/1RsoA/ZT
+    subject: reznikmm
+    repo: ada-language-server
+    package: ada-language-server
+    version: 0.1-git
+    publish: true
+    override: true
+    explode: false

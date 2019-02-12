@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,7 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNATCOLL.JSON;
 
+with Tester.Macros;
 with Tester.Tests;
 
 procedure Tester.Run is
@@ -54,6 +55,7 @@ begin
 
       Ada.Text_IO.Close (Input);
       JSON := GNATCOLL.JSON.Read (Text, Arg);
+      Tester.Macros.Expand (JSON, Arg);
 
       declare
          Test : Tester.Tests.Test;

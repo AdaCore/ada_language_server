@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,6 +17,7 @@
 
 with LSP.Message_Handlers;
 with LSP.Messages;
+with LSP.Server_Notifications;
 with LSP.Servers;
 
 with LSP.Ada_Contexts;
@@ -27,7 +28,7 @@ package LSP.Ada_Handlers is
      (Server  : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context) is
    limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Message_Handlers.Notification_Handler with private;
+     and LSP.Server_Notifications.Server_Notification_Handler with private;
 
 private
 
@@ -35,7 +36,7 @@ private
      (Server : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context)
    is limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Message_Handlers.Notification_Handler with record
+     and LSP.Server_Notifications.Server_Notification_Handler with record
       null;
    end record;
 

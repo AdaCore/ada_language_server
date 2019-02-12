@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,12 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Directories;
 
 with GNATCOLL.JSON;
 
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
+with LSP.Lal_Utils;
 
 with Langkit_Support.Slocs;
 
@@ -29,6 +31,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with GNATCOLL.VFS;
+with GNATCOLL.Traces;
 
 package body LSP.Ada_Handlers is
 
@@ -56,12 +59,9 @@ package body LSP.Ada_Handlers is
    is
       Root : LSP.Types.LSP_String;
    begin
-      Response.result.capabilities.definitionProvider :=
-        LSP.Types.Optional_True;
-      Response.result.capabilities.referencesProvider :=
-        LSP.Types.Optional_True;
-      Response.result.capabilities.documentSymbolProvider :=
-        LSP.Types.Optional_True;
+      Response.result.capabilities.definitionProvider := True;
+      Response.result.capabilities.referencesProvider := True;
+      Response.result.capabilities.documentSymbolProvider := True;
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
       Response.result.capabilities.completionProvider :=
@@ -69,15 +69,10 @@ package body LSP.Ada_Handlers is
          (resolveProvider => (True, False),
           triggerCharacters => Empty_Vector & To_LSP_String (".")));
 
-      --  Turn URI into path by stripping schema from it
-      if LSP.Types.Starts_With (Value.rootUri, "file://") then
-         Root := Delete (Value.rootUri, 1, 7);
-      elsif LSP.Types.Starts_With (Value.rootUri, "file:") then
-         Root := Delete (Value.rootUri, 1, 5);
-      elsif not LSP.Types.Is_Empty (Value.rootUri) then
-         raise Constraint_Error with "Unsupported URI schema";
+      if not LSP.Types.Is_Empty (Value.rootUri) then
+         Root := Self.Context.URI_To_File (Value.rootUri);
       else
-         --  URI isn't provided, rollback to depricated rootPath
+         --  URI isn't provided, rollback to deprecated rootPath
          Root := Value.rootPath;
       end if;
 
@@ -88,7 +83,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Definition_Request --
    --------------------------------------
 
-   procedure Text_Document_Definition_Request
+   overriding procedure Text_Document_Definition_Request
      (Self     : access Message_Handler;
       Value    : LSP.Messages.TextDocumentPositionParams;
       Response : in out LSP.Messages.Location_Response)
@@ -97,20 +92,20 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Node       : constant Libadalang.Analysis.Ada_Node :=
-        Document.Get_Node_At (Value.position);
-
-      Definition : Libadalang.Analysis.Defining_Name;
-
       use Libadalang.Analysis;
+
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Document.Get_Node_At (Value.position));
+
+      Definition : Defining_Name;
 
    begin
 
-      if Node = No_Ada_Node then
+      if Name_Node = No_Name then
          return;
       end if;
 
-      Definition := Node.P_Xref;
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
       if Definition = No_Defining_Name then
          return;
@@ -135,7 +130,7 @@ package body LSP.Ada_Handlers is
             UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
          Location : constant LSP.Messages.Location :=
-           (uri  => +("file://" & Definition.Unit.Get_Filename),
+           (uri  => Self.Context.File_To_URI (+Definition.Unit.Get_Filename),
             span => LSP.Messages.Span'(First_Position, Last_Position));
 
       begin
@@ -185,6 +180,37 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
    begin
+
+      GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
+      GNATCOLL.Traces.Trace
+        (Server_Trace, "Uri : " & To_UTF_8_String (Value.textDocument.uri));
+
+      --  Some clients don't properly call initialize, in which case we want to
+      --  call it anyway at the first open file request.
+
+      if not Self.Context.Is_Initialized then
+         GNATCOLL.Traces.Trace
+           (Server_Trace, "No project loaded, creating default one ...");
+
+         declare
+            Root : LSP.Types.LSP_String :=
+              Self.Context.URI_To_File (Value.textDocument.uri);
+         begin
+            Root := To_LSP_String
+              (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
+
+            GNATCOLL.Traces.Trace
+              (Server_Trace, "Root : " & To_UTF_8_String (Root));
+
+            Self.Context.Initialize (Root);
+
+         end;
+      end if;
+
+      if not Self.Context.Has_Project then
+         Self.Context.Load_Project (Empty_LSP_String, GNATCOLL.JSON.JSON_Null);
+      end if;
+
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
 
@@ -192,7 +218,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_References_Request --
    --------------------------------------
 
-   procedure Text_Document_References_Request
+   overriding procedure Text_Document_References_Request
      (Self     : access Message_Handler;
       Value    : LSP.Messages.ReferenceParams;
       Response : in out LSP.Messages.Location_Response)
@@ -236,11 +262,20 @@ package body LSP.Ada_Handlers is
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
-      Definition : constant Defining_Name :=
-        Document.Get_Definition_At (Value.position);
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Document.Get_Node_At (Value.position));
+
+      Definition : Defining_Name;
 
    begin
-      if Definition.Is_Null then
+
+      if Name_Node = No_Name then
+         return;
+      end if;
+
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+
+      if Definition = No_Defining_Name then
          return;
       end if;
 
@@ -269,13 +304,14 @@ package body LSP.Ada_Handlers is
                   UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
                Location : constant LSP.Messages.Location :=
-                 (uri  => +("file://" & Node.Unit.Get_Filename),
+                 (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
                   span => LSP.Messages.Span'(First_Position, Last_Position));
             begin
                Response.result.Append (Location);
             end;
          end loop;
       end;
+
    end Text_Document_References_Request;
 
    ----------------------------------
@@ -312,13 +348,11 @@ package body LSP.Ada_Handlers is
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (projectFile) then
-            File := LSP.Types.To_LSP_String (Ada.Get (projectFile).Get);
+            File := +Ada.Get (projectFile).Get;
 
             --  Drop uri scheme if present
-            if LSP.Types.Starts_With (File, "file://") then
-               LSP.Types.Delete (File, 1, 7);
-            elsif LSP.Types.Starts_With (File, "file:") then
-               LSP.Types.Delete (File, 1, 5);
+            if LSP.Types.Starts_With (File, "file:") then
+               File := Self.Context.URI_To_File (File);
             end if;
          end if;
 

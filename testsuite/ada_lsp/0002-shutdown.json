@@ -1,13 +1,13 @@
 [
     {
         "start": {
-            "cmd": [".obj/server/lsp-ada_driver"]
+            "cmd": [".obj/server/ada_language_server"]
         }
     },  {
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"file:.",
+                "rootUri":"$URI{.}",
                 "capabilities":{}}
             },
             "wait":[{ "id": 0 }]

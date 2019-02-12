@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -84,12 +84,12 @@ package body LSP.Servers is
    -- Initialize --
    ----------------
 
-   not overriding procedure Initialize
+   procedure Initialize
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
-      Notification : not null LSP.Message_Handlers.
-        Notification_Handler_Access)
+      Notification : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access)
    is
       type Request_Info is record
          Name   : LSP.Types.LSP_String;
@@ -227,6 +227,13 @@ package body LSP.Servers is
          Result := JS.Read;
          JS.Key (+"error");
          LSP.Messages.Optional_ResponseError'Read (Stream, Error);
+         --  We have got error from LSP client. Save it in the trace:
+         Server_Trace.Trace ("Got Error responce:");
+
+         if Error.Is_Set then
+            Server_Trace.Trace
+              (LSP.Types.To_UTF_8_String (Error.Value.message));
+         end if;
 
          return;
       elsif LSP.Types.Assigned (Request_Id) then
@@ -439,7 +446,7 @@ package body LSP.Servers is
    -- Run --
    ---------
 
-   not overriding procedure Run (Self  : in out Server) is
+   procedure Run (Self  : in out Server) is
       Result     : LSP.Types.LSP_Any;
       Error      : LSP.Messages.Optional_ResponseError;
    begin
@@ -450,7 +457,7 @@ package body LSP.Servers is
    -- Send_Notification --
    -----------------------
 
-   not overriding procedure Send_Notification
+   procedure Send_Notification
      (Self  : in out Server;
       Value : in out LSP.Messages.NotificationMessage'Class)
    is
@@ -467,7 +474,7 @@ package body LSP.Servers is
    -- Stop --
    ----------
 
-   not overriding procedure Stop (Self  : in out Server) is
+   procedure Stop (Self  : in out Server) is
    begin
       Self.Stop := True;
    end Stop;
@@ -513,7 +520,7 @@ package body LSP.Servers is
    -- Workspace_Apply_Edit --
    --------------------------
 
-   not overriding procedure Workspace_Apply_Edit
+   procedure Workspace_Apply_Edit
      (Self     : in out Server;
       Params   : LSP.Messages.ApplyWorkspaceEditParams;
       Applied  : out Boolean;

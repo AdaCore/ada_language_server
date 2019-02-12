@@ -2,9 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode_1 = require("vscode");
 const vscode_languageclient_1 = require("vscode-languageclient");
+const process = require("process");
 function activate(context) {
     // The server is implemented in node
-    let serverModule = context.asAbsolutePath('server');
+    let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
     // let serverModule = "/tmp/lsp_test";
     // The debug options for the server
     let debugOptions = { execArgv: [] };

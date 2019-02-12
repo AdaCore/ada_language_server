@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,8 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Spawn.Processes.Monitor;
-with Spawn.Posix;
-with GNAT.OS_Lib;
+with Spawn.Processes.Windows;
 
 package body Spawn.Processes is
 
@@ -116,27 +115,14 @@ package body Spawn.Processes is
       Data : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
-      use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.size_t;
-      Count : constant Interfaces.C.size_t :=
-        Posix.read (Self.pipe (Stderr), Data, Data'Length);
+      procedure On_No_Data;
+
+      procedure On_No_Data is
+      begin
+         Monitor.Enqueue ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
+      end On_No_Data;
    begin
-      if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno = Posix.EAGAIN then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
-            else
-               raise Program_Error with
-                 "read error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
-      else
-         Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
-      end if;
+      Windows.Do_Read (Self, Data, Last, Stderr, On_No_Data'Access);
    end Read_Standard_Error;
 
    --------------------------
@@ -148,27 +134,14 @@ package body Spawn.Processes is
       Data : out Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
-      use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.size_t;
-      Count : constant Interfaces.C.size_t :=
-        Posix.read (Self.pipe (Stdout), Data, Data'Length);
+      procedure On_No_Data;
+
+      procedure On_No_Data is
+      begin
+         Monitor.Enqueue ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
+      end On_No_Data;
    begin
-      if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno = Posix.EAGAIN then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
-            else
-               raise Program_Error with
-                 "read error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
-      else
-         Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
-      end if;
+      Windows.Do_Read (Self, Data, Last, Stdout, On_No_Data'Access);
    end Read_Standard_Output;
 
    -------------------
@@ -265,28 +238,19 @@ package body Spawn.Processes is
       Data : Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
-      use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.size_t;
-      Count : constant Interfaces.C.size_t :=
-        Posix.write (Self.pipe (Stdin), Data, Data'Length);
-   begin
-      if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno = Posix.EAGAIN then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
-            else
-               raise Program_Error with
-                 "write error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
+      procedure On_No_Data;
 
-      else
-         Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
-      end if;
+      ----------------
+      -- On_No_Data --
+      ----------------
+
+      procedure On_No_Data is
+      begin
+         Monitor.Enqueue ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
+      end On_No_Data;
+
+   begin
+      Windows.Do_Write (Self, Data, Last, On_No_Data'Access);
    end Write_Standard_Input;
 
 end Spawn.Processes;
