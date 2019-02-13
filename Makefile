@@ -36,4 +36,5 @@ check: all
 	@echo All test passed!
 
 deploy: check
-	integration/$(USER)/deploy.sh $(PLATFORM)
+	PLATFORM=$(shell node -e 'console.log(require("process").platform)') ; \
+          integration/$(USER)/deploy.sh $(PLATFORM)
