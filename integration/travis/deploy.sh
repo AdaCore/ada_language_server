@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-PLATFORM=$1
+PLATFORM=`node -e 'console.log(require("process").platform)'`
 DIR=integration/vscode/ada/$PLATFORM
 
 function linux_deploy()
@@ -83,5 +83,7 @@ function vsix_deploy()
     mkdir upload
     cp -v integration/vscode/ada/*.vsix upload/
 }
+
+cp -f .obj/server/ada_language_server $DIR || cp -f .obj/server/ada_language_server.exe $DIR
 
 ${PLATFORM}_deploy

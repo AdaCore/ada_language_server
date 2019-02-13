@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-PLATFORM=$1
+PLATFORM=`node -e 'console.log(require("process").platform)'`
 DIR=integration/vscode/ada/$PLATFORM
 LIB=/Projects/ada-language-server/adalib/lib
 GNAT=/c/GNAT/
@@ -41,6 +41,8 @@ cat > $DIR/ada_language_server.exe.manifest <<EOF
   name="ada_language_server"
   type="win32"/>
 EOF
+
+cp -f .obj/server/ada_language_server $DIR || cp -f .obj/server/ada_language_server.exe $DIR
 
 add_dll libadalang         $LIB/libadalang.relocatable
 add_dll libgnatcoll        $LIB/gnatcoll.relocatable
