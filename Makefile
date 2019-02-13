@@ -19,7 +19,7 @@ vscode:
 	cd integration/vscode/ada; npm install
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
-	PLATFORM=$(shell node -e 'console.log(require("process").platform)') ;\
+	export PLATFORM=$(shell node -e 'console.log(require("process").platform)') ;\
           mkdir -p integration/vscode/ada/$(PLATFORM) && \
           cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
           cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
@@ -36,5 +36,6 @@ check: all
 	@echo All test passed!
 
 deploy: check
-	PLATFORM=$(shell node -e 'console.log(require("process").platform)') ; \
+	export PLATFORM=$(shell node -e 'console.log(require("process").platform)') ;\
+          mkdir -p integration/vscode/ada/$(PLATFORM) && \
           integration/$(USER)/deploy.sh $(PLATFORM)
