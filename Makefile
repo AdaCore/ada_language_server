@@ -2,7 +2,17 @@ TESTER=.obj/tester/tester-run
 TD=testsuite/ada_lsp
 GPRBUILD=gprbuild -j0
 DESTDIR=
-PLATFORM=$(shell node -e 'console.log(require("process").platform)')
+ifeq ($(OS),Windows_NT)
+   PLATFORM=win32
+else
+   UNAME_S := $(shell uname -s)
+   ifeq ($(UNAME_S),Linux)
+      PLATFORM=linux
+   endif
+   ifeq ($(UNAME_S),Darwin)
+      PLATFORM=darwin
+   endif
+endif
 
 all:
 	$(GPRBUILD) -P gnat/lsp.gpr -p
