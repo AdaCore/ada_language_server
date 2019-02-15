@@ -2,8 +2,8 @@
     {
         "comment":[
             "This test check language server is able to find a project file",
-            "specified in configuration.",
-            "To check it we search for a custom named subprogram."
+            "specified in configuration. It tries to load 'wrong project' and",
+            "get other reply after search for a custom named subprogram."
         ]
     },  {
         "start": {
@@ -13,7 +13,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"$URI{project_config}",
+                "rootUri":"$URI{.}",
                 "capabilities":{}}
             },
             "wait":[{
@@ -34,7 +34,7 @@
                 "params":{
                     "settings":{
                         "ada":{
-                            "projectFile": "right_project.gpr"
+                            "projectFile": "wrong_project.gpr"
                         }
                     }
                 }
@@ -48,7 +48,7 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_config/aaa.adb}",
+                        "uri": "$URI{aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
                         "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
@@ -65,7 +65,7 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_config/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 4,
@@ -76,14 +76,14 @@
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "$URI{project_config/second.ads}",
+                    "uri": "$URI{third.ads}",
                     "range": {
                         "start": {
-                            "line": 0,
+                            "line": 3,
                             "character": 10
                         },
                         "end": {
-                            "line": 0,
+                            "line": 3,
                             "character": 22
                         }
                     }

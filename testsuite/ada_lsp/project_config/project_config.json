@@ -2,7 +2,7 @@
     {
         "comment":[
             "This test check language server is able to find a project file",
-            "in the folder without special configuration.",
+            "specified in configuration.",
             "To check it we search for a custom named subprogram."
         ]
     },  {
@@ -13,7 +13,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"$URI{project_search}",
+                "rootUri":"$URI{.}",
                 "capabilities":{}}
             },
             "wait":[{
@@ -33,6 +33,9 @@
                 "method":"workspace/didChangeConfiguration",
                 "params":{
                     "settings":{
+                        "ada":{
+                            "projectFile": "right_project.gpr"
+                        }
                     }
                 }
             },
@@ -45,7 +48,7 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_search/aaa.adb}",
+                        "uri": "$URI{aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
                         "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
@@ -62,7 +65,7 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_search/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 4,
@@ -73,7 +76,7 @@
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "$URI{project_search/second.ads}",
+                    "uri": "$URI{second.ads}",
                     "range": {
                         "start": {
                             "line": 0,

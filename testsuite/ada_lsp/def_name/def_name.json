@@ -1,9 +1,8 @@
 [
     {
         "comment":[
-            "This test check language server is able to find a project file",
-            "specified in configuration. It tries to load 'wrong project' and",
-            "get other reply after search for a custom named subprogram."
+            "This test check corresponding definition for Aaa in call stmt",
+            "and New_Line for Ada.Text_IO.New_Line; statement"
         ]
     },  {
         "start": {
@@ -13,7 +12,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"$URI{project_config}",
+                "rootUri":"$URI{.}",
                 "capabilities":{}}
             },
             "wait":[{
@@ -33,9 +32,6 @@
                 "method":"workspace/didChangeConfiguration",
                 "params":{
                     "settings":{
-                        "ada":{
-                            "projectFile": "wrong_project.gpr"
-                        }
                     }
                 }
             },
@@ -48,10 +44,10 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_config/aaa.adb}",
+                        "uri": "$URI{aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
-                        "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
+                        "text": "with Ada.Text_IO;\nprocedure Aaa is\nbegin\n   Ada.Text_IO.New_Line;\n   Aaa;\nend Aaa;\n"
                     }
                 }
             },
@@ -65,27 +61,53 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{project_config/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 4,
-                        "character": 11
+                        "character": 5
                     }
                 }
             },
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "$URI{project_config/third.ads}",
+                    "uri": "$URI{aaa.adb}",
                     "range": {
                         "start": {
-                            "line": 3,
+                            "line": 1,
                             "character": 10
                         },
                         "end": {
-                            "line": 3,
-                            "character": 22
+                            "line": 1,
+                            "character": 13
                         }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-2",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 18
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-2",
+                "result":[{
+                    "range": {
+                        "start": {},
+                        "end": {}
                     }
                 }]
             }]

@@ -1,8 +1,9 @@
 [
     {
         "comment":[
-            "This test checks that rootUri can end with an extra slash.",
-            "Essentially, this is a copy of def_name.json"
+            "This test check language server is able to find a project file",
+            "in the folder without special configuration.",
+            "To check it we search for a custom named subprogram."
         ]
     },  {
         "start": {
@@ -12,7 +13,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"$URI{def_name}/",
+                "rootUri":"$URI{.}",
                 "capabilities":{}}
             },
             "wait":[{
@@ -44,10 +45,10 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}",
+                        "uri": "$URI{aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
-                        "text": "with Ada.Text_IO;\nprocedure Aaa is\nbegin\n   Ada.Text_IO.New_Line;\n   Aaa;\nend Aaa;\n"
+                        "text": "with To_Be_Called;\nprocedure Aaa is\n   Text : String := \"cba\";\nbegin\n   To_Be_Called (Text);\nend Aaa;\n"
                     }
                 }
             },
@@ -61,53 +62,27 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 4,
-                        "character": 5
+                        "character": 11
                     }
                 }
             },
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "$URI{def_name/aaa.adb}",
+                    "uri": "$URI{second.ads}",
                     "range": {
                         "start": {
-                            "line": 1,
+                            "line": 0,
                             "character": 10
                         },
                         "end": {
-                            "line": 1,
-                            "character": 13
+                            "line": 0,
+                            "character": 22
                         }
-                    }
-                }]
-            }]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id":"defname-2",
-                "method":"textDocument/definition",
-                "params":{
-                    "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}"
-                    },
-                    "position": {
-                        "line": 3,
-                        "character": 18
-                    }
-                }
-            },
-            "wait":[{
-                "id": "defname-2",
-                "result":[{
-                    "range": {
-                        "start": {},
-                        "end": {}
                     }
                 }]
             }]
