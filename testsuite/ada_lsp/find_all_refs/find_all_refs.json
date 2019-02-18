@@ -72,9 +72,22 @@
                     }
                 }
             },
+            "sortReply": { "result": "uri" },
             "wait":[{
                 "id": "references-1",
                 "result":[{
+                    "uri": "$URI{aaa.ads}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 12
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 13
+                        }
+                    }
+                }, {
                     "uri": "$URI{bbb.adb}",
                     "range": {
                         "start": {
@@ -96,18 +109,6 @@
                         "end": {
                             "line": 2,
                             "character": 23
-                        }
-                    }
-                }, {
-                    "uri": "$URI{aaa.ads}",
-                    "range": {
-                        "start": {
-                            "line": 1,
-                            "character": 12
-                        },
-                        "end": {
-                            "line": 1,
-                            "character": 13
                         }
                     }
                 }]

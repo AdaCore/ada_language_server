@@ -35,6 +35,7 @@ private
 
    type Test is new LSP.Raw_Clients.Raw_Client with record
       Index        : Positive := 1;
+      Sort_Reply   : GNATCOLL.JSON.JSON_Value;
       Waits        : GNATCOLL.JSON.JSON_Array;
       --  Array of JSON object to wait
       Last_Message : GNATCOLL.JSON.JSON_Value;
