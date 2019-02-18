@@ -1,8 +1,8 @@
 [
     {
         "comment":[
-            "This test check corresponding definition for Aaa in call stmt",
-            "and New_Line for Ada.Text_IO.New_Line; statement"
+            "This test checks that rootUri can end with an extra slash.",
+            "Essentially, this is a copy of def_name.json"
         ]
     },  {
         "start": {
@@ -12,7 +12,7 @@
         "send": {
             "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
                 "processId":1,
-                "rootUri":"$URI{def_name}",
+                "rootUri":"$URI{.}/",
                 "capabilities":{}}
             },
             "wait":[{
@@ -44,7 +44,7 @@
                 "method":"textDocument/didOpen",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}",
+                        "uri": "$URI{aaa.adb}",
                         "languageId": "ada",
                         "version": 1,
                         "text": "with Ada.Text_IO;\nprocedure Aaa is\nbegin\n   Ada.Text_IO.New_Line;\n   Aaa;\nend Aaa;\n"
@@ -61,7 +61,7 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 4,
@@ -72,7 +72,7 @@
             "wait":[{
                 "id": "defname-1",
                 "result":[{
-                    "uri": "$URI{def_name/aaa.adb}",
+                    "uri": "$URI{aaa.adb}",
                     "range": {
                         "start": {
                             "line": 1,
@@ -94,7 +94,7 @@
                 "method":"textDocument/definition",
                 "params":{
                     "textDocument": {
-                        "uri": "$URI{def_name/aaa.adb}"
+                        "uri": "$URI{aaa.adb}"
                     },
                     "position": {
                         "line": 3,

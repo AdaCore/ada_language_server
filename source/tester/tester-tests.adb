@@ -18,12 +18,16 @@
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Text_IO;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
 
 with Spawn.String_Vectors;
 with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
+
+   Max_Wait : constant := 2_000;
+   --  Max number of milliseconds to wait on a given snippet
 
    type Command_Kind is (Start, Stop, Send, Comment);
 
@@ -73,13 +77,23 @@ package body Tester.Tests is
       Wait    : constant GNATCOLL.JSON.JSON_Array := Command.Get ("wait").Get;
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
         Request.Write;
+
+      Total_Milliseconds_Waited : Integer := 0;
+      Timeout : constant := 100;
    begin
       Self.Waits := Wait;
       Self.Send_Message (Text);
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => 1);
+         Spawn.Processes.Monitor_Loop (Timeout => Timeout);
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
+
+         Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
+         if Total_Milliseconds_Waited > Max_Wait then
+            Self.Do_Fail ("timed out waiting for the answer to:" & ASCII.LF
+                          & To_String (GNATCOLL.JSON.Write (Request, False)));
+            exit;
+         end if;
       end loop;
    end Do_Send;
 
