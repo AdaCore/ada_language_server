@@ -17,6 +17,7 @@
 
 with GNATCOLL.JSON;
 
+with LSP.Client_Notifications;
 with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
@@ -29,11 +30,30 @@ package body LSP.Clients is
 
    package Decoders is
 
+      --  Responses
+
       procedure Initialize_Response
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Request : LSP.Types.LSP_Number;
          Handler : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
+
+      --  Notifications
+
+      procedure Show_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class);
+
+      procedure Log_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class);
+
+      procedure Publish_Diagnostics
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class);
 
    end Decoders;
 
@@ -49,6 +69,51 @@ package body LSP.Clients is
          LSP.Messages.Initialize_Response'Read (Stream, Response);
          Handler.Initialize_Response (Request, Response);
       end Initialize_Response;
+
+      -----------------
+      -- Log_Message --
+      -----------------
+
+      procedure Log_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class)
+      is
+         Message : LSP.Messages.LogMessage_Notification;
+      begin
+         LSP.Messages.LogMessage_Notification'Read (Stream, Message);
+         Handler.Log_Message (Message.params);
+      end Log_Message;
+
+      -------------------------
+      -- Publish_Diagnostics --
+      -------------------------
+
+      procedure Publish_Diagnostics
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class)
+      is
+         Message : LSP.Messages.PublishDiagnostics_Notification;
+      begin
+         LSP.Messages.PublishDiagnostics_Notification'Read (Stream, Message);
+         Handler.Publish_Diagnostics (Message.params);
+      end Publish_Diagnostics;
+
+      ------------------
+      -- Show_Message --
+      ------------------
+
+      procedure Show_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class)
+      is
+         Message : LSP.Messages.ShowMessage_Notification;
+      begin
+         LSP.Messages.ShowMessage_Notification'Read (Stream, Message);
+         Handler.Show_Message (Message.params);
+      end Show_Message;
 
    end Decoders;
 
@@ -67,8 +132,20 @@ package body LSP.Clients is
    ----------------
 
    procedure Initialize (Self : in out Client'Class) is
+      function "-"
+        (Text : String) return Ada.Strings.Unbounded.Unbounded_String
+          renames Ada.Strings.Unbounded.To_Unbounded_String;
    begin
-      null;
+      Self.Notif_Decoders.Insert
+        (-"window/showMessage",
+         Decoders.Show_Message'Access);
+      Self.Notif_Decoders.Insert
+        (-"window/logMessage",
+         Decoders.Log_Message'Access);
+      --  "telemetry/event",
+      Self.Notif_Decoders.Insert
+        (-"textDocument/publishDiagnostics",
+         Decoders.Publish_Diagnostics'Access);
    end Initialize;
 
    ------------------------
@@ -167,6 +244,10 @@ package body LSP.Clients is
                raise Constraint_Error with "Unknown request id";
             end if;
          end if;
+      elsif Value.Has_Field ("method") then
+         --  Notification from server
+         Self.Notif_Decoders (Value.Get ("method")).all
+           (Stream'Access, Self.Notification);
       end if;
    end On_Raw_Message;
 
@@ -214,6 +295,17 @@ package body LSP.Clients is
       JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
       Self.Send_Message (JSON.Write);
    end Send_Request;
+
+   ------------------------------
+   -- Set_Notification_Handler --
+   ------------------------------
+
+   procedure Set_Notification_Handler
+     (Self  : in out Client'Class;
+      Value : access Client_Notifications.Client_Notification_Handler'Class) is
+   begin
+      Self.Notification := Value;
+   end Set_Notification_Handler;
 
    -------------------------
    -- Set_Request_Handler --

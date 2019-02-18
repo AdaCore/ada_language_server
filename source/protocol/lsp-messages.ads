@@ -3172,6 +3172,26 @@ package LSP.Messages is
       result: ApplyWorkspaceEditResult;
    end record;
 
+   package ShowMessage_Notifications is new
+     LSP.Generic_Notifications
+       (NotificationMessage,
+        ShowMessageParams,
+        Read_Notification_Prexif,
+        Write_Notification_Prexif);
+
+   subtype ShowMessage_Notification is
+     ShowMessage_Notifications.Notification;
+
+   package LogMessage_Notifications is new
+     LSP.Generic_Notifications
+       (NotificationMessage,
+        LogMessageParams,
+        Read_Notification_Prexif,
+        Write_Notification_Prexif);
+
+   subtype LogMessage_Notification is
+     LogMessage_Notifications.Notification;
+
    package PublishDiagnostics_Notifications is new
      LSP.Generic_Notifications
        (NotificationMessage,
