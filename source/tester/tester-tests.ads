@@ -21,6 +21,8 @@ with GNATCOLL.JSON;
 
 with LSP.Raw_Clients;
 
+with Spawn.String_Vectors;
+
 package Tester.Tests is
 
    type Test is tagged limited private;
@@ -32,9 +34,11 @@ package Tester.Tests is
 private
 
    type Test is new LSP.Raw_Clients.Raw_Client with record
-      Index     : Positive := 1;
-      Waits     : GNATCOLL.JSON.JSON_Array;
+      Index        : Positive := 1;
+      Waits        : GNATCOLL.JSON.JSON_Array;
       --  Array of JSON object to wait
+      Last_Message : GNATCOLL.JSON.JSON_Value;
+      --  Last message got from server
    end record;
 
    overriding procedure On_Error
@@ -51,7 +55,9 @@ private
 
    procedure Do_Abort (Self : Test);
 
-   procedure Do_Fail (Self : Test; Message : String);
-   --  Mark tes as failed with given message
+   procedure Do_Fail
+     (Self : Test;
+      Text : Spawn.String_Vectors.UTF_8_String_Vector);
+   --  Mark test as failed with given Text
 
 end Tester.Tests;

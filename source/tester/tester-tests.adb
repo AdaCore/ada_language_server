@@ -21,7 +21,6 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
 
-with Spawn.String_Vectors;
 with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
@@ -58,10 +57,18 @@ package body Tester.Tests is
    -- Do_Fail --
    -------------
 
-   procedure Do_Fail (Self : Test; Message : String) is
+   procedure Do_Fail
+     (Self : Test;
+      Text : Spawn.String_Vectors.UTF_8_String_Vector)
+   is
       pragma Unreferenced (Self);
    begin
-      Ada.Text_IO.Put_Line ("Test failed:" & Message);
+      Ada.Text_IO.Put_Line ("Test failed!");
+
+      for Line of Text loop
+         Ada.Text_IO.Put_Line (Line);
+      end loop;
+
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    end Do_Fail;
 
@@ -90,9 +97,22 @@ package body Tester.Tests is
 
          Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
          if Total_Milliseconds_Waited > Max_Wait then
-            Self.Do_Fail ("timed out waiting for the answer to:" & ASCII.LF
-                          & To_String (GNATCOLL.JSON.Write (Request, False)));
-            exit;
+            declare
+               Text : Spawn.String_Vectors.UTF_8_String_Vector;
+            begin
+               Text.Append ("Timed out waiting for the answer to:");
+               Text.Append (GNATCOLL.JSON.Write (Request, False));
+               Text.Append ("");
+               Text.Append ("Remaining waits:");
+               Text.Append
+                 (GNATCOLL.JSON.Write
+                    (GNATCOLL.JSON.Create (Self.Waits), False));
+               Text.Append ("");
+               Text.Append ("Last Message from server:");
+               Text.Append (GNATCOLL.JSON.Write (Self.Last_Message, False));
+               Self.Do_Fail (Text);
+               exit;
+            end;
          end if;
       end loop;
    end Do_Send;
@@ -156,7 +176,12 @@ package body Tester.Tests is
       end loop;
 
       if Self.Exit_Code /= Exit_Code then
-         Self.Do_Fail ("Unexpected exit code:" & (Self.Exit_Code'Img));
+         declare
+            Text : Spawn.String_Vectors.UTF_8_String_Vector;
+         begin
+            Text.Append ("Unexpected exit code:" & (Self.Exit_Code'Img));
+            Self.Do_Fail (Text);
+         end;
       end if;
    end Do_Stop;
 
@@ -308,6 +333,7 @@ package body Tester.Tests is
       JSON : constant GNATCOLL.JSON.JSON_Value :=
         GNATCOLL.JSON.Read (Data);
    begin
+      Self.Last_Message := JSON;
       Sweep_Waits (JSON);
    end On_Raw_Message;
 
