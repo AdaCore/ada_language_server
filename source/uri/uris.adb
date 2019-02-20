@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
-with Ada.Directories;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Wide_Wide_Characters.Handling;
 with GNAT.Regpat;
@@ -100,10 +99,6 @@ package body URIs is
          URI   : URIs.URI;
          Found : GNAT.Regpat.Match_Array (0 .. 1);
       begin
-         pragma Assert
-           (Ada.Directories.Full_Name (Full_Path) = Full_Path,
-            "Full path expected");
-
          GNAT.Regpat.Match (UNC, Full_Path, Found);
          --  Check if we have path in form of UNC:  \\host\share\path
 

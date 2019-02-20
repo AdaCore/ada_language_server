@@ -21,7 +21,6 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
 
-with Spawn.String_Vectors;
 with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
@@ -58,10 +57,18 @@ package body Tester.Tests is
    -- Do_Fail --
    -------------
 
-   procedure Do_Fail (Self : Test; Message : String) is
+   procedure Do_Fail
+     (Self : Test;
+      Text : Spawn.String_Vectors.UTF_8_String_Vector)
+   is
       pragma Unreferenced (Self);
    begin
-      Ada.Text_IO.Put_Line ("Test failed:" & Message);
+      Ada.Text_IO.Put_Line ("Test failed!");
+
+      for Line of Text loop
+         Ada.Text_IO.Put_Line (Line);
+      end loop;
+
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    end Do_Fail;
 
@@ -75,6 +82,7 @@ package body Tester.Tests is
    is
       Request : constant GNATCOLL.JSON.JSON_Value := Command.Get ("request");
       Wait    : constant GNATCOLL.JSON.JSON_Array := Command.Get ("wait").Get;
+      Sort    : constant GNATCOLL.JSON.JSON_Value := Command.Get ("sortReply");
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
         Request.Write;
 
@@ -82,6 +90,7 @@ package body Tester.Tests is
       Timeout : constant := 100;
    begin
       Self.Waits := Wait;
+      Self.Sort_Reply := Sort;
       Self.Send_Message (Text);
 
       loop
@@ -90,9 +99,22 @@ package body Tester.Tests is
 
          Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
          if Total_Milliseconds_Waited > Max_Wait then
-            Self.Do_Fail ("timed out waiting for the answer to:" & ASCII.LF
-                          & To_String (GNATCOLL.JSON.Write (Request, False)));
-            exit;
+            declare
+               Text : Spawn.String_Vectors.UTF_8_String_Vector;
+            begin
+               Text.Append ("Timed out waiting for the answer to:");
+               Text.Append (GNATCOLL.JSON.Write (Request, False));
+               Text.Append ("");
+               Text.Append ("Remaining waits:");
+               Text.Append
+                 (GNATCOLL.JSON.Write
+                    (GNATCOLL.JSON.Create (Self.Waits), False));
+               Text.Append ("");
+               Text.Append ("Last Message from server:");
+               Text.Append (GNATCOLL.JSON.Write (Self.Last_Message, False));
+               Self.Do_Fail (Text);
+               exit;
+            end;
          end if;
       end loop;
    end Do_Send;
@@ -156,7 +178,12 @@ package body Tester.Tests is
       end loop;
 
       if Self.Exit_Code /= Exit_Code then
-         Self.Do_Fail ("Unexpected exit code:" & (Self.Exit_Code'Img));
+         declare
+            Text : Spawn.String_Vectors.UTF_8_String_Vector;
+         begin
+            Text.Append ("Unexpected exit code:" & (Self.Exit_Code'Img));
+            Self.Do_Fail (Text);
+         end;
       end if;
    end Do_Stop;
 
@@ -189,6 +216,13 @@ package body Tester.Tests is
         with Pre => Left.Kind = GNATCOLL.JSON.JSON_Object_Type
                       and Right.Kind = GNATCOLL.JSON.JSON_Object_Type;
       --  Check if Left has all properties from Right.
+
+      procedure Sort_Reply
+        (Name  : String;
+         Value : GNATCOLL.JSON.JSON_Value);
+      --  Let Name be field name in the reply to be sorted, Value is
+      --  JSON string with a key. Then JSON[Name] should be array.
+      --  Each element in the array should have key field. Sort this array.
 
       -----------
       -- Match --
@@ -307,7 +341,61 @@ package body Tester.Tests is
 
       JSON : constant GNATCOLL.JSON.JSON_Value :=
         GNATCOLL.JSON.Read (Data);
+
+      ----------------
+      -- Sort_Reply --
+      ----------------
+
+      procedure Sort_Reply
+        (Name  : String;
+         Value : GNATCOLL.JSON.JSON_Value)
+      is
+         function Less (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean;
+
+         function Less
+           (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean
+         is
+            Key : constant String := Value.Get;
+            Left_Value  : constant GNATCOLL.JSON.JSON_Value := Left.Get (Key);
+            Right_Value : constant GNATCOLL.JSON.JSON_Value := Right.Get (Key);
+         begin
+            if Left_Value.Kind /= Right_Value.Kind then
+               return Left_Value.Kind < Right_Value.Kind;
+            end if;
+
+            case Left_Value.Kind is
+               when GNATCOLL.JSON.JSON_String_Type =>
+                  declare
+                     Left_String : constant String := Left_Value.Get;
+                     Right_String : constant String := Right_Value.Get;
+                  begin
+                     return Left_String < Right_String;
+                  end;
+
+               when others =>
+                  raise Program_Error with "Not implemented";
+            end case;
+         end Less;
+
+         List : GNATCOLL.JSON.JSON_Value := JSON.Get (Name);
+      begin
+         if List.Kind /= GNATCOLL.JSON.JSON_Array_Type then
+            return;
+         end if;
+
+         List := JSON.Get (Name);
+         GNATCOLL.JSON.Sort (List, Less'Access);
+         JSON.Set_Field (Name, List);
+      end Sort_Reply;
+
+
    begin
+      Self.Last_Message := JSON;
+
+      if not Self.Sort_Reply.Is_Empty then
+         Self.Sort_Reply.Map_JSON_Object (Sort_Reply'Access);
+      end if;
+
       Sweep_Waits (JSON);
    end On_Raw_Message;
 
