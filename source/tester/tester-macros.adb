@@ -16,8 +16,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Directories;
+with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with GNAT.OS_Lib;
 with GNAT.Regpat;
 
 with URIs;
@@ -35,7 +37,7 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${TD}|\$URI{([^}]*)}");
+     GNAT.Regpat.Compile ("(\${TD})|(\$URI{([^}]*)})|(\$ALS)");
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;
@@ -71,26 +73,44 @@ package body Tester.Macros is
 
       function Expand_in_String (Text : String) return Unbounded_String
       is
+         use type GNAT.Regpat.Match_Location;
          Result : Unbounded_String;
          Next   : Positive := 1;
       begin
          while Next < Text'Length loop
             declare
-               Found : GNAT.Regpat.Match_Array (0 .. 1);
+               Found : GNAT.Regpat.Match_Array (0 .. 4);
             begin
                GNAT.Regpat.Match (Pattern, Text, Found, Next);
                exit when Found (0) in GNAT.Regpat.No_Match;
 
                Append (Result, Text (Next .. Found (0).First - 1));
 
-               if Found (1) in GNAT.Regpat.No_Match then   --  ${TD}
+               if Found (1) /= GNAT.Regpat.No_Match then     --  ${TD}
                   Append (Result, Test_Dir);
-               else  --  $URI{x}
+               elsif Found (2) /= GNAT.Regpat.No_Match then  --  $URI{x}
                   Append
                     (Result,
                      Expand_URI
-                       (Text (Found (1).First .. Found (1).Last),
+                       (Text (Found (3).First .. Found (3).Last),
                         Test_Dir));
+               elsif Found (4) /= GNAT.Regpat.No_Match then  --  $ALS
+                  --  Read the location of the server from the $ALS
+                  --  environment variable.
+                  declare
+                     use type GNAT.OS_Lib.String_Access;
+                     ALS : GNAT.OS_Lib.String_Access :=
+                       GNAT.OS_Lib.Getenv ("ALS");
+                  begin
+                     if ALS = null
+                       or else ALS.all = ""
+                     then
+                        Put_Line ("$ALS undefined, cannot expand macro");
+                     else
+                        Append (Result, ALS.all);
+                        GNAT.OS_Lib.Free (ALS);
+                     end if;
+                  end;
                end if;
 
                Next := Found (0).Last + 1;

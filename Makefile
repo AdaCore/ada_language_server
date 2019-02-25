@@ -35,7 +35,8 @@ vscode:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
 check: all
-	set -e; for a in $(TD)/*/*.json; do echo $$a ; $(TESTER) $$a ; done
+	set -e ; export ALS=.obj/server/ada_language_server;\
+           for a in $(TD)/*/*.json; do echo $$a ; $(TESTER) $$a ; done
 
 deploy: check
 	integration/$(USER)/deploy.sh $(PLATFORM)
