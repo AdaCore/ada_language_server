@@ -244,10 +244,19 @@ package body LSP.Clients is
                raise Constraint_Error with "Unknown request id";
             end if;
          end if;
+
       elsif Value.Has_Field ("method") then
          --  Notification from server
-         Self.Notif_Decoders (Value.Get ("method")).all
-           (Stream'Access, Self.Notification);
+
+         declare
+            Position : constant Notification_Maps.Cursor :=
+                         Self.Notif_Decoders.Find (Value.Get ("method"));
+         begin
+            if Notification_Maps.Has_Element (Position) then
+               Notification_Maps.Element (Position).all
+                 (Stream'Access, Self.Notification);
+            end if;
+         end;
       end if;
    end On_Raw_Message;
 
