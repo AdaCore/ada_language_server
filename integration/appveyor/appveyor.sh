@@ -10,7 +10,7 @@ export PATH=$ADALIB_DIR/bin:\
 /mingw64/bin:\
 $PATH
 export ADA_PROJECT_PATH=$ADALIB_DIR/share/gpr
-export LIBRARY_TYPE=relocatable
+export LIBRARY_TYPE=static
 export CPATH=/mingw64/include
 export LIBRARY_PATH=/mingw64/lib
 

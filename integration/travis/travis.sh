@@ -12,7 +12,7 @@ function linux_before_install()
 function linux_script()
 {
     docker run -i -t -v$(pwd)/upload:/upload lsp /bin/bash -c \
- 'tar xzf /tmp/lsp.tar.gz && make -C ada_language_server LIBRARY_TYPE=relocatable deploy'
+ 'tar xzf /tmp/lsp.tar.gz && make -C ada_language_server LIBRARY_TYPE=static deploy'
 
 }
 
@@ -35,7 +35,7 @@ function osx_before_install()
 function osx_script()
 {
     export PATH=$INSTALL_DIR/bin:$PATH
-    make OS=osx LIBRARY_TYPE=relocatable all
+    make OS=osx LIBRARY_TYPE=static all
     integration/travis/deploy.sh darwin
 }
 

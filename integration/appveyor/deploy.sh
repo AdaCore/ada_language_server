@@ -42,16 +42,6 @@ cat > $DIR/ada_language_server.exe.manifest <<EOF
   type="win32"/>
 EOF
 
-add_dll libadalang         $LIB/libadalang.relocatable
-add_dll libgnatcoll        $LIB/gnatcoll.relocatable
-add_dll libgnatcoll_gmp    $LIB/gnatcoll_gmp.relocatable
-add_dll libgnatcoll_iconv  $LIB/gnatcoll_iconv.relocatable
-add_dll liblangkit_support $LIB/langkit_support.relocatable
-add_dll libxmlada_dom           $GNAT/bin/
-add_dll libxmlada_input_sources $GNAT/bin/
-add_dll libxmlada_sax           $GNAT/bin/
-add_dll libxmlada_schema        $GNAT/bin/
-add_dll libxmlada_unicode       $GNAT/bin/
 add_dll libgcc_s_seh-1          $GNAT/bin/
 add_dll libgnarl-2018           $GNAT/bin/
 add_dll libgnat-2018            $GNAT/bin/

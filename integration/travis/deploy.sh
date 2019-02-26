@@ -32,17 +32,6 @@ function darwin_deploy()
     LIB=../gnat/lib
 
     for J in \
-        $LIB/libadalang.relocatable/libadalang \
-        $LIB/gnatcoll_gmp.relocatable/libgnatcoll_gmp \
-        $LIB/langkit_support.relocatable/liblangkit_support \
-        $LIB/gnatcoll_iconv.relocatable/libgnatcoll_iconv \
-        $LIB/gnatcoll.relocatable/libgnatcoll \
-        $LIB/gpr/relocatable/gpr/libgpr \
-        $LIB/xmlada/xmlada_schema.relocatable/libxmlada_schema \
-        $LIB/xmlada/xmlada_dom.relocatable/libxmlada_dom \
-        $LIB/xmlada/xmlada_sax.relocatable/libxmlada_sax \
-        $LIB/xmlada/xmlada_input.relocatable/libxmlada_input_sources \
-        $LIB/xmlada/xmlada_unicode.relocatable/libxmlada_unicode \
         $LIB/gcc/x86_64-apple-darwin16.7.0/7.3.1/adalib/libgnat-2018 \
         $LIB/gcc/x86_64-apple-darwin16.7.0/7.3.1/adalib/libgnarl-2018 \
         /usr/local/opt/gmp/lib/libgmp.10
