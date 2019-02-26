@@ -7,7 +7,7 @@
         ]
     },  {
         "start": {
-            "cmd": [".obj/server/ada_language_server"]
+            "cmd": ["${ALS}"]
         }
     },  {
         "send": {

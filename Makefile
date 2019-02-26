@@ -1,7 +1,18 @@
+# Server executable file:
+export ALS=.obj/server/ada_language_server
+
+# Tester file
 TESTER=.obj/tester/tester-run
+
+# Testsuite directory
 TD=testsuite/ada_lsp
+
 GPRBUILD=gprbuild -j0
+
+# Installation directory
 DESTDIR=
+
+# Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
    PLATFORM=win32
 else
