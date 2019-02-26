@@ -251,13 +251,10 @@ package body LSP.Clients is
          declare
             Position : constant Notification_Maps.Cursor :=
                          Self.Notif_Decoders.Find (Value.Get ("method"));
-            Decoder  : constant Notification_Decoder :=
-                         (if Notification_Maps.Has_Element (Position)
-                          then Notification_Maps.Element (Position) else null);
-
          begin
-            if Decoder /= null then
-               Decoder (Stream'Access, Self.Notification);
+            if Notification_Maps.Has_Element (Position) then
+               Notification_Maps.Element (Position).all
+                 (Stream'Access, Self.Notification);
             end if;
          end;
       end if;
