@@ -17,17 +17,20 @@
 
 with GNATCOLL.JSON;
 
+with Spawn.Environments;
+
 package Tester.Macros is
 
    procedure Expand
      (Test : in out GNATCOLL.JSON.JSON_Value;
+      Env  : Spawn.Environments.Process_Environment;
       Path : String);
    --  Expand macros in given JSON test
    --
    --  Currently only one macro is supported:
-   --  * ${TD} - expands with test directory, a directory of .json file
+   --  * ${NAME} - expands with environment variable NAME from Env
    --
    --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
-   --  directory if x isn't an absolute path
+   --  directory (Path) if x isn't an absolute path
 
 end Tester.Macros;

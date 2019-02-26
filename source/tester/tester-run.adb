@@ -24,7 +24,12 @@ with GNATCOLL.JSON;
 with Tester.Macros;
 with Tester.Tests;
 
+with Spawn.Environments;
+
 procedure Tester.Run is
+   Env  : constant Spawn.Environments.Process_Environment :=
+     Spawn.Environments.System_Environment;
+
    JSON : GNATCOLL.JSON.JSON_Value;
 begin
    if Ada.Command_Line.Argument_Count /= 1 then
@@ -55,7 +60,7 @@ begin
 
       Ada.Text_IO.Close (Input);
       JSON := GNATCOLL.JSON.Read (Text, Arg);
-      Tester.Macros.Expand (JSON, Arg);
+      Tester.Macros.Expand (JSON, Env, Arg);
 
       declare
          Test : Tester.Tests.Test;

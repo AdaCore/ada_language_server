@@ -16,10 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Directories;
-with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with GNAT.OS_Lib;
 with GNAT.Regpat;
 
 with URIs;
@@ -28,6 +26,7 @@ package body Tester.Macros is
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;
+      Env      : Spawn.Environments.Process_Environment;
       Test_Dir : String) return GNATCOLL.JSON.JSON_Value;
    --  Expand recursively
 
@@ -37,10 +36,11 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("(\${TD})|(\$URI{([^}]*)})|(\$ALS)");
+     GNAT.Regpat.Compile ("\${([^}]+)}|\$URI{([^}]+)}");
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;
+      Env      : Spawn.Environments.Process_Environment;
       Test_Dir : String) return GNATCOLL.JSON.JSON_Value
    is
       procedure Each_Field
@@ -64,7 +64,7 @@ package body Tester.Macros is
          Name   : String;
          Value  : GNATCOLL.JSON.JSON_Value) is
       begin
-         Object.Set_Field (Name, Expand (Value, Test_Dir));
+         Object.Set_Field (Name, Expand (Value, Env, Test_Dir));
       end Each_Field;
 
       ----------------------
@@ -79,38 +79,31 @@ package body Tester.Macros is
       begin
          while Next < Text'Length loop
             declare
-               Found : GNAT.Regpat.Match_Array (0 .. 4);
+               Found : GNAT.Regpat.Match_Array (0 .. 2);
             begin
                GNAT.Regpat.Match (Pattern, Text, Found, Next);
-               exit when Found (0) in GNAT.Regpat.No_Match;
+               exit when Found (0) = GNAT.Regpat.No_Match;
 
                Append (Result, Text (Next .. Found (0).First - 1));
 
-               if Found (1) /= GNAT.Regpat.No_Match then     --  ${TD}
-                  Append (Result, Test_Dir);
+               if Found (1) /= GNAT.Regpat.No_Match then     --  ${NAME}
+                  declare
+                     Name : constant String :=
+                       Text (Found (1).First .. Found (1).Last);
+                  begin
+                     if Env.Contains (Name) then
+                        Append (Result, Env.Value (Name));
+                     else
+                        raise Program_Error
+                          with Name & " undefined, cannot expand macro";
+                     end if;
+                  end;
                elsif Found (2) /= GNAT.Regpat.No_Match then  --  $URI{x}
                   Append
                     (Result,
                      Expand_URI
-                       (Text (Found (3).First .. Found (3).Last),
+                       (Text (Found (2).First .. Found (2).Last),
                         Test_Dir));
-               elsif Found (4) /= GNAT.Regpat.No_Match then  --  $ALS
-                  --  Read the location of the server from the $ALS
-                  --  environment variable.
-                  declare
-                     use type GNAT.OS_Lib.String_Access;
-                     ALS : GNAT.OS_Lib.String_Access :=
-                       GNAT.OS_Lib.Getenv ("ALS");
-                  begin
-                     if ALS = null
-                       or else ALS.all = ""
-                     then
-                        Put_Line ("$ALS undefined, cannot expand macro");
-                     else
-                        Append (Result, ALS.all);
-                        GNAT.OS_Lib.Free (ALS);
-                     end if;
-                  end;
                end if;
 
                Next := Found (0).Last + 1;
@@ -143,7 +136,8 @@ package body Tester.Macros is
                      Item : constant GNATCOLL.JSON.JSON_Value :=
                        GNATCOLL.JSON.Get (Vector, J);
                   begin
-                     GNATCOLL.JSON.Append (Result, Expand (Item, Test_Dir));
+                     GNATCOLL.JSON.Append
+                       (Result, Expand (Item, Env, Test_Dir));
                   end;
                end loop;
 
@@ -165,12 +159,16 @@ package body Tester.Macros is
    -- Expand --
    ------------
 
-   procedure Expand (Test : in out GNATCOLL.JSON.JSON_Value; Path : String) is
+   procedure Expand
+     (Test : in out GNATCOLL.JSON.JSON_Value;
+      Env  : Spawn.Environments.Process_Environment;
+      Path : String)
+   is
       Full_Name : constant String := Ada.Directories.Full_Name (Path);
       Directory : constant String :=
         Ada.Directories.Containing_Directory (Full_Name);
    begin
-      Test := Expand (Test, Directory);
+      Test := Expand (Test, Env, Directory);
    end Expand;
 
    ----------------
