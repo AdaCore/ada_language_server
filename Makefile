@@ -35,10 +35,15 @@ all:
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
 
 install:
-	gprinstall -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR)
+	gprinstall -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 
 clean:
-	rm -rf .obj/*.* .obj/server/* .obj/lsp/* integration/vscode/ada/$(PLATFORM)
+	gprclean -P gnat/lsp.gpr $(LIBRARY_FLAGS)
+	gprclean -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
+	gprclean -P gnat/spawn_tests.gpr $(LIBRARY_FLAGS)
+	gprclean -P gnat/tester.gpr $(LIBRARY_FLAGS)
+	rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
 	cd integration/vscode/ada; npm install
