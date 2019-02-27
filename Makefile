@@ -12,6 +12,9 @@ GPRBUILD=gprbuild -j0
 # Installation directory
 DESTDIR=
 
+# Library type
+LIBRARY_TYPE=relocatable
+
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
    PLATFORM=win32
@@ -25,7 +28,11 @@ else
    endif
 endif
 
-LIBRARY_FLAGS=-XLIBRARY_TYPE=static -XXMLADA_BUILD=static -XGPR_BUILD=static
+ifeq ($(LIBRARY_TYPE), static)
+    LIBRARY_FLAGS=-XLIBRARY_TYPE=static -XXMLADA_BUILD=static -XGPR_BUILD=static
+else
+    LIBRARY_FLAGS=
+endif
 
 all:
 	$(GPRBUILD) -P gnat/lsp.gpr -p $(LIBRARY_FLAGS)
