@@ -2,6 +2,7 @@ from e3.fs import mkdir, sync_tree, echo_to_file
 from e3.testsuite.process import Run
 from e3.testsuite.result import TestStatus
 from drivers import ALSTestDriver
+from distutils.spawn import find_executable
 import os
 import glob
 
@@ -40,9 +41,13 @@ class JsonTestDriver(ALSTestDriver):
 
         # Where the als resides
         als = os.path.join(base, '.obj', 'server', 'ada_language_server')
+        if not os.path.isfile(als):
+            als = find_executable('ada_language_server')
 
         # Where the test driver resides
         tester = os.path.join(base, '.obj', 'tester', 'tester-run')
+        if not os.path.isfile(tester):
+            tester = find_executable('tester-run')
 
         output = ""
 
