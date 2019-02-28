@@ -42,7 +42,7 @@ class JsonTestDriver(ALSTestDriver):
         # Where the als resides
         als = os.path.join(base, '.obj', 'server', 'ada_language_server')
         if not os.path.isfile(als):
-            als = find_executable('ada_language_server')
+            als = find_executable('ada_language_server').rstrip('.exe')
 
         # Where the test driver resides
         tester = os.path.join(base, '.obj', 'tester', 'tester-run')
