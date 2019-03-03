@@ -1,6 +1,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#ifndef O_CLOEXEC
+#define O_CLOEXEC 0x80000
+#endif
+
 int pipe2(int pipefd[2], int flags) {
   int result = pipe(pipefd);
   if (result == 0 && (flags & O_CLOEXEC) != 0) {
