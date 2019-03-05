@@ -23,6 +23,8 @@ with LSP.JSON_Streams;
 
 with GNATCOLL.JSON;
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 package body LSP.Servers is
 
    New_Line : constant String :=
@@ -228,7 +230,7 @@ package body LSP.Servers is
          JS.Key (+"error");
          LSP.Messages.Optional_ResponseError'Read (Stream, Error);
          --  We have got error from LSP client. Save it in the trace:
-         Server_Trace.Trace ("Got Error responce:");
+         Server_Trace.Trace ("Got Error response:");
 
          if Error.Is_Set then
             Server_Trace.Trace
@@ -373,6 +375,7 @@ package body LSP.Servers is
          JSON_Array     : GNATCOLL.JSON.JSON_Array;
          Message_Id     : LSP.Types.LSP_Number_Or_String;
       begin
+         Trace (In_Trace, To_String (Vector));
          Document := GNATCOLL.JSON.Read (Vector);
          GNATCOLL.JSON.Append (JSON_Array, Document);
          In_Stream.Set_JSON_Document (JSON_Array);
@@ -567,6 +570,8 @@ package body LSP.Servers is
    begin
       String'Write (Stream, Header);
       String'Write (Stream, Ada.Strings.Unbounded.To_String (Vector));
+
+      Trace (Out_Trace, To_String (Vector));
    end Write_JSON_RPC;
 
 end LSP.Servers;
