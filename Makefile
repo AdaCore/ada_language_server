@@ -44,8 +44,8 @@ all:
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
 
 install:
-	gprinstall -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
-	gprinstall -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 
 clean:
 	gprclean -P gnat/lsp.gpr $(LIBRARY_FLAGS)
