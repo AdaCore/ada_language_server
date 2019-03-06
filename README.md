@@ -3,10 +3,8 @@
 [![Build Status](https://travis-ci.org/AdaCore/ada_language_server.svg?branch=master)](https://travis-ci.org/AdaCore/ada_language_server)
 [ ![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
 
-> prototype implementation of the Microsoft Language Server Protocol for Ada/SPARK
-
-This repository contains a prototype implementation of the Microsoft Language
-Server Protocol for Ada/SPARK.
+This repository contains a prototype implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/) 
+for Ada/SPARK.
 
 Current features:
  * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html)
@@ -53,6 +51,20 @@ somewhere in the path.
 ## Usage
 
 The `ada_language_server` doesn't require/understand any command line options.
+
+## Debugging
+
+You can activate traces that show all the server input/output. This is done
+by creating a file `$HOME/.als/traces.cfg` with the following contents:
+
+```
+ALS.IN=yes > in.txt:buffer_size=0
+ALS.OUT=yes > out.txt:buffer_size=0
+```
+
+When this is present, the ALS will generate files `$HOME/.als/in.txt` and
+`$HOME/.als/out.txt` which contain, respectively, the JSON received and sent
+by the ALS.
 
 # Supported LSP Server Requests
 
