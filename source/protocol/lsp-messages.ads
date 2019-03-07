@@ -157,6 +157,10 @@ package LSP.Messages is
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage;
 
+   function Input_ResponseMessage
+     (S : not null access Ada.Streams.Root_Stream_Type'Class)
+      return ResponseMessage;
+
    procedure Write_Response_Prexif
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage'Class);

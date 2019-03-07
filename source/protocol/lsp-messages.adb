@@ -95,6 +95,24 @@ package body LSP.Messages is
       UnknownErrorCode     => -32001,
       RequestCancelled     => -32800);
 
+   ---------------------------
+   -- Input_ResponseMessage --
+   ---------------------------
+
+   function Input_ResponseMessage
+     (S : not null access Ada.Streams.Root_Stream_Type'Class)
+      return ResponseMessage
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+
+      return Result : constant ResponseMessage := Read_Response_Prexif (S) do
+         JS.End_Object;
+      end return;
+   end Input_ResponseMessage;
+
    -----------------------------------
    -- Read_ApplyWorkspaceEditParams --
    -----------------------------------
