@@ -182,13 +182,16 @@ package body LSP.Servers is
       procedure Send_Not_Initialized
         (Request_Id : LSP.Types.LSP_Number_Or_String)
       is
-         Response : LSP.Messages.ResponseMessage;
+         Response : LSP.Messages.ResponseMessage :=
+           (Is_Error => True,
+            jsonrpc  => <>,
+            id       => <>,
+            error    =>
+              (Is_Set => True,
+               Value  => (code    => LSP.Messages.MethodNotFound,
+                          message => +"No such method",
+                          others  => <>)));
       begin
-         Response.error :=
-           (Is_Set => True,
-            Value  => (code    => LSP.Messages.MethodNotFound,
-                       message => +"No such method",
-                       others  => <>));
          Send_Response (Response, Request_Id);
       end Send_Not_Initialized;
 

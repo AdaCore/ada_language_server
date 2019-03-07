@@ -42,14 +42,16 @@ package body LSP.Request_Dispatchers is
    exception
       when E : others =>
          --  Unexpected exception, reply to client with an error
-         return Response : LSP.Messages.ResponseMessage do
-            Response.error :=
+         return LSP.Messages.ResponseMessage'
+           (Is_Error => True,
+            jsonrpc  => <>,
+            id       => <>,
+            error    =>
               (Is_Set => True,
                Value => (code => LSP.Messages.InternalError,
                          data => GNATCOLL.JSON.Create_Object,
                          message => LSP.Types.To_LSP_String
-                           (Ada.Exceptions.Exception_Information (E))));
-         end return;
+                           (Ada.Exceptions.Exception_Information (E)))));
    end Dispatch;
 
    --------------

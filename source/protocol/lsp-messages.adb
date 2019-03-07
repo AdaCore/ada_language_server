@@ -1054,6 +1054,38 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ReferenceParams;
 
+   --------------------------
+   -- Read_Response_Prexif --
+   --------------------------
+
+   procedure Read_Response_Prexif
+     (S       : access Ada.Streams.Root_Stream_Type'Class;
+      jsonrpc : out LSP_String;
+      id      : out LSP_Number_Or_String;
+      error   : out Optional_ResponseError)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      Read_String (JS, +"jsonrpc", jsonrpc);
+
+      JS.Key (+"id");
+      Value := JS.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+         id := (Is_Number => False, String => LSP.Types.Empty_LSP_String);
+      elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         id := (Is_Number => False, String => +Value.Get);
+      else
+         id := (Is_Number => True, Number => Value.Get);
+      end if;
+
+      JS.Key (+"error");
+      Optional_ResponseError'Read (S, error);
+   end Read_Response_Prexif;
+
+
    ------------------------
    -- Read_ResponseError --
    ------------------------

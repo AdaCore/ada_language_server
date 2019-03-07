@@ -64,9 +64,9 @@ package body LSP.Clients is
          Request : LSP.Types.LSP_Number;
          Handler : access LSP.Clients.Response_Handlers.Response_Handler'Class)
       is
-         Response : LSP.Messages.Initialize_Response;
+         Response : constant LSP.Messages.Initialize_Response :=
+           LSP.Messages.Initialize_Response'Input (Stream);
       begin
-         LSP.Messages.Initialize_Response'Read (Stream, Response);
          Handler.Initialize_Response (Request, Response);
       end Initialize_Response;
 
@@ -223,7 +223,8 @@ package body LSP.Clients is
             else
                declare
                   Error : LSP.Messages.ResponseMessage :=
-                    (error =>
+                    (Is_Error => True,
+                     error =>
                        (True,
                         (code => LSP.Messages.MethodNotFound,
                          message =>
@@ -558,7 +559,9 @@ package body LSP.Clients is
       Applied : Boolean)
    is
       Message : LSP.Messages.ApplyWorkspaceEdit_Response :=
-        (result => (applied => Applied),
+        (Is_Error => False,
+         result => (applied => Applied),
+         error => (Is_Set => False),
          others => <>);
    begin
       Self.Send_Response (Request, Message);

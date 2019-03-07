@@ -52,12 +52,13 @@ package body LSP.Ada_Handlers is
    -- Initialize_Request --
    ------------------------
 
-   overriding procedure Initialize_Request
-     (Self     : access Message_Handler;
-      Value    : LSP.Messages.InitializeParams;
-      Response : in out LSP.Messages.Initialize_Response)
+   overriding function Initialize_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.InitializeParams)
+      return LSP.Messages.Initialize_Response
    is
-      Root : LSP.Types.LSP_String;
+      Response : LSP.Messages.Initialize_Response (Is_Error => False);
+      Root     : LSP.Types.LSP_String;
    begin
       Response.result.capabilities.definitionProvider := True;
       Response.result.capabilities.referencesProvider := True;
@@ -77,16 +78,51 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Context.Initialize (Root);
+
+      return Response;
    end Initialize_Request;
+
+   ----------------------
+   -- Shutdown_Request --
+   ----------------------
+
+   overriding function Shutdown_Request
+     (Self  : access Message_Handler)
+      return LSP.Messages.ResponseMessage
+   is
+      pragma Unreferenced (Self);
+   begin
+      return Response : LSP.Messages.ResponseMessage (Is_Error => False);
+   end Shutdown_Request;
+
+   ---------------------------------------
+   -- Text_Document_Code_Action_Request --
+   ---------------------------------------
+
+   overriding function Text_Document_Code_Action_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CodeActionParams)
+      return LSP.Messages.CodeAction_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.CodeAction_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Text_Document_Code_Action_Request;
 
    --------------------------------------
    -- Text_Document_Definition_Request --
    --------------------------------------
 
-   overriding procedure Text_Document_Definition_Request
-     (Self     : access Message_Handler;
-      Value    : LSP.Messages.TextDocumentPositionParams;
-      Response : in out LSP.Messages.Location_Response)
+   overriding function Text_Document_Definition_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response
    is
 
       Document   : constant LSP.Ada_Documents.Document_Access :=
@@ -98,17 +134,18 @@ package body LSP.Ada_Handlers is
         (Document.Get_Node_At (Value.position));
 
       Definition : Defining_Name;
+      Response   : LSP.Messages.Location_Response (Is_Error => False);
 
    begin
 
       if Name_Node = No_Name then
-         return;
+         return Response;
       end if;
 
       Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
       if Definition = No_Defining_Name then
-         return;
+         return Response;
       end if;
 
       declare
@@ -135,6 +172,7 @@ package body LSP.Ada_Handlers is
 
       begin
          Response.result.Append (Location);
+         return Response;
       end;
 
    end Text_Document_Definition_Request;
@@ -214,14 +252,54 @@ package body LSP.Ada_Handlers is
       Self.Context.Load_Document (Value.textDocument);
    end Text_Document_Did_Open;
 
+   -------------------------------------
+   -- Text_Document_Highlight_Request --
+   -------------------------------------
+
+   overriding function Text_Document_Highlight_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Highlight_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.Highlight_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Text_Document_Highlight_Request;
+
+   ---------------------------------
+   -- Text_Document_Hover_Request --
+   ---------------------------------
+
+   overriding function Text_Document_Hover_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Hover_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.Hover_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Text_Document_Hover_Request;
+
    --------------------------------------
    -- Text_Document_References_Request --
    --------------------------------------
 
-   overriding procedure Text_Document_References_Request
-     (Self     : access Message_Handler;
-      Value    : LSP.Messages.ReferenceParams;
-      Response : in out LSP.Messages.Location_Response)
+   overriding function Text_Document_References_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ReferenceParams)
+      return LSP.Messages.Location_Response
    is
       use Libadalang.Analysis;
 
@@ -266,17 +344,18 @@ package body LSP.Ada_Handlers is
         (Document.Get_Node_At (Value.position));
 
       Definition : Defining_Name;
+      Response   : LSP.Messages.Location_Response (Is_Error => False);
 
    begin
 
       if Name_Node = No_Name then
-         return;
+         return Response;
       end if;
 
       Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
       if Definition = No_Defining_Name then
-         return;
+         return Response;
       end if;
 
       declare
@@ -310,23 +389,47 @@ package body LSP.Ada_Handlers is
                Response.result.Append (Location);
             end;
          end loop;
+
+         return Response;
       end;
 
    end Text_Document_References_Request;
+
+   ------------------------------------------
+   -- Text_Document_Signature_Help_Request --
+   ------------------------------------------
+
+   overriding function Text_Document_Signature_Help_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.SignatureHelp_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.SignatureHelp_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Text_Document_Signature_Help_Request;
 
    ----------------------------------
    -- Text_Document_Symbol_Request --
    ----------------------------------
 
-   overriding procedure Text_Document_Symbol_Request
-     (Self     : access Message_Handler;
-      Value    : LSP.Messages.DocumentSymbolParams;
-      Response : in out LSP.Messages.Symbol_Response)
+   overriding function Text_Document_Symbol_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DocumentSymbolParams)
+      return LSP.Messages.Symbol_Response
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
+      Response : LSP.Messages.Symbol_Response (Is_Error => False);
    begin
       Document.Get_Symbols (Response.result);
+      return Response;
    end Text_Document_Symbol_Request;
 
    ----------------------------------------
@@ -366,19 +469,61 @@ package body LSP.Ada_Handlers is
       Self.Context.Load_Project (File, Variables);
    end Workspace_Did_Change_Configuration;
 
+   ---------------------------------------
+   -- Workspace_Execute_Command_Request --
+   ---------------------------------------
+
+   overriding function Workspace_Execute_Command_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.ExecuteCommand_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Workspace_Execute_Command_Request;
+
+   ------------------------------
+   -- Workspace_Symbol_Request --
+   ------------------------------
+
+   overriding function Workspace_Symbol_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.WorkspaceSymbolParams)
+      return LSP.Messages.Symbol_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.Symbol_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end Workspace_Symbol_Request;
+
    --------------------------------------
    -- Text_Document_Completion_Request --
    --------------------------------------
 
-   overriding procedure Text_Document_Completion_Request
-    (Self     : access Message_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.Completion_Response)
+   overriding function Text_Document_Completion_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Completion_Response
    is
-      Document   : constant LSP.Ada_Documents.Document_Access :=
+      Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
+      Response : LSP.Messages.Completion_Response (Is_Error => False);
    begin
       Document.Get_Completions_At (Value.position, Response.result);
+      return Response;
    end Text_Document_Completion_Request;
 
 end LSP.Ada_Handlers;

@@ -150,10 +150,10 @@ package LSP.Messages is
    package Optional_ResponseErrors is new LSP.Generic_Optional (ResponseError);
    type Optional_ResponseError is new Optional_ResponseErrors.Optional_Type;
 
-   type ResponseMessage is new Message with record
+   type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String;  --  or null?
 --        result: LSP_Any;
-      error: Optional_ResponseError;
+      error: Optional_ResponseError (Is_Error);
    end record;
 
    procedure Write_ResponseMessage
@@ -161,6 +161,12 @@ package LSP.Messages is
       V : ResponseMessage);
 
    for ResponseMessage'Write use Write_ResponseMessage;
+
+   procedure Read_Response_Prexif
+     (S       : access Ada.Streams.Root_Stream_Type'Class;
+      jsonrpc : out LSP_String;
+      id      : out LSP_Number_Or_String;
+      error   : out Optional_ResponseError);
 
    --```typescript
    --interface NotificationMessage extends Message {
