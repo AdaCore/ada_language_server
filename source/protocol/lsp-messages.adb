@@ -47,10 +47,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_Number);
 
-   procedure Write_Response_Prexif
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.ResponseMessage'Class);
-
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -687,23 +683,6 @@ package body LSP.Messages is
       end if;
    end Read_If_String;
 
-   ------------------------------
-   -- Read_Initialize_Response --
-   ------------------------------
-
-   procedure Read_Initialize_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Initialize_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key (+"result");
-      InitializeResult'Read (S, V.result);
-      JS.End_Object;
-   end Read_Initialize_Response;
-
    ---------------------------
    -- Read_InitializeParams --
    ---------------------------
@@ -1058,31 +1037,37 @@ package body LSP.Messages is
    -- Read_Response_Prexif --
    --------------------------
 
-   procedure Read_Response_Prexif
-     (S       : access Ada.Streams.Root_Stream_Type'Class;
-      jsonrpc : out LSP_String;
-      id      : out LSP_Number_Or_String;
-      error   : out Optional_ResponseError)
+   function Read_Response_Prexif
+     (S : not null access Ada.Streams.Root_Stream_Type'Class)
+      return ResponseMessage
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : GNATCOLL.JSON.JSON_Value;
+      error : Optional_ResponseError;
    begin
-      Read_String (JS, +"jsonrpc", jsonrpc);
-
-      JS.Key (+"id");
-      Value := JS.Read;
-
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         id := (Is_Number => False, String => LSP.Types.Empty_LSP_String);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         id := (Is_Number => False, String => +Value.Get);
-      else
-         id := (Is_Number => True, Number => Value.Get);
-      end if;
-
       JS.Key (+"error");
       Optional_ResponseError'Read (S, error);
+      JS.Key (+"id");
+
+      declare
+         Result : ResponseMessage (Is_Error => error.Is_Set);
+         Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+      begin
+         Read_String (JS, +"jsonrpc", Result.jsonrpc);
+
+         if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+            Result.id :=
+              (Is_Number => False, String => LSP.Types.Empty_LSP_String);
+         elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+            Result.id := (Is_Number => False, String => +Value.Get);
+         else
+            Result.id := (Is_Number => True, Number => Value.Get);
+         end if;
+
+         Result.error := error;
+
+         return Result;
+      end;
    end Read_Response_Prexif;
 
 
@@ -1802,24 +1787,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ClientCapabilities;
 
-   -------------------------------
-   -- Write_CodeAction_Response --
-   -------------------------------
-
-   procedure Write_CodeAction_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeAction_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      Command_Vector'Write (S, V.result);
-      JS.End_Object;
-   end Write_CodeAction_Response;
-
    -----------------------------
    -- Write_CodeActionContext --
    -----------------------------
@@ -1939,24 +1906,6 @@ package body LSP.Messages is
       Write_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
       JS.End_Object;
    end Write_completion;
-
-   -------------------------------
-   -- Write_Completion_Response --
-   -------------------------------
-
-   procedure Write_Completion_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Completion_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      CompletionList'Write (S, V.result);
-      JS.End_Object;
-   end Write_Completion_Response;
 
    --------------------------
    -- Write_CompletionItem --
@@ -2382,24 +2331,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ExecuteCommandParams;
 
-   ------------------------------
-   -- Write_Highlight_Response --
-   ------------------------------
-
-   procedure Write_Highlight_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Highlight_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      DocumentHighlight_Vector'Write (S, V.result);
-      JS.End_Object;
-   end Write_Highlight_Response;
-
    -----------------
    -- Write_Hover --
    -----------------
@@ -2418,42 +2349,6 @@ package body LSP.Messages is
       Optional_Span'Write (S, V.Span);
       JS.End_Object;
    end Write_Hover;
-
-   --------------------------
-   -- Write_Hover_Response --
-   --------------------------
-
-   procedure Write_Hover_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      Hover'Write (S, V.result);
-      JS.End_Object;
-   end Write_Hover_Response;
-
-   -------------------------------
-   -- Write_Initialize_Response --
-   -------------------------------
-
-   procedure Write_Initialize_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Initialize_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      InitializeResult'Write (S, V.result);
-      JS.End_Object;
-   end Write_Initialize_Response;
 
    ----------------------------
    -- Write_InitializeParams --
@@ -2564,24 +2459,6 @@ package body LSP.Messages is
       Span'Write (S, V.span);
       JS.End_Object;
    end Write_Location;
-
-   -----------------------------
-   -- Write_Location_Response --
-   -----------------------------
-
-   procedure Write_Location_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Location_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      Location_Vector'Write (S, V.result);
-      JS.End_Object;
-   end Write_Location_Response;
 
    ---------------------------
    -- Write_Location_Vector --
@@ -3033,24 +2910,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_SignatureHelp;
 
-   ----------------------------------
-   -- Write_SignatureHelp_Response --
-   ----------------------------------
-
-   procedure Write_SignatureHelp_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelp_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      SignatureHelp'Write (S, V.result);
-      JS.End_Object;
-   end Write_SignatureHelp_Response;
-
    --------------------------------
    -- Write_SignatureHelpOptions --
    --------------------------------
@@ -3159,24 +3018,6 @@ package body LSP.Messages is
 
       Stream.End_Array;
    end Write_String_Vector;
-
-   ---------------------------
-   -- Write_Symbol_Response --
-   ---------------------------
-
-   procedure Write_Symbol_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Symbol_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prexif (S, V);
-      JS.Key (+"result");
-      SymbolInformation_Vector'Write (S, V.result);
-      JS.End_Object;
-   end Write_Symbol_Response;
 
    -----------------------------
    -- Write_SymbolInformation --
