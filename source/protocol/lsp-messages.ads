@@ -22,6 +22,7 @@ with Ada.Streams;
 with LSP.Generic_Notifications;
 with LSP.Generic_Optional;
 with LSP.Generic_Requests;
+with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
@@ -150,10 +151,24 @@ package LSP.Messages is
    package Optional_ResponseErrors is new LSP.Generic_Optional (ResponseError);
    type Optional_ResponseError is new Optional_ResponseErrors.Optional_Type;
 
-   type ResponseMessage is new Message with record
+   type ResponseMessage;
+
+   function Read_Response_Prexif
+     (S : not null access Ada.Streams.Root_Stream_Type'Class)
+      return ResponseMessage;
+
+   function Input_ResponseMessage
+     (S : not null access Ada.Streams.Root_Stream_Type'Class)
+      return ResponseMessage;
+
+   procedure Write_Response_Prexif
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResponseMessage'Class);
+
+   type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String;  --  or null?
 --        result: LSP_Any;
-      error: Optional_ResponseError;
+      error: Optional_ResponseError (Is_Error);
    end record;
 
    procedure Write_ResponseMessage
@@ -293,6 +308,13 @@ package LSP.Messages is
    package Location_Vectors is new Ada.Containers.Vectors
      (Positive, Location);
 
+   type Location_Vector is new Location_Vectors.Vector with null record;
+
+   procedure Write_Location_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Location_Vector);
+   for Location_Vector'Write use Write_Location_Vector;
+
    --+1
    --```typescript
    --namespace DiagnosticSeverity {
@@ -429,6 +451,15 @@ package LSP.Messages is
 
    type Command_Vector is new Command_Vectors.Vector with null record;
 
+   procedure Read_Command_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Command_Vector);
+   procedure Write_Command_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Command_Vector);
+   for Command_Vector'Read use Read_Command_Vector;
+   for Command_Vector'Write use Write_Command_Vector;
+
    --```typescript
    --interface TextEdit {
    --	/**
@@ -553,6 +584,9 @@ package LSP.Messages is
    package TextDocumentEdit_Vectors is
      new Ada.Containers.Vectors (Positive, TextDocumentEdit);
 
+   type TextDocumentEdit_Vector is
+     new TextDocumentEdit_Vectors.Vector with null record;
+
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_String,
       Element_Type    => TextEdit_Vector,
@@ -577,7 +611,7 @@ package LSP.Messages is
    --```
    type WorkspaceEdit is record
       changes: TextDocumentEdit_Maps.Map;
-      documentChanges: TextDocumentEdit_Vectors.Vector;
+      documentChanges: TextDocumentEdit_Vector;
    end record;
 
    --```typescript
@@ -1369,6 +1403,15 @@ package LSP.Messages is
       save: Optional_Boolean;
    end record;
 
+   procedure Read_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncOptions);
+   procedure Write_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncOptions);
+   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
+   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
+
    type Optional_TextDocumentSyncOptions
      (Is_Set    : Boolean := False;
       Is_Number : Boolean := False) is
@@ -1384,6 +1427,15 @@ package LSP.Messages is
             when False => null;
          end case;
    end record;
+
+   procedure Read_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_TextDocumentSyncOptions);
+   procedure Write_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_TextDocumentSyncOptions);
+   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
+   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
 
    type CompletionOptions is record
       resolveProvider: LSP.Types.Optional_Boolean;
@@ -1474,9 +1526,29 @@ package LSP.Messages is
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
+   procedure Read_DocumentLinkOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentLinkOptions);
+
+   procedure Write_DocumentLinkOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentLinkOptions);
+
+   for DocumentLinkOptions'Write use Write_DocumentLinkOptions;
+   for DocumentLinkOptions'Read use Read_DocumentLinkOptions;
+
    type ExecuteCommandOptions is record
       commands: LSP.Types.LSP_String_Vector;
    end record;
+
+   procedure Read_ExecuteCommandOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ExecuteCommandOptions);
+   procedure Write_ExecuteCommandOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ExecuteCommandOptions);
+   for ExecuteCommandOptions'Write use Write_ExecuteCommandOptions;
+   for ExecuteCommandOptions'Read use Read_ExecuteCommandOptions;
 
    type ServerCapabilities is record
       textDocumentSync: Optional_TextDocumentSyncOptions;
@@ -1499,6 +1571,15 @@ package LSP.Messages is
    --	experimental?: any;
    end record;
 
+   procedure Read_ServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ServerCapabilities);
+   procedure Write_ServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ServerCapabilities);
+   for ServerCapabilities'Read use Read_ServerCapabilities;
+   for ServerCapabilities'Write use Write_ServerCapabilities;
+
    --```typescript
    --interface InitializeResult {
    --	/**
@@ -1511,9 +1592,14 @@ package LSP.Messages is
       capabilities: ServerCapabilities;
    end record;
 
-   type Initialize_Response is new ResponseMessage with record
-      result: InitializeResult;
-   end record;
+   procedure Read_InitializeResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InitializeResult);
+   procedure Write_InitializeResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InitializeResult);
+   for InitializeResult'Write use Write_InitializeResult;
+   for InitializeResult'Read use Read_InitializeResult;
 
    --```typescript
    --void
@@ -2146,6 +2232,7 @@ package LSP.Messages is
    end record;
 
    package FileEvent_Vectors is new Ada.Containers.Vectors (Positive, FileEvent);
+   type FileEvent_Vector is new FileEvent_Vectors.Vector with null record;
 
    --```typescript
    --interface DidChangeWatchedFilesParams {
@@ -2156,7 +2243,7 @@ package LSP.Messages is
    --}
    --```
    type DidChangeWatchedFilesParams is record
-      changes: FileEvent_Vectors.Vector;
+      changes: FileEvent_Vector;
    end record;
 
    --```typescript
@@ -2399,15 +2486,31 @@ package LSP.Messages is
 
    package CompletionItem_Vectors is new Ada.Containers.Vectors
      (Positive, CompletionItem);
+   type CompletionItem_Vector is
+     new CompletionItem_Vectors.Vector with null record;
+
+   procedure Read_CompletionItem_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItem_Vector);
+   procedure Write_CompletionItem_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItem_Vector);
+   for CompletionItem_Vector'Read use Read_CompletionItem_Vector;
+   for CompletionItem_Vector'Write use Write_CompletionItem_Vector;
 
    type CompletionList is record
       isIncomplete: Boolean := False;
-      items: CompletionItem_Vectors.Vector;
+      items: CompletionItem_Vector;
    end record;
 
-   type Completion_Response is new ResponseMessage with record
-      result: CompletionList;
-   end record;
+   procedure Read_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionList);
+   procedure Write_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionList);
+   for CompletionList'Read use Read_CompletionList;
+   for CompletionList'Write use Write_CompletionList;
 
    --```typescript
    --/**
@@ -2447,6 +2550,16 @@ package LSP.Messages is
 
    package MarkedString_Vectors is new Ada.Containers.Vectors
      (Positive, MarkedString);
+   type MarkedString_Vector is new MarkedString_Vectors.Vector with null record;
+
+   procedure Read_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkedString_Vector);
+   procedure Write_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkedString_Vector);
+   for MarkedString_Vector'Read use Read_MarkedString_Vector;
+   for MarkedString_Vector'Write use Write_MarkedString_Vector;
 
    --```typescript
    --/**
@@ -2466,13 +2579,18 @@ package LSP.Messages is
    --}
    --```
    type Hover is record
-      contents: MarkedString_Vectors.Vector;
+      contents: MarkedString_Vector;
       Span: Optional_Span;
    end record;
 
-   type Hover_Response is new ResponseMessage with record
-      result: Hover;
-   end record;
+   procedure Read_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Hover);
+   procedure Write_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Hover);
+   for Hover'Read use Read_Hover;
+   for Hover'Write use Write_Hover;
 
    --```typescript
    --/**
@@ -2567,11 +2685,22 @@ package LSP.Messages is
 
    package ParameterInformation_Vectors is new Ada.Containers.Vectors
      (Positive, ParameterInformation);
+   type ParameterInformation_Vector is
+     new ParameterInformation_Vectors.Vector with null record;
+
+   procedure Read_ParameterInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ParameterInformation_Vector);
+   procedure Write_ParameterInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ParameterInformation_Vector);
+   for ParameterInformation_Vector'Write use Write_ParameterInformation_Vector;
+   for ParameterInformation_Vector'Read use Read_ParameterInformation_Vector;
 
    type SignatureInformation is record
       label: LSP_String;
       documentation: Optional_String;
-      parameters: ParameterInformation_Vectors.Vector;
+      parameters: ParameterInformation_Vector;
    end record;
 
    procedure Read_SignatureInformation
@@ -2585,16 +2714,32 @@ package LSP.Messages is
 
    package SignatureInformation_Vectors is new Ada.Containers.Vectors
      (Positive, SignatureInformation);
+   type SignatureInformation_Vector is
+     new SignatureInformation_Vectors.Vector with null record;
+
+   procedure Read_SignatureInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureInformation_Vector);
+   procedure Write_SignatureInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureInformation_Vector);
+   for SignatureInformation_Vector'Read use Read_SignatureInformation_Vector;
+   for SignatureInformation_Vector'Write use Write_SignatureInformation_Vector;
 
    type SignatureHelp is record
-	signatures: SignatureInformation_Vectors.Vector;
+	signatures: SignatureInformation_Vector;
 	activeSignature: Optional_Number;
 	activeParameter: Optional_Number;
    end record;
 
-   type SignatureHelp_Response is new ResponseMessage with record
-      result: SignatureHelp;
-   end record;
+   procedure Read_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelp);
+   procedure Write_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelp);
+   for SignatureHelp'Write use Write_SignatureHelp;
+   for SignatureHelp'Read use Read_SignatureHelp;
 
    --```typescript
    --interface ReferenceContext {
@@ -2693,9 +2838,13 @@ package LSP.Messages is
    package DocumentHighlight_Vectors is new Ada.Containers.Vectors
      (Positive, DocumentHighlight);
 
-   type Highlight_Response is new ResponseMessage with record
-      result: DocumentHighlight_Vectors.Vector;
-   end record;
+   type DocumentHighlight_Vector is
+     new DocumentHighlight_Vectors.Vector with null record;
+   procedure Write_DocumentHighlight_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentHighlight_Vector);
+
+   for DocumentHighlight_Vector'Write use Write_DocumentHighlight_Vector;
 
    --```typescript
    --interface DocumentSymbolParams {
@@ -2822,9 +2971,14 @@ package LSP.Messages is
    type SymbolInformation_Vector is
      new SymbolInformation_Vectors.Vector with null record;
 
-   type Symbol_Response is new ResponseMessage with record
-      result: SymbolInformation_Vector;
-   end record;
+   procedure Read_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolInformation_Vector);
+   procedure Write_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolInformation_Vector);
+   for SymbolInformation_Vector'Read use Read_SymbolInformation_Vector;
+   for SymbolInformation_Vector'Write use Write_SymbolInformation_Vector;
 
    --```typescript
    --/**
@@ -2909,10 +3063,6 @@ package LSP.Messages is
       V : CodeActionParams);
    for CodeActionParams'Read use Read_CodeActionParams;
    for CodeActionParams'Write use Write_CodeActionParams;
-
-   type CodeAction_Response is new ResponseMessage with record
-      result: Command_Vector;
-   end record;
 
    --```typescript
    --interface CodeLensParams {
@@ -3168,10 +3318,6 @@ package LSP.Messages is
       applied: Boolean;
    end record;
 
-   type ApplyWorkspaceEdit_Response is new ResponseMessage with record
-      result: ApplyWorkspaceEditResult;
-   end record;
-
    package ShowMessage_Notifications is new
      LSP.Generic_Notifications
        (NotificationMessage,
@@ -3358,9 +3504,51 @@ package LSP.Messages is
       params : ApplyWorkspaceEditParams;
    end record;
 
-   type Location_Response is new ResponseMessage with record
-      result : Location_Vectors.Vector;
-   end record;
+   package Initialize_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => InitializeResult);
+   subtype Initialize_Response is Initialize_Responses.Response;
+
+   package Completion_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => CompletionList);
+   subtype Completion_Response is Completion_Responses.Response;
+
+   package Hover_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => Hover);
+   subtype Hover_Response is Hover_Responses.Response;
+
+   package SignatureHelp_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => SignatureHelp);
+   subtype SignatureHelp_Response is SignatureHelp_Responses.Response;
+
+   package Highlight_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => DocumentHighlight_Vector);
+   subtype Highlight_Response is Highlight_Responses.Response;
+
+   package Symbol_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => SymbolInformation_Vector);
+   subtype Symbol_Response is Symbol_Responses.Response;
+
+   package CodeAction_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => Command_Vector);
+   subtype CodeAction_Response is CodeAction_Responses.Response;
+
+   package ApplyWorkspaceEdit_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => ApplyWorkspaceEditResult);
+   subtype ApplyWorkspaceEdit_Response is
+     ApplyWorkspaceEdit_Responses.Response;
+
+   package Location_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => Location_Vector);
+   subtype Location_Response is Location_Responses.Response;
 
 private
 
@@ -3368,53 +3556,9 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ApplyWorkspaceEditParams);
 
-   procedure Read_Command_Vector
+   procedure Read_TextDocumentEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Command_Vector);
-
-   procedure Read_CompletionList
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionList);
-
-   procedure Read_DocumentLinkOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentLinkOptions);
-
-   procedure Read_ExecuteCommandOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ExecuteCommandOptions);
-
-   procedure Read_Hover
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Hover);
-
-   procedure Read_Initialize_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Initialize_Response);
-
-   procedure Read_InitializeResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out InitializeResult);
-
-   procedure Read_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_TextDocumentSyncOptions);
-
-   procedure Read_ServerCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ServerCapabilities);
-
-   procedure Read_SignatureHelp
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureHelp);
-
-   procedure Read_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolInformation_Vector);
-
-   procedure Read_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncOptions);
+      V : out TextDocumentEdit_Vector);
 
    procedure Read_WorkspaceEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -3428,89 +3572,17 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
 
-   procedure Write_CodeAction_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeAction_Response);
-
-   procedure Write_Command_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command_Vector);
-
-   procedure Write_Completion_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Completion_Response);
-
-   procedure Write_CompletionList
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionList);
-
-   procedure Write_DocumentLinkOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentLinkOptions);
-
    procedure Write_ExecuteCommand_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommand_Response);
-
-   procedure Write_ExecuteCommandOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ExecuteCommandOptions);
-
-   procedure Write_Highlight_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Highlight_Response);
-
-   procedure Write_Hover
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover);
-
-   procedure Write_Hover_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover_Response);
-
-   procedure Write_Initialize_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Initialize_Response);
-
-   procedure Write_InitializeResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : InitializeResult);
-
-   procedure Write_Location_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Location_Response);
-
-   procedure Write_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_TextDocumentSyncOptions);
 
    procedure Write_Shutdown_Request
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Shutdown_Request);
 
-   procedure Write_ServerCapabilities
+   procedure Write_TextDocumentEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ServerCapabilities);
-
-   procedure Write_SignatureHelp
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelp);
-
-   procedure Write_SignatureHelp_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelp_Response);
-
-   procedure Write_Symbol_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Symbol_Response);
-
-   procedure Write_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolInformation_Vector);
-
-   procedure Write_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncOptions);
+      V : TextDocumentEdit_Vector);
 
    procedure Write_WorkspaceEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -3518,42 +3590,13 @@ private
 
    for ApplyWorkspaceEdit_Request'Write use Write_ApplyWorkspaceEdit_Request;
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
-   for CodeAction_Response'Write use Write_CodeAction_Response;
-   for Command_Vector'Write use Write_Command_Vector;
-   for Completion_Response'Write use Write_Completion_Response;
-   for CompletionList'Write use Write_CompletionList;
-   for DocumentLinkOptions'Write use Write_DocumentLinkOptions;
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
-   for ExecuteCommandOptions'Write use Write_ExecuteCommandOptions;
-   for Highlight_Response'Write use Write_Highlight_Response;
-   for Hover'Write use Write_Hover;
-   for Hover_Response'Write use Write_Hover_Response;
-   for Initialize_Response'Write use Write_Initialize_Response;
-   for InitializeResult'Write use Write_InitializeResult;
-   for Location_Response'Write use Write_Location_Response;
-   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
-   for ServerCapabilities'Write use Write_ServerCapabilities;
    for Shutdown_Request'Write use Write_Shutdown_Request;
-   for SignatureHelp'Write use Write_SignatureHelp;
-   for SignatureHelp_Response'Write use Write_SignatureHelp_Response;
-   for Symbol_Response'Write use Write_Symbol_Response;
-   for SymbolInformation_Vector'Write use Write_SymbolInformation_Vector;
-   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
+   for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
 
    for ApplyWorkspaceEditParams'Read use Read_ApplyWorkspaceEditParams;
-   for Command_Vector'Read use Read_Command_Vector;
-   for CompletionList'Read use Read_CompletionList;
-   for DocumentLinkOptions'Read use Read_DocumentLinkOptions;
-   for ExecuteCommandOptions'Read use Read_ExecuteCommandOptions;
-   for Hover'Read use Read_Hover;
-   for Initialize_Response'Read use Read_Initialize_Response;
-   for InitializeResult'Read use Read_InitializeResult;
-   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
-   for ServerCapabilities'Read use Read_ServerCapabilities;
-   for SignatureHelp'Read use Read_SignatureHelp;
-   for SymbolInformation_Vector'Read use Read_SymbolInformation_Vector;
-   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
+   for TextDocumentEdit_Vector'Read use Read_TextDocumentEdit_Vector;
    for WorkspaceEdit'Read use Read_WorkspaceEdit;
 
 end LSP.Messages;

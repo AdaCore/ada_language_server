@@ -23,63 +23,63 @@ package LSP.Message_Handlers is
    type Request_Handler is limited interface;
    type Request_Handler_Access is access all Request_Handler'Class;
 
-   procedure Initialize_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.InitializeParams;
-     Response : in out LSP.Messages.Initialize_Response) is null;
+   function Initialize_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.InitializeParams)
+      return LSP.Messages.Initialize_Response is abstract;
 
-   procedure Shutdown_Request
-    (Self     : access Request_Handler;
-     Response : in out LSP.Messages.ResponseMessage) is null;
+   function Shutdown_Request
+     (Self  : access Request_Handler)
+      return LSP.Messages.ResponseMessage is abstract;
 
-   procedure Text_Document_Code_Action_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.CodeActionParams;
-     Response : in out LSP.Messages.CodeAction_Response) is null;
+   function Text_Document_Code_Action_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.CodeActionParams)
+      return LSP.Messages.CodeAction_Response is abstract;
 
-   procedure Text_Document_Completion_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.Completion_Response) is null;
+   function Text_Document_Completion_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Completion_Response is abstract;
 
-   procedure Text_Document_Definition_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.Location_Response) is null;
+   function Text_Document_Definition_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response is abstract;
 
-   procedure Text_Document_Hover_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.Hover_Response) is null;
+   function Text_Document_Hover_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Hover_Response is abstract;
 
-   procedure Text_Document_Highlight_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.Highlight_Response) is null;
+   function Text_Document_Highlight_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Highlight_Response is abstract;
 
-   procedure Text_Document_References_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.ReferenceParams;
-     Response : in out LSP.Messages.Location_Response) is null;
+   function Text_Document_References_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.ReferenceParams)
+      return LSP.Messages.Location_Response is abstract;
 
-   procedure Text_Document_Signature_Help_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.TextDocumentPositionParams;
-     Response : in out LSP.Messages.SignatureHelp_Response) is null;
+   function Text_Document_Signature_Help_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.SignatureHelp_Response is abstract;
 
-   procedure Text_Document_Symbol_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.DocumentSymbolParams;
-     Response : in out LSP.Messages.Symbol_Response) is null;
+   function Text_Document_Symbol_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.DocumentSymbolParams)
+      return LSP.Messages.Symbol_Response is abstract;
 
-   procedure Workspace_Execute_Command_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.ExecuteCommandParams;
-     Response : in out LSP.Messages.ExecuteCommand_Response) is null;
+   function Workspace_Execute_Command_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response is abstract;
 
-   procedure Workspace_Symbol_Request
-    (Self     : access Request_Handler;
-     Value    : LSP.Messages.WorkspaceSymbolParams;
-     Response : in out LSP.Messages.Symbol_Response) is null;
+   function Workspace_Symbol_Request
+     (Self  : access Request_Handler;
+      Value : LSP.Messages.WorkspaceSymbolParams)
+      return LSP.Messages.Symbol_Response is abstract;
 
 end LSP.Message_Handlers;
