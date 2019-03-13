@@ -19,11 +19,8 @@ with Spawn.Posix;
 
 package Spawn.Environments.Internal is
 
-   procedure Initialize_Default
-     (Default : out Process_Environment);
-
    function Raw
      (Self : Process_Environment'Class)
-        return Spawn.Posix.chars_ptr_array;
+      return Spawn.Posix.chars_ptr_array;
 
 end Spawn.Environments.Internal;
