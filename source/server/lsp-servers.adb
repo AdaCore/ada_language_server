@@ -228,9 +228,9 @@ package body LSP.Servers is
       Read_Number_Or_String (JS, +"id", Request_Id);
 
       if not Method.Is_Set then
-         JS.Key (+"result");
+         JS.Key ("result");
          Result := JS.Read;
-         JS.Key (+"error");
+         JS.Key ("error");
          LSP.Messages.Optional_ResponseError'Read (Stream, Error);
          --  We have got error from LSP client. Save it in the trace:
          Server_Trace.Trace ("Got Error response:");
@@ -253,7 +253,7 @@ package body LSP.Servers is
          end if;
       else
          if Self.Initilized then
-            JS.Key (+"params");
+            JS.Key ("params");
             Self.Notifications.Dispatch
               (Method  => Method.Value,
                Stream  => Stream,
@@ -264,7 +264,7 @@ package body LSP.Servers is
          return;
       end if;
 
-      JS.Key (+"params");
+      JS.Key ("params");
       declare
          Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
          Output     : Ada.Strings.Unbounded.Unbounded_String;

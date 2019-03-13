@@ -15,16 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with LSP.JSON_Streams;
-with LSP.Types;
 
 package body LSP.Generic_Notifications is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    ----------
    -- Read --
@@ -38,7 +31,7 @@ package body LSP.Generic_Notifications is
    begin
       JS.Start_Object;
       Read_Prefix (S, V);
-      JS.Key (+"params");
+      JS.Key ("params");
       T'Read (S, V.params);
       JS.End_Object;
    end Read;
@@ -55,7 +48,7 @@ package body LSP.Generic_Notifications is
    begin
       JS.Start_Object;
       Write_Prefix (S, V);
-      JS.Key (+"params");
+      JS.Key ("params");
       T'Write (S, V.params);
       JS.End_Object;
    end Write;
