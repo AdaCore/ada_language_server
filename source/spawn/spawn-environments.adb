@@ -15,10 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Spawn.Environments.Internal;
-pragma Elaborate (Spawn.Environments.Internal);
-
 package body Spawn.Environments is
+
+   procedure Initialize_Default (Default : out Process_Environment);
 
    Default : Process_Environment;
 
@@ -41,6 +40,13 @@ package body Spawn.Environments is
    begin
       return Self.Map.Contains (Name);
    end Contains;
+
+   ------------------------
+   -- Initialize_Default --
+   ------------------------
+
+   procedure Initialize_Default (Default : out Process_Environment)
+     is separate;
 
    ------------
    -- Insert --
@@ -125,5 +131,5 @@ package body Spawn.Environments is
    end Value;
 
 begin
-   Spawn.Environments.Internal.Initialize_Default (Default);
+   Initialize_Default (Default);
 end Spawn.Environments;

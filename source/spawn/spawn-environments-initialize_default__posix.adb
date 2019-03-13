@@ -16,38 +16,33 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Interfaces.C;
+with Interfaces.C.Strings;
 
-with GNAT.Strings;
+with Spawn.Posix;
 
-with Glib.Spawn;
+separate (Spawn.Environments)
+procedure Initialize_Default
+  (Default : out Spawn.Environments.Process_Environment)
+is
+   use type Interfaces.C.Strings.chars_ptr;
+begin
+   for J in Spawn.Posix.environ'Range loop
+      declare
+         Item : constant Interfaces.C.Strings.chars_ptr :=
+           Spawn.Posix.environ (J);
 
-package body Spawn.Environments.Internal is
+         Text : constant UTF_8_String :=
+           (if Item = Interfaces.C.Strings.Null_Ptr then ""
+            else Interfaces.C.Strings.Value (Item));
 
-   ---------
-   -- Raw --
-   ---------
+         Separator : constant Natural :=
+           Ada.Strings.Fixed.Index (Text, "=");
+      begin
+         exit when Separator = 0;
 
-   function Raw
-     (Self : Process_Environment'Class)
-      return Gtkada.Types.Chars_Ptr_Array
-   is
-      use type Interfaces.C.size_t;
-
-      Index : Interfaces.C.size_t := 1;
-   begin
-      return Result : Gtkada.Types.Chars_Ptr_Array
-        (1 .. Interfaces.C.size_t (Self.Map.Length) + 1)
-      do
-         for J in Self.Map.Iterate loop
-            Result (Index) := Gtkada.Types.New_String
-              (UTF_8_String_Maps.Key (J) & "=" &
-                 UTF_8_String_Maps.Element (J));
-            Index := Index + 1;
-         end loop;
-
-         Result (Index) := Gtkada.Types.Null_Ptr;
-      end return;
-   end Raw;
-
-end Spawn.Environments.Internal;
+         Default.Insert
+           (Text (Text'First .. Separator - 1),
+            Text (Separator + 1 .. Text'Last));
+      end;
+   end loop;
+end Initialize_Default;

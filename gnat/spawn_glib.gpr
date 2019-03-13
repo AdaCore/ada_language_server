@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,6 +52,8 @@ project Spawn_Glib is
                use "spawn-internal__glib.ads";
             for Body ("Spawn.Internal")
                use "spawn-internal__posix.adb";
+            for Body ("Spawn.Environments.Initialize_Default")
+               use "spawn-environments-initialize_default__glib.adb";
             for Spec ("Spawn.Environments.Internal")
                use "spawn-environments-internal__glib.ads";
             for Body ("Spawn.Environments.Internal")
@@ -63,6 +65,8 @@ project Spawn_Glib is
                use "spawn-internal__glib_windows.ads";
             for Body ("Spawn.Internal")
                use "spawn-internal__windows.adb";
+            for Body ("Spawn.Environments.Initialize_Default")
+               use "spawn-environments-initialize_default__windows.adb";
             for Spec ("Spawn.Environments.Internal")
                use "spawn-environments-internal__windows.ads";
             for Body ("Spawn.Environments.Internal")

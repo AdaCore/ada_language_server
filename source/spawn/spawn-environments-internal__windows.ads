@@ -19,8 +19,6 @@ with Interfaces.C;
 
 package Spawn.Environments.Internal is
 
-   procedure Initialize_Default (Default : out Process_Environment);
-
    function Raw (Self : Process_Environment'Class)
      return Interfaces.C.wchar_array;
 

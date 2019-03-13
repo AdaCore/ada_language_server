@@ -22,32 +22,24 @@ with GNAT.Strings;
 
 with Glib.Spawn;
 
-package body Spawn.Environments.Internal is
+separate (Spawn.Environments)
+procedure Initialize_Default
+  (Default : out Spawn.Environments.Process_Environment)
+is
+   List : GNAT.Strings.String_List := Glib.Spawn.Get_Environ;
+begin
+   for Text of List loop
+      declare
+         Separator : constant Natural :=
+           Ada.Strings.Fixed.Index (Text.all, "=");
+      begin
+         exit when Separator = 0;
 
-   ---------
-   -- Raw --
-   ---------
+         Default.Insert
+           (Text (Text'First .. Separator - 1),
+            Text (Separator + 1 .. Text'Last));
 
-   function Raw
-     (Self : Process_Environment'Class)
-      return Gtkada.Types.Chars_Ptr_Array
-   is
-      use type Interfaces.C.size_t;
-
-      Index : Interfaces.C.size_t := 1;
-   begin
-      return Result : Gtkada.Types.Chars_Ptr_Array
-        (1 .. Interfaces.C.size_t (Self.Map.Length) + 1)
-      do
-         for J in Self.Map.Iterate loop
-            Result (Index) := Gtkada.Types.New_String
-              (UTF_8_String_Maps.Key (J) & "=" &
-                 UTF_8_String_Maps.Element (J));
-            Index := Index + 1;
-         end loop;
-
-         Result (Index) := Gtkada.Types.Null_Ptr;
-      end return;
-   end Raw;
-
-end Spawn.Environments.Internal;
+         GNAT.Strings.Free (Text);
+      end;
+   end loop;
+end Initialize_Default;
