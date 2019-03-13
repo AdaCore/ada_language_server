@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------------
 
 private with Ada.Containers.Vectors;
+with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
 
-with LSP.Types;
 with GNATCOLL.JSON;
 
 package LSP.JSON_Streams is
@@ -40,7 +40,11 @@ package LSP.JSON_Streams is
 
    procedure Key
     (Self : not null access JSON_Stream'Class;
-     Key  : LSP.Types.LSP_String);
+     Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String);
+
+   procedure Key
+    (Self : not null access JSON_Stream'Class;
+     Key  : Wide_String);
 
    function Get_JSON_Document
     (Self : not null access JSON_Stream'Class)
@@ -73,7 +77,7 @@ private
 
          when Object_State =>
             Current_Object : GNATCOLL.JSON.JSON_Value;
-            Key            : LSP.Types.LSP_String;
+            Key            : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
       end case;
    end record;
 

@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.Wide_Unbounded;
 
 with GNATCOLL.JSON;
 
@@ -125,7 +126,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"edit");
+      JS.Key ("edit");
       WorkspaceEdit'Read (S, V.edit);
       JS.End_Object;
    end Read_ApplyWorkspaceEditParams;
@@ -142,9 +143,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"workspace");
+      JS.Key ("workspace");
       WorkspaceClientCapabilities'Read (S, V.workspace);
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentClientCapabilities'Read (S, V.textDocument);
       JS.End_Object;
    end Read_ClientCapabilities;
@@ -161,7 +162,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"diagnostics");
+      JS.Key ("diagnostics");
       Diagnostic_Vector'Read (S, V.diagnostics);
       JS.End_Object;
    end Read_CodeActionContext;
@@ -178,11 +179,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Read (S, V.span);
-      JS.Key (+"context");
+      JS.Key ("context");
       CodeActionContext'Read (S, V.context);
       JS.End_Object;
    end Read_CodeActionParams;
@@ -217,7 +218,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_String (JS, +"title", V.title);
       Read_String (JS, +"command", V.command);
-      JS.Key (+"arguments");
+      JS.Key ("arguments");
       V.arguments := JS.Read;
       JS.End_Object;
    end Read_Command;
@@ -304,9 +305,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"isIncomplete");
+      JS.Key ("isIncomplete");
       V.isIncomplete := JS.Read.Get;
-      JS.Key (+"items");
+      JS.Key ("items");
       CompletionItem_Vector'Read (S, V.items);
       JS.End_Object;
    end Read_CompletionList;
@@ -324,21 +325,21 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_String (JS, +"label", V.label);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       Optional_CompletionItemKind'Read (S, V.kind);
       Read_Optional_String (JS, +"detail", V.detail);
       Read_Optional_String (JS, +"documentation", V.documentation);
       Read_Optional_String (JS, +"sortText", V.sortText);
       Read_Optional_String (JS, +"filterText", V.filterText);
       Read_Optional_String (JS, +"insertText", V.insertText);
-      JS.Key (+"insertTextFormat");
+      JS.Key ("insertTextFormat");
       Optional_InsertTextFormat'Read (S, V.insertTextFormat);
-      JS.Key (+"textEdit");
+      JS.Key ("textEdit");
       Optional_TextEdit'Read (S, V.textEdit);
-      JS.Key (+"additionalTextEdits");
+      JS.Key ("additionalTextEdits");
       TextEdit_Vector'Read (S, V.additionalTextEdits);
       Read_String_Vector (JS, +"commitCharacters", V.commitCharacters);
-      JS.Key (+"command");
+      JS.Key ("command");
       Command'Read (S, V.command);
       JS.End_Object;
    end Read_CompletionItem;
@@ -386,9 +387,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Read (S, V.span);
-      JS.Key (+"severity");
+      JS.Key ("severity");
       Optional_DiagnosticSeverity'Read (S, V.severity);
       LSP.Types.Read_Number_Or_String (JS, +"code", V.code);
       Read_Optional_String (JS, +"source", V.source);
@@ -446,7 +447,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"settings");
+      JS.Key ("settings");
       V.settings := JS.Read;
       JS.End_Object;
    end Read_DidChangeConfigurationParams;
@@ -463,9 +464,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       VersionedTextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key (+"contentChanges");
+      JS.Key ("contentChanges");
       TextDocumentContentChangeEvent_Vector'Read (S, V.contentChanges);
       JS.End_Object;
    end Read_DidChangeTextDocumentParams;
@@ -482,7 +483,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
       JS.End_Object;
    end Read_DidCloseTextDocumentParams;
@@ -499,7 +500,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentItem'Read (S, V.textDocument);
       JS.End_Object;
    end Read_DidOpenTextDocumentParams;
@@ -516,7 +517,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
       Read_Optional_String (JS, +"text", V.text);
       JS.End_Object;
@@ -551,9 +552,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Read (S, V.span);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       V.kind := DocumentHighlightKind'Val (JS.Read.Get - 1);
       JS.End_Object;
    end Read_DocumentHighlight;
@@ -604,7 +605,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
       JS.End_Object;
    end Read_DocumentSymbolParams;
@@ -655,7 +656,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_String (JS, +"command", V.command);
-      JS.Key (+"arguments");
+      JS.Key ("arguments");
       V.arguments := JS.Read;
       JS.End_Object;
    end Read_ExecuteCommandParams;
@@ -672,9 +673,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"contents");
+      JS.Key ("contents");
       MarkedString_Vector'Read (S, V.contents);
-      JS.Key (+"range");
+      JS.Key ("range");
       Optional_Span'Read (S, V.Span);
       JS.End_Object;
    end Read_Hover;
@@ -690,7 +691,7 @@ package body LSP.Messages is
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Value := Stream.Read;
 
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
@@ -715,10 +716,10 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Optional_Number (JS, +"processId", V.processId);
-      JS.Key (+"rootPath");
+      JS.Key ("rootPath");
       Read_If_String (JS, +"rootPath", V.rootPath);
       Read_If_String (JS, +"rootUri", V.rootUri);
-      JS.Key (+"capabilities");
+      JS.Key ("capabilities");
       LSP.Messages.ClientCapabilities'Read (S, V.capabilities);
       Read_Optional_String (JS, +"trace", Trace);
 
@@ -747,7 +748,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"capabilities");
+      JS.Key ("capabilities");
       ServerCapabilities'Read (S, V.capabilities);
       JS.End_Object;
    end Read_InitializeResult;
@@ -795,9 +796,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Read (S, V.span);
       JS.End_Object;
    end Read_Location;
@@ -867,7 +868,7 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_Number) is
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Item := LSP.Types.LSP_Number (Integer'(Stream.Read.Get));
    end Read_Number;
 
@@ -882,7 +883,7 @@ package body LSP.Messages is
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Value := Stream.Read;
 
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
@@ -903,7 +904,7 @@ package body LSP.Messages is
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Value := Stream.Read;
 
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
@@ -1006,9 +1007,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
-      JS.Key (+"diagnostics");
+      JS.Key ("diagnostics");
       Diagnostic_Vector'Read (S, V.diagnostics);
       JS.End_Object;
    end Read_PublishDiagnosticsParams;
@@ -1025,7 +1026,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"includeDeclaration");
+      JS.Key ("includeDeclaration");
       V.includeDeclaration := JS.Read.Get;
       JS.End_Object;
    end Read_ReferenceContext;
@@ -1042,11 +1043,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key (+"position");
+      JS.Key ("position");
       Position'Read (S, V.position);
-      JS.Key (+"context");
+      JS.Key ("context");
       ReferenceContext'Read (S, V.context);
       JS.End_Object;
    end Read_ReferenceParams;
@@ -1063,9 +1064,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
       error : Optional_ResponseError;
    begin
-      JS.Key (+"error");
+      JS.Key ("error");
       Optional_ResponseError'Read (S, error);
-      JS.Key (+"id");
+      JS.Key ("id");
 
       declare
          Result : ResponseMessage (Is_Error => error.Is_Set);
@@ -1102,7 +1103,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"code");
+      JS.Key ("code");
       Code := JS.Read.Get;
 
       for J in Error_Map'Range loop
@@ -1113,7 +1114,7 @@ package body LSP.Messages is
       end loop;
 
       Read_String (JS, +"message", V.message);
-      JS.Key (+"data");
+      JS.Key ("data");
       V.data := JS.Read;
 
       JS.End_Object;
@@ -1131,12 +1132,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocumentSync");
+      JS.Key ("textDocumentSync");
       Optional_TextDocumentSyncOptions'Read (S, V.textDocumentSync);
       Read_Optional_Boolean (JS, +"hoverProvider", V.hoverProvider);
-      JS.Key (+"completionProvider");
+      JS.Key ("completionProvider");
       Optional_CompletionOptions'Read (S, V.completionProvider);
-      JS.Key (+"signatureHelpProvider");
+      JS.Key ("signatureHelpProvider");
       Optional_SignatureHelpOptions'Read (S, V.signatureHelpProvider);
       Read_Optional_Boolean (JS, +"definitionProvider", V.definitionProvider);
       Read_Optional_Boolean (JS, +"referencesProvider", V.referencesProvider);
@@ -1153,13 +1154,13 @@ package body LSP.Messages is
         (JS,
          +"documentRangeFormattingProvider",
          V.documentRangeFormattingProvider);
-      JS.Key (+"documentOnTypeFormattingProvider");
+      JS.Key ("documentOnTypeFormattingProvider");
       Optional_DocumentOnTypeFormattingOptions'Read
         (S, V.documentOnTypeFormattingProvider);
       Read_Optional_Boolean (JS, +"renameProvider", V.renameProvider);
-      JS.Key (+"documentLinkProvider");
+      JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Read (S, V.documentLinkProvider);
-      JS.Key (+"executeCommandProvider");
+      JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Read (S, V.executeCommandProvider);
       JS.End_Object;
    end Read_ServerCapabilities;
@@ -1178,7 +1179,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_String (JS, +"label", V.label);
       Read_Optional_String (JS, +"documentation", V.documentation);
-      JS.Key (+"parameters");
+      JS.Key ("parameters");
       ParameterInformation_Vector'Read (S, V.parameters);
       JS.End_Object;
    end Read_SignatureInformation;
@@ -1221,7 +1222,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"signatures");
+      JS.Key ("signatures");
       JS.Start_Array;
 
       while not JS.End_Of_Array loop
@@ -1267,9 +1268,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"start");
+      JS.Key ("start");
       Position'Read (S, V.first);
-      JS.Key (+"end");
+      JS.Key ("end");
       Position'Read (S, V.last);
       JS.End_Object;
    end Read_Span;
@@ -1284,7 +1285,7 @@ package body LSP.Messages is
      Item   : out LSP.Types.LSP_String_Vector) is
    begin
       Item.Clear;
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Start_Array;
 
       while not Stream.End_Of_Array loop
@@ -1307,11 +1308,11 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_String (JS, +"name", V.name);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       V.kind := SymbolKind'Val (JS.Read.Get - 1);
-      JS.Key (+"location");
+      JS.Key ("location");
       Location'Read (S, V.location);
-      JS.Key (+"edits");
+      JS.Key ("edits");
       Read_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Read_SymbolInformation;
@@ -1374,35 +1375,35 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"synchronization");
+      JS.Key ("synchronization");
       synchronization'Read (S, V.synchronization);
-      JS.Key (+"completion");
+      JS.Key ("completion");
       completion'Read (S, V.completion);
-      JS.Key (+"hover");
+      JS.Key ("hover");
       dynamicRegistration'Read (S, V.hover);
-      JS.Key (+"signatureHelp");
+      JS.Key ("signatureHelp");
       dynamicRegistration'Read (S, V.signatureHelp);
-      JS.Key (+"references");
+      JS.Key ("references");
       dynamicRegistration'Read (S, V.references);
-      JS.Key (+"documentHighlight");
+      JS.Key ("documentHighlight");
       dynamicRegistration'Read (S, V.documentHighlight);
-      JS.Key (+"documentSymbol");
+      JS.Key ("documentSymbol");
       dynamicRegistration'Read (S, V.documentSymbol);
-      JS.Key (+"formatting");
+      JS.Key ("formatting");
       dynamicRegistration'Read (S, V.formatting);
-      JS.Key (+"rangeFormatting");
+      JS.Key ("rangeFormatting");
       dynamicRegistration'Read (S, V.rangeFormatting);
-      JS.Key (+"onTypeFormatting");
+      JS.Key ("onTypeFormatting");
       dynamicRegistration'Read (S, V.onTypeFormatting);
-      JS.Key (+"definition");
+      JS.Key ("definition");
       dynamicRegistration'Read (S, V.definition);
-      JS.Key (+"codeAction");
+      JS.Key ("codeAction");
       dynamicRegistration'Read (S, V.codeAction);
-      JS.Key (+"codeLens");
+      JS.Key ("codeLens");
       dynamicRegistration'Read (S, V.codeLens);
-      JS.Key (+"documentLink");
+      JS.Key ("documentLink");
       dynamicRegistration'Read (S, V.documentLink);
-      JS.Key (+"rename");
+      JS.Key ("rename");
       dynamicRegistration'Read (S, V.rename);
       JS.End_Object;
    end Read_TextDocumentClientCapabilities;
@@ -1419,7 +1420,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Optional_Span'Read (S, V.span);
       Read_Optional_Number (JS, +"rangeLength", V.rangeLength);
       Read_String (JS, +"text", V.text);
@@ -1462,9 +1463,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       VersionedTextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key (+"edits");
+      JS.Key ("edits");
       TextEdit_Vector'Read (S, V.edits);
       JS.End_Object;
    end Read_TextDocumentEdit;
@@ -1505,7 +1506,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
       JS.End_Object;
    end Read_TextDocumentIdentifier;
@@ -1541,9 +1542,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key (+"position");
+      JS.Key ("position");
       Position'Read (S, V.position);
       JS.End_Object;
    end Read_TextDocumentPositionParams;
@@ -1580,7 +1581,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Optional_Boolean (JS, +"openClose", V.openClose);
-      JS.Key (+"change");
+      JS.Key ("change");
       Optional_TextDocumentSyncKind'Read (S, V.change);
       Read_Optional_Boolean (JS, +"willSave", V.willSave);
       Read_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
@@ -1600,7 +1601,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Read (S, V.span);
       Read_String (JS, +"newText", V.newText);
       JS.End_Object;
@@ -1642,7 +1643,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
       Read_Number (JS, +"version", LSP_Number (V.version));
       JS.End_Object;
@@ -1661,15 +1662,15 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Optional_Boolean (JS, +"applyEdit", V.applyEdit);
-      JS.Key (+"workspaceEdit");
+      JS.Key ("workspaceEdit");
       documentChanges'Read (S, V.workspaceEdit);
-      JS.Key (+"didChangeConfiguration");
+      JS.Key ("didChangeConfiguration");
       dynamicRegistration'Read (S, V.didChangeConfiguration);
-      JS.Key (+"didChangeWatchedFiles");
+      JS.Key ("didChangeWatchedFiles");
       dynamicRegistration'Read (S, V.didChangeWatchedFiles);
-      JS.Key (+"symbol");
+      JS.Key ("symbol");
       dynamicRegistration'Read (S, V.symbol);
-      JS.Key (+"executeCommand");
+      JS.Key ("executeCommand");
       dynamicRegistration'Read (S, V.executeCommand);
       JS.End_Object;
    end Read_WorkspaceClientCapabilities;
@@ -1701,7 +1702,7 @@ package body LSP.Messages is
          Key    : constant LSP.Types.LSP_String := +Name;
          Vector : TextEdit_Vector;
       begin
-         JS.Key (Key);
+         JS.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
          JS.Start_Array;
          while not JS.End_Of_Array loop
             declare
@@ -1719,16 +1720,16 @@ package body LSP.Messages is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
       JS.Start_Object;
-      JS.Key (+"changes");
+      JS.Key ("changes");
       Value := JS.Read;
 
       if Value.Kind in GNATCOLL.JSON.JSON_Object_Type then
-         JS.Key (+"changes");
+         JS.Key ("changes");
          JS.Start_Object;
          Value.Map_JSON_Object (Each'Access);
          JS.End_Object;
       else
-         JS.Key (+"documentChanges");
+         JS.Key ("documentChanges");
          TextDocumentEdit_Vector'Write (S, V.documentChanges);
       end if;
 
@@ -1764,7 +1765,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Request_Prexif (S, V);
-      JS.Key (+"params");
+      JS.Key ("params");
       ApplyWorkspaceEditParams'Write (S, V.params);
       JS.End_Object;
    end Write_ApplyWorkspaceEdit_Request;
@@ -1781,7 +1782,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"edit");
+      JS.Key ("edit");
       WorkspaceEdit'Write (S, V.edit);
       JS.End_Object;
    end Write_ApplyWorkspaceEditParams;
@@ -1798,9 +1799,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"workspace");
+      JS.Key ("workspace");
       WorkspaceClientCapabilities'Write (S, V.workspace);
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentClientCapabilities'Write (S, V.textDocument);
       JS.End_Object;
    end Write_ClientCapabilities;
@@ -1817,7 +1818,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"diagnostics");
+      JS.Key ("diagnostics");
       Diagnostic_Vector'Write (S, V.diagnostics);
       JS.End_Object;
    end Write_CodeActionContext;
@@ -1834,11 +1835,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Write (S, V.span);
-      JS.Key (+"context");
+      JS.Key ("context");
       CodeActionContext'Write (S, V.context);
       JS.End_Object;
    end Write_CodeActionParams;
@@ -1878,7 +1879,7 @@ package body LSP.Messages is
       Write_String (JS, +"title", V.title);
       Write_String (JS, +"command", V.command);
 --      if not Is_Empty (V.arguments) then  FIXME!!!
-         JS.Key (+"arguments");
+         JS.Key ("arguments");
          JS.Write (V.arguments);
 --      end if;
       JS.End_Object;
@@ -1938,25 +1939,25 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_String (JS, +"label", V.label);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       Optional_CompletionItemKind'Write (S, V.kind);
       Write_Optional_String (JS, +"detail", V.detail);
       Write_Optional_String (JS, +"documentation", V.documentation);
       Write_Optional_String (JS, +"sortText", V.sortText);
       Write_Optional_String (JS, +"filterText", V.filterText);
       Write_Optional_String (JS, +"insertText", V.insertText);
-      JS.Key (+"insertTextFormat");
+      JS.Key ("insertTextFormat");
       Optional_InsertTextFormat'Write (S, V.insertTextFormat);
-      JS.Key (+"textEdit");
+      JS.Key ("textEdit");
       Optional_TextEdit'Write (S, V.textEdit);
-      JS.Key (+"additionalTextEdits");
+      JS.Key ("additionalTextEdits");
       TextEdit_Vector'Write (S, V.additionalTextEdits);
 
       if not V.commitCharacters.Is_Empty then
          Write_String_Vector (JS, +"commitCharacters", V.commitCharacters);
       end if;
 
-      JS.Key (+"command");
+      JS.Key ("command");
       Command'Write (S, V.command);
       JS.End_Object;
    end Write_CompletionItem;
@@ -2013,7 +2014,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Optional_Boolean (JS, +"isIncomplete", (True, V.isIncomplete));
-      JS.Key (+"items");
+      JS.Key ("items");
       CompletionItem_Vector'Write (S, V.items);
       JS.End_Object;
    end Write_CompletionList;
@@ -2047,9 +2048,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Write (S, V.span);
-      JS.Key (+"severity");
+      JS.Key ("severity");
       Optional_DiagnosticSeverity'Write (S, V.severity);
 
       if V.code.Is_Number then
@@ -2108,7 +2109,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"settings");
+      JS.Key ("settings");
       JS.Write (V.settings);
       JS.End_Object;
    end Write_DidChangeConfigurationParams;
@@ -2125,9 +2126,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       VersionedTextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key (+"contentChanges");
+      JS.Key ("contentChanges");
       TextDocumentContentChangeEvent_Vector'Write (S, V.contentChanges);
       JS.End_Object;
    end Write_DidChangeTextDocumentParams;
@@ -2144,7 +2145,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentItem'Write (S, V.textDocument);
       JS.End_Object;
    end Write_DidOpenTextDocumentParams;
@@ -2161,7 +2162,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
       Write_Optional_String (JS, +"text", V.text);
       JS.End_Object;
@@ -2196,9 +2197,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Write (S, V.span);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       JS.Write
         (GNATCOLL.JSON.Create
            (Integer'(DocumentHighlightKind'Pos (V.kind)) + 1));
@@ -2275,7 +2276,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.End_Object;
    end Write_DocumentSymbolParams;
@@ -2310,7 +2311,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Response_Prexif (S, V);
-      JS.Key (+"result");
+      JS.Key ("result");
       JS.Write (GNATCOLL.JSON.JSON_Null);
       JS.End_Object;
    end Write_ExecuteCommand_Response;
@@ -2344,7 +2345,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_String (JS, +"command", V.command);
-      JS.Key (+"arguments");
+      JS.Key ("arguments");
       JS.Write (V.arguments);
       JS.End_Object;
    end Write_ExecuteCommandParams;
@@ -2361,9 +2362,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"contents");
+      JS.Key ("contents");
       MarkedString_Vector'Write (S, V.contents);
-      JS.Key (+"range");
+      JS.Key ("range");
       Optional_Span'Write (S, V.Span);
       JS.End_Object;
    end Write_Hover;
@@ -2388,7 +2389,7 @@ package body LSP.Messages is
       end if;
 
       Write_String (JS, +"rootUri", V.rootUri);
-      JS.Key (+"capabilities");
+      JS.Key ("capabilities");
       LSP.Messages.ClientCapabilities'Write (S, V.capabilities);
 
       case V.trace is
@@ -2421,7 +2422,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"capabilities");
+      JS.Key ("capabilities");
       ServerCapabilities'Write (S, V.capabilities);
       JS.End_Object;
    end Write_InitializeResult;
@@ -2471,9 +2472,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Write (S, V.span);
       JS.End_Object;
    end Write_Location;
@@ -2569,7 +2570,7 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_Number) is
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Write (GNATCOLL.JSON.Create (Item));
    end Write_Number;
 
@@ -2583,7 +2584,7 @@ package body LSP.Messages is
      Item   : LSP.Types.Optional_Boolean) is
    begin
       if Item.Is_Set then
-         Stream.Key (Key);
+         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
          Stream.Write (GNATCOLL.JSON.Create (Item.Value));
       end if;
    end Write_Optional_Boolean;
@@ -2702,9 +2703,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
-      JS.Key (+"diagnostics");
+      JS.Key ("diagnostics");
 
       if V.diagnostics.Is_Empty then
          JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
@@ -2727,7 +2728,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"includeDeclaration");
+      JS.Key ("includeDeclaration");
       JS.Write (GNATCOLL.JSON.Create (V.includeDeclaration));
       JS.End_Object;
    end Write_ReferenceContext;
@@ -2744,11 +2745,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key (+"position");
+      JS.Key ("position");
       Position'Write (S, V.position);
-      JS.Key (+"context");
+      JS.Key ("context");
       ReferenceContext'Write (S, V.context);
       JS.End_Object;
    end Write_ReferenceParams;
@@ -2794,7 +2795,7 @@ package body LSP.Messages is
          Write_String (JS, +"id", V.id.String);
       end if;
 
-      JS.Key (+"error");
+      JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prexif;
 
@@ -2810,12 +2811,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"code");
+      JS.Key ("code");
       JS.Write (GNATCOLL.JSON.Create (Error_Map (V.code)));
       Write_String (JS, +"message", V.message);
 
       if not V.data.Is_Empty and not V.data.Is_Empty then
-         JS.Key (+"data");
+         JS.Key ("data");
          JS.Write (V.data);
       end if;
 
@@ -2850,12 +2851,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocumentSync");
+      JS.Key ("textDocumentSync");
       Optional_TextDocumentSyncOptions'Write (S, V.textDocumentSync);
       Write_Optional_Boolean (JS, +"hoverProvider", V.hoverProvider);
-      JS.Key (+"completionProvider");
+      JS.Key ("completionProvider");
       Optional_CompletionOptions'Write (S, V.completionProvider);
-      JS.Key (+"signatureHelpProvider");
+      JS.Key ("signatureHelpProvider");
       Optional_SignatureHelpOptions'Write (S, V.signatureHelpProvider);
       Write_Optional_Boolean (JS, +"definitionProvider", V.definitionProvider);
       Write_Optional_Boolean (JS, +"referencesProvider", V.referencesProvider);
@@ -2872,13 +2873,13 @@ package body LSP.Messages is
         (JS,
          +"documentRangeFormattingProvider",
          V.documentRangeFormattingProvider);
-      JS.Key (+"documentOnTypeFormattingProvider");
+      JS.Key ("documentOnTypeFormattingProvider");
       Optional_DocumentOnTypeFormattingOptions'Write
         (S, V.documentOnTypeFormattingProvider);
       Write_Optional_Boolean (JS, +"renameProvider", V.renameProvider);
-      JS.Key (+"documentLinkProvider");
+      JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Write (S, V.documentLinkProvider);
-      JS.Key (+"executeCommandProvider");
+      JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
       JS.End_Object;
    end Write_ServerCapabilities;
@@ -2912,7 +2913,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
 
-      JS.Key (+"signatures");
+      JS.Key ("signatures");
       if V.signatures.Is_Empty then
          JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
       else
@@ -2958,7 +2959,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_String (JS, +"label", V.label);
       Write_Optional_String (JS, +"documentation", V.documentation);
-      JS.Key (+"parameters");
+      JS.Key ("parameters");
       ParameterInformation_Vector'Write (S, V.parameters);
       JS.End_Object;
    end Write_SignatureInformation;
@@ -2997,9 +2998,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"start");
+      JS.Key ("start");
       Position'Write (S, V.first);
-      JS.Key (+"end");
+      JS.Key ("end");
       Position'Write (S, V.last);
       JS.End_Object;
    end Write_Span;
@@ -3013,7 +3014,7 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_String) is
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_String (Item)));
    end Write_String;
 
@@ -3026,7 +3027,7 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_String_Vector) is
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Start_Array;
 
       for J in 1 .. Item.Last_Index loop
@@ -3050,14 +3051,14 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_String (JS, +"name", V.name);
-      JS.Key (+"kind");
+      JS.Key ("kind");
       JS.Write
         (GNATCOLL.JSON.Create
            (Integer'(SymbolKind'Pos (V.kind)) + 1));
 
-      JS.Key (+"location");
+      JS.Key ("location");
       Location'Write (S, V.location);
-      JS.Key (+"edits");
+      JS.Key ("edits");
       Write_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
@@ -3116,35 +3117,35 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"synchronization");
+      JS.Key ("synchronization");
       synchronization'Write (S, V.synchronization);
-      JS.Key (+"completion");
+      JS.Key ("completion");
       completion'Write (S, V.completion);
-      JS.Key (+"hover");
+      JS.Key ("hover");
       dynamicRegistration'Write (S, V.hover);
-      JS.Key (+"signatureHelp");
+      JS.Key ("signatureHelp");
       dynamicRegistration'Write (S, V.signatureHelp);
-      JS.Key (+"references");
+      JS.Key ("references");
       dynamicRegistration'Write (S, V.references);
-      JS.Key (+"documentHighlight");
+      JS.Key ("documentHighlight");
       dynamicRegistration'Write (S, V.documentHighlight);
-      JS.Key (+"documentSymbol");
+      JS.Key ("documentSymbol");
       dynamicRegistration'Write (S, V.documentSymbol);
-      JS.Key (+"formatting");
+      JS.Key ("formatting");
       dynamicRegistration'Write (S, V.formatting);
-      JS.Key (+"rangeFormatting");
+      JS.Key ("rangeFormatting");
       dynamicRegistration'Write (S, V.rangeFormatting);
-      JS.Key (+"onTypeFormatting");
+      JS.Key ("onTypeFormatting");
       dynamicRegistration'Write (S, V.onTypeFormatting);
-      JS.Key (+"definition");
+      JS.Key ("definition");
       dynamicRegistration'Write (S, V.definition);
-      JS.Key (+"codeAction");
+      JS.Key ("codeAction");
       dynamicRegistration'Write (S, V.codeAction);
-      JS.Key (+"codeLens");
+      JS.Key ("codeLens");
       dynamicRegistration'Write (S, V.codeLens);
-      JS.Key (+"documentLink");
+      JS.Key ("documentLink");
       dynamicRegistration'Write (S, V.documentLink);
-      JS.Key (+"rename");
+      JS.Key ("rename");
       dynamicRegistration'Write (S, V.rename);
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
@@ -3161,7 +3162,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Optional_Span'Write (S, V.span);
       Write_Optional_Number (JS, +"rangeLength", V.rangeLength);
       Write_String (JS, +"text", V.text);
@@ -3200,9 +3201,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       VersionedTextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key (+"edits");
+      JS.Key ("edits");
       TextEdit_Vector'Write (S, V.edits);
       JS.End_Object;
    end Write_TextDocumentEdit;
@@ -3242,7 +3243,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
       JS.End_Object;
    end Write_TextDocumentIdentifier;
@@ -3278,9 +3279,9 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"textDocument");
+      JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key (+"position");
+      JS.Key ("position");
       Position'Write (S, V.position);
       JS.End_Object;
    end Write_TextDocumentPositionParams;
@@ -3315,7 +3316,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Optional_Boolean (JS, +"openClose", V.openClose);
-      JS.Key (+"change");
+      JS.Key ("change");
       Optional_TextDocumentSyncKind'Write (S, V.change);
       Write_Optional_Boolean (JS, +"willSave", V.willSave);
       Write_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
@@ -3335,7 +3336,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"range");
+      JS.Key ("range");
       Span'Write (S, V.span);
       Write_String (JS, +"newText", V.newText);
       JS.End_Object;
@@ -3371,7 +3372,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key (+"uri");
+      JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
       Write_Number (JS, +"version", LSP_Number (V.version));
       JS.End_Object;
@@ -3390,15 +3391,15 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Optional_Boolean (JS, +"applyEdit", V.applyEdit);
-      JS.Key (+"workspaceEdit");
+      JS.Key ("workspaceEdit");
       documentChanges'Write (S, V.workspaceEdit);
-      JS.Key (+"didChangeConfiguration");
+      JS.Key ("didChangeConfiguration");
       dynamicRegistration'Write (S, V.didChangeConfiguration);
-      JS.Key (+"didChangeWatchedFiles");
+      JS.Key ("didChangeWatchedFiles");
       dynamicRegistration'Write (S, V.didChangeWatchedFiles);
-      JS.Key (+"symbol");
+      JS.Key ("symbol");
       dynamicRegistration'Write (S, V.symbol);
-      JS.Key (+"executeCommand");
+      JS.Key ("executeCommand");
       dynamicRegistration'Write (S, V.executeCommand);
       JS.End_Object;
    end Write_WorkspaceClientCapabilities;
@@ -3416,10 +3417,12 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       if V.documentChanges.Is_Empty then
-         JS.Key (+"changes");
+         JS.Key ("changes");
          JS.Start_Object;
          for Cursor in V.changes.Iterate loop
-            JS.Key (TextDocumentEdit_Maps.Key (Cursor));
+            JS.Key
+              (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String
+                 (TextDocumentEdit_Maps.Key (Cursor)));
             JS.Start_Array;
             for Edit of V.changes (Cursor) loop
                TextEdit'Write (S, Edit);
@@ -3428,7 +3431,7 @@ package body LSP.Messages is
          end loop;
          JS.End_Object;
       else
-         JS.Key (+"documentChanges");
+         JS.Key ("documentChanges");
          TextDocumentEdit_Vector'Write (S, V.documentChanges);
       end if;
       JS.End_Object;

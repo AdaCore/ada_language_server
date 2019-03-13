@@ -15,16 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with LSP.JSON_Streams;
-with LSP.Types;
 
 package body LSP.Generic_Responses is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    -----------
    -- Input --
@@ -70,7 +63,7 @@ package body LSP.Generic_Responses is
       JS.Start_Object;
       Write_Response_Prexif (S, V);
       if not V.Is_Error then
-         JS.Key (+"result");
+         JS.Key ("result");
          T'Write (S, V.result);
       end if;
       JS.End_Object;

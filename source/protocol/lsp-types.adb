@@ -64,7 +64,7 @@ package body LSP.Types is
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Value := Stream.Read;
 
       if Value.Is_Empty then
@@ -89,7 +89,7 @@ package body LSP.Types is
    is
       Value : GNATCOLL.JSON.JSON_Value;
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Value := Stream.Read;
 
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
@@ -108,7 +108,7 @@ package body LSP.Types is
       Key    : LSP.Types.LSP_String;
       Item   : out LSP.Types.LSP_String) is
    begin
-      Stream.Key (Key);
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Item := To_LSP_String (Stream.Read.Get);
    end Read_String;
 
