@@ -1,3 +1,5 @@
+dist: xenial
+
 os:
   - linux
   - osx
@@ -12,6 +14,10 @@ before_install:
 
 script:
   - integration/travis/travis.sh script
+
+cache:
+  directories:
+  - $HOME/cache
 
 deploy:
   on:
@@ -31,3 +37,11 @@ jobs:
       if: branch = master
       before_install: echo before_install
       script: integration/travis/deploy.sh vsix
+
+    - stage: gps
+      os: linux
+      if: type = pull_request
+      before_install:
+        - integration/travis/travis.sh before_gps
+      script:
+        - integration/travis/travis.sh gps
