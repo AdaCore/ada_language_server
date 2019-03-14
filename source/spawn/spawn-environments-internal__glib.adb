@@ -15,12 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
 with Interfaces.C;
-
-with GNAT.Strings;
-
-with Glib.Spawn;
 
 package body Spawn.Environments.Internal is
 

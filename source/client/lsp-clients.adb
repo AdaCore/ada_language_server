@@ -453,7 +453,7 @@ package body LSP.Clients is
                   Params : LSP.Messages.ApplyWorkspaceEditParams;
                begin
                   Stream.Start_Object;
-                  Stream.Key (+"params");
+                  Stream.Key ("params");
                   LSP.Messages.ApplyWorkspaceEditParams'Read
                     (Stream'Access, Params);
 
