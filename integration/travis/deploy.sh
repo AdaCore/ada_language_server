@@ -29,7 +29,7 @@ function drop_rpath ()
 
 function darwin_deploy()
 {
-    LIB=../gnat/lib
+    LIB=$HOME/gnat/lib
 
     for J in \
         $LIB/libadalang.relocatable/libadalang \
