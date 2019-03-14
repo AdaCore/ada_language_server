@@ -7,17 +7,16 @@ mkdir -p $HOME/cache
 
 function linux_before_install()
 {
-    cp -R integration/travis /tmp/
-    cd ..
-    tar --exclude=.git \
-        -c -z -f /tmp/travis/lsp.tar.gz ada_language_server
-    docker build --tag lsp /tmp/travis
+    [ -f $GNAT_INSTALLER ] || wget -nv -O $GNAT_INSTALLER \
+        http://mirrors.cdn.adacore.com/art/5b0d7bffa3f5d709751e3e04
+    cp $GNAT_INSTALLER ./gnat-install
+    docker build --tag lsp --file=integration/travis/Dockerfile .
 }
 
 function linux_script()
 {
     docker run -i -t -v$(pwd)/upload:/upload lsp /bin/bash -c \
- 'tar xzf /tmp/lsp.tar.gz && make -C ada_language_server LIBRARY_TYPE=relocatable deploy'
+           'make -C /tmp/ada_language_server LIBRARY_TYPE=relocatable deploy'
 
 }
 
