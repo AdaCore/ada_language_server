@@ -1,30 +1,26 @@
-""" A set of utilities for transforming json data for the purposes of
-    serving it to the ALS.
+""" A set of utilities for transforming json/yaml/ALS traces data for the
+    purposes of the ALS testsuite.
 
-    This defines a mini format which is suitable for
-    writing tests, and which looks like json where
-    we can have single-line comments starting with //.
-
-    (TODO: we could also use JSON-minify for this).
+    This defines a yaml-based format for writing tests.
 
     The format of a test  looks like this:
     --------------
 
-    // comments look like this
+    # comments look like this
     {
-      // first the list of everything we send
+      # first the list of everything we send
       "emit": [
            {"id": 0, "method": "initialize", "params": {...}},
 
-            // ... the rest of requests that we emit
+            # ... the rest of requests that we emit
 
           ],
 
-      // then the list of everything we receive
+      # then the list of everything we receive
       "receive": [
          {"id": 0, "result": {...}},
 
-         // ... the rest of the data that we expect
+         # ... the rest of the data that we expect
        ]
     }
     --------------
@@ -39,6 +35,7 @@
 
 import re
 import json
+import yaml
 
 SEND_KEY = "emit"
 RECEIVE_KEY = "receive"
@@ -84,13 +81,8 @@ def test_file_to_test(test_file):
        In this dictionary, SEND_KEY contains what we send to the ALS,
        and RECEIVE_KEY contains what we expect in return.
     """
-    result = ""
-    # Very basic thing to remove comments indicated with '//'
     with open(test_file, 'rb') as f:
-        for line in f.readlines():
-            if not line.strip().startswith("//"):
-                result += line
-    return json.loads(result)
+        return yaml.load(f.read())
 
 
 def requests_to_protocol_string(reqs, pwd):
