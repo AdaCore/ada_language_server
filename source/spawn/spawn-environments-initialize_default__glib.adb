@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Interfaces.C;
 
 with GNAT.Strings;
 
