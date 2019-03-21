@@ -42,6 +42,7 @@ package body LSP.Generic_Responses is
             return V : Response :=
               (Parent with Is_Error => False, result => <>)
             do
+               JS.Key ("result");
                T'Read (S, V.result);
                JS.End_Object;
             end return;
