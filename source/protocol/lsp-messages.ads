@@ -2189,8 +2189,12 @@ package LSP.Messages is
    procedure Read_DidCloseTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidCloseTextDocumentParams);
+   procedure Write_DidCloseTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidCloseTextDocumentParams);
 
    for DidCloseTextDocumentParams'Read use Read_DidCloseTextDocumentParams;
+   for DidCloseTextDocumentParams'Write use Write_DidCloseTextDocumentParams;
 
    --```typescript
    --/**
