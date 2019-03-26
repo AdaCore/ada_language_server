@@ -2133,6 +2133,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_DidChangeTextDocumentParams;
 
+   --------------------------------------
+   -- Write_DidCloseTextDocumentParams --
+   --------------------------------------
+
+   procedure Write_DidCloseTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidCloseTextDocumentParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_DidCloseTextDocumentParams;
+
    -------------------------------------
    -- Write_DidOpenTextDocumentParams --
    -------------------------------------
