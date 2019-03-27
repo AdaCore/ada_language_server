@@ -15,7 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Glib.Spawns;
+with Glib.Main;
+with Glib.Spawn;
 
 with Spawn.Processes.Windows;
 
@@ -38,11 +39,11 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset;
       Kind : Standard_Pipe);
 
-   function Child_Watch is new Glib.Spawns.Generic_Child_Add_Watch
+   function Child_Watch is new Glib.Main.Generic_Child_Add_Watch
      (User_Data => Internal.Process_Reference);
 
    procedure My_Death_Collback
-     (pid    : Glib.Spawns.GPid;
+     (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
         with Convention => C;
@@ -158,7 +159,7 @@ package body Spawn.Processes is
       procedure On_Start is
       begin
          Self.Event := Child_Watch
-           (Glib.Spawns.GPid (Self.pid.hProcess),
+           (Glib.Spawn.GPid (Self.pid.hProcess),
             My_Death_Collback'Access,
             Self.Reference'Access);
       end On_Start;
@@ -213,7 +214,7 @@ package body Spawn.Processes is
    -----------------------
 
    procedure My_Death_Collback
-     (pid    : Glib.Spawns.GPid;
+     (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
    is
