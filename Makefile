@@ -15,6 +15,9 @@ DESTDIR=
 # Library type
 LIBRARY_TYPE=relocatable
 
+# Build mode (debug or production)
+BUILD_MODE=debug
+
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
    PLATFORM=win32
@@ -29,9 +32,12 @@ else
 endif
 
 ifeq ($(LIBRARY_TYPE), static)
-    LIBRARY_FLAGS=-XLIBRARY_TYPE=static -XXMLADA_BUILD=static -XGPR_BUILD=static
+    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) \
+		  -XLIBRARY_TYPE=static \
+		  -XXMLADA_BUILD=static \
+		  -XGPR_BUILD=static
 else
-    LIBRARY_FLAGS=
+    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)
 endif
 
 all:

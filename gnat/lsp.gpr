@@ -19,13 +19,53 @@ with "gnatcoll";
 
 project LSP is
 
+   type Any_Build_Mode is (
+      "production",
+      --  Produce efficient code to be used in production and don't treat
+      --  warnings as errors.
+
+      "debug"
+      --  Produce easy-to-debug code with extra checks. Treat warnings as
+      --  errors.
+   );
+   Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "debug");
+
    for Source_Dirs use ("../source/protocol");
    for Object_Dir use "../.obj/lsp";
    for Main use ();
 
+   -- Compute the list of default switches to build Ada unit
+
+   Ada_Switches := ();
+   case Build_Mode is
+      when "production" =>
+         Ada_Switches := (
+            --  Compile with optimizations
+            "-O2",
+
+            --  Generate debug information: this is useful to get meaningful
+            --  tracebacks.
+            "-g"
+         );
+
+      when "debug" =>
+         Ada_Switches := (
+            --  Compile with no optimization and with debug information to ease
+            --  investigation in debuggers.
+            "-O0", "-g",
+
+            --  Enable all warnings and GNAT stylechecks (plus O: check for
+            --  overriding indicators) and treat warnings as errors.
+            "-gnatwae", "-gnatygO",
+
+            --  Enable assertions and all validity checking options
+            "-gnata", "-gnatVa"
+         );
+
+   end case;
+
    package Compiler is
-      for Switches ("ada") use
-        ("-g", "-gnatwa", "-gnatyyO", "-gnatwe", "-gnata", "-gnatVa");
+      for Default_Switches ("Ada") use Ada_Switches;
    end Compiler;
 
    package Naming is
