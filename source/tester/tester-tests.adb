@@ -388,7 +388,6 @@ package body Tester.Tests is
          JSON.Set_Field (Name, List);
       end Sort_Reply;
 
-
    begin
       Self.Last_Message := JSON;
 

@@ -1089,7 +1089,6 @@ package body LSP.Messages is
       end;
    end Read_Response_Prexif;
 
-
    ------------------------
    -- Read_ResponseError --
    ------------------------
