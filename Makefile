@@ -15,8 +15,8 @@ DESTDIR=
 # Library type
 LIBRARY_TYPE=relocatable
 
-# Build mode (debug or production)
-BUILD_MODE=debug
+# Build mode (dev or prod)
+BUILD_MODE=dev
 
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
