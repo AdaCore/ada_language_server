@@ -20,15 +20,15 @@ with "gnatcoll";
 project LSP is
 
    type Any_Build_Mode is (
-      "production",
+      "prod",
       --  Produce efficient code to be used in production and don't treat
       --  warnings as errors.
 
-      "debug"
+      "dev"
       --  Produce easy-to-debug code with extra checks. Treat warnings as
       --  errors.
    );
-   Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "debug");
+   Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
 
    for Source_Dirs use ("../source/protocol");
    for Object_Dir use "../.obj/lsp";
@@ -38,7 +38,7 @@ project LSP is
 
    Ada_Switches := ();
    case Build_Mode is
-      when "production" =>
+      when "prod" =>
          Ada_Switches := (
             --  Compile with optimizations
             "-O2",
@@ -48,7 +48,7 @@ project LSP is
             "-g"
          );
 
-      when "debug" =>
+      when "dev" =>
          Ada_Switches := (
             --  Compile with no optimization and with debug information to ease
             --  investigation in debuggers.
