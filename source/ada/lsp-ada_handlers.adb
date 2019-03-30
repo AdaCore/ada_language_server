@@ -18,7 +18,11 @@
 with Ada.Strings.UTF_Encoding;
 with Ada.Directories;
 
+with GNAT.Strings;
 with GNATCOLL.JSON;
+with GNATCOLL.Utils;        use GNATCOLL.Utils;
+with GNATCOLL.VFS;          use GNATCOLL.VFS;
+with GNATCOLL.Traces;
 
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 with LSP.Types; use LSP.Types;
@@ -27,12 +31,10 @@ with LSP.Ada_Documents;
 with LSP.Lal_Utils;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Text;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
-
-with GNATCOLL.VFS;    use GNATCOLL.VFS;
-with GNATCOLL.Traces;
 
 package body LSP.Ada_Handlers is
 
@@ -70,6 +72,7 @@ package body LSP.Ada_Handlers is
         (True,
          (resolveProvider => (True, False),
           triggerCharacters => Empty_Vector & To_LSP_String (".")));
+      Response.result.capabilities.hoverProvider := True;
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := Self.Context.URI_To_File (Value.rootUri);
@@ -432,14 +435,209 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Hover_Response
    is
-      pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.Hover_Response (Is_Error => True);
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+
+      Response           : LSP.Messages.Hover_Response (Is_Error => False);
+      Document           : constant LSP.Ada_Documents.Document_Access :=
+                             Self.Context.Get_Document
+                               (Value.textDocument.uri);
+      Name_Node          : constant Name :=
+                             LSP.Lal_Utils.Get_Node_As_Name
+                               (Document.Get_Node_At (Value.position));
+      Defining_Name_Node : Defining_Name;
+      Decl               : Basic_Decl;
+      Subp_Spec_Node     : Base_Subp_Spec;
+      Hover_Text         : LSP_String;
+
+      procedure Create_Hover_Text_For_Basic_Decl;
+      --  Create the hover text for for basic declarations
+
+      procedure Create_Hover_Text_For_Subp_Spec;
+      --  Create the hover text for for subprogram declarations
+
+      --------------------------------------
+      -- Create_Hover_Text_For_Basic_Decl --
+      --------------------------------------
+
+      procedure Create_Hover_Text_For_Basic_Decl is
+      begin
+         --  Return an empty hover text for package declarations
+         if Decl.Kind in Ada_Base_Package_Decl then
+            return;
+         end if;
+
+         declare
+            Text        : constant String := Langkit_Support.Text.To_UTF8
+              (Decl.Text);
+            Lines       : GNAT.Strings.String_List_Access := Split
+              (Text,
+               On               => ASCII.LF,
+               Omit_Empty_Lines => True);
+            Idx         : Integer;
+         begin
+            --  Return an empty hover text if there is no text for this
+            --  delclaration (only for safety).
+            if Text = "" then
+               return;
+            end if;
+
+            --  If it's a single-line declaration, replace all the series of
+            --  whitespaces by only one blankspace.
+            --  If it's a multi-line declaration, remove only the unneeded
+            --  indentation whitespaces.
+
+            if Lines'Length = 1 then
+               declare
+                  Res_Idx : Integer := Text'First;
+                  Result  : String (Text'First .. Text'Last);
+               begin
+                  Idx := Text'First;
+
+                  while Idx <= Text'Last loop
+                     Skip_Blanks (Text, Idx);
+
+                     while Idx <= Text'Last
+                       and then not Is_Whitespace (Text (Idx))
+                     loop
+                        Result (Res_Idx) := Text (Idx);
+                        Idx := Idx + 1;
+                        Res_Idx := Res_Idx + 1;
+                     end loop;
+
+                     if Res_Idx < Result'Last then
+                        Result (Res_Idx) := ' ';
+                        Res_Idx := Res_Idx + 1;
+                     end if;
+                  end loop;
+
+                  if Res_Idx > Text'First then
+                     Hover_Text := To_LSP_String
+                       (Result (Text'First .. Res_Idx - 1));
+                  end if;
+               end;
+            else
+               declare
+                  Blanks_Count_Per_Line : array
+                    (Lines'First + 1 .. Lines'Last) of Natural;
+                  Indent_Blanks_Count   : Natural := Natural'Last;
+                  Start_Idx             : Integer;
+               begin
+                  Hover_Text := To_LSP_String (Lines (Lines'First).all);
+
+                  --  Count the blankpaces per line and track how many
+                  --  blankspaces we should remove on each line by finding
+                  --  the common identation blankspaces.
+
+                  for J in Lines'First + 1 .. Lines'Last loop
+                     Idx := Lines (J)'First;
+                     Skip_Blanks (Lines (J).all, Idx);
+
+                     Blanks_Count_Per_Line (J) := Idx - Lines (J)'First;
+                     Indent_Blanks_Count := Natural'Min
+                       (Indent_Blanks_Count,
+                        Blanks_Count_Per_Line (J));
+                  end loop;
+
+                  for J in Lines'First + 1 .. Lines'Last loop
+                     Start_Idx := Lines (J)'First + Indent_Blanks_Count;
+                     Hover_Text := Hover_Text & To_LSP_String
+                       (ASCII.LF
+                        & Lines (J).all (Start_Idx .. Lines (J)'Last));
+                  end loop;
+               end;
+            end if;
+
+            GNAT.Strings.Free (Lines);
+         end;
+      end Create_Hover_Text_For_Basic_Decl;
+
+      -------------------------------------
+      -- Create_Hover_Text_For_Subp_Spec --
+      -------------------------------------
+
+      procedure Create_Hover_Text_For_Subp_Spec is
+         Text  : constant String := Langkit_Support.Text.To_UTF8
+           (Subp_Spec_Node.Text);
+         Lines : GNAT.Strings.String_List_Access := Split
+           (Text,
+            On               => ASCII.LF,
+            Omit_Empty_Lines => True);
+         Idx   : Integer;
+      begin
+         --  For single-line subprogram specifications, we display the
+         --  associated text directly.
+         --  For multi-line ones, remove the identation blankspaces to replace
+         --  them by a fixed number of blankspaces.
+
+         if Lines'Length = 1 then
+            Hover_Text := To_LSP_String (Text);
+         else
+            Hover_Text := To_LSP_String (Lines (Lines'First).all);
+
+            for J in Lines'First + 1 .. Lines'Last loop
+               Idx := Lines (J)'First;
+               Skip_Blanks (Lines (J).all, Idx);
+
+               Hover_Text := Hover_Text
+                 & To_LSP_String
+                 (ASCII.LF
+                  & (if Lines (J).all (Idx) = '(' then "  " else "   ")
+                  & Lines (J).all (Idx .. Lines (J).all'Last));
+            end loop;
+         end if;
+
+         GNAT.Strings.Free (Lines);
+      end Create_Hover_Text_For_Subp_Spec;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Messages.InternalError,
-          message => To_LSP_String ("Not implemented"),
-          data => <>));
+      if Name_Node = No_Name then
+         return Response;
+      end if;
+
+      --  Get the defining node of the node being hovered
+      Defining_Name_Node := LSP.Lal_Utils.Resolve_Name
+        (Name_Node => Name_Node);
+
+      if Defining_Name_Node = No_Defining_Name then
+         return Response;
+      end if;
+
+      --  Get the associated basic declaration
+      Decl := Defining_Name_Node.P_Basic_Decl;
+
+      if Decl = No_Basic_Decl then
+         return Response;
+      end if;
+
+      --  Try to retrieve the subprogram spec node, if any: if it's a
+      --  subprogram node that does not have any separate declaration we
+      --  only want to display its specification, not the body.
+      Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
+
+      if Subp_Spec_Node /= No_Base_Subp_Spec then
+         Create_Hover_Text_For_Subp_Spec;
+      else
+         Create_Hover_Text_For_Basic_Decl;
+      end if;
+
+      --  Append the associated basic declaration's text to the response.
+      --  We set the language for highlighting.
+      if Hover_Text /= Empty_LSP_String then
+         Response.result.contents.Append
+           (LSP.Messages.MarkedString'
+              (Is_String => False,
+               value     => Hover_Text,
+               language  => To_LSP_String ("ada")));
+
+         --  TODO: append the trivias associated with the basic declaration
+         --  node when available in libadalang.
+         Response.result.contents.Append
+           (LSP.Messages.MarkedString'
+              (Is_String => True,
+               value     => To_LSP_String ("TODO: append the comments")));
+      end if;
+
       return Response;
    end On_Hover_Request;
 
