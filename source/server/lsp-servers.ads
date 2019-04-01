@@ -17,8 +17,9 @@
 
 with Ada.Streams;
 
-with LSP.Messages;
+with LSP.Client_Notifications;
 with LSP.Message_Handlers;
+with LSP.Messages;
 with LSP.Server_Notifications;
 with LSP.Types;
 
@@ -28,9 +29,9 @@ private with LSP.Request_Dispatchers;
 private with Ada.Strings.Unbounded;
 
 package LSP.Servers is
---   pragma Preelaborate;
 
-   type Server is tagged limited private;
+   type Server is limited
+     new LSP.Client_Notifications.Client_Notification_Handler with private;
 
    procedure Initialize
      (Self         : in out Server;
@@ -38,10 +39,6 @@ package LSP.Servers is
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
       Notification : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
-
-   procedure Send_Notification
-     (Self  : in out Server;
-      Value : in out LSP.Messages.NotificationMessage'Class);
 
    procedure Run (Self  : in out Server);
 
@@ -56,7 +53,9 @@ package LSP.Servers is
 
 private
 
-   type Server is tagged limited record
+   type Server is limited
+     new LSP.Client_Notifications.Client_Notification_Handler with
+   record
       Initilized : Boolean;
       Stop       : Boolean := False;
       --  Mark Server as uninitialized until get 'initalize' request
@@ -70,5 +69,22 @@ private
       Last_Request  : LSP.Types.LSP_Number := 1;
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
    end record;
+
+   procedure Send_Notification
+     (Self  : in out Server;
+      Value : in out LSP.Messages.NotificationMessage'Class);
+   --  Send given notification to client
+
+   overriding procedure Show_Message
+     (Self   : in out Server;
+      Params : LSP.Messages.ShowMessageParams);
+
+   overriding procedure Log_Message
+     (Self   : in out Server;
+      Params : LSP.Messages.LogMessageParams);
+
+   overriding procedure Publish_Diagnostics
+     (Self   : in out Server;
+      Params : LSP.Messages.PublishDiagnosticsParams);
 
 end LSP.Servers;

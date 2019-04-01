@@ -187,14 +187,13 @@ package body LSP.Ada_Handlers is
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
-      Note     : LSP.Messages.PublishDiagnostics_Notification;
+      Diag     : LSP.Messages.PublishDiagnosticsParams;
    begin
       Document.Apply_Changes (Value.contentChanges);
-      Document.Get_Errors (Note.params.diagnostics);
+      Document.Get_Errors (Diag.diagnostics);
 
-      Note.method := +"textDocument/publishDiagnostics";
-      Note.params.uri := Value.textDocument.uri;
-      Self.Server.Send_Notification (Note);
+      Diag.uri := Value.textDocument.uri;
+      Self.Server.Publish_Diagnostics (Diag);
    end Text_Document_Did_Change;
 
    -----------------------------

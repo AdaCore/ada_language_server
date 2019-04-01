@@ -156,6 +156,22 @@ package body LSP.Servers is
       end loop;
    end Initialize;
 
+   -----------------
+   -- Log_Message --
+   -----------------
+
+   overriding procedure Log_Message
+     (Self   : in out Server;
+      Params : LSP.Messages.LogMessageParams)
+   is
+      Message : LSP.Messages.LogMessage_Notification;
+   begin
+      Message.method := +"window/logMessage";
+      Message.params := Params;
+
+      Self.Send_Notification (Message);
+   end Log_Message;
+
    ---------------------------------
    -- Process_Message_From_Stream --
    ---------------------------------
@@ -448,6 +464,22 @@ package body LSP.Servers is
       end loop;
    end Process_Message_Loop;
 
+   -------------------------
+   -- Publish_Diagnostics --
+   -------------------------
+
+   overriding procedure Publish_Diagnostics
+     (Self   : in out Server;
+      Params : LSP.Messages.PublishDiagnosticsParams)
+   is
+      Message : LSP.Messages.PublishDiagnostics_Notification;
+   begin
+      Message.method := +"textDocument/publishDiagnostics";
+      Message.params := Params;
+
+      Self.Send_Notification (Message);
+   end Publish_Diagnostics;
+
    ---------
    -- Run --
    ---------
@@ -475,6 +507,22 @@ package body LSP.Servers is
       Element_Vector := To_Unbounded_String (JSON_Stream);
       Write_JSON_RPC (Self.Stream, Element_Vector);
    end Send_Notification;
+
+   ------------------
+   -- Show_Message --
+   ------------------
+
+   overriding procedure Show_Message
+     (Self   : in out Server;
+      Params : LSP.Messages.ShowMessageParams)
+   is
+      Message : LSP.Messages.ShowMessage_Notification;
+   begin
+      Message.method := +"window/showMessage";
+      Message.params := Params;
+
+      Self.Send_Notification (Message);
+   end Show_Message;
 
    ----------
    -- Stop --
