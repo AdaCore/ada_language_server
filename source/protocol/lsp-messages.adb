@@ -33,6 +33,11 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_String);
 
+   procedure Read_MessageType
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out MessageType);
+
    procedure Read_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -47,6 +52,11 @@ package body LSP.Messages is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_Number);
+
+   procedure Write_MessageType
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : MessageType);
 
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -803,6 +813,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Location;
 
+   ---------------------------
+   -- Read_LogMessageParams --
+   ---------------------------
+
+   procedure Read_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LogMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_MessageType (JS, +"type", V.the_type);
+      Read_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Read_LogMessageParams;
+
    -----------------------
    -- Read_MarkedString --
    -----------------------
@@ -843,6 +870,17 @@ package body LSP.Messages is
       end loop;
       JS.End_Array;
    end Read_MarkedString_Vector;
+
+   procedure Read_MessageType
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out MessageType)
+   is
+      Value : LSP.Types.LSP_Number;
+   begin
+      Read_Number (Stream, Key, Value);
+      Item := MessageType'Val (Value - 1);
+   end Read_MessageType;
 
    ------------------------------
    -- Read_Notification_Prexif --
@@ -1254,6 +1292,41 @@ package body LSP.Messages is
       Read_String_Vector (JS, +"triggerCharacters", V.triggerCharacters);
       JS.End_Object;
    end Read_SignatureHelpOptions;
+
+   ----------------------------
+   -- Read_ShowMessageParams --
+   ----------------------------
+
+   procedure Read_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_MessageType (JS, +"type", V.the_type);
+      Read_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Read_ShowMessageParams;
+
+   -----------------------------------
+   -- Read_ShowMessageRequestParams --
+   -----------------------------------
+
+   procedure Read_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageRequestParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_MessageType (JS, +"type", V.the_type);
+      Read_String (JS, +"message", V.message);
+      Read_String_Vector (JS, +"actions", V.actions);
+      JS.End_Object;
+   end Read_ShowMessageRequestParams;
 
    ---------------
    -- Read_Span --
@@ -1768,6 +1841,55 @@ package body LSP.Messages is
       ApplyWorkspaceEditParams'Write (S, V.params);
       JS.End_Object;
    end Write_ApplyWorkspaceEdit_Request;
+
+   procedure Write_ShowMessage_Request
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessage_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Request_Prexif (S, V);
+      JS.Key ("params");
+      ShowMessageRequestParams'Write (S, V.params);
+      JS.End_Object;
+   end Write_ShowMessage_Request;
+
+   -----------------------------
+   -- Write_ShowMessageParams --
+   -----------------------------
+
+   procedure Write_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_MessageType (JS, +"type", V.the_type);
+      Write_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Write_ShowMessageParams;
+
+   ------------------------------------
+   -- Write_ShowMessageRequestParams --
+   ------------------------------------
+
+   procedure Write_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageRequestParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_MessageType (JS, +"type", V.the_type);
+      Write_String (JS, +"message", V.message);
+      Write_String_Vector (JS, +"actions", V.actions);
+      JS.End_Object;
+   end Write_ShowMessageRequestParams;
 
    ------------------------------------
    -- Write_ApplyWorkspaceEditParams --
@@ -2518,6 +2640,23 @@ package body LSP.Messages is
       JS.End_Array;
    end Write_Location_Vector;
 
+   ----------------------------
+   -- Write_LogMessageParams --
+   ----------------------------
+
+   procedure Write_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_MessageType (JS, +"type", V.the_type);
+      Write_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Write_LogMessageParams;
+
    ------------------------
    -- Write_MarkedString --
    ------------------------
@@ -2561,6 +2700,18 @@ package body LSP.Messages is
       end loop;
       JS.End_Array;
    end Write_MarkedString_Vector;
+
+   -----------------------
+   -- Write_MessageType --
+   -----------------------
+
+   procedure Write_MessageType
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : MessageType) is
+   begin
+      Write_Number (Stream, Key, MessageType'Pos (Item) + 1);
+   end Write_MessageType;
 
    -------------------------------
    -- Write_Notification_Prexif --
