@@ -40,7 +40,11 @@ package LSP.Ada_Contexts is
    procedure Load_Project
      (Self     : in out Context;
       File     : LSP.Types.LSP_String;
-      Scenario : LSP.Types.LSP_Any);
+      Scenario : LSP.Types.LSP_Any;
+      Errors   : out LSP.Messages.ShowMessageParams);
+   --  Load given project File using given Scenario variables.
+   --  In case of errors create and load default project.
+   --  Return warnings and errors in Errors parameter.
 
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
@@ -83,6 +87,12 @@ private
       Equivalent_Keys => LSP.Types."=",
       "="             => LSP.Ada_Documents."=");
 
+   type Project_Status is
+     (User_Provided_Project,  --  Server uses user provides project
+      Default_Project,        --  No project provided and found, server created
+      Found_Unique_Project,   --  No project provided, but server found one
+      Found_Non_Unique_Project);   --  Server found several and choose one
+
    type Context is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
@@ -93,9 +103,11 @@ private
       Documents      : Document_Maps.Map;
    end record;
 
-   function Find_Project_File
-     (Self : in out Context;
-      File : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
+   procedure Find_Project_File
+     (Self      : in out Context;
+      File      : LSP.Types.LSP_String;
+      Project   : out GNATCOLL.VFS.Virtual_File;
+      Status    : out Project_Status);
    --  Find GPR file
 
    function Is_Initialized (Self : Context) return Boolean
