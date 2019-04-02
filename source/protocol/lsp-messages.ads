@@ -1696,6 +1696,15 @@ package LSP.Messages is
       message: LSP_String;
    end record;
 
+   procedure Read_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageParams);
+   procedure Write_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageParams);
+   for ShowMessageParams'Read use Read_ShowMessageParams;
+   for ShowMessageParams'Write use Write_ShowMessageParams;
+
    --```typescript
    --interface ShowMessageRequestParams {
    --	/**
@@ -1747,6 +1756,15 @@ package LSP.Messages is
       the_type: MessageType;  --  type: is reserver word
       message: LSP_String;
    end record;
+
+   procedure Read_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LogMessageParams);
+   procedure Write_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogMessageParams);
+   for LogMessageParams'Read use Read_LogMessageParams;
+   for LogMessageParams'Write use Write_LogMessageParams;
 
    --```typescript
    --export interface TextDocumentRegistrationOptions {
@@ -3504,6 +3522,10 @@ package LSP.Messages is
 
    subtype Workspace_Symbols_Request is Workspace_Symbols_Requests.Request;
 
+   type ShowMessage_Request is new RequestMessage with record
+      params : ShowMessageRequestParams;
+   end record;
+
    type ApplyWorkspaceEdit_Request is new RequestMessage with record
       params : ApplyWorkspaceEditParams;
    end record;
@@ -3560,6 +3582,10 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ApplyWorkspaceEditParams);
 
+   procedure Read_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageRequestParams);
+
    procedure Read_TextDocumentEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentEdit_Vector);
@@ -3580,6 +3606,14 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommand_Response);
 
+   procedure Write_ShowMessage_Request
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessage_Request);
+
+   procedure Write_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageRequestParams);
+
    procedure Write_Shutdown_Request
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Shutdown_Request);
@@ -3595,11 +3629,14 @@ private
    for ApplyWorkspaceEdit_Request'Write use Write_ApplyWorkspaceEdit_Request;
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
+   for ShowMessage_Request'Write use Write_ShowMessage_Request;
+   for ShowMessageRequestParams'Write use Write_ShowMessageRequestParams;
    for Shutdown_Request'Write use Write_Shutdown_Request;
    for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
 
    for ApplyWorkspaceEditParams'Read use Read_ApplyWorkspaceEditParams;
+   for ShowMessageRequestParams'Read use Read_ShowMessageRequestParams;
    for TextDocumentEdit_Vector'Read use Read_TextDocumentEdit_Vector;
    for WorkspaceEdit'Read use Read_WorkspaceEdit;
 
