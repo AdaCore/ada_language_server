@@ -216,6 +216,7 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
+      Errors : LSP.Messages.ShowMessageParams;
    begin
 
       GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
@@ -245,7 +246,12 @@ package body LSP.Ada_Handlers is
       end if;
 
       if not Self.Context.Has_Project then
-         Self.Context.Load_Project (Empty_LSP_String, GNATCOLL.JSON.JSON_Null);
+         Self.Context.Load_Project
+           (Empty_LSP_String, GNATCOLL.JSON.JSON_Null, Errors);
+
+         if not LSP.Types.Is_Empty (Errors.message) then
+            Self.Server.Show_Message (Errors);
+         end if;
       end if;
 
       Self.Context.Load_Document (Value.textDocument);
@@ -447,6 +453,7 @@ package body LSP.Ada_Handlers is
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
       Variables : LSP.Types.LSP_Any;
+      Errors    : LSP.Messages.ShowMessageParams;
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (projectFile) then
@@ -465,7 +472,11 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      Self.Context.Load_Project (File, Variables);
+      Self.Context.Load_Project (File, Variables, Errors);
+
+      if not LSP.Types.Is_Empty (Errors.message) then
+         Self.Server.Show_Message (Errors);
+      end if;
    end Workspace_Did_Change_Configuration;
 
    ---------------------------------------
