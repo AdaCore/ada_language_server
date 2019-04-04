@@ -19,6 +19,11 @@ package body Spawn.Environments is
 
    procedure Initialize_Default (Default : out Process_Environment);
 
+   function Search_In_Path
+     (File : UTF_8_String;
+      Path : UTF_8_String) return UTF_8_String;
+   --  Look for File in given list of directories
+
    Default : Process_Environment;
 
    -----------
@@ -101,6 +106,28 @@ package body Spawn.Environments is
    begin
       Self.Map.Exclude (Name);
    end Remove;
+
+   function Search_In_Path
+     (File : UTF_8_String;
+      Path : UTF_8_String) return UTF_8_String is separate;
+
+   -----------------
+   -- Search_Path --
+   -----------------
+
+   function Search_Path
+    (Self : Process_Environment'Class;
+     File : UTF_8_String;
+     Name : UTF_8_String := "PATH") return UTF_8_String
+   is
+      Value : constant UTF_8_String := Self.Value (Name);
+   begin
+      if Value = "" then
+         return "";
+      else
+         return Search_In_Path (File, Value);
+      end if;
+   end Search_Path;
 
    ------------------------
    -- System_Environment --

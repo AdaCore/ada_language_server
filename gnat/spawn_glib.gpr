@@ -58,6 +58,8 @@ project Spawn_Glib is
                use "spawn-environments-internal__glib.ads";
             for Body ("Spawn.Environments.Internal")
                use "spawn-environments-internal__glib.adb";
+            for Body ("Spawn.Environments.Search_In_Path")
+               use "spawn-environments-search_in_path__posix.adb";
             for Body ("Spawn.Processes")
                use "spawn-processes__glib.adb";
          when "Windows_NT" =>
@@ -71,6 +73,8 @@ project Spawn_Glib is
                use "spawn-environments-internal__windows.ads";
             for Body ("Spawn.Environments.Internal")
                use "spawn-environments-internal__windows.adb";
+            for Body ("Spawn.Environments.Search_In_Path")
+               use "spawn-environments-search_in_path__windows.adb";
             for Body ("Spawn.Processes")
                use "spawn-processes__glib_windows.adb";
       end case;

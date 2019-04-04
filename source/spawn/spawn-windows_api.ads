@@ -223,4 +223,19 @@ package Spawn.Windows_API is
    --  he I/O operation has been aborted because of either a thread exit or an
    --  application request.
 
+   function SearchPath
+     (lpPath         : LPWSTR;
+      lpFileName     : LPWSTR;
+      lpExtension    : LPWSTR;
+      nBufferLength  : DWORD;
+      lpBuffer       : LPWSTR;
+      lpFilePart     : access LPWSTR)
+        return DWORD
+          with Import, Convention => Stdcall,
+               External_Name => "SearchPathW";
+   --  Searches for a specified file in a specified path
+
+   MAX_PATH : constant := 32767;
+   --  Max file name length. Legacy MAX_PATH was 256
+
 end Spawn.Windows_API;

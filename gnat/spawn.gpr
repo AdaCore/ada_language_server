@@ -63,6 +63,8 @@ project Spawn is
                use "spawn-environments-internal__posix.adb";
             for Body ("Spawn.Processes")
                use "spawn-processes__posix.adb";
+            for Body ("Spawn.Environments.Search_In_Path")
+               use "spawn-environments-search_in_path__posix.adb";
             for Body ("Spawn.Processes.Monitor")
                use "spawn-processes-monitor__posix.adb";
          when "Windows_NT" =>
@@ -78,6 +80,8 @@ project Spawn is
                use "spawn-environments-internal__windows.adb";
             for Body ("Spawn.Processes")
                use "spawn-processes__windows.adb";
+            for Body ("Spawn.Environments.Search_In_Path")
+               use "spawn-environments-search_in_path__windows.adb";
             for Body ("Spawn.Processes.Monitor")
                use "spawn-processes-monitor__windows.adb";
       end case;
