@@ -212,10 +212,10 @@ package body Tester.Tests is
       procedure Sweep_Waits (JSON : GNATCOLL.JSON.JSON_Value);
       --  Find matching wait if any and delete it from Test.Waits
 
-      function Match (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean
-        with Pre => Left.Kind = GNATCOLL.JSON.JSON_Object_Type
-                      and Right.Kind = GNATCOLL.JSON.JSON_Object_Type;
-      --  Check if Left has all properties from Right.
+      function Match (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean;
+      --  For JSON Objects check if Left has all properties from Right.
+      --  For JSON Array check length and each item recursively.
+      --  For JSON simple type check if Reft and Right are equal.
 
       procedure Sort_Reply
         (Name  : String;
@@ -229,75 +229,74 @@ package body Tester.Tests is
       -----------
 
       function Match (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean is
-         procedure Match_Proerty
+
+         use type GNATCOLL.JSON.JSON_Value;
+
+         procedure Match_Property
            (Name  : String;
             Value : GNATCOLL.JSON.JSON_Value);
          --  Match one property in JSON object
 
          Success : Boolean := True;
 
-         -------------------
-         -- Match_Proerty --
-         -------------------
+         --------------------
+         -- Match_Property --
+         --------------------
 
-         procedure Match_Proerty
+         procedure Match_Property
            (Name  : String;
             Value : GNATCOLL.JSON.JSON_Value)
          is
-            use type GNATCOLL.JSON.JSON_Value;
          begin
             if Left.Has_Field (Name) then
                declare
                   Prop : constant GNATCOLL.JSON.JSON_Value := Left.Get (Name);
                begin
-                  if Prop.Kind /= Value.Kind then
-                     Success := False;
-                     return;
-                  end if;
-
-                  case Prop.Kind is
-                     when GNATCOLL.JSON.JSON_Object_Type =>
-                        if not Match (Prop, Value) then
-                           Success := False;
-                        end if;
-
-                     when GNATCOLL.JSON.JSON_Array_Type =>
-                        declare
-                           L : constant GNATCOLL.JSON.JSON_Array := Prop.Get;
-                           R : constant GNATCOLL.JSON.JSON_Array := Value.Get;
-                           Len : constant Natural := GNATCOLL.JSON.Length (L);
-                        begin
-                           if Len /= GNATCOLL.JSON.Length (R) then
-                              Success := False;
-                              return;
-                           end if;
-
-                           for J in 1 .. Len loop
-                              if not Match
-                                (GNATCOLL.JSON.Get (L, J),
-                                 GNATCOLL.JSON.Get (R, J))
-                              then
-                                 Success := False;
-                                 return;
-                              end if;
-                           end loop;
-                        end;
-
-                     when others =>
-                        if Prop /= Value then
-                           Success := False;
-                        end if;
-                  end case;
+                  Success := Match (Prop, Value);
                end;
             else
                Success := False;
             end if;
-         end Match_Proerty;
+         end Match_Property;
 
       begin
-         Right.Map_JSON_Object (Match_Proerty'Access);
+         if Left.Kind /= Right.Kind then
+            return False;
+         end if;
 
-         return Success;
+         case Left.Kind is
+            when GNATCOLL.JSON.JSON_Object_Type =>
+
+               Right.Map_JSON_Object (Match_Property'Access);
+
+               return Success;
+
+            when GNATCOLL.JSON.JSON_Array_Type =>
+               declare
+                  L : constant GNATCOLL.JSON.JSON_Array := Left.Get;
+                  R : constant GNATCOLL.JSON.JSON_Array := Right.Get;
+                  Len : constant Natural := GNATCOLL.JSON.Length (L);
+               begin
+                  if Len /= GNATCOLL.JSON.Length (R) then
+                     return False;
+                  end if;
+
+                  for J in 1 .. Len loop
+                     if not Match
+                       (GNATCOLL.JSON.Get (L, J),
+                        GNATCOLL.JSON.Get (R, J))
+                     then
+                        return False;
+                     end if;
+                  end loop;
+
+                  return True;
+               end;
+
+            when others =>
+
+               return Left = Right;
+         end case;
       end Match;
 
       -----------------
