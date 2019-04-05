@@ -369,7 +369,7 @@ package body LSP.Ada_Contexts is
 
    function Get_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access is
-     (Self.Project_Tree.Root_Project.Source_Files);
+     (Self.Project_Tree.Root_Project.Source_Files (Recursive => True));
 
    -----------------
    -- URI_To_File --
