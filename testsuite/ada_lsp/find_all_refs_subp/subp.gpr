@@ -1,0 +1,3 @@
+project Subp is
+   for Source_Dirs use ("subsrc");
+end Subp;
