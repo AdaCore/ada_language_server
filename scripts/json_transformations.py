@@ -37,11 +37,15 @@ def traces_to_test(input_file, output_file, project_root=None):
                 if m:
                     cleaned = m.group(1)
                     if project_root:
-                        cleaned = re.sub('"{}/?(.*)'.format(project_root),
-                                         'URI{\\1}', cleaned
+                        cleaned = re.sub('"file://?{}/?([^"]*)"'.format(project_root),
+                                         '"$URI{\\1}"', cleaned
                                          ).replace('URI{}', 'URI{.}')
                     d = json.loads(cleaned)
                     l.append(d)
+
+    # Delete the 'jsonrpc' from all waits
+    for w in waits:
+        del(w['jsonrpc'])
 
     # Generate the test header
     result = [{"comment": ["test automatically generated"]},
@@ -49,10 +53,10 @@ def traces_to_test(input_file, output_file, project_root=None):
 
     # Generate all the send commands
     for s in sends:
-        result.append({"send": {"request": s}})
+        result.append({"send": {"request": s, "wait": []}})
 
     # For now, append all the "waits" as expected in the last request
-    result[-1]["wait"] = waits
+    result[-1]["send"]["wait"] = waits
 
     # Generate the test footer
     result.append({"stop": {"exit_code": 0}})
