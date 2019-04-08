@@ -30,7 +30,7 @@ with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with GNATCOLL.VFS;
+with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 package body LSP.Ada_Handlers is
@@ -364,11 +364,13 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         References : constant Ada_Node_Array := Find_All_References
+         Ada_Sources : File_Array_Access := Self.Context.Get_Ada_Source_Files;
+         References  : constant Ada_Node_Array := Find_All_References
              (Definition         => Definition,
-              Sources            => Self.Context.Get_Source_Files,
+              Sources            => Ada_Sources,
               Include_Definition => Value.context.includeDeclaration);
       begin
+         Unchecked_Free (Ada_Sources);
          for Node of References loop
             declare
                use Libadalang.Common;

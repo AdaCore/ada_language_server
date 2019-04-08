@@ -16,10 +16,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Directories;
+with Ada.Characters.Handling;  use Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding;
 with Ada.Text_IO;
 
 with GNATCOLL.JSON;
+with GNATCOLL.Projects; use GNATCOLL.Projects;
+with GNATCOLL.VFS;      use GNATCOLL.VFS;
 with GNAT.OS_Lib;
 
 with URIs;
@@ -191,8 +194,6 @@ package body LSP.Ada_Contexts is
       Scenario : LSP.Types.LSP_Any;
       Errors   : out LSP.Messages.ShowMessageParams)
    is
-      use GNATCOLL.VFS;
-
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
       procedure On_Error (Text : String);
       function Create_Default return GNATCOLL.VFS.Virtual_File;
@@ -363,13 +364,43 @@ package body LSP.Ada_Contexts is
       Self.Documents.Delete (Item.uri);
    end Unload_Document;
 
-   ----------------------
-   -- Get_Source_Files --
-   ----------------------
+   --------------------------
+   -- Get_Ada_Source_Files --
+   --------------------------
 
-   function Get_Source_Files
-     (Self : Context) return GNATCOLL.VFS.File_Array_Access is
-     (Self.Project_Tree.Root_Project.Source_Files (Recursive => True));
+   function Get_Ada_Source_Files
+     (Self : Context) return GNATCOLL.VFS.File_Array_Access
+   is
+      All_Sources     : File_Array_Access :=
+        Self.Project_Tree.Root_Project.Source_Files (Recursive => True);
+      All_Ada_Sources : File_Array (1 .. All_Sources'Length);
+      Free_Index      : Natural := All_Ada_Sources'First;
+      Set             : File_Info_Set;
+   begin
+      --  Iterate through all sources, returning only those that have Ada as
+      --  language.
+      for J in All_Sources'Range loop
+         Set := Self.Project_Tree.Info_Set (All_Sources (J));
+         if not Set.Is_Empty then
+            --  The file can be listed in several projects with different
+            --  Info_Sets, in the case of aggregate project. However, assume
+            --  that the language is the same in all projects, so look only
+            --  at the first entry in the set.
+            declare
+               Info : constant File_Info'Class :=
+                 File_Info'Class (Set.First_Element);
+            begin
+               if To_Lower (Info.Language) = "ada" then
+                  All_Ada_Sources (Free_Index) := All_Sources (J);
+                  Free_Index := Free_Index + 1;
+               end if;
+            end;
+         end if;
+      end loop;
+
+      Unchecked_Free (All_Sources);
+      return new File_Array'(All_Ada_Sources (1 .. Free_Index - 1));
+   end Get_Ada_Source_Files;
 
    -----------------
    -- URI_To_File --
