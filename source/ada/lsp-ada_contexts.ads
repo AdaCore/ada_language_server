@@ -63,8 +63,10 @@ package LSP.Ada_Contexts is
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
 
-   function Get_Source_Files
+   function Get_Ada_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;
+   --  Return the list of Ada source files in the loaded project tree.
+   --  Callers must free the result using GNATCOLL.VFS.Unchecked_Free.
 
    function URI_To_File
      (Self : Context;

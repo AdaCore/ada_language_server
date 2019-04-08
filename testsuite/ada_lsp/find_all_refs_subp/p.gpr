@@ -1,4 +1,5 @@
 with "subp";
 
 project p is
+  for Languages use ("C", "Ada");
 end p;
