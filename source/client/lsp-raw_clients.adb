@@ -72,7 +72,7 @@ package body LSP.Raw_Clients is
       Ada.Strings.Unbounded.Append (Self.To_Write, Header);
       Ada.Strings.Unbounded.Append (Self.To_Write, Text);
 
-      if Self.Can_Write then
+      if Self.Standard_Input_Available then
          Self.Listener.Standard_Input_Available;
       end if;
    end Send_Message;
@@ -148,29 +148,40 @@ package body LSP.Raw_Clients is
       Client       : Raw_Clients.Raw_Client'Class renames Self.Client.all;
       To_Write_Len : constant Natural :=
         Ada.Strings.Unbounded.Length (Client.To_Write);
-      Piece_Length : constant Natural := To_Write_Len - Client.Written;
-   begin
-      if Piece_Length > 0 then
-         declare
-            Slice : String := Ada.Strings.Unbounded.Slice
-              (Client.To_Write, Client.Written + 1, To_Write_Len);
-            Raw   : Ada.Streams.Stream_Element_Array
-              (1 .. Ada.Streams.Stream_Element_Count'Last)
-                with Import, Address => Slice'Address;
-            Last  : Ada.Streams.Stream_Element_Count;
-         begin
-            Client.Server.Write_Standard_Input (Raw (1 .. Slice'Length), Last);
-            Client.Written := Client.Written + Natural (Last);
-            Client.Can_Write := Natural (Last) >= 1;
+      --  Total length of the output data
 
-            if To_Write_Len = Client.Written then
-               Client.Written := 0;
-               Client.To_Write := Ada.Strings.Unbounded.Null_Unbounded_String;
+      Rest_Length  : Natural := To_Write_Len - Client.Written;
+      --  Number of bytes to be written, excluding already sent bytes
+   begin
+      while Rest_Length > 0 loop
+         declare
+            Size  : constant Positive := Positive'Min (Rest_Length, 1024);
+            --  Restrict output to reasonable size to avoid stack overflow
+            Slice : constant String := Ada.Strings.Unbounded.Slice
+              (Client.To_Write, Client.Written + 1, Client.Written + Size);
+            Raw   : constant Ada.Streams.Stream_Element_Array
+              (1 .. Ada.Streams.Stream_Element_Count (Size))
+                with Import, Address => Slice'Address;
+            Last  : Natural;
+         begin
+            Client.Server.Write_Standard_Input
+              (Raw, Ada.Streams.Stream_Element_Count (Last));
+
+            if Last = 0 then
+               --  Standard_Input is busy now. Let's wait for the next call of
+               --  Standard_Input_Available
+               Client.Standard_Input_Available := False;
+               return;
             end if;
+
+            Client.Written := Client.Written + Last;
+            Rest_Length := Rest_Length - Last;
          end;
-      else
-         Client.Can_Write := True;
-      end if;
+      end loop;
+
+      Client.Written := 0;
+      Client.To_Write := Ada.Strings.Unbounded.Null_Unbounded_String;
+      Client.Standard_Input_Available := True;
    end Standard_Input_Available;
 
    -------------------------------
