@@ -98,9 +98,11 @@ private
    type Raw_Client is tagged limited record
       Server    : Spawn.Processes.Process;
       Listener  : aliased Raw_Clients.Listener (Raw_Client'Unchecked_Access);
-      Can_Write : Boolean := False;
-      To_Write  : Ada.Strings.Unbounded.Unbounded_String;
-      Written   : Natural := 0;
+
+      Standard_Input_Available : Boolean := False;
+
+      To_Write  : Ada.Strings.Unbounded.Unbounded_String; --  Output data
+      Written   : Natural := 0;  --  How much we have written from To_Write
       To_Read   : Natural := 0;
       --  How much we should read in the Buffer to get complete JSON
       --  Zero means we should read protocol headers
