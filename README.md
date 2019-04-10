@@ -127,7 +127,13 @@ by the ALS.
 | `textDocument/prepareRename`          |                    |
 | `textDocument/foldingRange`           |                    |
 
-# How to use VScode extension
+### Protocol extensions
+
+The Ada Language Server supports some features that are not in the official
+[Language Server Protocol](https://microsoft.github.io/language-server-protocol)
+specification. See [corresponding document](doc/README.md).
+
+# How to use the VScode extension
 
 For the moment, this repository includes a vscode extension that is used as the
 reference extension for this implementation.
