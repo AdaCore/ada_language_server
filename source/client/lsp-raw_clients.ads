@@ -79,6 +79,10 @@ package LSP.Raw_Clients is
    --  Send a request to LSP server. Text should contain valid JSON in
    --  UTF-8 encoding.
 
+   function Can_Send_Message (Self : Raw_Client'Class) return Boolean;
+   --  Return True when server's process is running and send queue is empty,
+   --  thus send operation can start immidiately.
+
 private
    type Listener (Client : access Raw_Client'Class) is limited
      new Spawn.Processes.Process_Listener with null record;
