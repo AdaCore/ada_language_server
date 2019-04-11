@@ -310,9 +310,13 @@ package LSP.Messages is
 
    type Location_Vector is new Location_Vectors.Vector with null record;
 
+   procedure Read_Location_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Location_Vector);
    procedure Write_Location_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Location_Vector);
+   for Location_Vector'Read use Read_Location_Vector;
    for Location_Vector'Write use Write_Location_Vector;
 
    --+1
