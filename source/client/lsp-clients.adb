@@ -123,6 +123,18 @@ package body LSP.Clients is
 
    end Decoders;
 
+   -------------------------
+   -- Allocate_Request_Id --
+   -------------------------
+
+   function Allocate_Request_Id
+     (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String is
+   begin
+      Self.Request_Id := Self.Request_Id + 1;
+
+      return (True, Self.Request_Id);
+   end Allocate_Request_Id;
+
    package body Decoders is
 
       -------------------------
@@ -535,8 +547,7 @@ package body LSP.Clients is
       JS : aliased LSP.JSON_Streams.JSON_Stream;
       JSON : GNATCOLL.JSON.JSON_Value;
    begin
-      Self.Request_Id := Self.Request_Id + 1;
-      Request := Self.Request_Id;
+      Request := Self.Allocate_Request_Id.Number;
       Self.Request_Map.Insert (Request, Decoder);
 
       Value.jsonrpc := +"2.0";

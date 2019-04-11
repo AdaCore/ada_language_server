@@ -150,6 +150,10 @@ package LSP.Clients is
       Request : LSP.Types.LSP_Number_Or_String;
       Applied : Boolean);
 
+   function Allocate_Request_Id
+     (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String;
+   --  Allocates request id.
+
 private
 
    type Response_Decoder is access procedure
