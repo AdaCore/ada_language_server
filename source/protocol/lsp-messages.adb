@@ -813,6 +813,32 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Location;
 
+   --------------------------
+   -- Read_Location_Vector --
+   --------------------------
+
+   procedure Read_Location_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Location_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V.Clear;
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : Location;
+         begin
+            Location'Read (S, Item);
+            V.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+   end Read_Location_Vector;
+
    ---------------------------
    -- Read_LogMessageParams --
    ---------------------------
