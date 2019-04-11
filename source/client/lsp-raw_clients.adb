@@ -27,6 +27,15 @@ package body LSP.Raw_Clients is
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
+   ----------------------
+   -- Can_Send_Message --
+   ----------------------
+
+   function Can_Send_Message (Self : Raw_Client'Class) return Boolean is
+   begin
+      return Self.Is_Server_Running and Self.Standard_Input_Available;
+   end Can_Send_Message;
+
    --------------------
    -- Error_Occurred --
    --------------------
