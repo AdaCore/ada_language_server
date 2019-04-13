@@ -30,6 +30,22 @@ package body LSP.Types is
       return Id.Is_Number or else Length (Id.String) > 0;
    end Assigned;
 
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
+     (Item : LSP.Types.LSP_Number_Or_String)
+      return Ada.Containers.Hash_Type is
+   begin
+      if Item.Is_Number then
+         return Ada.Containers.Hash_Type'Val (Item.Number);
+
+      else
+         return LSP.Types.Hash (Item.String);
+      end if;
+   end Hash;
+
    --------------
    -- Is_Empty --
    --------------
