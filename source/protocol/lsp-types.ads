@@ -81,6 +81,9 @@ package LSP.Types is
    function Assigned (Id : LSP_Number_Or_String) return Boolean;
    --  Check if Id has an empty value
 
+   function Hash
+     (Item : LSP.Types.LSP_Number_Or_String) return Ada.Containers.Hash_Type;
+
    type Line_Number is new Natural;
    type UTF_16_Index is new Natural;
    type Version_Id is new Natural;
