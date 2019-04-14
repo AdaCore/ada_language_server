@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 
@@ -78,6 +77,7 @@ begin
 
       begin
          if Do_Exit then
+            Server.Finalize;
             return;
          end if;
 
@@ -92,8 +92,7 @@ begin
             Do_Exit := False;
 
          when Ada.IO_Exceptions.End_Error =>
-            Server_Trace.Trace ("Received EOF: exiting with error code...");
-            Ada.Command_Line.Set_Exit_Status (1);
+            Server_Trace.Trace ("Received EOF.");
 
          when E : others =>
             Server_Trace.Trace
