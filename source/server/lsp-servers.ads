@@ -116,9 +116,7 @@ private
    type Server is limited
      new LSP.Client_Notifications.Client_Notification_Handler with
    record
-      Initialized : Boolean;
-      Stop        : Boolean := False;
-      --  Mark Server as uninitialized until get 'initalize' request
+      Stop          : Boolean := False;
       Stream        : access Ada.Streams.Root_Stream_Type'Class;
       Last_Request  : LSP.Types.LSP_Number := 1;
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
