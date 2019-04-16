@@ -1,0 +1,109 @@
+[
+    {
+        "comment":[
+            "This test checks corresponding definition for Proc in the body",
+            "when explicit procedure specification exists"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package body Bbb is\n\n   procedure Proc;\n\n   procedure Proc is\n   begin\n     null;\n   end;\n\n   procedure Proc1 is\n   begin\n     null;\n   end;\n\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}"
+                    },
+                    "position": {
+                        "line": 4,
+                        "character": 14
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "result":[{
+                    "uri": "$URI{bbb.adb}",
+                    "range": {
+                        "start": {
+                            "line": 2,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 2,
+                            "character": 17
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown" }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
