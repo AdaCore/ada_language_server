@@ -245,10 +245,9 @@ package body Tester.Tests is
 
          procedure Match_Property
            (Name  : String;
-            Value : GNATCOLL.JSON.JSON_Value)
-         is
+            Value : GNATCOLL.JSON.JSON_Value) is
          begin
-            if Left.Has_Field (Name) then
+            if Success and Left.Has_Field (Name) then
                declare
                   Prop : constant GNATCOLL.JSON.JSON_Value := Left.Get (Name);
                begin
