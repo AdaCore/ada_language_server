@@ -54,42 +54,16 @@ package body LSP.Lal_Utils is
    ------------------
 
    function Resolve_Name (Name_Node : Name) return Defining_Name is
-
-      Definition : Defining_Name := Get_Name_As_Defining (Name_Node);
-
+      Result : constant Defining_Name := Name_Node.P_Xref;
    begin
-
-      if Definition = No_Defining_Name then
-
-         declare
-            Names : constant Defining_Name_Array :=
-              Name_Node.P_Referenced_Decl (Imprecise_Fallback => True)
-              .P_Canonical_Part.P_Defining_Names;
-         begin
-
-            for I in Names'Range loop
-
-               declare
-                  Decl_Name : constant Defining_Name := Names (I);
-               begin
-
-                  if P_Name_Matches (Decl_Name, Name_Node) then
-                     Definition := Decl_Name;
-                     exit;
-                  end if;
-
-               end;
-
-            end loop;
-
-         end;
-
+      if Name_Node.P_Is_Defining and Result = No_Defining_Name then
+         --  When Name_Node is part of defining_name and it isn't a completion
+         --  of another declaration, then P_Xref returns No_Defining_Name.
+         --  In this case we return current defining_name.
+         return Name_Node.P_Enclosing_Defining_Name;
+      else
+         return Result;
       end if;
-
-      return Definition;
-
-   exception
-      when Property_Error => return No_Defining_Name;
    end Resolve_Name;
 
 end LSP.Lal_Utils;
