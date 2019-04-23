@@ -2,7 +2,8 @@
     {
         "comment":[
             "This test checks corresponding definition for Proc in the body",
-            "when explicit procedure specification exists"
+            "when explicit procedure specification exists. Also check this",
+            "in opposite direction."
         ]
     },  {
         "start": {
@@ -81,6 +82,121 @@
                         "end": {
                             "line": 2,
                             "character": 17
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-2",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}"
+                    },
+                    "position": {
+                        "line": 2,
+                        "character": 15
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-2",
+                "result":[{
+                    "uri": "$URI{bbb.adb}",
+                    "range": {
+                        "start": {
+                            "line": 4,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 4,
+                            "character": 17
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-3",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}"
+                    },
+                    "position": {
+                        "line": 9,
+                        "character": 15
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-3",
+                "result":[{
+                    "uri": "$URI{bbb.ads}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 18
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.ads}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package Bbb is\n   procedure Proc1;\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-4",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.ads}"
+                    },
+                    "position": {
+                        "line": 1,
+                        "character": 16
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-4",
+                "result":[{
+                    "uri": "$URI{bbb.adb}",
+                    "range": {
+                        "start": {
+                            "line": 9,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 9,
+                            "character": 18
                         }
                     }
                 }]
