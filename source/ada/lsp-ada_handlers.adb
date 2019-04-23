@@ -124,16 +124,111 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response
    is
+      use Libadalang.Analysis;
+
+      procedure Append
+        (Result     : in out LSP.Messages.Location_Vector;
+         Definition : Defining_Name);
+      --  Append given defining name to result
+
+      function Find_Next_Part
+        (Definition : Defining_Name) return Defining_Name;
+      --  Find defining name of a completion if any
+
+      function Find_First_Part
+        (Definition : Defining_Name) return Defining_Name;
+      --  Find defining name of a declaration for given completion
+
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append
+        (Result     : in out LSP.Messages.Location_Vector;
+         Definition : Defining_Name)
+      is
+         use Libadalang.Common;
+
+         From : constant Langkit_Support.Slocs.Source_Location_Range :=
+           Sloc_Range (Data (Definition.Token_Start));
+         To   : constant Langkit_Support.Slocs.Source_Location_Range :=
+           Sloc_Range (Data (Definition.Token_End));
+
+         First_Position : constant LSP.Messages.Position :=
+           (Line_Number (From.Start_Line) - 1,
+            UTF_16_Index (From.Start_Column) - 1);
+         Last_Position  : constant LSP.Messages.Position :=
+           (Line_Number (To.End_Line) - 1,
+            UTF_16_Index (To.End_Column) - 1);
+
+         Location : constant LSP.Messages.Location :=
+           (uri  => Self.Context.File_To_URI (+Definition.Unit.Get_Filename),
+            span => LSP.Messages.Span'(First_Position, Last_Position));
+
+      begin
+         Result.Append (Location);
+      end Append;
+
+      ---------------------
+      -- Find_First_Part --
+      ---------------------
+
+      function Find_First_Part
+        (Definition : Defining_Name) return Defining_Name
+      is
+         Next : Defining_Name := Definition;
+         Prev : Defining_Name;
+      begin
+         --  Iterate over Next.P_Previous_Part names until no name found
+         loop
+            begin
+               Prev := Next.P_Previous_Part;
+
+               exit when Prev in No_Defining_Name | Next;
+
+               Next := Prev;
+            exception
+               when Libadalang.Common.Property_Error =>
+                  exit;
+            end;
+         end loop;
+
+         if Next = Definition then
+            return No_Defining_Name;
+         else
+            return Next;
+         end if;
+      end Find_First_Part;
+
+      --------------------
+      -- Find_Next_Part --
+      --------------------
+
+      function Find_Next_Part
+        (Definition : Defining_Name) return Defining_Name
+      is
+         Next : Defining_Name;
+      begin
+         Next := Definition.P_Next_Part;
+
+         if Next = Definition then
+            return No_Defining_Name;
+         else
+            return Next;
+         end if;
+      exception
+         when Libadalang.Common.Property_Error =>
+            return No_Defining_Name;
+      end Find_Next_Part;
 
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
-
-      use Libadalang.Analysis;
 
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
         (Document.Get_Node_At (Value.position));
 
       Definition : Defining_Name;
+      Other_Part : Defining_Name;
       Response   : LSP.Messages.Location_Response (Is_Error => False);
 
    begin
@@ -142,39 +237,29 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+      --  Check is we are on some defining name
+      Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
 
       if Definition = No_Defining_Name then
-         return Response;
+         Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+
+         if Definition /= No_Defining_Name then
+            Append (Response.result, Definition);
+         end if;
+      else  --  If we are on a defining_name already
+         Other_Part := Find_Next_Part (Definition);
+
+         if Other_Part = No_Defining_Name then
+            --  No next part is found. Check first defining name
+            Other_Part := Find_First_Part (Definition);
+         end if;
+
+         if Other_Part /= No_Defining_Name then
+            Append (Response.result, Other_Part);
+         end if;
       end if;
 
-      declare
-
-         use Libadalang.Common;
-
-         Start_Sloc_Range :
-         constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Definition.Token_Start));
-         End_Sloc_Range   :
-         constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Definition.Token_End));
-
-         First_Position : constant LSP.Messages.Position :=
-           (Line_Number (Start_Sloc_Range.Start_Line) - 1,
-            UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
-         Last_Position  : constant LSP.Messages.Position :=
-           (Line_Number (End_Sloc_Range.End_Line) - 1,
-            UTF_16_Index (End_Sloc_Range.End_Column) - 1);
-
-         Location : constant LSP.Messages.Location :=
-           (uri  => Self.Context.File_To_URI (+Definition.Unit.Get_Filename),
-            span => LSP.Messages.Span'(First_Position, Last_Position));
-
-      begin
-         Response.result.Append (Location);
-         return Response;
-      end;
-
+      return Response;
    end Text_Document_Definition_Request;
 
    ------------------------------
