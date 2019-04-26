@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This is driver to run LSP server for Ada language.
 
 with Ada.Exceptions;
 with Ada.IO_Exceptions;

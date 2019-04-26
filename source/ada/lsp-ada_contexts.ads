@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a context of Ada Language server.
 
 with Ada.Containers.Hashed_Maps;
 
@@ -29,13 +31,19 @@ with LSP.Types;
 package LSP.Ada_Contexts is
 
    type Context is tagged limited private;
+   --  Context includes set of edited documents, Libadalang context, project
+   --  tree and others data.
 
    procedure Initialize
      (Self : in out Context;
       Root : LSP.Types.LSP_String);
+   --  Reset context. Set Root directory as LSP client provides it.
 
    function Is_Initialized (Self : Context) return Boolean;
+   --  Check if context has been initialized
+
    function Has_Project (Self : Context) return Boolean;
+   --  Check if context has a project
 
    procedure Load_Project
      (Self     : in out Context;
@@ -53,15 +61,18 @@ package LSP.Ada_Contexts is
    procedure Load_Document
      (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem);
+   --  Load new document with text provided by LSP client.
 
    procedure Unload_Document
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentIdentifier);
+   --  Remove document from set of openned documents.
 
    function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
+   --  Retrive document identified by given URI.
 
    function Get_Ada_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;

@@ -14,22 +14,31 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a template to create LSP Responses based on
+--  response result type.
 
 with Ada.Streams;
 
 generic
    type ResponseMessage (Is_Error : Boolean) is tagged private;
+   --  Base response class (will be LSP. Pass LSP.Messages.ResponseMessage
+
    type T is private;
+   --  Result type
 
    with function Read_Response_Prexif
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage is <>;
+   --  Function that reads common attributes of ResponseMessage
 
    with procedure Write_Response_Prexif
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage'Class) is <>;
+   --  Procedure that writes common attributes of ResponseMessage
 
 package LSP.Generic_Responses is
+
    type Response (Is_Error : Boolean) is new ResponseMessage (Is_Error) with
    record
       case Is_Error is

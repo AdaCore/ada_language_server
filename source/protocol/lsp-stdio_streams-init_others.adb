@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Dummy initialization routine. No special settings
 
 separate (LSP.Stdio_Streams)
 procedure Initialize is

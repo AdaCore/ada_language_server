@@ -20,6 +20,7 @@ with Ada.Streams;
 package LSP.Stdio_Streams is
 
    type Stdio_Stream is new Ada.Streams.Root_Stream_Type with null record;
+   --  Stream that reads and writes standard input/output descriptors
 
    overriding procedure Read
      (Stream : in out Stdio_Stream;

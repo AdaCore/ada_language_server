@@ -14,12 +14,15 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a template to create optional values together with
+--  corresponding read/write aspects.
 
 with Ada.Streams;
 generic
    type Element_Type is private;
+   --  Value type
 package LSP.Generic_Optional is
---   pragma Preelaborate;
 
    type Optional_Type (Is_Set : Boolean := False) is record
       case Is_Set is
@@ -33,12 +36,14 @@ package LSP.Generic_Optional is
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Optional_Type);
+   --  Read a value from JSON stream
 
    for Optional_Type'Read use Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Optional_Type);
+   --  Write a value to JSON stream
 
    for Optional_Type'Write use Write;
 
