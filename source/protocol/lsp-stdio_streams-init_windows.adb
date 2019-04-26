@@ -14,6 +14,9 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Windows dependent initialization. Turn stdio into binary mode to avoid
+--  CR/LF convertions
 
 separate (LSP.Stdio_Streams)
 procedure Initialize is

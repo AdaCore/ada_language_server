@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides some Libadalang related utility subprograms.
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 

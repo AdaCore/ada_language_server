@@ -14,6 +14,9 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides requests and notifications handler for Ada
+--  language.
 
 with LSP.Message_Handlers;
 with LSP.Messages;
@@ -29,6 +32,7 @@ package LSP.Ada_Handlers is
       Context : access LSP.Ada_Contexts.Context) is
    limited new LSP.Message_Handlers.Request_Handler
      and LSP.Server_Notifications.Server_Notification_Handler with private;
+   --  A handler of LSP notifications and requests from Ada language
 
 private
 

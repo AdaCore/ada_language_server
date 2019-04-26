@@ -14,16 +14,26 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a template to create LSP Request based on
+--  request parameter type.
+--
+--  We don't use request type for reading, so there are no corresponding read
+--  stuff.
 
 with Ada.Streams;
 
 generic
    type RequestMessage is tagged private;
+   --  Base response class. Pass LSP.Messages.RequestMessage here
+
    type T is private;
+   --  Type of request parameter
 
    with procedure Write_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : RequestMessage'Class);
+   --  Procedure that writes common attributes of RequestMessage
 
 package LSP.Generic_Requests is
    type Request is new RequestMessage with record

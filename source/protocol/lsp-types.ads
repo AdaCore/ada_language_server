@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+--  This package provides basic types to implement Language Server Protocol.
+
 with Ada.Containers.Vectors;
 with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
@@ -25,7 +27,6 @@ with LSP.Generic_Optional;
 limited with LSP.JSON_Streams;
 
 package LSP.Types is
---   pragma Preelaborate;
 
    subtype LSP_Any is GNATCOLL.JSON.JSON_Value;
    subtype LSP_Number is Natural;
@@ -34,40 +35,49 @@ package LSP.Types is
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Types.LSP_String);
+   --  Read string from the stream
 
    for LSP_String'Read use Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String);
+   --  Write string to the stream
 
    for LSP_String'Write use Write;
-   package LSP_String_Vectors is new Ada.Containers.Vectors
-     (Positive, LSP_String, "=");
-
-   type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
-
-   Empty_Vector : constant LSP_String_Vector :=
-     (LSP_String_Vectors.Vector with null record);
 
    Empty_LSP_String : constant LSP_String :=
      LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
 
+   package LSP_String_Vectors is
+     new Ada.Containers.Vectors (Positive, LSP_String, "=");
+
+   type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
+   --  Vector of strings
+
+   Empty_Vector : constant LSP_String_Vector :=
+     (LSP_String_Vectors.Vector with null record);
+
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;
+   --  Convert given UTF-8 string into LSP_String
 
    function To_UTF_8_String (Value : LSP_String)
      return Ada.Strings.UTF_Encoding.UTF_8_String;
+   --  Convert given LSP_String into UTF-8 string
 
    function Is_Empty (Text : LSP_String) return Boolean;
+   --  Check if given Text is an empty string
 
    function Starts_With
      (Text   : LSP_String;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String) return Boolean;
+   --  Check if Text starts with given prefix
 
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash
         (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Text)));
+   --  Compute hash of the Text
 
    type LSP_Number_Or_String (Is_Number : Boolean := False) is record
       case Is_Number is
@@ -85,10 +95,18 @@ package LSP.Types is
      (Item : LSP.Types.LSP_Number_Or_String) return Ada.Containers.Hash_Type;
 
    type Line_Number is new Natural;
+   --  Line number. In LSP first line has zero number
    type UTF_16_Index is new Natural;
+   --  LSP measures character position in UTF_16 code units starting from zero
    type Version_Id is new Natural;
+   --  Document version
 
    type Trace_Kinds is (Unspecified, Off, Messages, Verbose);
+   --  LSP trace kinds
+
+   ---------------------
+   -- Optional_Number --
+   ---------------------
 
    package Optional_Numbers is new LSP.Generic_Optional (LSP_Number);
    type Optional_Number is new Optional_Numbers.Optional_Type;
@@ -132,15 +150,18 @@ package LSP.Types is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_String);
+   --  Read string from the JSON stream under given Key
 
    procedure Read_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.Optional_String);
+   --  Read optional string from the JSON stream under given Key
 
    procedure Read_Number_Or_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_Number_Or_String);
+   --  Read number or string from the JSON stream under given Key
 
 end LSP.Types;

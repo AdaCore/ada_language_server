@@ -14,9 +14,15 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides set of handler for notifications and requests (with
+--  direction from client to server). Each handler decodes corresponding
+--  message from the stream and calls a method of Handler.
+--
+--  Requests are processed in synchronous way: for a request corresponding
+--  response is returned by the handler.
 
 private package LSP.Servers.Handlers is
---   pragma Preelaborate;
 
    procedure DidChangeConfiguration
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;

@@ -14,11 +14,13 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides (server side) requests handler abstraction.
+--  Requests are processed in a synchronous way.
 
 with LSP.Messages;
 
 package LSP.Message_Handlers is
---   pragma Preelaborate;
 
    type Request_Handler is limited interface;
    type Request_Handler_Access is access all Request_Handler'Class;
@@ -27,59 +29,71 @@ package LSP.Message_Handlers is
      (Self  : access Request_Handler;
       Value : LSP.Messages.InitializeParams)
       return LSP.Messages.Initialize_Response is abstract;
+   --  Process 'initialize' request
 
    function Shutdown_Request
      (Self  : access Request_Handler)
       return LSP.Messages.ResponseMessage is abstract;
+   --  Process 'shutdown' request
 
    function Text_Document_Code_Action_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.CodeActionParams)
       return LSP.Messages.CodeAction_Response is abstract;
+   --  Process 'textDocument/codeAction' request
 
    function Text_Document_Completion_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Completion_Response is abstract;
+   --  Process 'textDocument/completion' request
 
    function Text_Document_Definition_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response is abstract;
+   --  Process 'textDocument/typeDefinition' request
 
    function Text_Document_Hover_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Hover_Response is abstract;
+   --  Process 'textDocument/hover' request
 
    function Text_Document_Highlight_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Highlight_Response is abstract;
+   --  Process 'textDocument/documentHighlight' request
 
    function Text_Document_References_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.ReferenceParams)
       return LSP.Messages.Location_Response is abstract;
+   --  Process 'textDocument/references' request
 
    function Text_Document_Signature_Help_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.SignatureHelp_Response is abstract;
+   --  Process 'textDocument/signatureHelp' request
 
    function Text_Document_Symbol_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Symbol_Response is abstract;
+   --  Process 'textDocument/documentSymbol' request
 
    function Workspace_Execute_Command_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response is abstract;
+   --  Process 'workspace/executeCommand' request
 
    function Workspace_Symbol_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
       return LSP.Messages.Symbol_Response is abstract;
+   --  Process 'workspace/symbol' request
 
 end LSP.Message_Handlers;

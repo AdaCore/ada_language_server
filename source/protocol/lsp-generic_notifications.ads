@@ -14,20 +14,28 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a template to create LSP notification based on
+--  notification parameter type.
 
 with Ada.Streams;
 
 generic
    type NotificationMessage is tagged private;
+   --  Base notification class. Pass LSP.Messages.NotificationMessage here
+
    type T is private;
+   --  Type of notification parameter
 
    with procedure Read_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out NotificationMessage'Class);
+   --  Procedure that reads common attributes of NotificationMessage
 
    with procedure Write_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : NotificationMessage'Class);
+   --  Procedure that writes common attributes of NotificationMessage
 
 package LSP.Generic_Notifications is
    type Notification is new NotificationMessage with record

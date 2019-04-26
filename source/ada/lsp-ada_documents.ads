@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides an Ada document abstraction.
 
 with LSP.Messages;
 with Libadalang.Analysis;
@@ -23,6 +25,8 @@ package LSP.Ada_Documents is
 
    type Document (Context : access LSP.Ada_Contexts.Context'Class)
      is tagged limited private;
+   --  An Ada document (file).
+
    type Document_Access is access all LSP.Ada_Documents.Document;
    type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
 
@@ -30,28 +34,35 @@ package LSP.Ada_Documents is
      (Self : in out Document;
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem);
+   --  Create a new document from a TextDocumentItem. Use LAL as libadalang
+   --  context to parse text of the document.
 
    procedure Apply_Changes
      (Self   : aliased in out Document;
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
+   --  Modify document according to event vector provided by LSP client.
 
    procedure Get_Errors
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector);
+   --  Get errors found during document parsing.
 
    procedure Get_Symbols
      (Self   : Document;
       Result : out LSP.Messages.SymbolInformation_Vector);
+   --  Populate Result with symbols from the document.
 
    function Get_Node_At
      (Self     : Document;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
+   --  Get Libadalang Node for given position in the document.
 
    procedure Get_Completions_At
      (Self     : Document;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList);
+   --  Populate Result with completions for given position in the document.
 
 private
 

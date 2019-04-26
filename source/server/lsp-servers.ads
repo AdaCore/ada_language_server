@@ -14,6 +14,11 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides a basic LSP server implementation.
+--
+--  The Server object is initializad with Request and Notification handlers,
+--  that actually implements message processing.
 
 with Ada.Streams;
 
@@ -31,6 +36,9 @@ package LSP.Servers is
 
    type Server is limited
      new LSP.Client_Notifications.Client_Notification_Handler with private;
+   --  The representation of LSP server.
+   --  Use methods of Client_Notification_Handler to send notifications to
+   --  LSP client.
 
    procedure Initialize
      (Self         : in out Server;
@@ -38,7 +46,8 @@ package LSP.Servers is
       Request      : not null LSP.Message_Handlers.Request_Handler_Access;
       Notification : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
-   --  Initialize a server
+   --  Initialize a server by providing input/output Stream,
+   --  Request and Notification handler.
 
    procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
@@ -54,9 +63,12 @@ package LSP.Servers is
       Params   : LSP.Messages.ApplyWorkspaceEditParams;
       Applied  : out Boolean;
       Error    : out LSP.Messages.Optional_ResponseError);
-   --  ??? Needs doc
-   --  ??? In the current implementation, Applied is always True and
-   --  Error is always unset.
+   --  Execute 'workspace/applyEdit' request on client side, return result
+   --  (Applied flag) or Error if client fails.
+   --  WARNING: It doesn't work now and should be rewritten. In initial version
+   --  this was done by launching new "main loop" until response is received.
+   --  This doesn't work in newer tasking implementation. We will rewrite
+   --  it in asynchronous form.
 
 private
 

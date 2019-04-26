@@ -22,19 +22,23 @@ with LSP.Server_Notifications;
 with LSP.Types;
 
 package LSP.Notification_Dispatchers is
---   pragma Preelaborate;
 
    type Notification_Dispatcher is tagged limited private;
+   --  Notification dispatcher maps notification method name to handler and
+   --  dispatches notifications to corresponding handlers.
 
    type Parameter_Handler_Access is access procedure
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
+   --  This procedure decodes message from the JSON stream and calls
+   --  corresponding method of Handler interface.
 
    procedure Register
     (Self   : in out Notification_Dispatcher;
      Method : LSP.Types.LSP_String;
      Value  : Parameter_Handler_Access);
+   --  Register one Parameter_Handler for given method
 
    procedure Dispatch
      (Self    : in out Notification_Dispatcher;
@@ -42,6 +46,8 @@ package LSP.Notification_Dispatchers is
       Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
+   --  Process one message by decoding a notification (of given Method) from
+   --  then Stream and passing it to corresponding Handler method
 
 private
 

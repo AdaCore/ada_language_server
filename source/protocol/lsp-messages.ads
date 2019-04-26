@@ -14,6 +14,16 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides LSP messages types, request parameters and results
+--  types, corresponding encodein/decoding procedures to/from JSON stream.
+--
+--  We keep original LSP specification in the comments as TypeScript snippet.
+--  Some of snippets are out of order, because of forward declaration
+--  requirements in Ada.
+--
+--  See LSP specification for more protocol details.
+--
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
@@ -26,8 +36,9 @@ with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
---   pragma Preelaborate;
+
    pragma Style_Checks ("M125-bcht");
+   --  Disable style checks, because some TypeScript snippets are too wide.
 
    --```typescript
    --interface Message {
@@ -60,7 +71,6 @@ package LSP.Messages is
    type RequestMessage is new Message with record
       id: LSP_Number_Or_String;
       method: LSP_String;
---        params: LSP_Any;
    end record;
 
    procedure Write_Request_Prexif
@@ -167,7 +177,6 @@ package LSP.Messages is
 
    type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String;  --  or null?
---        result: LSP_Any;
       error: Optional_ResponseError (Is_Error);
    end record;
 
@@ -192,7 +201,6 @@ package LSP.Messages is
    --```
    type NotificationMessage is new Message with record
       method: LSP_String;
---      params: LSP_Any;
    end record;
 
    procedure Read_Notification_Prexif
@@ -319,7 +327,7 @@ package LSP.Messages is
    for Location_Vector'Read use Read_Location_Vector;
    for Location_Vector'Write use Write_Location_Vector;
 
-   --+1
+   --
    --```typescript
    --namespace DiagnosticSeverity {
    --	/**
@@ -510,7 +518,7 @@ package LSP.Messages is
       V : TextEdit_Vector);
    for TextEdit_Vector'Write use Write_TextEdit_Vector;
 
-   --+N
+   --
    --```typescript
    --interface TextDocumentIdentifier {
    --	/**
@@ -532,7 +540,7 @@ package LSP.Messages is
    for TextDocumentIdentifier'Read use Read_TextDocumentIdentifier;
    for TextDocumentIdentifier'Write use Write_TextDocumentIdentifier;
 
-   --+N+2
+   --
    --```typescript
    --interface VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
    --	/**
@@ -749,7 +757,7 @@ package LSP.Messages is
 
    for documentChanges'Read use Read_documentChanges;
    for documentChanges'Write use Write_documentChanges;
-   --+M
+   --
    --```typescript
    --/**
    -- * Workspace specific client capabilities.
@@ -1178,7 +1186,7 @@ package LSP.Messages is
    for InitializeParams'Read use Read_InitializeParams;
    for InitializeParams'Write use Write_InitializeParams;
 
-   --+K
+   --
    --```typescript
    --/**
    -- * Defines how the host (editor) should sync document changes to the language server.
@@ -1659,7 +1667,7 @@ package LSP.Messages is
       retry: Boolean;
    end record;
 
-   --+J
+   --
    --```typescript
    --export namespace MessageType {
    --	/**

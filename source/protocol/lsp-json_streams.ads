@@ -14,6 +14,9 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package provides an Ada stream type to serialize Ada object into JSON.
+--
 
 private with Ada.Containers.Vectors;
 with Ada.Strings.Wide_Unbounded;
@@ -22,17 +25,32 @@ with Ada.Streams;
 with GNATCOLL.JSON;
 
 package LSP.JSON_Streams is
---   pragma Preelaborate;
 
    type JSON_Stream is new Ada.Streams.Root_Stream_Type with private;
+   --  Stream implemented over JSON document
+   --
+   --  To support JSON serialization user provides Read/Write streaming
+   --  aspects that are aware of JSON_Stream. Simple types use Read/Write
+   --  procedures from this package to convert a value to/from simple JSON
+   --  value. Compond types use Start_Object/End_Object if they are represented
+   --  as JSON object or Start_Array/End_Array if they are implemented as
+   --  JSON stream. After starting object or array compound type iterates over
+   --  each of its items using corresponding Read/Write aspects for convertion.
+   --  To provide property name compound type uses Key procedure before
+   --  calling Read/Write. Each item shoud have Read/Write aspect overriden
+   --  in the same way.
 
    procedure Start_Object (Self : not null access JSON_Stream'Class);
+   --  Start new JSON object during read/write of some compound type
 
    procedure End_Object (Self : not null access JSON_Stream'Class);
+   --  End JSON object during read/write of some compound type
 
    procedure Start_Array (Self : not null access JSON_Stream'Class);
+   --  Start new JSON array during read/write of some compound type
 
    procedure End_Array (Self : not null access JSON_Stream'Class);
+   --  End JSON array during read/write of some compound type
 
    function End_Of_Array
     (Self : not null access JSON_Stream'Class) return Boolean;
@@ -41,18 +59,23 @@ package LSP.JSON_Streams is
    procedure Key
     (Self : not null access JSON_Stream'Class;
      Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String);
+   --  Specify property name before do convertion of an item nested in an JSON
+   --  object
 
    procedure Key
     (Self : not null access JSON_Stream'Class;
      Key  : Wide_String);
+   --  The same but with Wide_String type
 
    function Get_JSON_Document
     (Self : not null access JSON_Stream'Class)
        return GNATCOLL.JSON.JSON_Array;
+   --  Return resulting JSON document after writting to the JSON stream
 
    procedure Set_JSON_Document
     (Self : not null access JSON_Stream'Class;
      Data : GNATCOLL.JSON.JSON_Array);
+   --  Assign JSON document for reading from the stream
 
    function Read
     (Self : in out JSON_Stream'Class)
