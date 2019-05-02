@@ -31,7 +31,6 @@ with Ada.Streams;
 
 with LSP.Generic_Notifications;
 with LSP.Generic_Optional;
-with LSP.Generic_Requests;
 with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
 
@@ -3449,96 +3448,6 @@ package LSP.Messages is
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
 
-   package Initialize_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        InitializeParams,
-        Write_Request_Prexif);
-
-   subtype Initialize_Request is Initialize_Requests.Request;
-
-   type Shutdown_Request is new RequestMessage with null record;
-
-   package CodeAction_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        CodeActionParams,
-        Write_Request_Prexif);
-
-   subtype CodeAction_Request is CodeAction_Requests.Request;
-
-   package Completion_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        TextDocumentPositionParams,
-        Write_Request_Prexif);
-
-   subtype Completion_Request is Completion_Requests.Request;
-
-   package Definition_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        TextDocumentPositionParams,
-        Write_Request_Prexif);
-
-   subtype Definition_Request is Definition_Requests.Request;
-
-   package Highlight_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        TextDocumentPositionParams,
-        Write_Request_Prexif);
-
-   subtype Highlight_Request is Highlight_Requests.Request;
-
-   package Hover_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        TextDocumentPositionParams,
-        Write_Request_Prexif);
-
-   subtype Hover_Request is Hover_Requests.Request;
-
-   package References_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        ReferenceParams,
-        Write_Request_Prexif);
-
-   subtype References_Request is References_Requests.Request;
-
-   package Signature_Help_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        TextDocumentPositionParams,
-        Write_Request_Prexif);
-
-   subtype Signature_Help_Request is Signature_Help_Requests.Request;
-
-   package Document_Symbols_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        DocumentSymbolParams,
-        Write_Request_Prexif);
-
-   subtype Document_Symbols_Request is Document_Symbols_Requests.Request;
-
-   package Execute_Command_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        ExecuteCommandParams,
-        Write_Request_Prexif);
-
-   subtype Execute_Command_Request is Execute_Command_Requests.Request;
-
-   package Workspace_Symbols_Requests is new
-     LSP.Generic_Requests
-       (RequestMessage,
-        WorkspaceSymbolParams,
-        Write_Request_Prexif);
-
-   subtype Workspace_Symbols_Request is Workspace_Symbols_Requests.Request;
-
    type ShowMessage_Request is new RequestMessage with record
       params : ShowMessageRequestParams;
    end record;
@@ -3641,10 +3550,6 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ShowMessageRequestParams);
 
-   procedure Write_Shutdown_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Shutdown_Request);
-
    procedure Write_TextDocumentEdit_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentEdit_Vector);
@@ -3658,7 +3563,6 @@ private
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
    for ShowMessage_Request'Write use Write_ShowMessage_Request;
    for ShowMessageRequestParams'Write use Write_ShowMessageRequestParams;
-   for Shutdown_Request'Write use Write_Shutdown_Request;
    for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
 

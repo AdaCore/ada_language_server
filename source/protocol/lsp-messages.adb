@@ -3065,22 +3065,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ServerCapabilities;
 
-   ----------------------------
-   -- Write_Shutdown_Request --
-   ----------------------------
-
-   procedure Write_Shutdown_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Shutdown_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prexif (S, V);
-      JS.End_Object;
-   end Write_Shutdown_Request;
-
    -------------------------
    -- Write_SignatureHelp --
    -------------------------
