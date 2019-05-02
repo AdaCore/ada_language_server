@@ -21,6 +21,7 @@ with LSP.Client_Notifications;
 with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
+with LSP.Messages.Requests; use LSP.Messages.Requests;
 
 package body LSP.Clients is
 
@@ -410,7 +411,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.InitializeParams)
    is
-      Message : LSP.Messages.Initialize_Request :=
+      Message : LSP.Messages.Requests.Initialize_Request :=
         (params => Value, others => <>);
    begin
       Self.Send_Request
@@ -599,7 +600,7 @@ package body LSP.Clients is
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number)
    is
-      Message : LSP.Messages.Shutdown_Request;
+      Message : LSP.Messages.Requests.Shutdown_Request;
    begin
       Self.Send_Request
         (Request,
@@ -636,8 +637,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.CodeActionParams)
    is
-      Message : LSP.Messages.CodeAction_Request :=
-        (params => Value, others => <>);
+      Message : CodeAction_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -655,8 +655,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
-      Message : LSP.Messages.Completion_Request :=
-        (params => Value, others => <>);
+      Message : Completion_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -674,8 +673,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
-      Message : LSP.Messages.Definition_Request :=
-        (params => Value, others => <>);
+      Message : Definition_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -749,8 +747,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
-      Message : LSP.Messages.Highlight_Request :=
-        (params => Value, others => <>);
+      Message : Highlight_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -768,8 +765,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
-      Message : LSP.Messages.Hover_Request :=
-        (params => Value, others => <>);
+      Message : Hover_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -787,8 +783,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.ReferenceParams)
    is
-      Message : LSP.Messages.References_Request :=
-        (params => Value, others => <>);
+      Message : References_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -806,8 +801,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
-      Message : LSP.Messages.Signature_Help_Request :=
-        (params => Value, others => <>);
+      Message : Signature_Help_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -825,8 +819,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.DocumentSymbolParams)
    is
-      Message : LSP.Messages.Document_Symbols_Request :=
-        (params => Value, others => <>);
+      Message : Document_Symbols_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request, "textDocument/documentSymbol",
@@ -886,8 +879,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.ExecuteCommandParams)
    is
-      Message : LSP.Messages.Execute_Command_Request :=
-        (params => Value, others => <>);
+      Message : Execute_Command_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
@@ -905,8 +897,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.WorkspaceSymbolParams)
    is
-      Message : LSP.Messages.Workspace_Symbols_Request :=
-        (params => Value, others => <>);
+      Message : Workspace_Symbols_Request := (params => Value, others => <>);
    begin
       Self.Send_Request
         (Request,
