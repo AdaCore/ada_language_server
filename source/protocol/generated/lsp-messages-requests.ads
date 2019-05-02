@@ -104,4 +104,12 @@ package LSP.Messages.Requests is
       V : Workspace_Symbols_Request);
    for Workspace_Symbols_Request'Write use Write;
 
+   type Workspace_Execute_Command_Request is new RequestMessage with record
+      params : ExecuteCommandParams;
+   end record;
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Workspace_Execute_Command_Request);
+   for Workspace_Execute_Command_Request'Write use Write;
+
 end LSP.Messages.Requests;

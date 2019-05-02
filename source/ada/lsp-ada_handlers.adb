@@ -40,6 +40,65 @@ package body LSP.Ada_Handlers is
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
 
+   function Initialize_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.InitializeParams)
+      return LSP.Messages.Initialize_Response;
+
+   function Shutdown_Request
+     (Self  : access Message_Handler)
+      return LSP.Messages.ResponseMessage;
+
+   function Text_Document_Code_Action_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CodeActionParams)
+      return LSP.Messages.CodeAction_Response;
+
+   function Text_Document_Definition_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response;
+
+   function Text_Document_Highlight_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Highlight_Response;
+
+   function Text_Document_Hover_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Hover_Response;
+
+   function Text_Document_References_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ReferenceParams)
+      return LSP.Messages.Location_Response;
+
+   function Text_Document_Signature_Help_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.SignatureHelp_Response;
+
+   function Text_Document_Symbol_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DocumentSymbolParams)
+     return LSP.Messages.Symbol_Response;
+
+   function Workspace_Execute_Command_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response;
+
+   function Workspace_Symbol_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.WorkspaceSymbolParams)
+      return LSP.Messages.Symbol_Response;
+
+   function Text_Document_Completion_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+     return LSP.Messages.Completion_Response;
+
    -----------------------
    -- Exit_Notification --
    -----------------------
@@ -53,7 +112,7 @@ package body LSP.Ada_Handlers is
    -- Initialize_Request --
    ------------------------
 
-   overriding function Initialize_Request
+   function Initialize_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.InitializeParams)
       return LSP.Messages.Initialize_Response
@@ -87,7 +146,7 @@ package body LSP.Ada_Handlers is
    -- Shutdown_Request --
    ----------------------
 
-   overriding function Shutdown_Request
+   function Shutdown_Request
      (Self  : access Message_Handler)
       return LSP.Messages.ResponseMessage
    is
@@ -100,7 +159,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Code_Action_Request --
    ---------------------------------------
 
-   overriding function Text_Document_Code_Action_Request
+   function Text_Document_Code_Action_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.CodeActionParams)
       return LSP.Messages.CodeAction_Response
@@ -120,7 +179,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Definition_Request --
    --------------------------------------
 
-   overriding function Text_Document_Definition_Request
+   function Text_Document_Definition_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response
@@ -347,7 +406,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Highlight_Request --
    -------------------------------------
 
-   overriding function Text_Document_Highlight_Request
+   function Text_Document_Highlight_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Highlight_Response
@@ -367,7 +426,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Hover_Request --
    ---------------------------------
 
-   overriding function Text_Document_Hover_Request
+   function Text_Document_Hover_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Hover_Response
@@ -387,7 +446,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_References_Request --
    --------------------------------------
 
-   overriding function Text_Document_References_Request
+   function Text_Document_References_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ReferenceParams)
       return LSP.Messages.Location_Response
@@ -492,7 +551,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Signature_Help_Request --
    ------------------------------------------
 
-   overriding function Text_Document_Signature_Help_Request
+   function Text_Document_Signature_Help_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.SignatureHelp_Response
@@ -512,7 +571,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Symbol_Request --
    ----------------------------------
 
-   overriding function Text_Document_Symbol_Request
+   function Text_Document_Symbol_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Symbol_Response
@@ -571,7 +630,7 @@ package body LSP.Ada_Handlers is
    -- Workspace_Execute_Command_Request --
    ---------------------------------------
 
-   overriding function Workspace_Execute_Command_Request
+   function Workspace_Execute_Command_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response
@@ -591,7 +650,7 @@ package body LSP.Ada_Handlers is
    -- Workspace_Symbol_Request --
    ------------------------------
 
-   overriding function Workspace_Symbol_Request
+   function Workspace_Symbol_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
       return LSP.Messages.Symbol_Response
@@ -611,7 +670,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Completion_Request --
    --------------------------------------
 
-   overriding function Text_Document_Completion_Request
+   function Text_Document_Completion_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Completion_Response
@@ -682,6 +741,20 @@ package body LSP.Ada_Handlers is
          elsif Request in Document_Symbols_Request'Class then
             return Self.Text_Document_Symbol_Request
               (Document_Symbols_Request'Class (Request).params);
+
+         elsif Request in
+           LSP.Messages.Requests.Workspace_Execute_Command_Request'Class
+         then
+            return Self.Workspace_Execute_Command_Request
+              (LSP.Messages.Requests.Workspace_Execute_Command_Request'Class
+                 (Request).params);
+
+         elsif Request in
+           LSP.Messages.Requests.Workspace_Symbols_Request'Class
+         then
+            return Self.Workspace_Symbol_Request
+              (LSP.Messages.Requests.Workspace_Symbols_Request'Class
+                  (Request).params);
          end if;
 
          return LSP.Messages.ResponseMessage'

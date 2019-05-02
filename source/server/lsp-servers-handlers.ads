@@ -49,79 +49,14 @@ private package LSP.Servers.Handlers is
       Handler : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
 
-   function Do_Code_Action
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Completion
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Definition
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Document_Symbol
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Execute_Command
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
+   procedure Ignore_Notification
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+       LSP.Server_Notifications.Server_Notification_Handler_Access);
 
    procedure Do_Exit
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : not null
         LSP.Server_Notifications.Server_Notification_Handler_Access);
-
-   function Do_Highlight
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Hover
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Not_Found
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Initialize
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_References
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Shutdown
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Signature_Help
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   function Do_Workspace_Symbol
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class;
-
-   procedure Ignore_Notification
-     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Handler : not null
-       LSP.Server_Notifications.Server_Notification_Handler_Access);
 
 end LSP.Servers.Handlers;

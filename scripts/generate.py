@@ -173,6 +173,8 @@ REQUESTS = [
      'DocumentSymbolParams'),
     ('textDocument/executeCommand', 'Execute_Command', 'ExecuteCommandParams'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams'),
+    ('workspace/executeCommand', 'Workspace_Execute_Command',
+     'ExecuteCommandParams'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name)
 
