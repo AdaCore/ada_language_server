@@ -14,9 +14,8 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 package LSP.Messages.Requests is
 
    function Decode_Request (Document : JSON_Value) return RequestMessage'Class;
-   --  Decode the request present in the given string.
-   --  Document is an already decoded JSON representation of S, passed
-   --  here for performance reasons.
+   --  Decode the request present in the input document. Document is a JSON
+   --  representation of the protocol string.
 """
 
 LSP_Messages_Requests_Body_Header = """--  Automatically generated, do not edit.
@@ -111,19 +110,17 @@ LSP_Messages_Request_Type_Snippet = """
    type {request_name}_Request is new RequestMessage with record
       params : {params_name};
    end record;
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : {request_name}_Request);
-   for {request_name}_Request'Write use Write;
 """
 
 LSP_Messages_Request_Type_Snippet_Noparams = """
    type {request_name}_Request is new RequestMessage with null record;
+"""
+
+LSP_Messages_Private_Snippet = """
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : {request_name}_Request);
-   for {request_name}_Request'Write use Write;
-"""
+   for {request_name}_Request'Write use Write;"""
 
 LSP_Messages_Request_Write_Snippet = """
    procedure Write
@@ -199,6 +196,13 @@ def write_request_types():
             else:
                 ads.write(LSP_Messages_Request_Type_Snippet_Noparams.format(
                           request_name=request_name))
+
+        ads.write("\nprivate\n")
+
+        for (_, request_name, params_name) in REQUESTS:
+            ads.write(LSP_Messages_Private_Snippet.format(
+                      request_name=request_name))
+
         ads.write(LSP_Messages_Requests_Footer)
 
     # Write the .adb
