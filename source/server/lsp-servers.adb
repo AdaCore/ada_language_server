@@ -22,9 +22,9 @@ with Ada.Unchecked_Deallocation;
 
 with LSP.Servers.Handlers;
 with LSP.JSON_Streams;
+with LSP.Messages.Requests;
 
 private with LSP.Notification_Dispatchers;
-private with LSP.Request_Dispatchers;
 
 with GNATCOLL.JSON;
 
@@ -496,7 +496,6 @@ package body LSP.Servers is
       Req_Handler   : LSP.Message_Handlers.Request_Handler_Access;
       Notif_Handler :
       LSP.Server_Notifications.Server_Notification_Handler_Access;
-      Requests      : aliased LSP.Request_Dispatchers.Request_Dispatcher;
       Notifications : aliased LSP.Notification_Dispatchers
         .Notification_Dispatcher;
       Initialized   : Boolean;
@@ -524,37 +523,6 @@ package body LSP.Servers is
          Notification : not null
            LSP.Server_Notifications.Server_Notification_Handler_Access)
       is
-         type Request_Info is record
-            Name   : LSP.Types.LSP_String;
-            Action : LSP.Request_Dispatchers.Parameter_Handler_Access;
-         end record;
-
-         Request_List : constant array (Positive range <>) of Request_Info :=
-           ((+"initialize", Handlers.Do_Initialize'Access),
-            (+"shutdown", Handlers.Do_Shutdown'Access),
-            (+"textDocument/willSaveWaitUntil", Handlers.Do_Not_Found'Access),
-            (+"textDocument/completion", Handlers.Do_Completion'Access),
-            (+"completionItem/resolve", Handlers.Do_Not_Found'Access),
-            (+"textDocument/hover", Handlers.Do_Hover'Access),
-            (+"textDocument/signatureHelp", Handlers.Do_Signature_Help'Access),
-            (+"textDocument/definition", Handlers.Do_Definition'Access),
-            (+"textDocument/references", Handlers.Do_References'Access),
-            (+"textDocument/documentHighlight", Handlers.Do_Highlight'Access),
-            (+"textDocument/documentSymbol",
-             Handlers.Do_Document_Symbol'Access),
-            (+"workspace/symbol", Handlers.Do_Workspace_Symbol'Access),
-            (+"textDocument/codeAction", Handlers.Do_Code_Action'Access),
-            (+"textDocument/codeLens", Handlers.Do_Not_Found'Access),
-            (+"codeLens/resolve", Handlers.Do_Not_Found'Access),
-            (+"textDocument/documentLink", Handlers.Do_Not_Found'Access),
-            (+"documentLink/resolve", Handlers.Do_Not_Found'Access),
-            (+"textDocument/formatting", Handlers.Do_Not_Found'Access),
-            (+"textDocument/rangeFormatting", Handlers.Do_Not_Found'Access),
-            (+"textDocument/onTypeFormatting", Handlers.Do_Not_Found'Access),
-            (+"textDocument/rename", Handlers.Do_Not_Found'Access),
-            (+"workspace/executeCommand", Handlers.Do_Execute_Command'Access),
-            (+"", Handlers.Do_Not_Found'Access));
-
          type Notification_Info is record
             Name   : LSP.Types.LSP_String;
             Action : LSP.Notification_Dispatchers.Parameter_Handler_Access;
@@ -577,10 +545,6 @@ package body LSP.Servers is
          Req_Handler := Request;
          Notif_Handler := Notification;
          Initialized := False;  --  Block request until 'initialize' request
-
-         for Request of Request_List loop
-            Requests.Register (Request.Name, Request.Action);
-         end loop;
 
          for Notification of Notification_List loop
             Notifications.Register (Notification.Name, Notification.Action);
@@ -696,18 +660,14 @@ package body LSP.Servers is
             return;
          end if;
 
-         JS.Key ("params");
          declare
             Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
             Output     : Ada.Strings.Unbounded.Unbounded_String;
-            Response   : LSP.Messages.ResponseMessage'Class :=
-              Requests.Dispatch
-                (Method  => Method.Value,
-                 Stream  => JS'Access,
-                 Handler => Req_Handler);
+            Request    : constant LSP.Messages.RequestMessage'Class
+              := LSP.Messages.Requests.Decode_Request (Document);
+            Response   : constant LSP.Messages.ResponseMessage'Class :=
+              Req_Handler.Handle_Request (Request);
          begin
-            Response.jsonrpc := +"2.0";
-            Response.id := Request_Id;
             LSP.Messages.ResponseMessage'Class'Write
               (Out_Stream'Access, Response);
             Output := To_Unbounded_String (Out_Stream);

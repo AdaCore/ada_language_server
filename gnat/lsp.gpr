@@ -30,7 +30,7 @@ project LSP is
    );
    Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
 
-   for Source_Dirs use ("../source/protocol");
+   for Source_Dirs use ("../source/protocol", "../source/protocol/generated");
    for Object_Dir use "../.obj/lsp";
    for Main use ();
 

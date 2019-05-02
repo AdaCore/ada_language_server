@@ -25,6 +25,13 @@ package LSP.Message_Handlers is
    type Request_Handler is limited interface;
    type Request_Handler_Access is access all Request_Handler'Class;
 
+   function Handle_Request
+     (Self    : access Request_Handler;
+      Request : LSP.Messages.RequestMessage'Class)
+      return LSP.Messages.ResponseMessage'Class is abstract;
+   --  Process the given request and return the response. Request is assumed
+   --  to contain a RequestMessage.
+
    function Initialize_Request
      (Self  : access Request_Handler;
       Value : LSP.Messages.InitializeParams)

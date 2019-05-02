@@ -49,6 +49,9 @@ all:
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
 
+generate:
+	python scripts/generate.py
+
 install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)

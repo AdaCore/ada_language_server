@@ -20,6 +20,7 @@ with Ada.Directories;
 
 with GNATCOLL.JSON;
 
+with LSP.Messages.Requests;
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
@@ -622,5 +623,84 @@ package body LSP.Ada_Handlers is
       Document.Get_Completions_At (Value.position, Response.result);
       return Response;
    end Text_Document_Completion_Request;
+
+   --------------------
+   -- Handle_Request --
+   --------------------
+
+   overriding function Handle_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.RequestMessage'Class)
+      return LSP.Messages.ResponseMessage'Class
+   is
+      function Dispatcher return LSP.Messages.ResponseMessage'Class;
+      --  Dispatch the request to the proper handling procedure.
+      --  ??? This could be done more efficiently.
+
+      ----------------
+      -- Dispatcher --
+      ----------------
+
+      function Dispatcher return LSP.Messages.ResponseMessage'Class is
+         use LSP.Messages.Requests;
+      begin
+         if Request in LSP.Messages.Requests.Initialize_Request'Class then
+            return Self.Initialize_Request
+              (LSP.Messages.Requests.Initialize_Request (Request).params);
+
+         elsif Request in LSP.Messages.Requests.Shutdown_Request'Class then
+            return Self.Shutdown_Request;
+
+         elsif Request in CodeAction_Request'Class then
+            return Self.Text_Document_Code_Action_Request
+              (CodeAction_Request'Class (Request).params);
+
+         elsif Request in Completion_Request'Class then
+            return Self.Text_Document_Completion_Request
+              (Completion_Request'Class (Request).params);
+
+         elsif Request in Definition_Request'Class then
+            return Self.Text_Document_Definition_Request
+              (Definition_Request'Class (Request).params);
+
+         elsif Request in Highlight_Request'Class then
+            return Self.Text_Document_Highlight_Request
+              (Highlight_Request'Class (Request).params);
+
+         elsif Request in Hover_Request'Class then
+            return Self.Text_Document_Hover_Request
+              (Hover_Request'Class (Request).params);
+
+         elsif Request in References_Request'Class then
+            return Self.Text_Document_References_Request
+              (References_Request'Class (Request).params);
+
+         elsif Request in Signature_Help_Request'Class then
+            return Self.Text_Document_Signature_Help_Request
+              (Signature_Help_Request'Class (Request).params);
+
+         elsif Request in Document_Symbols_Request'Class then
+            return Self.Text_Document_Symbol_Request
+              (Document_Symbols_Request'Class (Request).params);
+         end if;
+
+         return LSP.Messages.ResponseMessage'
+           (Is_Error => True,
+            jsonrpc  => <>,
+            id       => <>,
+            error    =>
+              (Is_Set => True,
+               Value  =>
+                 (code    => LSP.Messages.MethodNotFound,
+                  message => +"The request handler doesn't support this",
+                  others  => <>)));
+      end Dispatcher;
+
+      R : LSP.Messages.ResponseMessage'Class := Dispatcher;
+   begin
+      R.jsonrpc := +"2.0";
+      R.id := Request.id;
+      return R;
+   end Handle_Request;
 
 end LSP.Ada_Handlers;
