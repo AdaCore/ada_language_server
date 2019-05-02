@@ -15,13 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 package body LSP.Servers.Handlers is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-         LSP.Types.To_LSP_String;
 
    ----------------------------
    -- DidChangeConfiguration --
@@ -103,85 +97,17 @@ package body LSP.Servers.Handlers is
       Handler.Text_Document_Did_Save (Params);
    end DidSaveTextDocument;
 
-   --------------------
-   -- Do_Code_Action --
-   --------------------
+   -------------------------
+   -- Ignore_Notification --
+   -------------------------
 
-   function Do_Code_Action
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.CodeActionParams;
+   procedure Ignore_Notification
+     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+      Handler : not null
+        LSP.Server_Notifications.Server_Notification_Handler_Access) is
    begin
-      LSP.Messages.CodeActionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Code_Action_Request (Params);
-   end Do_Code_Action;
-
-   -------------------
-   -- Do_Completion --
-   -------------------
-
-   function Do_Completion
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.TextDocumentPositionParams;
-   begin
-      LSP.Messages.TextDocumentPositionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Completion_Request (Params);
-   end Do_Completion;
-
-   -------------------
-   -- Do_Definition --
-   -------------------
-
-   function Do_Definition
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.TextDocumentPositionParams;
-   begin
-      LSP.Messages.TextDocumentPositionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Definition_Request (Params);
-   end Do_Definition;
-
-   ------------------------
-   -- Do_Document_Symbol --
-   ------------------------
-
-   function Do_Document_Symbol
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.DocumentSymbolParams;
-   begin
-      LSP.Messages.DocumentSymbolParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Symbol_Request (Params);
-   end Do_Document_Symbol;
-
-   ------------------------
-   -- Do_Execute_Command --
-   ------------------------
-
-   function Do_Execute_Command
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.ExecuteCommandParams;
-   begin
-      LSP.Messages.ExecuteCommandParams'Read (Stream, Params);
-
-      return Handler.Workspace_Execute_Command_Request (Params);
-   end Do_Execute_Command;
+      null;
+   end Ignore_Notification;
 
    -------------
    -- Do_Exit --
@@ -196,150 +122,5 @@ package body LSP.Servers.Handlers is
    begin
       Handler.Exit_Notification;
    end Do_Exit;
-
-   ------------------
-   -- Do_Highlight --
-   ------------------
-
-   function Do_Highlight
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.TextDocumentPositionParams;
-   begin
-      LSP.Messages.TextDocumentPositionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Highlight_Request (Params);
-   end Do_Highlight;
-
-   --------------
-   -- Do_Hover --
-   --------------
-
-   function Do_Hover
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.TextDocumentPositionParams;
-   begin
-      LSP.Messages.TextDocumentPositionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Hover_Request (Params);
-   end Do_Hover;
-
-   -------------------
-   -- Do_Initialize --
-   -------------------
-
-   function Do_Initialize
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-       return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.InitializeParams;
-   begin
-      LSP.Messages.InitializeParams'Read (Stream, Params);
-
-      return Handler.Initialize_Request (Params);
-   end Do_Initialize;
-
-   ------------------
-   -- Do_Not_Found --
-   ------------------
-
-   function Do_Not_Found
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-       return LSP.Messages.ResponseMessage'Class
-   is
-      pragma Unreferenced (Stream, Handler);
-
-   begin
-      return LSP.Messages.ResponseMessage'
-        (Is_Error => True,
-         jsonrpc  => <>,
-         id       => <>,
-         error    =>
-           (Is_Set => True,
-            Value  => (code    => LSP.Messages.MethodNotFound,
-                       message => +"No such method",
-                       others  => <>)));
-   end Do_Not_Found;
-
-   -------------------
-   -- Do_References --
-   -------------------
-
-   function Do_References
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params : LSP.Messages.ReferenceParams;
-   begin
-      LSP.Messages.ReferenceParams'Read (Stream, Params);
-
-      return Handler.Text_Document_References_Request (Params);
-   end Do_References;
-
-   -----------------
-   -- Do_Shutdown --
-   -----------------
-
-   function Do_Shutdown
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      pragma Unreferenced (Stream);
-   begin
-      return Handler.Shutdown_Request;
-   end Do_Shutdown;
-
-   -----------------------
-   -- Do_Signature_Help --
-   -----------------------
-
-   function Do_Signature_Help
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.TextDocumentPositionParams;
-   begin
-      LSP.Messages.TextDocumentPositionParams'Read (Stream, Params);
-
-      return Handler.Text_Document_Signature_Help_Request (Params);
-   end Do_Signature_Help;
-
-   -------------------------
-   -- Do_Workspace_Symbol --
-   -------------------------
-
-   function Do_Workspace_Symbol
-    (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-     Handler : not null LSP.Message_Handlers.Request_Handler_Access)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      Params   : LSP.Messages.WorkspaceSymbolParams;
-   begin
-      LSP.Messages.WorkspaceSymbolParams'Read (Stream, Params);
-
-      return Handler.Workspace_Symbol_Request (Params);
-   end Do_Workspace_Symbol;
-
-   -------------------------
-   -- Ignore_Notification --
-   -------------------------
-
-   procedure Ignore_Notification
-     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Handler : not null
-        LSP.Server_Notifications.Server_Notification_Handler_Access) is
-   begin
-      null;
-   end Ignore_Notification;
 
 end LSP.Servers.Handlers;

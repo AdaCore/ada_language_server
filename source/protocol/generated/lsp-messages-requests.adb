@@ -204,6 +204,19 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
+      if To_UTF_8_String (Method) = "workspace/executeCommand" then
+         declare
+            R : Workspace_Execute_Command_Request;
+         begin
+            R.jsonrpc := Version;
+            R.method := Method;
+            R.id := Request_Id;
+            JS.Key ("params");
+            ExecuteCommandParams'Read (JS'Access, R.params);
+            return R;
+         end;
+      end if;
+
       raise Program_Error; --  Request not found
    end Decode_Request;
 
@@ -370,6 +383,20 @@ package body LSP.Messages.Requests is
       Write_Request_Prefix (S, V);
       JS.Key ("params");
       WorkspaceSymbolParams'Write (S, V.params);
+      JS.End_Object;
+   end Write;
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Workspace_Execute_Command_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Request_Prefix (S, V);
+      JS.Key ("params");
+      ExecuteCommandParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 
