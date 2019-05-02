@@ -20,8 +20,6 @@ with Ada.Strings.Wide_Unbounded;
 
 with GNATCOLL.JSON;
 
-with LSP.JSON_Streams;
-
 package body LSP.Messages is
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
@@ -58,11 +56,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : MessageType);
 
-   procedure Write_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number);
-
    procedure Write_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -72,11 +65,6 @@ package body LSP.Messages is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.Optional_Number);
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_String);
 
    procedure Write_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;

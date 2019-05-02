@@ -44,6 +44,11 @@ private
       null;
    end record;
 
+   overriding function Handle_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.RequestMessage'Class)
+      return LSP.Messages.ResponseMessage'Class;
+
    overriding procedure Exit_Notification
      (Self  : access Message_Handler);
 

@@ -35,6 +35,8 @@ with LSP.Generic_Requests;
 with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
 
+with LSP.JSON_Streams;
+
 package LSP.Messages is
 
    pragma Style_Checks ("M125-bcht");
@@ -3444,6 +3446,9 @@ package LSP.Messages is
 
    type Exit_Notification is new NotificationMessage with null record;
 
+   subtype CompletionParams is TextDocumentPositionParams;
+   --  ??? this is not in sync with protocol v3
+
    package Initialize_Requests is new
      LSP.Generic_Requests
        (RequestMessage,
@@ -3589,6 +3594,16 @@ package LSP.Messages is
    subtype Location_Response is Location_Responses.Response;
 
 private
+
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_String);
+
+   procedure Write_Number
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number);
 
    procedure Read_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
