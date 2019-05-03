@@ -22,6 +22,7 @@ with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Requests; use LSP.Messages.Requests;
+with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 
 package body LSP.Clients is
 
@@ -333,9 +334,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.LogMessage_Notification;
+         Message : LogMessage_Notification;
       begin
-         LSP.Messages.LogMessage_Notification'Read (Stream, Message);
+         LogMessage_Notification'Read (Stream, Message);
          Handler.Log_Message (Message.params);
       end Log_Message;
 
@@ -348,9 +349,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.PublishDiagnostics_Notification;
+         Message : PublishDiagnostics_Notification;
       begin
-         LSP.Messages.PublishDiagnostics_Notification'Read (Stream, Message);
+         PublishDiagnostics_Notification'Read (Stream, Message);
          Handler.Publish_Diagnostics (Message.params);
       end Publish_Diagnostics;
 
@@ -363,9 +364,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.ShowMessage_Notification;
+         Message : ShowMessage_Notification;
       begin
-         LSP.Messages.ShowMessage_Notification'Read (Stream, Message);
+         ShowMessage_Notification'Read (Stream, Message);
          Handler.Show_Message (Message.params);
       end Show_Message;
 
@@ -375,8 +376,8 @@ package body LSP.Clients is
    -- Exit_Notification --
    -----------------------
 
-   overriding procedure Exit_Notification (Self : access Client) is
-      Message : LSP.Messages.Exit_Notification;
+   procedure Exit_Notification (Self : access Client) is
+      Message : LSP.Messages.Notifications.Exit_Notification;
    begin
       Self.Send_Notification ("exit", Message);
    end Exit_Notification;
@@ -686,11 +687,11 @@ package body LSP.Clients is
    -- Text_Document_Did_Change --
    ------------------------------
 
-   overriding procedure Text_Document_Did_Change
+   procedure Text_Document_Did_Change
      (Self  : access Client;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
-      Message : LSP.Messages.DidChangeTextDocument_Notification :=
+      Message : DidChangeTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didChange", Message);
@@ -700,11 +701,11 @@ package body LSP.Clients is
    -- Text_Document_Did_Close --
    -----------------------------
 
-   overriding procedure Text_Document_Did_Close
+   procedure Text_Document_Did_Close
      (Self  : access Client;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
-      Message : LSP.Messages.DidCloseTextDocument_Notification :=
+      Message : DidCloseTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didClose", Message);
@@ -714,11 +715,11 @@ package body LSP.Clients is
    -- Text_Document_Did_Open --
    ----------------------------
 
-   overriding procedure Text_Document_Did_Open
+   procedure Text_Document_Did_Open
      (Self  : access Client;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
-      Message : LSP.Messages.DidOpenTextDocument_Notification :=
+      Message : DidOpenTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didOpen", Message);
@@ -728,11 +729,11 @@ package body LSP.Clients is
    -- Text_Document_Did_Save --
    ----------------------------
 
-   overriding procedure Text_Document_Did_Save
+   procedure Text_Document_Did_Save
      (Self  : access Client;
       Value : LSP.Messages.DidSaveTextDocumentParams)
    is
-      Message : LSP.Messages.DidSaveTextDocument_Notification :=
+      Message : DidSaveTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didSave", Message);
@@ -849,9 +850,8 @@ package body LSP.Clients is
    -- Initialized --
    -----------------
 
-   overriding procedure Initialized (Self : access Client) is
-      Message : LSP.Messages.Initialized_Notification :=
-                  (others => <>);
+   procedure Initialized (Self : access Client) is
+      Message : Initialized_Notification := (others => <>);
    begin
       Self.Send_Notification ("initialized", Message);
    end Initialized;
@@ -860,11 +860,11 @@ package body LSP.Clients is
    -- Workspace_Did_Change_Configuration --
    ----------------------------------------
 
-   overriding procedure Workspace_Did_Change_Configuration
+   procedure Workspace_Did_Change_Configuration
      (Self  : access Client;
       Value :  LSP.Messages.DidChangeConfigurationParams)
    is
-      Message : LSP.Messages.DidChangeConfiguration_Notification :=
+      Message : DidChangeConfiguration_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("workspace/didChangeConfiguration", Message);
@@ -905,5 +905,37 @@ package body LSP.Clients is
          Decoders.Workspace_Symbol_Response'Access,
          Message);
    end Workspace_Symbol_Request;
+
+   -------------------------
+   -- Handle_Notification --
+   -------------------------
+
+   overriding procedure Handle_Notification
+     (Self         : access Client;
+      Notification : LSP.Messages.NotificationMessage'Class) is
+   begin
+      if Notification in Initialized_Notification'Class then
+         Self.Initialized;
+      elsif Notification in
+        LSP.Messages.Notifications.Exit_Notification'Class
+      then
+         Self.Exit_Notification;
+      elsif Notification in DidChangeConfiguration_Notification'Class then
+         Self.Workspace_Did_Change_Configuration
+           (DidChangeConfiguration_Notification (Notification).params);
+      elsif Notification in DidOpenTextDocument_Notification'Class then
+         Self.Text_Document_Did_Open
+           (DidOpenTextDocument_Notification (Notification).params);
+      elsif Notification in DidChangeTextDocument_Notification'Class then
+         Self.Text_Document_Did_Change
+           (DidChangeTextDocument_Notification (Notification).params);
+      elsif Notification in DidSaveTextDocument_Notification'Class then
+         Self.Text_Document_Did_Save
+           (DidSaveTextDocument_Notification (Notification).params);
+      elsif Notification in DidCloseTextDocument_Notification'Class then
+         Self.Text_Document_Did_Close
+           (DidCloseTextDocument_Notification (Notification).params);
+      end if;
+   end Handle_Notification;
 
 end LSP.Clients;

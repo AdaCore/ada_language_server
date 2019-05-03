@@ -41,6 +41,30 @@ package LSP.Clients is
    procedure Initialize (Self : in out Client'Class);
    --  Initialize Client to correct state
 
+   procedure Exit_Notification (Self : access Client);
+
+   procedure Initialized (Self : access Client);
+
+   procedure Workspace_Did_Change_Configuration
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeConfigurationParams);
+
+   procedure Text_Document_Did_Open
+     (Self  : access Client;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
+
+   procedure Text_Document_Did_Change
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
+
+   procedure Text_Document_Did_Save
+     (Self  : access Client;
+      Value : LSP.Messages.DidSaveTextDocumentParams);
+
+   procedure Text_Document_Did_Close
+     (Self  : access Client;
+      Value : LSP.Messages.DidCloseTextDocumentParams);
+
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
       Value : access LSP.Clients.Response_Handlers.Response_Handler'Class);
@@ -119,29 +143,9 @@ package LSP.Clients is
 
    --  Notification sending procedures:
 
-   overriding procedure Initialized (Self : access Client);
-
-   overriding procedure Workspace_Did_Change_Configuration
-     (Self  : access Client;
-      Value : LSP.Messages.DidChangeConfigurationParams);
-
-   overriding procedure Text_Document_Did_Open
-     (Self  : access Client;
-      Value : LSP.Messages.DidOpenTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Change
-     (Self  : access Client;
-      Value : LSP.Messages.DidChangeTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Save
-     (Self  : access Client;
-      Value : LSP.Messages.DidSaveTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Close
-     (Self  : access Client;
-      Value : LSP.Messages.DidCloseTextDocumentParams);
-
-   overriding procedure Exit_Notification (Self : access Client);
+   overriding procedure Handle_Notification
+     (Self         : access Client;
+      Notification : LSP.Messages.NotificationMessage'Class);
 
    --  Send response to the LSP server
 
