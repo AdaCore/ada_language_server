@@ -1848,38 +1848,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceSymbolParams;
 
-   --------------------------------------
-   -- Write_ApplyWorkspaceEdit_Request --
-   --------------------------------------
-
-   procedure Write_ApplyWorkspaceEdit_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEdit_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prexif (S, V);
-      JS.Key ("params");
-      ApplyWorkspaceEditParams'Write (S, V.params);
-      JS.End_Object;
-   end Write_ApplyWorkspaceEdit_Request;
-
-   procedure Write_ShowMessage_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prexif (S, V);
-      JS.Key ("params");
-      ShowMessageRequestParams'Write (S, V.params);
-      JS.End_Object;
-   end Write_ShowMessage_Request;
-
    -----------------------------
    -- Write_ShowMessageParams --
    -----------------------------
@@ -2944,28 +2912,6 @@ package body LSP.Messages is
       ReferenceContext'Write (S, V.context);
       JS.End_Object;
    end Write_ReferenceParams;
-
-   --------------------------
-   -- Write_Request_Prexif --
-   --------------------------
-
-   procedure Write_Request_Prexif
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.RequestMessage'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-
-      if V.id.Is_Number then
-         Write_Number (JS, +"id", V.id.Number);
-      elsif not Is_Empty (V.id.String) then
-         Write_String (JS, +"id", V.id.String);
-      end if;
-
-      Write_String (JS, +"method", V.method);
-   end Write_Request_Prexif;
 
    --------------------
    -- Write_Response --

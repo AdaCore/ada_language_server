@@ -158,6 +158,7 @@ basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 REQUESTS = [
     ('initialize', 'Initialize', 'InitializeParams'),
     ('shutdown', 'Shutdown', None),
+    ('window/showMessageRequest', 'ShowMessage', 'ShowMessageRequestParams'),
     ('textDocument/codeAction', 'CodeAction', 'CodeActionParams'),
     ('textDocument/completion', 'Completion', 'TextDocumentPositionParams'),
     ('textDocument/definition', 'Definition', 'TextDocumentPositionParams'),
@@ -169,6 +170,8 @@ REQUESTS = [
     ('textDocument/documentSymbol', 'Document_Symbols',
      'DocumentSymbolParams'),
     ('textDocument/executeCommand', 'Execute_Command', 'ExecuteCommandParams'),
+    # TODO: rename ApplyWorkspaceEdit to Workspace_Apply_Edit, for consistency
+    ('workspace/applyEdit', 'ApplyWorkspaceEdit', 'ApplyWorkspaceEditParams'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
      'ExecuteCommandParams'),
