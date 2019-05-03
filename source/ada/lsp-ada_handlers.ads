@@ -49,23 +49,8 @@ private
       Request : LSP.Messages.RequestMessage'Class)
       return LSP.Messages.ResponseMessage'Class;
 
-   overriding procedure Exit_Notification
-     (Self  : access Message_Handler);
-
-   overriding procedure Text_Document_Did_Change
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Close
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Open
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams);
-
-   overriding procedure Workspace_Did_Change_Configuration
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams);
+   overriding procedure Handle_Notification
+     (Self         : access Message_Handler;
+      Notification : LSP.Messages.NotificationMessage'Class);
 
 end LSP.Ada_Handlers;

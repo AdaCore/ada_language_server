@@ -21,6 +21,7 @@ with Ada.Directories;
 with GNATCOLL.JSON;
 
 with LSP.Messages.Requests;
+with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
@@ -99,11 +100,30 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.TextDocumentPositionParams)
      return LSP.Messages.Completion_Response;
 
+   procedure Exit_Notification
+     (Self  : access Message_Handler);
+
+   procedure Text_Document_Did_Change
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
+
+   procedure Text_Document_Did_Close
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidCloseTextDocumentParams);
+
+   procedure Text_Document_Did_Open
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
+
+   procedure Workspace_Did_Change_Configuration
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams);
+
    -----------------------
    -- Exit_Notification --
    -----------------------
 
-   overriding procedure Exit_Notification (Self : access Message_Handler) is
+   procedure Exit_Notification (Self : access Message_Handler) is
    begin
       Self.Server.Stop;
    end Exit_Notification;
@@ -326,7 +346,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Did_Change --
    ------------------------------
 
-   overriding procedure Text_Document_Did_Change
+   procedure Text_Document_Did_Change
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
@@ -345,7 +365,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Did_Close --
    -----------------------------
 
-   overriding procedure Text_Document_Did_Close
+   procedure Text_Document_Did_Close
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
@@ -357,7 +377,7 @@ package body LSP.Ada_Handlers is
    -- Text_Document_Did_Open --
    ----------------------------
 
-   overriding procedure Text_Document_Did_Open
+   procedure Text_Document_Did_Open
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
@@ -588,7 +608,7 @@ package body LSP.Ada_Handlers is
    -- Workspace_Did_Change_Configuration --
    ----------------------------------------
 
-   overriding procedure Workspace_Did_Change_Configuration
+   procedure Workspace_Did_Change_Configuration
      (Self     : access Message_Handler;
       Value    : LSP.Messages.DidChangeConfigurationParams)
    is
@@ -775,5 +795,32 @@ package body LSP.Ada_Handlers is
       R.id := Request.id;
       return R;
    end Handle_Request;
+
+   -------------------------
+   -- Handle_Notification --
+   -------------------------
+
+   overriding procedure Handle_Notification
+     (Self         : access Message_Handler;
+      Notification : LSP.Messages.NotificationMessage'Class) is
+   begin
+      if Notification in
+        LSP.Messages.Notifications.Exit_Notification'Class
+      then
+         Self.Exit_Notification;
+      elsif Notification in DidChangeTextDocument_Notification then
+         Self.Text_Document_Did_Change
+           (DidChangeTextDocument_Notification (Notification).params);
+      elsif Notification in DidCloseTextDocument_Notification then
+         Self.Text_Document_Did_Close
+           (DidCloseTextDocument_Notification (Notification).params);
+      elsif Notification in DidOpenTextDocument_Notification then
+         Self.Text_Document_Did_Open
+           (DidOpenTextDocument_Notification (Notification).params);
+      elsif Notification in DidChangeConfiguration_Notification then
+         Self.Workspace_Did_Change_Configuration
+           (DidChangeConfiguration_Notification (Notification).params);
+      end if;
+   end Handle_Notification;
 
 end LSP.Ada_Handlers;
