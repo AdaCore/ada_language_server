@@ -23,8 +23,9 @@ with Ada.Unchecked_Deallocation;
 with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 
-with LSP.Servers.Handlers;
 with LSP.JSON_Streams;
+with LSP.Messages.Requests;
+with LSP.Messages.Notifications;
 
 with GNATCOLL.JSON;
 
@@ -538,33 +539,10 @@ package body LSP.Servers is
          Notification : not null
            LSP.Messages.Notifications.Server_Notification_Handler_Access)
       is
-         type Notification_Info is record
-            Name   : LSP.Types.LSP_String;
-            Action : LSP.Notification_Dispatchers.Parameter_Handler_Access;
-         end record;
-
-         type Notification_Info_Array is
-           array (Positive range <>) of Notification_Info;
-
-         Notification_List : constant Notification_Info_Array :=
-           ((+"exit", Handlers.Do_Exit'Access),
-            (+"textDocument/didChange", Handlers.DidChangeTextDocument'Access),
-            (+"textDocument/didClose", Handlers.DidCloseTextDocument'Access),
-            (+"textDocument/didOpen", Handlers.DidOpenTextDocument'Access),
-            (+"textDocument/didSave", Handlers.DidSaveTextDocument'Access),
-            (+"workspace/didChangeConfiguration",
-             Handlers.DidChangeConfiguration'Access),
-            (+"", Handlers.Ignore_Notification'Access));
-
       begin
          Req_Handler := Request;
          Notif_Handler := Notification;
          Initialized := False;  --  Block request until 'initialize' request
-
-         for Notification of Notification_List loop
-            Notifications.Register (Notification.Name, Notification.Action);
-         end loop;
-
       end Initialize;
 
       ---------------------------------
@@ -665,11 +643,9 @@ package body LSP.Servers is
             end if;
          else
             if Initialized then
-               JS.Key ("params");
-               Notifications.Dispatch
-                 (Method  => Method.Value,
-                  Stream  => JS'Access,
-                  Handler => Notif_Handler);
+               --  This is a notification
+               Notif_Handler.Handle_Notification
+                 (LSP.Messages.Notifications.Decode_Notification (Document));
             end if;
 
             return;

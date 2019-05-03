@@ -23,29 +23,8 @@ package LSP.Server_Notifications is
    type Server_Notification_Handler_Access is
      access all Server_Notification_Handler'Class;
 
-   procedure Initialized (Self : access Server_Notification_Handler) is null;
-
-   procedure Workspace_Did_Change_Configuration
-    (Self     : access Server_Notification_Handler;
-     Value    : LSP.Messages.DidChangeConfigurationParams) is null;
-
-   procedure Text_Document_Did_Open
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams) is null;
-
-   procedure Text_Document_Did_Change
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams) is null;
-
-   procedure Text_Document_Did_Save
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.DidSaveTextDocumentParams) is null;
-
-   procedure Text_Document_Did_Close
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams) is null;
-
-   procedure Exit_Notification
-    (Self : access Server_Notification_Handler) is null;
+   procedure Handle_Notification
+     (Self         : access Server_Notification_Handler;
+      Notification : LSP.Messages.NotificationMessage'Class) is abstract;
 
 end LSP.Server_Notifications;
