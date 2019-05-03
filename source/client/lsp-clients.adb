@@ -22,6 +22,7 @@ with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Requests; use LSP.Messages.Requests;
+with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 
 package body LSP.Clients is
 
@@ -333,9 +334,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.LogMessage_Notification;
+         Message : LogMessage_Notification;
       begin
-         LSP.Messages.LogMessage_Notification'Read (Stream, Message);
+         LogMessage_Notification'Read (Stream, Message);
          Handler.Log_Message (Message.params);
       end Log_Message;
 
@@ -348,9 +349,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.PublishDiagnostics_Notification;
+         Message : PublishDiagnostics_Notification;
       begin
-         LSP.Messages.PublishDiagnostics_Notification'Read (Stream, Message);
+         PublishDiagnostics_Notification'Read (Stream, Message);
          Handler.Publish_Diagnostics (Message.params);
       end Publish_Diagnostics;
 
@@ -363,9 +364,9 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
-         Message : LSP.Messages.ShowMessage_Notification;
+         Message : ShowMessage_Notification;
       begin
-         LSP.Messages.ShowMessage_Notification'Read (Stream, Message);
+         ShowMessage_Notification'Read (Stream, Message);
          Handler.Show_Message (Message.params);
       end Show_Message;
 
@@ -690,7 +691,7 @@ package body LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
-      Message : LSP.Messages.DidChangeTextDocument_Notification :=
+      Message : DidChangeTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didChange", Message);
@@ -704,7 +705,7 @@ package body LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
-      Message : LSP.Messages.DidCloseTextDocument_Notification :=
+      Message : DidCloseTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didClose", Message);
@@ -718,7 +719,7 @@ package body LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
-      Message : LSP.Messages.DidOpenTextDocument_Notification :=
+      Message : DidOpenTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didOpen", Message);
@@ -732,7 +733,7 @@ package body LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidSaveTextDocumentParams)
    is
-      Message : LSP.Messages.DidSaveTextDocument_Notification :=
+      Message : DidSaveTextDocument_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("textDocument/didSave", Message);
@@ -863,7 +864,7 @@ package body LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidChangeConfigurationParams)
    is
-      Message : LSP.Messages.DidChangeConfiguration_Notification :=
+      Message : DidChangeConfiguration_Notification :=
         (params => Value, others => <>);
    begin
       Self.Send_Notification ("workspace/didChangeConfiguration", Message);
