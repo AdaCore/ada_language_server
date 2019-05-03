@@ -3,6 +3,7 @@
 with Ada.Strings.UTF_Encoding;
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
+with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
 
 package body LSP.Messages.Requests is
 
@@ -10,53 +11,26 @@ package body LSP.Messages.Requests is
       return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   procedure Write_Request_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.RequestMessage'Class);
-
-   procedure Write_Request_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.RequestMessage'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-
-      if V.id.Is_Number then
-         Write_Number (JS, +"id", V.id.Number);
-      elsif not Is_Empty (V.id.String) then
-         Write_String (JS, +"id", V.id.String);
-      end if;
-
-      Write_String (JS, +"method", V.method);
-   end Write_Request_Prefix;
-
-   function Decode_Request (Document : JSON_Value) return RequestMessage'Class
+   function Decode_Request
+      (Document : JSON_Value) return RequestMessage'Class
    is
       JS : aliased LSP.JSON_Streams.JSON_Stream;
       JSON_Array : GNATCOLL.JSON.JSON_Array;
 
-      Version    : LSP.Types.LSP_String;
       Method     : LSP.Types.LSP_String;
-      Request_Id : LSP.Types.LSP_Number_Or_String;
 
    begin
       GNATCOLL.JSON.Append (JSON_Array, Document);
       JS.Set_JSON_Document (JSON_Array);
       JS.Start_Object;
 
-      LSP.Types.Read_String (JS, +"jsonrpc", Version);
       LSP.Types.Read_String (JS, +"method", Method);
-      Read_Number_Or_String (JS, +"id", Request_Id);
 
       if To_UTF_8_String (Method) = "initialize" then
          declare
             R : Initialize_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             InitializeParams'Read (JS'Access, R.params);
             return R;
@@ -67,9 +41,7 @@ package body LSP.Messages.Requests is
          declare
             R : Shutdown_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             return R;
          end;
       end if;
@@ -78,9 +50,7 @@ package body LSP.Messages.Requests is
          declare
             R : ShowMessage_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             ShowMessageRequestParams'Read (JS'Access, R.params);
             return R;
@@ -91,9 +61,7 @@ package body LSP.Messages.Requests is
          declare
             R : CodeAction_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             CodeActionParams'Read (JS'Access, R.params);
             return R;
@@ -104,9 +72,7 @@ package body LSP.Messages.Requests is
          declare
             R : Completion_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             TextDocumentPositionParams'Read (JS'Access, R.params);
             return R;
@@ -117,9 +83,7 @@ package body LSP.Messages.Requests is
          declare
             R : Definition_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             TextDocumentPositionParams'Read (JS'Access, R.params);
             return R;
@@ -130,9 +94,7 @@ package body LSP.Messages.Requests is
          declare
             R : Highlight_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             TextDocumentPositionParams'Read (JS'Access, R.params);
             return R;
@@ -143,9 +105,7 @@ package body LSP.Messages.Requests is
          declare
             R : Hover_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             TextDocumentPositionParams'Read (JS'Access, R.params);
             return R;
@@ -156,9 +116,7 @@ package body LSP.Messages.Requests is
          declare
             R : References_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             ReferenceParams'Read (JS'Access, R.params);
             return R;
@@ -169,9 +127,7 @@ package body LSP.Messages.Requests is
          declare
             R : Signature_Help_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             TextDocumentPositionParams'Read (JS'Access, R.params);
             return R;
@@ -182,9 +138,7 @@ package body LSP.Messages.Requests is
          declare
             R : Document_Symbols_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             DocumentSymbolParams'Read (JS'Access, R.params);
             return R;
@@ -195,9 +149,7 @@ package body LSP.Messages.Requests is
          declare
             R : Execute_Command_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             ExecuteCommandParams'Read (JS'Access, R.params);
             return R;
@@ -208,9 +160,7 @@ package body LSP.Messages.Requests is
          declare
             R : ApplyWorkspaceEdit_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             ApplyWorkspaceEditParams'Read (JS'Access, R.params);
             return R;
@@ -221,9 +171,7 @@ package body LSP.Messages.Requests is
          declare
             R : Workspace_Symbols_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             WorkspaceSymbolParams'Read (JS'Access, R.params);
             return R;
@@ -234,9 +182,7 @@ package body LSP.Messages.Requests is
          declare
             R : Workspace_Execute_Command_Request;
          begin
-            R.jsonrpc := Version;
-            R.method := Method;
-            R.id := Request_Id;
+            Set_Common_Request_Fields (R, JS);
             JS.Key ("params");
             ExecuteCommandParams'Read (JS'Access, R.params);
             return R;
@@ -245,6 +191,20 @@ package body LSP.Messages.Requests is
 
       raise Program_Error; --  Request not found
    end Decode_Request;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Initialize_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      InitializeParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -260,6 +220,18 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Shutdown_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Shutdown_Request)
@@ -271,6 +243,20 @@ package body LSP.Messages.Requests is
       Write_Request_Prefix (S, V);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessage_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      ShowMessageRequestParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -286,6 +272,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeAction_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      CodeActionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeAction_Request)
@@ -299,6 +299,20 @@ package body LSP.Messages.Requests is
       CodeActionParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Completion_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -314,6 +328,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Definition_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Definition_Request)
@@ -327,6 +355,20 @@ package body LSP.Messages.Requests is
       TextDocumentPositionParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Highlight_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -342,6 +384,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Hover_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Hover_Request)
@@ -355,6 +411,20 @@ package body LSP.Messages.Requests is
       TextDocumentPositionParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out References_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      ReferenceParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -370,6 +440,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Signature_Help_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Signature_Help_Request)
@@ -383,6 +467,20 @@ package body LSP.Messages.Requests is
       TextDocumentPositionParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Document_Symbols_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      DocumentSymbolParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -398,6 +496,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Execute_Command_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      ExecuteCommandParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Execute_Command_Request)
@@ -411,6 +523,20 @@ package body LSP.Messages.Requests is
       ExecuteCommandParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ApplyWorkspaceEdit_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      ApplyWorkspaceEditParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -426,6 +552,20 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Workspace_Symbols_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      WorkspaceSymbolParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Workspace_Symbols_Request)
@@ -439,6 +579,20 @@ package body LSP.Messages.Requests is
       WorkspaceSymbolParams'Write (S, V.params);
       JS.End_Object;
    end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Workspace_Execute_Command_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      ExecuteCommandParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
