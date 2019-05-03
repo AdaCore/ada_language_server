@@ -74,10 +74,6 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
-   procedure Write_Request_Prexif
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.RequestMessage'Class);
-
    --```typescript
    --interface ResponseMessage extends Message {
    --	/**
@@ -3448,14 +3444,6 @@ package LSP.Messages is
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
 
-   type ShowMessage_Request is new RequestMessage with record
-      params : ShowMessageRequestParams;
-   end record;
-
-   type ApplyWorkspaceEdit_Request is new RequestMessage with record
-      params : ApplyWorkspaceEditParams;
-   end record;
-
    package Initialize_Responses is new LSP.Generic_Responses
      (ResponseMessage => ResponseMessage,
       T               => InitializeResult);
@@ -3530,10 +3518,6 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceEdit);
 
-   procedure Write_ApplyWorkspaceEdit_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEdit_Request);
-
    procedure Write_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
@@ -3541,10 +3525,6 @@ private
    procedure Write_ExecuteCommand_Response
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommand_Response);
-
-   procedure Write_ShowMessage_Request
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Request);
 
    procedure Write_ShowMessageRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -3558,10 +3538,8 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceEdit);
 
-   for ApplyWorkspaceEdit_Request'Write use Write_ApplyWorkspaceEdit_Request;
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
-   for ShowMessage_Request'Write use Write_ShowMessage_Request;
    for ShowMessageRequestParams'Write use Write_ShowMessageRequestParams;
    for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
