@@ -24,6 +24,7 @@ with GNATCOLL.Utils;        use GNATCOLL.Utils;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
+with LSP.Messages.Requests;
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 with LSP.Types; use LSP.Types;
 
@@ -880,5 +881,32 @@ package body LSP.Ada_Handlers is
       Document.Get_Completions_At (Value.position, Response.result);
       return Response;
    end On_Completion_Request;
+
+   -------------------------
+   -- Handle_Notification --
+   -------------------------
+
+   overriding procedure Handle_Notification
+     (Self         : access Message_Handler;
+      Notification : LSP.Messages.NotificationMessage'Class) is
+   begin
+      if Notification in
+        LSP.Messages.Notifications.Exit_Notification'Class
+      then
+         Self.Exit_Notification;
+      elsif Notification in DidChangeTextDocument_Notification then
+         Self.Text_Document_Did_Change
+           (DidChangeTextDocument_Notification (Notification).params);
+      elsif Notification in DidCloseTextDocument_Notification then
+         Self.Text_Document_Did_Close
+           (DidCloseTextDocument_Notification (Notification).params);
+      elsif Notification in DidOpenTextDocument_Notification then
+         Self.Text_Document_Did_Open
+           (DidOpenTextDocument_Notification (Notification).params);
+      elsif Notification in DidChangeConfiguration_Notification then
+         Self.Workspace_Did_Change_Configuration
+           (DidChangeConfiguration_Notification (Notification).params);
+      end if;
+   end Handle_Notification;
 
 end LSP.Ada_Handlers;
