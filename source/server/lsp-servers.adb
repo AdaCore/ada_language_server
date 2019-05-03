@@ -26,6 +26,7 @@ with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with LSP.Servers.Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Requests;
+with LSP.Messages.Notifications;
 
 private with LSP.Notification_Dispatchers;
 
@@ -133,7 +134,7 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.LogMessageParams)
    is
-      Message : LSP.Messages.LogMessage_Notification;
+      Message : LSP.Messages.Notifications.LogMessage_Notification;
    begin
       Message.method := +"window/logMessage";
       Message.params := Params;
@@ -294,7 +295,7 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.PublishDiagnosticsParams)
    is
-      Message : LSP.Messages.PublishDiagnostics_Notification;
+      Message : LSP.Messages.Notifications.PublishDiagnostics_Notification;
    begin
       Message.method := +"textDocument/publishDiagnostics";
       Message.params := Params;
@@ -338,7 +339,7 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.ShowMessageParams)
    is
-      Message : LSP.Messages.ShowMessage_Notification;
+      Message : LSP.Messages.Notifications.ShowMessage_Notification;
    begin
       Message.method := +"window/showMessage";
       Message.params := Params;
