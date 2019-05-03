@@ -15,6 +15,10 @@ package LSP.Messages.Requests is
 
    type Shutdown_Request is new RequestMessage with null record;
 
+   type ShowMessage_Request is new RequestMessage with record
+      params : ShowMessageRequestParams;
+   end record;
+
    type CodeAction_Request is new RequestMessage with record
       params : CodeActionParams;
    end record;
@@ -51,6 +55,10 @@ package LSP.Messages.Requests is
       params : ExecuteCommandParams;
    end record;
 
+   type ApplyWorkspaceEdit_Request is new RequestMessage with record
+      params : ApplyWorkspaceEditParams;
+   end record;
+
    type Workspace_Symbols_Request is new RequestMessage with record
       params : WorkspaceSymbolParams;
    end record;
@@ -69,6 +77,10 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Shutdown_Request);
    for Shutdown_Request'Write use Write;
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessage_Request);
+   for ShowMessage_Request'Write use Write;
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeAction_Request);
@@ -105,6 +117,10 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Execute_Command_Request);
    for Execute_Command_Request'Write use Write;
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ApplyWorkspaceEdit_Request);
+   for ApplyWorkspaceEdit_Request'Write use Write;
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Workspace_Symbols_Request);

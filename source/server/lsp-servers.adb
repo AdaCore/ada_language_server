@@ -400,16 +400,17 @@ package body LSP.Servers is
       Error    : out LSP.Messages.Optional_ResponseError)
    is
       pragma Unreferenced (Error);
-      Request        : constant LSP.Messages.ApplyWorkspaceEdit_Request :=
-        (jsonrpc => +"2.0",
-         id      => (Is_Number => True, Number => Self.Last_Request),
-         method  => +"workspace/applyEdit",
-         params  => Params);
+      Request        : constant
+        LSP.Messages.Requests.ApplyWorkspaceEdit_Request :=
+          (jsonrpc => +"2.0",
+           id      => (Is_Number => True, Number => Self.Last_Request),
+           method  => +"workspace/applyEdit",
+           params  => Params);
       JSON_Stream    : aliased LSP.JSON_Streams.JSON_Stream;
       Element_Vector : Ada.Strings.Unbounded.Unbounded_String;
    begin
       Self.Last_Request := Self.Last_Request + 1;
-      LSP.Messages.ApplyWorkspaceEdit_Request'Write
+      LSP.Messages.Requests.ApplyWorkspaceEdit_Request'Write
         (JSON_Stream'Access, Request);
       Element_Vector := To_Unbounded_String (JSON_Stream);
       Self.Output_Queue.Enqueue (Element_Vector);
