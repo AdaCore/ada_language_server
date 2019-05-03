@@ -29,7 +29,6 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 with Ada.Streams;
 
-with LSP.Generic_Notifications;
 with LSP.Generic_Optional;
 with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
@@ -3348,98 +3347,6 @@ package LSP.Messages is
    type ApplyWorkspaceEditResult is record
       applied: Boolean;
    end record;
-
-   package ShowMessage_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        ShowMessageParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype ShowMessage_Notification is
-     ShowMessage_Notifications.Notification;
-
-   package LogMessage_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        LogMessageParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype LogMessage_Notification is
-     LogMessage_Notifications.Notification;
-
-   package PublishDiagnostics_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        PublishDiagnosticsParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype PublishDiagnostics_Notification is
-     PublishDiagnostics_Notifications.Notification;
-
-   package Initialized_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        InitializedParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype Initialized_Notification is
-     Initialized_Notifications.Notification;
-
-   package DidChangeConfiguration_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        DidChangeConfigurationParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype DidChangeConfiguration_Notification is
-     DidChangeConfiguration_Notifications.Notification;
-
-   package DidOpenTextDocument_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        DidOpenTextDocumentParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype DidOpenTextDocument_Notification is
-     DidOpenTextDocument_Notifications.Notification;
-
-   package DidChangeTextDocument_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        DidChangeTextDocumentParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype DidChangeTextDocument_Notification is
-     DidChangeTextDocument_Notifications.Notification;
-
-   package DidSaveTextDocument_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        DidSaveTextDocumentParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype DidSaveTextDocument_Notification is
-     DidSaveTextDocument_Notifications.Notification;
-
-   package DidCloseTextDocument_Notifications is new
-     LSP.Generic_Notifications
-       (NotificationMessage,
-        DidCloseTextDocumentParams,
-        Read_Notification_Prexif,
-        Write_Notification_Prexif);
-
-   subtype DidCloseTextDocument_Notification is
-     DidCloseTextDocument_Notifications.Notification;
-
-   type Exit_Notification is new NotificationMessage with null record;
 
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
