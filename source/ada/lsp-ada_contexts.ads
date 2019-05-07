@@ -119,9 +119,10 @@ private
    procedure Find_Project_File
      (Self      : in out Context;
       File      : LSP.Types.LSP_String;
+      Error     : out LSP.Types.LSP_String;
       Project   : out GNATCOLL.VFS.Virtual_File;
       Status    : out Project_Status);
-   --  Find GPR file
+   --  Find GPR file. Fill Error is specified project doesn't exist
 
    function Is_Initialized (Self : Context) return Boolean
    is

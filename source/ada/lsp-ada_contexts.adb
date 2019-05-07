@@ -54,6 +54,7 @@ package body LSP.Ada_Contexts is
    procedure Find_Project_File
      (Self      : in out Context;
       File      : LSP.Types.LSP_String;
+      Error     : out LSP.Types.LSP_String;
       Project   : out GNATCOLL.VFS.Virtual_File;
       Status    : out Project_Status)
    is
@@ -135,6 +136,9 @@ package body LSP.Ada_Contexts is
          if Project.Is_Regular_File then
             Status := User_Provided_Project;
             return;
+         else
+            LSP.Types.Append (Error, "Specified project doesn't exist: ");
+            LSP.Types.Append (Error, File);
          end if;
       end if;
 
@@ -285,7 +289,7 @@ package body LSP.Ada_Contexts is
          Scenario.Map_JSON_Object (Add_Variable'Access);
       end if;
 
-      Self.Find_Project_File (File, GPR, Status);
+      Self.Find_Project_File (File, Errors.message, GPR, Status);
 
       if Status /= Default_Project then
          begin
