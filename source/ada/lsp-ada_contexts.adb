@@ -412,8 +412,8 @@ package body LSP.Ada_Contexts is
    is
       pragma Unreferenced (Self);
 
-      Result : constant String := URIs.Conversions.To_File
-        (LSP.Types.To_UTF_8_String (URI));
+      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
+      Result : constant String := URIs.Conversions.To_File (To);
    begin
       return LSP.Types.To_LSP_String (Result);
    end URI_To_File;

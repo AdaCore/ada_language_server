@@ -20,6 +20,9 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
+with Ada.Exceptions;          use Ada.Exceptions;
+with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
+
 with LSP.JSON_Streams;
 
 with GNATCOLL.JSON;
@@ -477,8 +480,21 @@ package body LSP.Servers is
                goto BEGIN_TASK_LOOP;
             end select;
 
-            --  Send the output to the stream
-            Write_JSON_RPC (Stream, Vector);
+            begin
+               --  Send the output to the stream
+               Write_JSON_RPC (Stream, Vector);
+            exception
+               when E : others =>
+                  --  Catch-all case: make sure no exception in output writing
+                  --  can cause an exit of the task loop.
+                  GNATCOLL.Traces.Trace
+                    (LSP.Server_Trace,
+                     "Exception when writing output:" & ASCII.LF
+                     & To_String (Vector) & ASCII.LF
+                     & Exception_Name (E) & " - " &  Exception_Message (E));
+                  Server_Trace.Trace (Symbolic_Traceback (E));
+
+            end;
          end loop;
       end loop;
    end Output_Task_Type;
@@ -692,6 +708,16 @@ package body LSP.Servers is
             begin
                Process_Message_From_Stream (Request, Result, Error);
                --  ??? Should we do something with Results, Error?
+            exception
+               when E : others =>
+                  --  Catch-all case: make sure no exception in any request
+                  --  processing can cause an exit of the task main loop.
+                  GNATCOLL.Traces.Trace
+                    (LSP.Server_Trace,
+                     "Exception when processing request:" & ASCII.LF
+                     & To_String (Request) & ASCII.LF
+                     & Exception_Name (E) & " - " &  Exception_Message (E));
+                  Server_Trace.Trace (Symbolic_Traceback (E));
             end;
          end loop;
 
