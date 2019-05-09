@@ -33,6 +33,10 @@ with LSP.Ada_Handlers;
 
 with Libadalang.Common; use Libadalang.Common;
 
+--------------------
+-- LSP.Ada_Driver --
+--------------------
+
 procedure LSP.Ada_Driver is
 
    Server  : aliased LSP.Servers.Server;
@@ -71,17 +75,13 @@ begin
       Handler'Unchecked_Access);
 
    loop
-
       --  Here, we do Server.Run in a loop, in order to be able to recover from
       --  exceptions. However, in the common case we don't want to keep running
       --  the server when it has been stopped. We use the Do_Exit variable to
       --  signal that.
 
       begin
-         if Do_Exit then
-            Server.Finalize;
-            return;
-         end if;
+         exit when Do_Exit;
 
          Do_Exit := True;
 
@@ -106,4 +106,5 @@ begin
       end;
    end loop;
 
+   Server.Finalize;
 end LSP.Ada_Driver;
