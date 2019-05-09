@@ -20,11 +20,11 @@
 --
 
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Directories;
 with Ada.Iterator_Interfaces;
-with Ada.Strings.Fixed.Equal_Case_Insensitive;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
+
+with GNAT.OS_Lib;
 
 package URIs is
 
@@ -95,10 +95,7 @@ package URIs is
 
    package Conversions is
       function From_File (Full_Path : String) return URI_String
-        with Pre =>
-          Ada.Strings.Fixed.Equal_Case_Insensitive
-            (Ada.Directories.Full_Name (Full_Path),
-             Full_Path);
+        with Pre => GNAT.OS_Lib.Is_Absolute_Path (Full_Path);
       --  Convert from file to URI in form of file://path
       --  Argument should be a absolute path (not relative one)
 

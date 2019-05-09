@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Directories;
 with Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Wide_Wide_Characters.Handling;
