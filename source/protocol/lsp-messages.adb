@@ -854,11 +854,21 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      JS.Start_Object;
-      Read_String (JS, +"language", V.language);
-      Read_String (JS, +"value", V.value);
-      JS.End_Object;
+      case Value.Kind is
+         when GNATCOLL.JSON.JSON_String_Type =>
+            V := (Is_String => True, Value => To_LSP_String (Value.Get));
+         when GNATCOLL.JSON.JSON_Object_Type =>
+            --  We can't use Start_Object/End_Object here because JS.Read
+            --  call has already skipped the array item.
+            V := (Is_String => False,
+                  language => To_LSP_String (Value.Get ("language")),
+                  value    => To_LSP_String (Value.Get ("value")));
+         when others =>
+            --  Unexpected JSON type
+            V := (Is_String => True, Value => Empty_LSP_String);
+      end case;
    end Read_MarkedString;
 
    ------------------------------
