@@ -18,12 +18,10 @@
 with Ada.Directories;
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding;
-with Ada.Text_IO;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Projects; use GNATCOLL.Projects;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
-with GNAT.OS_Lib;
 
 with URIs;
 
@@ -60,10 +58,12 @@ package body LSP.Ada_Contexts is
    is
 
       procedure Search_GPR_File
-        (Root   : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result : out GNATCOLL.VFS.Virtual_File;
-         Status : in out Project_Status);
-      --  Look for suitable GPR file under given directory
+        (Root     : Ada.Strings.UTF_Encoding.UTF_8_String;
+         Result   : out GNATCOLL.VFS.Virtual_File;
+         Multiple : in out Boolean;
+         Status   : in out Project_Status);
+      --  Look for suitable GPR file under given directory. Set Multiple if
+      --  several project files have been found
 
       Root : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         LSP.Types.To_UTF_8_String (Self.Root);
@@ -73,24 +73,12 @@ package body LSP.Ada_Contexts is
       ---------------------
 
       procedure Search_GPR_File
-        (Root   : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result : out GNATCOLL.VFS.Virtual_File;
-         Status : in out Project_Status)
+        (Root     : Ada.Strings.UTF_Encoding.UTF_8_String;
+         Result   : out GNATCOLL.VFS.Virtual_File;
+         Multiple : in out Boolean;
+         Status   : in out Project_Status)
       is
          procedure On_File (Item : Ada.Directories.Directory_Entry_Type);
-         procedure On_Dir (Item : Ada.Directories.Directory_Entry_Type);
-
-         ------------
-         -- On_Dir --
-         ------------
-
-         procedure On_Dir (Item : Ada.Directories.Directory_Entry_Type) is
-         begin
-            if Ada.Directories.Simple_Name (Item) not in "." | ".." then
-               Search_GPR_File
-                 (Ada.Directories.Full_Name (Item), Result, Status);
-            end if;
-         end On_Dir;
 
          -------------
          -- On_File --
@@ -102,9 +90,9 @@ package body LSP.Ada_Contexts is
                when Default_Project =>
                   Status := Found_Unique_Project;
                when Found_Unique_Project =>
-                  Status := Found_Non_Unique_Project;
-               when others =>
-                  null;
+                  Multiple := True;
+               when User_Provided_Project =>
+                  raise Program_Error;  --  This should never happen
             end case;
 
             Result := GNATCOLL.VFS.Create
@@ -114,15 +102,14 @@ package body LSP.Ada_Contexts is
 
          Files_Only : constant Ada.Directories.Filter_Type :=
            (Ada.Directories.Ordinary_File => True, others => False);
-         Dirs_Only : constant Ada.Directories.Filter_Type :=
-           (Ada.Directories.Directory => True, others => False);
       begin
          Ada.Directories.Search (Root, "*.gpr", Files_Only, On_File'Access);
-         Ada.Directories.Search (Root, "", Dirs_Only, On_Dir'Access);
       end Search_GPR_File;
 
       Name : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         LSP.Types.To_UTF_8_String (File);
+
+      Found_Non_Unique_Project : Boolean := False;
 
    begin
       --  If Name was provided, search for the corresponding project
@@ -142,12 +129,18 @@ package body LSP.Ada_Contexts is
          end if;
       end if;
 
-      --  If not found, perform a comprehensive search everywhere below
-      --  root.
+      --  If not found, perform a search in the root directory
       Status := Default_Project;
 
       --  This call changes Status if project found
-      Search_GPR_File (Root, Project, Status);
+      Search_GPR_File (Root, Project, Found_Non_Unique_Project, Status);
+
+      if Found_Non_Unique_Project then
+         LSP.Types.Append
+           (Error, "Please specify project file in ada.projectFile setting.");
+         --  Fallback to default project
+         Status := Default_Project;
+      end if;
    end Find_Project_File;
 
    ------------------
@@ -200,8 +193,6 @@ package body LSP.Ada_Contexts is
    is
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
       procedure On_Error (Text : String);
-      function Create_Default return GNATCOLL.VFS.Virtual_File;
-      --  Create default project file in temp directory
 
       Project_Env   : GNATCOLL.Projects.Project_Environment_Access;
       Error_Text    : LSP.Types.LSP_String_Vector;
@@ -220,50 +211,6 @@ package body LSP.Ada_Contexts is
          end if;
       end Add_Variable;
 
-      --------------------
-      -- Create_Default --
-      --------------------
-
-      function Create_Default return GNATCOLL.VFS.Virtual_File
-      is
-         use GNAT.OS_Lib;
-
-         Output : Ada.Text_IO.File_Type;
-         Pid_Image : constant String :=
-           Pid_To_Integer (Current_Process_Id)'Image;
-
-         Prj_Name  : constant String :=
-           "ALS_default_"
-           & Pid_Image (Pid_Image'First + 1 .. Pid_Image'Last);
-
-         Name   : constant String :=
-           Ada.Directories.Compose
-             (+GNATCOLL.VFS.Get_Tmp_Directory.Full_Name, Prj_Name, "gpr");
-         --  Create a project file in the temp directory
-
-         Root : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           LSP.Types.To_UTF_8_String (Self.Root);
-
-      begin
-
-         Ada.Text_IO.Create (Output, Ada.Text_IO.Out_File, Name);
-         Ada.Text_IO.Put_Line (Output, "project " & Prj_Name & " is");
-         Ada.Text_IO.Put_Line
-           (Output, "   for Source_Dirs use (""" & Root & "/**"");");
-         Ada.Text_IO.Put_Line (Output, "   package Compiler is");
-         Ada.Text_IO.Put_Line (Output, "      for Switches (""ada"") use (");
-         Ada.Text_IO.Put_Line (Output, "        ""-gnatW8"",");
-         Ada.Text_IO.Put_Line (Output, "        ""-gnatwa"",");
-         Ada.Text_IO.Put_Line (Output, "        ""-gnaty""");
-         Ada.Text_IO.Put_Line (Output, "      );");
-         Ada.Text_IO.Put_Line (Output, "   end Compiler;");
-         Ada.Text_IO.Put_Line (Output, "end " & Prj_Name & ";");
-         Ada.Text_IO.Close (Output);
-
-         return GNATCOLL.VFS.Create
-           (GNATCOLL.VFS.Filesystem_String (Ada.Directories.Full_Name (Name)));
-      end Create_Default;
-
       --------------
       -- On_Error --
       --------------
@@ -275,12 +222,15 @@ package body LSP.Ada_Contexts is
 
       GPR    : GNATCOLL.VFS.Virtual_File;
       Status : Project_Status;
+      Root   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        LSP.Types.To_UTF_8_String (Self.Root);
 
    begin
       --  Here, we overwrite previous content of Self.Project_Tree without
       --  freeing. That's OK because the Unit provider owns it and will free
       --  the old project tree when we renew the provider.
 
+      Errors.the_type := LSP.Messages.Warning;
       Self.Project_Tree := new GNATCOLL.Projects.Project_Tree;
 
       GNATCOLL.Projects.Initialize (Project_Env);
@@ -297,7 +247,6 @@ package body LSP.Ada_Contexts is
 
             Self.Project_Tree.Load
               (GPR, Project_Env, Errors => On_Error'Unrestricted_Access);
-            Errors.the_type := LSP.Messages.Warning;
 
          exception
             when E : GNATCOLL.Projects.Invalid_Project =>
@@ -323,14 +272,12 @@ package body LSP.Ada_Contexts is
 
          --  At this stage, either a project file name was provided but not
          --  found, the project could not be loaded, either it wasn't provided
-         --  at all. In any case, create a default project.
+         --  at all. In any case, use a default project.
 
-         GPR := Create_Default;
+         Server_Trace.Trace ("Using default project in " & Root);
 
-         Server_Trace.Trace ("Using default project " & (+GPR.Full_Name.all));
-
-         Self.Project_Tree.Load
-           (GPR, Project_Env, Errors => On_Error'Unrestricted_Access);
+         Ada.Directories.Set_Directory (Root);
+         Self.Project_Tree.Load_Implicit_Project (Project_Env);
 
       end if;
 

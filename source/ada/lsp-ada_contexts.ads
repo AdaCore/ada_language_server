@@ -102,9 +102,8 @@ private
 
    type Project_Status is
      (User_Provided_Project,  --  Server uses user provides project
-      Default_Project,        --  No project provided and found, server created
-      Found_Unique_Project,   --  No project provided, but server found one
-      Found_Non_Unique_Project);   --  Server found several and choose one
+      Default_Project,        --  No project provided or found, use default
+      Found_Unique_Project);  --  No project provided, but server found one
 
    type Context is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
