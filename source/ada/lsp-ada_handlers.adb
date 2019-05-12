@@ -24,7 +24,6 @@ with GNATCOLL.Utils;        use GNATCOLL.Utils;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
-with LSP.Messages.Requests;
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 with LSP.Types; use LSP.Types;
 
