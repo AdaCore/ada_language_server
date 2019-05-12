@@ -18,9 +18,9 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
-with LSP.Message_Handlers;
 with LSP.Messages;
-with LSP.Server_Notifications;
+with LSP.Messages.Requests;
+with LSP.Messages.Notifications;
 with LSP.Servers;
 
 with LSP.Ada_Contexts;
@@ -30,8 +30,8 @@ package LSP.Ada_Handlers is
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context) is
-   limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Server_Notifications.Server_Notification_Handler with private;
+   limited new LSP.Messages.Requests.Server_Request_Handler
+     and LSP.Messages.Notifications.Server_Notification_Handler with private;
    --  A handler of LSP notifications and requests from Ada language
 
 private
@@ -39,18 +39,122 @@ private
    type Message_Handler
      (Server : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context)
-   is limited new LSP.Message_Handlers.Request_Handler
-     and LSP.Server_Notifications.Server_Notification_Handler with record
+   is limited new LSP.Messages.Requests.Server_Request_Handler
+     and LSP.Messages.Notifications.Server_Notification_Handler with
+   record
       null;
    end record;
 
-   overriding function Handle_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.RequestMessage'Class)
-      return LSP.Messages.ResponseMessage'Class;
+   overriding function On_Initialize_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.InitializeParams)
+      return LSP.Messages.Initialize_Response;
 
-   overriding procedure Handle_Notification
-     (Self         : access Message_Handler;
-      Notification : LSP.Messages.NotificationMessage'Class);
+   overriding function On_Shutdown_Request
+     (Self  : access Message_Handler)
+      return LSP.Messages.ResponseMessage;
+
+   overriding function On_ShowMessage_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ShowMessageRequestParams)
+      return LSP.Messages.ResponseMessage;
+
+   overriding function On_CodeAction_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CodeActionParams)
+      return LSP.Messages.CodeAction_Response;
+
+   overriding function On_Completion_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Completion_Response;
+
+   overriding function On_Definition_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response;
+
+   overriding function On_Highlight_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Highlight_Response;
+
+   overriding function On_Hover_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Hover_Response;
+
+   overriding function On_References_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ReferenceParams)
+      return LSP.Messages.Location_Response;
+
+   overriding function On_Signature_Help_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.SignatureHelp_Response;
+
+   overriding function On_Document_Symbols_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DocumentSymbolParams)
+      return LSP.Messages.Symbol_Response;
+
+   overriding function On_Execute_Command_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response;
+
+   overriding function On_ApplyWorkspaceEdit_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ApplyWorkspaceEditParams)
+      return LSP.Messages.ResponseMessage;
+
+   overriding function On_Workspace_Symbols_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.WorkspaceSymbolParams)
+      return LSP.Messages.Symbol_Response;
+
+   overriding function On_Workspace_Execute_Command_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response;
+
+   overriding procedure On_Initialized_Notification
+     (Self  : access Message_Handler) is null;
+
+   overriding procedure On_Exit_Notification
+     (Self  : access Message_Handler);
+
+   overriding procedure On_DidChangeTextDocument_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
+
+   overriding procedure On_ShowMessage_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ShowMessageParams) is null;
+
+   overriding procedure On_LogMessage_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.LogMessageParams) is null;
+
+   overriding procedure On_PublishDiagnostics_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.PublishDiagnosticsParams) is null;
+
+   overriding procedure On_DidCloseTextDocument_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidCloseTextDocumentParams);
+
+   overriding procedure On_DidOpenTextDocument_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
+
+   overriding procedure On_DidSaveTextDocument_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidSaveTextDocumentParams) is null;
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams);
 
 end LSP.Ada_Handlers;

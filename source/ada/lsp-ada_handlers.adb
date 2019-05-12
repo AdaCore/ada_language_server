@@ -24,7 +24,6 @@ with GNATCOLL.Utils;        use GNATCOLL.Utils;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
-with LSP.Messages.Requests;
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 with LSP.Types; use LSP.Types;
 
@@ -43,98 +42,20 @@ package body LSP.Ada_Handlers is
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
 
-   function Initialize_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.InitializeParams)
-      return LSP.Messages.Initialize_Response;
-
-   function Shutdown_Request
-     (Self  : access Message_Handler)
-      return LSP.Messages.ResponseMessage;
-
-   function Text_Document_Code_Action_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.CodeActionParams)
-      return LSP.Messages.CodeAction_Response;
-
-   function Text_Document_Definition_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Location_Response;
-
-   function Text_Document_Highlight_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Highlight_Response;
-
-   function Text_Document_Hover_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Hover_Response;
-
-   function Text_Document_References_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ReferenceParams)
-      return LSP.Messages.Location_Response;
-
-   function Text_Document_Signature_Help_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.SignatureHelp_Response;
-
-   function Text_Document_Symbol_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DocumentSymbolParams)
-     return LSP.Messages.Symbol_Response;
-
-   function Workspace_Execute_Command_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ExecuteCommandParams)
-      return LSP.Messages.ExecuteCommand_Response;
-
-   function Workspace_Symbol_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.WorkspaceSymbolParams)
-      return LSP.Messages.Symbol_Response;
-
-   function Text_Document_Completion_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
-     return LSP.Messages.Completion_Response;
-
-   procedure Exit_Notification
-     (Self  : access Message_Handler);
-
-   procedure Text_Document_Did_Change
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams);
-
-   procedure Text_Document_Did_Close
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams);
-
-   procedure Text_Document_Did_Open
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams);
-
-   procedure Workspace_Did_Change_Configuration
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams);
-
    -----------------------
    -- Exit_Notification --
    -----------------------
 
-   procedure Exit_Notification (Self : access Message_Handler) is
+   overriding procedure On_Exit_Notification (Self : access Message_Handler) is
    begin
       Self.Server.Stop;
-   end Exit_Notification;
+   end On_Exit_Notification;
 
    ------------------------
    -- Initialize_Request --
    ------------------------
 
-   function Initialize_Request
+   overriding function On_Initialize_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.InitializeParams)
       return LSP.Messages.Initialize_Response
@@ -163,26 +84,26 @@ package body LSP.Ada_Handlers is
       Self.Context.Initialize (Root);
 
       return Response;
-   end Initialize_Request;
+   end On_Initialize_Request;
 
-   ----------------------
-   -- Shutdown_Request --
-   ----------------------
+   -------------------------
+   -- On_Shutdown_Request --
+   -------------------------
 
-   function Shutdown_Request
+   overriding function On_Shutdown_Request
      (Self  : access Message_Handler)
       return LSP.Messages.ResponseMessage
    is
       pragma Unreferenced (Self);
    begin
       return Response : LSP.Messages.ResponseMessage (Is_Error => False);
-   end Shutdown_Request;
+   end On_Shutdown_Request;
 
-   ---------------------------------------
-   -- Text_Document_Code_Action_Request --
-   ---------------------------------------
+   ---------------------------
+   -- On_CodeAction_Request --
+   ---------------------------
 
-   function Text_Document_Code_Action_Request
+   overriding function On_CodeAction_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.CodeActionParams)
       return LSP.Messages.CodeAction_Response
@@ -196,13 +117,73 @@ package body LSP.Ada_Handlers is
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
-   end Text_Document_Code_Action_Request;
+   end On_CodeAction_Request;
 
-   --------------------------------------
-   -- Text_Document_Definition_Request --
-   --------------------------------------
+   ----------------------------
+   -- On_ShowMessage_Request --
+   ----------------------------
 
-   function Text_Document_Definition_Request
+   overriding function On_ShowMessage_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ShowMessageRequestParams)
+      return LSP.Messages.ResponseMessage
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.ResponseMessage (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end On_ShowMessage_Request;
+
+   -----------------------------------
+   -- On_ApplyWorkspaceEdit_Request --
+   -----------------------------------
+
+   overriding function On_ApplyWorkspaceEdit_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ApplyWorkspaceEditParams)
+      return LSP.Messages.ResponseMessage
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.ResponseMessage (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end On_ApplyWorkspaceEdit_Request;
+
+   --------------------------------
+   -- On_Execute_Command_Request --
+   --------------------------------
+
+   overriding function On_Execute_Command_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.ExecuteCommandParams)
+      return LSP.Messages.ExecuteCommand_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.ExecuteCommand_Response (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end On_Execute_Command_Request;
+
+   ---------------------------
+   -- On_Definition_Request --
+   ---------------------------
+
+   overriding function On_Definition_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response
@@ -343,13 +324,13 @@ package body LSP.Ada_Handlers is
       end if;
 
       return Response;
-   end Text_Document_Definition_Request;
+   end On_Definition_Request;
 
-   ------------------------------
-   -- Text_Document_Did_Change --
-   ------------------------------
+   -------------------------------------------
+   -- On_DidChangeTextDocument_Notification --
+   -------------------------------------------
 
-   procedure Text_Document_Did_Change
+   overriding procedure On_DidChangeTextDocument_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
@@ -362,25 +343,25 @@ package body LSP.Ada_Handlers is
 
       Diag.uri := Value.textDocument.uri;
       Self.Server.Publish_Diagnostics (Diag);
-   end Text_Document_Did_Change;
+   end On_DidChangeTextDocument_Notification;
 
-   -----------------------------
-   -- Text_Document_Did_Close --
-   -----------------------------
+   ------------------------------------------
+   -- On_DidCloseTextDocument_Notification --
+   ------------------------------------------
 
-   procedure Text_Document_Did_Close
+   overriding procedure On_DidCloseTextDocument_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
    begin
       Self.Context.Unload_Document (Value.textDocument);
-   end Text_Document_Did_Close;
+   end On_DidCloseTextDocument_Notification;
 
-   ----------------------------
-   -- Text_Document_Did_Open --
-   ----------------------------
+   -----------------------------------------
+   -- On_DidOpenTextDocument_Notification --
+   -----------------------------------------
 
-   procedure Text_Document_Did_Open
+   overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
@@ -423,13 +404,13 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Context.Load_Document (Value.textDocument);
-   end Text_Document_Did_Open;
+   end On_DidOpenTextDocument_Notification;
 
-   -------------------------------------
-   -- Text_Document_Highlight_Request --
-   -------------------------------------
+   --------------------------
+   -- On_Highlight_Request --
+   --------------------------
 
-   function Text_Document_Highlight_Request
+   overriding function On_Highlight_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Highlight_Response
@@ -443,13 +424,13 @@ package body LSP.Ada_Handlers is
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
-   end Text_Document_Highlight_Request;
+   end On_Highlight_Request;
 
-   ---------------------------------
-   -- Text_Document_Hover_Request --
-   ---------------------------------
+   ----------------------
+   -- On_Hover_Request --
+   ----------------------
 
-   function Text_Document_Hover_Request
+   overriding function On_Hover_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Hover_Response
@@ -658,13 +639,13 @@ package body LSP.Ada_Handlers is
       end if;
 
       return Response;
-   end Text_Document_Hover_Request;
+   end On_Hover_Request;
 
-   --------------------------------------
-   -- Text_Document_References_Request --
-   --------------------------------------
+   ---------------------------
+   -- On_References_Request --
+   ---------------------------
 
-   function Text_Document_References_Request
+   overriding function On_References_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ReferenceParams)
       return LSP.Messages.Location_Response
@@ -762,14 +743,13 @@ package body LSP.Ada_Handlers is
 
          return Response;
       end;
+   end On_References_Request;
 
-   end Text_Document_References_Request;
+   -------------------------------
+   -- On_Signature_Help_Request --
+   -------------------------------
 
-   ------------------------------------------
-   -- Text_Document_Signature_Help_Request --
-   ------------------------------------------
-
-   function Text_Document_Signature_Help_Request
+   overriding function On_Signature_Help_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.SignatureHelp_Response
@@ -783,13 +763,13 @@ package body LSP.Ada_Handlers is
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
-   end Text_Document_Signature_Help_Request;
+   end On_Signature_Help_Request;
 
-   ----------------------------------
-   -- Text_Document_Symbol_Request --
-   ----------------------------------
+   ---------------------------------
+   -- On_Document_Symbols_Request --
+   ---------------------------------
 
-   function Text_Document_Symbol_Request
+   overriding function On_Document_Symbols_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Symbol_Response
@@ -800,13 +780,13 @@ package body LSP.Ada_Handlers is
    begin
       Document.Get_Symbols (Response.result);
       return Response;
-   end Text_Document_Symbol_Request;
+   end On_Document_Symbols_Request;
 
-   ----------------------------------------
-   -- Workspace_Did_Change_Configuration --
-   ----------------------------------------
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
 
-   procedure Workspace_Did_Change_Configuration
+   overriding procedure On_DidChangeConfiguration_Notification
      (Self     : access Message_Handler;
       Value    : LSP.Messages.DidChangeConfigurationParams)
    is
@@ -842,13 +822,13 @@ package body LSP.Ada_Handlers is
       if not LSP.Types.Is_Empty (Errors.message) then
          Self.Server.Show_Message (Errors);
       end if;
-   end Workspace_Did_Change_Configuration;
+   end On_DidChangeConfiguration_Notification;
 
-   ---------------------------------------
-   -- Workspace_Execute_Command_Request --
-   ---------------------------------------
+   ------------------------------------------
+   -- On_Workspace_Execute_Command_Request --
+   ------------------------------------------
 
-   function Workspace_Execute_Command_Request
+   overriding function On_Workspace_Execute_Command_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response
@@ -862,13 +842,13 @@ package body LSP.Ada_Handlers is
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
-   end Workspace_Execute_Command_Request;
+   end On_Workspace_Execute_Command_Request;
 
-   ------------------------------
-   -- Workspace_Symbol_Request --
-   ------------------------------
+   ----------------------------------
+   -- On_Workspace_Symbols_Request --
+   ----------------------------------
 
-   function Workspace_Symbol_Request
+   overriding function On_Workspace_Symbols_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
       return LSP.Messages.Symbol_Response
@@ -882,13 +862,13 @@ package body LSP.Ada_Handlers is
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
-   end Workspace_Symbol_Request;
+   end On_Workspace_Symbols_Request;
 
-   --------------------------------------
-   -- Text_Document_Completion_Request --
-   --------------------------------------
+   ---------------------------
+   -- On_Completion_Request --
+   ---------------------------
 
-   function Text_Document_Completion_Request
+   overriding function On_Completion_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Completion_Response
@@ -899,126 +879,6 @@ package body LSP.Ada_Handlers is
    begin
       Document.Get_Completions_At (Value.position, Response.result);
       return Response;
-   end Text_Document_Completion_Request;
-
-   --------------------
-   -- Handle_Request --
-   --------------------
-
-   overriding function Handle_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.RequestMessage'Class)
-      return LSP.Messages.ResponseMessage'Class
-   is
-      function Dispatcher return LSP.Messages.ResponseMessage'Class;
-      --  Dispatch the request to the proper handling procedure.
-      --  ??? This could be done more efficiently.
-
-      ----------------
-      -- Dispatcher --
-      ----------------
-
-      function Dispatcher return LSP.Messages.ResponseMessage'Class is
-         use LSP.Messages.Requests;
-      begin
-         if Request in LSP.Messages.Requests.Initialize_Request'Class then
-            return Self.Initialize_Request
-              (LSP.Messages.Requests.Initialize_Request (Request).params);
-
-         elsif Request in LSP.Messages.Requests.Shutdown_Request'Class then
-            return Self.Shutdown_Request;
-
-         elsif Request in CodeAction_Request'Class then
-            return Self.Text_Document_Code_Action_Request
-              (CodeAction_Request'Class (Request).params);
-
-         elsif Request in Completion_Request'Class then
-            return Self.Text_Document_Completion_Request
-              (Completion_Request'Class (Request).params);
-
-         elsif Request in Definition_Request'Class then
-            return Self.Text_Document_Definition_Request
-              (Definition_Request'Class (Request).params);
-
-         elsif Request in Highlight_Request'Class then
-            return Self.Text_Document_Highlight_Request
-              (Highlight_Request'Class (Request).params);
-
-         elsif Request in Hover_Request'Class then
-            return Self.Text_Document_Hover_Request
-              (Hover_Request'Class (Request).params);
-
-         elsif Request in References_Request'Class then
-            return Self.Text_Document_References_Request
-              (References_Request'Class (Request).params);
-
-         elsif Request in Signature_Help_Request'Class then
-            return Self.Text_Document_Signature_Help_Request
-              (Signature_Help_Request'Class (Request).params);
-
-         elsif Request in Document_Symbols_Request'Class then
-            return Self.Text_Document_Symbol_Request
-              (Document_Symbols_Request'Class (Request).params);
-
-         elsif Request in
-           LSP.Messages.Requests.Workspace_Execute_Command_Request'Class
-         then
-            return Self.Workspace_Execute_Command_Request
-              (LSP.Messages.Requests.Workspace_Execute_Command_Request'Class
-                 (Request).params);
-
-         elsif Request in
-           LSP.Messages.Requests.Workspace_Symbols_Request'Class
-         then
-            return Self.Workspace_Symbol_Request
-              (LSP.Messages.Requests.Workspace_Symbols_Request'Class
-                  (Request).params);
-         end if;
-
-         return LSP.Messages.ResponseMessage'
-           (Is_Error => True,
-            jsonrpc  => <>,
-            id       => <>,
-            error    =>
-              (Is_Set => True,
-               Value  =>
-                 (code    => LSP.Messages.MethodNotFound,
-                  message => +"The request handler doesn't support this",
-                  others  => <>)));
-      end Dispatcher;
-
-      R : LSP.Messages.ResponseMessage'Class := Dispatcher;
-   begin
-      R.jsonrpc := +"2.0";
-      R.id := Request.id;
-      return R;
-   end Handle_Request;
-
-   -------------------------
-   -- Handle_Notification --
-   -------------------------
-
-   overriding procedure Handle_Notification
-     (Self         : access Message_Handler;
-      Notification : LSP.Messages.NotificationMessage'Class) is
-   begin
-      if Notification in
-        LSP.Messages.Notifications.Exit_Notification'Class
-      then
-         Self.Exit_Notification;
-      elsif Notification in DidChangeTextDocument_Notification then
-         Self.Text_Document_Did_Change
-           (DidChangeTextDocument_Notification (Notification).params);
-      elsif Notification in DidCloseTextDocument_Notification then
-         Self.Text_Document_Did_Close
-           (DidCloseTextDocument_Notification (Notification).params);
-      elsif Notification in DidOpenTextDocument_Notification then
-         Self.Text_Document_Did_Open
-           (DidOpenTextDocument_Notification (Notification).params);
-      elsif Notification in DidChangeConfiguration_Notification then
-         Self.Workspace_Did_Change_Configuration
-           (DidChangeConfiguration_Notification (Notification).params);
-      end if;
-   end Handle_Notification;
+   end On_Completion_Request;
 
 end LSP.Ada_Handlers;

@@ -24,8 +24,6 @@ with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
-with LSP.Messages.Requests;
-with LSP.Messages.Notifications;
 
 with GNATCOLL.JSON;
 
@@ -80,9 +78,10 @@ package body LSP.Servers is
    procedure Initialize
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
-      Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+      Request      : not null
+        LSP.Messages.Requests.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notifications.Server_Notification_Handler_Access)
+        LSP.Messages.Notifications.Server_Notification_Handler_Access)
    is
    begin
       Self.Stream := Stream;
@@ -508,18 +507,19 @@ package body LSP.Servers is
       Stop_Requested : Boolean := False;
       Request : Ada.Strings.Unbounded.Unbounded_String;
 
-      Req_Handler   : LSP.Message_Handlers.Request_Handler_Access;
+      Req_Handler   : LSP.Messages.Requests.Server_Request_Handler_Access;
       Notif_Handler :
-      LSP.Server_Notifications.Server_Notification_Handler_Access;
+      LSP.Messages.Notifications.Server_Notification_Handler_Access;
       Initialized   : Boolean;
 
       Requests_Queue  : Requests_Queue_Access;
       Output_Queue    : Output_Queue_Access;
 
       procedure Initialize
-        (Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+        (Request      : not null
+           LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
-           LSP.Server_Notifications.Server_Notification_Handler_Access);
+           LSP.Messages.Notifications.Server_Notification_Handler_Access);
       --  Initializes internal data structures
 
       procedure Process_Message_From_Stream
@@ -532,9 +532,10 @@ package body LSP.Servers is
       ----------------
 
       procedure Initialize
-        (Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+        (Request      : not null
+           LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
-           LSP.Server_Notifications.Server_Notification_Handler_Access)
+           LSP.Messages.Notifications.Server_Notification_Handler_Access)
       is
       begin
          Req_Handler := Request;
@@ -668,9 +669,10 @@ package body LSP.Servers is
       accept Start
         (In_Queue     : Requests_Queue_Access;
          Out_Queue    : Output_Queue_Access;
-         Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+         Request      : not null
+           LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
-           LSP.Server_Notifications.Server_Notification_Handler_Access)
+           LSP.Messages.Notifications.Server_Notification_Handler_Access)
       do
          Requests_Queue  := In_Queue;
          Output_Queue    := Out_Queue;
