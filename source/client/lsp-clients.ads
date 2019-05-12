@@ -22,7 +22,7 @@ with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
 with LSP.Messages;
-with LSP.Server_Notifications;
+with LSP.Messages.Notifications;
 with LSP.Raw_Clients;
 with LSP.Types;
 
@@ -33,13 +33,49 @@ limited with LSP.Client_Notifications;
 package LSP.Clients is
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and LSP.Server_Notifications.Server_Notification_Handler
+     and LSP.Messages.Notifications.Server_Notification_Handler
    with private;
    --  Client object to send/recieve request and notification to/from
    --  the LSP server
 
    procedure Initialize (Self : in out Client'Class);
    --  Initialize Client to correct state
+
+   overriding procedure On_Initialized_Notification (Self : access Client);
+
+   overriding procedure On_Exit_Notification (Self : access Client);
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeConfigurationParams);
+
+   overriding procedure On_ShowMessage_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.ShowMessageParams) is null;
+
+   overriding procedure On_LogMessage_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.LogMessageParams) is null;
+
+   overriding procedure On_PublishDiagnostics_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.PublishDiagnosticsParams) is null;
+
+   overriding procedure On_DidOpenTextDocument_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
+
+   overriding procedure On_DidChangeTextDocument_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
+
+   overriding procedure On_DidSaveTextDocument_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidSaveTextDocumentParams);
+
+   overriding procedure On_DidCloseTextDocument_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidCloseTextDocumentParams);
 
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
@@ -117,32 +153,6 @@ package LSP.Clients is
       Request  : out LSP.Types.LSP_Number;
       Value    : LSP.Messages.WorkspaceSymbolParams);
 
-   --  Notification sending procedures:
-
-   overriding procedure Initialized (Self : access Client);
-
-   overriding procedure Workspace_Did_Change_Configuration
-     (Self  : access Client;
-      Value : LSP.Messages.DidChangeConfigurationParams);
-
-   overriding procedure Text_Document_Did_Open
-     (Self  : access Client;
-      Value : LSP.Messages.DidOpenTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Change
-     (Self  : access Client;
-      Value : LSP.Messages.DidChangeTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Save
-     (Self  : access Client;
-      Value : LSP.Messages.DidSaveTextDocumentParams);
-
-   overriding procedure Text_Document_Did_Close
-     (Self  : access Client;
-      Value : LSP.Messages.DidCloseTextDocumentParams);
-
-   overriding procedure Exit_Notification (Self : access Client);
-
    --  Send response to the LSP server
 
    procedure Workspace_Apply_Edit
@@ -182,7 +192,7 @@ private
       Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and LSP.Server_Notifications.Server_Notification_Handler
+     and LSP.Messages.Notifications.Server_Notification_Handler
    with record
       Request_Id       : LSP.Types.LSP_Number := 0;  --  Id of prev request
       Request_Map      : Request_Maps.Map;  --  issued requests
