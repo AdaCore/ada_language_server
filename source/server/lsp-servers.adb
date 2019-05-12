@@ -26,8 +26,6 @@ with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with LSP.Servers.Handlers;
 with LSP.JSON_Streams;
 
-private with LSP.Notification_Dispatchers;
-
 with GNATCOLL.JSON;
 
 package body LSP.Servers is
