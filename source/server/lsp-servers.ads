@@ -23,9 +23,9 @@
 with Ada.Streams;
 
 with LSP.Client_Notifications;
-with LSP.Message_Handlers;
 with LSP.Messages;
-with LSP.Server_Notifications;
+with LSP.Messages.Requests;
+with LSP.Messages.Notifications;
 with LSP.Types;
 
 private with Ada.Strings.Unbounded;
@@ -43,9 +43,10 @@ package LSP.Servers is
    procedure Initialize
      (Self         : in out Server;
       Stream       : access Ada.Streams.Root_Stream_Type'Class;
-      Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+      Request      : not null
+        LSP.Messages.Requests.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notifications.Server_Notification_Handler_Access);
+        LSP.Messages.Notifications.Server_Notification_Handler_Access);
    --  Initialize a server by providing input/output Stream,
    --  Request and Notification handler.
 
@@ -108,9 +109,10 @@ private
       entry Start
         (In_Queue     : Requests_Queue_Access;
          Out_Queue    : Output_Queue_Access;
-         Request      : not null LSP.Message_Handlers.Request_Handler_Access;
+         Request      : not null
+           LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
-           LSP.Server_Notifications.Server_Notification_Handler_Access);
+           LSP.Messages.Notifications.Server_Notification_Handler_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;
