@@ -135,6 +135,71 @@ package body LSP.Messages.Notifications is
       raise Program_Error; --  Notification not found
    end Decode_Notification;
 
+   procedure Handle_Notification
+     (Self : access Server_Notification_Handler'Class;
+      Notification : LSP.Messages.NotificationMessage'Class) is
+   begin
+
+      if Notification in Initialized_Notification'Class then
+         Self.On_Initialized_Notification;
+         return;
+      end if;
+
+      if Notification in Exit_Notification'Class then
+         Self.On_Exit_Notification;
+         return;
+      end if;
+
+      if Notification in DidChangeConfiguration_Notification'Class then
+         Self.On_DidChangeConfiguration_Notification
+            ((DidChangeConfiguration_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in ShowMessage_Notification'Class then
+         Self.On_ShowMessage_Notification
+            ((ShowMessage_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in LogMessage_Notification'Class then
+         Self.On_LogMessage_Notification
+            ((LogMessage_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in PublishDiagnostics_Notification'Class then
+         Self.On_PublishDiagnostics_Notification
+            ((PublishDiagnostics_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in DidOpenTextDocument_Notification'Class then
+         Self.On_DidOpenTextDocument_Notification
+            ((DidOpenTextDocument_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in DidChangeTextDocument_Notification'Class then
+         Self.On_DidChangeTextDocument_Notification
+            ((DidChangeTextDocument_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in DidSaveTextDocument_Notification'Class then
+         Self.On_DidSaveTextDocument_Notification
+            ((DidSaveTextDocument_Notification (Notification).params));
+         return;
+      end if;
+
+      if Notification in DidCloseTextDocument_Notification'Class then
+         Self.On_DidCloseTextDocument_Notification
+            ((DidCloseTextDocument_Notification (Notification).params));
+         return;
+      end if;
+
+   end Handle_Notification;
+
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Initialized_Notification)

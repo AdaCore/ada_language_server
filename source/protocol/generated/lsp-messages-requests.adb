@@ -192,6 +192,203 @@ package body LSP.Messages.Requests is
       raise Program_Error; --  Request not found
    end Decode_Request;
 
+   function Handle_Request
+     (Self : access Server_Request_Handler'Class;
+      Request : LSP.Messages.RequestMessage'Class)
+      return LSP.Messages.ResponseMessage'Class is
+   begin
+
+      if Request in Initialize_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Initialize_Request
+                  (Initialize_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Shutdown_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Shutdown_Request;
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in ShowMessage_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_ShowMessage_Request
+                  (ShowMessage_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in CodeAction_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_CodeAction_Request
+                  (CodeAction_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Completion_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Completion_Request
+                  (Completion_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Definition_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Definition_Request
+                  (Definition_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Highlight_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Highlight_Request
+                  (Highlight_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Hover_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Hover_Request
+                  (Hover_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in References_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_References_Request
+                  (References_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Signature_Help_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Signature_Help_Request
+                  (Signature_Help_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Document_Symbols_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Document_Symbols_Request
+                  (Document_Symbols_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Execute_Command_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Execute_Command_Request
+                  (Execute_Command_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in ApplyWorkspaceEdit_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_ApplyWorkspaceEdit_Request
+                  (ApplyWorkspaceEdit_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Workspace_Symbols_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Workspace_Symbols_Request
+                  (Workspace_Symbols_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Workspace_Execute_Command_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Workspace_Execute_Command_Request
+                  (Workspace_Execute_Command_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      return LSP.Messages.ResponseMessage'
+        (Is_Error => True,
+         jsonrpc  => <>,
+         id       => <>,
+         error    =>
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Messages.MethodNotFound,
+               message => +"The Request handler doesn't support this",
+               others  => <>)));
+   end Handle_Request;
+
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Initialize_Request)
