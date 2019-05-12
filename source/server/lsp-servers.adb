@@ -24,8 +24,6 @@ with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
-with LSP.Messages.Requests;
-with LSP.Messages.Notifications;
 
 with GNATCOLL.JSON;
 
