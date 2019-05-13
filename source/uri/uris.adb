@@ -65,6 +65,9 @@ package body URIs is
 
       function From_File (Full_Path : String) return URI_String is
 
+         Standardized_Full_Path : constant String :=
+           Ada.Directories.Full_Name (Full_Path);
+
          procedure Add_All_Paths
            (URI  : in out URIs.URI;
             Path : String;
@@ -100,18 +103,19 @@ package body URIs is
          URI   : URIs.URI;
          Found : GNAT.Regpat.Match_Array (0 .. 1);
       begin
-         GNAT.Regpat.Match (UNC, Full_Path, Found);
+         GNAT.Regpat.Match (UNC, Standardized_Full_Path, Found);
          --  Check if we have path in form of UNC:  \\host\share\path
 
          if Found (0) = GNAT.Regpat.No_Match then
-            Add_All_Paths (URI, Full_Path, "");
+            Add_All_Paths (URI, Standardized_Full_Path, "");
+
          else  --  UNC form, extract Host
             declare
                Host : constant String :=
-                 Full_Path (Found (1).First .. Found (1).Last);
+                 Standardized_Full_Path (Found (1).First .. Found (1).Last);
             begin
                URI.Set_Host (Host);
-               Add_All_Paths (URI, Full_Path, Host);
+               Add_All_Paths (URI, Standardized_Full_Path, Host);
             end;
          end if;
 
