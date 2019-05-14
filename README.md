@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/AdaCore/ada_language_server.svg?branch=master)](https://travis-ci.org/AdaCore/ada_language_server)
 [ ![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
 
-This repository contains a prototype implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/) 
+This repository contains a prototype implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
 for Ada/SPARK.
 
 Current features:
@@ -105,7 +105,7 @@ by the ALS.
 | :------------------------------------ | :----------------: |
 | `textDocument/completion`             | :white_check_mark: |
 | `completionItem/resolve`              |                    |
-| `textDocument/hover`                  |                    |
+| `textDocument/hover`                  | :white_check_mark:                   |
 | `textDocument/signatureHelp`          |                    |
 | `textDocument/definition`             | :white_check_mark: |
 | `textDocument/typeDefinition`         |                    |
