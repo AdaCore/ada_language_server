@@ -292,6 +292,13 @@ package body Tester.Tests is
                   return True;
                end;
 
+            when GNATCOLL.JSON.JSON_String_Type =>
+               if String'(GNATCOLL.JSON.Get (Right)) = "<ANY>" then
+                  return True;
+               else
+                  return Left = Right;
+               end if;
+
             when others =>
 
                return Left = Right;

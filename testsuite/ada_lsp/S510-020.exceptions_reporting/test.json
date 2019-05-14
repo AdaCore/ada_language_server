@@ -1,0 +1,53 @@
+[
+    {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },
+    {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "referencesProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-1",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "DOES NOT EXIST"
+                    },
+                    "position": {
+                        "line": 1,
+                        "character": 12
+                    },
+                    "context": {
+                        "includeDeclaration":true
+                    }
+                }
+            },
+            "comment": " -- we expect an exception here, code -32603",
+            "wait":[{"jsonrpc":"2.0", "error": {"code":-32603,"message":"<ANY>"}}]
+        }
+    },
+
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
