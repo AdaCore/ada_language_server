@@ -58,9 +58,10 @@ package LSP.Ada_Contexts is
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
 
-   procedure Load_Document
+   function Load_Document
      (Self : aliased in out Context;
-      Item : LSP.Messages.TextDocumentItem);
+      Item : LSP.Messages.TextDocumentItem)
+      return LSP.Ada_Documents.Document_Access;
    --  Load new document with text provided by LSP client.
 
    procedure Unload_Document

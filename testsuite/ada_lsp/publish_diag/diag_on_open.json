@@ -1,0 +1,108 @@
+[
+    {
+        "comment":[
+            "This test checks diagnostics on open a file"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                            "projectFile": ""
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is\n;\nbegin\n   null;\nend Main;\n"
+                    }
+                }
+            },
+            "wait":[{
+                "method":"textDocument/publishDiagnostics",
+                "params":{
+                    "uri":"$URI{main.adb}",
+                    "diagnostics":[
+                        {
+                            "range":{
+                                "start":{"line":1,"character":0},
+                                "end":{"line":1,"character":1}
+                            },
+                            "message":"Skipped token ;"
+                        }
+                    ]
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didClose",
+                "params": {
+                    "textDocument":{
+                        "uri":"$URI{main.adb}"
+                    }
+                }
+            },
+            "wait":[{
+                "method":"textDocument/publishDiagnostics",
+                "params":{
+                    "uri":"$URI{main.adb}",
+                    "diagnostics":[]
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown" }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

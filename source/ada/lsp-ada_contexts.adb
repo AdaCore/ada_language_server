@@ -169,15 +169,18 @@ package body LSP.Ada_Contexts is
    -- Load_Document --
    -------------------
 
-   procedure Load_Document
+   function Load_Document
      (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem)
+      return LSP.Ada_Documents.Document_Access
    is
       Object : constant LSP.Ada_Documents.Document_Access :=
         new LSP.Ada_Documents.Document (Self'Unchecked_Access);
    begin
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
+
+      return Object;
    end Load_Document;
 
    ------------------
