@@ -104,6 +104,9 @@ private
       Listener  : aliased Raw_Clients.Listener (Raw_Client'Unchecked_Access);
 
       Standard_Input_Available : Boolean := False;
+      --  ??? Needs doc: what does this mean, when is it set, when is it unset?
+      --  ??? It would be nice to name this differently, since
+      --  Standard_Input_Available is also the name of a subprogram above.
 
       To_Write  : Ada.Strings.Unbounded.Unbounded_String; --  Output data
       Written   : Natural := 0;  --  How much we have written from To_Write

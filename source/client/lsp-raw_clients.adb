@@ -81,9 +81,7 @@ package body LSP.Raw_Clients is
       Ada.Strings.Unbounded.Append (Self.To_Write, Header);
       Ada.Strings.Unbounded.Append (Self.To_Write, Text);
 
-      if Self.Standard_Input_Available then
-         Self.Listener.Standard_Input_Available;
-      end if;
+      Self.Listener.Standard_Input_Available;
    end Send_Message;
 
    -------------------
