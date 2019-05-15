@@ -364,8 +364,13 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
+      Diag : LSP.Messages.PublishDiagnosticsParams;
    begin
       Self.Context.Unload_Document (Value.textDocument);
+
+      --  Clean diagnostics up on closing document
+      Diag.uri := Value.textDocument.uri;
+      Self.Server.Publish_Diagnostics (Diag);
    end On_DidCloseTextDocument_Notification;
 
    -----------------------------------------
@@ -376,9 +381,10 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
-      Errors : LSP.Messages.ShowMessageParams;
+      Errors   : LSP.Messages.ShowMessageParams;
+      Diag     : LSP.Messages.PublishDiagnosticsParams;
+      Document : LSP.Ada_Documents.Document_Access;
    begin
-
       GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
       GNATCOLL.Traces.Trace
         (Server_Trace, "Uri : " & To_UTF_8_String (Value.textDocument.uri));
@@ -414,7 +420,12 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      Self.Context.Load_Document (Value.textDocument);
+      Document := Self.Context.Load_Document (Value.textDocument);
+
+      Document.Get_Errors (Diag.diagnostics);
+
+      Diag.uri := Value.textDocument.uri;
+      Self.Server.Publish_Diagnostics (Diag);
    end On_DidOpenTextDocument_Notification;
 
    --------------------------
