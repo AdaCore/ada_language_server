@@ -417,13 +417,14 @@ package body Spawn.Processes is
          when Glib.IOChannel.G_Io_Out =>
             pragma Assert
               (Process.pipe (Stdin).Event not in Glib.Main.No_Source_Id);
-            Process.pipe (Stdout).Watch := False;
+
+            Process.pipe (Stdin).Watch := False;
             Process.Listener.Standard_Input_Available;
 
-            if Process.pipe (Stdout).Watch then
+            if Process.pipe (Stdin).Watch then
                Watch := 1;
             else
-               Process.pipe (Stdout).Event := Glib.Main.No_Source_Id;
+               Process.pipe (Stdin).Event := Glib.Main.No_Source_Id;
                Watch := 0;
             end if;
          when others =>
@@ -578,7 +579,6 @@ package body Spawn.Processes is
       case Status is
          when Glib.IOChannel.G_Io_Status_Normal =>
             Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
-
 
          when Glib.IOChannel.G_Io_Status_Again =>
             --  No space in the buffer to write, so start watching again
