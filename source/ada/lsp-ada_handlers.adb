@@ -81,6 +81,17 @@ package body LSP.Ada_Handlers is
          Root := Value.rootPath;
       end if;
 
+      --  Some clients - notably VS Code as of version 33, when opening a file
+      --  rather than a workspace - don't provide a root at all. In that case
+      --  use the current directory as root.
+
+      if LSP.Types.Is_Empty (Root) then
+         Root := To_LSP_String (".");
+      end if;
+
+      --  Log the context root
+      Server_Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+
       Self.Context.Initialize (Root);
 
       return Response;
