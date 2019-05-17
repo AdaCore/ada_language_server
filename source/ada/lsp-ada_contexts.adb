@@ -24,8 +24,7 @@ with GNATCOLL.Projects; use GNATCOLL.Projects;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
 
 with URIs;
-
-with Libadalang.Project_Provider;
+with LSP.Ada_Unit_Providers;
 
 package body LSP.Ada_Contexts is
 
@@ -281,9 +280,11 @@ package body LSP.Ada_Contexts is
 
       end if;
 
-      Self.Unit_Provider :=
-        Libadalang.Project_Provider.Create_Project_Unit_Provider_Reference
-          (Self.Project_Tree, Project_Env);
+      declare
+         Provider : LSP.Ada_Unit_Providers.Unit_Provider (Self.Project_Tree);
+      begin
+         Self.Unit_Provider.Set (Provider);
+      end;
 
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
