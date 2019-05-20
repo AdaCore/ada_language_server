@@ -27,8 +27,8 @@ package LSP.Ada_Documents is
      is tagged limited private;
    --  An Ada document (file).
 
-   type Document_Access is access all LSP.Ada_Documents.Document;
-   type Constant_Document_Access is access constant LSP.Ada_Documents.Document;
+   type Document_Access is access all LSP.Ada_Documents.Document
+     with Storage_Size => 0;
 
    procedure Initialize
      (Self : in out Document;
