@@ -60,11 +60,20 @@ package LSP.Types is
 
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;
+   function To_LSP_String (Text : GNATCOLL.JSON.UTF8_Unbounded_String)
+     return LSP_String;
    --  Convert given UTF-8 string into LSP_String
 
    function To_UTF_8_String (Value : LSP_String)
      return Ada.Strings.UTF_Encoding.UTF_8_String;
-   --  Convert given LSP_String into UTF-8 string
+   --  Convert given LSP_String into UTF-8 string. Note that this
+   --  allocates strings on the stack: if the string is potentially
+   --  large (such as the content of a file), prefer calling
+   --  To_UTF_8_Unbounded_String below.
+
+   function To_UTF_8_Unbounded_String (Value : LSP_String)
+     return GNATCOLL.JSON.UTF8_Unbounded_String;
+   --  Same as To_UTF_8_String above, but returns an Unbounded_String.
 
    function Is_Empty (Text : LSP_String) return Boolean;
    --  Check if given Text is an empty string

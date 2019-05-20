@@ -15,11 +15,16 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Unchecked_Conversion;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 
 with LSP.JSON_Streams;
 
 package body LSP.Types is
+
+   Chunk_Size    : constant := 512;
+   --  When processing strings in chunks, this is the size of the chunk
 
    --------------
    -- Assigned --
@@ -66,7 +71,7 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      V := To_LSP_String (JS.Read.Get);
+      V := To_LSP_String (Unbounded_String'(JS.Read.Get));
    end Read;
 
    ---------------------------
@@ -88,7 +93,7 @@ package body LSP.Types is
                   String    => Empty_LSP_String);
       elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
          Item := (Is_Number => False,
-                  String    => To_LSP_String (Value.Get));
+                  String    => To_LSP_String (Unbounded_String'(Value.Get)));
       else
          Item := (Is_Number => True, Number => Integer'(Value.Get));
       end if;
@@ -111,7 +116,8 @@ package body LSP.Types is
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
          Item := (Is_Set => False);
       else
-         Item := (Is_Set => True, Value => To_LSP_String (Value.Get));
+         Item := (Is_Set => True, Value => To_LSP_String
+                  (Unbounded_String'(Value.Get)));
       end if;
    end Read_Optional_String;
 
@@ -125,7 +131,7 @@ package body LSP.Types is
       Item   : out LSP.Types.LSP_String) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Item := To_LSP_String (Stream.Read.Get);
+      Item := To_LSP_String (Unbounded_String'(Stream.Read.Get));
    end Read_String;
 
    -----------------
@@ -154,6 +160,47 @@ package body LSP.Types is
       return To_Unbounded_Wide_String (UTF_16);
    end To_LSP_String;
 
+   -------------------
+   -- To_LSP_String --
+   -------------------
+
+   function To_LSP_String
+     (Text : GNATCOLL.JSON.UTF8_Unbounded_String) return LSP_String
+   is
+      Res : LSP_String;
+      Len : constant Natural := Length (Text);
+      Current_Index : Positive := 1;
+      type Byte is mod 2 ** 8;
+      function To_Byte is new Ada.Unchecked_Conversion (Character, Byte);
+   begin
+      loop
+         --  Process the decoding in chunks
+         declare
+            Bound : Positive := Natural'Min (Current_Index + Chunk_Size, Len);
+            Chunk : constant String (Current_Index .. Bound) := Slice
+              (Text, Current_Index, Bound);
+         begin
+            --  We don't want to cut a chunk in the middle of a long
+            --  character, so look at the last 4 bytes and cut before
+            --  any such long character, and cut if needs be.
+            if Bound /= Len then
+               for J in reverse 0 .. 3 loop
+                  if To_Byte (Chunk (Chunk'Last - J)) > 16#7F# then
+                     Bound := Bound - J;
+                     exit;
+                  end if;
+               end loop;
+            end if;
+            Append
+              (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Decode
+                 (Chunk (Current_Index .. Bound)));
+            Current_Index := Bound + 1;
+            exit when Current_Index > Len;
+         end;
+      end loop;
+      return Res;
+   end To_LSP_String;
+
    ---------------------
    -- To_UTF_8_String --
    ---------------------
@@ -165,6 +212,30 @@ package body LSP.Types is
    begin
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
    end To_UTF_8_String;
+
+   -------------------------------
+   -- To_UTF_8_Unbounded_String --
+   -------------------------------
+
+   function To_UTF_8_Unbounded_String
+     (Value : LSP_String) return GNATCOLL.JSON.UTF8_Unbounded_String
+   is
+      Res  : Ada.Strings.Unbounded.Unbounded_String;
+      Len  : constant Natural := Length (Value);
+      Current_Index : Natural := 1;
+      Next_Index    : Natural;
+   begin
+      --  Perform the encoding chunk by chunk, so as not to blow the stack
+      loop
+         Next_Index := Natural'Min (Current_Index + Chunk_Size, Len);
+         Ada.Strings.Unbounded.Append
+           (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Encode
+              (Slice (Value, Current_Index, Next_Index)));
+         Current_Index := Next_Index + 1;
+         exit when Current_Index > Len;
+      end loop;
+      return Res;
+   end To_UTF_8_Unbounded_String;
 
    -----------
    -- Write --
