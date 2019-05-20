@@ -62,18 +62,21 @@ package LSP.Ada_Contexts is
      (Self : aliased in out Context;
       Item : LSP.Messages.TextDocumentItem)
       return LSP.Ada_Documents.Document_Access;
-   --  Load new document with text provided by LSP client.
+   --  Load new document with text provided by LSP client. Document is managed
+   --  by Context, user shouldn't free it or store it. Document will be
+   --  destroyed on Unload_Document call.
 
    procedure Unload_Document
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentIdentifier);
-   --  Remove document from set of openned documents.
+   --  Remove document from set of openned documents and destroy it.
 
    function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
-   --  Retrive document identified by given URI.
+   --  Retrive document identified by given URI. User shouldn't free it or
+   --  store it.
 
    function Get_Ada_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;
@@ -94,12 +97,13 @@ private
    use type Types.LSP_String;
    use type GNATCOLL.Projects.Project_Tree_Access;
 
+   type Internal_Document_Access is access all LSP.Ada_Documents.Document;
+
    package Document_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Messages.DocumentUri,
-      Element_Type    => LSP.Ada_Documents.Document_Access,
+      Element_Type    => Internal_Document_Access,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
-      "="             => LSP.Ada_Documents."=");
+      Equivalent_Keys => LSP.Types."=");
 
    type Project_Status is
      (User_Provided_Project,  --  Server uses user provides project

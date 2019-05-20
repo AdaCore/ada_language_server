@@ -18,6 +18,7 @@
 with Ada.Directories;
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding;
+with Ada.Unchecked_Deallocation;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Projects; use GNATCOLL.Projects;
@@ -27,6 +28,10 @@ with URIs;
 with LSP.Ada_Unit_Providers;
 
 package body LSP.Ada_Contexts is
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (LSP.Ada_Documents.Document,
+      Internal_Document_Access);
 
    -----------------
    -- File_To_URI --
@@ -149,9 +154,11 @@ package body LSP.Ada_Contexts is
    function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
-        return LSP.Ada_Documents.Document_Access is
+        return LSP.Ada_Documents.Document_Access
+   is
+      Object : constant Internal_Document_Access := Self.Documents (URI);
    begin
-      return Self.Documents (URI);
+      return LSP.Ada_Documents.Document_Access (Object);
    end Get_Document;
 
    ----------------
@@ -174,13 +181,13 @@ package body LSP.Ada_Contexts is
       Item : LSP.Messages.TextDocumentItem)
       return LSP.Ada_Documents.Document_Access
    is
-      Object : constant LSP.Ada_Documents.Document_Access :=
+      Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self'Unchecked_Access);
    begin
       Object.Initialize (Self.LAL_Context, Item);
       Self.Documents.Insert (Item.uri, Object);
 
-      return Object;
+      return LSP.Ada_Documents.Document_Access (Object);
    end Load_Document;
 
    ------------------
@@ -315,8 +322,11 @@ package body LSP.Ada_Contexts is
      (Self : in out Context;
       Item : LSP.Messages.TextDocumentIdentifier)
    is
+      Document : Internal_Document_Access :=
+        Self.Documents.Element (Item.uri);
    begin
       Self.Documents.Delete (Item.uri);
+      Free (Document);
    end Unload_Document;
 
    --------------------------
