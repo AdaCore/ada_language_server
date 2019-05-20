@@ -66,6 +66,11 @@ When this is present, the ALS will generate files `$HOME/.als/in.txt` and
 `$HOME/.als/out.txt` which contain, respectively, the JSON received and sent
 by the ALS.
 
+## Testsuite
+
+See more about the project testsuite in a
+[separate document](testsuite/README.md).
+
 # Supported LSP Server Requests
 
 ### General Requests

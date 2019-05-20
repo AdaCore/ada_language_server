@@ -1,8 +1,9 @@
 # Server executable file:
 export ALS=.obj/server/ada_language_server
 
-# Tester file
+# Tester files
 TESTER=.obj/tester/tester-run
+CODEC_TEST=.obj/codec_test/codec_test
 
 # Testsuite directory
 TD=testsuite/ada_lsp
@@ -45,6 +46,7 @@ all:
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(LIBRARY_FLAGS)
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(LIBRARY_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(LIBRARY_FLAGS)
+	$(GPRBUILD) -P gnat/codec_test.gpr -p $(LIBRARY_FLAGS)
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
@@ -61,6 +63,7 @@ clean:
 	gprclean -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	gprclean -P gnat/spawn_tests.gpr $(LIBRARY_FLAGS)
 	gprclean -P gnat/tester.gpr $(LIBRARY_FLAGS)
+	gprclean -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
 	rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
@@ -70,6 +73,7 @@ vscode:
 
 check: all
 	set -e; for a in $(TD)/*/*.json; do echo $$a ; $(TESTER) $$a ; done
+	${CODEC_TEST} < testsuite/codecs/index.txt
 
 deploy: check
 	integration/$(USER)/deploy.sh $(PLATFORM)

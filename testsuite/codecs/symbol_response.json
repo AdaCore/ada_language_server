@@ -1,0 +1,1 @@
+{"id":1,"jsonrpc":"2.0","result":[{"name":"Aaa","kind":4,"location":{"uri":"file:///tmp/aaa.ads","range":{"start":{"line":0,"character":8},"end":{"line":0,"character":11}}}}]}
