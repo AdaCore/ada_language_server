@@ -80,7 +80,7 @@ package body LSP.Ada_Documents is
             Self.Unit := Self.LAL.Get_From_Buffer
               (Filename => File,
                Charset  => "utf-8",
-               Buffer   => LSP.Types.To_UTF_8_String (Change.text));
+               Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Change.text));
          end if;
       end loop;
       Server_Trace.Trace ("Done applying changes for document " & File);
@@ -272,7 +272,7 @@ package body LSP.Ada_Documents is
       Self.Unit := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
          Charset  => "utf-8",
-         Buffer   => LSP.Types.To_UTF_8_String (Item.text));
+         Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Item.text));
       Self.URI := Item.uri;
       Self.LAL := LAL;
    end Initialize;
