@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 
 with GNATCOLL.JSON;
@@ -696,7 +697,7 @@ package body LSP.Messages is
          Item := Empty_LSP_String;
       else
          --  Item := League.IRIs.From_Universal_String (Stream.Read.To_String);
-         Item := To_LSP_String (Stream.Read.Get);
+         Item := To_LSP_String (Unbounded_String'(Stream.Read.Get));
       end if;
    end Read_If_String;
 
@@ -858,13 +859,16 @@ package body LSP.Messages is
    begin
       case Value.Kind is
          when GNATCOLL.JSON.JSON_String_Type =>
-            V := (Is_String => True, Value => To_LSP_String (Value.Get));
+            V := (Is_String => True,
+                  Value => To_LSP_String (Unbounded_String'(Value.Get)));
          when GNATCOLL.JSON.JSON_Object_Type =>
             --  We can't use Start_Object/End_Object here because JS.Read
             --  call has already skipped the array item.
             V := (Is_String => False,
-                  language => To_LSP_String (Value.Get ("language")),
-                  value    => To_LSP_String (Value.Get ("value")));
+                  language => To_LSP_String
+                    (Unbounded_String'(Value.Get ("language"))),
+                  value    => To_LSP_String
+                    (Unbounded_String'(Value.Get ("value"))));
          when others =>
             --  Unexpected JSON type
             V := (Is_String => True, Value => Empty_LSP_String);
@@ -1385,7 +1389,7 @@ package body LSP.Messages is
       Stream.Start_Array;
 
       while not Stream.End_Of_Array loop
-         Item.Append (To_LSP_String (Stream.Read.Get));
+         Item.Append (To_LSP_String (Unbounded_String'(Stream.Read.Get)));
       end loop;
 
       Stream.End_Array;
@@ -3136,7 +3140,7 @@ package body LSP.Messages is
      Item   : LSP.Types.LSP_String) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_String (Item)));
+      Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (Item)));
    end Write_String;
 
    -------------------------
