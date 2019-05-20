@@ -7,5 +7,5 @@ Provided packages
  * Spawn - asynchronous Process API implementation (Linux, Windows)
  * Spawn_Glib - asynchronous Process API implementation over Glib
  * Spawn_Test - simple test/example of Spawn usage
- * Tester - Test driver for LSP testsuite
-
+ * Tester - Test driver for LSP server testsuite
+ * Codec_Test - Test driver for Codec tests
