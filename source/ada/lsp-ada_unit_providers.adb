@@ -90,13 +90,16 @@ package body LSP.Ada_Unit_Providers is
       declare
          Path : constant GNATCOLL.VFS.Virtual_File :=
            Self.Project_Tree.Create (File);
-         --  Sometimes Path contains double directory separators
-         --  like '/path//file' or 'C:\path\\file'. This prevents correct
-         --  file identification in Libadalang. Let's normalize Path:
-         Full_Path : constant String :=
-           Ada.Directories.Full_Name (+Full_Name (Path));
+         Full_Path : constant String := +Full_Name (Path);
       begin
-         return Full_Path;
+         if Full_Path = "" then
+            return Full_Path;
+         else
+            --  Sometimes Path contains double directory separators
+            --  like '/path//file' or 'C:\path\\file'. This prevents correct
+            --  file identification in Libadalang. Let's normalize Path:
+            return Ada.Directories.Full_Name (Full_Path);
+         end if;
       end;
    end Get_Unit_Filename;
 

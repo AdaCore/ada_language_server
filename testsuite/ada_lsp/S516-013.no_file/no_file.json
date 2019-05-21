@@ -1,0 +1,98 @@
+[
+    {
+        "comment": "Check no exception on hover at non-existing unit"
+    },
+    {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0,
+                      "result":{
+                          "capabilities":{
+                              "textDocumentSync":1,
+                              "hoverProvider":true
+                          }
+                      }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Ada.Non_Existing;\nprocedure Aaa is\nbegin\n   Ada.Non_Existing;\nend Aaa;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"hover",
+                "method":"textDocument/hover",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 15
+                    }
+                }
+            },
+            "wait":[{
+                "id": "hover",
+                "result": {
+                    "contents": []
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown" }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
