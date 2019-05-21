@@ -621,15 +621,23 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      --  Try to retrieve the subprogram spec node, if any: if it's a
-      --  subprogram node that does not have any separate declaration we
-      --  only want to display its specification, not the body.
-      Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
-
-      if Subp_Spec_Node /= No_Base_Subp_Spec then
-         Create_Hover_Text_For_Subp_Spec;
-      else
+      --  If the basic declaration is an enum literal, display the whole
+      --  enumeration type declaration instead.
+      if Decl.Kind in Ada_Enum_Literal_Decl then
+         Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
          Create_Hover_Text_For_Basic_Decl;
+      else
+
+         --  Try to retrieve the subprogram spec node, if any: if it's a
+         --  subprogram node that does not have any separate declaration we
+         --  only want to display its specification, not the body.
+         Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
+
+         if Subp_Spec_Node /= No_Base_Subp_Spec then
+            Create_Hover_Text_For_Subp_Spec;
+         else
+            Create_Hover_Text_For_Basic_Decl;
+         end if;
       end if;
 
       --  Append the associated basic declaration's text to the response.
