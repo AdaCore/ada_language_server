@@ -18,6 +18,7 @@
 --  This package provides a context of Ada Language server.
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded;
 
 private with GNATCOLL.Projects;
 with GNATCOLL.VFS;
@@ -49,10 +50,15 @@ package LSP.Ada_Contexts is
      (Self     : in out Context;
       File     : LSP.Types.LSP_String;
       Scenario : LSP.Types.LSP_Any;
+      Charset  : String;
       Errors   : out LSP.Messages.ShowMessageParams);
    --  Load given project File using given Scenario variables.
    --  In case of errors create and load default project.
+   --  Set the charset as well.
    --  Return warnings and errors in Errors parameter.
+
+   function Get_Charset (Self : in out Context) return String;
+   --  Return the charset with which the context was initialized
 
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
@@ -116,6 +122,7 @@ private
 
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       Root           : LSP.Types.LSP_String;
+      Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
       Documents      : Document_Maps.Map;
    end record;
