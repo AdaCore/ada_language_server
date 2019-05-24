@@ -79,6 +79,7 @@ package body LSP.Ada_Documents is
          if not Change.span.Is_Set then
             Self.Unit := Self.LAL.Get_From_Buffer
               (Filename => File,
+               --  Change.text is always encoded in UTF-8, as per the protocol
                Charset  => "utf-8",
                Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Change.text));
          end if;
@@ -271,6 +272,7 @@ package body LSP.Ada_Documents is
    begin
       Self.Unit := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
+         --  Change.text is always encoded in UTF-8, as per the protocol
          Charset  => "utf-8",
          Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Item.text));
       Self.URI := Item.uri;
