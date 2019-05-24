@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.Unbounded;
 with Ada.Directories;
 
 with GNAT.Strings;
@@ -413,7 +414,13 @@ package body LSP.Ada_Handlers is
 
       if not Self.Context.Has_Project then
          Self.Context.Load_Project
-           (Empty_LSP_String, GNATCOLL.JSON.JSON_Null, Errors);
+           (Empty_LSP_String, GNATCOLL.JSON.JSON_Null,
+
+            --  We're loading a default project: set the default charset
+            --  to latin-1, since this is the GNAT default.
+            "iso-8859-1",
+
+            Errors);
 
          if not LSP.Types.Is_Empty (Errors.message) then
             Self.Server.Show_Message (Errors);
@@ -701,7 +708,8 @@ package body LSP.Ada_Handlers is
       begin
          for N in Sources'Range loop
             Source_Units (N) := Context.Get_From_File
-              (Sources (N).Display_Full_Name);
+              (Sources (N).Display_Full_Name,
+               Charset => Self.Context.Get_Charset);
          end loop;
 
          declare
@@ -824,6 +832,11 @@ package body LSP.Ada_Handlers is
 
       projectFile       : constant String := "projectFile";
       scenarioVariables : constant String := "scenarioVariables";
+      defaultCharset    : constant String := "defaultCharset";
+
+      --  Default the charset to iso-8859-1, since this is the GNAT default
+      Charset   : Ada.Strings.Unbounded.Unbounded_String :=
+        Ada.Strings.Unbounded.To_Unbounded_String ("iso-8859-1");
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -845,9 +858,16 @@ package body LSP.Ada_Handlers is
          then
             Variables := Ada.Get (scenarioVariables);
          end if;
+
+         if Ada.Has_Field (defaultCharset) then
+            Charset := Ada.Get (defaultCharset);
+         end if;
       end if;
 
-      Self.Context.Load_Project (File, Variables, Errors);
+      Self.Context.Load_Project
+        (File, Variables,
+         Standard.Ada.Strings.Unbounded.To_String (Charset),
+         Errors);
 
       if not LSP.Types.Is_Empty (Errors.message) then
          Self.Server.Show_Message (Errors);

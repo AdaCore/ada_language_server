@@ -161,6 +161,15 @@ package body LSP.Ada_Contexts is
       return LSP.Ada_Documents.Document_Access (Object);
    end Get_Document;
 
+   -----------------
+   -- Get_Charset --
+   -----------------
+
+   function Get_Charset (Self : in out Context) return String is
+   begin
+      return Ada.Strings.Unbounded.To_String (Self.Charset);
+   end Get_Charset;
+
    ----------------
    -- Initialize --
    ----------------
@@ -198,6 +207,7 @@ package body LSP.Ada_Contexts is
      (Self     : in out Context;
       File     : LSP.Types.LSP_String;
       Scenario : LSP.Types.LSP_Any;
+      Charset  : String;
       Errors   : out LSP.Messages.ShowMessageParams)
    is
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
@@ -235,6 +245,8 @@ package body LSP.Ada_Contexts is
         LSP.Types.To_UTF_8_String (Self.Root);
 
    begin
+      Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
+
       --  Here, we overwrite previous content of Self.Project_Tree without
       --  freeing. That's OK because the Unit provider owns it and will free
       --  the old project tree when we renew the provider.
@@ -299,7 +311,7 @@ package body LSP.Ada_Contexts is
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
-         Charset       => "utf-8");
+         Charset       => Charset);
    end Load_Project;
 
    ------------
@@ -311,7 +323,7 @@ package body LSP.Ada_Contexts is
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
-         Charset       => "utf-8");
+         Charset       => Self.Get_Charset);
    end Reload;
 
    ---------------------
