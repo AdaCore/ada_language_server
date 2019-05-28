@@ -351,10 +351,13 @@ package body LSP.Ada_Handlers is
       Diag     : LSP.Messages.PublishDiagnosticsParams;
    begin
       Document.Apply_Changes (Value.contentChanges);
-      Document.Get_Errors (Diag.diagnostics);
 
-      Diag.uri := Value.textDocument.uri;
-      Self.Server.Publish_Diagnostics (Diag);
+      if Diagnostics_Trace.Active then
+         Document.Get_Errors (Diag.diagnostics);
+
+         Diag.uri := Value.textDocument.uri;
+         Self.Server.Publish_Diagnostics (Diag);
+      end if;
    end On_DidChangeTextDocument_Notification;
 
    ------------------------------------------

@@ -24,4 +24,12 @@ package LSP is
    In_Trace : Trace_Handle := Create ("ALS.IN", Off);
    Out_Trace : Trace_Handle := Create ("ALS.OUT", Off);
    --  Traces that logs all input & output. For debugging purposes.
+
+   -----------------------------
+   -- Feature-specific traces --
+   -----------------------------
+
+   Diagnostics_Trace : Trace_Handle := Create ("ALS.DIAGNOSTICS", Off);
+   --  Whether to enable the diagnostics
+
 end LSP;
