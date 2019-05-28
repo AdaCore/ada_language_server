@@ -1,8 +1,8 @@
 # Server executable file:
-export ALS=.obj/server/ada_language_server
+export ALS=$(shell pwd)/.obj/server/ada_language_server
 
 # Tester files
-TESTER=.obj/tester/tester-run
+TESTER=$(shell pwd)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
 
 # Testsuite directory
@@ -72,7 +72,11 @@ vscode:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
 check: all
-	set -e; for a in $(TD)/*/*.json; do echo $$a ; $(TESTER) $$a ; done
+	set -e; \
+        for a in $(TD)/*/*.json; do \
+           echo $$a ; \
+           (cd `dirname $$a ` ; $(TESTER) `basename $$a`) ;\
+        done
 	${CODEC_TEST} < testsuite/codecs/index.txt
 
 deploy: check
