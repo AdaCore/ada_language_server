@@ -1,0 +1,12 @@
+{"id":1,
+ "jsonrpc":"2.0",
+ "result": [
+     {
+         "title": "Disable no-unused-vars for this line",
+         "command": "eslint.applyDisableLine",
+         "arguments": [
+             "no-unused-vars"
+         ]
+    }
+ ]
+}
