@@ -351,10 +351,13 @@ package body LSP.Ada_Handlers is
       Diag     : LSP.Messages.PublishDiagnosticsParams;
    begin
       Document.Apply_Changes (Value.contentChanges);
-      Document.Get_Errors (Diag.diagnostics);
 
-      Diag.uri := Value.textDocument.uri;
-      Self.Server.Publish_Diagnostics (Diag);
+      if Self.Context.Get_Diagnostics_Enabled then
+         Document.Get_Errors (Diag.diagnostics);
+
+         Diag.uri := Value.textDocument.uri;
+         Self.Server.Publish_Diagnostics (Diag);
+      end if;
    end On_DidChangeTextDocument_Notification;
 
    ------------------------------------------
@@ -429,10 +432,12 @@ package body LSP.Ada_Handlers is
 
       Document := Self.Context.Load_Document (Value.textDocument);
 
-      Document.Get_Errors (Diag.diagnostics);
+      if Self.Context.Get_Diagnostics_Enabled then
+         Document.Get_Errors (Diag.diagnostics);
 
-      Diag.uri := Value.textDocument.uri;
-      Self.Server.Publish_Diagnostics (Diag);
+         Diag.uri := Value.textDocument.uri;
+         Self.Server.Publish_Diagnostics (Diag);
+      end if;
    end On_DidOpenTextDocument_Notification;
 
    --------------------------
@@ -833,6 +838,7 @@ package body LSP.Ada_Handlers is
       projectFile       : constant String := "projectFile";
       scenarioVariables : constant String := "scenarioVariables";
       defaultCharset    : constant String := "defaultCharset";
+      enableDiagnostics : constant String := "enableDiagnostics";
 
       --  Default the charset to iso-8859-1, since this is the GNAT default
       Charset   : Ada.Strings.Unbounded.Unbounded_String :=
@@ -861,6 +867,15 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (defaultCharset) then
             Charset := Ada.Get (defaultCharset);
+         end if;
+
+         --  It looks like the protocol does not allow clients to say whether
+         --  or not they want diagnostics as part of
+         --  InitializeParams.capabilities.textDocument. So we support
+         --  deactivating of diagnostics via a setting here.
+         if Ada.Has_Field (enableDiagnostics) then
+            Self.Context.Set_Diagnostics_Enabled
+              (Ada.Get (enableDiagnostics));
          end if;
       end if;
 
