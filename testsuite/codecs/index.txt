@@ -1,4 +1,5 @@
 testsuite/codecs/apply_ws_edit_response.json ApplyWorkspaceEdit_Response
 testsuite/codecs/code_action_response.json CodeAction_Response
 testsuite/codecs/completion_response.json Completion_Response
+testsuite/codecs/highlight_response.json Highlight_Response
 testsuite/codecs/symbol_response.json Symbol_Response

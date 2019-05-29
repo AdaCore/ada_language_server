@@ -2852,7 +2852,21 @@ package LSP.Messages is
    --	export const Write = 3;
    --}
    --```
-   type DocumentHighlightKind is (Unspecified, Text, Read, Write);
+   type DocumentHighlightKind is (Text, Read, Write);
+
+   procedure Read_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentHighlightKind);
+   procedure Write_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentHighlightKind);
+   for DocumentHighlightKind'Read use Read_DocumentHighlightKind;
+   for DocumentHighlightKind'Write use Write_DocumentHighlightKind;
+
+   package Optional_DocumentHighlightKinds is
+     new LSP.Generic_Optional (DocumentHighlightKind);
+   type Optional_DocumentHighlightKind is
+     new Optional_DocumentHighlightKinds.Optional_Type;
 
    type DocumentHighlight is record
       span: LSP.Messages.Span;
@@ -2873,10 +2887,14 @@ package LSP.Messages is
 
    type DocumentHighlight_Vector is
      new DocumentHighlight_Vectors.Vector with null record;
+   procedure Read_DocumentHighlight_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentHighlight_Vector);
    procedure Write_DocumentHighlight_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentHighlight_Vector);
 
+   for DocumentHighlight_Vector'Read use Read_DocumentHighlight_Vector;
    for DocumentHighlight_Vector'Write use Write_DocumentHighlight_Vector;
 
    --```typescript
