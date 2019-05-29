@@ -1,0 +1,14 @@
+{"id":1,
+ "jsonrpc":"2.0",
+ "result": {
+     "capabilities": {
+         "textDocumentSync": {
+             "openClose": true,
+             "change": 2,
+             "willSave": true,
+             "willSaveWaitUntil": true,
+             "save": true
+         }
+     }
+ }
+}
