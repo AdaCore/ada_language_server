@@ -48,14 +48,18 @@ procedure LSP.Ada_Driver is
    use GNATCOLL.VFS, GNATCOLL.Traces;
    use Ada.Exceptions, GNAT.Traceback.Symbolic;
 
-   ALS_Dir : constant Virtual_File := Get_Home_Directory / ".als";
-   Do_Exit : Boolean := False;
+   ALS_Dir   : constant Virtual_File := Get_Home_Directory / ".als";
+   GNATdebug : constant Virtual_File := Create_From_Base (".gnatdebug");
+   Do_Exit   : Boolean := False;
 begin
 
-   --  If we can find the .als directory in the home directory, then we want
-   --  to init the traces.
+   --  Look for a .gnatdebug file locally; if it exists, use its contents as
+   --  traces config file. If not, if the ".als" directory exists in the home
+   --  directory, initialize traces there.
+   if GNATdebug.Is_Regular_File then
+      Parse_Config_File (GNATdebug);
 
-   if ALS_Dir.Is_Directory then
+   elsif ALS_Dir.Is_Directory then
       --  Search for custom traces config in traces.cfg
       Parse_Config_File
         (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
