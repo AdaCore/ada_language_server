@@ -1,1 +1,2 @@
+testsuite/codecs/completion_response.json Completion_Response
 testsuite/codecs/symbol_response.json Symbol_Response
