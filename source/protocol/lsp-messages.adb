@@ -37,6 +37,16 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out MessageType);
 
+   procedure Read_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out Boolean);
+
+   procedure Write_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Boolean);
+
    procedure Read_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -129,6 +139,46 @@ package body LSP.Messages is
       WorkspaceEdit'Read (S, V.edit);
       JS.End_Object;
    end Read_ApplyWorkspaceEditParams;
+
+   -----------------------------------
+   -- Read_ApplyWorkspaceEditResult --
+   -----------------------------------
+
+   procedure Read_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ApplyWorkspaceEditResult)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Boolean (JS, +"applied", V.applied);
+      JS.End_Object;
+   end Read_ApplyWorkspaceEditResult;
+
+   ------------------
+   -- Read_Boolean --
+   ------------------
+
+   procedure Read_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out Boolean)
+   is
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Value := Stream.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+         Item := False;  --  No such property
+      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
+         Item := Value.Get;  --  Property of a boolean type
+      else
+         Item := True;  --  Property of non-boolean type, protocol extension
+         --  could provide an object instead of boolean.
+      end if;
+   end Read_Boolean;
 
    -----------------------------
    -- Read_ClientCapabilities --
@@ -1904,6 +1954,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ApplyWorkspaceEditParams;
 
+   ------------------------------------
+   -- Write_ApplyWorkspaceEditResult --
+   ------------------------------------
+
+   procedure Write_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ApplyWorkspaceEditResult)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Boolean (JS, +"applied", V.applied);
+      JS.End_Object;
+   end Write_ApplyWorkspaceEditResult;
+
    ------------------------------
    -- Write_ClientCapabilities --
    ------------------------------
@@ -2736,6 +2802,19 @@ package body LSP.Messages is
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Write (GNATCOLL.JSON.Create (Item));
    end Write_Number;
+
+   -------------------
+   -- Write_Boolean --
+   -------------------
+
+   procedure Write_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Boolean) is
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Write (GNATCOLL.JSON.Create (Item));
+   end Write_Boolean;
 
    ----------------------------
    -- Write_Optional_Boolean --
