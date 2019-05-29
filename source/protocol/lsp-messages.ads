@@ -3351,6 +3351,15 @@ package LSP.Messages is
       applied: Boolean;
    end record;
 
+   procedure Read_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ApplyWorkspaceEditResult);
+   procedure Write_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ApplyWorkspaceEditResult);
+   for ApplyWorkspaceEditResult'Read use Read_ApplyWorkspaceEditResult;
+   for ApplyWorkspaceEditResult'Write use Write_ApplyWorkspaceEditResult;
+
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
 
