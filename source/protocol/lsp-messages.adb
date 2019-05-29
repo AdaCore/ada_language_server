@@ -761,12 +761,25 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Hover)
    is
+      use type GNATCOLL.JSON.JSON_Value_Type;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
       JS.Key ("contents");
-      MarkedString_Vector'Read (S, V.contents);
+
+      if JS.Read.Kind = GNATCOLL.JSON.JSON_Array_Type then
+         MarkedString_Vector'Read (S, V.contents);
+      else
+         declare
+            Item : MarkedString;
+         begin
+            MarkedString'Read (S, Item);
+            V.contents.Clear;
+            V.contents.Append (Item);
+         end;
+      end if;
+
       JS.Key ("range");
       Optional_Span'Read (S, V.Span);
       JS.End_Object;
@@ -2623,7 +2636,13 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       JS.Key ("contents");
-      MarkedString_Vector'Write (S, V.contents);
+
+      if V.contents.Last_Index = 1 then
+         MarkedString'Write (S, V.contents.First_Element);
+      else
+         MarkedString_Vector'Write (S, V.contents);
+      end if;
+
       JS.Key ("range");
       Optional_Span'Write (S, V.Span);
       JS.End_Object;
