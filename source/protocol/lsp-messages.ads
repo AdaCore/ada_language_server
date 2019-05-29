@@ -2489,6 +2489,9 @@ package LSP.Messages is
    package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
    type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
 
+   package Optional_Commands is new LSP.Generic_Optional (Command);
+   type Optional_Command is new Optional_Commands.Optional_Type;
+
    type CompletionItem is record
       label: LSP_String;
       kind: Optional_CompletionItemKind;
@@ -2501,7 +2504,7 @@ package LSP.Messages is
       textEdit: Optional_TextEdit;
       additionalTextEdits: TextEdit_Vector;
       commitCharacters: LSP_String_Vector;
-      command: LSP.Messages.Command;  --  Optional ???
+      command: Optional_Command;
    --	data?: any
    end record;
 
