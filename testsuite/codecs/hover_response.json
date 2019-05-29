@@ -1,0 +1,9 @@
+{"id":1,
+ "jsonrpc":"2.0",
+ "result": {
+     "contents": {
+         "language": "java",
+         "value": "void java.io.PrintStream.println(String x)"
+     }
+ }
+}
