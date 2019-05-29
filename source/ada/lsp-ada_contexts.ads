@@ -60,6 +60,14 @@ package LSP.Ada_Contexts is
    function Get_Charset (Self : in out Context) return String;
    --  Return the charset with which the context was initialized
 
+   procedure Set_Diagnostics_Enabled
+     (Self    : in out Context;
+      Enabled : Boolean);
+   --  Enable/Disable diagnostics; by default, diagnostics are enabled
+
+   function Get_Diagnostics_Enabled (Self : Context) return Boolean;
+   --  Return whether diagnostics are enabled
+
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
@@ -125,6 +133,9 @@ private
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
       Documents      : Document_Maps.Map;
+
+      Diagnostics_Enabled : Boolean := True;
+      --  Whether to publish diagnostics
    end record;
 
    procedure Find_Project_File

@@ -153,6 +153,13 @@ You can configure the [GNAT Project File]() and scenario variables via the
 `.vscode/settings.json` settings file, via the keys `"ada.projectFile"` and
 `"ada.scenarioVariables"`.
 
+You can set the character set to use when the server has to use when reading
+files from disk by specifying an `"ada.defaultCharset"` key. The default is
+`iso-8859-1`.
+
+You can explicitly deactivate the emission of diagnostics, via the
+`"ada.enableDiagnostics` key. By default, diagnostics are enabled.
+
 Here is an example config file from the gnatcov project:
 
 ```json
@@ -161,7 +168,9 @@ Here is an example config file from the gnatcov project:
     "ada.scenarioVariables": {
         "BINUTILS_BUILD_DIR": "/null",
         "BINUTILS_SRC_DIR": "/null"
-    }
+    },
+   "ada.defaultCharset": "utf-8",
+   "ada.enableDiagnostics": false,
 }
 ```
 

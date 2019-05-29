@@ -395,4 +395,24 @@ package body LSP.Ada_Contexts is
       return LSP.Types.To_LSP_String (Result);
    end URI_To_File;
 
+   -----------------------------
+   -- Set_Diagnostics_Enabled --
+   -----------------------------
+
+   procedure Set_Diagnostics_Enabled
+     (Self    : in out Context;
+      Enabled : Boolean) is
+   begin
+      Self.Diagnostics_Enabled := Enabled;
+   end Set_Diagnostics_Enabled;
+
+   -----------------------------
+   -- Get_Diagnostics_Enabled --
+   -----------------------------
+
+   function Get_Diagnostics_Enabled (Self : Context) return Boolean is
+   begin
+      return Self.Diagnostics_Enabled;
+   end Get_Diagnostics_Enabled;
+
 end LSP.Ada_Contexts;
