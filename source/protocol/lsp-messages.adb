@@ -608,6 +608,49 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_DocumentHighlight;
 
+   -----------------------------------
+   -- Read_DocumentHighlight_Vector --
+   -----------------------------------
+
+   procedure Read_DocumentHighlight_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentHighlight_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V.Clear;
+      JS.Start_Array;
+      while not JS.End_Of_Array loop
+         declare
+            Item : DocumentHighlight;
+         begin
+            DocumentHighlight'Read (S, Item);
+            V.Append (Item);
+         end;
+      end loop;
+      JS.End_Array;
+   end Read_DocumentHighlight_Vector;
+
+   --------------------------------
+   -- Read_DocumentHighlightKind --
+   --------------------------------
+
+   procedure Read_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentHighlightKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+
+      Map : constant array (1 .. 3) of DocumentHighlightKind :=
+        (1 => Text, 2 => Read, 3 => Write);
+   begin
+      V := Map (Value.Get);
+   end Read_DocumentHighlightKind;
+
    ------------------------------
    -- Read_DocumentLinkOptions --
    ------------------------------
@@ -2429,6 +2472,23 @@ package body LSP.Messages is
       end loop;
       JS.End_Array;
    end Write_DocumentHighlight_Vector;
+
+   ---------------------------------
+   -- Write_DocumentHighlightKind --
+   ---------------------------------
+
+   procedure Write_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentHighlightKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Map : constant array (DocumentHighlightKind) of Integer :=
+        (Text => 1, Read => 2, Write => 3);
+   begin
+      JS.Write (GNATCOLL.JSON.Create (Map (V)));
+   end Write_DocumentHighlightKind;
 
    -------------------------------
    -- Write_DocumentLinkOptions --
