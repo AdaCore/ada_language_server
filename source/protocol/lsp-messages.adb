@@ -339,7 +339,7 @@ package body LSP.Messages is
       TextEdit_Vector'Read (S, V.additionalTextEdits);
       Read_String_Vector (JS, +"commitCharacters", V.commitCharacters);
       JS.Key ("command");
-      Command'Read (S, V.command);
+      Optional_Command'Read (S, V.command);
       JS.End_Object;
    end Read_CompletionItem;
 
@@ -2075,7 +2075,7 @@ package body LSP.Messages is
       end if;
 
       JS.Key ("command");
-      Command'Write (S, V.command);
+      Optional_Command'Write (S, V.command);
       JS.End_Object;
    end Write_CompletionItem;
 
