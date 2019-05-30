@@ -9,12 +9,12 @@ function linux_deploy()
 
     cp --dereference $LIB/lib{adalang,langkit_support}.so $DIR
     cp --dereference $LIB/libgnatcoll{_gmp,_iconv,}.so.0 $DIR
-    cp --dereference $LIB/libxmlada_{dom,input_sources,sax,schema,unicode}.so.2018 $DIR
+    cp --dereference $LIB/libxmlada_{dom,input_sources,sax,schema,unicode}.so.2019 $DIR
     cp --dereference $LIB/libgpr.so $DIR
 
     chrpath -r '$ORIGIN/' $DIR/*
 
-    cp $LIB/gcc/x86_64-pc-linux-gnu/7.3.1/adalib/lib{gnat,gnarl}-2018.so $DIR
+    cp $LIB/gcc/x86_64-pc-linux-gnu/8.3.1/adalib/lib{gnat,gnarl}-2019.so $DIR
 
     tar czvf /upload/$PLATFORM.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
@@ -30,6 +30,7 @@ function drop_rpath ()
 function darwin_deploy()
 {
     LIB=../gnat/lib
+    ls -l $LIB/gcc
 
     for J in \
         $LIB/libadalang.relocatable/libadalang \
@@ -43,8 +44,8 @@ function darwin_deploy()
         $LIB/xmlada/xmlada_sax.relocatable/libxmlada_sax \
         $LIB/xmlada/xmlada_input.relocatable/libxmlada_input_sources \
         $LIB/xmlada/xmlada_unicode.relocatable/libxmlada_unicode \
-        $LIB/gcc/x86_64-apple-darwin16.7.0/7.3.1/adalib/libgnat-2018 \
-        $LIB/gcc/x86_64-apple-darwin16.7.0/7.3.1/adalib/libgnarl-2018 \
+        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnat-2019 \
+        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnarl-2019 \
         /usr/local/opt/gmp/lib/libgmp.10
     do
         cp -v $J.dylib $DIR
@@ -69,6 +70,7 @@ function vsix_deploy()
     wget -nv -Owin32.zip \
          "https://dl.bintray.com/reznikmm/ada-language-server/win32.zip"
     unzip win32.zip
+    rm win32.zip
 
     for J in darwin linux ; do
         wget -nv -O- \

@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
  libgmp-dev \
  && git clone https://github.com/AdaCore/gnat_community_install_script.git \
  && wget -nv -O ./gnat-install \
-        http://mirrors.cdn.adacore.com/art/5b0d7bffa3f5d709751e3e04 \
+        http://mirrors.cdn.adacore.com/art/5cdffc5409dcd015aaf82626 \
  && sh gnat_community_install_script/install_package.sh \
       ./gnat-install /opt/gnat \
  && gprinstall --uninstall gnatcoll \

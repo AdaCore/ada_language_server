@@ -28,7 +28,7 @@ We provide binaries for
  * Linux x86_64 - take
 [linux.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/linux.tar.gz)
  * Window 64 bit - take
-[win32.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/win32.tar.gz)
+[win32.zip](https://dl.bintray.com/reznikmm/ada-language-server/win32.zip)
  * Mac OS X - take
 [darwin.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/darwin.tar.gz)
 
