@@ -16,7 +16,7 @@ function linux_script()
 
 }
 
-GNAT_INSTALLER=gnat-community-2018-20180523-x86_64-darwin-bin.dmg
+GNAT_INSTALLER=gnat-community-2019-20190517-x86_64-darwin-bin.dmg
 INSTALL_DIR=$PWD/../gnat
 
 function osx_before_install()
@@ -24,7 +24,7 @@ function osx_before_install()
     echo INSTALL_DIR=$INSTALL_DIR
     git clone https://github.com/AdaCore/gnat_community_install_script.git
     wget -nv -O $GNAT_INSTALLER \
-        http://mirrors.cdn.adacore.com/art/5b071da0c7a447e573318b01
+        http://mirrors.cdn.adacore.com/art/5ce0322c31e87a8f1d4253fa
     sh gnat_community_install_script/install_package.sh \
         $GNAT_INSTALLER $INSTALL_DIR
     $INSTALL_DIR/bin/gprinstall --uninstall gnatcoll
@@ -35,6 +35,7 @@ function osx_before_install()
 function osx_script()
 {
     export PATH=$INSTALL_DIR/bin:$PATH
+    export LIBRARY_PATH=/usr/local/lib        # To find GMP
     make OS=osx LIBRARY_TYPE=relocatable all
     integration/travis/deploy.sh darwin
 }
