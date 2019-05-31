@@ -28,37 +28,6 @@ package body URIs is
       UNC : constant GNAT.Regpat.Pattern_Matcher :=  --  \\host\share\path
         GNAT.Regpat.Compile ("^\\\\([^\\]*)\\");
 
-      function Find_Root return Ada.Strings.Unbounded.Unbounded_String;
-      --  Return "" on Windows and "/" otherwise
-
-      ---------------
-      -- Find_Root --
-      ---------------
-
-      function Find_Root return Ada.Strings.Unbounded.Unbounded_String is
-
-         function Descend_To_Root
-           (Dir : String) return Ada.Strings.Unbounded.Unbounded_String;
-         --  Traverse from Dir to root then return root
-
-         function Descend_To_Root
-           (Dir : String) return Ada.Strings.Unbounded.Unbounded_String
-         is
-            Name : constant String := Ada.Directories.Simple_Name (Dir);
-         begin
-            if Name /= "" then
-               return Descend_To_Root
-                 (Ada.Directories.Containing_Directory (Dir));
-            elsif Dir'Length = 1 then
-               return Ada.Strings.Unbounded.To_Unbounded_String (Dir);
-            else
-               return Ada.Strings.Unbounded.Null_Unbounded_String;
-            end if;
-         end Descend_To_Root;
-      begin
-         return Descend_To_Root (Ada.Directories.Current_Directory);
-      end Find_Root;
-
       ---------------
       -- From_File --
       ---------------
@@ -124,8 +93,6 @@ package body URIs is
          return URI.To_String;
       end From_File;
 
-      Root : constant Ada.Strings.Unbounded.Unbounded_String := Find_Root;
-
       -------------
       -- To_File --
       -------------
@@ -135,25 +102,33 @@ package body URIs is
          procedure Append_Path (Path : String);
          --  Append Path to Result
 
-         Result : Ada.Strings.Unbounded.Unbounded_String := Root;
+         Result : Ada.Strings.Unbounded.Unbounded_String;
+
+         -----------------
+         -- Append_Path --
+         -----------------
 
          procedure Append_Path (Path : String) is
+            use Ada.Strings.Unbounded;
          begin
-            if Ada.Strings.Unbounded.Length (Result) = 0 then
-               --  This happens only on Windows on first part of path ("C:").
-               --  Ada.Directories is unable to compose root path, so just
-               --  append backslash here.
-               Result := Ada.Strings.Unbounded.To_Unbounded_String
-                 (Path & "\");
-            elsif Path /= "" then
-               --  We skip empty path segments, for URI like "file:///a//b/"
-               --  converts to "/a/b"
-               Result := Ada.Strings.Unbounded.To_Unbounded_String
-                 (Ada.Directories.Compose
-                    (Ada.Strings.Unbounded.To_String (Result),
-                     Name => Path));
+            --  We skip empty path segments, for URI like "file:///a//b/"
+            --  converts to "/a/b"
+            if Path /= "" then
+               if Result = Null_Unbounded_String then
+                  --  Special case for the first element of the PATH:
+                  --  under Windows it should be "<drive_letter>:", on
+                  --  other systems it should be "/"
+                  if GNAT.OS_Lib.Directory_Separator = '\' then
+                     Result := To_Unbounded_String (Path);
+                  else
+                     Result := To_Unbounded_String ('/' & Path);
+                  end if;
+               else
+                  Result := Result & GNAT.OS_Lib.Directory_Separator & Path;
+               end if;
             end if;
          end Append_Path;
+
          Value  : URIs.URI;
          Ok     : Boolean;
       begin
