@@ -54,7 +54,14 @@ package body URIs is
          is
             Name : constant String := Ada.Directories.Simple_Name (Path);
          begin
-            if Name /= Root then
+            if Name /= Root
+            --  ??? The behavior of GNAT is not defined: in some versions
+            --  Simple_Name ("/") returns "", and in some more recent
+            --  versions Simple_Name ("/") returns "/". Make a special case
+            --  here to catch the more recent case,
+            --  until this is better understood.
+              and then not (Root = "" and Name = "/")
+            then
 
                Add_All_Paths
                  (URI, Ada.Directories.Containing_Directory (Path), Root);
