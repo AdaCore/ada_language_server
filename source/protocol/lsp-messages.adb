@@ -3135,6 +3135,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Response_Prexif (S, V);
+      JS.Key ("result");
+      JS.Write (GNATCOLL.JSON.JSON_Null);
       JS.End_Object;
    end Write_ResponseMessage;
 
