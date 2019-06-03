@@ -223,9 +223,9 @@
             "method": "shutdown"
          }, 
          "wait": [
-           
             {
-               "id": 2
+               "id": 2,
+               "result": null
             }
          ]
       }

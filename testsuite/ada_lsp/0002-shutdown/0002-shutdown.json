@@ -15,7 +15,7 @@
     },  {
         "send": {
             "request": {"jsonrpc":"2.0", "id": 1, "method":"shutdown", "params":null},
-            "wait":[{ "id": 1 }]
+            "wait":[{ "id": 1, "result": null }]
         }
     },  {
         "send": {

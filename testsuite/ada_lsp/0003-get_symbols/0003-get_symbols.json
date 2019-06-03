@@ -95,7 +95,7 @@
                 "method":"shutdown",
                 "params":null
             },
-            "wait":[{ "id": "shutdown" }]
+            "wait":[{ "id": "shutdown", "result": null }]
         }
     },  {
         "send": {
