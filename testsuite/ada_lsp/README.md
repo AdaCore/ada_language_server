@@ -32,7 +32,9 @@ Start new LSP server using _cmd_ as command line.
 ### Command `stop`
 
 Property value - an object:
- "exit_code" - expected exit code of LSP process.
+ * "exit_code" - expected exit code of LSP process.
+ * "close_stdin" - optional boolean, default true, if tester will close stdin
+before waiting for server termination.
 
 Close LSP server pipe and wait until server stop.
 

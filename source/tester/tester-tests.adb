@@ -169,8 +169,15 @@ package body Tester.Tests is
       Command : GNATCOLL.JSON.JSON_Value)
    is
       Exit_Code : constant Integer := Command.Get ("exit_code").Get;
+
+      Stop_Client : constant GNATCOLL.JSON.JSON_Value :=
+        Command.Get ("close_stdin");
    begin
-      Self.Stop;
+      if Stop_Client.Kind not in GNATCOLL.JSON.JSON_Boolean_Type
+        or else Stop_Client.Get = True
+      then
+         Self.Stop;
+      end if;
 
       loop
          Spawn.Processes.Monitor_Loop (Timeout => 1);
@@ -434,8 +441,27 @@ package body Tester.Tests is
          end case;
       end Execute;
 
+      task Watch_Dog is
+         entry Cancel;
+      end Watch_Dog;
+
+      task body Watch_Dog is
+      begin
+         select
+            accept Cancel;
+         or
+            delay 2.0;
+
+            Ada.Text_IO.Put_Line ("Timeout on command:");
+            Ada.Text_IO.Put_Line (Command.Write);
+            GNAT.OS_Lib.OS_Exit (1);
+         end select;
+      end Watch_Dog;
+
    begin
       Command.Map_JSON_Object (Execute'Access);
+
+      Watch_Dog.Cancel;
    end Execute_Command;
 
    ---------
