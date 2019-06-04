@@ -414,8 +414,8 @@ package body LSP.Servers is
 
    task body Output_Task_Type is
       Vector : Ada.Strings.Unbounded.Unbounded_String;
-      Stop_Requested : Boolean := False;
       Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
+
       Output_Queue : Output_Queues.Queue renames Server.Output_Queue;
 
       procedure Write_JSON_RPC
@@ -443,26 +443,9 @@ package body LSP.Servers is
       accept Start;
 
       loop
-         <<BEGIN_TASK_LOOP>>
-
-         --  Synchronization point to accept a Stop and exit on it
          select
-            accept Stop do Stop_Requested := True; end Stop;
-         or
-            delay 0.01;
-         end select;
-         exit when Stop_Requested;
-
-         --  Synchronization point to dequeue all requests from the queue.
-         --  We nest a loop here to dequeue all pending requests with as little
-         --  delay between them as possible.
-         loop
-            select
-               Output_Queue.Dequeue (Vector);
-            or
-               delay 0.01;
-               goto BEGIN_TASK_LOOP;
-            end select;
+            --  Process all available outputs before acceptiong Stop
+            Output_Queue.Dequeue (Vector);
 
             begin
                --  Send the output to the stream
@@ -479,7 +462,18 @@ package body LSP.Servers is
                   Server_Trace.Trace (Symbolic_Traceback (E));
 
             end;
-         end loop;
+         or
+            delay 0.1;
+
+            --  If no output during some timeout, then check for Stop signal
+
+            select
+               accept Stop;
+               exit;
+            else
+               null;
+            end select;
+         end select;
       end loop;
    end Output_Task_Type;
 
@@ -717,27 +711,10 @@ package body LSP.Servers is
          Initialize (Request, Notification);
       end Start;
 
-      --  The task main loop
       loop
-         <<BEGIN_TASK_LOOP>>
-
-         --  Accept Stop here
          select
-            accept Stop;
-            exit;
-         or
-            delay 0.01;
-         end select;
-
-         --  Nest a loop here so we process all available requests
-         --  before acceptiong Stop
-         loop
-            select
-               Requests_Queue.Dequeue (Request);
-            or
-               delay 0.01;
-               goto BEGIN_TASK_LOOP;
-            end select;
+            --  Process all available requests before acceptiong Stop
+            Requests_Queue.Dequeue (Request);
 
             --  Process the request
             declare
@@ -762,8 +739,19 @@ package body LSP.Servers is
 
                   --  ... and log this in the traces
             end;
-         end loop;
+         or
+            delay 0.1;
 
+            --  If no request during some timeout, then check for Stop signal
+
+            select
+               accept Stop;
+               exit;
+            else
+               null;
+            end select;
+
+         end select;
       end loop;
    end Processing_Task_Type;
 
