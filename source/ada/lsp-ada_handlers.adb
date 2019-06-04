@@ -769,41 +769,6 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      function Find_All_References
-        (Definition         : Defining_Name;
-         Sources            : GNATCOLL.VFS.File_Array_Access;
-         Include_Definition : Boolean := False)
-      return Ada_Node_Array;
-      --  Helper function, finds all references of a given defining name in a
-      --  given list of units.
-
-      function Find_All_References
-        (Definition         : Defining_Name;
-         Sources            : GNATCOLL.VFS.File_Array_Access;
-         Include_Definition : Boolean := False)
-      return Ada_Node_Array
-      is
-         Context : constant Analysis_Context := Definition.Unit.Context;
-         Source_Units : Analysis_Unit_Array (Sources'Range);
-      begin
-         for N in Sources'Range loop
-            Source_Units (N) := Context.Get_From_File
-              (Sources (N).Display_Full_Name,
-               Charset => Self.Context.Get_Charset);
-         end loop;
-
-         declare
-            References : constant Ada_Node_Array :=
-              Definition.P_Find_All_References (Source_Units);
-         begin
-            if Include_Definition then
-               return References & (1 => Definition.As_Ada_Node);
-            else
-               return References;
-            end if;
-         end;
-      end Find_All_References;
-
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
 
@@ -814,7 +779,6 @@ package body LSP.Ada_Handlers is
       Response   : LSP.Messages.Location_Response (Is_Error => False);
 
    begin
-
       if Name_Node = No_Name then
          return Response;
       end if;
@@ -827,9 +791,11 @@ package body LSP.Ada_Handlers is
 
       declare
          Ada_Sources : File_Array_Access := Self.Context.Get_Ada_Source_Files;
-         References  : constant Ada_Node_Array := Find_All_References
+         References  : constant Ada_Node_Array :=
+           LSP.Lal_Utils.Find_All_References
              (Definition         => Definition,
               Sources            => Ada_Sources,
+              Charset            => Self.Context.Get_Charset,
               Include_Definition => Value.context.includeDeclaration);
       begin
          Unchecked_Free (Ada_Sources);
@@ -847,6 +813,75 @@ package body LSP.Ada_Handlers is
          return Response;
       end;
    end On_References_Request;
+
+   ------------------------------
+   -- On_ALS_Called_By_Request --
+   ------------------------------
+
+   overriding function On_ALS_Called_By_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.ALS_Called_By_Response
+   is
+      use Libadalang.Analysis;
+
+      Document   : constant LSP.Ada_Documents.Document_Access :=
+        Self.Context.Get_Document (Value.textDocument.uri);
+
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Document.Get_Node_At (Value.position));
+
+      Definition : Defining_Name;
+      Response   : LSP.Messages.ALS_Called_By_Response (Is_Error => False);
+
+   begin
+      if Name_Node = No_Name then
+         return Response;
+      end if;
+
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+
+      if Definition = No_Defining_Name then
+         return Response;
+      end if;
+
+      declare
+         Ada_Sources : File_Array_Access := Self.Context.Get_Ada_Source_Files;
+         Called      : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
+           LSP.Lal_Utils.Is_Called_By
+             (Name_Node,
+              Sources            => Ada_Sources,
+              Charset            => Self.Context.Get_Charset);
+
+         use LSP.Lal_Utils.References_By_Subprogram;
+         C : Cursor := Called.First;
+      begin
+         Unchecked_Free (Ada_Sources);
+
+         --  Iterate through all the results, converting them to protocol
+         --  objects.
+         while Has_Element (C) loop
+            declare
+               Node : constant Defining_Name := Key (C);
+               Refs : constant LSP.Lal_Utils.References_List.List :=
+                 Element (C);
+               Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
+            begin
+               Subp_And_Refs.loc := Get_Node_Location (Self, Ada_Node (Node));
+               Subp_And_Refs.name := To_LSP_String
+                 (Langkit_Support.Text.To_UTF8 (Node.Text));
+               for Ref of Refs loop
+                  Subp_And_Refs.refs.Append
+                    (Get_Node_Location (Self, Ada_Node (Ref)));
+               end loop;
+               Response.result.Append (Subp_And_Refs);
+            end;
+            Next (C);
+         end loop;
+      end;
+
+      return Response;
+   end On_ALS_Called_By_Request;
 
    -------------------------------
    -- On_Signature_Help_Request --

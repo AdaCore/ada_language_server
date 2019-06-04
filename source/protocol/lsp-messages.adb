@@ -3755,4 +3755,93 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_WorkspaceSymbolParams;
 
+   ----------------------------------------
+   -- Read_ALS_Subprogram_And_References --
+   ----------------------------------------
+
+   procedure Read_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Subprogram_And_References)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("location");
+      Location'Read (S, V.loc);
+      Read_String (JS, +"name", V.name);
+      JS.Key ("refs");
+      Location_Vector'Read (S, V.refs);
+      JS.End_Object;
+   end Read_ALS_Subprogram_And_References;
+
+   -----------------------------------------
+   -- Write_ALS_Subprogram_And_References --
+   -----------------------------------------
+
+   procedure Write_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Subprogram_And_References)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("location");
+      Location'Write (S, V.loc);
+      Write_String (JS, +"name", V.name);
+      JS.Key ("refs");
+      Location_Vector'Write (S, V.refs);
+      JS.End_Object;
+   end Write_ALS_Subprogram_And_References;
+
+   -----------------------------------------------
+   -- Read_ALS_Subprogram_And_References_Vector --
+   -----------------------------------------------
+
+   procedure Read_ALS_Subprogram_And_References_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Subprogram_And_References_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V.Clear;
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Item : ALS_Subprogram_And_References;
+         begin
+            ALS_Subprogram_And_References'Read (S, Item);
+            V.Append (Item);
+         end;
+      end loop;
+
+      JS.End_Array;
+   end Read_ALS_Subprogram_And_References_Vector;
+
+   ------------------------------------------------
+   -- Write_ALS_Subprogram_And_References_Vector --
+   ------------------------------------------------
+
+   procedure Write_ALS_Subprogram_And_References_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Subprogram_And_References_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V.Is_Empty then
+         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
+         return;
+      end if;
+
+      JS.Start_Array;
+      for Item of V loop
+         ALS_Subprogram_And_References'Write (S, Item);
+      end loop;
+      JS.End_Array;
+   end Write_ALS_Subprogram_And_References_Vector;
+
 end LSP.Messages;

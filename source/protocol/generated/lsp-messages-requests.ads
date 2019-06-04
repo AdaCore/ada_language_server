@@ -103,6 +103,11 @@ package LSP.Messages.Requests is
       params : ExecuteCommandParams;
    end record;
 
+   type ALS_Called_By_Request is new RequestMessage with
+   record
+      params : TextDocumentPositionParams;
+   end record;
+
    function On_Initialize_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.InitializeParams)
@@ -181,6 +186,11 @@ package LSP.Messages.Requests is
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response is abstract;
+
+   function On_ALS_Called_By_Request
+     (Self  : access Server_Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.ALS_Called_By_Response is abstract;
 
    procedure Handle_Error
      (Self  : access Server_Request_Handler) is null;
@@ -317,4 +327,12 @@ private
       V : Workspace_Execute_Command_Request);
    for Workspace_Execute_Command_Request'Read use Read;
    for Workspace_Execute_Command_Request'Write use Write;
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Called_By_Request);
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Called_By_Request);
+   for ALS_Called_By_Request'Read use Read;
+   for ALS_Called_By_Request'Write use Write;
 end LSP.Messages.Requests;
