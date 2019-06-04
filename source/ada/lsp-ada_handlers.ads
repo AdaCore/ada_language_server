@@ -124,6 +124,11 @@ private
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response;
 
+   overriding function On_ALS_Called_By_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.ALS_Called_By_Response;
+
    overriding procedure On_Initialized_Notification
      (Self  : access Message_Handler) is null;
 

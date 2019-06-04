@@ -200,6 +200,17 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
+      if To_UTF_8_String (Method) = "textDocument/ALS_called_by" then
+         declare
+            R : ALS_Called_By_Request;
+         begin
+            Set_Common_Request_Fields (R, JS);
+            JS.Key ("params");
+            TextDocumentPositionParams'Read (JS'Access, R.params);
+            return R;
+         end;
+      end if;
+
       raise Program_Error; --  Request not found
    end Decode_Request;
 
@@ -393,6 +404,18 @@ package body LSP.Messages.Requests is
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Workspace_Execute_Command_Request
                   (Workspace_Execute_Command_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in ALS_Called_By_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_ALS_Called_By_Request
+                  (ALS_Called_By_Request (Request).params);
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -853,6 +876,34 @@ package body LSP.Messages.Requests is
       Write_Request_Prefix (S, V);
       JS.Key ("params");
       ExecuteCommandParams'Write (S, V.params);
+      JS.End_Object;
+   end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Called_By_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      TextDocumentPositionParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Called_By_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Request_Prefix (S, V);
+      JS.Key ("params");
+      TextDocumentPositionParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 

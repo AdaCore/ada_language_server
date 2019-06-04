@@ -3444,6 +3444,56 @@ package LSP.Messages is
       T               => Location_Vector);
    subtype Location_Response is Location_Responses.Response;
 
+   -----------------------------------------
+   -- ALS-specific messages and responses --
+   -----------------------------------------
+
+   --  These define protocol extensions.
+   --  These are tagged with "ALS_" to avoid namespace clashes.
+
+   type ALS_Subprogram_And_References is record
+      --  Location and name of the defining subprogram
+      loc  : Location;
+      name : LSP_String;
+
+      --  The list of result locations within the defining subprogram
+      refs : Location_Vector;
+   end record;
+
+   procedure Read_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Subprogram_And_References);
+   for ALS_Subprogram_And_References'Read use
+     Read_ALS_Subprogram_And_References;
+
+   procedure Write_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Subprogram_And_References);
+   for ALS_Subprogram_And_References'Write use
+     Write_ALS_Subprogram_And_References;
+
+   package ALS_Subprogram_And_References_Vectors is new Ada.Containers.Vectors
+     (Positive, ALS_Subprogram_And_References);
+   type ALS_Subprogram_And_References_Vector is
+     new ALS_Subprogram_And_References_Vectors.Vector with null record;
+
+   procedure Read_ALS_Subprogram_And_References_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Subprogram_And_References_Vector);
+   for ALS_Subprogram_And_References_Vector'Read use
+     Read_ALS_Subprogram_And_References_Vector;
+
+   procedure Write_ALS_Subprogram_And_References_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Subprogram_And_References_Vector);
+   for ALS_Subprogram_And_References_Vector'Write use
+     Write_ALS_Subprogram_And_References_Vector;
+
+   package ALS_Called_By_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => ALS_Subprogram_And_References_Vector);
+   subtype ALS_Called_By_Response is ALS_Called_By_Responses.Response;
+
 private
 
    procedure Write_String

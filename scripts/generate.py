@@ -312,6 +312,10 @@ REQUESTS = [
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
      'ExecuteCommandParams', 'ExecuteCommand_Response'),
+
+    # ALS-specific requests
+    ('textDocument/ALS_called_by', 'ALS_Called_By', 'TextDocumentPositionParams',
+     'ALS_Called_By_Response'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name,
 #   response name)
