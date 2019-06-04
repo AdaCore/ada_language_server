@@ -16,11 +16,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Strings.UTF_Encoding;
+with Ada.Exceptions;             use Ada.Exceptions;
+with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
-
-with Ada.Exceptions;          use Ada.Exceptions;
-with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
+with Ada.Strings.UTF_Encoding;
+with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 
@@ -35,9 +35,12 @@ package body LSP.Servers is
       return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   procedure Process_Message_Loop (Self : in out Server'Class);
-   --  The main loop, reads data from stdin, and creates requests when
-   --  it has accumulated a valid protocol string.
+   procedure Process_One_Message
+     (Self : in out Server'Class;
+      EOF  : in out Boolean);
+   --  Read data from stdin and create a message if there is enough data.
+   --  Then put the message into Self.Requests_Queue.
+   --  Set EOF at end of stream.
 
    procedure Read_Number_Or_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -76,17 +79,10 @@ package body LSP.Servers is
 
    procedure Initialize
      (Self         : in out Server;
-      Stream       : access Ada.Streams.Root_Stream_Type'Class;
-      Request      : not null
-        LSP.Messages.Requests.Server_Request_Handler_Access;
-      Notification : not null
-        LSP.Messages.Notifications.Server_Notification_Handler_Access)
+      Stream       : access Ada.Streams.Root_Stream_Type'Class)
    is
    begin
       Self.Stream := Stream;
-
-      Self.Processing_Task.Start (Request, Notification);
-      Self.Output_Task.Start;
    end Initialize;
 
    --------------
@@ -109,6 +105,7 @@ package body LSP.Servers is
 
       Self.Processing_Task.Stop;
       Self.Output_Task.Stop;
+      Self.Input_Task.Stop;
    end Finalize;
 
    -----------------
@@ -127,23 +124,32 @@ package body LSP.Servers is
       Self.Send_Notification (Message);
    end Log_Message;
 
-   --------------------------
-   -- Process_Message_Loop --
-   --------------------------
+   -------------------------
+   -- Process_One_Message --
+   -------------------------
 
-   procedure Process_Message_Loop
-     (Self : in out Server'Class)
+   procedure Process_One_Message
+     (Self : in out Server'Class;
+      EOF  : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
 
       procedure Parse_Header
         (Length : out Ada.Streams.Stream_Element_Count;
          Vector : in out Ada.Strings.Unbounded.Unbounded_String);
-      procedure Parse_JSON
-        (Vector : Ada.Strings.Unbounded.Unbounded_String);
+      --  Read lines from Vector and after it from Self.Stream until empty
+      --  lines is found. For each non-empty line call Parse_Line.
+      --  Return any unprocessed bytes in Vector.
+
       procedure Parse_Line
         (Line   : String;
          Length : in out Ada.Streams.Stream_Element_Count);
+      --  If given Line is "Content-Length:" header then read Length from it.
+
+      procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String);
+      --  Process Vector as complete JSON document.
+
+      Buffer_Size : constant := 512;
 
       ------------------
       -- Parse_Header --
@@ -153,7 +159,7 @@ package body LSP.Servers is
         (Length : out Ada.Streams.Stream_Element_Count;
          Vector : in out Ada.Strings.Unbounded.Unbounded_String)
       is
-         Buffer : Ada.Streams.Stream_Element_Array (1 .. 512);
+         Buffer : Ada.Streams.Stream_Element_Array (1 .. Buffer_Size);
          Last   : Ada.Streams.Stream_Element_Count :=
            Ada.Streams.Stream_Element_Count
              (Ada.Strings.Unbounded.Length (Vector));
@@ -163,24 +169,27 @@ package body LSP.Servers is
          Empty  : Boolean := False;  --  We've just seen CR, LF
       begin
          if Last > 0 then
+            --  Copy unprocessed bytes to Buffer
             Buffer (1 .. Last) := To_Stream_Element_Array (Vector);
             Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
          end if;
 
          Length := 0;
 
+         --  Process any unprocessed bytes in the loop reading data as needed.
          loop
+            --  Collect line characters into Line (1 .. Index)
             for J in 1 .. Last loop
                Char := Character'Val (Buffer (J));
 
                if Char not in Ada.Characters.Latin_1.CR
                                 | Ada.Characters.Latin_1.LF
                then
-                  Empty := False;
+                  Empty := False;  --  No CR, LF yet
                end if;
 
                if Index = Line'Last then
-                  --  Too long line drop it keeping last character
+                  --  Too long line, drop it keeping last character
                   Line (1) := Line (Line'Last);
                   Index := 2;
                else
@@ -191,6 +200,7 @@ package body LSP.Servers is
 
                if Index > 1 and then Line (Index - 1 .. Index) = New_Line then
                   if Empty then
+                     --  Put any unprocessed bytes back into Vector and exit
                      Append (Vector, Buffer (J + 1 .. Last));
                      return;
                   end if;
@@ -200,6 +210,7 @@ package body LSP.Servers is
                end if;
             end loop;
 
+            --  We have processed whole Buffer, so read next data into it.
             Self.Stream.Read (Buffer, Last);
          end loop;
       end Parse_Header;
@@ -208,9 +219,7 @@ package body LSP.Servers is
       -- Parse_JSON --
       ----------------
 
-      procedure Parse_JSON
-        (Vector : Ada.Strings.Unbounded.Unbounded_String)
-      is
+      procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
       begin
          Trace (In_Trace, To_String (Vector));
          Self.Requests_Queue.Enqueue (Vector);
@@ -234,43 +243,59 @@ package body LSP.Servers is
          end if;
       end Parse_Line;
 
-      Vector : Ada.Strings.Unbounded.Unbounded_String :=
-        Self.Vector;
-      Length : Ada.Streams.Stream_Element_Count := 0;
-      Buffer : Ada.Streams.Stream_Element_Array (1 .. 512);
-      Last   : Ada.Streams.Stream_Element_Count;
+      Vector : Ada.Strings.Unbounded.Unbounded_String := Self.Vector;
+      Length : Ada.Streams.Stream_Element_Count := 0;  --  Message length
+      Buffer : Ada.Streams.Stream_Element_Array (1 .. Buffer_Size);
+      Last   : Ada.Streams.Stream_Element_Count;  --  Index the Buffer
    begin
-      while not Self.Stop loop
-         Parse_Header (Length, Vector);
-         Last := Ada.Streams.Stream_Element_Count
-           (Ada.Strings.Unbounded.Length (Vector));
-         Buffer (1 .. Last) := To_Stream_Element_Array (Vector);
-         Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
+      Parse_Header (Length, Vector);  --  Find Length out of headers
 
-         loop
-            if Last <= Length then
-               Append (Vector, Buffer (1 .. Last));
-               Length := Length - Last;
-               Last := 0;
-            else
-               Append (Vector, Buffer (1 .. Length));
-               Last := Last - Length;
-               Buffer (1 .. Last) := Buffer (Length + 1 .. Length + Last);
-               Length := 0;
-            end if;
+      --  Populate Buffer with Vector content
+      Last := Ada.Streams.Stream_Element_Count
+        (Ada.Strings.Unbounded.Length (Vector));
+      Buffer (1 .. Last) := To_Stream_Element_Array (Vector);
+      Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
 
-            if Length = 0 then
-               Self.Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
-               Append (Self.Vector, Buffer (1 .. Last));
-               Parse_JSON (Vector);
-               Vector := Self.Vector;
-               exit;
-            else
-               Self.Stream.Read (Buffer, Last);
-            end if;
-         end loop;
+      loop
+         if Last <= Length then
+            --  Part of message or exact one message
+            Append (Vector, Buffer (1 .. Last));
+            Length := Length - Last;
+            Last := 0;
+         else
+            --  Complete message and some extra data after it
+            Append (Vector, Buffer (1 .. Length));
+            Last := Last - Length;  --  Extra bytes
+            Buffer (1 .. Last) := Buffer (Length + 1 .. Length + Last);
+            Length := 0;
+         end if;
+
+         if Length = 0 then
+            --  Complete message is ready in the Vector
+            --  Copy extra data if any into Vector and exit
+            Self.Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
+            Append (Self.Vector, Buffer (1 .. Last));
+            Parse_JSON (Vector);
+            Vector := Self.Vector;
+            exit;
+         else
+            Self.Stream.Read (Buffer, Last);
+         end if;
       end loop;
-   end Process_Message_Loop;
+
+   exception
+      when Ada.IO_Exceptions.End_Error =>
+         EOF := True;
+
+      when E : others =>
+         --  Catch-all case: make sure no exception in output writing
+         --  can cause an exit of the task loop.
+         GNATCOLL.Traces.Trace
+           (LSP.Server_Trace,
+            "Exception when reading input:" & ASCII.LF
+            & Exception_Name (E) & " - " &  Exception_Message (E));
+         Server_Trace.Trace (Symbolic_Traceback (E));
+   end Process_One_Message;
 
    -------------------------
    -- Publish_Diagnostics --
@@ -292,11 +317,19 @@ package body LSP.Servers is
    -- Run --
    ---------
 
-   procedure Run (Self  : in out Server) is
-      --  ??? we could remove this function, and rename
-      --  Process_Message_Loop to Run.
+   procedure Run
+     (Self         : in out Server;
+      Request      : not null
+        LSP.Messages.Requests.Server_Request_Handler_Access;
+      Notification : not null
+        LSP.Messages.Notifications.Server_Notification_Handler_Access) is
    begin
-      Self.Process_Message_Loop;
+      Self.Processing_Task.Start (Request, Notification);
+      Self.Output_Task.Start;
+      Self.Input_Task.Start;
+
+      --  Wait for stop signal
+      Self.Stop.Seize;
    end Run;
 
    -----------------------
@@ -336,9 +369,9 @@ package body LSP.Servers is
    -- Stop --
    ----------
 
-   procedure Stop (Self  : in out Server) is
+   procedure Stop (Self : in out Server) is
    begin
-      Self.Stop := True;
+      Self.Stop.Release;
    end Stop;
 
    -----------------------------
@@ -378,35 +411,33 @@ package body LSP.Servers is
       return GNATCOLL.JSON.Write (JSON_Object);
    end To_Unbounded_String;
 
-   --------------------------
-   -- Workspace_Apply_Edit --
-   --------------------------
+   ---------------------
+   -- Input_Task_Type --
+   ---------------------
 
-   procedure Workspace_Apply_Edit
-     (Self     : in out Server;
-      Params   : LSP.Messages.ApplyWorkspaceEditParams;
-      Applied  : out Boolean;
-      Error    : out LSP.Messages.Optional_ResponseError)
-   is
-      pragma Unreferenced (Error);
-      Request        : constant
-        LSP.Messages.Requests.ApplyWorkspaceEdit_Request :=
-          (jsonrpc => +"2.0",
-           id      => (Is_Number => True, Number => Self.Last_Request),
-           method  => +"workspace/applyEdit",
-           params  => Params);
-      JSON_Stream    : aliased LSP.JSON_Streams.JSON_Stream;
-      Element_Vector : Ada.Strings.Unbounded.Unbounded_String;
+   task body Input_Task_Type is
+      EOF : Boolean := False;
    begin
-      Self.Last_Request := Self.Last_Request + 1;
-      LSP.Messages.Requests.ApplyWorkspaceEdit_Request'Write
-        (JSON_Stream'Access, Request);
-      Element_Vector := To_Unbounded_String (JSON_Stream);
-      Self.Output_Queue.Enqueue (Element_Vector);
-      Self.Process_Message_Loop;
+      accept Start;
 
-      Applied := True;  --  ??? Applied is always True, Error always unset
-   end Workspace_Apply_Edit;
+      loop
+         select
+            accept Stop;
+            exit;
+         else
+            Server.Process_One_Message (EOF);
+            --  This call can block reading from stream
+
+            if EOF then
+               --  Signal main task to stop the server
+               LSP.Servers.Stop (Server.all);
+
+               accept Stop;
+               exit;
+            end if;
+         end select;
+      end loop;
+   end Input_Task_Type;
 
    ----------------------
    -- Output_Task_Type --

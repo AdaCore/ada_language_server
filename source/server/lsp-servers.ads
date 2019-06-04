@@ -29,8 +29,10 @@ with LSP.Messages.Notifications;
 with LSP.Types;
 
 private with Ada.Strings.Unbounded;
-with Ada.Containers.Synchronized_Queue_Interfaces;
-with Ada.Containers.Unbounded_Synchronized_Queues;
+private with Ada.Containers.Synchronized_Queue_Interfaces;
+private with Ada.Containers.Unbounded_Synchronized_Queues;
+private with GNAT.Semaphores;
+private with System;
 
 package LSP.Servers is
 
@@ -41,35 +43,23 @@ package LSP.Servers is
    --  LSP client.
 
    procedure Initialize
-     (Self         : in out Server;
-      Stream       : access Ada.Streams.Root_Stream_Type'Class;
-      Request      : not null
-        LSP.Messages.Requests.Server_Request_Handler_Access;
-      Notification : not null
-        LSP.Messages.Notifications.Server_Notification_Handler_Access);
-   --  Initialize a server by providing input/output Stream,
-   --  Request and Notification handler.
+     (Self   : in out Server;
+      Stream : access Ada.Streams.Root_Stream_Type'Class);
+   --  Initialize a server by providing input/output Stream.
 
    procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
 
-   procedure Run (Self  : in out Server);
-   --  Run the server
+   procedure Run
+     (Self         : in out Server;
+      Request      : not null
+        LSP.Messages.Requests.Server_Request_Handler_Access;
+      Notification : not null
+        LSP.Messages.Notifications.Server_Notification_Handler_Access);
+   --  Run the server using given Request and Notification handler.
 
-   procedure Stop (Self  : in out Server);
-   --  Ask server to stop after processing current message
-
-   procedure Workspace_Apply_Edit
-     (Self     : in out Server;
-      Params   : LSP.Messages.ApplyWorkspaceEditParams;
-      Applied  : out Boolean;
-      Error    : out LSP.Messages.Optional_ResponseError);
-   --  Execute 'workspace/applyEdit' request on client side, return result
-   --  (Applied flag) or Error if client fails.
-   --  WARNING: It doesn't work now and should be rewritten. In initial version
-   --  this was done by launching new "main loop" until response is received.
-   --  This doesn't work in newer tasking implementation. We will rewrite
-   --  it in asynchronous form.
+   procedure Stop (Self : in out Server);
+   --  Ask server to stop
 
 private
 
@@ -78,7 +68,7 @@ private
    -------------------------
 
    --  The server has 3 tasks:
-   --    The input task (currently: the main thread)
+   --    The input task
    --         This reads input coming from stdin, forms requests, and places
    --         them on the requests queue.
    --    The processing task:
@@ -128,10 +118,25 @@ private
       --  Clean shutdown of the task. Can only be called after Start.
    end Output_Task_Type;
 
+   --  The input task
+   task type Input_Task_Type
+     (Server : access LSP.Servers.Server)
+   is
+      entry Start;
+      --  Start the task. Should be called once.
+
+      entry Stop;
+      --  Clean shutdown of the task. Can only be called after Start.
+   end Input_Task_Type;
+
    type Server is limited
      new LSP.Client_Notifications.Client_Notification_Handler with
    record
-      Stop          : Boolean := False;
+      Stop          : GNAT.Semaphores.Binary_Semaphore
+                          (Initially_Available => False,
+                           Ceiling => System.Default_Priority);
+      --  Signal to main task to stop server. Released on "exit" message or
+      --  on end of input stream.
       Stream        : access Ada.Streams.Root_Stream_Type'Class;
       Last_Request  : LSP.Types.LSP_Number := 1;
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
@@ -141,6 +146,7 @@ private
       Output_Queue    : Output_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
+      Input_Task      : Input_Task_Type (Server'Unchecked_Access);
    end record;
 
    procedure Send_Notification

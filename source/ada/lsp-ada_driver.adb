@@ -17,11 +17,6 @@
 --
 --  This is driver to run LSP server for Ada language.
 
-with Ada.Exceptions;
-with Ada.IO_Exceptions;
-
-with GNAT.Traceback.Symbolic;
-
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
@@ -30,8 +25,6 @@ with LSP.Stdio_Streams;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Handlers;
-
-with Libadalang.Common; use Libadalang.Common;
 
 --------------------
 -- LSP.Ada_Driver --
@@ -46,11 +39,10 @@ procedure LSP.Ada_Driver is
      (Server'Access, Context'Access);
 
    use GNATCOLL.VFS, GNATCOLL.Traces;
-   use Ada.Exceptions, GNAT.Traceback.Symbolic;
 
    ALS_Dir   : constant Virtual_File := Get_Home_Directory / ".als";
    GNATdebug : constant Virtual_File := Create_From_Base (".gnatdebug");
-   Do_Exit   : Boolean := False;
+
 begin
 
    --  Look for a .gnatdebug file locally; if it exists, use its contents as
@@ -73,42 +65,10 @@ begin
 
    Server_Trace.Trace ("Initializing server ...");
 
-   Server.Initialize
-     (Stream'Unchecked_Access,
-      Handler'Unchecked_Access,
-      Handler'Unchecked_Access);
+   Server.Initialize (Stream'Unchecked_Access);
 
-   loop
-      --  Here, we do Server.Run in a loop, in order to be able to recover from
-      --  exceptions. However, in the common case we don't want to keep running
-      --  the server when it has been stopped. We use the Do_Exit variable to
-      --  signal that.
-
-      begin
-         exit when Do_Exit;
-
-         Do_Exit := True;
-
-         Server.Run;
-      exception
-         when E : Property_Error =>
-            Server_Trace.Trace
-              ("LAL Property Error:" & Exception_Message (E));
-            Server_Trace.Trace (Symbolic_Traceback (E));
-            Do_Exit := False;
-
-         when Ada.IO_Exceptions.End_Error =>
-            Server_Trace.Trace ("Received EOF.");
-
-         when E : others =>
-            Server_Trace.Trace
-              ("FATAL - Unexpected exception: "
-               & Exception_Name (E) & " - " &  Exception_Message (E));
-            Server_Trace.Trace (Symbolic_Traceback (E));
-            Context.Reload;
-            Do_Exit := False;
-      end;
-   end loop;
+   Server.Run (Handler'Unchecked_Access, Handler'Unchecked_Access);
+   Server_Trace.Trace ("Shutting server down ...");
 
    Server.Finalize;
 end LSP.Ada_Driver;
