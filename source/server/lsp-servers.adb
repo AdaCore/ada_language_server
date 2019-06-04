@@ -24,6 +24,7 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 
+with GNAT.OS_Lib;
 with GNATCOLL.JSON;
 
 package body LSP.Servers is
@@ -105,7 +106,16 @@ package body LSP.Servers is
 
       Self.Processing_Task.Stop;
       Self.Output_Task.Stop;
-      Self.Input_Task.Stop;
+
+      select
+         --  Input task can be waiting reading from stream and won't accept
+         --  Stop entry call. Let's wait a little and terminate process.
+         Self.Input_Task.Stop;
+      or
+         delay 0.1;
+      end select;
+
+      GNAT.OS_Lib.OS_Exit (Status => 0);
    end Finalize;
 
    -----------------
