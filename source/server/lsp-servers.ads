@@ -105,11 +105,11 @@ private
    type Output_Queue_Access is access Output_Queues.Queue;
 
    --  The processing task
-   task type Processing_Task_Type is
+   task type Processing_Task_Type
+     (Server : access LSP.Servers.Server)
+   is
       entry Start
-        (In_Queue     : Requests_Queue_Access;
-         Out_Queue    : Output_Queue_Access;
-         Request      : not null
+        (Request      : not null
            LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
            LSP.Messages.Notifications.Server_Notification_Handler_Access);
@@ -118,10 +118,11 @@ private
    end Processing_Task_Type;
 
    --  The output task
-   task type Output_Task_Type is
-      entry Start (Queue         : Output_Queue_Access;
-                   Output_Stream : Stream_Access);
-      --  Start the task. Should be called once, with the stream to output to.
+   task type Output_Task_Type
+     (Server : access LSP.Servers.Server)
+   is
+      entry Start;
+      --  Start the task. Should be called once.
 
       entry Stop;
       --  Clean shutdown of the task. Can only be called after Start.
@@ -136,10 +137,10 @@ private
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
 
       --  Queues and tasks used for asynchronous processing, see doc above
-      Requests_Queue : Requests_Queue_Access;
-      Output_Queue   : Output_Queue_Access;
-      Processing_Task : Processing_Task_Type;
-      Output_Task     : Output_Task_Type;
+      Requests_Queue  : Requests_Queues.Queue;
+      Output_Queue    : Output_Queues.Queue;
+      Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
+      Output_Task     : Output_Task_Type (Server'Unchecked_Access);
    end record;
 
    procedure Send_Notification

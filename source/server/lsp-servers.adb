@@ -18,7 +18,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
-with Ada.Unchecked_Deallocation;
 
 with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
@@ -86,12 +85,8 @@ package body LSP.Servers is
    begin
       Self.Stream := Stream;
 
-      Self.Requests_Queue := new Requests_Queues.Queue;
-      Self.Output_Queue   := new Output_Queues.Queue;
-
-      Self.Processing_Task.Start
-        (Self.Requests_Queue, Self.Output_Queue, Request, Notification);
-      Self.Output_Task.Start (Self.Output_Queue, Self.Stream);
+      Self.Processing_Task.Start (Request, Notification);
+      Self.Output_Task.Start;
    end Initialize;
 
    --------------
@@ -101,10 +96,6 @@ package body LSP.Servers is
    procedure Finalize (Self : in out Server) is
       use type Ada.Containers.Count_Type;
 
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (Requests_Queues.Queue, Requests_Queue_Access);
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (Output_Queues.Queue, Output_Queue_Access);
    begin
       --  The server has been asked to close. This could be (in particular in
       --  the case of the testsuite) because the input pipe has been closed.
@@ -115,11 +106,9 @@ package body LSP.Servers is
       loop
          delay 0.1;
       end loop;
+
       Self.Processing_Task.Stop;
       Self.Output_Task.Stop;
-
-      Unchecked_Free (Self.Requests_Queue);
-      Unchecked_Free (Self.Output_Queue);
    end Finalize;
 
    -----------------
@@ -426,7 +415,8 @@ package body LSP.Servers is
    task body Output_Task_Type is
       Vector : Ada.Strings.Unbounded.Unbounded_String;
       Stop_Requested : Boolean := False;
-      Stream : Stream_Access;
+      Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
+      Output_Queue : Output_Queues.Queue renames Server.Output_Queue;
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
@@ -449,14 +439,8 @@ package body LSP.Servers is
          Trace (Out_Trace, To_String (Vector));
       end Write_JSON_RPC;
 
-      Output_Queue : Output_Queue_Access;
    begin
-      accept Start (Queue : Output_Queue_Access;
-                    Output_Stream : Stream_Access)
-      do
-         Output_Queue := Queue;
-         Stream := Output_Stream;
-      end Start;
+      accept Start;
 
       loop
          <<BEGIN_TASK_LOOP>>
@@ -504,7 +488,6 @@ package body LSP.Servers is
    --------------------------
 
    task body Processing_Task_Type is
-      Stop_Requested : Boolean := False;
       Request : Ada.Strings.Unbounded.Unbounded_String;
 
       Req_Handler   : LSP.Messages.Requests.Server_Request_Handler_Access;
@@ -512,8 +495,8 @@ package body LSP.Servers is
       LSP.Messages.Notifications.Server_Notification_Handler_Access;
       Initialized   : Boolean;
 
-      Requests_Queue  : Requests_Queue_Access;
-      Output_Queue    : Output_Queue_Access;
+      Requests_Queue : Requests_Queues.Queue renames Server.Requests_Queue;
+      Output_Queue   : Output_Queues.Queue renames Server.Output_Queue;
 
       procedure Initialize
         (Request      : not null
@@ -726,15 +709,11 @@ package body LSP.Servers is
    begin
       --  Perform initialization
       accept Start
-        (In_Queue     : Requests_Queue_Access;
-         Out_Queue    : Output_Queue_Access;
-         Request      : not null
+        (Request      : not null
            LSP.Messages.Requests.Server_Request_Handler_Access;
          Notification : not null
            LSP.Messages.Notifications.Server_Notification_Handler_Access)
       do
-         Requests_Queue  := In_Queue;
-         Output_Queue    := Out_Queue;
          Initialize (Request, Notification);
       end Start;
 
@@ -744,11 +723,11 @@ package body LSP.Servers is
 
          --  Accept Stop here
          select
-            accept Stop do Stop_Requested := True; end Stop;
+            accept Stop;
+            exit;
          or
             delay 0.01;
          end select;
-         exit when Stop_Requested;
 
          --  Nest a loop here so we process all available requests
          --  before acceptiong Stop
