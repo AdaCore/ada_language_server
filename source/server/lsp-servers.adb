@@ -27,6 +27,8 @@ with LSP.JSON_Streams;
 with GNAT.OS_Lib;
 with GNATCOLL.JSON;
 
+with Libadalang.Common;         use Libadalang.Common;
+
 package body LSP.Servers is
 
    New_Line : constant String :=
@@ -784,8 +786,35 @@ package body LSP.Servers is
             --  Process all available requests before acceptiong Stop
             Requests_Queue.Dequeue (Request);
 
-            Process_Message_From_Stream (Request);
+            --  Process the request
+            begin
+               Process_Message_From_Stream (Request);
+            exception
+               when Ada.IO_Exceptions.End_Error =>
+                  Server_Trace.Trace ("Received EOF.");
+                  exit;
 
+               when E : others =>
+                  --  Catch-all case: make sure no exception in any request
+                  --  processing can cause an exit of the task main loop.
+
+                  --  Send the response to the stream. If we reach this
+                  --  exception handler, this means the request could be
+                  --  decoded, but an exception was raised when processing it.
+                  Send_Exception_Response
+                    (E,
+                     To_String (Request),
+                     (Is_Number => False,
+                      String    => LSP.Types.Empty_LSP_String));
+
+                  --  Property errors are expected to happen in the normal flow
+                  --  of events in LAL. However, for any other error than a
+                  --  property error, we want to reload the context.
+                  if Exception_Identity (E) /= Property_Error'Identity then
+                     Req_Handler.Handle_Error;
+                  end if;
+                  --  ... and log this in the traces
+            end;
          or
             delay 0.1;
 

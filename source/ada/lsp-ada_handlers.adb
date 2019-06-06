@@ -946,4 +946,15 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Completion_Request;
 
+   ------------------
+   -- Handle_Error --
+   ------------------
+
+   overriding procedure Handle_Error
+     (Self : access Message_Handler) is
+   begin
+      --  Reload the context in case of unexpected errors.
+      Self.Context.Reload;
+   end Handle_Error;
+
 end LSP.Ada_Handlers;
