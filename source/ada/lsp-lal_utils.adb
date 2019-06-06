@@ -54,7 +54,12 @@ package body LSP.Lal_Utils is
    ------------------
 
    function Resolve_Name (Name_Node : Name) return Defining_Name is
-      Result : constant Defining_Name := Name_Node.P_Xref;
+      --  In every case, if the unit has syntax errors, activate
+      --  Imprecise_Fallback.
+      --  TODO: Should we activate it in any case ?
+      Result : constant Defining_Name :=
+        Name_Node.P_Xref
+          (Imprecise_Fallback => Name_Node.Unit.Has_Diagnostics);
    begin
       if Name_Node.P_Is_Defining and Result = No_Defining_Name then
          --  When Name_Node is part of defining_name and it isn't a completion
