@@ -17,6 +17,9 @@
 --
 --  This is driver to run LSP server for Ada language.
 
+with Ada.Exceptions; use Ada.Exceptions;
+with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
+
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
@@ -65,8 +68,15 @@ begin
    Server_Trace.Trace ("Initializing server ...");
 
    Server.Initialize (Stream'Unchecked_Access);
-
-   Server.Run (Handler'Unchecked_Access, Handler'Unchecked_Access);
+   begin
+      Server.Run (Handler'Unchecked_Access, Handler'Unchecked_Access);
+   exception
+      when E : others =>
+         Server_Trace.Trace
+           ("FATAL - Unexpected exception in the main thread: "
+            & Exception_Name (E) & " - " &  Exception_Message (E));
+         Server_Trace.Trace (Symbolic_Traceback (E));
+   end;
    Server_Trace.Trace ("Shutting server down ...");
 
    Server.Finalize;
