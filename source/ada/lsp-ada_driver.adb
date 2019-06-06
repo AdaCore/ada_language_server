@@ -56,11 +56,10 @@ begin
       Parse_Config_File
         (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
 
-      --  For the moment, use a unique log file with append mode
+      --  Set log file
       Set_Default_Stream
-        (">>"
-         & (+Virtual_File'(ALS_Dir / "als.log").Full_Name)
-        & ":buffer_size=0");
+        (">" & (+Virtual_File'(ALS_Dir / "als").Full_Name) &
+           ".$T.$$.log:buffer_size=0");
    end if;
 
    Server_Trace.Trace ("Initializing server ...");
