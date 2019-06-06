@@ -96,6 +96,7 @@ package body LSP.Ada_Documents is
       Errors : out LSP.Messages.Diagnostic_Vector)
    is
       Item : LSP.Messages.Diagnostic;
+      Nb_Diags : Natural := 0;
    begin
       Errors.Clear;
 
@@ -108,6 +109,8 @@ package body LSP.Ada_Documents is
                  (Error.Message));
 
             Errors.Append (Item);
+            Nb_Diags := Nb_Diags + 1;
+            exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;
          end loop;
       end if;
    end Get_Errors;
