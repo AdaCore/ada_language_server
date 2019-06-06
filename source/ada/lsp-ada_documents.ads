@@ -23,6 +23,8 @@ limited with LSP.Ada_Contexts;
 
 package LSP.Ada_Documents is
 
+   MAX_NB_DIAGNOSTICS : constant := 2;
+
    type Document (Context : access LSP.Ada_Contexts.Context'Class)
      is tagged limited private;
    --  An Ada document (file).

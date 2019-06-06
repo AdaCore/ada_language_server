@@ -70,38 +70,33 @@
                 "method":"textDocument/publishDiagnostics",
                 "params":{
                     "uri":"$URI{aaa.ads}",
-                    "diagnostics":[
-                        {
-                            "range":{
-                                "start":{"line":1,"character":3},
-                                "end":{"line":1,"character":4}
-                            },
-                            "message":"Cannot parse <sub_object_decl>"
-                        },{
-                            "range":{
-                                "start":{"line":1,"character":20},
-                                "end":{"line":1,"character":21}
-                            },
-                            "message":"Expected '(', got '''"
-                        },{
-                            "range":{
-                                "start":{"line":1,"character":20},
-                                "end":{"line":1,"character":21}
-                            },
-                            "message":"Skipped token '"
-                        },{
-                            "range":{
-                                "start":{"line":1,"character":21},
-                                "end":{"line":1,"character":22}
-                            },
-                            "message":"Skipped token 1"
-                        },{
-                            "range":{
-                                "start":{"line":1,"character":22},
-                                "end":{"line":1,"character":23}
-                            },
-                            "message":"Skipped token ;"
-                        }
+                    "diagnostics": [
+                      {
+                        "range": {
+                          "start": {
+                            "line": 1,
+                            "character": 3
+                          },
+                          "end": {
+                            "line": 1,
+                            "character": 4
+                          }
+                        },
+                        "message": "Cannot parse <sub_object_decl>"
+                      },
+                      {
+                        "range": {
+                          "start": {
+                            "line": 1,
+                            "character": 20
+                          },
+                          "end": {
+                            "line": 1,
+                            "character": 21
+                          }
+                        },
+                        "message": "Expected '(', got '''"
+                      }
                     ]
                 }
             }]
