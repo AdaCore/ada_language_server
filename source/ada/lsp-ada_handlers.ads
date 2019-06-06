@@ -162,4 +162,6 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeConfigurationParams);
 
+   overriding procedure Handle_Error
+     (Self : access Message_Handler);
 end LSP.Ada_Handlers;

@@ -182,6 +182,11 @@ package LSP.Messages.Requests is
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response is abstract;
 
+   procedure Handle_Error
+     (Self  : access Server_Request_Handler) is null;
+   --  This procedure will be called when an unexpected error is raised in the
+   --  request processing loop.
+
 private
 
    procedure Read
