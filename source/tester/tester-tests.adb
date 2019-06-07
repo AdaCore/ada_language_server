@@ -254,12 +254,21 @@ package body Tester.Tests is
            (Name  : String;
             Value : GNATCOLL.JSON.JSON_Value) is
          begin
-            if Success and Left.Has_Field (Name) then
+            if Success
+              and then Value.Kind = GNATCOLL.JSON.JSON_String_Type
+              and then String'(GNATCOLL.JSON.Get (Value)) = "<ABSENT>"
+            then
+
+               Success := not Left.Has_Field (Name);
+
+            elsif Success and Left.Has_Field (Name) then
+
                declare
                   Prop : constant GNATCOLL.JSON.JSON_Value := Left.Get (Name);
                begin
                   Success := Match (Prop, Value);
                end;
+
             else
                Success := False;
             end if;
