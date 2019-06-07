@@ -41,7 +41,15 @@
                 }
             },
             "comment": " -- we expect an exception here, code -32603",
-            "wait":[{"jsonrpc":"2.0", "error": {"code":-32603,"message":"<ANY>"}}]
+            "wait":[{
+                "jsonrpc": "2.0",
+                "id": "references-1",
+                "result": "<ABSENT>",
+                "error": {
+                    "code":-32603,
+                    "message":"<ANY>"
+                }
+            }]
         }
     },
 

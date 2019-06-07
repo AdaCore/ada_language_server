@@ -25,7 +25,7 @@ Here is list of supported commands.
 ### Command `start`
 
 Property value - an object:
- "cmd" - array of string.
+ * "cmd" - array of string.
 
 Start new LSP server using _cmd_ as command line.
 
@@ -43,15 +43,21 @@ Property value - an object:
 
  * "request" - JSON object to send to LSP server as request.
  * "wait" - array of _wait_ objects to expect them in any order.
+ * "sortReply" - an object with properies. Each property has string value of
+a _key_. The property name points to a property in the server reply to
+be sorted; it should be JSON array of object. While _key_ is property name
+in the array item to compare.
 
-Where _wait_ object is expected server answer. Each propert of this object
-should be in server response.
+Where _wait_ object is expected server answer. Each property of this object
+should be in server response, but some string values have a special meaning:
+ * `<ANY>`  - matches any string value
+ * `<ABSENT>` - ensures than there is no such property at all
 
 ### Command `comment`
 
-Property value - array of string.
+Property value - array of string or just string.
 
-Tester just ignore this command. We use it to add test desription and other
+Tester just ignores this command. We use it to add test desription and other
 comments to JSON test script.
 
 

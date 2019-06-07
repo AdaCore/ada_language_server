@@ -541,9 +541,7 @@ package body LSP.Servers is
       --  Initializes internal data structures
 
       procedure Process_Message_From_Stream
-        (Vector     : Ada.Strings.Unbounded.Unbounded_String;
-         Result     : out LSP.Types.LSP_Any;
-         Error      : out LSP.Messages.Optional_ResponseError);
+        (Vector : Ada.Strings.Unbounded.Unbounded_String);
 
       procedure Send_Response
         (Response   : in out LSP.Messages.ResponseMessage'Class;
@@ -552,14 +550,15 @@ package body LSP.Servers is
 
       procedure Send_Exception_Response
         (E          : Exception_Occurrence;
-         Traces_Msg : String;
-         Request_Id : LSP.Types.LSP_Number_Or_String);
+         Trace_Text : String;
+         Request_Id : LSP.Types.LSP_Number_Or_String;
+         Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError);
       --  Send a response to the stream representing the exception. This
       --  should be called whenever an exception occurred while processing
       --  a request.
-      --  Traces_Msg is the additional info to write in the traces, and
-      --  Request_Id is the id of the request we were trying to process,
-      --  if any.
+      --  Trace_Text is the additional info to write in the traces, and
+      --  Request_Id is the id of the request we were trying to process.
+      --  Use given Code code in the response.
 
       ----------------
       -- Initialize --
@@ -602,8 +601,9 @@ package body LSP.Servers is
 
       procedure Send_Exception_Response
         (E          : Exception_Occurrence;
-         Traces_Msg : String;
-         Request_Id : LSP.Types.LSP_Number_Or_String)
+         Trace_Text : String;
+         Request_Id : LSP.Types.LSP_Number_Or_String;
+         Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError)
       is
          Exception_Text : constant String :=
            Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
@@ -615,7 +615,7 @@ package body LSP.Servers is
               error    =>
                 (Is_Set => True,
                  Value =>
-                   (code => LSP.Messages.InternalError,
+                   (code => Code,
                     data => GNATCOLL.JSON.Create_Object,
                     message => LSP.Types.To_LSP_String
                       (Exception_Text))));
@@ -627,7 +627,7 @@ package body LSP.Servers is
          GNATCOLL.Traces.Trace
            (LSP.Server_Trace,
             "Exception when processing request:" & ASCII.LF
-            & Traces_Msg & ASCII.LF
+            & Trace_Text & ASCII.LF
             & Exception_Text);
          Server_Trace.Trace (Symbolic_Traceback (E));
       end Send_Exception_Response;
@@ -637,9 +637,7 @@ package body LSP.Servers is
       ---------------------------------
 
       procedure Process_Message_From_Stream
-        (Vector     : Ada.Strings.Unbounded.Unbounded_String;
-         Result     : out LSP.Types.LSP_Any;
-         Error      : out LSP.Messages.Optional_ResponseError)
+        (Vector : Ada.Strings.Unbounded.Unbounded_String)
       is
          use type LSP.Types.LSP_String;
          procedure Send_Not_Initialized
@@ -672,25 +670,27 @@ package body LSP.Servers is
          Version    : LSP.Types.LSP_String;
          Method     : LSP.Types.Optional_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
+         Error      : LSP.Messages.Optional_ResponseError;
 
       begin
          Document := GNATCOLL.JSON.Read (Vector);
          GNATCOLL.JSON.Append (JSON_Array, Document);
          JS.Set_JSON_Document (JSON_Array);
          JS.Start_Object;
+         Read_Number_Or_String (JS, +"id", Request_Id);
          LSP.Types.Read_String (JS, +"jsonrpc", Version);
          LSP.Types.Read_Optional_String (JS, +"method", Method);
-         Read_Number_Or_String (JS, +"id", Request_Id);
 
          if not Method.Is_Set then
-            JS.Key ("result");
-            Result := JS.Read;
+            --  TODO: Process client responses here.
+
             JS.Key ("error");
             LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
-            --  We have got error from LSP client. Save it in the trace:
-            Server_Trace.Trace ("Got Error response:");
 
             if Error.Is_Set then
+               --  We have got error from LSP client. Save it in the trace:
+               Server_Trace.Trace ("Got Error response:");
+
                Server_Trace.Trace
                  (LSP.Types.To_UTF_8_String (Error.Value.message));
             end if;
@@ -715,30 +715,57 @@ package body LSP.Servers is
             return;
          end if;
 
-         declare
-            Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-            Output     : Ada.Strings.Unbounded.Unbounded_String;
-            Request    : constant LSP.Messages.RequestMessage'Class
-              := LSP.Messages.Requests.Decode_Request (Document);
          begin
             --  Nest a declare block so we can catch specifically an
-            --  exception raised during the processing of a request.
+            --  exception raised during the decoding of a request.
+
             declare
-               Response   : constant LSP.Messages.ResponseMessage'Class :=
-                 Req_Handler.Handle_Request (Request);
+               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+               Output     : Ada.Strings.Unbounded.Unbounded_String;
+               Request    : constant LSP.Messages.RequestMessage'Class
+                 := LSP.Messages.Requests.Decode_Request (Document);
             begin
-               LSP.Messages.ResponseMessage'Class'Write
-                 (Out_Stream'Access, Response);
-               Output := To_Unbounded_String (Out_Stream);
-               Output_Queue.Enqueue (Output);
+               --  Nest a declare block so we can catch specifically an
+               --  exception raised during the processing of a request.
+               declare
+                  Response   : constant LSP.Messages.ResponseMessage'Class :=
+                    Req_Handler.Handle_Request (Request);
+               begin
+                  LSP.Messages.ResponseMessage'Class'Write
+                    (Out_Stream'Access, Response);
+                  Output := To_Unbounded_String (Out_Stream);
+                  Output_Queue.Enqueue (Output);
+               end;
+
+            exception
+               when E : others =>
+                  --  If we reach this exception handler, this means the
+                  --  request could be decoded, but an exception was raised
+                  --  when processing it.
+                  Send_Exception_Response (E, To_String (Vector), Request.id);
             end;
+
          exception
             when E : others =>
                --  If we reach this exception handler, this means the request
-               --  could be decoded, but an exception was raised when
-               --  processing it.
-               Send_Exception_Response (E, To_String (Vector), Request.id);
+               --  could not be decoded.
+               Send_Exception_Response
+                 (E,
+                  To_String (Request),
+                  Request_Id,
+                  LSP.Messages.InvalidParams);
          end;
+
+      exception
+         when E : others =>
+            --  Catch-all case: make sure no exception in any message
+            --  processing can cause an exit of the task main loop.
+
+            GNATCOLL.Traces.Trace
+              (LSP.Server_Trace,
+               "Unexpected exception when processing a message:");
+            Server_Trace.Trace (Symbolic_Traceback (E));
+
       end Process_Message_From_Stream;
 
    begin
@@ -757,29 +784,8 @@ package body LSP.Servers is
             --  Process all available requests before acceptiong Stop
             Requests_Queue.Dequeue (Request);
 
-            --  Process the request
-            declare
-               Result     : LSP.Types.LSP_Any;
-               Error      : LSP.Messages.Optional_ResponseError;
-            begin
-               Process_Message_From_Stream (Request, Result, Error);
-               --  ??? Should we do something with Results, Error?
-            exception
-               when E : others =>
-                  --  Catch-all case: make sure no exception in any request
-                  --  processing can cause an exit of the task main loop.
+            Process_Message_From_Stream (Request);
 
-                  --  Send the response to the stream. If we reach this
-                  --  exception handler, this means the request could be
-                  --  decoded, but an exception was raised when processing it.
-                  Send_Exception_Response
-                    (E,
-                     To_String (Request),
-                     (Is_Number => False,
-                      String    => LSP.Types.Empty_LSP_String));
-
-                  --  ... and log this in the traces
-            end;
          or
             delay 0.1;
 
