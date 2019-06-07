@@ -178,8 +178,6 @@ package body LSP.Lal_Utils is
                Containing := Containing_Entity (Ref);
 
                if Containing /= No_Defining_Name then
-                  --  ??? Question: is it possible for the containing
-                  --  entity
                   if Result.Contains (Containing) then
                      declare
                         L : List := Result.Element (Containing);

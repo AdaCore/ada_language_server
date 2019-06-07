@@ -1593,7 +1593,10 @@ package LSP.Messages is
       renameProvider: Optional_Boolean;
       documentLinkProvider: DocumentLinkOptions;
       executeCommandProvider: ExecuteCommandOptions;
-   --	experimental?: any;
+      --	experimental?: any;
+
+      --  ALS-specific capabilities
+      ALS_calledbyProvider : Optional_Boolean;
    end record;
 
    procedure Read_ServerCapabilities

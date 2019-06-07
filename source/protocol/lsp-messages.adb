@@ -1338,6 +1338,10 @@ package body LSP.Messages is
       DocumentLinkOptions'Read (S, V.documentLinkProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Read (S, V.executeCommandProvider);
+
+      Read_Optional_Boolean (JS, +"ALS_calledbyProvider",
+                             V.ALS_calledbyProvider);
+
       JS.End_Object;
    end Read_ServerCapabilities;
 
@@ -3197,6 +3201,10 @@ package body LSP.Messages is
       DocumentLinkOptions'Write (S, V.documentLinkProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
+
+      Write_Optional_Boolean
+        (JS, +"ALS_calledbyProvider", V.ALS_calledbyProvider);
+
       JS.End_Object;
    end Write_ServerCapabilities;
 
