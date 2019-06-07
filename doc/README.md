@@ -42,6 +42,4 @@ related resources.
 ## List of features
  * [Reference kinds](reference_kinds.md)
 
- * `textDocument/ALS_called_by`: This request implements 'is called by',
-   returning the list of calls to a subprogram, organised by their
-   calling entity. See the ALS-specific section in `als-messages.ads`.
+ * [Called by][called_by.md]

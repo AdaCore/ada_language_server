@@ -113,6 +113,8 @@ package body LSP.Ada_Handlers is
           triggerCharacters => Empty_Vector & To_LSP_String (".")));
       Response.result.capabilities.hoverProvider := True;
 
+      Response.result.capabilities.ALS_calledbyProvider := True;
+
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := Self.Context.URI_To_File (Value.rootUri);
       else
