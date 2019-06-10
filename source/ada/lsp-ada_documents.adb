@@ -140,8 +140,9 @@ package body LSP.Ada_Documents is
          Item.name := To_LSP_String (Element.Text);
          Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
          Item.location :=
-           (uri  => Self.URI,
-            span => To_Span (Element.Sloc_Range));
+           (uri     => Self.URI,
+            span    => To_Span (Element.Sloc_Range),
+            alsKind => LSP.Messages.Empty_Set);
 
          Result.Append (Item);
       end loop;

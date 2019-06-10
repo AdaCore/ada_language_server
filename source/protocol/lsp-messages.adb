@@ -105,6 +105,12 @@ package body LSP.Messages is
       UnknownErrorCode     => -32001,
       RequestCancelled     => -32800);
 
+   AlsReferenceKind_Map : constant array
+     (AlsReferenceKind) of Standard.String (1 .. 1) :=
+     (Write            => "w",
+      Static_Call      => "c",
+      Dispatching_Call => "d");
+
    ---------------------------
    -- Input_ResponseMessage --
    ---------------------------
@@ -122,6 +128,65 @@ package body LSP.Messages is
          JS.End_Object;
       end return;
    end Input_ResponseMessage;
+
+   -------------------------------
+   -- Read_AlsReferenceKind_Set --
+   -------------------------------
+
+   procedure Read_AlsReferenceKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsReferenceKind_Set)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+      Vector : GNATCOLL.JSON.JSON_Array;
+   begin
+      V := Empty_Set;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
+         Vector := Value.Get;
+
+         for J in 1 .. GNATCOLL.JSON.Length (Vector) loop
+            if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+               declare
+                  Text : constant Standard.String :=
+                    GNATCOLL.JSON.Get (Vector, J).Get;
+               begin
+                  for J in AlsReferenceKind_Map'Range loop
+                     if Text = AlsReferenceKind_Map (J) then
+                        V (J) := True;
+                     end if;
+                  end loop;
+               end;
+            end if;
+         end loop;
+      end if;
+   end Read_AlsReferenceKind_Set;
+
+   --------------------------------
+   -- Write_AlsReferenceKind_Set --
+   --------------------------------
+
+   procedure Write_AlsReferenceKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsReferenceKind_Set)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V /= Empty_Set then
+         JS.Start_Array;
+
+         for J in V'Range loop
+            if V (J) then
+               JS.Write (GNATCOLL.JSON.Create (AlsReferenceKind_Map (J)));
+            end if;
+         end loop;
+
+         JS.End_Array;
+      end if;
+   end Write_AlsReferenceKind_Set;
 
    -----------------------------------
    -- Read_ApplyWorkspaceEditParams --
@@ -905,6 +970,8 @@ package body LSP.Messages is
       DocumentUri'Read (S, V.uri);
       JS.Key ("range");
       Span'Read (S, V.span);
+      JS.Key ("alsKind");
+      AlsReferenceKind_Set'Read (S, V.alsKind);
       JS.End_Object;
    end Read_Location;
 
@@ -2766,6 +2833,8 @@ package body LSP.Messages is
       DocumentUri'Write (S, V.uri);
       JS.Key ("range");
       Span'Write (S, V.span);
+      JS.Key ("alsKind");
+      AlsReferenceKind_Set'Write (S, V.alsKind);
       JS.End_Object;
    end Write_Location;
 

@@ -86,7 +86,8 @@
                             "line": 1,
                             "character": 13
                         }
-                    }
+                    },
+                    "alsKind": "<ABSENT>"
                 }, {
                     "uri": "$URI{bbb.adb}",
                     "range": {
@@ -98,7 +99,8 @@
                             "line": 3,
                             "character": 23
                         }
-                    }
+                    },
+                    "alsKind": ["c"]
                 }, {
                     "uri": "$URI{ccc.adb}",
                     "range": {
@@ -110,7 +112,8 @@
                             "line": 2,
                             "character": 23
                         }
-                    }
+                    },
+                    "alsKind": ["c"]
                 }]
             }]
         }

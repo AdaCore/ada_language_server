@@ -47,7 +47,9 @@ package body LSP.Ada_Handlers is
 
    function Get_Node_Location
      (Self : access Message_Handler;
-      Node : Libadalang.Analysis.Ada_Node) return LSP.Messages.Location;
+      Node : Libadalang.Analysis.Ada_Node;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location;
    --  Return the location of the given node
 
    -----------------------
@@ -56,7 +58,9 @@ package body LSP.Ada_Handlers is
 
    function Get_Node_Location
      (Self : access Message_Handler;
-      Node : Libadalang.Analysis.Ada_Node) return LSP.Messages.Location
+      Node : Libadalang.Analysis.Ada_Node;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location
    is
       use Libadalang.Analysis;
       use Libadalang.Common;
@@ -77,7 +81,8 @@ package body LSP.Ada_Handlers is
 
       Location : constant LSP.Messages.Location :=
                    (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
-                    span => LSP.Messages.Span'(First_Position, Last_Position));
+                    span => LSP.Messages.Span'(First_Position, Last_Position),
+                    alsKind => Kind);
    begin
       return Location;
    end Get_Node_Location;
@@ -836,6 +841,44 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
+      function Get_Reference_Kind
+        (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set;
+      --  Fetch reference kind for given node
+
+      ------------------------
+      -- Get_Reference_Kind --
+      ------------------------
+
+      function Get_Reference_Kind
+        (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set
+      is
+         Id     : constant Name := LSP.Lal_Utils.Get_Node_As_Name (Node);
+         Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
+      begin
+         begin
+            Result (LSP.Messages.Write) := Id.P_Is_Write_Reference;
+         exception
+            when Libadalang.Common.Property_Error =>
+               null;
+         end;
+
+         begin
+            Result (LSP.Messages.Static_Call) := Id.P_Is_Static_Call;
+         exception
+            when Libadalang.Common.Property_Error =>
+               null;
+         end;
+
+         begin
+            Result (LSP.Messages.Dispatching_Call) := Id.P_Is_Dispatching_Call;
+         exception
+            when Libadalang.Common.Property_Error =>
+               null;
+         end;
+
+         return Result;
+      end Get_Reference_Kind;
+
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
         (LSP.Lal_Utils.Get_Node_At
            (Self.Context.all,
@@ -872,7 +915,8 @@ package body LSP.Ada_Handlers is
                Location : constant LSP.Messages.Location :=
                   Get_Node_Location
                      (Self => Self,
-                      Node => As_Ada_Node (Node));
+                      Node => As_Ada_Node (Node),
+                      Kind => Get_Reference_Kind (Node));
             begin
                Response.result.Append (Location);
             end;
@@ -940,7 +984,7 @@ package body LSP.Ada_Handlers is
                  (Langkit_Support.Text.To_UTF8 (Node.Text));
                for Ref of Refs loop
                   Subp_And_Refs.refs.Append
-                    (Get_Node_Location (Self, Ada_Node (Ref)));
+                    (Get_Node_Location (Self, Ref));
                end loop;
                Response.result.Append (Subp_And_Refs);
             end;
