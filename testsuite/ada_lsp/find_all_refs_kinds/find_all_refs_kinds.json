@@ -1,0 +1,209 @@
+[
+    {
+        "comment":[
+            "This test checks 'c','d','w' kinds in find all references"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "referencesProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                            "projectFile": ""
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Ada.Streams;\n\nprocedure Aaa (Stream : not null access Ada.Streams.Root_Stream_Type'Class) is\n    Local : Ada.Streams.Stream_Element_Array (1 .. 5);\n    Last : Ada.Streams.Stream_Element_Count;\nbegin\n    Ada.Streams.Read (Stream.all, Local, Last);\n    Aaa (Stream);\nend Aaa;"
+                    }
+                }
+            },
+            "wait":[{
+                "jsonrpc": "2.0",
+                "method": "textDocument/publishDiagnostics",
+                "params": {
+                    "uri": "$URI{aaa.adb}",
+                    "diagnostics":[]
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-1",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 6,
+                        "character": 18
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-1",
+                "result":[{
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 6,
+                            "character": 16
+                        },
+                        "end": {
+                            "line": 6,
+                            "character": 20
+                        }
+                    },
+                    "alsKind": ["d"]
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-2",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 7,
+                        "character": 6
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-2",
+                "result":[{
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 7,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 7,
+                            "character": 7
+                        }
+                    },
+                    "alsKind": ["c"]
+                }, {
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 8,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 8,
+                            "character": 7
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-3",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 7
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-3",
+                "result":[{
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 6,
+                            "character": 34
+                        },
+                        "end": {
+                            "line": 6,
+                            "character": 39
+                        }
+                    },
+                    "alsKind": ["w"]
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

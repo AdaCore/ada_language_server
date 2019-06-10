@@ -182,7 +182,8 @@
                            "character": 6
                         }
                      }, 
-                     "uri": "$URI{main.adb}"
+                     "uri": "$URI{main.adb}",
+                     "alsKind": ["c"]
                   }, 
                   {
                      "range": {
@@ -195,7 +196,8 @@
                            "character": 6
                         }
                      }, 
-                     "uri": "$URI{subsrc/other_main.adb}"
+                     "uri": "$URI{subsrc/other_main.adb}",
+                     "alsKind": ["c"]
                   }, 
                   {
                      "range": {
@@ -208,7 +210,8 @@
                            "character": 16
                         }
                      }, 
-                     "uri": "$URI{subsrc/p.ads}"
+                     "uri": "$URI{subsrc/p.ads}",
+                     "alsKind": "<ABSENT>"
                   }
                ]
             }]

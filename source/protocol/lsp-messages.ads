@@ -289,15 +289,41 @@ package LSP.Messages is
    package Optional_Spans is new LSP.Generic_Optional (Span);
    type Optional_Span is new Optional_Spans.Optional_Type;
 
+   --  reference_kinds ALS extension:
+   --
+   --  export type AlsReferenceKind = 'w' | 'c' | 'd';
+   --
+   --  export namespace AlsReferenceKind {
+   --     export const Write            : AlsReferenceKind = 'w';
+   --     export const Static_Call      : AlsReferenceKind = 'c';
+   --     export const Dispatching_Call : AlsReferenceKind = 'd';
+   --  }
+
+   type AlsReferenceKind is (Write, Static_Call, Dispatching_Call);
+   type AlsReferenceKind_Set is array (AlsReferenceKind) of Boolean;
+   function Empty_Set return AlsReferenceKind_Set is
+      (AlsReferenceKind => False);
+
+   procedure Read_AlsReferenceKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsReferenceKind_Set);
+   procedure Write_AlsReferenceKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsReferenceKind_Set);
+   for AlsReferenceKind_Set'Read use Read_AlsReferenceKind_Set;
+   for AlsReferenceKind_Set'Write use Write_AlsReferenceKind_Set;
+
    --```typescript
    --interface Location {
    --	uri: DocumentUri;
    --	range: Range;
+   --   AlsKind?: AlsReferenceKind[];
    --}
    --```
    type Location is record
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word
+      alsKind : AlsReferenceKind_Set := Empty_Set;
    end record;
 
    procedure Read_Location
