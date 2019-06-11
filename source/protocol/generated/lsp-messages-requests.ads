@@ -53,6 +53,11 @@ package LSP.Messages.Requests is
       params : TextDocumentPositionParams;
    end record;
 
+   type Type_Definition_Request is new RequestMessage with
+   record
+      params : TextDocumentPositionParams;
+   end record;
+
    type Highlight_Request is new RequestMessage with
    record
       params : TextDocumentPositionParams;
@@ -123,6 +128,11 @@ package LSP.Messages.Requests is
       return LSP.Messages.Completion_Response is abstract;
 
    function On_Definition_Request
+     (Self  : access Server_Request_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response is abstract;
+
+   function On_Type_Definition_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response is abstract;
@@ -222,6 +232,14 @@ private
       V : Definition_Request);
    for Definition_Request'Read use Read;
    for Definition_Request'Write use Write;
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Type_Definition_Request);
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Type_Definition_Request);
+   for Type_Definition_Request'Read use Read;
+   for Type_Definition_Request'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Highlight_Request);
