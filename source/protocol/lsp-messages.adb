@@ -1310,15 +1310,20 @@ package body LSP.Messages is
       Optional_CompletionOptions'Read (S, V.completionProvider);
       JS.Key ("signatureHelpProvider");
       Optional_SignatureHelpOptions'Read (S, V.signatureHelpProvider);
-      Read_Optional_Boolean (JS, +"definitionProvider", V.definitionProvider);
-      Read_Optional_Boolean (JS, +"referencesProvider", V.referencesProvider);
+      Read_Optional_Boolean
+        (JS, +"definitionProvider", V.definitionProvider);
+      Read_Optional_Boolean
+        (JS, +"typeDefinitionProvider", V.typeDefinitionProvider);
+      Read_Optional_Boolean
+        (JS, +"referencesProvider", V.referencesProvider);
       Read_Optional_Boolean
         (JS, +"documentHighlightProvider", V.documentHighlightProvider);
       Read_Optional_Boolean
         (JS, +"documentSymbolProvider", V.documentSymbolProvider);
       Read_Optional_Boolean
         (JS, +"workspaceSymbolProvider", V.workspaceSymbolProvider);
-      Read_Optional_Boolean (JS, +"codeActionProvider", V.codeActionProvider);
+      Read_Optional_Boolean
+        (JS, +"codeActionProvider", V.codeActionProvider);
       Read_Optional_Boolean
         (JS, +"documentFormattingProvider", V.documentFormattingProvider);
       Read_Optional_Boolean
@@ -1603,6 +1608,8 @@ package body LSP.Messages is
       dynamicRegistration'Read (S, V.onTypeFormatting);
       JS.Key ("definition");
       dynamicRegistration'Read (S, V.definition);
+      JS.Key ("typeDefinition");
+      dynamicRegistration'Read (S, V.typeDefinition);
       JS.Key ("codeAction");
       dynamicRegistration'Read (S, V.codeAction);
       JS.Key ("codeLens");
@@ -3163,8 +3170,12 @@ package body LSP.Messages is
       Optional_CompletionOptions'Write (S, V.completionProvider);
       JS.Key ("signatureHelpProvider");
       Optional_SignatureHelpOptions'Write (S, V.signatureHelpProvider);
-      Write_Optional_Boolean (JS, +"definitionProvider", V.definitionProvider);
-      Write_Optional_Boolean (JS, +"referencesProvider", V.referencesProvider);
+      Write_Optional_Boolean
+        (JS, +"definitionProvider", V.definitionProvider);
+      Write_Optional_Boolean
+        (JS, +"typeDefinitionProvider", V.typeDefinitionProvider);
+      Write_Optional_Boolean
+        (JS, +"referencesProvider", V.referencesProvider);
       Write_Optional_Boolean
         (JS, +"documentHighlightProvider", V.documentHighlightProvider);
       Write_Optional_Boolean
@@ -3428,6 +3439,8 @@ package body LSP.Messages is
       dynamicRegistration'Write (S, V.onTypeFormatting);
       JS.Key ("definition");
       dynamicRegistration'Write (S, V.definition);
+      JS.Key ("typeDefinition");
+      dynamicRegistration'Write (S, V.typeDefinition);
       JS.Key ("codeAction");
       dynamicRegistration'Write (S, V.codeAction);
       JS.Key ("codeLens");

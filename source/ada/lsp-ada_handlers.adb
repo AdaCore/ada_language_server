@@ -43,6 +43,43 @@ package body LSP.Ada_Handlers is
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
 
+   function Get_Node_Location
+     (Self : access Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node) return LSP.Messages.Location;
+   --  Return the location of the given node
+
+   -----------------------
+   -- Get_Node_Location --
+   -----------------------
+
+   function Get_Node_Location
+     (Self : access Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node) return LSP.Messages.Location
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+
+      Start_Sloc_Range                                     :
+      constant Langkit_Support.Slocs.Source_Location_Range :=
+         Sloc_Range (Data (Node.Token_Start));
+      End_Sloc_Range                                       :
+      constant Langkit_Support.Slocs.Source_Location_Range :=
+         Sloc_Range (Data (Node.Token_End));
+
+      First_Position : constant LSP.Messages.Position :=
+                         (Line_Number (Start_Sloc_Range.Start_Line) - 1,
+                          UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
+      Last_Position  : constant LSP.Messages.Position :=
+                         (Line_Number (End_Sloc_Range.End_Line) - 1,
+                          UTF_16_Index (End_Sloc_Range.End_Column) - 1);
+
+      Location : constant LSP.Messages.Location :=
+                   (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
+                    span => LSP.Messages.Span'(First_Position, Last_Position));
+   begin
+      return Location;
+   end Get_Node_Location;
+
    -----------------------
    -- Exit_Notification --
    -----------------------
@@ -65,6 +102,7 @@ package body LSP.Ada_Handlers is
       Root     : LSP.Types.LSP_String;
    begin
       Response.result.capabilities.definitionProvider := True;
+      Response.result.capabilities.typeDefinitionProvider := True;
       Response.result.capabilities.referencesProvider := True;
       Response.result.capabilities.documentSymbolProvider := True;
       Response.result.capabilities.textDocumentSync :=
@@ -202,10 +240,10 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      procedure Append
+      procedure Append_Location
         (Result     : in out LSP.Messages.Location_Vector;
          Definition : Defining_Name);
-      --  Append given defining name to result
+      --  Append given defining name location to the result
 
       function Find_Next_Part
         (Definition : Defining_Name) return Defining_Name;
@@ -215,35 +253,21 @@ package body LSP.Ada_Handlers is
         (Definition : Defining_Name) return Defining_Name;
       --  Find defining name of a declaration for given completion
 
-      ------------
-      -- Append --
-      ------------
+      ---------------------
+      -- Append_Location --
+      ---------------------
 
-      procedure Append
+      procedure Append_Location
         (Result     : in out LSP.Messages.Location_Vector;
          Definition : Defining_Name)
       is
-         use Libadalang.Common;
-
-         From : constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Definition.Token_Start));
-         To   : constant Langkit_Support.Slocs.Source_Location_Range :=
-           Sloc_Range (Data (Definition.Token_End));
-
-         First_Position : constant LSP.Messages.Position :=
-           (Line_Number (From.Start_Line) - 1,
-            UTF_16_Index (From.Start_Column) - 1);
-         Last_Position  : constant LSP.Messages.Position :=
-           (Line_Number (To.End_Line) - 1,
-            UTF_16_Index (To.End_Column) - 1);
-
          Location : constant LSP.Messages.Location :=
-           (uri  => Self.Context.File_To_URI (+Definition.Unit.Get_Filename),
-            span => LSP.Messages.Span'(First_Position, Last_Position));
-
+                      Get_Node_Location
+                        (Self => Self,
+                         Node => As_Ada_Node (Definition));
       begin
          Result.Append (Location);
-      end Append;
+      end Append_Location;
 
       ---------------------
       -- Find_First_Part --
@@ -320,7 +344,7 @@ package body LSP.Ada_Handlers is
          Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
          if Definition /= No_Defining_Name then
-            Append (Response.result, Definition);
+            Append_Location (Response.result, Definition);
          end if;
       else  --  If we are on a defining_name already
          Other_Part := Find_Next_Part (Definition);
@@ -331,12 +355,63 @@ package body LSP.Ada_Handlers is
          end if;
 
          if Other_Part /= No_Defining_Name then
-            Append (Response.result, Other_Part);
+            Append_Location (Response.result, Other_Part);
          end if;
       end if;
 
       return Response;
    end On_Definition_Request;
+
+   --------------------------------
+   -- On_Type_Definition_Request --
+   --------------------------------
+
+   overriding function On_Type_Definition_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+
+      Response  : LSP.Messages.Location_Response (Is_Error => False);
+      Document  : constant LSP.Ada_Documents.Document_Access :=
+                    Self.Context.Get_Document (Value.textDocument.uri);
+      Name_Node : constant Name :=
+                    LSP.Lal_Utils.Get_Node_As_Name
+                      (Document.Get_Node_At (Value.position));
+      Type_Decl : Base_Type_Decl;
+      Location  : LSP.Messages.Location;
+   begin
+      if Name_Node = No_Name then
+         return Response;
+      end if;
+
+      Type_Decl := Name_Node.P_Expression_Type;
+
+      if Type_Decl = No_Basic_Decl then
+         return Response;
+      end if;
+
+      --  TODO: for anonymous access type declarations we should go to the
+      --  pointed type instead.
+      --  A private API already exists in LAL for that: waiting for it to be
+      --  public.
+
+      if Type_Decl.Kind in Ada_Anonymous_Type_Decl then
+         Location := Get_Node_Location
+           (Self => Self,
+            Node => As_Ada_Node (Type_Decl));
+      else
+         Location := Get_Node_Location
+           (Self => Self,
+            Node => As_Ada_Node (Type_Decl));
+      end if;
+
+      Response.result.Append (Location);
+
+      return Response;
+   end On_Type_Definition_Request;
 
    -------------------------------------------
    -- On_DidChangeTextDocument_Notification --
@@ -760,25 +835,10 @@ package body LSP.Ada_Handlers is
          Unchecked_Free (Ada_Sources);
          for Node of References loop
             declare
-               use Libadalang.Common;
-
-               Start_Sloc_Range :
-               constant Langkit_Support.Slocs.Source_Location_Range :=
-                 Sloc_Range (Data (Node.Token_Start));
-               End_Sloc_Range   :
-               constant Langkit_Support.Slocs.Source_Location_Range :=
-                 Sloc_Range (Data (Node.Token_End));
-
-               First_Position : constant LSP.Messages.Position :=
-                 (Line_Number (Start_Sloc_Range.Start_Line) - 1,
-                  UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
-               Last_Position  : constant LSP.Messages.Position :=
-                 (Line_Number (End_Sloc_Range.End_Line) - 1,
-                  UTF_16_Index (End_Sloc_Range.End_Column) - 1);
-
                Location : constant LSP.Messages.Location :=
-                 (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
-                  span => LSP.Messages.Span'(First_Position, Last_Position));
+                  Get_Node_Location
+                     (Self => Self,
+                      Node => As_Ada_Node (Node));
             begin
                Response.result.Append (Location);
             end;

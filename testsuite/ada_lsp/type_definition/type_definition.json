@@ -1,0 +1,109 @@
+[
+    {
+        "comment":[
+            "This test checks that the textDocument/typeDefinition handler",
+            "works fine for a very basic request."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "typeDefinitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package body Bbb is\n\n   function Get_My_Type return My_Type is\n      A : My_Type := 0;\n   begin\n      return A;\n   end Get_My_Type;\n\nend;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"typedefname-1",
+                "method":"textDocument/typeDefinition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{bbb.adb}"
+                    },
+                    "position": {
+                        "line": 5,
+                        "character": 13
+                    }
+                }
+            },
+            "wait":[{
+                "id": "typedefname-1",
+                "result":[{
+                    "uri": "$URI{bbb.ads}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 31
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

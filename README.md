@@ -113,7 +113,7 @@ See more about the project testsuite in a
 | `textDocument/hover`                  | :white_check_mark: |
 | `textDocument/signatureHelp`          |                    |
 | `textDocument/definition`             | :white_check_mark: |
-| `textDocument/typeDefinition`         |                    |
+| `textDocument/typeDefinition`         | :white_check_mark: |
 | `textDocument/implementation`         |                    |
 | `textDocument/references`             | :white_check_mark: |
 | `textDocument/documentHighlight`      |                    |

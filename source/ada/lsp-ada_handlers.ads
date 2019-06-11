@@ -74,6 +74,11 @@ private
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Location_Response;
 
+   overriding function On_Type_Definition_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.TextDocumentPositionParams)
+      return LSP.Messages.Location_Response;
+
    overriding function On_Highlight_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)

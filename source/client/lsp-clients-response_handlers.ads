@@ -46,6 +46,11 @@ package LSP.Clients.Response_Handlers is
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Location_Response) is null;
 
+   procedure Text_Document_Type_Definition_Response
+     (Self     : not null access Response_Handler;
+      Request  : LSP.Types.LSP_Number;
+      Response : LSP.Messages.Location_Response) is null;
+
    procedure Text_Document_Hover_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;

@@ -984,6 +984,17 @@ package LSP.Messages is
    --	};
    --
    --	/**
+   --	 * Capabilities specific to the `textDocument/typeDefinition`
+   --	 */
+   --  	typeDefinition?: {
+   --  		/**
+   --  		 * Whether typeDefinition supports dynamic registration.
+   --            */
+   --  		dynamicRegistration?: boolean;
+   --  	};
+   --
+   --
+   --	/**
    --	 * Capabilities specific to the `textDocument/codeAction`
    --	 */
    --	codeAction?: {
@@ -1059,21 +1070,22 @@ package LSP.Messages is
    for completion'Write use Write_completion;
 
    type TextDocumentClientCapabilities is record
-      synchronization: LSP.Messages.synchronization;
-      completion: LSP.Messages.completion;
-      hover: dynamicRegistration;
-      signatureHelp: dynamicRegistration;
-      references: dynamicRegistration;
-      documentHighlight: dynamicRegistration;
-      documentSymbol: dynamicRegistration;
-      formatting: dynamicRegistration;
-      rangeFormatting: dynamicRegistration;
-      onTypeFormatting: dynamicRegistration;
-      definition: dynamicRegistration;
-      codeAction: dynamicRegistration;
-      codeLens: dynamicRegistration;
-      documentLink: dynamicRegistration;
-      rename: dynamicRegistration;
+      synchronization   : LSP.Messages.synchronization;
+      completion        : LSP.Messages.completion;
+      hover             : dynamicRegistration;
+      signatureHelp     : dynamicRegistration;
+      references        : dynamicRegistration;
+      documentHighlight : dynamicRegistration;
+      documentSymbol    : dynamicRegistration;
+      formatting        : dynamicRegistration;
+      rangeFormatting   : dynamicRegistration;
+      onTypeFormatting  : dynamicRegistration;
+      definition        : dynamicRegistration;
+      typeDefinition    : dynamicRegistration;
+      codeAction        : dynamicRegistration;
+      codeLens          : dynamicRegistration;
+      documentLink      : dynamicRegistration;
+      rename            : dynamicRegistration;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -1335,6 +1347,10 @@ package LSP.Messages is
    --	 */
    --	definitionProvider?: boolean;
    --	/**
+   --	 * The server provides goto type definition support.
+   --	 */
+   --	typeDefinitionProvider?: boolean;
+   --	/**
    --	 * The server provides find references support.
    --	 */
    --	referencesProvider?: boolean;
@@ -1563,7 +1579,8 @@ package LSP.Messages is
       hoverProvider: Optional_Boolean;
       completionProvider: Optional_CompletionOptions;
       signatureHelpProvider: Optional_SignatureHelpOptions;
-      definitionProvider: Optional_Boolean;
+      definitionProvider    : Optional_Boolean;
+      typeDefinitionProvider : Optional_Boolean;
       referencesProvider: Optional_Boolean;
       documentHighlightProvider: Optional_Boolean;
       documentSymbolProvider: Optional_Boolean;

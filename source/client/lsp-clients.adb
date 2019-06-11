@@ -64,6 +64,12 @@ package body LSP.Clients is
          Handler : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
+      procedure Text_Document_Type_Definition_Response
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Request : LSP.Types.LSP_Number;
+         Handler : access
+           LSP.Clients.Response_Handlers.Response_Handler'Class);
+
       procedure Text_Document_Hover_Response
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Request : LSP.Types.LSP_Number;
@@ -213,6 +219,22 @@ package body LSP.Clients is
       begin
          Handler.Text_Document_Definition_Response (Request, Response);
       end Text_Document_Definition_Response;
+
+      --------------------------------------------
+      -- Text_Document_Type_Definition_Response --
+      --------------------------------------------
+
+      procedure Text_Document_Type_Definition_Response
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Request : LSP.Types.LSP_Number;
+         Handler : access
+           LSP.Clients.Response_Handlers.Response_Handler'Class)
+      is
+         Response : constant LSP.Messages.Location_Response :=
+                      LSP.Messages.Location_Response'Input (Stream);
+      begin
+         Handler.Text_Document_Type_Definition_Response (Request, Response);
+      end Text_Document_Type_Definition_Response;
 
       ----------------------------------
       -- Text_Document_Hover_Response --
@@ -683,6 +705,23 @@ package body LSP.Clients is
          Message);
    end Text_Document_Definition_Request;
 
+   -------------------------------------------
+   -- Text_Document_Type_Definition_Request --
+   -------------------------------------------
+
+   procedure Text_Document_Type_Definition_Request
+     (Self     : in out Client'Class;
+      Request  : out LSP.Types.LSP_Number;
+      Value    : LSP.Messages.TextDocumentPositionParams)
+   is
+      Message : Definition_Request := (params => Value, others => <>);
+   begin
+      Self.Send_Request
+        (Request,
+         "textDocument/typeDefinition",
+         Decoders.Text_Document_Type_Definition_Response'Access,
+         Message);
+   end Text_Document_Type_Definition_Request;
    -------------------------------------------
    -- On_DidChangeTextDocument_Notification --
    -------------------------------------------
