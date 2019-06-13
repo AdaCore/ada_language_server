@@ -1339,8 +1339,8 @@ package body LSP.Messages is
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Read (S, V.executeCommandProvider);
 
-      Read_Optional_Boolean (JS, +"ALS_calledbyProvider",
-                             V.ALS_calledbyProvider);
+      Read_Optional_Boolean (JS, +"alsCalledByProvider",
+                             V.alsCalledByProvider);
 
       JS.End_Object;
    end Read_ServerCapabilities;
@@ -3203,7 +3203,7 @@ package body LSP.Messages is
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
 
       Write_Optional_Boolean
-        (JS, +"ALS_calledbyProvider", V.ALS_calledbyProvider);
+        (JS, +"alsCalledByProvider", V.alsCalledByProvider);
 
       JS.End_Object;
    end Write_ServerCapabilities;

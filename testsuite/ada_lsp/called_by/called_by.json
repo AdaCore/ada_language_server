@@ -41,7 +41,8 @@
                         ], 
                         "resolveProvider": false
                      }, 
-                     "definitionProvider": true
+                     "definitionProvider": true,
+                     "alsCalledByProvider": true
                   }
                }
             }]
@@ -115,7 +116,7 @@
             }, 
             "jsonrpc": "2.0", 
             "id": 2, 
-            "method": "textDocument/ALS_called_by"
+            "method": "textDocument/alsCalledBy"
          }, 
 
          "wait": [{"jsonrpc":"2.0","id":2,

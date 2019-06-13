@@ -1596,7 +1596,7 @@ package LSP.Messages is
       --	experimental?: any;
 
       --  ALS-specific capabilities
-      ALS_calledbyProvider : Optional_Boolean;
+      alsCalledByProvider : Optional_Boolean;
    end record;
 
    procedure Read_ServerCapabilities

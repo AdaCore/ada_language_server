@@ -314,7 +314,7 @@ REQUESTS = [
      'ExecuteCommandParams', 'ExecuteCommand_Response'),
 
     # ALS-specific requests
-    ('textDocument/ALS_called_by', 'ALS_Called_By', 'TextDocumentPositionParams',
+    ('textDocument/alsCalledBy', 'ALS_Called_By', 'TextDocumentPositionParams',
      'ALS_Called_By_Response'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name,
