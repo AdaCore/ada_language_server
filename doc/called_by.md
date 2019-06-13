@@ -6,6 +6,11 @@ This implements the functionality 'is called by', allowing to query
 all the calls to a function, organized by the entities where these
 calls happen.
 
+## Capabilities
+
+The `initialize` request returns a boolean `alsCalledByProvider` as part of
+the `capabilities`, set to true if the server supports this functionality.
+
 ## Change description
 
 We introduce a new type to represent the results:

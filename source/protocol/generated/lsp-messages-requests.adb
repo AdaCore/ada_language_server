@@ -200,7 +200,7 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
-      if To_UTF_8_String (Method) = "textDocument/ALS_called_by" then
+      if To_UTF_8_String (Method) = "textDocument/alsCalledBy" then
          declare
             R : ALS_Called_By_Request;
          begin
