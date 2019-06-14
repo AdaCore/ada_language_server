@@ -792,7 +792,9 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Ada_Sources : File_Array_Access := Self.Context.Get_Ada_Source_Files;
+         Ada_Sources : constant File_Array_Access :=
+           Self.Context.Get_Ada_Source_Files;
+
          References  : constant Ada_Node_Array :=
            LSP.Lal_Utils.Find_All_References
              (Definition         => Definition,
@@ -800,7 +802,6 @@ package body LSP.Ada_Handlers is
               Charset            => Self.Context.Get_Charset,
               Include_Definition => Value.context.includeDeclaration);
       begin
-         Unchecked_Free (Ada_Sources);
          for Node of References loop
             declare
                Location : constant LSP.Messages.Location :=
@@ -848,7 +849,9 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Ada_Sources : File_Array_Access := Self.Context.Get_Ada_Source_Files;
+         Ada_Sources : constant File_Array_Access :=
+           Self.Context.Get_Ada_Source_Files;
+
          Called      : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
            LSP.Lal_Utils.Is_Called_By
              (Name_Node,
@@ -858,8 +861,6 @@ package body LSP.Ada_Handlers is
          use LSP.Lal_Utils.References_By_Subprogram;
          C : Cursor := Called.First;
       begin
-         Unchecked_Free (Ada_Sources);
-
          --  Iterate through all the results, converting them to protocol
          --  objects.
          while Has_Element (C) loop
