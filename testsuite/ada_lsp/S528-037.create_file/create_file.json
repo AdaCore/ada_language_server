@@ -1,0 +1,153 @@
+[
+    {
+        "comment":[
+            "This test checks find all references after adding new file"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "referencesProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                            "projectFile": ""
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package Aaa is\n   function F return Integer is (0);\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{ccc.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Aaa;\nprocedure Ccc is\n   X : Integer := Aaa.F;\nbegin\n   null;\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-1",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}"
+                    },
+                    "position": {
+                        "line": 1,
+                        "character": 12
+                    },
+                    "context": {
+                        "includeDeclaration":true
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-1",
+                "result":[{
+                    "uri": "$URI{aaa.ads}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 12
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 13
+                        }
+                    }
+                }, {
+                    "uri": "$URI{bbb.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 22
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 23
+                        }
+                    }
+                }, {
+                    "uri": "$URI{ccc.adb}",
+                    "range": {
+                        "start": {
+                            "line": 2,
+                            "character": 22
+                        },
+                        "end": {
+                            "line": 2,
+                            "character": 23
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

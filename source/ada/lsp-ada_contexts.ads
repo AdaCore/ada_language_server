@@ -17,6 +17,7 @@
 --
 --  This package provides a context of Ada Language server.
 
+with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
@@ -95,7 +96,7 @@ package LSP.Ada_Contexts is
    function Get_Ada_Source_Files
      (Self : Context) return GNATCOLL.VFS.File_Array_Access;
    --  Return the list of Ada source files in the loaded project tree.
-   --  Callers must free the result using GNATCOLL.VFS.Unchecked_Free.
+   --  Callers must NOT free the result.
 
    function URI_To_File
      (Self : Context;
@@ -124,6 +125,12 @@ private
       Default_Project,        --  No project provided or found, use default
       Found_Unique_Project);  --  No project provided, but server found one
 
+   package File_Sets is new Ada.Containers.Hashed_Sets
+     (Element_Type        => GNATCOLL.VFS.Virtual_File,
+      Hash                => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Elements => GNATCOLL.VFS."=",
+      "="                 => GNATCOLL.VFS."=");
+
    type Context is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
@@ -131,12 +138,24 @@ private
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       Root           : LSP.Types.LSP_String;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
+      Extra_Files    : File_Sets.Set;
+      --  Set of opened files that don't belong to the project
+      Source_Files   : GNATCOLL.VFS.File_Array_Access;
+      --  Cache for Get_Ada_Source_Files
 
       Documents      : Document_Maps.Map;
 
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
    end record;
+
+   function Is_Part_Of_Project
+     (Self : Context;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Check if given file belongs to the project loaded in the Context
+
+   procedure Update_Source_Files (Self : in out Context);
+   --  Update Self.Source_Files value
 
    procedure Find_Project_File
      (Self      : in out Context;
