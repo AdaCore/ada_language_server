@@ -16,13 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded;
 with Ada.Directories;
 
 with GNAT.Strings;
 with GNATCOLL.JSON;
-with GNATCOLL.Utils;        use GNATCOLL.Utils;
-with GNATCOLL.VFS;          use GNATCOLL.VFS;
+with GNATCOLL.Utils;             use GNATCOLL.Utils;
+with GNATCOLL.VFS;               use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
@@ -36,6 +37,7 @@ with Langkit_Support.Text;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Doc_Utils;
 
 package body LSP.Ada_Handlers is
 
@@ -559,19 +561,20 @@ package body LSP.Ada_Handlers is
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
       Subp_Spec_Node     : Base_Subp_Spec;
-      Hover_Text         : LSP_String;
+      Decl_Text          : LSP_String;
+      Comments_Text      : LSP_String;
 
-      procedure Create_Hover_Text_For_Basic_Decl;
+      procedure Create_Decl_Text_For_Basic_Decl;
       --  Create the hover text for for basic declarations
 
-      procedure Create_Hover_Text_For_Subp_Spec;
+      procedure Create_Decl_Text_For_Subp_Spec;
       --  Create the hover text for for subprogram declarations
 
       --------------------------------------
-      -- Create_Hover_Text_For_Basic_Decl --
+      -- Create_Decl_Text_For_Basic_Decl --
       --------------------------------------
 
-      procedure Create_Hover_Text_For_Basic_Decl is
+      procedure Create_Decl_Text_For_Basic_Decl is
       begin
          --  Return an empty hover text for package declarations
          if Decl.Kind in Ada_Base_Package_Decl then
@@ -623,7 +626,7 @@ package body LSP.Ada_Handlers is
                   end loop;
 
                   if Res_Idx > Text'First then
-                     Hover_Text := To_LSP_String
+                     Decl_Text := To_LSP_String
                        (Result (Text'First .. Res_Idx - 1));
                   end if;
                end;
@@ -634,7 +637,7 @@ package body LSP.Ada_Handlers is
                   Indent_Blanks_Count   : Natural := Natural'Last;
                   Start_Idx             : Integer;
                begin
-                  Hover_Text := To_LSP_String (Lines (Lines'First).all);
+                  Decl_Text := To_LSP_String (Lines (Lines'First).all);
 
                   --  Count the blankpaces per line and track how many
                   --  blankspaces we should remove on each line by finding
@@ -652,7 +655,7 @@ package body LSP.Ada_Handlers is
 
                   for J in Lines'First + 1 .. Lines'Last loop
                      Start_Idx := Lines (J)'First + Indent_Blanks_Count;
-                     Hover_Text := Hover_Text & To_LSP_String
+                     Decl_Text := Decl_Text & To_LSP_String
                        (ASCII.LF
                         & Lines (J).all (Start_Idx .. Lines (J)'Last));
                   end loop;
@@ -661,13 +664,13 @@ package body LSP.Ada_Handlers is
 
             GNAT.Strings.Free (Lines);
          end;
-      end Create_Hover_Text_For_Basic_Decl;
+      end Create_Decl_Text_For_Basic_Decl;
 
       -------------------------------------
-      -- Create_Hover_Text_For_Subp_Spec --
+      -- Create_Decl_Text_For_Subp_Spec --
       -------------------------------------
 
-      procedure Create_Hover_Text_For_Subp_Spec is
+      procedure Create_Decl_Text_For_Subp_Spec is
          Text  : constant String := Langkit_Support.Text.To_UTF8
            (Subp_Spec_Node.Text);
          Lines : GNAT.Strings.String_List_Access := Split
@@ -682,15 +685,15 @@ package body LSP.Ada_Handlers is
          --  them by a fixed number of blankspaces.
 
          if Lines'Length = 1 then
-            Hover_Text := To_LSP_String (Text);
+            Decl_Text := To_LSP_String (Text);
          else
-            Hover_Text := To_LSP_String (Lines (Lines'First).all);
+            Decl_Text := To_LSP_String (Lines (Lines'First).all);
 
             for J in Lines'First + 1 .. Lines'Last loop
                Idx := Lines (J)'First;
                Skip_Blanks (Lines (J).all, Idx);
 
-               Hover_Text := Hover_Text
+               Decl_Text := Decl_Text
                  & To_LSP_String
                  (ASCII.LF
                   & (if Lines (J).all (Idx) = '(' then "  " else "   ")
@@ -699,7 +702,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          GNAT.Strings.Free (Lines);
-      end Create_Hover_Text_For_Subp_Spec;
+      end Create_Decl_Text_For_Subp_Spec;
 
    begin
       if Name_Node = No_Name then
@@ -725,7 +728,7 @@ package body LSP.Ada_Handlers is
       --  enumeration type declaration instead.
       if Decl.Kind in Ada_Enum_Literal_Decl then
          Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
-         Create_Hover_Text_For_Basic_Decl;
+         Create_Decl_Text_For_Basic_Decl;
       else
 
          --  Try to retrieve the subprogram spec node, if any: if it's a
@@ -734,27 +737,35 @@ package body LSP.Ada_Handlers is
          Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
 
          if Subp_Spec_Node /= No_Base_Subp_Spec then
-            Create_Hover_Text_For_Subp_Spec;
+            Create_Decl_Text_For_Subp_Spec;
          else
-            Create_Hover_Text_For_Basic_Decl;
+            Create_Decl_Text_For_Basic_Decl;
          end if;
       end if;
 
       --  Append the associated basic declaration's text to the response.
       --  We set the language for highlighting.
-      if Hover_Text /= Empty_LSP_String then
+      if Decl_Text /= Empty_LSP_String then
          Response.result.contents.Append
            (LSP.Messages.MarkedString'
               (Is_String => False,
-               value     => Hover_Text,
+               value     => Decl_Text,
                language  => To_LSP_String ("ada")));
 
-         --  TODO: append the trivias associated with the basic declaration
-         --  node when available in libadalang.
-         Response.result.contents.Append
-           (LSP.Messages.MarkedString'
-              (Is_String => True,
-               value     => To_LSP_String ("TODO: append the comments")));
+         Comments_Text := To_LSP_String
+           (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
+              (Libadalang.Doc_Utils.Get_Documentation
+                   (Decl).Doc.To_String));
+
+         --  Append the comments associated with the basic declaration
+         --  if any.
+
+         if Comments_Text /= Empty_LSP_String then
+            Response.result.contents.Append
+              (LSP.Messages.MarkedString'
+                 (Is_String => True,
+                  value     => Comments_Text));
+         end if;
       end if;
 
       return Response;
