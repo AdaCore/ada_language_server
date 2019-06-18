@@ -576,9 +576,23 @@ package body LSP.Ada_Handlers is
 
       procedure Create_Decl_Text_For_Basic_Decl is
       begin
-         --  Return an empty hover text for package declarations
-         if Decl.Kind in Ada_Base_Package_Decl then
-            return;
+         --  Return the first line of the enclosing for loop when hovering a
+         --  for loop variable declaration.
+         if Decl.Kind in Ada_For_Loop_Var_Decl then
+            declare
+               Parent_Text : constant String := Langkit_Support.Text.To_UTF8
+                 (Decl.P_Semantic_Parent.Text);
+               End_Idx     : Natural := Parent_Text'First;
+            begin
+               Skip_To_String
+                 (Str       => Parent_Text,
+                  Index     => End_Idx,
+                  Substring => "loop");
+
+               Decl_Text := To_LSP_String
+                 (Parent_Text (Parent_Text'First .. End_Idx + 4));
+               return;
+            end;
          end if;
 
          declare
