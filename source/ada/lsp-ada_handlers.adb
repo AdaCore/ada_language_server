@@ -576,108 +576,147 @@ package body LSP.Ada_Handlers is
 
       procedure Create_Decl_Text_For_Basic_Decl is
       begin
-         --  Return the first line of the enclosing for loop when hovering a
-         --  for loop variable declaration.
-         if Decl.Kind in Ada_For_Loop_Var_Decl then
-            declare
-               Parent_Text : constant String := Langkit_Support.Text.To_UTF8
-                 (Decl.P_Semantic_Parent.Text);
-               End_Idx     : Natural := Parent_Text'First;
-            begin
-               Skip_To_String
-                 (Str       => Parent_Text,
-                  Index     => End_Idx,
-                  Substring => "loop");
+         case Decl.Kind is
+            when Ada_Package_Body =>
 
-               Decl_Text := To_LSP_String
-                 (Parent_Text (Parent_Text'First .. End_Idx + 4));
+               --  This means that user is hovering on the package declaration
+               --  itself: in this case, return a empty response since all the
+               --  relevant information is already visible to the user.
                return;
-            end;
-         end if;
 
-         declare
-            Text        : constant String := Langkit_Support.Text.To_UTF8
-              (Decl.Text);
-            Lines       : GNAT.Strings.String_List_Access := Split
-              (Text,
-               On               => ASCII.LF,
-               Omit_Empty_Lines => True);
-            Idx         : Integer;
-         begin
-            --  Return an empty hover text if there is no text for this
-            --  delclaration (only for safety).
-            if Text = "" then
-               return;
-            end if;
+            when Ada_Base_Package_Decl =>
 
-            --  If it's a single-line declaration, replace all the series of
-            --  whitespaces by only one blankspace.
-            --  If it's a multi-line declaration, remove only the unneeded
-            --  indentation whitespaces.
-
-            if Lines'Length = 1 then
+               --  Return the first line of the package declaration and its
+               --  generic parameters if any.
                declare
-                  Res_Idx : Integer := Text'First;
-                  Result  : String (Text'First .. Text'Last);
+                  Text           : constant String :=
+                                     Langkit_Support.Text.To_UTF8  (Decl.Text);
+                  Generic_Params : LSP_String;
+                  End_Idx        : Natural := Text'First;
                begin
-                  Idx := Text'First;
+                  Skip_To_String
+                    (Str       => Text,
+                     Index     => End_Idx,
+                     Substring => " is");
 
-                  while Idx <= Text'Last loop
-                     Skip_Blanks (Text, Idx);
-
-                     while Idx <= Text'Last
-                       and then not Is_Whitespace (Text (Idx))
-                     loop
-                        Result (Res_Idx) := Text (Idx);
-                        Idx := Idx + 1;
-                        Res_Idx := Res_Idx + 1;
-                     end loop;
-
-                     if Res_Idx < Result'Last then
-                        Result (Res_Idx) := ' ';
-                        Res_Idx := Res_Idx + 1;
-                     end if;
-                  end loop;
-
-                  if Res_Idx > Text'First then
-                     Decl_Text := To_LSP_String
-                       (Result (Text'First .. Res_Idx - 1));
+                  if Decl.Parent /= No_Ada_Node
+                    and then Decl.Parent.Kind in Ada_Generic_Decl
+                  then
+                     Generic_Params := To_LSP_String
+                       (Langkit_Support.Text.To_UTF8
+                          (As_Generic_Decl (Decl.Parent).F_Formal_Part.Text)
+                        & ASCII.LF);
                   end if;
+
+                  Decl_Text := Generic_Params
+                    & To_LSP_String (Text (Text'First .. End_Idx));
+                  return;
                end;
-            else
+
+            when Ada_For_Loop_Var_Decl =>
+
+               --  Return the first line of the enclosing for loop when
+               --  hovering a for loop variable declaration.
                declare
-                  Blanks_Count_Per_Line : array
-                    (Lines'First + 1 .. Lines'Last) of Natural;
-                  Indent_Blanks_Count   : Natural := Natural'Last;
-                  Start_Idx             : Integer;
+                  Parent_Text : constant String := Langkit_Support.Text.To_UTF8
+                    (Decl.P_Semantic_Parent.Text);
+                  End_Idx     : Natural := Parent_Text'First;
                begin
-                  Decl_Text := To_LSP_String (Lines (Lines'First).all);
+                  Skip_To_String
+                    (Str       => Parent_Text,
+                     Index     => End_Idx,
+                     Substring => "loop");
 
-                  --  Count the blankpaces per line and track how many
-                  --  blankspaces we should remove on each line by finding
-                  --  the common identation blankspaces.
-
-                  for J in Lines'First + 1 .. Lines'Last loop
-                     Idx := Lines (J)'First;
-                     Skip_Blanks (Lines (J).all, Idx);
-
-                     Blanks_Count_Per_Line (J) := Idx - Lines (J)'First;
-                     Indent_Blanks_Count := Natural'Min
-                       (Indent_Blanks_Count,
-                        Blanks_Count_Per_Line (J));
-                  end loop;
-
-                  for J in Lines'First + 1 .. Lines'Last loop
-                     Start_Idx := Lines (J)'First + Indent_Blanks_Count;
-                     Decl_Text := Decl_Text & To_LSP_String
-                       (ASCII.LF
-                        & Lines (J).all (Start_Idx .. Lines (J)'Last));
-                  end loop;
+                  Decl_Text := To_LSP_String
+                    (Parent_Text (Parent_Text'First .. End_Idx + 4));
+                  return;
                end;
-            end if;
 
-            GNAT.Strings.Free (Lines);
-         end;
+            when others =>
+               declare
+                  Text        : constant String := Langkit_Support.Text.To_UTF8
+                    (Decl.Text);
+                  Lines       : GNAT.Strings.String_List_Access := Split
+                    (Text,
+                     On               => ASCII.LF,
+                     Omit_Empty_Lines => True);
+                  Idx         : Integer;
+               begin
+                  --  Return an empty hover text if there is no text for this
+                  --  delclaration (only for safety).
+                  if Text = "" then
+                     return;
+                  end if;
+
+                  --  If it's a single-line declaration, replace all the
+                  --  series of whitespaces by only one blankspace. If it's
+                  --  a multi-line declaration, remove only the unneeded
+                  --  indentation whitespaces.
+
+                  if Lines'Length = 1 then
+                     declare
+                        Res_Idx : Integer := Text'First;
+                        Result  : String (Text'First .. Text'Last);
+                     begin
+                        Idx := Text'First;
+
+                        while Idx <= Text'Last loop
+                           Skip_Blanks (Text, Idx);
+
+                           while Idx <= Text'Last
+                             and then not Is_Whitespace (Text (Idx))
+                           loop
+                              Result (Res_Idx) := Text (Idx);
+                              Idx := Idx + 1;
+                              Res_Idx := Res_Idx + 1;
+                           end loop;
+
+                           if Res_Idx < Result'Last then
+                              Result (Res_Idx) := ' ';
+                              Res_Idx := Res_Idx + 1;
+                           end if;
+                        end loop;
+
+                        if Res_Idx > Text'First then
+                           Decl_Text := To_LSP_String
+                             (Result (Text'First .. Res_Idx - 1));
+                        end if;
+                     end;
+                  else
+                     declare
+                        Blanks_Count_Per_Line : array
+                          (Lines'First + 1 .. Lines'Last) of Natural;
+                        Indent_Blanks_Count   : Natural := Natural'Last;
+                        Start_Idx             : Integer;
+                     begin
+                        Decl_Text := To_LSP_String (Lines (Lines'First).all);
+
+                        --  Count the blankpaces per line and track how many
+                        --  blankspaces we should remove on each line by
+                        --  finding the common identation blankspaces.
+
+                        for J in Lines'First + 1 .. Lines'Last loop
+                           Idx := Lines (J)'First;
+                           Skip_Blanks (Lines (J).all, Idx);
+
+                           Blanks_Count_Per_Line (J) := Idx - Lines (J)'First;
+                           Indent_Blanks_Count := Natural'Min
+                             (Indent_Blanks_Count,
+                              Blanks_Count_Per_Line (J));
+                        end loop;
+
+                        for J in Lines'First + 1 .. Lines'Last loop
+                           Start_Idx := Lines (J)'First + Indent_Blanks_Count;
+                           Decl_Text := Decl_Text & To_LSP_String
+                             (ASCII.LF
+                              & Lines (J).all (Start_Idx .. Lines (J)'Last));
+                        end loop;
+                     end;
+                  end if;
+
+                  GNAT.Strings.Free (Lines);
+               end;
+         end case;
       end Create_Decl_Text_For_Basic_Decl;
 
       -------------------------------------
