@@ -24,6 +24,9 @@ with GNATCOLL.VFS;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
+with LSP.Ada_Contexts;
+with LSP.Messages;
+
 package LSP.Lal_Utils is
 
    function Get_Node_As_Name (Node : Ada_Node) return Name;
@@ -42,6 +45,21 @@ package LSP.Lal_Utils is
    --  of units. Charset is the character set to use when loading
    --  files from the disk.
    --  If Include_Definition is True, include the definition as well.
+
+   --------------------------
+   -- Document abstraction --
+   --------------------------
+
+   --  The following subprograms perform common queries on documents,
+   --  abstracting whether or not these documents are files being edited:
+   --  if the document is being edited, then use it, otherwise use the
+   --  data from disk.
+
+   function Get_Node_At
+     (Context  : LSP.Ada_Contexts.Context;
+      Uri      : LSP.Messages.DocumentUri;
+      Position : LSP.Messages.Position) return Ada_Node;
+   --  Return the node at the given location
 
    ---------------
    -- Called_By --

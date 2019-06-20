@@ -24,7 +24,7 @@ with Ada.Strings.Unbounded;
 private with GNATCOLL.Projects;
 with GNATCOLL.VFS;
 
-private with Libadalang.Analysis;
+with Libadalang.Analysis;
 with LSP.Messages;
 
 with LSP.Ada_Documents;
@@ -58,7 +58,7 @@ package LSP.Ada_Contexts is
    --  Set the charset as well.
    --  Return warnings and errors in Errors parameter.
 
-   function Get_Charset (Self : in out Context) return String;
+   function Get_Charset (Self : Context) return String;
    --  Return the charset with which the context was initialized
 
    procedure Set_Diagnostics_Enabled
@@ -86,10 +86,16 @@ package LSP.Ada_Contexts is
       Item : LSP.Messages.TextDocumentIdentifier);
    --  Remove document from set of openned documents and destroy it.
 
+   function Has_Document
+     (Self : Context;
+      URI  : LSP.Messages.DocumentUri) return Boolean;
+   --  Return whether there is a document being managed by this context
+
    function Get_Document
      (Self : Context;
       URI  : LSP.Messages.DocumentUri)
-      return LSP.Ada_Documents.Document_Access;
+      return LSP.Ada_Documents.Document_Access
+     with Pre => Has_Document (Self, URI);
    --  Retrive document identified by given URI. User shouldn't free it or
    --  store it.
 
@@ -107,6 +113,10 @@ package LSP.Ada_Contexts is
      (Self : Context;
       File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
+
+   function Get_LAL_Context
+     (Self : Context) return Libadalang.Analysis.Analysis_Context;
+   --  Return the analysis context
 
 private
    use type Types.LSP_String;

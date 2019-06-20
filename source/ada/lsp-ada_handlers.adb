@@ -552,12 +552,13 @@ package body LSP.Ada_Handlers is
       use Libadalang.Common;
 
       Response           : LSP.Messages.Hover_Response (Is_Error => False);
-      Document           : constant LSP.Ada_Documents.Document_Access :=
-                             Self.Context.Get_Document
-                               (Value.textDocument.uri);
-      Name_Node          : constant Name :=
-                             LSP.Lal_Utils.Get_Node_As_Name
-                               (Document.Get_Node_At (Value.position));
+
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (LSP.Lal_Utils.Get_Node_At
+           (Self.Context.all,
+            Value.textDocument.uri,
+            Value.position));
+
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
       Subp_Spec_Node     : Base_Subp_Spec;
@@ -835,11 +836,11 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      Document   : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
-
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-        (Document.Get_Node_At (Value.position));
+        (LSP.Lal_Utils.Get_Node_At
+           (Self.Context.all,
+            Value.textDocument.uri,
+            Value.position));
 
       Definition : Defining_Name;
       Response   : LSP.Messages.Location_Response (Is_Error => False);
@@ -892,11 +893,11 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      Document   : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
-
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-        (Document.Get_Node_At (Value.position));
+        (LSP.Lal_Utils.Get_Node_At
+           (Self.Context.all,
+            Value.textDocument.uri,
+            Value.position));
 
       Definition : Defining_Name;
       Response   : LSP.Messages.ALS_Called_By_Response (Is_Error => False);
