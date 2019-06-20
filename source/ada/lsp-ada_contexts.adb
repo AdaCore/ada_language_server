@@ -148,6 +148,17 @@ package body LSP.Ada_Contexts is
    end Find_Project_File;
 
    ------------------
+   -- Has_Document --
+   ------------------
+
+   function Has_Document
+     (Self : Context;
+      URI  : LSP.Messages.DocumentUri) return Boolean is
+   begin
+      return Self.Documents.Contains (URI);
+   end Has_Document;
+
+   ------------------
    -- Get_Document --
    ------------------
 
@@ -165,7 +176,7 @@ package body LSP.Ada_Contexts is
    -- Get_Charset --
    -----------------
 
-   function Get_Charset (Self : in out Context) return String is
+   function Get_Charset (Self : Context) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Self.Charset);
    end Get_Charset;
@@ -509,5 +520,13 @@ package body LSP.Ada_Contexts is
    begin
       return Self.Diagnostics_Enabled;
    end Get_Diagnostics_Enabled;
+
+   ---------------------
+   -- Get_LAL_Context --
+   ---------------------
+
+   function Get_LAL_Context
+     (Self : Context) return Libadalang.Analysis.Analysis_Context is
+      (Self.LAL_Context);
 
 end LSP.Ada_Contexts;
