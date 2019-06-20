@@ -157,7 +157,8 @@ package body LSP.Lal_Utils is
       Definition := Resolve_Name (Name_Node);
 
       if Definition = No_Defining_Name
-        or else Definition.P_Basic_Decl.Kind not in Ada_Subp_Decl
+        or else Definition.P_Basic_Decl.Kind not in
+          Ada_Subp_Decl | Ada_Subp_Body
       then
          return Result;
       end if;
