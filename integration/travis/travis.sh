@@ -28,7 +28,7 @@ function osx_before_install()
     sh gnat_community_install_script/install_package.sh \
         $GNAT_INSTALLER $INSTALL_DIR
     $INSTALL_DIR/bin/gprinstall --uninstall gnatcoll
-    wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-master-osx.tar.gz \
+    wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-osx.tar.gz \
         | tar xzf - -C $INSTALL_DIR
 }
 

@@ -18,9 +18,9 @@ function do_install()
 {
   cd $BUILD_FOLDER
   pacman -S --noconfirm mingw-w64-x86_64-libiconv mingw-w64-x86_64-gmp
-  curl -q -L -o libadalang-master-windows.zip \
-    https://dl.bintray.com/reznikmm/libadalang/libadalang-master-windows.zip
-  7z x libadalang-master-windows.zip -oadalib
+  curl -q -L -o libadalang-stable-windows.zip \
+    https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-windows.zip
+  7z x libadalang-stable-windows.zip -oadalib
 }
 
 function do_build()

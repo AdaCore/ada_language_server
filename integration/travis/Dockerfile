@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
  && sh gnat_community_install_script/install_package.sh \
       ./gnat-install /opt/gnat \
  && gprinstall --uninstall gnatcoll \
- && wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-master-linux.tar.gz \
+ && wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
   | tar xzf - -C /opt/gnat \
  && rm -rf gnat-install \
  && apt-get purge -y --auto-remove fontconfig dbus wget git libx11-6 libx11-xcb1 \
