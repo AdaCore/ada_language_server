@@ -55,14 +55,17 @@ package body URIs is
             Name : constant String := Ada.Directories.Simple_Name (Path);
          begin
             if Name /= Root
-            --  ??? The behavior of GNAT is not defined: in some versions
-            --  Simple_Name ("/") returns "", and in some more recent
-            --  versions Simple_Name ("/") returns "/". Make a special case
-            --  here to catch the more recent case,
-            --  until this is better understood.
-              and then not (Root = "" and Name = "/")
+            --  The semantics of Ada.Directories.Containing_Directory has
+            --  changed: in older versions, Simple_Name ("/") on Unix and
+            --  Simple_Name ("X:\") on Windows would return "", whereas,
+            --  in more recent versions, this raises Use_Error.
+            --  Add an explicit test here to support both versions.
+              and then
+                not (Root = "" and
+                       (Name = "/"
+                        or (Name'Length = 3 and then
+                            Name (Name'First + 1 .. Name'Last) = ":\")))
             then
-
                Add_All_Paths
                  (URI, Ada.Directories.Containing_Directory (Path), Root);
 
