@@ -621,6 +621,16 @@ package LSP.Messages is
    type TextDocumentEdit_Vector is
      new TextDocumentEdit_Vectors.Vector with null record;
 
+   procedure Read_TextDocumentEdit_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentEdit_Vector);
+   for TextDocumentEdit_Vector'Read use Read_TextDocumentEdit_Vector;
+
+   procedure Write_TextDocumentEdit_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentEdit_Vector);
+   for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
+
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_String,
       Element_Type    => TextEdit_Vector,
@@ -647,6 +657,16 @@ package LSP.Messages is
       changes: TextDocumentEdit_Maps.Map;
       documentChanges: TextDocumentEdit_Vector;
    end record;
+
+   procedure Read_WorkspaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceEdit);
+   for WorkspaceEdit'Read use Read_WorkspaceEdit;
+
+   procedure Write_WorkspaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceEdit);
+   for WorkspaceEdit'Write use Write_WorkspaceEdit;
 
    --```typescript
    --interface TextDocumentItem {
@@ -3362,6 +3382,15 @@ package LSP.Messages is
       newName: LSP_String;
    end record;
 
+   procedure Read_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameParams);
+   procedure Write_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameParams);
+   for RenameParams'Read use Read_RenameParams;
+   for RenameParams'Write use Write_RenameParams;
+
    --```typescript
    --export interface ExecuteCommandParams {
    --
@@ -3457,6 +3486,11 @@ package LSP.Messages is
       T               => SymbolInformation_Vector);
    subtype Symbol_Response is Symbol_Responses.Response;
 
+   package Rename_Responses is new LSP.Generic_Responses
+     (ResponseMessage => ResponseMessage,
+      T               => WorkspaceEdit);
+   subtype Rename_Response is Rename_Responses.Response;
+
    package CodeAction_Responses is new LSP.Generic_Responses
      (ResponseMessage => ResponseMessage,
       T               => Command_Vector);
@@ -3543,14 +3577,6 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ShowMessageRequestParams);
 
-   procedure Read_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentEdit_Vector);
-
-   procedure Read_WorkspaceEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceEdit);
-
    procedure Write_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
@@ -3563,23 +3589,11 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ShowMessageRequestParams);
 
-   procedure Write_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentEdit_Vector);
-
-   procedure Write_WorkspaceEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceEdit);
-
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
    for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
    for ShowMessageRequestParams'Write use Write_ShowMessageRequestParams;
-   for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
-   for WorkspaceEdit'Write use Write_WorkspaceEdit;
 
    for ApplyWorkspaceEditParams'Read use Read_ApplyWorkspaceEditParams;
    for ShowMessageRequestParams'Read use Read_ShowMessageRequestParams;
-   for TextDocumentEdit_Vector'Read use Read_TextDocumentEdit_Vector;
-   for WorkspaceEdit'Read use Read_WorkspaceEdit;
 
 end LSP.Messages;

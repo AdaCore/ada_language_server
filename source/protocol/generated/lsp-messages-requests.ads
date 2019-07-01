@@ -83,6 +83,11 @@ package LSP.Messages.Requests is
       params : DocumentSymbolParams;
    end record;
 
+   type Rename_Request is new RequestMessage with
+   record
+      params : RenameParams;
+   end record;
+
    type Execute_Command_Request is new RequestMessage with
    record
       params : ExecuteCommandParams;
@@ -166,6 +171,11 @@ package LSP.Messages.Requests is
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Symbol_Response is abstract;
+
+   function On_Rename_Request
+     (Self  : access Server_Request_Handler;
+      Value : LSP.Messages.RenameParams)
+      return LSP.Messages.Rename_Response is abstract;
 
    function On_Execute_Command_Request
      (Self  : access Server_Request_Handler;
@@ -295,6 +305,14 @@ private
       V : Document_Symbols_Request);
    for Document_Symbols_Request'Read use Read;
    for Document_Symbols_Request'Write use Write;
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Rename_Request);
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Rename_Request);
+   for Rename_Request'Read use Read;
+   for Rename_Request'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Execute_Command_Request);

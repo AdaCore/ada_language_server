@@ -104,6 +104,11 @@ private
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Symbol_Response;
 
+   overriding function On_Rename_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.RenameParams)
+      return LSP.Messages.Rename_Response;
+
    overriding function On_Execute_Command_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ExecuteCommandParams)

@@ -156,6 +156,17 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
+      if To_UTF_8_String (Method) = "textDocument/rename" then
+         declare
+            R : Rename_Request;
+         begin
+            Set_Common_Request_Fields (R, JS);
+            JS.Key ("params");
+            RenameParams'Read (JS'Access, R.params);
+            return R;
+         end;
+      end if;
+
       if To_UTF_8_String (Method) = "textDocument/executeCommand" then
          declare
             R : Execute_Command_Request;
@@ -356,6 +367,18 @@ package body LSP.Messages.Requests is
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Document_Symbols_Request
                   (Document_Symbols_Request (Request).params);
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Rename_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Rename_Request
+                  (Rename_Request (Request).params);
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -764,6 +787,34 @@ package body LSP.Messages.Requests is
       Write_Request_Prefix (S, V);
       JS.Key ("params");
       DocumentSymbolParams'Write (S, V.params);
+      JS.End_Object;
+   end Write;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Rename_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Set_Common_Request_Fields (V, JS);
+      JS.Key ("params");
+      RenameParams'Read (S, V.params);
+      JS.End_Object;
+   end Read;
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Rename_Request)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Request_Prefix (S, V);
+      JS.Key ("params");
+      RenameParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 

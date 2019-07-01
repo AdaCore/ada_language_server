@@ -1328,6 +1328,26 @@ package body LSP.Messages is
       end;
    end Read_Response_Prexif;
 
+   -----------------------
+   -- Read_RenameParams --
+   -----------------------
+
+   procedure Read_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.Key ("position");
+      Position'Read (S, V.position);
+      Read_String (JS, +"newName", V.newName);
+      JS.End_Object;
+   end Read_RenameParams;
+
    ------------------------
    -- Read_ResponseError --
    ------------------------
@@ -3177,6 +3197,26 @@ package body LSP.Messages is
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prexif;
+
+   ------------------------
+   -- Write_RenameParams --
+   ------------------------
+
+   procedure Write_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      Position'Write (S, V.position);
+      Write_String (JS, +"newName", V.newName);
+      JS.End_Object;
+   end Write_RenameParams;
 
    -------------------------
    -- Write_ResponseError --
