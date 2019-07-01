@@ -31,6 +31,9 @@ with Langkit_Support.Slocs;
 
 package body LSP.Ada_Contexts is
 
+   function Get_Charset (Self : Context'Class) return String;
+   --  Return the charset with which the context was initialized
+
    procedure Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Documents.Document,
       Internal_Document_Access);
@@ -50,6 +53,27 @@ package body LSP.Ada_Contexts is
    begin
       return LSP.Types.To_LSP_String (Result);
    end File_To_URI;
+
+   -------------------------
+   -- Find_All_References --
+   -------------------------
+
+   function Find_All_References
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+        return Libadalang.Analysis.Ada_Node_Array
+   is
+      Source_Units : Libadalang.Analysis.Analysis_Unit_Array
+        (Self.Source_Files'Range);
+   begin
+      for N in Self.Source_Files'Range loop
+         Source_Units (N) := Self.LAL_Context.Get_From_File
+           (Self.Source_Files (N).Display_Full_Name,
+            Charset => Self.Get_Charset);
+      end loop;
+
+      return Definition.P_Find_All_References (Source_Units);
+   end Find_All_References;
 
    -----------------------
    -- Find_Project_File --
@@ -178,7 +202,7 @@ package body LSP.Ada_Contexts is
    -- Get_Charset --
    -----------------
 
-   function Get_Charset (Self : Context) return String is
+   function Get_Charset (Self : Context'Class) return String is
    begin
       return Ada.Strings.Unbounded.To_String (Self.Charset);
    end Get_Charset;
@@ -400,16 +424,6 @@ package body LSP.Ada_Contexts is
          end if;
       end;
    end Unload_Document;
-
-   --------------------------
-   -- Get_Ada_Source_Files --
-   --------------------------
-
-   function Get_Ada_Source_Files
-     (Self : Context) return GNATCOLL.VFS.File_Array_Access is
-   begin
-      return Self.Source_Files;
-   end Get_Ada_Source_Files;
 
    -------------------------
    -- Update_Source_Files --

@@ -894,15 +894,8 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Ada_Sources : constant File_Array_Access :=
-           Self.Context.Get_Ada_Source_Files;
-
          References  : constant Ada_Node_Array :=
-           LSP.Lal_Utils.Find_All_References
-             (Definition         => Definition,
-              Sources            => Ada_Sources,
-              Charset            => Self.Context.Get_Charset,
-              Include_Definition => Value.context.includeDeclaration);
+           Self.Context.Find_All_References (Definition);
       begin
          for Node of References loop
             declare
@@ -915,6 +908,18 @@ package body LSP.Ada_Handlers is
                Response.result.Append (Location);
             end;
          end loop;
+
+         if Value.context.includeDeclaration then
+            declare
+               Location : constant LSP.Messages.Location :=
+                  Get_Node_Location
+                     (Self => Self,
+                      Node => Definition.As_Ada_Node,
+                      Kind => Get_Reference_Kind (Definition.As_Ada_Node));
+            begin
+               Response.result.Append (Location);
+            end;
+         end if;
 
          return Response;
       end;
@@ -930,6 +935,7 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.ALS_Called_By_Response
    is
       use Libadalang.Analysis;
+      use all type Libadalang.Common.Ada_Node_Kind_Type;
 
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
         (Self.Context.Get_Node_At (Value));
@@ -944,19 +950,20 @@ package body LSP.Ada_Handlers is
 
       Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
 
-      if Definition = No_Defining_Name then
+      --  Attempt to resolve the name, return no results if we can't or if the
+      --  name does not resolve to a subprogram.
+
+      if Definition = No_Defining_Name
+        or else Definition.P_Basic_Decl.Kind not in
+          Ada_Subp_Decl | Ada_Subp_Body
+      then
          return Response;
       end if;
 
       declare
-         Ada_Sources : constant File_Array_Access :=
-           Self.Context.Get_Ada_Source_Files;
 
          Called      : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
-           LSP.Lal_Utils.Is_Called_By
-             (Name_Node,
-              Sources            => Ada_Sources,
-              Charset            => Self.Context.Get_Charset);
+           LSP.Lal_Utils.Is_Called_By (Self.Context.all, Definition);
 
          use LSP.Lal_Utils.References_By_Subprogram;
          C : Cursor := Called.First;
