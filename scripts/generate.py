@@ -303,6 +303,7 @@ REQUESTS = [
      'TextDocumentPositionParams', 'SignatureHelp_Response'),
     ('textDocument/documentSymbol', 'Document_Symbols',
      'DocumentSymbolParams', 'Symbol_Response'),
+    ('textDocument/rename', 'Rename', 'RenameParams', 'Rename_Response'),
     ('textDocument/executeCommand', 'Execute_Command', 'ExecuteCommandParams',
      'ExecuteCommand_Response'),
     # TODO: rename ApplyWorkspaceEdit to Workspace_Apply_Edit, for consistency

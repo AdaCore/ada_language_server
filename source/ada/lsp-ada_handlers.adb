@@ -1030,6 +1030,21 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Document_Symbols_Request;
 
+   -----------------------
+   -- On_Rename_Request --
+   -----------------------
+
+   overriding function On_Rename_Request
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.RenameParams)
+      return LSP.Messages.Rename_Response
+   is
+      pragma Unreferenced (Self, Value);
+      Response : LSP.Messages.Rename_Response (Is_Error => False);
+   begin
+      return Response;
+   end On_Rename_Request;
+
    --------------------------------------------
    -- On_DidChangeConfiguration_Notification --
    --------------------------------------------
