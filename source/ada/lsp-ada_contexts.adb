@@ -27,6 +27,8 @@ with GNATCOLL.VFS;      use GNATCOLL.VFS;
 with URIs;
 with LSP.Ada_Unit_Providers;
 
+with Langkit_Support.Slocs;
+
 package body LSP.Ada_Contexts is
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -521,12 +523,41 @@ package body LSP.Ada_Contexts is
       return Self.Diagnostics_Enabled;
    end Get_Diagnostics_Enabled;
 
-   ---------------------
-   -- Get_LAL_Context --
-   ---------------------
+   -----------------
+   -- Get_Node_At --
+   -----------------
 
-   function Get_LAL_Context
-     (Self : Context) return Libadalang.Analysis.Analysis_Context is
-      (Self.LAL_Context);
+   function Get_Node_At
+     (Self     : Context;
+      Position : LSP.Messages.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use type Libadalang.Analysis.Ada_Node;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Unit : Libadalang.Analysis.Analysis_Unit;
+
+      URI : constant LSP.Messages.DocumentUri := Position.textDocument.uri;
+
+   begin
+      if Self.Has_Document (URI) then
+         return Self.Get_Document (URI).Get_Node_At (Position.position);
+      else
+         Unit := Self.LAL_Context.Get_From_File
+           (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+            Charset => Self.Get_Charset);
+
+         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
+            return Libadalang.Analysis.No_Ada_Node;
+         end if;
+
+         return Unit.Root.Lookup
+           ((Line   => Langkit_Support.Slocs.Line_Number
+                         (Position.position.line) + 1,
+             Column => Langkit_Support.Slocs.Column_Number
+                         (Position.position.character) + 1));
+      end if;
+   end Get_Node_At;
 
 end LSP.Ada_Contexts;
