@@ -49,7 +49,7 @@ package body Tester.Macros is
          Value  : GNATCOLL.JSON.JSON_Value);
       --  Expand macros in given field
 
-      function Expand_in_String (Text : String) return Unbounded_String;
+      function Expand_In_String (Text : String) return Unbounded_String;
       --  Expand macro in given string
 
       procedure Map is new GNATCOLL.JSON.Gen_Map_JSON_Object
@@ -62,16 +62,18 @@ package body Tester.Macros is
       procedure Each_Field
         (Object : in out GNATCOLL.JSON.JSON_Value;
          Name   : String;
-         Value  : GNATCOLL.JSON.JSON_Value) is
+         Value  : GNATCOLL.JSON.JSON_Value)
+      is
+         Key : constant String := To_String (Expand_In_String (Name));
       begin
-         Object.Set_Field (Name, Expand (Value, Env, Test_Dir));
+         Object.Set_Field (Key, Expand (Value, Env, Test_Dir));
       end Each_Field;
 
       ----------------------
-      -- Expand_in_String --
+      -- Expand_In_String --
       ----------------------
 
-      function Expand_in_String (Text : String) return Unbounded_String
+      function Expand_In_String (Text : String) return Unbounded_String
       is
          use type GNAT.Regpat.Match_Location;
          Result : Unbounded_String;
@@ -113,7 +115,7 @@ package body Tester.Macros is
          Append (Result, Text (Next .. Text'Last));
 
          return Result;
-      end Expand_in_String;
+      end Expand_In_String;
 
    begin
       case Value.Kind is
@@ -125,7 +127,7 @@ package body Tester.Macros is
             return Value;
          when GNATCOLL.JSON.JSON_String_Type =>
 
-            return GNATCOLL.JSON.Create (Expand_in_String (Value.Get));
+            return GNATCOLL.JSON.Create (Expand_In_String (Value.Get));
          when GNATCOLL.JSON.JSON_Array_Type =>
             declare
                Result : GNATCOLL.JSON.JSON_Array;

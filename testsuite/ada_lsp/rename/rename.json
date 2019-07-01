@@ -1,0 +1,144 @@
+[
+    {
+        "comment":[
+            "This test checks textDocument/rename request."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "renameProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package Aaa is\n   procedure Proc (X : in out Integer);\nend Aaa;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-1",
+                "method":"textDocument/rename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}"
+                    },
+                    "position": {
+                        "line": 1,
+                        "character": 19
+                    },
+                    "newName":"YY"
+                }
+            },
+            "wait":[{
+                "id": "rename-1",
+                "result":{
+                    "changes":{
+                        "$URI{aaa.ads}":[{
+                            "range":{
+                                "start":{"line":1,"character":19},
+                                "end":{"line":1,"character":20}
+                            },
+                            "newText":"YY"
+                        }],
+                        "$URI{aaa.adb}":[{
+                            "range":{
+                                "start":{"line":1,"character":19},
+                                "end":{"line":1,"character":20}
+                            },
+                            "newText":"YY"
+                        },{
+                            "range":{
+                                "start":{"line":3,"character":6},
+                                "end":{"line":3,"character":7}
+                            },
+                            "newText":"YY"
+                        },{
+                            "range":{
+                                "start":{"line":3,"character":11},
+                                "end":{"line":3,"character":12}
+                            },
+                            "newText":"YY"
+                        },{
+                            "range":{
+                                "start":{"line":3,"character":19},
+                                "end":{"line":3,"character":20}
+                            },
+                            "newText":"YY"
+                        },{
+                            "range":{
+                                "start":{"line":5,"character":12},
+                                "end":{"line":5,"character":13}
+                            },
+                            "newText":"YY"
+                        },{
+                            "range":{
+                                "start":{"line":5,"character":17},
+                                "end":{"line":5,"character":18}
+                            },
+                            "newText":"YY"
+                        }]
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
