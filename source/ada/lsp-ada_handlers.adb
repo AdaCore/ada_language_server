@@ -112,6 +112,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.typeDefinitionProvider := True;
       Response.result.capabilities.referencesProvider := True;
       Response.result.capabilities.documentSymbolProvider := True;
+      Response.result.capabilities.renameProvider := True;
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
       Response.result.capabilities.completionProvider :=
@@ -1039,10 +1040,57 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.RenameParams)
       return LSP.Messages.Rename_Response
    is
-      pragma Unreferenced (Self, Value);
+      use Libadalang.Analysis;
+
+      Position : constant LSP.Messages.TextDocumentPositionParams :=
+        (Value.textDocument, Value.position);
+
+      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+        (Self.Context.Get_Node_At (Position));
+
+      Definition : Defining_Name;
       Response : LSP.Messages.Rename_Response (Is_Error => False);
+
+      Empty : LSP.Messages.TextEdit_Vector;
    begin
-      return Response;
+      if Name_Node = No_Name then
+         return Response;
+      end if;
+
+      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+
+      if Definition = No_Defining_Name then
+         return Response;
+      end if;
+
+      declare
+         References  : constant Ada_Node_Array :=
+           Self.Context.Find_All_References (Definition)
+           --  Append definition it self, so rename it also
+             & Definition.As_Ada_Node;
+      begin
+         for Node of References loop
+            declare
+               Location : constant LSP.Messages.Location :=
+                  Get_Node_Location
+                     (Self => Self,
+                      Node => Node.As_Ada_Node);
+               Item : constant LSP.Messages.TextEdit :=
+                 (span    => Location.span,
+                  newText => Value.newName);
+            begin
+               if not Response.result.changes.Contains (Location.uri) then
+                  --  We haven't touch this document yet, create an empty
+                  --  change list
+                  Response.result.changes.Insert (Location.uri, Empty);
+               end if;
+
+               Response.result.changes (Location.uri).Append (Item);
+            end;
+         end loop;
+
+         return Response;
+      end;
    end On_Rename_Request;
 
    --------------------------------------------
