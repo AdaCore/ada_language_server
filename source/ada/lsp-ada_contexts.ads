@@ -58,9 +58,6 @@ package LSP.Ada_Contexts is
    --  Set the charset as well.
    --  Return warnings and errors in Errors parameter.
 
-   function Get_Charset (Self : Context) return String;
-   --  Return the charset with which the context was initialized
-
    procedure Set_Diagnostics_Enabled
      (Self    : in out Context;
       Enabled : Boolean);
@@ -99,11 +96,6 @@ package LSP.Ada_Contexts is
    --  Retrive document identified by given URI. User shouldn't free it or
    --  store it.
 
-   function Get_Ada_Source_Files
-     (Self : Context) return GNATCOLL.VFS.File_Array_Access;
-   --  Return the list of Ada source files in the loaded project tree.
-   --  Callers must NOT free the result.
-
    function URI_To_File
      (Self : Context;
       URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
@@ -120,6 +112,13 @@ package LSP.Ada_Contexts is
       return Libadalang.Analysis.Ada_Node;
    --  Return the node at the given location. This is like LSP.Ada_Documents,
    --  but it works even when given document hasn't opened yet.
+
+   function Find_All_References
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+        return Libadalang.Analysis.Ada_Node_Array;
+   --  Finds all references to a given defining name in all units of the
+   --  context.
 
 private
    use type Types.LSP_String;
@@ -154,7 +153,8 @@ private
       Extra_Files    : File_Sets.Set;
       --  Set of opened files that don't belong to the project
       Source_Files   : GNATCOLL.VFS.File_Array_Access;
-      --  Cache for Get_Ada_Source_Files
+      --  Cache for the list of Ada source files in the loaded project tree
+      --  together with Extra_Files.
 
       Documents      : Document_Maps.Map;
 

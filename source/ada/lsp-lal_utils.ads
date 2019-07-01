@@ -22,7 +22,10 @@ with Ada.Containers.Doubly_Linked_Lists;
 
 with GNATCOLL.VFS;
 
+with LSP.Ada_Contexts;
+
 with Libadalang.Analysis; use Libadalang.Analysis;
+with Libadalang.Common;
 
 package LSP.Lal_Utils is
 
@@ -31,17 +34,6 @@ package LSP.Lal_Utils is
    function Get_Name_As_Defining (Name_Node : Name) return Defining_Name;
 
    function Resolve_Name (Name_Node : Name) return Defining_Name;
-
-   function Find_All_References
-     (Definition         : Defining_Name;
-      Sources            : GNATCOLL.VFS.File_Array_Access;
-      Charset            : String;
-      Include_Definition : Boolean := False)
-         return Ada_Node_Array;
-   --  Finds all references to a given defining name in the given list
-   --  of units. Charset is the character set to use when loading
-   --  files from the disk.
-   --  If Include_Definition is True, include the definition as well.
 
    ---------------
    -- Called_By --
@@ -60,14 +52,14 @@ package LSP.Lal_Utils is
       "="          => References_List."=");
 
    function Is_Called_By
-     (Name_Node : Name;
-      Sources   : GNATCOLL.VFS.File_Array_Access;
-      Charset   : String)
-      return References_By_Subprogram.Map;
+     (Context    : LSP.Ada_Contexts.Context;
+      Definition : Defining_Name)
+      return References_By_Subprogram.Map
+     with Pre =>
+       Definition.P_Basic_Decl.Kind in Libadalang.Common.Ada_Subp_Decl
+                                     | Libadalang.Common.Ada_Subp_Body;
    --  Return the list of all the calls made to the subprogram pointed at by
-   --  the node given by Name, organized by the subprograms in which these
-   --  calls are listed, ordered by the name of these subprograms.
-   --  Sources is the list of sources to search in; Charset the encoding
-   --  with which to read files from disk.
+   --  the node given by Definition, organized by the subprograms in which
+   --  these calls are listed, ordered by the name of these subprograms.
 
 end LSP.Lal_Utils;
