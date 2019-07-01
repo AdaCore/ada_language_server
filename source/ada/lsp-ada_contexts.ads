@@ -114,9 +114,12 @@ package LSP.Ada_Contexts is
       File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
 
-   function Get_LAL_Context
-     (Self : Context) return Libadalang.Analysis.Analysis_Context;
-   --  Return the analysis context
+   function Get_Node_At
+     (Self     : Context;
+      Position : LSP.Messages.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node;
+   --  Return the node at the given location. This is like LSP.Ada_Documents,
+   --  but it works even when given document hasn't opened yet.
 
 private
    use type Types.LSP_String;

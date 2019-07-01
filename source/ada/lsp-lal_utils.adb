@@ -15,11 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with URIs;
-
-with Langkit_Support.Slocs;
 with Libadalang.Common; use Libadalang.Common;
-with LSP.Types;         use LSP.Types;
 
 package body LSP.Lal_Utils is
 
@@ -205,34 +201,5 @@ package body LSP.Lal_Utils is
       --  TODO: sort?
       return Result;
    end Is_Called_By;
-
-   -----------------
-   -- Get_Node_At --
-   -----------------
-
-   function Get_Node_At
-     (Context  : LSP.Ada_Contexts.Context;
-      Uri      : LSP.Messages.DocumentUri;
-      Position : LSP.Messages.Position) return Ada_Node
-   is
-      use Langkit_Support.Slocs;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-   begin
-      if Context.Has_Document (Uri) then
-         return Context.Get_Document (Uri).Get_Node_At (Position);
-      else
-         Unit := Context.Get_LAL_Context.Get_From_File
-           (URIs.Conversions.To_File (To_UTF_8_String (Uri)),
-            Charset => Context.Get_Charset);
-
-         if Unit.Root = No_Ada_Node then
-            return No_Ada_Node;
-         end if;
-
-         return Unit.Root.Lookup
-           ((Line   => Langkit_Support.Slocs.Line_Number (Position.line) + 1,
-             Column => Column_Number (Position.character) + 1));
-      end if;
-   end Get_Node_At;
 
 end LSP.Lal_Utils;
