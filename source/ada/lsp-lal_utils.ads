@@ -40,7 +40,7 @@ package LSP.Lal_Utils is
    ---------------
 
    package References_List is new Ada.Containers.Doubly_Linked_Lists
-     (Ada_Node);
+     (Base_Id);
 
    function "<" (Left, Right : Defining_Name) return Boolean is
       (Left.Text < Right.Text);

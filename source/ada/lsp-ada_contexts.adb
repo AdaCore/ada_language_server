@@ -61,7 +61,7 @@ package body LSP.Ada_Contexts is
    function Find_All_References
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name)
-        return Libadalang.Analysis.Ada_Node_Array
+        return Libadalang.Analysis.Base_Id_Array
    is
       Source_Units : Libadalang.Analysis.Analysis_Unit_Array
         (Self.Source_Files'Range);
