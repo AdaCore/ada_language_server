@@ -895,7 +895,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         References  : constant Ada_Node_Array :=
+         References  : constant Base_Id_Array :=
            Self.Context.Find_All_References (Definition);
       begin
          for Node of References loop
@@ -904,7 +904,7 @@ package body LSP.Ada_Handlers is
                   Get_Node_Location
                      (Self => Self,
                       Node => As_Ada_Node (Node),
-                      Kind => Get_Reference_Kind (Node));
+                      Kind => Get_Reference_Kind (Node.As_Ada_Node));
             begin
                Response.result.Append (Location);
             end;
@@ -983,7 +983,7 @@ package body LSP.Ada_Handlers is
                  (Langkit_Support.Text.To_UTF8 (Node.Text));
                for Ref of Refs loop
                   Subp_And_Refs.refs.Append
-                    (Get_Node_Location (Self, Ref));
+                    (Get_Node_Location (Self, Ref.As_Ada_Node));
                end loop;
                Response.result.Append (Subp_And_Refs);
             end;
@@ -1064,10 +1064,10 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         References  : constant Ada_Node_Array :=
+         References  : constant Base_Id_Array :=
            Self.Context.Find_All_References (Definition)
            --  Append definition it self, so rename it also
-             & Definition.As_Ada_Node;
+             & Definition.P_Relative_Name.As_Base_Id;
       begin
          for Node of References loop
             declare

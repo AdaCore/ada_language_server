@@ -112,7 +112,7 @@ package body LSP.Lal_Utils is
       Containing : Defining_Name;
 
       --  Obtain all the references
-      Refs : constant Ada_Node_Array :=
+      Refs : constant Base_Id_Array :=
         Context.Find_All_References (Definition);
    begin
 
@@ -123,10 +123,10 @@ package body LSP.Lal_Utils is
          --  Only consider references that are calls.
          --  ??? To be discussed: how do we want to handle an access to
          --  a subprogram?
-         if Ref.As_Name.P_Is_Call then
+         if Ref.P_Is_Call then
             --  We have a reference, and this a call: find the containing
             --  subprogram or task
-            Containing := Containing_Entity (Ref);
+            Containing := Containing_Entity (Ref.As_Ada_Node);
 
             if Containing /= No_Defining_Name then
                if Result.Contains (Containing) then

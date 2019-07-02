@@ -116,7 +116,7 @@ package LSP.Ada_Contexts is
    function Find_All_References
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name)
-        return Libadalang.Analysis.Ada_Node_Array;
+        return Libadalang.Analysis.Base_Id_Array;
    --  Finds all references to a given defining name in all units of the
    --  context.
 
