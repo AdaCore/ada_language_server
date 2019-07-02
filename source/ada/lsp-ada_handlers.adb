@@ -1066,7 +1066,7 @@ package body LSP.Ada_Handlers is
       declare
          References  : constant Base_Id_Array :=
            Self.Context.Find_All_References (Definition)
-           --  Append definition it self, so rename it also
+           --  Append Definition itself so that it is also renamed
              & Definition.P_Relative_Name.As_Base_Id;
       begin
          for Node of References loop
