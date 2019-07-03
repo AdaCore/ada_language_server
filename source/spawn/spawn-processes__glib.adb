@@ -115,8 +115,11 @@ package body Spawn.Processes is
    is
       use type Glib.IOChannel.Giochannel;
       use type Glib.IOChannel.GIOStatus;
+      use type Glib.Main.G_Source_Id;
+
       Pipe  : Internal.Pipe_Record renames Self.pipe (Kind);
       Error : aliased Glib.Error.GError;
+
    begin
       if Pipe.Channel /= null then
          if Glib.IOChannel.Shutdown (Pipe.Channel, 1, Error'Access)
@@ -124,6 +127,12 @@ package body Spawn.Processes is
          then
             Glib.IOChannel.Unref (Pipe.Channel);
             Pipe.Channel := null;
+
+            if Pipe.Event /= Glib.Main.No_Source_Id then
+               Glib.Main.Remove (Pipe.Event);
+               Pipe.Event := Glib.Main.No_Source_Id;
+            end if;
+
          else
             Self.Listener.Error_Occurred
               (Integer (Glib.Error.Get_Code (Error)));
