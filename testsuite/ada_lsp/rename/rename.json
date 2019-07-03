@@ -125,6 +125,31 @@
         "send": {
             "request": {
                 "jsonrpc":"2.0",
+                "id":"rename-2",
+                "method":"textDocument/rename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 1
+                    },
+                    "newName":"ZZ"
+                }
+            },
+            "wait":[{
+                "id": "rename-2",
+                "result":{
+                    "changes":{
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
                 "id": "shutdown",
                 "method":"shutdown",
                 "params":null
