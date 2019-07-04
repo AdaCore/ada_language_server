@@ -101,7 +101,7 @@ package body LSP.Servers is
       --  Wait here until all the requests have been consumed, and all the
       --  outputs have been flushed.
       while Self.Requests_Queue.Current_Use > 0
-        or Self.Output_Queue.Current_Use > 0
+        or else Self.Output_Queue.Current_Use > 0
       loop
          delay 0.1;
       end loop;

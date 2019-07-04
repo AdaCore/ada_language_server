@@ -47,7 +47,7 @@ is
         lpBuffer      => Buffer (Buffer'First)'Unchecked_Access,
         lpFilePart    => null);
 begin
-   if Length = 0 or Length > Buffer'Length then
+   if Length = 0 or else Length > Buffer'Length then
 
       return "";
    else

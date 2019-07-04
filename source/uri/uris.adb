@@ -61,17 +61,17 @@ package body URIs is
             --  in more recent versions, this raises Use_Error.
             --  Add an explicit test here to support both versions.
               and then
-                not (Root = "" and
+                not (Root = "" and then
                        (Name = "/"
-                        or (Name'Length = 3 and then
-                            Name (Name'First + 1 .. Name'Last) = ":\")))
+                        or else (Name'Length = 3 and then
+                                 Name (Name'First + 1 .. Name'Last) = ":\")))
             then
                Add_All_Paths
                  (URI, Ada.Directories.Containing_Directory (Path), Root);
 
                URI.Add_Path_Segment (Name);
 
-            elsif Root = "" and Path'Length > 1 then
+            elsif Root = "" and then Path'Length > 1 then
                --  Found top dir in form of 'C:\', so add 'C:'
                URI.Add_Path_Segment (Path (Path'First .. Path'Last - 1));
             end if;

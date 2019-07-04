@@ -3234,7 +3234,7 @@ package body LSP.Messages is
       JS.Write (GNATCOLL.JSON.Create (Error_Map (V.code)));
       Write_String (JS, +"message", V.message);
 
-      if not V.data.Is_Empty and not V.data.Is_Empty then
+      if not V.data.Is_Empty and then not V.data.Is_Empty then
          JS.Key ("data");
          JS.Write (V.data);
       end if;
