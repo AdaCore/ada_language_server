@@ -30,6 +30,20 @@ project LSP is
    );
    Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
 
+   type Any_Boolean is ("false", "true");
+
+   --  By default, treat warnings as errors in dev mode, but not in prod
+   --  mode. Let users override this default using the WARN_ERRORS environment
+   --  variable.
+
+   Warnings_As_Errors : Any_Boolean := "true";
+   case Build_Mode is
+      when "dev"  => Warnings_As_Errors := "true";
+      when "prod" => Warnings_As_Errors := "false";
+   end case;
+   Warnings_As_Errors : Any_Boolean :=
+      external ("ALS_WARN_ERRORS", Warnings_As_Errors);
+
    for Source_Dirs use ("../source/protocol", 
                         "../source/protocol/generated",
                         "../source/uri");
@@ -57,13 +71,18 @@ project LSP is
             "-O0", "-g",
 
             --  Enable all warnings and GNAT stylechecks (plus O: check for
-            --  overriding indicators) and treat warnings as errors.
-            "-gnatwae", "-gnatygO",
+            --  overriding indicators).
+            "-gnatwa", "-gnatygO",
 
             --  Enable assertions and all validity checking options
             "-gnata", "-gnatVa"
          );
 
+   end case;
+
+   case Warnings_As_Errors is
+      when "true"  => Ada_Switches := Ada_Switches & ("-gnatwe");
+      when "false" => null;
    end case;
 
    package Compiler is
