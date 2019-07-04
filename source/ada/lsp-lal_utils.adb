@@ -65,7 +65,7 @@ package body LSP.Lal_Utils is
         Name_Node.P_Xref
           (Imprecise_Fallback => Name_Node.Unit.Has_Diagnostics);
    begin
-      if Name_Node.P_Is_Defining and Result = No_Defining_Name then
+      if Name_Node.P_Is_Defining and then Result = No_Defining_Name then
          --  When Name_Node is part of defining_name and it isn't a completion
          --  of another declaration, then P_Xref returns No_Defining_Name.
          --  In this case we return current defining_name.

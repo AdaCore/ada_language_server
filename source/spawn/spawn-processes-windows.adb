@@ -415,7 +415,7 @@ package body Spawn.Processes.Windows is
    begin
       if dwErrorCode /= 0 then
          if not (Self.Status = Not_Running
-                 and dwErrorCode = Windows_API.ERROR_OPERATION_ABORTED)
+                 and then dwErrorCode = Windows_API.ERROR_OPERATION_ABORTED)
          then
             Self.Listener.Error_Occurred (Integer (dwErrorCode));
          end if;

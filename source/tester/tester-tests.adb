@@ -261,7 +261,7 @@ package body Tester.Tests is
 
                Success := not Left.Has_Field (Name);
 
-            elsif Success and Left.Has_Field (Name) then
+            elsif Success and then Left.Has_Field (Name) then
 
                declare
                   Prop : constant GNATCOLL.JSON.JSON_Value := Left.Get (Name);

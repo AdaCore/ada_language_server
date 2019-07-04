@@ -60,7 +60,7 @@ begin
             exit when Index = From;
             Append (Env (From .. Equal - 1), Env (Equal + 1 .. Index - 1));
             From := Index + 1;
-         elsif Index /= From and Env (Index) = '=' then
+         elsif Index /= From and then Env (Index) = '=' then
             Equal := Index;
          end if;
 
