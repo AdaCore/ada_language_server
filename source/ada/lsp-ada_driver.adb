@@ -17,8 +17,10 @@
 --
 --  This is driver to run LSP server for Ada language.
 
-with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
+with GNAT.OS_Lib;
+with GNAT.Strings;
 
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
@@ -43,7 +45,26 @@ procedure LSP.Ada_Driver is
 
    use GNATCOLL.VFS, GNATCOLL.Traces;
 
-   ALS_Dir   : constant Virtual_File := Get_Home_Directory / ".als";
+   function Getenv (Var : String) return String;
+   --  Return the value set for the given environment variable
+
+   ------------
+   -- Getenv --
+   ------------
+
+   function Getenv (Var : String) return String is
+      Str : GNAT.Strings.String_Access := GNAT.OS_Lib.Getenv (Var);
+   begin
+      return S : constant String := Str.all do
+         GNAT.Strings.Free (Str);
+      end return;
+   end Getenv;
+
+   ALS_Home  : constant String := Getenv ("ALS_HOME");
+   Home_Dir  : constant Virtual_File :=
+                 (if ALS_Home /= "" then Create (+ALS_Home)
+                  else Get_Home_Directory);
+   ALS_Dir   : constant Virtual_File := Home_Dir / ".als";
    GNATdebug : constant Virtual_File := Create_From_Base (".gnatdebug");
 
 begin
