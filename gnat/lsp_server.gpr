@@ -23,7 +23,7 @@ project LSP_Server is
 
    for Source_Dirs use ("../source/server", "../source/ada");
    for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver");
+   for Main use ("lsp-ada_driver.adb");
 
    package Compiler renames LSP.Compiler;
 
