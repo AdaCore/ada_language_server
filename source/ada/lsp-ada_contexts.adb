@@ -375,10 +375,7 @@ package body LSP.Ada_Contexts is
          Self.Unit_Provider.Set (Provider);
       end;
 
-      Self.LAL_Context := Libadalang.Analysis.Create_Context
-        (Unit_Provider => Self.Unit_Provider,
-         With_Trivia   => True,
-         Charset       => Charset);
+      Self.Reload;
 
       Self.Update_Source_Files;
    end Load_Project;
@@ -393,6 +390,12 @@ package body LSP.Ada_Contexts is
         (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
+
+      --  After re-creation of the LAL context all Analysis_Units become
+      --  outdated, let's refresh all of them
+      for Document of Self.Documents loop
+         Document.Reload (Self.LAL_Context);
+      end loop;
    end Reload;
 
    ---------------------

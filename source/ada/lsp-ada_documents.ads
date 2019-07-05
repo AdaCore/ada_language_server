@@ -66,6 +66,12 @@ package LSP.Ada_Documents is
       Result   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
+   procedure Reload
+     (Self : in out Document;
+      LAL  : Libadalang.Analysis.Analysis_Context);
+   --  Refresh libadalang Analysis_Unit stored in given document using new
+   --  Libadalang context.
+
 private
 
    type Document (Context : access LSP.Ada_Contexts.Context'Class) is

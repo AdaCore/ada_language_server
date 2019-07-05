@@ -1,0 +1,225 @@
+[
+    {
+        "comment":[
+            "Do FindAllReferenfes, then change scenario variable and do it again."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "referencesProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada": {
+                            "projectFile": "choices.gpr",
+                            "scenarioVariables": {
+                                "VALUE": "second"
+                            }
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure To_Be_Called is\nbegin\n   null;\nend To_Be_Called;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-1",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 15
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-1",
+                "result":[{
+                    "uri": "$URI{second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 5
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 17
+                        }
+                    },
+                    "alsKind": "<ABSENT>"
+                }, {
+                    "uri": "$URI{second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 15
+                        }
+                    },
+                    "alsKind": ["c"]
+                }, {
+                    "uri": "$URI{to_be_called.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 16
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada": {
+                            "projectFile": "choices.gpr",
+                            "scenarioVariables": {
+                                "VALUE": "third"
+                            }
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-2",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 15
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-2",
+                "result":[{
+                    "uri": "$URI{third.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 5
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 17
+                        }
+                    },
+                    "alsKind": "<ABSENT>"
+                }, {
+                    "uri": "$URI{third.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 15
+                        }
+                    },
+                    "alsKind": ["c"]
+                }, {
+                    "uri": "$URI{to_be_called.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 16
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
