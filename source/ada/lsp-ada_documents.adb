@@ -283,6 +283,26 @@ package body LSP.Ada_Documents is
       Self.LAL := LAL;
    end Initialize;
 
+   ------------
+   -- Reload --
+   ------------
+
+   procedure Reload
+     (Self : in out Document;
+      LAL  : Libadalang.Analysis.Analysis_Context)
+   is
+      File : constant LSP.Types.LSP_String :=
+        Self.Context.URI_To_File (Self.URI);  --  Delete file://
+   begin
+      Self.Unit := LAL.Get_From_Buffer
+        (Filename => LSP.Types.To_UTF_8_String (File),
+         Charset  => "utf-8",  --  Provide text as UTF-8 string
+         Buffer   => Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
+           (Self.Unit.Text));
+
+      Self.LAL := LAL;
+   end Reload;
+
    -------------------
    -- To_LSP_String --
    -------------------
