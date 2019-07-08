@@ -281,6 +281,12 @@ package body LSP.Ada_Documents is
          Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Item.text));
       Self.URI := Item.uri;
       Self.LAL := LAL;
+
+      --  After creating an analysis unit, populate the lexical env with it:
+      --  we do this to allow Libadalang to do some work in reaction to
+      --  a file being open in the IDE, in order to speed up the response
+      --  to user queries.
+      Libadalang.Analysis.Populate_Lexical_Env (Self.Unit);
    end Initialize;
 
    ------------
