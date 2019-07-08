@@ -6,10 +6,12 @@ import os
 from e3.testsuite import Testsuite
 
 from drivers.basic import JsonTestDriver
+from drivers.codecs import CodecsTestDriver
 
 
 class ALSTestsuite(Testsuite):
-    DRIVERS = {'default': JsonTestDriver}
+    DRIVERS = {'default': JsonTestDriver,
+               'codecs': CodecsTestDriver}
 
     # We don't have a "tests" directory but on the other hand we don't want to
     # consider every directory. So start with the whole testsuite directory,
