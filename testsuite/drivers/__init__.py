@@ -2,8 +2,6 @@ import logging
 import os
 import traceback
 
-from distutils.spawn import find_executable
-
 from e3.fs import sync_tree
 from e3.os.fs import df
 from e3.os.process import Run
@@ -19,25 +17,6 @@ PACKAGE_ROOT_DIR = os.path.dirname(TESTSUITE_ROOT_DIR)
 
 class ALSTestDriver(TestDriver):
     """Abstract class to share some common facilities."""
-
-    @property
-    def repo_base(self):
-        """
-        Root directory for the "ada_language_server" repository.
-        """
-        return os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            '..', '..'))
-
-    def lookup_program(self, *args):
-        """
-        If os.path.join(self.repo_base, *args) is the location of a valid file,
-        return it.  Otherwise, return the result of `find_executable` for its
-        base name.
-        """
-        path = os.path.join(self.repo_base, *args)
-        if os.path.isfile(path):
-            return path
-        return find_executable(os.path.basename(path))
 
     def add_test(self, dag):
         """
