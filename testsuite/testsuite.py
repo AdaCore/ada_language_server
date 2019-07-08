@@ -3,6 +3,7 @@
 import logging
 import os
 
+from distutils.spawn import find_executable
 from e3.testsuite import Testsuite
 
 from drivers.basic import JsonTestDriver
@@ -26,8 +27,25 @@ class ALSTestsuite(Testsuite):
             action="store",
             help="Ignored, here for compatibility purposes")
 
+    def lookup_program(self, *args):
+        """
+        If os.path.join(self.repo_base, '.obj' ,*args) is the location of a
+        valid file, return it.  Otherwise, return the result of
+        `find_executable` for its base name.
+        """
+        path = os.path.join(self.env.repo_base, '.obj', *args)
+        if os.path.isfile(path):
+            return path
+        return find_executable(os.path.basename(path))
+
     def tear_up(self):
-        pass
+        # Root directory for the "ada_language_server" repository
+        self.env.repo_base = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), '..'))
+
+        self.env.als = self.lookup_program('server', 'ada_language_server')
+        self.env.tester_run = self.lookup_program('tester', 'tester-run')
+        self.env.codec_test = self.lookup_program('codec_test', 'codec_test')
 
     def tear_down(self):
         super(ALSTestsuite, self).tear_down()

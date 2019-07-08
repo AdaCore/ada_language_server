@@ -22,19 +22,16 @@ class JsonTestDriver(ALSTestDriver):
         # The working directory
         wd = self.test_env['working_dir']
 
-        als = self.lookup_program('.obj', 'server', 'ada_language_server')
-        tester_run = self.lookup_program('.obj', 'tester', 'tester-run')
-
         output = ""
 
         status = TestStatus.PASS
 
         for json in glob.glob(os.path.join(wd, '*.json')):
             process = self.run_and_log(
-                [tester_run, json],
+                [self.env.tester_run, json],
                 cwd=wd,
                 timeout=120,
-                env={'ALS': als},
+                env={'ALS': self.env.als},
                 ignore_environ=False)
             output += process.out
 
