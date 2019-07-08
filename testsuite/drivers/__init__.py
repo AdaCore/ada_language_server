@@ -6,8 +6,9 @@ from distutils.spawn import find_executable
 
 from e3.fs import sync_tree
 from e3.os.fs import df
+from e3.os.process import Run
 from e3.testsuite.driver import TestDriver
-from e3.testsuite.result import TestStatus
+from e3.testsuite.result import Log, TestStatus
 
 
 TESTSUITE_ROOT_DIR = os.path.dirname(
@@ -84,3 +85,21 @@ class ALSTestDriver(TestDriver):
             self.result.set_status(status)
             self.push_result()
             return True
+
+    def run_and_log(self, cmd, **kwargs):
+        """
+        Wrapper around e3.os.process.Run to log processes.
+
+        Logging the processes that are run in each testcases is very useful for
+        debugging.
+        """
+        process = Run(cmd, **kwargs)
+
+        self.result.processes.append({
+            'cmd': cmd,
+            'run_args': kwargs,
+            'status': process.status,
+            'output': Log(process.out)})
+        self.result.out += process.out
+
+        return process

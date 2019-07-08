@@ -1,7 +1,6 @@
 import glob
 import os
 
-from e3.testsuite.process import Run
 from e3.testsuite.result import TestStatus
 
 from drivers import ALSTestDriver
@@ -31,7 +30,7 @@ class JsonTestDriver(ALSTestDriver):
         status = TestStatus.PASS
 
         for json in glob.glob(os.path.join(wd, '*.json')):
-            process = Run(
+            process = self.run_and_log(
                 [tester_run, json],
                 cwd=wd,
                 timeout=120,
