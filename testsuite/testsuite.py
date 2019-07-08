@@ -3,15 +3,19 @@
 import logging
 import os
 
-from e3.fs import ls
 from e3.testsuite import Testsuite
 
 from drivers.basic import JsonTestDriver
 
 
 class ALSTestsuite(Testsuite):
-    TEST_SUBDIR = 'ada_lsp'
     DRIVERS = {'default': JsonTestDriver}
+
+    # We don't have a "tests" directory but on the other hand we don't want to
+    # consider every directory. So start with the whole testsuite directory,
+    # and then discard specific items we find there.
+    TEST_SUBDIR = '.'
+    TEST_BLACKLIST = {'drivers', 'out', 'spawn'}
 
     def add_options(self):
         self.main.argument_parser.add_argument(
@@ -27,27 +31,30 @@ class ALSTestsuite(Testsuite):
         super(ALSTestsuite, self).tear_down()
 
     def get_test_list(self, sublist):
-        # The tests are one per subdir of "ada_lsp"
-        if sublist:
-            dirs = [os.path.abspath(os.path.join(self.test_dir, '..', s))
-                    for s in sublist]
-        else:
-            dirs = ls(os.path.join(self.test_dir, '*'))
         results = []
-        for d in dirs:
-            if os.path.isdir(d):
-                # Create the test.yamls if they don't exist!
-                yaml = os.path.join(d, 'test.yaml')
-                basename = os.path.basename(d)
 
-                if not os.path.exists(yaml):
-                    with open(yaml, 'wb') as f:
-                        logging.info("creating {} for you :-)".format(yaml))
-                        f.write("title: '{}'\n".format(basename))
-                results.append(os.path.join(basename, 'test.yaml'))
+        blacklist = {os.path.abspath(os.path.join(self.test_dir, item))
+                     for item in self.TEST_BLACKLIST}
+        ada_lsp_dir = os.path.abspath(os.path.join(self.test_dir, 'ada_lsp'))
 
-        logging.info('Found %s tests %s', len(results), results)
-        logging.debug("tests:\n  " + "\n  ".join(results))
+        for dirpath, dirnames, filenames in os.walk(self.test_dir):
+            dirpath = os.path.abspath(dirpath)
+
+            # Ignore paths in the blacklist
+            if any(dirpath.startswith(item) for item in blacklist):
+                continue
+
+            # Warn about ada_lsp sub-directories that have no test.yaml file
+            if 'test.yaml' in filenames:
+                results.append(os.path.relpath(
+                    os.path.join(dirpath, 'test.yaml'),
+                    self.test_dir))
+
+            elif os.path.dirname(dirpath) == ada_lsp_dir:
+                logging.warn('No test.yaml in %s', dirpath)
+
+        logging.info('Found %s tests', len(results))
+        logging.debug('tests:%s', '\n'.join('  ' + r for r in results))
         return results
 
     @property
