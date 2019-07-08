@@ -15,39 +15,16 @@ class JsonTestDriver(ALSTestDriver):
           - a number of test drivers, in .json files.
     """
 
-    def add_test(self, dag):
-        self.add_fragment(dag, 'prepare')
-        self.add_fragment(dag, 'run', after=['prepare'])
-
-    def prepare(self, previous_values):
-        mkdir(self.test_env['working_dir'])
-        sync_tree(self.test_env['test_dir'],
-                  self.test_env['working_dir'])
-
     def run(self, previous_values):
         # Check whether the test should be skipped
-        skip = self.should_skip()
-        if skip is not None:
-            self.result.set_status(skip)
-            self.push_result()
+        if self.should_skip():
             return False
 
         # The working directory
         wd = self.test_env['working_dir']
 
-        # The base directory for the repository
-        base = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            "..", ".."))
-
-        # Where the als resides
-        als = os.path.join(base, '.obj', 'server', 'ada_language_server')
-        if not os.path.isfile(als):
-            als = find_executable('ada_language_server').rstrip('.exe')
-
-        # Where the test driver resides
-        tester = os.path.join(base, '.obj', 'tester', 'tester-run')
-        if not os.path.isfile(tester):
-            tester = find_executable('tester-run')
+        als = self.lookup_program('.obj', 'server', 'ada_language_server')
+        tester_run = self.lookup_program('.obj', 'tester', 'tester-run')
 
         output = ""
 
@@ -55,7 +32,7 @@ class JsonTestDriver(ALSTestDriver):
 
         for json in glob.glob(os.path.join(wd, '*.json')):
             process = Run(
-                [tester, json],
+                [tester_run, json],
                 cwd=wd,
                 timeout=120,
                 env={'ALS': als},
