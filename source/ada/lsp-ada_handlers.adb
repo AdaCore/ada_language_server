@@ -515,7 +515,18 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
+      --  Send notifications "loading document" / "done loading document"
+      --  around the load of documents: this gets logged by the IDE,
+      --  and helps tracking the performance of the language server.
+      Self.Server.Show_Message
+        ((LSP.Messages.Log,
+         "loading document " & Value.textDocument.uri));
+
       Document := Self.Context.Load_Document (Value.textDocument);
+
+      Self.Server.Show_Message
+        ((LSP.Messages.Log,
+         "done loading document " & Value.textDocument.uri));
 
       if Self.Context.Get_Diagnostics_Enabled then
          Document.Get_Errors (Diag.diagnostics);
