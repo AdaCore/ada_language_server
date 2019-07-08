@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-from drivers.basic import JsonTestDriver
+
+import logging
+import os
+
 from e3.fs import ls
 from e3.testsuite import Testsuite
-from e3.os.process import Run, STDOUT
-from e3.env import Env
-import os
-import logging
-import tempfile
+
+from drivers.basic import JsonTestDriver
 
 
 class ALSTestsuite(Testsuite):

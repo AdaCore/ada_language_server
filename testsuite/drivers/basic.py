@@ -1,10 +1,10 @@
-from e3.fs import mkdir, sync_tree, echo_to_file
+import glob
+import os
+
 from e3.testsuite.process import Run
 from e3.testsuite.result import TestStatus
+
 from drivers import ALSTestDriver
-from distutils.spawn import find_executable
-import os
-import glob
 
 
 class JsonTestDriver(ALSTestDriver):
