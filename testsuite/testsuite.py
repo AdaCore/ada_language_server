@@ -91,6 +91,12 @@ class ALSTestsuite(Testsuite):
             elif os.path.dirname(dirpath) == ada_lsp_dir:
                 logging.warn('No test.yaml in %s', dirpath)
 
+        # If requested, keep only testcases that match one sublist item
+        if sublist:
+            logging.info('Filtering tests: %s', sublist)
+            results = [t for t in results
+                       if any(s in t for s in sublist)]
+
         logging.info('Found %s tests', len(results))
         logging.debug('tests:%s', '\n'.join('  ' + r for r in results))
         return results
