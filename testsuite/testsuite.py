@@ -8,6 +8,7 @@ from e3.testsuite import Testsuite
 
 from drivers.basic import JsonTestDriver
 from drivers.codecs import CodecsTestDriver
+from drivers.gnatcov import GNATcov
 
 
 class ALSTestsuite(Testsuite):
@@ -26,6 +27,11 @@ class ALSTestsuite(Testsuite):
             default="",
             action="store",
             help="Ignored, here for compatibility purposes")
+        self.main.argument_parser.add_argument(
+            "--gnatcov", action="store_true",
+            help="Compute the source code coverage of testcases on ALS. This"
+                 " requires GNATcoverage working with instrumentation and will"
+                 " run a build of ALS before running tests.")
 
     def lookup_program(self, *args):
         """
@@ -43,12 +49,24 @@ class ALSTestsuite(Testsuite):
         self.env.repo_base = os.path.abspath(os.path.join(
             os.path.dirname(__file__), '..'))
 
+        # Absolute paths to programs that test drivers can use
         self.env.als = self.lookup_program('server', 'ada_language_server')
         self.env.tester_run = self.lookup_program('tester', 'tester-run')
         self.env.codec_test = self.lookup_program('codec_test', 'codec_test')
 
+        # If code coverage is requested, initialize our helper and build
+        # instrumented programs.
+        if self.env.options.gnatcov:
+            self.env.gnatcov = GNATcov(self)
+            self.env.gnatcov.build(self.env.options.jobs)
+        else:
+            self.env.gnatcov = None
+
     def tear_down(self):
         super(ALSTestsuite, self).tear_down()
+
+        if self.env.gnatcov:
+            self.env.gnatcov.report()
 
     def get_test_list(self, sublist):
         results = []
