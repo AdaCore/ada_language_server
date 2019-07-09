@@ -8,6 +8,8 @@ from e3.os.process import Run
 from e3.testsuite.driver import TestDriver
 from e3.testsuite.result import Log, TestStatus
 
+from drivers.gnatcov import GNATcov
+
 
 TESTSUITE_ROOT_DIR = os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
@@ -72,6 +74,13 @@ class ALSTestDriver(TestDriver):
         Logging the processes that are run in each testcases is very useful for
         debugging.
         """
+
+        # If code coverage is requested, leave a chance to gnatcov to decorate
+        # the execution of the subprogram in order to make it contribute to
+        # code coverage.
+        if self.env.gnatcov:
+            kwargs = self.env.gnatcov.decorate_run(self, kwargs)
+
         process = Run(cmd, **kwargs)
 
         self.result.processes.append({
