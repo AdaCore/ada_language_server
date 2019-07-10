@@ -39,10 +39,18 @@ class ALSTestsuite(Testsuite):
         valid file, return it.  Otherwise, return the result of
         `find_executable` for its base name.
         """
+        # If the given location points to an existing file, return it
         path = os.path.join(self.env.repo_base, '.obj', *args)
         if os.path.isfile(path):
             return path
-        return find_executable(os.path.basename(path))
+
+        # Otherwise, look for the requested program name in the PATH.
+        #
+        # TODO (S710-005): for some reason, on Windows we need to strip the
+        # ".exe" suffix for the tester-run program to be able to spawn ALS.
+        result = find_executable(os.path.basename(path))
+        if result.endswith('.exe'):
+            return result[:-len('.exe')]
 
     def tear_up(self):
         # Root directory for the "ada_language_server" repository
