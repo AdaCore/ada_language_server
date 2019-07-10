@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
  make \
  libc-dev \
  git \
- nodejs-legacy \
  chrpath \
  libgmp-dev \
  && git clone https://github.com/AdaCore/gnat_community_install_script.git \
