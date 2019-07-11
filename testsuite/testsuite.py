@@ -49,8 +49,9 @@ class ALSTestsuite(Testsuite):
         # TODO (S710-005): for some reason, on Windows we need to strip the
         # ".exe" suffix for the tester-run program to be able to spawn ALS.
         result = find_executable(os.path.basename(path))
-        if result.endswith('.exe'):
-            return result[:-len('.exe')]
+        return (result[:-len('.exe')]
+                if result.endswith('.exe') else
+                result)
 
     def tear_up(self):
         # Root directory for the "ada_language_server" repository
