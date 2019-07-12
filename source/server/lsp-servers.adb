@@ -42,7 +42,7 @@ package body LSP.Servers is
      (Self : in out Server'Class;
       EOF  : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
-   --  Then put the message into Self.Requests_Queue.
+   --  Then put the message into Self.Input_Queue.
    --  Set EOF at end of stream.
 
    procedure Read_Number_Or_String
@@ -100,7 +100,7 @@ package body LSP.Servers is
       --  the case of the testsuite) because the input pipe has been closed.
       --  Wait here until all the requests have been consumed, and all the
       --  outputs have been flushed.
-      while Self.Requests_Queue.Current_Use > 0
+      while Self.Input_Queue.Current_Use > 0
         or else Self.Output_Queue.Current_Use > 0
       loop
          delay 0.1;
@@ -234,7 +234,7 @@ package body LSP.Servers is
       procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
       begin
          Trace (In_Trace, To_String (Vector));
-         Self.Requests_Queue.Enqueue (Vector);
+         Self.Input_Queue.Enqueue (Vector);
       end Parse_JSON;
 
       ----------------
@@ -532,8 +532,8 @@ package body LSP.Servers is
       LSP.Messages.Notifications.Server_Notification_Handler_Access;
       Initialized   : Boolean;
 
-      Requests_Queue : Requests_Queues.Queue renames Server.Requests_Queue;
-      Output_Queue   : Output_Queues.Queue renames Server.Output_Queue;
+      Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
+      Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
 
       procedure Initialize
         (Request      : not null
@@ -784,7 +784,7 @@ package body LSP.Servers is
       loop
          select
             --  Process all available requests before acceptiong Stop
-            Requests_Queue.Dequeue (Request);
+            Input_Queue.Dequeue (Request);
 
             --  Process the request
             begin
