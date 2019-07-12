@@ -39,6 +39,8 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Doc_Utils;
 
+with URIs;
+
 package body LSP.Ada_Handlers is
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
@@ -51,6 +53,15 @@ package body LSP.Ada_Handlers is
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location;
    --  Return the location of the given node
+
+   procedure Send_Imprecise_Xref_Message
+     (Self     : access Message_Handler;
+      URI      : LSP.Messages.DocumentUri;
+      Position : LSP.Messages.Position;
+      Msg_Type : LSP.Messages.MessageType);
+   --  Send a message of the given Msg_Type to the LSP client to warn the user
+   --  of a possible imprecise result while computing xrefs on the given
+   --  node.
 
    -----------------------
    -- Get_Node_Location --
@@ -86,6 +97,30 @@ package body LSP.Ada_Handlers is
    begin
       return Location;
    end Get_Node_Location;
+
+   ---------------------------------
+   -- Send_Imprecise_Xref_Message --
+   ---------------------------------
+
+   procedure Send_Imprecise_Xref_Message
+     (Self     : access Message_Handler;
+      URI      : LSP.Messages.DocumentUri;
+      Position : LSP.Messages.Position;
+      Msg_Type : LSP.Messages.MessageType)
+   is
+      File : constant GNATCOLL.VFS.Virtual_File := Create
+        (+(URIs.Conversions.To_File (To_UTF_8_String (URI))));
+   begin
+      Self.Server.Show_Message
+        ((Msg_Type,
+         "Imprecise fallback used to compute cross-references on entity at:"
+         & To_LSP_String
+           (ASCII.LF & "   " & File.Display_Base_Name)
+         & To_LSP_String
+           (ASCII.LF & "   line:" & Position.line'Img)
+         & To_LSP_String
+           (ASCII.LF & "   column:" & Position.character'Img)));
+   end Send_Imprecise_Xref_Message;
 
    -----------------------
    -- Exit_Notification --
@@ -340,7 +375,7 @@ package body LSP.Ada_Handlers is
       Definition : Defining_Name;
       Other_Part : Defining_Name;
       Response   : LSP.Messages.Location_Response (Is_Error => False);
-
+      Imprecise  : Boolean;
    begin
 
       if Name_Node = No_Name then
@@ -351,7 +386,18 @@ package body LSP.Ada_Handlers is
       Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
 
       if Definition = No_Defining_Name then
-         Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+         Definition := LSP.Lal_Utils.Resolve_Name
+           (Name_Node,
+            Imprecise => Imprecise);
+
+         --  Send an info message when using the imprecise fallback to
+         --  handle the textDoducment/definition request.
+         if Imprecise then
+            Self.Send_Imprecise_Xref_Message
+              (URI      => Value.textDocument.uri,
+               Position => Value.position,
+               Msg_Type => LSP.Messages.Info);
+         end if;
 
          if Definition /= No_Defining_Name then
             Append_Location (Response.result, Definition);
@@ -578,6 +624,7 @@ package body LSP.Ada_Handlers is
       Subp_Spec_Node     : Base_Subp_Spec;
       Decl_Text          : LSP_String;
       Comments_Text      : LSP_String;
+      Imprecise          : Boolean;
 
       procedure Create_Decl_Text_For_Basic_Decl;
       --  Create the hover text for for basic declarations
@@ -779,7 +826,16 @@ package body LSP.Ada_Handlers is
 
       --  Get the defining node of the node being hovered
       Defining_Name_Node := LSP.Lal_Utils.Resolve_Name
-        (Name_Node => Name_Node);
+        (Name_Node => Name_Node,
+         Imprecise => Imprecise);
+
+      --  If we used the imprecise fallback to get to the definition, log it
+      if Imprecise then
+         Self.Send_Imprecise_Xref_Message
+           (URI      => Value.textDocument.uri,
+            Position => Value.position,
+            Msg_Type => LSP.Messages.Log);
+      end if;
 
       if Defining_Name_Node = No_Defining_Name then
          return Response;
@@ -893,13 +949,23 @@ package body LSP.Ada_Handlers is
 
       Definition : Defining_Name;
       Response   : LSP.Messages.Location_Response (Is_Error => False);
-
+      Imprecise  : Boolean;
    begin
       if Name_Node = No_Name then
          return Response;
       end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+      Definition := LSP.Lal_Utils.Resolve_Name
+        (Name_Node,
+         Imprecise => Imprecise);
+
+      --  If we used the imprecise fallback to get to the definition, log it
+      if Imprecise then
+         Self.Send_Imprecise_Xref_Message
+           (URI      => Value.textDocument.uri,
+            Position => Value.position,
+            Msg_Type => LSP.Messages.Log);
+      end if;
 
       if Definition = No_Defining_Name then
          return Response;
@@ -954,13 +1020,23 @@ package body LSP.Ada_Handlers is
 
       Definition : Defining_Name;
       Response   : LSP.Messages.ALS_Called_By_Response (Is_Error => False);
-
+      Imprecise  : Boolean;
    begin
       if Name_Node = No_Name then
          return Response;
       end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+      Definition := LSP.Lal_Utils.Resolve_Name
+        (Name_Node,
+         Imprecise => Imprecise);
+
+      --  If we used the imprecise fallback to get to the definition, log it
+      if Imprecise then
+         Self.Send_Imprecise_Xref_Message
+           (URI      => Value.textDocument.uri,
+            Position => Value.position,
+            Msg_Type => LSP.Messages.Log);
+      end if;
 
       --  Attempt to resolve the name, return no results if we can't or if the
       --  name does not resolve to a subprogram.
@@ -1054,21 +1130,31 @@ package body LSP.Ada_Handlers is
       use Libadalang.Analysis;
 
       Position : constant LSP.Messages.TextDocumentPositionParams :=
-        (Value.textDocument, Value.position);
+                   (Value.textDocument, Value.position);
 
       Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
         (Self.Context.Get_Node_At (Position));
 
       Definition : Defining_Name;
-      Response : LSP.Messages.Rename_Response (Is_Error => False);
-
-      Empty : LSP.Messages.TextEdit_Vector;
+      Response   : LSP.Messages.Rename_Response (Is_Error => False);
+      Imprecise  : Boolean;
+      Empty      : LSP.Messages.TextEdit_Vector;
    begin
       if Name_Node = No_Name then
          return Response;
       end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name (Name_Node);
+      Definition := LSP.Lal_Utils.Resolve_Name
+        (Name_Node,
+         Imprecise => Imprecise);
+
+      --  If we used the imprecise fallback to get to the definition, log it
+      if Imprecise then
+         Self.Send_Imprecise_Xref_Message
+           (URI      => Value.textDocument.uri,
+            Position => Value.position,
+            Msg_Type => LSP.Messages.Log);
+      end if;
 
       if Definition = No_Defining_Name then
          return Response;

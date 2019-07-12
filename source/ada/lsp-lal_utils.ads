@@ -33,7 +33,12 @@ package LSP.Lal_Utils is
 
    function Get_Name_As_Defining (Name_Node : Name) return Defining_Name;
 
-   function Resolve_Name (Name_Node : Name) return Defining_Name;
+   function Resolve_Name
+     (Name_Node : Name;
+      Imprecise : out Boolean) return Defining_Name;
+   --  Return the definition node of the given name.
+   --  Imprecise is set to True if LAL's imprecise fallback mechanism has been
+   --  used to compute the cross reference.
 
    ---------------
    -- Called_By --
