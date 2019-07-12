@@ -118,6 +118,7 @@ package Spawn.Posix is
      with Import, Convention => C, External_Name => "environ";
 
    --  Errno values
+   EINTR  : constant := 4;
    EAGAIN : constant := 11;
 
 end Spawn.Posix;

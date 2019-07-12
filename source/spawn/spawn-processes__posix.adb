@@ -127,7 +127,7 @@ package body Spawn.Processes is
          declare
             Errno : constant Integer := GNAT.OS_Lib.Errno;
          begin
-            if Errno = Posix.EAGAIN then
+            if Errno in Posix.EAGAIN | Posix.EINTR then
                Last := Data'First - 1;
                Monitor.Enqueue
                  ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
@@ -159,7 +159,7 @@ package body Spawn.Processes is
          declare
             Errno : constant Integer := GNAT.OS_Lib.Errno;
          begin
-            if Errno = Posix.EAGAIN then
+            if Errno in Posix.EAGAIN | Posix.EINTR then
                Last := Data'First - 1;
                Monitor.Enqueue
                  ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
@@ -276,7 +276,7 @@ package body Spawn.Processes is
          declare
             Errno : constant Integer := GNAT.OS_Lib.Errno;
          begin
-            if Errno = Posix.EAGAIN then
+            if Errno in Posix.EAGAIN | Posix.EINTR then
                Last := Data'First - 1;
                Monitor.Enqueue
                  ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
