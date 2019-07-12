@@ -86,14 +86,14 @@ private
    package Unbounded_String_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
        (Ada.Strings.Unbounded.Unbounded_String);
-   package Requests_Queues is new
+   package Input_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
        (Unbounded_String_Queue_Interface);
    package Output_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
        (Unbounded_String_Queue_Interface);
 
-   type Requests_Queue_Access is access Requests_Queues.Queue;
+   type Input_Queue_Access is access Input_Queues.Queue;
    type Output_Queue_Access is access Output_Queues.Queue;
 
    --  The processing task
@@ -144,7 +144,7 @@ private
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
 
       --  Queues and tasks used for asynchronous processing, see doc above
-      Requests_Queue  : Requests_Queues.Queue;
+      Input_Queue     : Input_Queues.Queue;
       Output_Queue    : Output_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
