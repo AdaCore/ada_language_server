@@ -57,14 +57,34 @@ package body LSP.Lal_Utils is
    -- Resolve_Name --
    ------------------
 
-   function Resolve_Name (Name_Node : Name) return Defining_Name is
-      --  In every case, if the unit has syntax errors, activate
-      --  Imprecise_Fallback.
-      --  TODO: Should we activate it in any case ?
-      Result : constant Defining_Name :=
-        Name_Node.P_Xref
-          (Imprecise_Fallback => Name_Node.Unit.Has_Diagnostics);
+   function Resolve_Name
+     (Name_Node : Name;
+      Imprecise : out Boolean) return Defining_Name
+   is
+      Result : Defining_Name;
    begin
+      Imprecise := False;
+
+      --  Try to get the cross reference without enabling the imprecise
+      --  fallback first.
+      --  Property_Error exceptions can be raised so make sure to handle
+      --  them correctly.
+      begin
+         Result := Name_Node.P_Xref (Imprecise_Fallback => False);
+      exception
+         when Property_Error =>
+            Result := No_Defining_Name;
+      end;
+
+      --  Get the cross reference with the imprecise fallback if the previous
+      --  query has failed.
+      --  Set the Imprecise fallback to True in that case, to warn the caller
+      --  that we might get an imprecise result.
+      if Result = No_Defining_Name then
+         Imprecise := True;
+         Result := Name_Node.P_Xref (Imprecise_Fallback => True);
+      end if;
+
       if Name_Node.P_Is_Defining and then Result = No_Defining_Name then
          --  When Name_Node is part of defining_name and it isn't a completion
          --  of another declaration, then P_Xref returns No_Defining_Name.
@@ -73,6 +93,10 @@ package body LSP.Lal_Utils is
       else
          return Result;
       end if;
+
+   exception
+      when Property_Error =>
+         return No_Defining_Name;
    end Resolve_Name;
 
    -----------------------
