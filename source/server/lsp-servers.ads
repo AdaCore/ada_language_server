@@ -83,12 +83,21 @@ private
 
    type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
+   type Message_Access is access LSP.Messages.Message'Class;
+   --  There are two flows of messages:
+   --  * Message created byt Input_Tast and destroyed by Processing_Task.
+   --  * Message created by Processing_Task and destroyed by Output_Task.
+
+   package Message_Queue_Interface is new
+     Ada.Containers.Synchronized_Queue_Interfaces
+       (Message_Access);
+
    package Unbounded_String_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
        (Ada.Strings.Unbounded.Unbounded_String);
    package Input_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
-       (Unbounded_String_Queue_Interface);
+       (Message_Queue_Interface);
    package Output_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
        (Unbounded_String_Queue_Interface);

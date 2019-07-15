@@ -20,6 +20,7 @@ with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
+with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
@@ -39,10 +40,13 @@ package body LSP.Servers is
        LSP.Types.To_LSP_String;
 
    procedure Process_One_Message
-     (Self : in out Server'Class;
-      EOF  : in out Boolean);
+     (Self        : in out Server'Class;
+      Initialized : in out Boolean;
+      EOF         : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
    --  Then put the message into Self.Input_Queue.
+   --  Handle initialization logic by tracking 'initialize' request, set
+   --  Initialized parameter when the request arrives.
    --  Set EOF at end of stream.
 
    procedure Read_Number_Or_String
@@ -62,6 +66,34 @@ package body LSP.Servers is
    function To_Stream_Element_Array
      (Vector : Ada.Strings.Unbounded.Unbounded_String)
       return Ada.Streams.Stream_Element_Array;
+
+   procedure Send_Response
+     (Self       : in out Server'Class;
+      Response   : in out LSP.Messages.ResponseMessage'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String);
+   --  Complete Response and send it to the output queue
+
+   procedure Send_Exception_Response
+     (Self       : in out Server'Class;
+      E          : Exception_Occurrence;
+      Trace_Text : String;
+      Request_Id : LSP.Types.LSP_Number_Or_String;
+      Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError);
+   --  Send a response to the stream representing the exception. This
+   --  should be called whenever an exception occurred while processing
+   --  a request.
+   --  Trace_Text is the additional info to write in the traces, and
+   --  Request_Id is the id of the request we were trying to process.
+   --  Use given Code in the response.
+
+   procedure Send_Not_Initialized
+     (Self       : in out Server'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String);
+   --  Send "not initialized" response
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object => LSP.Messages.Message'Class,
+      Name   => Message_Access);
 
    ------------
    -- Append --
@@ -141,8 +173,9 @@ package body LSP.Servers is
    -------------------------
 
    procedure Process_One_Message
-     (Self : in out Server'Class;
-      EOF  : in out Boolean)
+     (Self        : in out Server'Class;
+      Initialized : in out Boolean;
+      EOF         : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
 
@@ -232,9 +265,117 @@ package body LSP.Servers is
       ----------------
 
       procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
+         use type LSP.Types.LSP_String;
       begin
-         Trace (In_Trace, To_String (Vector));
-         Self.Input_Queue.Enqueue (Vector);
+         if Is_Active (In_Trace) then
+            --  Avoid expensive convertion to string when trace is off
+            Trace (In_Trace, To_String (Vector));
+         end if;
+
+         declare
+            --  Parse JSON now
+            Document : constant GNATCOLL.JSON.JSON_Value :=
+              GNATCOLL.JSON.Read (Vector);
+
+            Message    : Message_Access;
+            JS         : aliased LSP.JSON_Streams.JSON_Stream;
+            JSON_Array : GNATCOLL.JSON.JSON_Array;
+            Version    : LSP.Types.LSP_String;
+            Method     : LSP.Types.Optional_String;
+            Request_Id : LSP.Types.LSP_Number_Or_String;
+            Error      : LSP.Messages.Optional_ResponseError;
+         begin
+            --  Read request id and method if any
+            GNATCOLL.JSON.Append (JSON_Array, Document);
+            JS.Set_JSON_Document (JSON_Array);
+            JS.Start_Object;
+            Read_Number_Or_String (JS, +"id", Request_Id);
+            LSP.Types.Read_String (JS, +"jsonrpc", Version);
+            LSP.Types.Read_Optional_String (JS, +"method", Method);
+
+            --  Decide if this is a request, response or notification
+
+            if not Method.Is_Set then
+               --  TODO: Process client responses here.
+
+               JS.Key ("error");
+               LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
+
+               if Error.Is_Set then
+                  --  We have got error from LSP client. Save it in the trace:
+                  Server_Trace.Trace ("Got Error response:");
+
+                  Server_Trace.Trace
+                    (LSP.Types.To_UTF_8_String (Error.Value.message));
+               end if;
+
+               return;
+
+            elsif LSP.Types.Assigned (Request_Id) then  --  This is a request
+
+               if not Initialized then
+                  if Method.Value = +"initialize" then
+                     Initialized := True;
+                  else
+                     Send_Not_Initialized (Self, Request_Id);
+                     return;
+                  end if;
+               end if;
+
+               begin
+                  Message := new LSP.Messages.RequestMessage'Class'
+                    (LSP.Messages.Requests.Decode_Request (Document));
+               exception
+                  when E : others =>
+                     --  If we reach this exception handler, this means the
+                     --  request could not be decoded.
+                     Send_Exception_Response
+                       (Self, E,
+                        To_String (Vector),
+                        Request_Id,
+                        LSP.Messages.InvalidParams);
+
+                     return;
+               end;
+
+            elsif Initialized
+              or else Method.Value = +"exit"
+            then
+               --  This is a notification
+               Message := new LSP.Messages.NotificationMessage'Class'
+                 (LSP.Messages.Notifications.Decode_Notification (Document));
+
+            else
+               --  Ignore any notification (except 'exit') until initialization
+               return;
+
+            end if;
+
+            --  Now we have a message to process. Push it to the processing
+            --  task
+            Self.Input_Queue.Enqueue (Message);
+
+         exception
+            when E : others =>
+               --  Something goes wrong after JSON parsing
+
+               GNATCOLL.Traces.Trace
+                 (LSP.Server_Trace,
+                  "Unexpected exception when processing a message:");
+               Server_Trace.Trace (Symbolic_Traceback (E));
+
+         end;
+
+      exception
+         when E : others =>
+            --  If we reach this exception handler, this means we are unable
+            --  to parse text as JSON.
+
+            GNATCOLL.Traces.Trace
+              (LSP.Server_Trace,
+               "Unable to parse JSON message:" & To_String (Vector));
+            Server_Trace.Trace (Symbolic_Traceback (E));
+
       end Parse_JSON;
 
       ----------------
@@ -344,6 +485,65 @@ package body LSP.Servers is
       Self.Stop.Seize;
    end Run;
 
+   -----------------------------
+   -- Send_Exception_Response --
+   -----------------------------
+
+   procedure Send_Exception_Response
+     (Self       : in out Server'Class;
+      E          : Exception_Occurrence;
+      Trace_Text : String;
+      Request_Id : LSP.Types.LSP_Number_Or_String;
+      Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError)
+   is
+      Exception_Text : constant String :=
+        Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
+      Response       : LSP.Messages.ResponseMessage'Class :=
+        LSP.Messages.ResponseMessage'
+          (Is_Error => True,
+           jsonrpc  => <>,  --  we will set this latter
+           id       => <>,  --  we will set this latter
+           error    =>
+             (Is_Set => True,
+              Value =>
+                (code => Code,
+                 data => GNATCOLL.JSON.Create_Object,
+                 message => LSP.Types.To_LSP_String
+                   (Exception_Text))));
+   begin
+      --  Send the response to the output stream
+      Send_Response (Self, Response, Request_Id);
+
+      --  Log details in the traces
+      GNATCOLL.Traces.Trace
+        (LSP.Server_Trace,
+         "Exception when processing request:" & ASCII.LF
+         & Trace_Text & ASCII.LF
+         & Exception_Text);
+      Server_Trace.Trace (Symbolic_Traceback (E));
+   end Send_Exception_Response;
+
+   --------------------------
+   -- Send_Not_Initialized --
+   --------------------------
+
+   procedure Send_Not_Initialized
+     (Self       : in out Server'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String)
+   is
+      Response : LSP.Messages.ResponseMessage :=
+        (Is_Error => True,
+         jsonrpc  => <>,  --  we will set this latter
+         id       => <>,  --  we will set this latter
+         error    =>
+           (Is_Set => True,
+            Value  => (code    => LSP.Messages.ServerNotInitialized,
+                       message => +"No initialize request was received",
+                       others  => <>)));
+   begin
+      Send_Response (Self, Response, Request_Id);
+   end Send_Not_Initialized;
+
    -----------------------
    -- Send_Notification --
    -----------------------
@@ -360,6 +560,26 @@ package body LSP.Servers is
       Element_Vector := To_Unbounded_String (JSON_Stream);
       Self.Output_Queue.Enqueue (Element_Vector);
    end Send_Notification;
+
+   -------------------
+   -- Send_Response --
+   -------------------
+
+   procedure Send_Response
+     (Self       : in out Server'Class;
+      Response   : in out LSP.Messages.ResponseMessage'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String)
+   is
+      Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+      Output     : Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      Response.jsonrpc := +"2.0";
+      Response.id := Request_Id;
+      LSP.Messages.ResponseMessage'Class'Write
+        (Out_Stream'Access, Response);
+      Output := To_Unbounded_String (Out_Stream);
+      Self.Output_Queue.Enqueue (Output);
+   end Send_Response;
 
    ------------------
    -- Show_Message --
@@ -428,6 +648,7 @@ package body LSP.Servers is
    ---------------------
 
    task body Input_Task_Type is
+      Initialized : Boolean := False;
       EOF : Boolean := False;
    begin
       accept Start;
@@ -437,7 +658,7 @@ package body LSP.Servers is
             accept Stop;
             exit;
          else
-            Server.Process_One_Message (EOF);
+            Server.Process_One_Message (Initialized, EOF);
             --  This call can block reading from stream
 
             if EOF then
@@ -525,12 +746,11 @@ package body LSP.Servers is
    --------------------------
 
    task body Processing_Task_Type is
-      Request : Ada.Strings.Unbounded.Unbounded_String;
+      Request : Message_Access;
 
       Req_Handler   : LSP.Messages.Requests.Server_Request_Handler_Access;
       Notif_Handler :
       LSP.Messages.Notifications.Server_Notification_Handler_Access;
-      Initialized   : Boolean;
 
       Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
       Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
@@ -542,25 +762,7 @@ package body LSP.Servers is
            LSP.Messages.Notifications.Server_Notification_Handler_Access);
       --  Initializes internal data structures
 
-      procedure Process_Message_From_Stream
-        (Vector : Ada.Strings.Unbounded.Unbounded_String);
-
-      procedure Send_Response
-        (Response   : in out LSP.Messages.ResponseMessage'Class;
-         Request_Id : LSP.Types.LSP_Number_Or_String);
-      --  Complete Response and send it to the output queue
-
-      procedure Send_Exception_Response
-        (E          : Exception_Occurrence;
-         Trace_Text : String;
-         Request_Id : LSP.Types.LSP_Number_Or_String;
-         Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError);
-      --  Send a response to the stream representing the exception. This
-      --  should be called whenever an exception occurred while processing
-      --  a request.
-      --  Trace_Text is the additional info to write in the traces, and
-      --  Request_Id is the id of the request we were trying to process.
-      --  Use given Code code in the response.
+      procedure Process_Message (Message : Message_Access);
 
       ----------------
       -- Initialize --
@@ -575,200 +777,49 @@ package body LSP.Servers is
       begin
          Req_Handler := Request;
          Notif_Handler := Notification;
-         Initialized := False;  --  Block request until 'initialize' request
       end Initialize;
 
-      -------------------
-      -- Send_Response --
-      -------------------
+      ---------------------
+      -- Process_Message --
+      ---------------------
 
-      procedure Send_Response
-        (Response   : in out LSP.Messages.ResponseMessage'Class;
-         Request_Id : LSP.Types.LSP_Number_Or_String)
-      is
-         Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-         Output     : Ada.Strings.Unbounded.Unbounded_String;
+      procedure Process_Message (Message : Message_Access) is
       begin
-         Response.jsonrpc := +"2.0";
-         Response.id := Request_Id;
-         LSP.Messages.ResponseMessage'Class'Write
-           (Out_Stream'Access, Response);
-         Output := To_Unbounded_String (Out_Stream);
-         Output_Queue.Enqueue (Output);
-      end Send_Response;
-
-      -----------------------------
-      -- Send_Exception_Response --
-      -----------------------------
-
-      procedure Send_Exception_Response
-        (E          : Exception_Occurrence;
-         Trace_Text : String;
-         Request_Id : LSP.Types.LSP_Number_Or_String;
-         Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError)
-      is
-         Exception_Text : constant String :=
-           Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
-         Response       : LSP.Messages.ResponseMessage'Class :=
-           LSP.Messages.ResponseMessage'
-             (Is_Error => True,
-              jsonrpc  => <>,
-              id       => <>,
-              error    =>
-                (Is_Set => True,
-                 Value =>
-                   (code => Code,
-                    data => GNATCOLL.JSON.Create_Object,
-                    message => LSP.Types.To_LSP_String
-                      (Exception_Text))));
-      begin
-         --  Send the response to the stream
-         Send_Response (Response, Request_Id);
-
-         --  Log details in the traces
-         GNATCOLL.Traces.Trace
-           (LSP.Server_Trace,
-            "Exception when processing request:" & ASCII.LF
-            & Trace_Text & ASCII.LF
-            & Exception_Text);
-         Server_Trace.Trace (Symbolic_Traceback (E));
-      end Send_Exception_Response;
-
-      ---------------------------------
-      -- Process_Message_From_Stream --
-      ---------------------------------
-
-      procedure Process_Message_From_Stream
-        (Vector : Ada.Strings.Unbounded.Unbounded_String)
-      is
-         use type LSP.Types.LSP_String;
-         procedure Send_Not_Initialized
-           (Request_Id : LSP.Types.LSP_Number_Or_String);
-
-         --------------------------
-         -- Send_Not_Initialized --
-         --------------------------
-
-         procedure Send_Not_Initialized
-           (Request_Id : LSP.Types.LSP_Number_Or_String)
-         is
-            Response : LSP.Messages.ResponseMessage :=
-              (Is_Error => True,
-               jsonrpc  => <>,
-               id       => <>,
-               error    =>
-                 (Is_Set => True,
-                  Value  => (code    => LSP.Messages.MethodNotFound,
-                             message => +"No such method",
-                             others  => <>)));
-         begin
-            Send_Response (Response, Request_Id);
-         end Send_Not_Initialized;
-
-         JS             : aliased LSP.JSON_Streams.JSON_Stream;
-         Document       : GNATCOLL.JSON.JSON_Value;
-         JSON_Array     : GNATCOLL.JSON.JSON_Array;
-
-         Version    : LSP.Types.LSP_String;
-         Method     : LSP.Types.Optional_String;
-         Request_Id : LSP.Types.LSP_Number_Or_String;
-         Error      : LSP.Messages.Optional_ResponseError;
-
-      begin
-         Document := GNATCOLL.JSON.Read (Vector);
-         GNATCOLL.JSON.Append (JSON_Array, Document);
-         JS.Set_JSON_Document (JSON_Array);
-         JS.Start_Object;
-         Read_Number_Or_String (JS, +"id", Request_Id);
-         LSP.Types.Read_String (JS, +"jsonrpc", Version);
-         LSP.Types.Read_Optional_String (JS, +"method", Method);
-
-         if not Method.Is_Set then
-            --  TODO: Process client responses here.
-
-            JS.Key ("error");
-            LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
-
-            if Error.Is_Set then
-               --  We have got error from LSP client. Save it in the trace:
-               Server_Trace.Trace ("Got Error response:");
-
-               Server_Trace.Trace
-                 (LSP.Types.To_UTF_8_String (Error.Value.message));
-            end if;
-
-            return;
-         elsif LSP.Types.Assigned (Request_Id) then
-            if not Initialized then
-               if Method.Value /= +"initialize" then
-                  Send_Not_Initialized (Request_Id);
-                  return;
-               else
-                  Initialized := True;
-               end if;
-            end if;
-         else
-            if Initialized then
-               --  This is a notification
-               Notif_Handler.Handle_Notification
-                 (LSP.Messages.Notifications.Decode_Notification (Document));
-            end if;
+         if Message.all in LSP.Messages.NotificationMessage'Class then
+            --  This is a notification
+            Notif_Handler.Handle_Notification
+              (LSP.Messages.NotificationMessage'Class (Message.all));
 
             return;
          end if;
 
+         declare
+            --  This is a request
+            Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+            Output     : Ada.Strings.Unbounded.Unbounded_String;
+            Request    : LSP.Messages.RequestMessage'Class renames
+              LSP.Messages.RequestMessage'Class (Message.all);
          begin
             --  Nest a declare block so we can catch specifically an
-            --  exception raised during the decoding of a request.
-
+            --  exception raised during the processing of a request.
             declare
-               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-               Output     : Ada.Strings.Unbounded.Unbounded_String;
-               Request    : constant LSP.Messages.RequestMessage'Class
-                 := LSP.Messages.Requests.Decode_Request (Document);
+               Response   : constant LSP.Messages.ResponseMessage'Class :=
+                 Req_Handler.Handle_Request (Request);
             begin
-               --  Nest a declare block so we can catch specifically an
-               --  exception raised during the processing of a request.
-               declare
-                  Response   : constant LSP.Messages.ResponseMessage'Class :=
-                    Req_Handler.Handle_Request (Request);
-               begin
-                  LSP.Messages.ResponseMessage'Class'Write
-                    (Out_Stream'Access, Response);
-                  Output := To_Unbounded_String (Out_Stream);
-                  Output_Queue.Enqueue (Output);
-               end;
-
-            exception
-               when E : others =>
-                  --  If we reach this exception handler, this means the
-                  --  request could be decoded, but an exception was raised
-                  --  when processing it.
-                  Send_Exception_Response (E, To_String (Vector), Request.id);
+               LSP.Messages.ResponseMessage'Class'Write
+                 (Out_Stream'Access, Response);
+               Output := To_Unbounded_String (Out_Stream);
+               Output_Queue.Enqueue (Output);
             end;
 
          exception
             when E : others =>
-               --  If we reach this exception handler, this means the request
-               --  could not be decoded.
+               --  If we reach this exception handler, this means an exception
+               --  was raised when processing the request.
                Send_Exception_Response
-                 (E,
-                  To_String (Request),
-                  Request_Id,
-                  LSP.Messages.InvalidParams);
+                 (Server.all, E, "To_String (Vector)", Request.id);
          end;
-
-      exception
-         when E : others =>
-            --  Catch-all case: make sure no exception in any message
-            --  processing can cause an exit of the task main loop.
-
-            GNATCOLL.Traces.Trace
-              (LSP.Server_Trace,
-               "Unexpected exception when processing a message:");
-            Server_Trace.Trace (Symbolic_Traceback (E));
-
-      end Process_Message_From_Stream;
+      end Process_Message;
 
    begin
       --  Perform initialization
@@ -788,7 +839,8 @@ package body LSP.Servers is
 
             --  Process the request
             begin
-               Process_Message_From_Stream (Request);
+               Process_Message (Request);
+               Free (Request);
             exception
                when Ada.IO_Exceptions.End_Error =>
                   Server_Trace.Trace ("Received EOF.");
@@ -802,8 +854,8 @@ package body LSP.Servers is
                   --  exception handler, this means the request could be
                   --  decoded, but an exception was raised when processing it.
                   Send_Exception_Response
-                    (E,
-                     To_String (Request),
+                    (Server.all, E,
+                     "To_String (Request)",
                      (Is_Number => False,
                       String    => LSP.Types.Empty_LSP_String));
 
