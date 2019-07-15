@@ -83,7 +83,7 @@ private
 
    type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
-   type Message_Access is access LSP.Messages.Message'Class;
+   type Message_Access is access all LSP.Messages.Message'Class;
    --  There are two flows of messages:
    --  * Message created byt Input_Tast and destroyed by Processing_Task.
    --  * Message created by Processing_Task and destroyed by Output_Task.
@@ -100,7 +100,7 @@ private
        (Message_Queue_Interface);
    package Output_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
-       (Unbounded_String_Queue_Interface);
+       (Message_Queue_Interface);
 
    type Input_Queue_Access is access Input_Queues.Queue;
    type Output_Queue_Access is access Output_Queues.Queue;
@@ -159,11 +159,6 @@ private
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
    end record;
-
-   procedure Send_Notification
-     (Self  : in out Server;
-      Value : in out LSP.Messages.NotificationMessage'Class);
-   --  Send given notification to client
 
    overriding procedure Show_Message
      (Self   : in out Server;
