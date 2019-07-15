@@ -67,11 +67,20 @@ package body LSP.Servers is
      (Vector : Ada.Strings.Unbounded.Unbounded_String)
       return Ada.Streams.Stream_Element_Array;
 
+   type Response_Access is access all LSP.Messages.ResponseMessage'Class;
+
    procedure Send_Response
      (Self       : in out Server'Class;
-      Response   : in out LSP.Messages.ResponseMessage'Class;
+      Response   : in out Response_Access;
       Request_Id : LSP.Types.LSP_Number_Or_String);
-   --  Complete Response and send it to the output queue
+   --  Complete Response and send it to the output queue. Response will be
+   --  deleted by Output_Task
+
+   procedure Send_Notification
+     (Self  : in out Server'Class;
+      Value : in out Message_Access);
+   --  Send given notification to client. The Notification will be deleted by
+   --  Output_Task
 
    procedure Send_Exception_Response
      (Self       : in out Server'Class;
@@ -160,11 +169,12 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.LogMessageParams)
    is
-      Message : LSP.Messages.Notifications.LogMessage_Notification;
+      Message : Message_Access :=
+        new LSP.Messages.Notifications.LogMessage_Notification'
+           (method  => +"window/logMessage",
+            params  => Params,
+            jsonrpc => <>);
    begin
-      Message.method := +"window/logMessage";
-      Message.params := Params;
-
       Self.Send_Notification (Message);
    end Log_Message;
 
@@ -458,11 +468,12 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.PublishDiagnosticsParams)
    is
-      Message : LSP.Messages.Notifications.PublishDiagnostics_Notification;
+      Message : Message_Access :=
+        new LSP.Messages.Notifications.PublishDiagnostics_Notification'
+          (jsonrpc => <>,
+           method  => +"textDocument/publishDiagnostics",
+           params  => Params);
    begin
-      Message.method := +"textDocument/publishDiagnostics";
-      Message.params := Params;
-
       Self.Send_Notification (Message);
    end Publish_Diagnostics;
 
@@ -498,8 +509,8 @@ package body LSP.Servers is
    is
       Exception_Text : constant String :=
         Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
-      Response       : LSP.Messages.ResponseMessage'Class :=
-        LSP.Messages.ResponseMessage'
+      Response       : Response_Access :=
+        new LSP.Messages.ResponseMessage'
           (Is_Error => True,
            jsonrpc  => <>,  --  we will set this latter
            id       => <>,  --  we will set this latter
@@ -531,7 +542,7 @@ package body LSP.Servers is
      (Self       : in out Server'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String)
    is
-      Response : LSP.Messages.ResponseMessage :=
+      Response : Response_Access := new LSP.Messages.ResponseMessage'
         (Is_Error => True,
          jsonrpc  => <>,  --  we will set this latter
          id       => <>,  --  we will set this latter
@@ -549,16 +560,13 @@ package body LSP.Servers is
    -----------------------
 
    procedure Send_Notification
-     (Self  : in out Server;
-      Value : in out LSP.Messages.NotificationMessage'Class)
+     (Self  : in out Server'Class;
+      Value : in out Message_Access)
    is
-      JSON_Stream    : aliased LSP.JSON_Streams.JSON_Stream;
-      Element_Vector : Ada.Strings.Unbounded.Unbounded_String;
    begin
       Value.jsonrpc := +"2.0";
-      LSP.Messages.NotificationMessage'Write (JSON_Stream'Access, Value);
-      Element_Vector := To_Unbounded_String (JSON_Stream);
-      Self.Output_Queue.Enqueue (Element_Vector);
+      Self.Output_Queue.Enqueue (Value);
+      Value := null;
    end Send_Notification;
 
    -------------------
@@ -567,18 +575,13 @@ package body LSP.Servers is
 
    procedure Send_Response
      (Self       : in out Server'Class;
-      Response   : in out LSP.Messages.ResponseMessage'Class;
-      Request_Id : LSP.Types.LSP_Number_Or_String)
-   is
-      Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-      Output     : Ada.Strings.Unbounded.Unbounded_String;
+      Response   : in out Response_Access;
+      Request_Id : LSP.Types.LSP_Number_Or_String) is
    begin
       Response.jsonrpc := +"2.0";
       Response.id := Request_Id;
-      LSP.Messages.ResponseMessage'Class'Write
-        (Out_Stream'Access, Response);
-      Output := To_Unbounded_String (Out_Stream);
-      Self.Output_Queue.Enqueue (Output);
+      Self.Output_Queue.Enqueue (Message_Access (Response));
+      Response := null;
    end Send_Response;
 
    ------------------
@@ -589,11 +592,12 @@ package body LSP.Servers is
      (Self   : in out Server;
       Params : LSP.Messages.ShowMessageParams)
    is
-      Message : LSP.Messages.Notifications.ShowMessage_Notification;
+      Message : Message_Access :=
+        new LSP.Messages.Notifications.ShowMessage_Notification'
+          (jsonrpc => <>,
+           method  => +"window/showMessage",
+           params  => Params);
    begin
-      Message.method := +"window/showMessage";
-      Message.params := Params;
-
       Self.Send_Notification (Message);
    end Show_Message;
 
@@ -677,7 +681,7 @@ package body LSP.Servers is
    ----------------------
 
    task body Output_Task_Type is
-      Vector : Ada.Strings.Unbounded.Unbounded_String;
+      Message : Message_Access;
       Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
 
       Output_Queue : Output_Queues.Queue renames Server.Output_Queue;
@@ -700,7 +704,10 @@ package body LSP.Servers is
          String'Write (Stream, Header);
          String'Write (Stream, Ada.Strings.Unbounded.To_String (Vector));
 
-         Trace (Out_Trace, To_String (Vector));
+         if Is_Active (Out_Trace) then
+            --  Avoid expensive convertion to string when trace is off
+            Trace (Out_Trace, To_String (Vector));
+         end if;
       end Write_JSON_RPC;
 
    begin
@@ -709,11 +716,19 @@ package body LSP.Servers is
       loop
          select
             --  Process all available outputs before acceptiong Stop
-            Output_Queue.Dequeue (Vector);
+            Output_Queue.Dequeue (Message);
 
+            declare
+               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+               Output     : Ada.Strings.Unbounded.Unbounded_String;
             begin
+               LSP.Messages.Message'Class'Write
+                 (Out_Stream'Access, Message.all);
+               Free (Message);
+
+               Output := To_Unbounded_String (Out_Stream);
                --  Send the output to the stream
-               Write_JSON_RPC (Stream, Vector);
+               Write_JSON_RPC (Stream, Output);
             exception
                when E : others =>
                   --  Catch-all case: make sure no exception in output writing
@@ -721,7 +736,7 @@ package body LSP.Servers is
                   GNATCOLL.Traces.Trace
                     (LSP.Server_Trace,
                      "Exception when writing output:" & ASCII.LF
-                     & To_String (Vector) & ASCII.LF
+                     & To_String (Output) & ASCII.LF
                      & Exception_Name (E) & " - " &  Exception_Message (E));
                   Server_Trace.Trace (Symbolic_Traceback (E));
 
@@ -750,7 +765,7 @@ package body LSP.Servers is
 
       Req_Handler   : LSP.Messages.Requests.Server_Request_Handler_Access;
       Notif_Handler :
-      LSP.Messages.Notifications.Server_Notification_Handler_Access;
+        LSP.Messages.Notifications.Server_Notification_Handler_Access;
 
       Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
       Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
@@ -795,21 +810,18 @@ package body LSP.Servers is
 
          declare
             --  This is a request
-            Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-            Output     : Ada.Strings.Unbounded.Unbounded_String;
             Request    : LSP.Messages.RequestMessage'Class renames
               LSP.Messages.RequestMessage'Class (Message.all);
          begin
             --  Nest a declare block so we can catch specifically an
             --  exception raised during the processing of a request.
             declare
-               Response   : constant LSP.Messages.ResponseMessage'Class :=
-                 Req_Handler.Handle_Request (Request);
+               Response : constant Message_Access :=
+                 new LSP.Messages.ResponseMessage'Class'
+                   (Req_Handler.Handle_Request (Request));
             begin
-               LSP.Messages.ResponseMessage'Class'Write
-                 (Out_Stream'Access, Response);
-               Output := To_Unbounded_String (Out_Stream);
-               Output_Queue.Enqueue (Output);
+               Output_Queue.Enqueue (Response);
+               --  Response will be deleted by Output_Task
             end;
 
          exception
