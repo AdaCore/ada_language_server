@@ -47,10 +47,8 @@ package LSP.Servers is
       Stream : access Ada.Streams.Root_Stream_Type'Class);
    --  Initialize a server by providing input/output Stream.
 
-   procedure Finalize (Self : in out Server)
-     with No_Return;
+   procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
-   --  This call terminates current process.
 
    procedure Run
      (Self         : in out Server;

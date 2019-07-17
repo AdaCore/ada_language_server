@@ -25,7 +25,6 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 
-with GNAT.OS_Lib;
 with GNATCOLL.JSON;
 
 with Libadalang.Common;         use Libadalang.Common;
@@ -47,7 +46,7 @@ package body LSP.Servers is
    --  Then put the message into Self.Input_Queue.
    --  Handle initialization logic by tracking 'initialize' request, set
    --  Initialized parameter when the request arrives.
-   --  Set EOF at end of stream.
+   --  Set EOF at end of stream or an "exit" notification.
 
    procedure Read_Number_Or_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -157,8 +156,6 @@ package body LSP.Servers is
       or
          delay 0.1;
       end select;
-
-      GNAT.OS_Lib.OS_Exit (Status => 0);
    end Finalize;
 
    -----------------
@@ -365,6 +362,10 @@ package body LSP.Servers is
             --  task
             Self.Input_Queue.Enqueue (Message);
 
+            if Message.all in LSP.Messages.Notifications.Exit_Notification then
+               --  After "exit" notification don't read any further input.
+               EOF := True;
+            end if;
          exception
             when E : others =>
                --  Something goes wrong after JSON parsing
