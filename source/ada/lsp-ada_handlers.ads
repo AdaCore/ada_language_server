@@ -54,11 +54,6 @@ private
      (Self  : access Message_Handler)
       return LSP.Messages.ResponseMessage;
 
-   overriding function On_ShowMessage_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ShowMessageRequestParams)
-      return LSP.Messages.ResponseMessage;
-
    overriding function On_CodeAction_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.CodeActionParams)
@@ -114,11 +109,6 @@ private
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response;
 
-   overriding function On_ApplyWorkspaceEdit_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ApplyWorkspaceEditParams)
-      return LSP.Messages.ResponseMessage;
-
    overriding function On_Workspace_Symbols_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
@@ -143,14 +133,6 @@ private
    overriding procedure On_DidChangeTextDocument_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams);
-
-   overriding procedure On_ShowMessage_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ShowMessageParams) is null;
-
-   overriding procedure On_LogMessage_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.LogMessageParams) is null;
 
    overriding procedure On_PublishDiagnostics_Notification
      (Self  : access Message_Handler;

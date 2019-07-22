@@ -55,28 +55,6 @@ package body LSP.Messages.Notifications is
          end;
       end if;
 
-      if To_UTF_8_String (Method) = "window/showMessage" then
-         declare
-            R : ShowMessage_Notification;
-         begin
-            Set_Common_Notification_Fields (R, JS);
-            JS.Key ("params");
-            ShowMessageParams'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
-
-      if To_UTF_8_String (Method) = "window/logMessage" then
-         declare
-            R : LogMessage_Notification;
-         begin
-            Set_Common_Notification_Fields (R, JS);
-            JS.Key ("params");
-            LogMessageParams'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
-
       if To_UTF_8_String (Method) = "textDocument/publishDiagnostics" then
          declare
             R : PublishDiagnostics_Notification;
@@ -153,18 +131,6 @@ package body LSP.Messages.Notifications is
       if Notification in DidChangeConfiguration_Notification'Class then
          Self.On_DidChangeConfiguration_Notification
             ((DidChangeConfiguration_Notification (Notification).params));
-         return;
-      end if;
-
-      if Notification in ShowMessage_Notification'Class then
-         Self.On_ShowMessage_Notification
-            ((ShowMessage_Notification (Notification).params));
-         return;
-      end if;
-
-      if Notification in LogMessage_Notification'Class then
-         Self.On_LogMessage_Notification
-            ((LogMessage_Notification (Notification).params));
          return;
       end if;
 
@@ -273,62 +239,6 @@ package body LSP.Messages.Notifications is
       Write_Notification_Prefix (S, V);
       JS.Key ("params");
       DidChangeConfigurationParams'Write (S, V.params);
-      JS.End_Object;
-   end Write;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessage_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_Notification_Fields (V, JS);
-      JS.Key ("params");
-      ShowMessageParams'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Notification_Prefix (S, V);
-      JS.Key ("params");
-      ShowMessageParams'Write (S, V.params);
-      JS.End_Object;
-   end Write;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LogMessage_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_Notification_Fields (V, JS);
-      JS.Key ("params");
-      LogMessageParams'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LogMessage_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Notification_Prefix (S, V);
-      JS.Key ("params");
-      LogMessageParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 

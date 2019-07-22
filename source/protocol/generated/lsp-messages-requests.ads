@@ -33,11 +33,6 @@ package LSP.Messages.Requests is
 
    type Shutdown_Request is new RequestMessage with null record;
 
-   type ShowMessage_Request is new RequestMessage with
-   record
-      params : ShowMessageRequestParams;
-   end record;
-
    type CodeAction_Request is new RequestMessage with
    record
       params : CodeActionParams;
@@ -93,11 +88,6 @@ package LSP.Messages.Requests is
       params : ExecuteCommandParams;
    end record;
 
-   type ApplyWorkspaceEdit_Request is new RequestMessage with
-   record
-      params : ApplyWorkspaceEditParams;
-   end record;
-
    type Workspace_Symbols_Request is new RequestMessage with
    record
       params : WorkspaceSymbolParams;
@@ -120,11 +110,6 @@ package LSP.Messages.Requests is
 
    function On_Shutdown_Request
      (Self : access Server_Request_Handler)
-      return LSP.Messages.ResponseMessage is abstract;
-
-   function On_ShowMessage_Request
-     (Self  : access Server_Request_Handler;
-      Value : LSP.Messages.ShowMessageRequestParams)
       return LSP.Messages.ResponseMessage is abstract;
 
    function On_CodeAction_Request
@@ -182,11 +167,6 @@ package LSP.Messages.Requests is
       Value : LSP.Messages.ExecuteCommandParams)
       return LSP.Messages.ExecuteCommand_Response is abstract;
 
-   function On_ApplyWorkspaceEdit_Request
-     (Self  : access Server_Request_Handler;
-      Value : LSP.Messages.ApplyWorkspaceEditParams)
-      return LSP.Messages.ResponseMessage is abstract;
-
    function On_Workspace_Symbols_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
@@ -225,14 +205,6 @@ private
       V : Shutdown_Request);
    for Shutdown_Request'Read use Read;
    for Shutdown_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessage_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Request);
-   for ShowMessage_Request'Read use Read;
-   for ShowMessage_Request'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CodeAction_Request);
@@ -321,14 +293,6 @@ private
       V : Execute_Command_Request);
    for Execute_Command_Request'Read use Read;
    for Execute_Command_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ApplyWorkspaceEdit_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEdit_Request);
-   for ApplyWorkspaceEdit_Request'Read use Read;
-   for ApplyWorkspaceEdit_Request'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Workspace_Symbols_Request);
