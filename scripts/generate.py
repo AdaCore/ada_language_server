@@ -283,8 +283,6 @@ basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 REQUESTS = [
     ('initialize', 'Initialize', 'InitializeParams', 'Initialize_Response'),
     ('shutdown', 'Shutdown', None, 'ResponseMessage'),
-    ('window/showMessageRequest', 'ShowMessage', 'ShowMessageRequestParams',
-     'ResponseMessage'),
     ('textDocument/codeAction', 'CodeAction', 'CodeActionParams',
      'CodeAction_Response'),
     ('textDocument/completion', 'Completion', 'TextDocumentPositionParams',
@@ -292,7 +290,7 @@ REQUESTS = [
     ('textDocument/definition', 'Definition', 'TextDocumentPositionParams',
      'Location_Response'),
     ('textDocument/typeDefinition', 'Type_Definition',
-    'TextDocumentPositionParams', 'Location_Response'),
+     'TextDocumentPositionParams', 'Location_Response'),
     ('textDocument/highight', 'Highlight', 'TextDocumentPositionParams',
      'Highlight_Response'),
     ('textDocument/hover', 'Hover', 'TextDocumentPositionParams',
@@ -306,9 +304,6 @@ REQUESTS = [
     ('textDocument/rename', 'Rename', 'RenameParams', 'Rename_Response'),
     ('textDocument/executeCommand', 'Execute_Command', 'ExecuteCommandParams',
      'ExecuteCommand_Response'),
-    # TODO: rename ApplyWorkspaceEdit to Workspace_Apply_Edit, for consistency
-    ('workspace/applyEdit', 'ApplyWorkspaceEdit', 'ApplyWorkspaceEditParams',
-     'ResponseMessage'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
@@ -327,9 +322,6 @@ NOTIFICATIONS = [
 
     ('workspace/didChangeConfiguration', 'DidChangeConfiguration',
      'DidChangeConfigurationParams'),
-
-    ('window/showMessage', 'ShowMessage', 'ShowMessageParams'),
-    ('window/logMessage', 'LogMessage', 'LogMessageParams'),
 
     ('textDocument/publishDiagnostics', 'PublishDiagnostics',
      'PublishDiagnosticsParams'),

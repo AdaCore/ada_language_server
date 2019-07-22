@@ -24,6 +24,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
+with LSP.Messages.Client_Notifications;
 
 with GNATCOLL.JSON;
 
@@ -167,7 +168,7 @@ package body LSP.Servers is
       Params : LSP.Messages.LogMessageParams)
    is
       Message : Message_Access :=
-        new LSP.Messages.Notifications.LogMessage_Notification'
+        new LSP.Messages.Client_Notifications.LogMessage_Notification'
            (method  => +"window/logMessage",
             params  => Params,
             jsonrpc => <>);
@@ -594,7 +595,7 @@ package body LSP.Servers is
       Params : LSP.Messages.ShowMessageParams)
    is
       Message : Message_Access :=
-        new LSP.Messages.Notifications.ShowMessage_Notification'
+        new LSP.Messages.Client_Notifications.ShowMessage_Notification'
           (jsonrpc => <>,
            method  => +"window/showMessage",
            params  => Params);

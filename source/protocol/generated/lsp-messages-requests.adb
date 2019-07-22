@@ -46,17 +46,6 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
-      if To_UTF_8_String (Method) = "window/showMessageRequest" then
-         declare
-            R : ShowMessage_Request;
-         begin
-            Set_Common_Request_Fields (R, JS);
-            JS.Key ("params");
-            ShowMessageRequestParams'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
-
       if To_UTF_8_String (Method) = "textDocument/codeAction" then
          declare
             R : CodeAction_Request;
@@ -178,17 +167,6 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
-      if To_UTF_8_String (Method) = "workspace/applyEdit" then
-         declare
-            R : ApplyWorkspaceEdit_Request;
-         begin
-            Set_Common_Request_Fields (R, JS);
-            JS.Key ("params");
-            ApplyWorkspaceEditParams'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
-
       if To_UTF_8_String (Method) = "workspace/symbol" then
          declare
             R : Workspace_Symbols_Request;
@@ -247,18 +225,6 @@ package body LSP.Messages.Requests is
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Shutdown_Request;
-         begin
-            R.jsonrpc := +"2.0";
-            R.id := Request.id;
-            return R;
-         end;
-      end if;
-
-      if Request in ShowMessage_Request'Class then
-         declare
-            R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_ShowMessage_Request
-                  (ShowMessage_Request (Request).params);
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -398,18 +364,6 @@ package body LSP.Messages.Requests is
          end;
       end if;
 
-      if Request in ApplyWorkspaceEdit_Request'Class then
-         declare
-            R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_ApplyWorkspaceEdit_Request
-                  (ApplyWorkspaceEdit_Request (Request).params);
-         begin
-            R.jsonrpc := +"2.0";
-            R.id := Request.id;
-            return R;
-         end;
-      end if;
-
       if Request in Workspace_Symbols_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
@@ -507,34 +461,6 @@ package body LSP.Messages.Requests is
    begin
       JS.Start_Object;
       Write_Request_Prefix (S, V);
-      JS.End_Object;
-   end Write;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessage_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_Request_Fields (V, JS);
-      JS.Key ("params");
-      ShowMessageRequestParams'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prefix (S, V);
-      JS.Key ("params");
-      ShowMessageRequestParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 
@@ -843,34 +769,6 @@ package body LSP.Messages.Requests is
       Write_Request_Prefix (S, V);
       JS.Key ("params");
       ExecuteCommandParams'Write (S, V.params);
-      JS.End_Object;
-   end Write;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ApplyWorkspaceEdit_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_Request_Fields (V, JS);
-      JS.Key ("params");
-      ApplyWorkspaceEditParams'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEdit_Request)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Request_Prefix (S, V);
-      JS.Key ("params");
-      ApplyWorkspaceEditParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 

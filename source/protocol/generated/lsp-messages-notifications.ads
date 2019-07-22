@@ -34,16 +34,6 @@ package LSP.Messages.Notifications is
       params : DidChangeConfigurationParams;
    end record;
 
-   type ShowMessage_Notification is new NotificationMessage with
-   record
-      params : ShowMessageParams;
-   end record;
-
-   type LogMessage_Notification is new NotificationMessage with
-   record
-      params : LogMessageParams;
-   end record;
-
    type PublishDiagnostics_Notification is new NotificationMessage with
    record
       params : PublishDiagnosticsParams;
@@ -78,14 +68,6 @@ package LSP.Messages.Notifications is
    procedure On_DidChangeConfiguration_Notification
      (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidChangeConfigurationParams) is abstract;
-
-   procedure On_ShowMessage_Notification
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.ShowMessageParams) is abstract;
-
-   procedure On_LogMessage_Notification
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.LogMessageParams) is abstract;
 
    procedure On_PublishDiagnostics_Notification
      (Self  : access Server_Notification_Handler;
@@ -133,22 +115,6 @@ private
       V : DidChangeConfiguration_Notification);
    for DidChangeConfiguration_Notification'Read use Read;
    for DidChangeConfiguration_Notification'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessage_Notification);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessage_Notification);
-   for ShowMessage_Notification'Read use Read;
-   for ShowMessage_Notification'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LogMessage_Notification);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LogMessage_Notification);
-   for LogMessage_Notification'Read use Read;
-   for LogMessage_Notification'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out PublishDiagnostics_Notification);
