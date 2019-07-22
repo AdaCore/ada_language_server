@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import datetime
 import logging
 import os
 
@@ -74,7 +75,13 @@ class ALSTestsuite(Testsuite):
         else:
             self.env.gnatcov = None
 
+        self.start_time = datetime.datetime.now()
+
     def tear_down(self):
+        self.stop_time = datetime.datetime.now()
+        elapsed = self.stop_time - self.start_time
+        logging.info('Ellapsed time: {}'.format(elapsed))
+
         super(ALSTestsuite, self).tear_down()
 
         if self.env.gnatcov:
