@@ -471,7 +471,7 @@ package body LSP.Servers is
       Params : LSP.Messages.PublishDiagnosticsParams)
    is
       Message : Message_Access :=
-        new LSP.Messages.Notifications.PublishDiagnostics_Notification'
+        new LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
           (jsonrpc => <>,
            method  => +"textDocument/publishDiagnostics",
            params  => Params);

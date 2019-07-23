@@ -55,17 +55,6 @@ package body LSP.Messages.Notifications is
          end;
       end if;
 
-      if To_UTF_8_String (Method) = "textDocument/publishDiagnostics" then
-         declare
-            R : PublishDiagnostics_Notification;
-         begin
-            Set_Common_Notification_Fields (R, JS);
-            JS.Key ("params");
-            PublishDiagnosticsParams'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
-
       if To_UTF_8_String (Method) = "textDocument/didOpen" then
          declare
             R : DidOpenTextDocument_Notification;
@@ -131,12 +120,6 @@ package body LSP.Messages.Notifications is
       if Notification in DidChangeConfiguration_Notification'Class then
          Self.On_DidChangeConfiguration_Notification
             ((DidChangeConfiguration_Notification (Notification).params));
-         return;
-      end if;
-
-      if Notification in PublishDiagnostics_Notification'Class then
-         Self.On_PublishDiagnostics_Notification
-            ((PublishDiagnostics_Notification (Notification).params));
          return;
       end if;
 
@@ -239,34 +222,6 @@ package body LSP.Messages.Notifications is
       Write_Notification_Prefix (S, V);
       JS.Key ("params");
       DidChangeConfigurationParams'Write (S, V.params);
-      JS.End_Object;
-   end Write;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PublishDiagnostics_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_Notification_Fields (V, JS);
-      JS.Key ("params");
-      PublishDiagnosticsParams'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PublishDiagnostics_Notification)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Notification_Prefix (S, V);
-      JS.Key ("params");
-      PublishDiagnosticsParams'Write (S, V.params);
       JS.End_Object;
    end Write;
 

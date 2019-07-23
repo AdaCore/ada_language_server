@@ -49,10 +49,6 @@ package LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidChangeConfigurationParams);
 
-   overriding procedure On_PublishDiagnostics_Notification
-     (Self  : access Client;
-      Value : LSP.Messages.PublishDiagnosticsParams) is null;
-
    overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Client;
       Value : LSP.Messages.DidOpenTextDocumentParams);

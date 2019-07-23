@@ -31,4 +31,10 @@ package LSP.Messages.Client_Notifications is
    type ShowMessage_Notification is
      new ShowMessages.Notification with null record;
 
+   package PublishDiagnostics is
+     new LSP.Generic_Notifications (LSP.Messages.PublishDiagnosticsParams);
+
+   type PublishDiagnostics_Notification is
+     new PublishDiagnostics.Notification with null record;
+
 end LSP.Messages.Client_Notifications;
