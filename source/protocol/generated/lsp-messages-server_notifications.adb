@@ -3,7 +3,7 @@
 with LSP.JSON_Streams;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
 
-package body LSP.Messages.Notifications is
+package body LSP.Messages.Server_Notifications is
 
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -193,4 +193,4 @@ package body LSP.Messages.Notifications is
       JS.End_Object;
    end Write;
 
-end LSP.Messages.Notifications;
+end LSP.Messages.Server_Notifications;

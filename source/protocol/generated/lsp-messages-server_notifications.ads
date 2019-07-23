@@ -3,7 +3,7 @@
 with Ada.Streams;
 with GNATCOLL.JSON; use GNATCOLL.JSON;
 
-package LSP.Messages.Notifications is
+package LSP.Messages.Server_Notifications is
 
    type Initialized_Notification is new NotificationMessage with null record;
 
@@ -92,4 +92,4 @@ private
       V : DidCloseTextDocument_Notification);
    for DidCloseTextDocument_Notification'Read use Read;
    for DidCloseTextDocument_Notification'Write use Write;
-end LSP.Messages.Notifications;
+end LSP.Messages.Server_Notifications;

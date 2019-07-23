@@ -3,7 +3,7 @@
 with Ada.Streams;
 with GNATCOLL.JSON; use GNATCOLL.JSON;
 
-package LSP.Messages.Requests is
+package LSP.Messages.Server_Requests is
 
    type Initialize_Request is new RequestMessage with
    record
@@ -212,4 +212,4 @@ private
       V : ALS_Called_By_Request);
    for ALS_Called_By_Request'Read use Read;
    for ALS_Called_By_Request'Write use Write;
-end LSP.Messages.Requests;
+end LSP.Messages.Server_Requests;

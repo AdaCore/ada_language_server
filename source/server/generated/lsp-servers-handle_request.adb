@@ -1,6 +1,6 @@
 --  Automatically generated, do not edit.
 
-with LSP.Messages.Requests; use LSP.Messages.Requests;
+with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_Request

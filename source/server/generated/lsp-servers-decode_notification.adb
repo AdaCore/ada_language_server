@@ -4,7 +4,7 @@ with Ada.Strings.UTF_Encoding;
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
-with LSP.Messages.Notifications;
+with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
    (Document : GNATCOLL.JSON.JSON_Value)
@@ -28,7 +28,7 @@ begin
 
       if To_UTF_8_String (Method) = "initialized" then
          declare
-            R : LSP.Messages.Notifications.Initialized_Notification;
+            R : Initialized_Notification;
          begin
             Set_Common_Notification_Fields (R, JS);
             return R;
@@ -37,7 +37,7 @@ begin
 
       if To_UTF_8_String (Method) = "exit" then
          declare
-            R : LSP.Messages.Notifications.Exit_Notification;
+            R : Exit_Notification;
          begin
             Set_Common_Notification_Fields (R, JS);
             return R;
@@ -46,7 +46,7 @@ begin
 
    if To_UTF_8_String (Method) = "workspace/didChangeConfiguration" then
       declare
-         R : LSP.Messages.Notifications.DidChangeConfiguration_Notification;
+         R : DidChangeConfiguration_Notification;
       begin
          Set_Common_Notification_Fields (R, JS);
          JS.Key ("params");
@@ -57,7 +57,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/didOpen" then
       declare
-         R : LSP.Messages.Notifications.DidOpenTextDocument_Notification;
+         R : DidOpenTextDocument_Notification;
       begin
          Set_Common_Notification_Fields (R, JS);
          JS.Key ("params");
@@ -68,7 +68,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/didChange" then
       declare
-         R : LSP.Messages.Notifications.DidChangeTextDocument_Notification;
+         R : DidChangeTextDocument_Notification;
       begin
          Set_Common_Notification_Fields (R, JS);
          JS.Key ("params");
@@ -79,7 +79,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/didSave" then
       declare
-         R : LSP.Messages.Notifications.DidSaveTextDocument_Notification;
+         R : DidSaveTextDocument_Notification;
       begin
          Set_Common_Notification_Fields (R, JS);
          JS.Key ("params");
@@ -90,7 +90,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/didClose" then
       declare
-         R : LSP.Messages.Notifications.DidCloseTextDocument_Notification;
+         R : DidCloseTextDocument_Notification;
       begin
          Set_Common_Notification_Fields (R, JS);
          JS.Key ("params");

@@ -25,7 +25,7 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
-with LSP.Messages.Notifications;
+with LSP.Messages.Server_Notifications;
 with LSP.Servers.Decode_Notification;
 with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Notification;
@@ -368,7 +368,9 @@ package body LSP.Servers is
             --  task
             Self.Input_Queue.Enqueue (Message);
 
-            if Message.all in LSP.Messages.Notifications.Exit_Notification then
+            if Message.all in
+              LSP.Messages.Server_Notifications.Exit_Notification
+            then
                --  After "exit" notification don't read any further input.
                EOF := True;
             end if;
