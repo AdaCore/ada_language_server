@@ -23,6 +23,7 @@ with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Requests; use LSP.Messages.Requests;
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
+with LSP.Messages.Client_Notifications;
 
 package body LSP.Clients is
 
@@ -111,6 +112,18 @@ package body LSP.Clients is
          Request : LSP.Types.LSP_Number;
          Handler : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
+
+      --  Notifications
+
+      procedure Show_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class);
+
+      procedure Log_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class);
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
@@ -335,6 +348,22 @@ package body LSP.Clients is
          Handler.Workspace_Symbol_Response (Request, Response);
       end Workspace_Symbol_Response;
 
+      -----------------
+      -- Log_Message --
+      -----------------
+
+      procedure Log_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class)
+      is
+         use LSP.Messages.Client_Notifications;
+         Message : LogMessage_Notification;
+      begin
+         LogMessage_Notification'Read (Stream, Message);
+         Handler.Log_Message (Message.params);
+      end Log_Message;
+
       -------------------------
       -- Publish_Diagnostics --
       -------------------------
@@ -344,11 +373,28 @@ package body LSP.Clients is
          Handler : access
            LSP.Client_Notifications.Client_Notification_Handler'Class)
       is
+         use LSP.Messages.Client_Notifications;
          Message : PublishDiagnostics_Notification;
       begin
          PublishDiagnostics_Notification'Read (Stream, Message);
          Handler.Publish_Diagnostics (Message.params);
       end Publish_Diagnostics;
+
+      ------------------
+      -- Show_Message --
+      ------------------
+
+      procedure Show_Message
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access
+           LSP.Client_Notifications.Client_Notification_Handler'Class)
+      is
+         use LSP.Messages.Client_Notifications;
+         Message : ShowMessage_Notification;
+      begin
+         ShowMessage_Notification'Read (Stream, Message);
+         Handler.Show_Message (Message.params);
+      end Show_Message;
 
    end Decoders;
 
@@ -371,6 +417,12 @@ package body LSP.Clients is
         (Text : String) return Ada.Strings.Unbounded.Unbounded_String
           renames Ada.Strings.Unbounded.To_Unbounded_String;
    begin
+      Self.Notif_Decoders.Insert
+        (-"window/showMessage",
+         Decoders.Show_Message'Access);
+      Self.Notif_Decoders.Insert
+        (-"window/logMessage",
+         Decoders.Log_Message'Access);
       --  "telemetry/event",
       Self.Notif_Decoders.Insert
         (-"textDocument/publishDiagnostics",
