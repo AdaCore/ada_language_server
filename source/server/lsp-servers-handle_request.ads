@@ -15,10 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Messages.Requests;
+with LSP.Server_Request_Handlers;
 
 function LSP.Servers.Handle_Request
-  (Self    : not null LSP.Messages.Requests.Server_Request_Handler_Access;
+  (Self    : not null LSP.Server_Request_Handlers
+     .Server_Request_Handler_Access;
    Request : LSP.Messages.RequestMessage'Class)
    return LSP.Messages.ResponseMessage'Class;
 --  This dispatches a Request to the appropriate
