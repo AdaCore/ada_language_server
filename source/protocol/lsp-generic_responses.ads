@@ -27,12 +27,12 @@ generic
    type T is private;
    --  Result type
 
-   with function Read_Response_Prexif
+   with function Read_Response_Prefix
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage is <>;
    --  Function that reads common attributes of ResponseMessage
 
-   with procedure Write_Response_Prexif
+   with procedure Write_Response_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage'Class) is <>;
    --  Procedure that writes common attributes of ResponseMessage

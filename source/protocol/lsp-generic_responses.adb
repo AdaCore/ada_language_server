@@ -33,7 +33,7 @@ package body LSP.Generic_Responses is
       JS.Start_Object;
 
       declare
-         Parent : constant ResponseMessage := Read_Response_Prexif (S);
+         Parent : constant ResponseMessage := Read_Response_Prefix (S);
       begin
          if Parent.Is_Error then
             JS.End_Object;
@@ -62,7 +62,7 @@ package body LSP.Generic_Responses is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Response_Prexif (S, V);
+      Write_Response_Prefix (S, V);
       if not V.Is_Error then
          JS.Key ("result");
          T'Write (S, V.result);
