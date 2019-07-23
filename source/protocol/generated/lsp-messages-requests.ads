@@ -19,13 +19,6 @@ package LSP.Messages.Requests is
    --  should simply call Handle_Request when they want to dispatch
    --  a Request to the handler.
 
-   function Handle_Request
-     (Self : access Server_Request_Handler'Class;
-      Request : LSP.Messages.RequestMessage'Class)
-      return LSP.Messages.ResponseMessage'Class;
-   --  This dispatches a Request to the appropriate
-   --  *_Request subprogram implemented by clients.
-
    type Initialize_Request is new RequestMessage with
    record
       params : InitializeParams;
@@ -186,7 +179,6 @@ package LSP.Messages.Requests is
      (Self  : access Server_Request_Handler) is null;
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
-
 private
 
    procedure Read

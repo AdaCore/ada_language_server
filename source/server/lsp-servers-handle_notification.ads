@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,28 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
+with LSP.Messages.Notifications;
 
-with "lsp";
-
-project LSP_Server is
-
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada");
-
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
-
-   package Compiler renames LSP.Compiler;
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+procedure LSP.Servers.Handle_Notification
+  (Self         : not null LSP.Messages.Notifications
+     .Server_Notification_Handler_Access;
+   Notification : LSP.Messages.NotificationMessage'Class);
+--  This dispatches a Notification to the appropriate
+--  *_Notification subprogram implemented by clients.

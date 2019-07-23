@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,28 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
+with LSP.Messages.Requests;
 
-with "lsp";
-
-project LSP_Server is
-
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada");
-
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
-
-   package Compiler renames LSP.Compiler;
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+function LSP.Servers.Handle_Request
+  (Self    : not null LSP.Messages.Requests.Server_Request_Handler_Access;
+   Request : LSP.Messages.RequestMessage'Class)
+   return LSP.Messages.ResponseMessage'Class;
+--  This dispatches a Request to the appropriate
+--  *_Request subprogram implemented by clients.

@@ -25,6 +25,8 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
+with LSP.Servers.Handle_Notification;
+with LSP.Servers.Handle_Request;
 
 with GNATCOLL.JSON;
 
@@ -804,8 +806,9 @@ package body LSP.Servers is
       begin
          if Message.all in LSP.Messages.NotificationMessage'Class then
             --  This is a notification
-            Notif_Handler.Handle_Notification
-              (LSP.Messages.NotificationMessage'Class (Message.all));
+            LSP.Servers.Handle_Notification
+              (Notif_Handler,
+               LSP.Messages.NotificationMessage'Class (Message.all));
 
             return;
          end if;
@@ -820,7 +823,7 @@ package body LSP.Servers is
             declare
                Response : constant Message_Access :=
                  new LSP.Messages.ResponseMessage'Class'
-                   (Req_Handler.Handle_Request (Request));
+                   (LSP.Servers.Handle_Request (Req_Handler, Request));
             begin
                Output_Queue.Enqueue (Response);
                --  Response will be deleted by Output_Task

@@ -28,23 +28,6 @@ package LSP.Messages.{kind}s is
    --  a {kind} to the handler.
 """
 
-C_Handler_Procedure_Definition = """
-   procedure Handle_{kind}
-     (Self : access Server_{kind}_Handler'Class;
-      {kind} : LSP.Messages.{kind}Message'Class);
-   --  This dispatches a {kind} to the appropriate
-   --  *_{kind} subprogram implemented by clients.
-"""
-
-C_Handler_Function_Definition = """
-   function Handle_{kind}
-     (Self : access Server_{kind}_Handler'Class;
-      {kind} : LSP.Messages.{kind}Message'Class)
-      return LSP.Messages.ResponseMessage'Class;
-   --  This dispatches a {kind} to the appropriate
-   --  *_{kind} subprogram implemented by clients.
-"""
-
 C_Method_Function_Snippet = """
    function On_{request_name}_{kind}
      (Self  : access Server_{kind}_Handler;
@@ -101,33 +84,44 @@ package body LSP.Messages.{kind}s is
    end Decode_{kind};
 """
 
-C_Handler_Procedure_Body = """
-   procedure Handle_{kind}
-     (Self : access Server_{kind}_Handler'Class;
-      {kind} : LSP.Messages.{kind}Message'Class) is
-   begin
+C_Handler_Procedure_Body = """--  Automatically generated, do not edit.
+
+with LSP.Messages.Notifications; use LSP.Messages.Notifications;
+
+procedure LSP.Servers.Handle_{kind}
+  (Self         : not null LSP.Messages.Notifications
+     .Server_Notification_Handler_Access;
+   {kind} : LSP.Messages.{kind}Message'Class) is
+begin
 {handler_snippets}
-   end Handle_{kind};
+end LSP.Servers.Handle_{kind};
 """
 
-C_Handler_Function_Body = """
-   function Handle_{kind}
-     (Self : access Server_{kind}_Handler'Class;
-      {kind} : LSP.Messages.{kind}Message'Class)
-      return LSP.Messages.ResponseMessage'Class is
-   begin
+C_Handler_Function_Body = """--  Automatically generated, do not edit.
+
+with LSP.Messages.Requests; use LSP.Messages.Requests;
+with Ada.Strings.UTF_Encoding;
+
+function LSP.Servers.Handle_{kind}
+  (Self    : not null LSP.Messages.Requests.Server_Request_Handler_Access;
+   {kind} : LSP.Messages.{kind}Message'Class)
+      return LSP.Messages.ResponseMessage'Class
+is
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+     return LSP.Types.LSP_String renames LSP.Types.To_LSP_String;
+begin
 {handler_snippets}
-      return LSP.Messages.ResponseMessage'
-        (Is_Error => True,
-         jsonrpc  => <>,
-         id       => <>,
-         error    =>
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Messages.MethodNotFound,
-               message => +"The {kind} handler doesn't support this",
-               others  => <>)));
-   end Handle_{kind};
+   return LSP.Messages.ResponseMessage'
+     (Is_Error => True,
+      jsonrpc  => <>,
+      id       => <>,
+      error    =>
+        (Is_Set => True,
+         Value  =>
+           (code    => LSP.Messages.MethodNotFound,
+            message => +"The {kind} handler doesn't support this",
+            others  => <>)));
+end LSP.Servers.Handle_{kind};
 """
 
 C_Decode_Snippet = """
@@ -346,11 +340,6 @@ def write_message_types():
         with open(ads_name, 'wb') as ads:
             ads.write(LSP_Messages_Generic_Header.format(kind=kind))
 
-            if handler_is_procedure:
-                ads.write(C_Handler_Procedure_Definition.format(kind=kind))
-            else:
-                ads.write(C_Handler_Function_Definition.format(kind=kind))
-
             for l in data_array:
                 request_name = l[1]
                 params_name = l[2]
@@ -395,6 +384,13 @@ def write_message_types():
                                 response_name=l[3],
                                 kind=kind))
 
+            if not handler_is_procedure:
+                ads.write("""
+   procedure Handle_Error
+     (Self  : access Server_Request_Handler) is null;
+   --  This procedure will be called when an unexpected error is raised in the
+   --  request processing loop.""")
+
             ads.write("\nprivate\n")
 
             for l in data_array:
@@ -409,7 +405,6 @@ def write_message_types():
         # Write the .adb
         with open(adb_name, 'wb') as adb:
             decode_snippets = ""
-            handler_snippets = ""
 
             # Generate the snippets
             for l in data_array:
@@ -424,19 +419,6 @@ def write_message_types():
                             params_name=params_name,
                             kind=kind)
 
-                    if handler_is_procedure:
-                        handler_snippets += \
-                            C_Handler_Snippet_Procedure.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-                    else:
-                        handler_snippets += \
-                            C_Handler_Snippet_Function.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-
                 else:
                     decode_snippets += \
                         C_Decode_Snippet_Noparams.format(
@@ -444,31 +426,9 @@ def write_message_types():
                             request_name=request_name,
                             kind=kind)
 
-                    if handler_is_procedure:
-                        handler_snippets += \
-                            C_Handler_Snippet_Procedure_Noparams.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-                    else:
-                        handler_snippets += \
-                            C_Handler_Snippet_Function_Noparams.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-
             adb.write(LSP_Messages_Generic_Body_Header.format(
                             decode_snippets=decode_snippets,
                             kind=kind))
-
-            if handler_is_procedure:
-                adb.write(C_Handler_Procedure_Body.format(
-                              kind=kind,
-                              handler_snippets=handler_snippets))
-            else:
-                adb.write(C_Handler_Function_Body.format(
-                              kind=kind,
-                              handler_snippets=handler_snippets))
 
             for l in data_array:
                 request_name = l[1]
@@ -496,5 +456,65 @@ def write_message_types():
                   join(gen_dir, 'lsp-messages-notifications.adb'),
                   True)
 
+
+def write_handle_request():
+    def write_package(data_array, kind, adb_name, handler_is_procedure):
+        """Factorization function"""
+
+        # Write the .adb
+        with open(adb_name, 'wb') as adb:
+            handler_snippets = ""
+
+            # Generate the snippets
+            for l in data_array:
+                protocol_name = l[0]
+                request_name = l[1]
+                params_name = l[2]
+                if params_name:
+                    if handler_is_procedure:
+                        handler_snippets += \
+                            C_Handler_Snippet_Procedure.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind)
+                    else:
+                        handler_snippets += \
+                            C_Handler_Snippet_Function.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind)
+
+                else:
+                    if handler_is_procedure:
+                        handler_snippets += \
+                            C_Handler_Snippet_Procedure_Noparams.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind)
+                    else:
+                        handler_snippets += \
+                            C_Handler_Snippet_Function_Noparams.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind)
+
+            if handler_is_procedure:
+                adb.write(C_Handler_Procedure_Body.format(
+                              kind=kind,
+                              handler_snippets=handler_snippets))
+            else:
+                adb.write(C_Handler_Function_Body.format(
+                              kind=kind,
+                              handler_snippets=handler_snippets))
+
+    gen_dir = join(basedir, 'source', 'server', 'generated')
+    write_package(REQUESTS, 'Request',
+                  join(gen_dir, 'lsp-servers-handle_request.adb'),
+                  False)
+    write_package(NOTIFICATIONS, 'Notification',
+                  join(gen_dir, 'lsp-servers-handle_notification.adb'),
+                  True)
+
 if __name__ == '__main__':
     write_message_types()
+    write_handle_request()
