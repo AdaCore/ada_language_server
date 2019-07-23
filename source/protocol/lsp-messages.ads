@@ -159,7 +159,7 @@ package LSP.Messages is
 
    type ResponseMessage;
 
-   function Read_Response_Prexif
+   function Read_Response_Prefix
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage;
 
@@ -167,7 +167,7 @@ package LSP.Messages is
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage;
 
-   procedure Write_Response_Prexif
+   procedure Write_Response_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage'Class);
 
@@ -199,11 +199,11 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
-   procedure Read_Notification_Prexif
+   procedure Read_Notification_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.NotificationMessage'Class);
 
-   procedure Write_Notification_Prexif
+   procedure Write_Notification_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.NotificationMessage'Class);
 

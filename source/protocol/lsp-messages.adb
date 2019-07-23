@@ -124,7 +124,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
 
-      return Result : constant ResponseMessage := Read_Response_Prexif (S) do
+      return Result : constant ResponseMessage := Read_Response_Prefix (S) do
          JS.End_Object;
       end return;
    end Input_ResponseMessage;
@@ -1084,10 +1084,10 @@ package body LSP.Messages is
    end Read_MessageType;
 
    ------------------------------
-   -- Read_Notification_Prexif --
+   -- Read_Notification_Prefix --
    ------------------------------
 
-   procedure Read_Notification_Prexif
+   procedure Read_Notification_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.NotificationMessage'Class)
    is
@@ -1096,7 +1096,7 @@ package body LSP.Messages is
    begin
       Read_String (JS, +"jsonrpc", V.jsonrpc);
       Read_String (JS, +"method", V.method);
-   end Read_Notification_Prexif;
+   end Read_Notification_Prefix;
 
    -----------------
    -- Read_Number --
@@ -1292,10 +1292,10 @@ package body LSP.Messages is
    end Read_ReferenceParams;
 
    --------------------------
-   -- Read_Response_Prexif --
+   -- Read_Response_Prefix --
    --------------------------
 
-   function Read_Response_Prexif
+   function Read_Response_Prefix
      (S : not null access Ada.Streams.Root_Stream_Type'Class)
       return ResponseMessage
    is
@@ -1326,7 +1326,7 @@ package body LSP.Messages is
 
          return Result;
       end;
-   end Read_Response_Prexif;
+   end Read_Response_Prefix;
 
    -----------------------
    -- Read_RenameParams --
@@ -2681,7 +2681,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Response_Prexif (S, V);
+      Write_Response_Prefix (S, V);
       JS.Key ("result");
       JS.Write (GNATCOLL.JSON.JSON_Null);
       JS.End_Object;
@@ -2955,10 +2955,10 @@ package body LSP.Messages is
    end Write_MessageType;
 
    -------------------------------
-   -- Write_Notification_Prexif --
+   -- Write_Notification_Prefix --
    -------------------------------
 
-   procedure Write_Notification_Prexif
+   procedure Write_Notification_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.NotificationMessage'Class)
    is
@@ -2967,7 +2967,7 @@ package body LSP.Messages is
    begin
       Write_String (JS, +"jsonrpc", V.jsonrpc);
       Write_String (JS, +"method", V.method);
-   end Write_Notification_Prexif;
+   end Write_Notification_Prefix;
 
    ------------------
    -- Write_Number --
@@ -3179,7 +3179,7 @@ package body LSP.Messages is
    -- Write_Response --
    --------------------
 
-   procedure Write_Response_Prexif
+   procedure Write_Response_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ResponseMessage'Class)
    is
@@ -3196,7 +3196,7 @@ package body LSP.Messages is
 
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
-   end Write_Response_Prexif;
+   end Write_Response_Prefix;
 
    ------------------------
    -- Write_RenameParams --
@@ -3254,7 +3254,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Response_Prexif (S, V);
+      Write_Response_Prefix (S, V);
 
       if not V.Is_Error then
          JS.Key ("result");
