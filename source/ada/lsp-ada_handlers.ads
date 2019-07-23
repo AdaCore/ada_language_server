@@ -134,10 +134,6 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams);
 
-   overriding procedure On_PublishDiagnostics_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.PublishDiagnosticsParams) is null;
-
    overriding procedure On_DidCloseTextDocument_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams);

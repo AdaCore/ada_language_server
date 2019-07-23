@@ -34,11 +34,6 @@ package LSP.Messages.Notifications is
       params : DidChangeConfigurationParams;
    end record;
 
-   type PublishDiagnostics_Notification is new NotificationMessage with
-   record
-      params : PublishDiagnosticsParams;
-   end record;
-
    type DidOpenTextDocument_Notification is new NotificationMessage with
    record
       params : DidOpenTextDocumentParams;
@@ -68,10 +63,6 @@ package LSP.Messages.Notifications is
    procedure On_DidChangeConfiguration_Notification
      (Self  : access Server_Notification_Handler;
       Value : LSP.Messages.DidChangeConfigurationParams) is abstract;
-
-   procedure On_PublishDiagnostics_Notification
-     (Self  : access Server_Notification_Handler;
-      Value : LSP.Messages.PublishDiagnosticsParams) is abstract;
 
    procedure On_DidOpenTextDocument_Notification
      (Self  : access Server_Notification_Handler;
@@ -115,14 +106,6 @@ private
       V : DidChangeConfiguration_Notification);
    for DidChangeConfiguration_Notification'Read use Read;
    for DidChangeConfiguration_Notification'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PublishDiagnostics_Notification);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PublishDiagnostics_Notification);
-   for PublishDiagnostics_Notification'Read use Read;
-   for PublishDiagnostics_Notification'Write use Write;
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidOpenTextDocument_Notification);

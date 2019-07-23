@@ -323,9 +323,6 @@ NOTIFICATIONS = [
     ('workspace/didChangeConfiguration', 'DidChangeConfiguration',
      'DidChangeConfigurationParams'),
 
-    ('textDocument/publishDiagnostics', 'PublishDiagnostics',
-     'PublishDiagnosticsParams'),
-
     # TODO: rename these to TextDocumentDidOpen/DidChange/DidSave/DidClose?
     ('textDocument/didOpen', 'DidOpenTextDocument',
      'DidOpenTextDocumentParams'),
