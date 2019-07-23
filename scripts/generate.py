@@ -13,11 +13,6 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 package LSP.Messages.{kind}s is
 
-   function Decode_{kind}
-     (Document : JSON_Value) return {kind}Message'Class;
-   --  Decode the request present in the input document. Document is a JSON
-   --  representation of the protocol string.
-
    type Server_{kind}_Handler is limited interface;
    type Server_{kind}_Handler_Access is
      access all Server_{kind}_Handler'Class;
@@ -54,34 +49,42 @@ C_Method_Procedure_Snippet_Noparam = """
 
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
+with LSP.JSON_Streams;
+with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
+
+package body LSP.Messages.{kind}s is
+"""
+
+LSP_Servers_Decode_Body = """--  Automatically generated, do not edit.
+
 with Ada.Strings.UTF_Encoding;
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
+with LSP.Messages.{kind}s;
 
-package body LSP.Messages.{kind}s is
-
+function LSP.Servers.Decode_{kind}
+   (Document : GNATCOLL.JSON.JSON_Value)
+    return LSP.Messages.{kind}Message'Class
+is
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   function Decode_{kind}
-      (Document : JSON_Value) return {kind}Message'Class
-   is
-      JS : aliased LSP.JSON_Streams.JSON_Stream;
-      JSON_Array : GNATCOLL.JSON.JSON_Array;
+   JS : aliased LSP.JSON_Streams.JSON_Stream;
+   JSON_Array : GNATCOLL.JSON.JSON_Array;
 
-      Method     : LSP.Types.LSP_String;
+   Method     : LSP.Types.LSP_String;
 
-   begin
-      GNATCOLL.JSON.Append (JSON_Array, Document);
-      JS.Set_JSON_Document (JSON_Array);
-      JS.Start_Object;
+begin
+   GNATCOLL.JSON.Append (JSON_Array, Document);
+   JS.Set_JSON_Document (JSON_Array);
+   JS.Start_Object;
 
-      LSP.Types.Read_String (JS, +"method", Method);
+   LSP.Types.Read_String (JS, +"method", Method);
 {decode_snippets}
-      raise Program_Error; --  {kind} not found
-   end Decode_{kind};
+   raise Program_Error; --  {kind} not found
+end LSP.Servers.Decode_{kind};
 """
 
 C_Handler_Procedure_Body = """--  Automatically generated, do not edit.
@@ -125,16 +128,16 @@ end LSP.Servers.Handle_{kind};
 """
 
 C_Decode_Snippet = """
-      if To_UTF_8_String (Method) = "{protocol_name}" then
-         declare
-            R : {request_name}_{kind};
-         begin
-            Set_Common_{kind}_Fields (R, JS);
-            JS.Key ("params");
-            {params_name}'Read (JS'Access, R.params);
-            return R;
-         end;
-      end if;
+   if To_UTF_8_String (Method) = "{protocol_name}" then
+      declare
+         R : LSP.Messages.{kind}s.{request_name}_{kind};
+      begin
+         Set_Common_{kind}_Fields (R, JS);
+         JS.Key ("params");
+         LSP.Messages.{params_name}'Read (JS'Access, R.params);
+         return R;
+      end;
+   end if;
 """
 
 C_Handler_Snippet_Function = """
@@ -182,7 +185,7 @@ C_Handler_Snippet_Procedure_Noparams = """
 C_Decode_Snippet_Noparams = """
       if To_UTF_8_String (Method) = "{protocol_name}" then
          declare
-            R : {request_name}_{kind};
+            R : LSP.Messages.{kind}s.{request_name}_{kind};
          begin
             Set_Common_{kind}_Fields (R, JS);
             return R;
@@ -404,31 +407,8 @@ def write_message_types():
 
         # Write the .adb
         with open(adb_name, 'wb') as adb:
-            decode_snippets = ""
 
-            # Generate the snippets
-            for l in data_array:
-                protocol_name = l[0]
-                request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    decode_snippets += \
-                        C_Decode_Snippet.format(
-                            protocol_name=protocol_name,
-                            request_name=request_name,
-                            params_name=params_name,
-                            kind=kind)
-
-                else:
-                    decode_snippets += \
-                        C_Decode_Snippet_Noparams.format(
-                            protocol_name=protocol_name,
-                            request_name=request_name,
-                            kind=kind)
-
-            adb.write(LSP_Messages_Generic_Body_Header.format(
-                            decode_snippets=decode_snippets,
-                            kind=kind))
+            adb.write(LSP_Messages_Generic_Body_Header.format(kind=kind))
 
             for l in data_array:
                 request_name = l[1]
@@ -515,6 +495,51 @@ def write_handle_request():
                   join(gen_dir, 'lsp-servers-handle_notification.adb'),
                   True)
 
+
+def write_message_decoders():
+    """ Write source/server/lsp-servers-decode_*.adb """
+
+    def write_package(data_array, kind, adb_name,
+                      handler_is_procedure):
+        """Factorization function"""
+
+        # Write the .adb
+        with open(adb_name, 'wb') as adb:
+            decode_snippets = ""
+
+            # Generate the snippets
+            for l in data_array:
+                protocol_name = l[0]
+                request_name = l[1]
+                params_name = l[2]
+                if params_name:
+                    decode_snippets += \
+                        C_Decode_Snippet.format(
+                            protocol_name=protocol_name,
+                            request_name=request_name,
+                            params_name=params_name,
+                            kind=kind)
+
+                else:
+                    decode_snippets += \
+                        C_Decode_Snippet_Noparams.format(
+                            protocol_name=protocol_name,
+                            request_name=request_name,
+                            kind=kind)
+
+            adb.write(LSP_Servers_Decode_Body.format(
+                            decode_snippets=decode_snippets,
+                            kind=kind))
+
+    gen_dir = join(basedir, 'source', 'server', 'generated')
+    write_package(REQUESTS, 'Request',
+                  join(gen_dir, 'lsp-servers-decode_request.adb'),
+                  False)
+    write_package(NOTIFICATIONS, 'Notification',
+                  join(gen_dir, 'lsp-servers-decode_notification.adb'),
+                  True)
+
 if __name__ == '__main__':
     write_message_types()
     write_handle_request()
+    write_message_decoders()
