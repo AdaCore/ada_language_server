@@ -1,6 +1,6 @@
 --  Automatically generated, do not edit.
 
-with LSP.Messages.Notifications; use LSP.Messages.Notifications;
+with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 procedure LSP.Servers.Handle_Notification
   (Self         : not null LSP.Server_Notification_Handlers

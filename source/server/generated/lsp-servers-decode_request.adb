@@ -4,7 +4,7 @@ with Ada.Strings.UTF_Encoding;
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
-with LSP.Messages.Requests;
+with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 
 function LSP.Servers.Decode_Request
    (Document : GNATCOLL.JSON.JSON_Value)
@@ -28,7 +28,7 @@ begin
 
    if To_UTF_8_String (Method) = "initialize" then
       declare
-         R : LSP.Messages.Requests.Initialize_Request;
+         R : Initialize_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -39,7 +39,7 @@ begin
 
       if To_UTF_8_String (Method) = "shutdown" then
          declare
-            R : LSP.Messages.Requests.Shutdown_Request;
+            R : Shutdown_Request;
          begin
             Set_Common_Request_Fields (R, JS);
             return R;
@@ -48,7 +48,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/codeAction" then
       declare
-         R : LSP.Messages.Requests.CodeAction_Request;
+         R : CodeAction_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -59,7 +59,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/completion" then
       declare
-         R : LSP.Messages.Requests.Completion_Request;
+         R : Completion_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -70,7 +70,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/definition" then
       declare
-         R : LSP.Messages.Requests.Definition_Request;
+         R : Definition_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -81,7 +81,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/typeDefinition" then
       declare
-         R : LSP.Messages.Requests.Type_Definition_Request;
+         R : Type_Definition_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -92,7 +92,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/highight" then
       declare
-         R : LSP.Messages.Requests.Highlight_Request;
+         R : Highlight_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -103,7 +103,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/hover" then
       declare
-         R : LSP.Messages.Requests.Hover_Request;
+         R : Hover_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -114,7 +114,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/references" then
       declare
-         R : LSP.Messages.Requests.References_Request;
+         R : References_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -125,7 +125,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/signatureHelp" then
       declare
-         R : LSP.Messages.Requests.Signature_Help_Request;
+         R : Signature_Help_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -136,7 +136,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/documentSymbol" then
       declare
-         R : LSP.Messages.Requests.Document_Symbols_Request;
+         R : Document_Symbols_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -147,7 +147,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/rename" then
       declare
-         R : LSP.Messages.Requests.Rename_Request;
+         R : Rename_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -158,7 +158,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/executeCommand" then
       declare
-         R : LSP.Messages.Requests.Execute_Command_Request;
+         R : Execute_Command_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -169,7 +169,7 @@ begin
 
    if To_UTF_8_String (Method) = "workspace/symbol" then
       declare
-         R : LSP.Messages.Requests.Workspace_Symbols_Request;
+         R : Workspace_Symbols_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -180,7 +180,7 @@ begin
 
    if To_UTF_8_String (Method) = "workspace/executeCommand" then
       declare
-         R : LSP.Messages.Requests.Workspace_Execute_Command_Request;
+         R : Workspace_Execute_Command_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");
@@ -191,7 +191,7 @@ begin
 
    if To_UTF_8_String (Method) = "textDocument/alsCalledBy" then
       declare
-         R : LSP.Messages.Requests.ALS_Called_By_Request;
+         R : ALS_Called_By_Request;
       begin
          Set_Common_Request_Fields (R, JS);
          JS.Key ("params");

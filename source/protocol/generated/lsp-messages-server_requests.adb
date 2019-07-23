@@ -3,7 +3,7 @@
 with LSP.JSON_Streams;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
 
-package body LSP.Messages.Requests is
+package body LSP.Messages.Server_Requests is
 
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -449,4 +449,4 @@ package body LSP.Messages.Requests is
       JS.End_Object;
    end Write;
 
-end LSP.Messages.Requests;
+end LSP.Messages.Server_Requests;

@@ -11,7 +11,7 @@ LSP_Messages_Generic_Header = """--  Automatically generated, do not edit.
 with Ada.Streams;
 with GNATCOLL.JSON; use GNATCOLL.JSON;
 
-package LSP.Messages.{kind}s is
+package LSP.Messages.Server_{kind}s is
 """
 
 C_Method_Function_Snippet = """
@@ -43,7 +43,7 @@ LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 with LSP.JSON_Streams;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
 
-package body LSP.Messages.{kind}s is
+package body LSP.Messages.Server_{kind}s is
 """
 
 LSP_Servers_Decode_Body = """--  Automatically generated, do not edit.
@@ -52,7 +52,7 @@ with Ada.Strings.UTF_Encoding;
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
-with LSP.Messages.{kind}s;
+with LSP.Messages.Server_{kind}s; use LSP.Messages.Server_{kind}s;
 
 function LSP.Servers.Decode_{kind}
    (Document : GNATCOLL.JSON.JSON_Value)
@@ -80,7 +80,7 @@ end LSP.Servers.Decode_{kind};
 
 C_Handler_Procedure_Body = """--  Automatically generated, do not edit.
 
-with LSP.Messages.Notifications; use LSP.Messages.Notifications;
+with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 procedure LSP.Servers.Handle_{kind}
   (Self         : not null LSP.Server_Notification_Handlers
@@ -93,7 +93,7 @@ end LSP.Servers.Handle_{kind};
 
 C_Handler_Function_Body = """--  Automatically generated, do not edit.
 
-with LSP.Messages.Requests; use LSP.Messages.Requests;
+with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_{kind}
@@ -122,7 +122,7 @@ end LSP.Servers.Handle_{kind};
 C_Decode_Snippet = """
    if To_UTF_8_String (Method) = "{protocol_name}" then
       declare
-         R : LSP.Messages.{kind}s.{request_name}_{kind};
+         R : {request_name}_{kind};
       begin
          Set_Common_{kind}_Fields (R, JS);
          JS.Key ("params");
@@ -177,7 +177,7 @@ C_Handler_Snippet_Procedure_Noparams = """
 C_Decode_Snippet_Noparams = """
       if To_UTF_8_String (Method) = "{protocol_name}" then
          declare
-            R : LSP.Messages.{kind}s.{request_name}_{kind};
+            R : {request_name}_{kind};
          begin
             Set_Common_{kind}_Fields (R, JS);
             return R;
@@ -186,7 +186,7 @@ C_Decode_Snippet_Noparams = """
 """
 
 LSP_Messages_Generic_Footer = """
-end LSP.Messages.{kind}s;
+end LSP.Messages.Server_{kind}s;
 """
 
 LSP_Messages_Generic_Type_Snippet = """
@@ -403,12 +403,12 @@ def write_message_types():
 
     gen_dir = join(basedir, 'source', 'protocol', 'generated')
     write_package(REQUESTS, 'Request',
-                  join(gen_dir, 'lsp-messages-requests.ads'),
-                  join(gen_dir, 'lsp-messages-requests.adb'),
+                  join(gen_dir, 'lsp-messages-server_requests.ads'),
+                  join(gen_dir, 'lsp-messages-server_requests.adb'),
                   False)
     write_package(NOTIFICATIONS, 'Notification',
-                  join(gen_dir, 'lsp-messages-notifications.ads'),
-                  join(gen_dir, 'lsp-messages-notifications.adb'),
+                  join(gen_dir, 'lsp-messages-server_notifications.ads'),
+                  join(gen_dir, 'lsp-messages-server_notifications.adb'),
                   True)
 
 

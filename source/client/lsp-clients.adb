@@ -21,8 +21,8 @@ with LSP.Client_Notifications;
 with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
-with LSP.Messages.Requests; use LSP.Messages.Requests;
-with LSP.Messages.Notifications; use LSP.Messages.Notifications;
+with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
+with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 with LSP.Messages.Client_Notifications;
 
 package body LSP.Clients is
@@ -403,7 +403,7 @@ package body LSP.Clients is
    --------------------------
 
    overriding procedure On_Exit_Notification (Self : access Client) is
-      Message : LSP.Messages.Notifications.Exit_Notification;
+      Message : LSP.Messages.Server_Notifications.Exit_Notification;
    begin
       Self.Send_Notification ("exit", Message);
    end On_Exit_Notification;
@@ -438,7 +438,7 @@ package body LSP.Clients is
       Request : out LSP.Types.LSP_Number;
       Value   : LSP.Messages.InitializeParams)
    is
-      Message : LSP.Messages.Requests.Initialize_Request :=
+      Message : LSP.Messages.Server_Requests.Initialize_Request :=
         (params => Value, others => <>);
    begin
       Self.Send_Request
@@ -627,7 +627,7 @@ package body LSP.Clients is
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number)
    is
-      Message : LSP.Messages.Requests.Shutdown_Request;
+      Message : LSP.Messages.Server_Requests.Shutdown_Request;
    begin
       Self.Send_Request
         (Request,
