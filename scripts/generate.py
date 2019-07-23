@@ -12,15 +12,6 @@ with Ada.Streams;
 with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 package LSP.Messages.{kind}s is
-
-   type Server_{kind}_Handler is limited interface;
-   type Server_{kind}_Handler_Access is
-     access all Server_{kind}_Handler'Class;
-   --  A type which represents a handler which supports reacting
-   --  to {kind}s. Clients implementing this interface should override
-   --  the *_{kind} methods, and clients making use of this interface
-   --  should simply call Handle_{kind} when they want to dispatch
-   --  a {kind} to the handler.
 """
 
 C_Method_Function_Snippet = """
@@ -92,7 +83,7 @@ C_Handler_Procedure_Body = """--  Automatically generated, do not edit.
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 
 procedure LSP.Servers.Handle_{kind}
-  (Self         : not null LSP.Messages.Notifications
+  (Self         : not null LSP.Server_Notification_Handlers
      .Server_Notification_Handler_Access;
    {kind} : LSP.Messages.{kind}Message'Class) is
 begin
@@ -106,7 +97,8 @@ with LSP.Messages.Requests; use LSP.Messages.Requests;
 with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_{kind}
-  (Self    : not null LSP.Messages.Requests.Server_Request_Handler_Access;
+  (Self    : not null Server_Request_Handlers
+     .Server_Request_Handler_Access;
    {kind} : LSP.Messages.{kind}Message'Class)
       return LSP.Messages.ResponseMessage'Class
 is
@@ -274,6 +266,26 @@ LSP_Messages_Generic_Write_Snippet_Noparams = """
    end Write;
 """
 
+LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
+
+with LSP.Messages;
+
+package LSP.Server_{kind}_Handlers is
+
+   type Server_{kind}_Handler is limited interface;
+   type Server_{kind}_Handler_Access is
+     access all Server_{kind}_Handler'Class;
+   --  A type which represents a handler which supports reacting
+   --  to {kind}s. Clients implementing this interface should override
+   --  the *_{kind} methods, and clients making use of this interface
+   --  should simply call Handle_{kind} when they want to dispatch
+   --  a {kind} to the handler.
+"""
+
+LSP_Server_Handlers_Footer = """
+end LSP.Server_{kind}_Handlers;
+"""
+
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
@@ -356,43 +368,6 @@ def write_message_types():
                         LSP_Messages_Generic_Type_Snippet_Noparams.format(
                             request_name=request_name,
                             kind=kind))
-
-            for l in data_array:
-                request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    if handler_is_procedure:
-                        ads.write(
-                            C_Method_Procedure_Snippet.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind))
-                    else:
-                        ads.write(
-                            C_Method_Function_Snippet.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                response_name=l[3],
-                                kind=kind))
-                else:
-                    if handler_is_procedure:
-                        ads.write(
-                            C_Method_Procedure_Snippet_Noparam.format(
-                                request_name=request_name,
-                                kind=kind))
-                    else:
-                        ads.write(
-                            C_Method_Function_Snippet_Noparam.format(
-                                request_name=request_name,
-                                response_name=l[3],
-                                kind=kind))
-
-            if not handler_is_procedure:
-                ads.write("""
-   procedure Handle_Error
-     (Self  : access Server_Request_Handler) is null;
-   --  This procedure will be called when an unexpected error is raised in the
-   --  request processing loop.""")
 
             ads.write("\nprivate\n")
 
@@ -539,7 +514,68 @@ def write_message_decoders():
                   join(gen_dir, 'lsp-servers-decode_notification.adb'),
                   True)
 
+
+def write_server_handlers():
+    """ Write source/server/lsp-server_{request/notification}_handlers.ads """
+
+    def write_package(data_array, kind, ads_name, handler_is_procedure):
+        """Factorization function"""
+
+        # Write the .ads
+        with open(ads_name, 'wb') as ads:
+            ads.write(LSP_Server_Handlers_Header.format(kind=kind))
+
+            for l in data_array:
+                request_name = l[1]
+                params_name = l[2]
+                if params_name:
+                    if handler_is_procedure:
+                        ads.write(
+                            C_Method_Procedure_Snippet.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind))
+                    else:
+                        ads.write(
+                            C_Method_Function_Snippet.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                response_name=l[3],
+                                kind=kind))
+                else:
+                    if handler_is_procedure:
+                        ads.write(
+                            C_Method_Procedure_Snippet_Noparam.format(
+                                request_name=request_name,
+                                kind=kind))
+                    else:
+                        ads.write(
+                            C_Method_Function_Snippet_Noparam.format(
+                                request_name=request_name,
+                                response_name=l[3],
+                                kind=kind))
+
+            if not handler_is_procedure:
+                ads.write("""
+   procedure Handle_Error
+     (Self  : access Server_Request_Handler) is null;
+   --  This procedure will be called when an unexpected error is raised in the
+   --  request processing loop.
+""")
+
+            ads.write(LSP_Server_Handlers_Footer.format(kind=kind))
+
+    gen_dir = join(basedir, 'source', 'protocol', 'generated')
+    write_package(REQUESTS, 'Request',
+                  join(gen_dir, 'lsp-server_request_handlers.ads'),
+                  False)
+    write_package(NOTIFICATIONS, 'Notification',
+                  join(gen_dir, 'lsp-server_notification_handlers.ads'),
+                  True)
+
+
 if __name__ == '__main__':
     write_message_types()
     write_handle_request()
     write_message_decoders()
+    write_server_handlers()

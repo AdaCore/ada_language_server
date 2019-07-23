@@ -19,8 +19,8 @@
 --  language.
 
 with LSP.Messages;
-with LSP.Messages.Requests;
-with LSP.Messages.Notifications;
+with LSP.Server_Request_Handlers;
+with LSP.Server_Notification_Handlers;
 with LSP.Servers;
 
 with LSP.Ada_Contexts;
@@ -30,8 +30,9 @@ package LSP.Ada_Handlers is
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context) is
-   limited new LSP.Messages.Requests.Server_Request_Handler
-     and LSP.Messages.Notifications.Server_Notification_Handler with private;
+   limited new LSP.Server_Request_Handlers.Server_Request_Handler
+     and LSP.Server_Notification_Handlers.Server_Notification_Handler
+   with private;
    --  A handler of LSP notifications and requests from Ada language
 
 private
@@ -39,8 +40,8 @@ private
    type Message_Handler
      (Server : access LSP.Servers.Server;
       Context : access LSP.Ada_Contexts.Context)
-   is limited new LSP.Messages.Requests.Server_Request_Handler
-     and LSP.Messages.Notifications.Server_Notification_Handler with
+   is limited new LSP.Server_Request_Handlers.Server_Request_Handler
+     and LSP.Server_Notification_Handlers.Server_Notification_Handler with
    record
       null;
    end record;

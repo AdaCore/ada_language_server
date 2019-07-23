@@ -4,7 +4,8 @@ with LSP.Messages.Requests; use LSP.Messages.Requests;
 with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_Request
-  (Self    : not null LSP.Messages.Requests.Server_Request_Handler_Access;
+  (Self    : not null Server_Request_Handlers
+     .Server_Request_Handler_Access;
    Request : LSP.Messages.RequestMessage'Class)
       return LSP.Messages.ResponseMessage'Class
 is

@@ -22,7 +22,7 @@ with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
 with LSP.Messages;
-with LSP.Messages.Notifications;
+with LSP.Server_Notification_Handlers;
 with LSP.Raw_Clients;
 with LSP.Types;
 
@@ -33,7 +33,7 @@ limited with LSP.Client_Notifications;
 package LSP.Clients is
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and LSP.Messages.Notifications.Server_Notification_Handler
+     and Server_Notification_Handlers.Server_Notification_Handler
    with private;
    --  Client object to send/recieve request and notification to/from
    --  the LSP server
@@ -185,7 +185,7 @@ private
       Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and LSP.Messages.Notifications.Server_Notification_Handler
+     and Server_Notification_Handlers.Server_Notification_Handler
    with record
       Request_Id       : LSP.Types.LSP_Number := 0;  --  Id of prev request
       Request_Map      : Request_Maps.Map;  --  issued requests

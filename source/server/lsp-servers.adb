@@ -25,6 +25,7 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
+with LSP.Messages.Notifications;
 with LSP.Servers.Decode_Notification;
 with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Notification;
@@ -490,9 +491,9 @@ package body LSP.Servers is
    procedure Run
      (Self         : in out Server;
       Request      : not null
-        LSP.Messages.Requests.Server_Request_Handler_Access;
+        LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Messages.Notifications.Server_Notification_Handler_Access) is
+        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access) is
    begin
       Self.Processing_Task.Start (Request, Notification);
       Self.Output_Task.Start;
@@ -769,18 +770,19 @@ package body LSP.Servers is
    task body Processing_Task_Type is
       Request : Message_Access;
 
-      Req_Handler   : LSP.Messages.Requests.Server_Request_Handler_Access;
+      Req_Handler : LSP.Server_Request_Handlers.Server_Request_Handler_Access;
+
       Notif_Handler :
-        LSP.Messages.Notifications.Server_Notification_Handler_Access;
+        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access;
 
       Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
       Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
 
       procedure Initialize
-        (Request      : not null
-           LSP.Messages.Requests.Server_Request_Handler_Access;
-         Notification : not null
-           LSP.Messages.Notifications.Server_Notification_Handler_Access);
+        (Request      : not null LSP.Server_Request_Handlers
+           .Server_Request_Handler_Access;
+         Notification : not null LSP.Server_Notification_Handlers
+           .Server_Notification_Handler_Access);
       --  Initializes internal data structures
 
       procedure Process_Message (Message : Message_Access);
@@ -790,10 +792,10 @@ package body LSP.Servers is
       ----------------
 
       procedure Initialize
-        (Request      : not null
-           LSP.Messages.Requests.Server_Request_Handler_Access;
-         Notification : not null
-           LSP.Messages.Notifications.Server_Notification_Handler_Access)
+        (Request      : not null LSP.Server_Request_Handlers
+           .Server_Request_Handler_Access;
+         Notification : not null LSP.Server_Notification_Handlers
+           .Server_Notification_Handler_Access)
       is
       begin
          Req_Handler := Request;
@@ -843,10 +845,10 @@ package body LSP.Servers is
    begin
       --  Perform initialization
       accept Start
-        (Request      : not null
-           LSP.Messages.Requests.Server_Request_Handler_Access;
-         Notification : not null
-           LSP.Messages.Notifications.Server_Notification_Handler_Access)
+        (Request      : not null LSP.Server_Request_Handlers
+           .Server_Request_Handler_Access;
+         Notification : not null LSP.Server_Notification_Handlers
+           .Server_Notification_Handler_Access)
       do
          Initialize (Request, Notification);
       end Start;

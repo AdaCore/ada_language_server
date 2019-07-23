@@ -24,8 +24,8 @@ with Ada.Streams;
 
 with LSP.Client_Notifications;
 with LSP.Messages;
-with LSP.Messages.Requests;
-with LSP.Messages.Notifications;
+with LSP.Server_Request_Handlers;
+with LSP.Server_Notification_Handlers;
 with LSP.Types;
 
 private with Ada.Strings.Unbounded;
@@ -53,9 +53,9 @@ package LSP.Servers is
    procedure Run
      (Self         : in out Server;
       Request      : not null
-        LSP.Messages.Requests.Server_Request_Handler_Access;
+        LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Messages.Notifications.Server_Notification_Handler_Access);
+        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access);
    --  Run the server using given Request and Notification handler.
 
    procedure Stop (Self : in out Server);
@@ -108,10 +108,10 @@ private
      (Server : access LSP.Servers.Server)
    is
       entry Start
-        (Request      : not null
-           LSP.Messages.Requests.Server_Request_Handler_Access;
-         Notification : not null
-           LSP.Messages.Notifications.Server_Notification_Handler_Access);
+        (Request      : not null LSP.Server_Request_Handlers
+           .Server_Request_Handler_Access;
+         Notification : not null LSP.Server_Notification_Handlers
+           .Server_Notification_Handler_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;

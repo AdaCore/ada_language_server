@@ -3,7 +3,7 @@
 with LSP.Messages.Notifications; use LSP.Messages.Notifications;
 
 procedure LSP.Servers.Handle_Notification
-  (Self         : not null LSP.Messages.Notifications
+  (Self         : not null LSP.Server_Notification_Handlers
      .Server_Notification_Handler_Access;
    Notification : LSP.Messages.NotificationMessage'Class) is
 begin

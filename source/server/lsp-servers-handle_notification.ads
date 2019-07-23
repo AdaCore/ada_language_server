@@ -15,10 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Messages.Notifications;
+with LSP.Server_Notification_Handlers;
 
 procedure LSP.Servers.Handle_Notification
-  (Self         : not null LSP.Messages.Notifications
+  (Self         : not null LSP.Server_Notification_Handlers
      .Server_Notification_Handler_Access;
    Notification : LSP.Messages.NotificationMessage'Class);
 --  This dispatches a Notification to the appropriate
