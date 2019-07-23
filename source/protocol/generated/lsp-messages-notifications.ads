@@ -19,12 +19,6 @@ package LSP.Messages.Notifications is
    --  should simply call Handle_Notification when they want to dispatch
    --  a Notification to the handler.
 
-   procedure Handle_Notification
-     (Self : access Server_Notification_Handler'Class;
-      Notification : LSP.Messages.NotificationMessage'Class);
-   --  This dispatches a Notification to the appropriate
-   --  *_Notification subprogram implemented by clients.
-
    type Initialized_Notification is new NotificationMessage with null record;
 
    type Exit_Notification is new NotificationMessage with null record;
