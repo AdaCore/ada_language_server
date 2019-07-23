@@ -5,11 +5,6 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 package LSP.Messages.Notifications is
 
-   function Decode_Notification
-     (Document : JSON_Value) return NotificationMessage'Class;
-   --  Decode the request present in the input document. Document is a JSON
-   --  representation of the protocol string.
-
    type Server_Notification_Handler is limited interface;
    type Server_Notification_Handler_Access is
      access all Server_Notification_Handler'Class;

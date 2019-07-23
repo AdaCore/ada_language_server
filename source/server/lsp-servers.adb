@@ -25,6 +25,8 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
+with LSP.Servers.Decode_Notification;
+with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Notification;
 with LSP.Servers.Handle_Request;
 
@@ -334,7 +336,7 @@ package body LSP.Servers is
 
                begin
                   Message := new LSP.Messages.RequestMessage'Class'
-                    (LSP.Messages.Requests.Decode_Request (Document));
+                    (LSP.Servers.Decode_Request (Document));
                exception
                   when E : others =>
                      --  If we reach this exception handler, this means the
@@ -353,7 +355,7 @@ package body LSP.Servers is
             then
                --  This is a notification
                Message := new LSP.Messages.NotificationMessage'Class'
-                 (LSP.Messages.Notifications.Decode_Notification (Document));
+                 (LSP.Servers.Decode_Notification (Document));
 
             else
                --  Ignore any notification (except 'exit') until initialization

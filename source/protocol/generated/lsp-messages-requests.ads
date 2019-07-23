@@ -5,11 +5,6 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 package LSP.Messages.Requests is
 
-   function Decode_Request
-     (Document : JSON_Value) return RequestMessage'Class;
-   --  Decode the request present in the input document. Document is a JSON
-   --  representation of the protocol string.
-
    type Server_Request_Handler is limited interface;
    type Server_Request_Handler_Access is
      access all Server_Request_Handler'Class;
