@@ -1084,6 +1084,22 @@ package body LSP.Messages is
    end Read_MessageType;
 
    ------------------------------
+   -- Read_NotificationMessage --
+   ------------------------------
+
+   procedure Read_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NotificationMessage)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Notification_Prefix (S, V);
+      JS.End_Object;
+   end Read_NotificationMessage;
+
+   ------------------------------
    -- Read_Notification_Prefix --
    ------------------------------
 
@@ -1290,6 +1306,24 @@ package body LSP.Messages is
       ReferenceContext'Read (S, V.context);
       JS.End_Object;
    end Read_ReferenceParams;
+
+   -------------------------
+   -- Read_RequestMessage --
+   -------------------------
+
+   procedure Read_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RequestMessage)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      LSP.Types.Read_String (JS, +"jsonrpc", V.jsonrpc);
+      LSP.Types.Read_String (JS, +"method", V.method);
+      Read_Number_Or_String (JS, +"id", V.id);
+      JS.End_Object;
+   end Read_RequestMessage;
 
    --------------------------
    -- Read_Response_Prefix --
@@ -2955,6 +2989,22 @@ package body LSP.Messages is
    end Write_MessageType;
 
    -------------------------------
+   -- Write_NotificationMessage --
+   -------------------------------
+
+   procedure Write_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NotificationMessage)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Notification_Prefix (S, V);
+      JS.End_Object;
+   end Write_NotificationMessage;
+
+   -------------------------------
    -- Write_Notification_Prefix --
    -------------------------------
 
@@ -3197,6 +3247,30 @@ package body LSP.Messages is
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prefix;
+
+   --------------------------
+   -- Write_RequestMessage --
+   --------------------------
+
+   procedure Write_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RequestMessage)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"jsonrpc", V.jsonrpc);
+      Write_String (JS, +"method", V.method);
+
+      if V.id.Is_Number then
+         Write_Number (JS, +"id", V.id.Number);
+      elsif not Is_Empty (V.id.String) then
+         Write_String (JS, +"id", V.id.String);
+      end if;
+
+      JS.End_Object;
+   end Write_RequestMessage;
 
    ------------------------
    -- Write_RenameParams --

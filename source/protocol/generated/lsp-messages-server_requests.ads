@@ -1,215 +1,99 @@
 --  Automatically generated, do not edit.
 
-with Ada.Streams;
-with GNATCOLL.JSON; use GNATCOLL.JSON;
+with LSP.Generic_Requests;
 
 package LSP.Messages.Server_Requests is
 
-   type Initialize_Request is new RequestMessage with
-   record
-      params : InitializeParams;
-   end record;
+   package Initialize_Requests is
+     new LSP.Generic_Requests (InitializeParams);
+
+   type Initialize_Request is
+     new Initialize_Requests.Request with null record;
 
    type Shutdown_Request is new RequestMessage with null record;
 
-   type CodeAction_Request is new RequestMessage with
-   record
-      params : CodeActionParams;
-   end record;
+   package CodeAction_Requests is
+     new LSP.Generic_Requests (CodeActionParams);
 
-   type Completion_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   type CodeAction_Request is
+     new CodeAction_Requests.Request with null record;
 
-   type Definition_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   package Completion_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   type Type_Definition_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   type Completion_Request is
+     new Completion_Requests.Request with null record;
 
-   type Highlight_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   package Definition_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   type Hover_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   type Definition_Request is
+     new Definition_Requests.Request with null record;
 
-   type References_Request is new RequestMessage with
-   record
-      params : ReferenceParams;
-   end record;
+   package Type_Definition_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   type Signature_Help_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   type Type_Definition_Request is
+     new Type_Definition_Requests.Request with null record;
 
-   type Document_Symbols_Request is new RequestMessage with
-   record
-      params : DocumentSymbolParams;
-   end record;
+   package Highlight_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   type Rename_Request is new RequestMessage with
-   record
-      params : RenameParams;
-   end record;
+   type Highlight_Request is
+     new Highlight_Requests.Request with null record;
 
-   type Execute_Command_Request is new RequestMessage with
-   record
-      params : ExecuteCommandParams;
-   end record;
+   package Hover_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   type Workspace_Symbols_Request is new RequestMessage with
-   record
-      params : WorkspaceSymbolParams;
-   end record;
+   type Hover_Request is
+     new Hover_Requests.Request with null record;
 
-   type Workspace_Execute_Command_Request is new RequestMessage with
-   record
-      params : ExecuteCommandParams;
-   end record;
+   package References_Requests is
+     new LSP.Generic_Requests (ReferenceParams);
 
-   type ALS_Called_By_Request is new RequestMessage with
-   record
-      params : TextDocumentPositionParams;
-   end record;
+   type References_Request is
+     new References_Requests.Request with null record;
 
-private
+   package Signature_Help_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Initialize_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Initialize_Request);
-   for Initialize_Request'Read use Read;
-   for Initialize_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Shutdown_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Shutdown_Request);
-   for Shutdown_Request'Read use Read;
-   for Shutdown_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeAction_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeAction_Request);
-   for CodeAction_Request'Read use Read;
-   for CodeAction_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Completion_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Completion_Request);
-   for Completion_Request'Read use Read;
-   for Completion_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Definition_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Definition_Request);
-   for Definition_Request'Read use Read;
-   for Definition_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Type_Definition_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Type_Definition_Request);
-   for Type_Definition_Request'Read use Read;
-   for Type_Definition_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Highlight_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Highlight_Request);
-   for Highlight_Request'Read use Read;
-   for Highlight_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Hover_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover_Request);
-   for Hover_Request'Read use Read;
-   for Hover_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out References_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : References_Request);
-   for References_Request'Read use Read;
-   for References_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Signature_Help_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Signature_Help_Request);
-   for Signature_Help_Request'Read use Read;
-   for Signature_Help_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Document_Symbols_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Document_Symbols_Request);
-   for Document_Symbols_Request'Read use Read;
-   for Document_Symbols_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Rename_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Rename_Request);
-   for Rename_Request'Read use Read;
-   for Rename_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Execute_Command_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Execute_Command_Request);
-   for Execute_Command_Request'Read use Read;
-   for Execute_Command_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Workspace_Symbols_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Workspace_Symbols_Request);
-   for Workspace_Symbols_Request'Read use Read;
-   for Workspace_Symbols_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Workspace_Execute_Command_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Workspace_Execute_Command_Request);
-   for Workspace_Execute_Command_Request'Read use Read;
-   for Workspace_Execute_Command_Request'Write use Write;
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ALS_Called_By_Request);
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ALS_Called_By_Request);
-   for ALS_Called_By_Request'Read use Read;
-   for ALS_Called_By_Request'Write use Write;
+   type Signature_Help_Request is
+     new Signature_Help_Requests.Request with null record;
+
+   package Document_Symbols_Requests is
+     new LSP.Generic_Requests (DocumentSymbolParams);
+
+   type Document_Symbols_Request is
+     new Document_Symbols_Requests.Request with null record;
+
+   package Rename_Requests is
+     new LSP.Generic_Requests (RenameParams);
+
+   type Rename_Request is
+     new Rename_Requests.Request with null record;
+
+   package Execute_Command_Requests is
+     new LSP.Generic_Requests (ExecuteCommandParams);
+
+   type Execute_Command_Request is
+     new Execute_Command_Requests.Request with null record;
+
+   package Workspace_Symbols_Requests is
+     new LSP.Generic_Requests (WorkspaceSymbolParams);
+
+   type Workspace_Symbols_Request is
+     new Workspace_Symbols_Requests.Request with null record;
+
+   package Workspace_Execute_Command_Requests is
+     new LSP.Generic_Requests (ExecuteCommandParams);
+
+   type Workspace_Execute_Command_Request is
+     new Workspace_Execute_Command_Requests.Request with null record;
+
+   package ALS_Called_By_Requests is
+     new LSP.Generic_Requests (TextDocumentPositionParams);
+
+   type ALS_Called_By_Request is
+     new ALS_Called_By_Requests.Request with null record;
+
 end LSP.Messages.Server_Requests;
