@@ -8,8 +8,7 @@ from os.path import join
 
 LSP_Messages_Generic_Header = """--  Automatically generated, do not edit.
 
-with Ada.Streams;
-with GNATCOLL.JSON; use GNATCOLL.JSON;
+with LSP.Generic_{kind}s;
 
 package LSP.Messages.Server_{kind}s is
 """
@@ -190,10 +189,11 @@ end LSP.Messages.Server_{kind}s;
 """
 
 LSP_Messages_Generic_Type_Snippet = """
-   type {request_name}_{kind} is new {kind}Message with
-   record
-      params : {params_name};
-   end record;
+   package {request_name}_{kind}s is
+     new LSP.Generic_{kind}s ({params_name});
+
+   type {request_name}_{kind} is
+     new {request_name}_{kind}s.{kind} with null record;
 """
 
 LSP_Messages_Generic_Type_Snippet_Noparams = """
@@ -236,32 +236,6 @@ LSP_Messages_Generic_Write_Snippet = """
       Write_{kind}_Prefix (S, V);
       JS.Key ("params");
       {params_name}'Write (S, V.params);
-      JS.End_Object;
-   end Write;
-"""
-
-LSP_Messages_Generic_Write_Snippet_Noparams = """
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out {request_name}_{kind})
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_{kind}_Fields (V, JS);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : {request_name}_{kind})
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_{kind}_Prefix (S, V);
       JS.End_Object;
    end Write;
 """
@@ -347,8 +321,7 @@ NOTIFICATIONS = [
 def write_message_types():
     """ Write source/protocol/lsp-messages-request.* """
 
-    def write_package(data_array, kind, ads_name, adb_name,
-                      handler_is_procedure):
+    def write_package(data_array, kind, ads_name, handler_is_procedure):
         """Factorization function"""
 
         # Write the .ads
@@ -369,46 +342,14 @@ def write_message_types():
                             request_name=request_name,
                             kind=kind))
 
-            ads.write("\nprivate\n")
-
-            for l in data_array:
-                request_name = l[1]
-                params_name = l[2]
-                ads.write(LSP_Messages_Private_Snippet.format(
-                          request_name=request_name,
-                          kind=kind))
-
             ads.write(LSP_Messages_Generic_Footer.format(kind=kind))
-
-        # Write the .adb
-        with open(adb_name, 'wb') as adb:
-
-            adb.write(LSP_Messages_Generic_Body_Header.format(kind=kind))
-
-            for l in data_array:
-                request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    adb.write(LSP_Messages_Generic_Write_Snippet.format(
-                            request_name=request_name,
-                            params_name=params_name,
-                            kind=kind))
-                else:
-                    adb.write(
-                        LSP_Messages_Generic_Write_Snippet_Noparams.format(
-                            request_name=request_name,
-                            kind=kind))
-
-            adb.write(LSP_Messages_Generic_Footer.format(kind=kind))
 
     gen_dir = join(basedir, 'source', 'protocol', 'generated')
     write_package(REQUESTS, 'Request',
                   join(gen_dir, 'lsp-messages-server_requests.ads'),
-                  join(gen_dir, 'lsp-messages-server_requests.adb'),
                   False)
     write_package(NOTIFICATIONS, 'Notification',
                   join(gen_dir, 'lsp-messages-server_notifications.ads'),
-                  join(gen_dir, 'lsp-messages-server_notifications.adb'),
                   True)
 
 

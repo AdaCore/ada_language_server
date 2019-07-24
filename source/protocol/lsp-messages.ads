@@ -73,6 +73,16 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
+   procedure Read_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RequestMessage);
+   for RequestMessage'Read use Read_RequestMessage;
+
+   procedure Write_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RequestMessage);
+   for RequestMessage'Write use Write_RequestMessage;
+
    --```typescript
    --interface ResponseMessage extends Message {
    --	/**
@@ -198,6 +208,16 @@ package LSP.Messages is
    type NotificationMessage is new Message with record
       method: LSP_String;
    end record;
+
+   procedure Read_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NotificationMessage);
+   for NotificationMessage'Read use Read_NotificationMessage;
+
+   procedure Write_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NotificationMessage);
+   for NotificationMessage'Write use Write_NotificationMessage;
 
    procedure Read_Notification_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
