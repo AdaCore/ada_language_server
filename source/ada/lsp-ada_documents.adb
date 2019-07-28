@@ -72,12 +72,13 @@ package body LSP.Ada_Documents is
       File : constant String :=
         Types.To_UTF_8_String
           (Self.Context.URI_To_File (Self.URI));  --  Delete file://
+      Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
       Server_Trace.Trace ("Applying changes for document " & File);
       for Change of reverse Vector loop
          --  If whole document then reparse it
          if not Change.span.Is_Set then
-            Self.Unit := Self.LAL.Get_From_Buffer
+            Dummy := Self.LAL.Get_From_Buffer
               (Filename => File,
                --  Change.text is always encoded in UTF-8, as per the protocol
                Charset  => "utf-8",
@@ -97,11 +98,13 @@ package body LSP.Ada_Documents is
    is
       Item : LSP.Messages.Diagnostic;
       Nb_Diags : Natural := 0;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit;
    begin
       Errors.Clear;
 
-      if Self.Unit.Has_Diagnostics then
-         for Error of Self.Unit.Diagnostics loop
+      if Unit.Has_Diagnostics then
+         for Error of Unit.Diagnostics loop
             Item.span := To_Span (Error.Sloc_Range);
 
             Item.message := To_LSP_String
@@ -159,12 +162,14 @@ package body LSP.Ada_Documents is
    is
       use Libadalang.Analysis;
       use Langkit_Support.Slocs;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit;
    begin
-      if Self.Unit.Root = No_Ada_Node then
+      if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
       end if;
 
-      return Self.Unit.Root.Lookup
+      return Unit.Root.Lookup
         ((Line   => Line_Number (Position.line) + 1,
           Column => Column_Number (Position.character) + 1));
    end Get_Node_At;
@@ -273,8 +278,9 @@ package body LSP.Ada_Documents is
    is
       File : constant LSP.Types.LSP_String :=
         Self.Context.URI_To_File (Item.uri);  --  Delete file://
+      Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
-      Self.Unit := LAL.Get_From_Buffer
+      Dummy := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
          --  Change.text is always encoded in UTF-8, as per the protocol
          Charset  => "utf-8",
@@ -299,8 +305,9 @@ package body LSP.Ada_Documents is
    is
       File : constant LSP.Types.LSP_String :=
         Self.Context.URI_To_File (Self.URI);  --  Delete file://
+      Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
-      Self.Unit := LAL.Get_From_Buffer
+      Dummy := LAL.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
          Charset  => "utf-8",  --  Provide text as UTF-8 string
          Buffer   => Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
@@ -442,5 +449,18 @@ package body LSP.Ada_Documents is
          end loop;
       end;
    end Get_Completions_At;
+
+   ----------
+   -- Unit --
+   ----------
+
+   function Unit (Self : Document) return Libadalang.Analysis.Analysis_Unit is
+      File : constant LSP.Types.LSP_String :=
+        Self.Context.URI_To_File (Self.URI);
+   begin
+      return Self.LAL.Get_From_File
+        (Filename => LSP.Types.To_UTF_8_String (File),
+         Reparse  => False);
+   end Unit;
 
 end LSP.Ada_Documents;

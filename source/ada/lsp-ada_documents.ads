@@ -77,9 +77,11 @@ private
    type Document (Context : access LSP.Ada_Contexts.Context'Class) is
      tagged limited
    record
-      URI  : LSP.Messages.DocumentUri;
-      LAL  : Libadalang.Analysis.Analysis_Context;
-      Unit : Libadalang.Analysis.Analysis_Unit;
+      URI    : LSP.Messages.DocumentUri;
+      LAL    : Libadalang.Analysis.Analysis_Context;
    end record;
+
+   function Unit (Self : Document) return Libadalang.Analysis.Analysis_Unit;
+   --  Return the analysis unit for Self
 
 end LSP.Ada_Documents;
