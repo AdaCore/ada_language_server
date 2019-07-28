@@ -574,6 +574,7 @@ package body URIs is
       if Has_Scheme
         and then Parse_Authority (User_Info, Host, Port)
       then
+         Port := 0;
          Success := Parse_Path_Abempty (Path) and then Index > Text'Last;
       else
          Success := False;
