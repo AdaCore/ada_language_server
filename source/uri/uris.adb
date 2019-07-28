@@ -302,6 +302,8 @@ package body URIs is
          Has_Port     : Boolean;
          pragma Unreferenced (Has_Port);
       begin
+         Port := 0;
+
          if Index + 1 <= Text'Last
            and then Text (Index .. Index + 1) = "//"
          then
