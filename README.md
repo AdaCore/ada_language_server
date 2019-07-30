@@ -58,13 +58,12 @@ You can activate traces that show all the server input/output. This is done
 by creating a file `$HOME/.als/traces.cfg` with the following contents:
 
 ```
-ALS.IN=yes > in.txt:buffer_size=0
-ALS.OUT=yes > out.txt:buffer_size=0
+ALS.IN=yes > inout.txt:buffer_size=0
+ALS.OUT=yes > inout.txt:buffer_size=0
 ```
 
-When this is present, the ALS will generate files `$HOME/.als/in.txt` and
-`$HOME/.als/out.txt` which contain, respectively, the JSON received and sent
-by the ALS.
+When this is present, the ALS will generate a file `$HOME/.als/inout.txt`
+which logs the input received and the output sent by the language server.
 
 ## Testsuite
 
