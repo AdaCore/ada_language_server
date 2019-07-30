@@ -74,13 +74,13 @@ See more about the project testsuite in a
 
 ### General Requests
 
-| Request                               | Supported          |
-| :------------------------------------ | :----------------: |
-| `initialize`                          | :white_check_mark: |
-| `initialized`                         | :white_check_mark: |
-| `shutdown`                            | :white_check_mark: |
-| `exit`                                | :white_check_mark: |
-| `$/cancelRequest`                     |                    |
+| Request                               | Supported          | Notes             |
+| :------------------------------------ | :----------------: | :---------------: |
+| `initialize`                          | :white_check_mark: |                   |
+| `initialized`                         | :white_check_mark: |                   |
+| `shutdown`                            | :white_check_mark: |                   |
+| `exit`                                | :white_check_mark: |                   |
+| `$/cancelRequest`                     |                    | Planned for 2020  |
 
 ### Workspace Requests
 
@@ -127,7 +127,7 @@ See more about the project testsuite in a
 | `textDocument/formatting`             |                    |
 | `textDocument/rangeFormatting`        |                    |
 | `textDocument/onTypeFormatting`       |                    |
-| `textDocument/rename`                 |                    |
+| `textDocument/rename`                 | :white_check_mark: |
 | `textDocument/prepareRename`          |                    |
 | `textDocument/foldingRange`           |                    |
 
