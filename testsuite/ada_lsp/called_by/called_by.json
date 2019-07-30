@@ -144,7 +144,7 @@
                            "refs":[{"uri":"$URI{p.ads}","range":{"start":{"line":2,"character":37},"end":{"line":2,"character":40}}},
                                    {"uri":"$URI{p.ads}","range":{"start":{"line":3,"character":43},"end":{"line":3,"character":46}}}]},
                       {"location":
-                           {"uri":"$URI{p.adb}","range":{"start":{"line":7,"character":13},"end":{"line":7,"character":14}}},
+                           {"uri":"$URI{p.adb}","range":{"start":{"line":6,"character":8},"end":{"line":6,"character":9}}},
                            "name":"T",
                            "refs":[{"uri":"$URI{p.adb}","range":{"start":{"line":10,"character":11},"end":{"line":10,"character":14}}}]}]}]
       }
