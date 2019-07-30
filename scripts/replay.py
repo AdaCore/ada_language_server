@@ -16,9 +16,8 @@ import os
 from json_transformations import python_to_protocol_string, traces_to_test
 
 als_dir = os.path.join(os.path.expanduser('~'), '.als')
-in_file = os.path.join(als_dir, 'in.txt')
-out_file = os.path.join(als_dir, 'out.txt')
-test = traces_to_test(in_file, out_file, None)
+inout_file = os.path.join(als_dir, 'inout.txt')
+test = traces_to_test(inout_file, None, True)
 result = ""
 for x in test:
     if "send" in x:
