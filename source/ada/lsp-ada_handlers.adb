@@ -224,9 +224,10 @@ package body LSP.Ada_Handlers is
    overriding function On_Initialize_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.InitializeParams)
-      return LSP.Messages.Initialize_Response
+      return LSP.Messages.Server_Responses.Initialize_Response
    is
-      Response : LSP.Messages.Initialize_Response (Is_Error => False);
+      Response : LSP.Messages.Server_Responses.Initialize_Response
+        (Is_Error => False);
       Root     : LSP.Types.LSP_String;
    begin
       Response.result.capabilities.definitionProvider := True;
@@ -273,11 +274,12 @@ package body LSP.Ada_Handlers is
 
    overriding function On_Shutdown_Request
      (Self  : access Message_Handler)
-      return LSP.Messages.ResponseMessage
+      return LSP.Messages.Server_Responses.Shutdown_Response
    is
       pragma Unreferenced (Self);
    begin
-      return Response : LSP.Messages.ResponseMessage (Is_Error => False);
+      return Response : LSP.Messages.Server_Responses.Shutdown_Response
+        (Is_Error => False);
    end On_Shutdown_Request;
 
    ---------------------------
@@ -287,10 +289,11 @@ package body LSP.Ada_Handlers is
    overriding function On_CodeAction_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.CodeActionParams)
-      return LSP.Messages.CodeAction_Response
+      return LSP.Messages.Server_Responses.CodeAction_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.CodeAction_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.CodeAction_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -307,10 +310,11 @@ package body LSP.Ada_Handlers is
    overriding function On_Execute_Command_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
-      return LSP.Messages.ExecuteCommand_Response
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.ExecuteCommand_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -327,7 +331,7 @@ package body LSP.Ada_Handlers is
    overriding function On_Definition_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Location_Response
+      return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
 
@@ -396,7 +400,8 @@ package body LSP.Ada_Handlers is
 
       Definition : Defining_Name;
       Other_Part : Defining_Name;
-      Response   : LSP.Messages.Location_Response (Is_Error => False);
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
    begin
 
       if Name_Node = No_Name then
@@ -435,11 +440,12 @@ package body LSP.Ada_Handlers is
    overriding function On_Type_Definition_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Location_Response
+      return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
 
-      Response  : LSP.Messages.Location_Response (Is_Error => False);
+      Response  : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
       Document  : constant LSP.Ada_Documents.Document_Access :=
                     Self.Context.Get_Document (Value.textDocument.uri);
       Name_Node : constant Name :=
@@ -594,10 +600,11 @@ package body LSP.Ada_Handlers is
    overriding function On_Highlight_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Highlight_Response
+      return LSP.Messages.Server_Responses.Highlight_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.Highlight_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.Highlight_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -614,12 +621,13 @@ package body LSP.Ada_Handlers is
    overriding function On_Hover_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Hover_Response
+      return LSP.Messages.Server_Responses.Hover_Response
    is
       use Libadalang.Analysis;
       use Libadalang.Common;
 
-      Response           : LSP.Messages.Hover_Response (Is_Error => False);
+      Response           : LSP.Messages.Server_Responses.Hover_Response
+        (Is_Error => False);
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
@@ -888,7 +896,7 @@ package body LSP.Ada_Handlers is
    overriding function On_References_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ReferenceParams)
-      return LSP.Messages.Location_Response
+      return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
 
@@ -931,7 +939,8 @@ package body LSP.Ada_Handlers is
       end Get_Reference_Kind;
 
       Definition : Defining_Name;
-      Response   : LSP.Messages.Location_Response (Is_Error => False);
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
    begin
       Self.Imprecise_Resolve_Name (Value, Definition);
 
@@ -968,13 +977,14 @@ package body LSP.Ada_Handlers is
    overriding function On_ALS_Called_By_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.ALS_Called_By_Response
+      return LSP.Messages.Server_Responses.ALS_Called_By_Response
    is
       use Libadalang.Analysis;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
 
       Definition : Defining_Name;
-      Response   : LSP.Messages.ALS_Called_By_Response (Is_Error => False);
+      Response   : LSP.Messages.Server_Responses.ALS_Called_By_Response
+        (Is_Error => False);
    begin
       Self.Imprecise_Resolve_Name (Value, Definition);
 
@@ -1027,10 +1037,11 @@ package body LSP.Ada_Handlers is
    overriding function On_Signature_Help_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.SignatureHelp_Response
+      return LSP.Messages.Server_Responses.SignatureHelp_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.SignatureHelp_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.SignatureHelp_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -1047,11 +1058,12 @@ package body LSP.Ada_Handlers is
    overriding function On_Document_Symbols_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
-      return LSP.Messages.Symbol_Response
+      return LSP.Messages.Server_Responses.Symbol_Response
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
-      Response : LSP.Messages.Symbol_Response (Is_Error => False);
+      Response : LSP.Messages.Server_Responses.Symbol_Response
+        (Is_Error => False);
    begin
       Document.Get_Symbols (Response.result);
       return Response;
@@ -1064,7 +1076,7 @@ package body LSP.Ada_Handlers is
    overriding function On_Rename_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.RenameParams)
-      return LSP.Messages.Rename_Response
+      return LSP.Messages.Server_Responses.Rename_Response
    is
       use Libadalang.Analysis;
 
@@ -1075,7 +1087,8 @@ package body LSP.Ada_Handlers is
         (Self.Context.Get_Node_At (Position));
 
       Definition : Defining_Name;
-      Response   : LSP.Messages.Rename_Response (Is_Error => False);
+      Response   : LSP.Messages.Server_Responses.Rename_Response
+        (Is_Error => False);
       Imprecise  : Boolean;
       Empty      : LSP.Messages.TextEdit_Vector;
    begin
@@ -1197,10 +1210,11 @@ package body LSP.Ada_Handlers is
    overriding function On_Workspace_Execute_Command_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
-      return LSP.Messages.ExecuteCommand_Response
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.ExecuteCommand_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -1217,10 +1231,11 @@ package body LSP.Ada_Handlers is
    overriding function On_Workspace_Symbols_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
-      return LSP.Messages.Symbol_Response
+      return LSP.Messages.Server_Responses.Symbol_Response
    is
       pragma Unreferenced (Self, Value);
-      Response : LSP.Messages.Symbol_Response (Is_Error => True);
+      Response : LSP.Messages.Server_Responses.Symbol_Response
+        (Is_Error => True);
    begin
       Response.error :=
         (True,
@@ -1237,11 +1252,12 @@ package body LSP.Ada_Handlers is
    overriding function On_Completion_Request
      (Self  : access Message_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Completion_Response
+      return LSP.Messages.Server_Responses.Completion_Response
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Context.Get_Document (Value.textDocument.uri);
-      Response : LSP.Messages.Completion_Response (Is_Error => False);
+      Response : LSP.Messages.Server_Responses.Completion_Response
+        (Is_Error => False);
    begin
       Document.Get_Completions_At (Value.position, Response.result);
       return Response;

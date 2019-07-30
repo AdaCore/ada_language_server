@@ -30,7 +30,6 @@ with Ada.Containers.Vectors;
 with Ada.Streams;
 
 with LSP.Generic_Optional;
-with LSP.Generic_Responses;
 with LSP.Types; use LSP.Types;
 
 with LSP.JSON_Streams;
@@ -167,30 +166,29 @@ package LSP.Messages is
    package Optional_ResponseErrors is new LSP.Generic_Optional (ResponseError);
    type Optional_ResponseError is new Optional_ResponseErrors.Optional_Type;
 
-   type ResponseMessage;
-
-   function Read_Response_Prefix
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return ResponseMessage;
-
-   function Input_ResponseMessage
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return ResponseMessage;
-
-   procedure Write_Response_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResponseMessage'Class);
-
    type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String;  --  or null?
       error: Optional_ResponseError (Is_Error);
    end record;
+
+   procedure Read_ResponseMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ResponseMessage);
+   for ResponseMessage'Read use Read_ResponseMessage;
 
    procedure Write_ResponseMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage);
 
    for ResponseMessage'Write use Write_ResponseMessage;
+
+   procedure Read_Response_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ResponseMessage'Class);
+
+   procedure Write_Response_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResponseMessage'Class);
 
    --```typescript
    --interface NotificationMessage extends Message {
@@ -3438,8 +3436,6 @@ package LSP.Messages is
    for ExecuteCommandParams'Read use Read_ExecuteCommandParams;
    for ExecuteCommandParams'Write use Write_ExecuteCommandParams;
 
-   type ExecuteCommand_Response is new ResponseMessage with null record;
-
    --```typescript
    --export interface ApplyWorkspaceEditParams {
    --	/**
@@ -3475,57 +3471,6 @@ package LSP.Messages is
 
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
-
-   package Initialize_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => InitializeResult);
-   subtype Initialize_Response is Initialize_Responses.Response;
-
-   package Completion_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => CompletionList);
-   subtype Completion_Response is Completion_Responses.Response;
-
-   package Hover_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => Hover);
-   subtype Hover_Response is Hover_Responses.Response;
-
-   package SignatureHelp_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => SignatureHelp);
-   subtype SignatureHelp_Response is SignatureHelp_Responses.Response;
-
-   package Highlight_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => DocumentHighlight_Vector);
-   subtype Highlight_Response is Highlight_Responses.Response;
-
-   package Symbol_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => SymbolInformation_Vector);
-   subtype Symbol_Response is Symbol_Responses.Response;
-
-   package Rename_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => WorkspaceEdit);
-   subtype Rename_Response is Rename_Responses.Response;
-
-   package CodeAction_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => Command_Vector);
-   subtype CodeAction_Response is CodeAction_Responses.Response;
-
-   package ApplyWorkspaceEdit_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => ApplyWorkspaceEditResult);
-   subtype ApplyWorkspaceEdit_Response is
-     ApplyWorkspaceEdit_Responses.Response;
-
-   package Location_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => Location_Vector);
-   subtype Location_Response is Location_Responses.Response;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
@@ -3572,11 +3517,6 @@ package LSP.Messages is
    for ALS_Subprogram_And_References_Vector'Write use
      Write_ALS_Subprogram_And_References_Vector;
 
-   package ALS_Called_By_Responses is new LSP.Generic_Responses
-     (ResponseMessage => ResponseMessage,
-      T               => ALS_Subprogram_And_References_Vector);
-   subtype ALS_Called_By_Response is ALS_Called_By_Responses.Response;
-
 private
 
    procedure Write_String
@@ -3601,16 +3541,11 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams);
 
-   procedure Write_ExecuteCommand_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ExecuteCommand_Response);
-
    procedure Write_ShowMessageRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ShowMessageRequestParams);
 
    for ApplyWorkspaceEditParams'Write use Write_ApplyWorkspaceEditParams;
-   for ExecuteCommand_Response'Write use Write_ExecuteCommand_Response;
    for ShowMessageRequestParams'Write use Write_ShowMessageRequestParams;
 
    for ApplyWorkspaceEditParams'Read use Read_ApplyWorkspaceEditParams;
