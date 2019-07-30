@@ -15,48 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.JSON_Streams;
+with LSP.Generic_Responses;
 
-package body LSP.Generic_Responses is
+package LSP.Messages.Client_Responses is
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      LSP.Messages.Read_Response_Prefix (S, V);
+   type Client_Response is new ResponseMessage with null record;
 
-      if not V.Is_Error then
-         JS.Key ("result");
-         T'Read (S, V.result);
-      end if;
+   package ApplyWorkspaceEdit_Responses is new LSP.Generic_Responses
+     (Client_Response,
+      ApplyWorkspaceEditResult);
 
-      JS.End_Object;
-   end Read;
+   type ApplyWorkspaceEdit_Response is
+     new ApplyWorkspaceEdit_Responses.Response with null record;
 
-   -----------
-   -- Write --
-   -----------
+   type ShowMessage_Response is new Client_Response with null record;
 
-   procedure Write
-     (S : not null access Ada.Streams.Root_Stream_Type'Class;
-      V : Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      LSP.Messages.Write_Response_Prefix (S, V);
-
-      if not V.Is_Error then
-         JS.Key ("result");
-         T'Write (S, V.result);
-      end if;
-
-      JS.End_Object;
-   end Write;
-
-end LSP.Generic_Responses;
+end LSP.Messages.Client_Responses;

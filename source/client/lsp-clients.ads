@@ -160,9 +160,10 @@ package LSP.Clients is
 private
 
    type Response_Decoder is access procedure
-     (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Request : LSP.Types.LSP_Number;
-      Handler : access LSP.Clients.Response_Handlers.Response_Handler'Class);
+     (Stream   : access Ada.Streams.Root_Stream_Type'Class;
+      Request  : LSP.Types.LSP_Number;
+      Is_Error : Boolean;
+      Handler  : access LSP.Clients.Response_Handlers.Response_Handler'Class);
 
    function Hash (Value : LSP.Types.LSP_Number)
       return Ada.Containers.Hash_Type is

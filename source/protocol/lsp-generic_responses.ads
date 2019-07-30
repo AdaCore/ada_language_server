@@ -20,22 +20,14 @@
 
 with Ada.Streams;
 
+with LSP.Messages;
+
 generic
-   type ResponseMessage (Is_Error : Boolean) is tagged private;
-   --  Base response class (will be LSP. Pass LSP.Messages.ResponseMessage
+   type ResponseMessage is new LSP.Messages.ResponseMessage with private;
+   --  Base response
 
    type T is private;
    --  Result type
-
-   with function Read_Response_Prefix
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return ResponseMessage is <>;
-   --  Function that reads common attributes of ResponseMessage
-
-   with procedure Write_Response_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResponseMessage'Class) is <>;
-   --  Procedure that writes common attributes of ResponseMessage
 
 package LSP.Generic_Responses is
 
@@ -49,14 +41,14 @@ package LSP.Generic_Responses is
       end case;
    end record;
 
-   function Input
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return Response;
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Response);
 
    procedure Write
      (S : not null access Ada.Streams.Root_Stream_Type'Class;
       V : Response);
 
-   for Response'Input use Input;
+   for Response'Read use Read;
    for Response'Write use Write;
 end LSP.Generic_Responses;

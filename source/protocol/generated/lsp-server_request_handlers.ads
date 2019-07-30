@@ -1,6 +1,6 @@
 --  Automatically generated, do not edit.
 
-with LSP.Messages;
+with LSP.Messages.Server_Responses;
 
 package LSP.Server_Request_Handlers is
 
@@ -16,81 +16,81 @@ package LSP.Server_Request_Handlers is
    function On_Initialize_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.InitializeParams)
-      return LSP.Messages.Initialize_Response is abstract;
+      return LSP.Messages.Server_Responses.Initialize_Response is abstract;
 
    function On_Shutdown_Request
      (Self : access Server_Request_Handler)
-      return LSP.Messages.ResponseMessage is abstract;
+      return LSP.Messages.Server_Responses.Shutdown_Response is abstract;
 
    function On_CodeAction_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.CodeActionParams)
-      return LSP.Messages.CodeAction_Response is abstract;
+      return LSP.Messages.Server_Responses.CodeAction_Response is abstract;
 
    function On_Completion_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Completion_Response is abstract;
+      return LSP.Messages.Server_Responses.Completion_Response is abstract;
 
    function On_Definition_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Location_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Response is abstract;
 
    function On_Type_Definition_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Location_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Response is abstract;
 
    function On_Highlight_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Highlight_Response is abstract;
+      return LSP.Messages.Server_Responses.Highlight_Response is abstract;
 
    function On_Hover_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.Hover_Response is abstract;
+      return LSP.Messages.Server_Responses.Hover_Response is abstract;
 
    function On_References_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.ReferenceParams)
-      return LSP.Messages.Location_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Response is abstract;
 
    function On_Signature_Help_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.SignatureHelp_Response is abstract;
+      return LSP.Messages.Server_Responses.SignatureHelp_Response is abstract;
 
    function On_Document_Symbols_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.DocumentSymbolParams)
-      return LSP.Messages.Symbol_Response is abstract;
+      return LSP.Messages.Server_Responses.Symbol_Response is abstract;
 
    function On_Rename_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.RenameParams)
-      return LSP.Messages.Rename_Response is abstract;
+      return LSP.Messages.Server_Responses.Rename_Response is abstract;
 
    function On_Execute_Command_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
-      return LSP.Messages.ExecuteCommand_Response is abstract;
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response is abstract;
 
    function On_Workspace_Symbols_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.WorkspaceSymbolParams)
-      return LSP.Messages.Symbol_Response is abstract;
+      return LSP.Messages.Server_Responses.Symbol_Response is abstract;
 
    function On_Workspace_Execute_Command_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.ExecuteCommandParams)
-      return LSP.Messages.ExecuteCommand_Response is abstract;
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response is abstract;
 
    function On_ALS_Called_By_Request
      (Self  : access Server_Request_Handler;
       Value : LSP.Messages.TextDocumentPositionParams)
-      return LSP.Messages.ALS_Called_By_Response is abstract;
+      return LSP.Messages.Server_Responses.ALS_Called_By_Response is abstract;
 
    procedure Handle_Error
      (Self  : access Server_Request_Handler) is null;

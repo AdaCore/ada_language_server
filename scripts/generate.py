@@ -17,13 +17,13 @@ C_Method_Function_Snippet = """
    function On_{request_name}_{kind}
      (Self  : access Server_{kind}_Handler;
       Value : LSP.Messages.{params_name})
-      return LSP.Messages.{response_name} is abstract;
+      return LSP.Messages.Server_Responses.{response_name} is abstract;
 """
 
 C_Method_Function_Snippet_Noparam = """
    function On_{request_name}_{kind}
      (Self : access Server_{kind}_Handler)
-      return LSP.Messages.{response_name} is abstract;
+      return LSP.Messages.Server_Responses.{response_name} is abstract;
 """
 
 C_Method_Procedure_Snippet = """
@@ -43,6 +43,8 @@ with LSP.JSON_Streams;
 with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
 
 package body LSP.Messages.Server_{kind}s is
+
+   --  These messages are sent from client to server.
 """
 
 LSP_Servers_Decode_Body = """--  Automatically generated, do not edit.
@@ -242,7 +244,7 @@ LSP_Messages_Generic_Write_Snippet = """
 
 LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
 
-with LSP.Messages;
+with LSP.Messages{extra_with};
 
 package LSP.Server_{kind}_Handlers is
 
@@ -265,7 +267,7 @@ basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 REQUESTS = [
     ('initialize', 'Initialize', 'InitializeParams', 'Initialize_Response'),
-    ('shutdown', 'Shutdown', None, 'ResponseMessage'),
+    ('shutdown', 'Shutdown', None, 'Shutdown_Response'),
     ('textDocument/codeAction', 'CodeAction', 'CodeActionParams',
      'CodeAction_Response'),
     ('textDocument/completion', 'Completion', 'TextDocumentPositionParams',
@@ -464,7 +466,11 @@ def write_server_handlers():
 
         # Write the .ads
         with open(ads_name, 'wb') as ads:
-            ads.write(LSP_Server_Handlers_Header.format(kind=kind))
+            extra_with = '' if handler_is_procedure else '.Server_Responses'
+
+            ads.write(LSP_Server_Handlers_Header.format(
+                kind=kind,
+                extra_with=extra_with))
 
             for l in data_array:
                 request_name = l[1]

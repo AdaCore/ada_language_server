@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 
 with LSP.Messages;
+with LSP.Messages.Client_Responses;
+with LSP.Messages.Server_Responses;
 with LSP.JSON_Streams;
 
 with Ada.Characters.Latin_1;
@@ -82,8 +84,9 @@ procedure Codec_Test is
       declare
          Output_Stream : aliased LSP.JSON_Streams.JSON_Stream;
 
-         Object : constant Response := Response'Input (Input_Stream'Access);
+         Object : Response (Is_Error => False);
       begin
+         Response'Read (Input_Stream'Access, Object);
          Response'Write (Output_Stream'Access, Object);
 
          return GNATCOLL.JSON.Get (Output_Stream.Get_JSON_Document, 1);
@@ -258,32 +261,32 @@ procedure Codec_Test is
       return Result;
    end Read_File;
 
-   function ApplyWorkspaceEdit_Response_Test is
-     new Generic_Response_Test (LSP.Messages.ApplyWorkspaceEdit_Response);
+   function ApplyWorkspaceEdit_Response_Test is new Generic_Response_Test
+       (LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response);
 
-   function CodeAction_Response_Test is
-     new Generic_Response_Test (LSP.Messages.CodeAction_Response);
+   function CodeAction_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.CodeAction_Response);
 
-   function Completion_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Completion_Response);
+   function Completion_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.Completion_Response);
 
-   function Highlight_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Highlight_Response);
+   function Highlight_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.Highlight_Response);
 
    function Hover_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Hover_Response);
+     new Generic_Response_Test (LSP.Messages.Server_Responses.Hover_Response);
 
-   function Initialize_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Initialize_Response);
+   function Initialize_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.Initialize_Response);
 
-   function Location_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Location_Response);
+   function Location_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.Location_Response);
 
-   function SignatureHelp_Response_Test is
-     new Generic_Response_Test (LSP.Messages.SignatureHelp_Response);
+   function SignatureHelp_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.SignatureHelp_Response);
 
-   function Symbol_Response_Test is
-     new Generic_Response_Test (LSP.Messages.Symbol_Response);
+   function Symbol_Response_Test is new Generic_Response_Test
+     (LSP.Messages.Server_Responses.Symbol_Response);
 
    --------------------
    -- Register_Tests --

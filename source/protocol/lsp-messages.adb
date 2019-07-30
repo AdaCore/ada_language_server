@@ -111,24 +111,6 @@ package body LSP.Messages is
       Static_Call      => "c",
       Dispatching_Call => "d");
 
-   ---------------------------
-   -- Input_ResponseMessage --
-   ---------------------------
-
-   function Input_ResponseMessage
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return ResponseMessage
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-
-      return Result : constant ResponseMessage := Read_Response_Prefix (S) do
-         JS.End_Object;
-      end return;
-   end Input_ResponseMessage;
-
    -------------------------------
    -- Read_AlsReferenceKind_Set --
    -------------------------------
@@ -1329,38 +1311,34 @@ package body LSP.Messages is
    -- Read_Response_Prefix --
    --------------------------
 
-   function Read_Response_Prefix
-     (S : not null access Ada.Streams.Root_Stream_Type'Class)
-      return ResponseMessage
+   procedure Read_Response_Prefix
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ResponseMessage'Class)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      error : Optional_ResponseError;
    begin
+      Read_String (JS, +"jsonrpc", V.jsonrpc);
+      Read_Number_Or_String (JS, +"id", V.id);
       JS.Key ("error");
-      Optional_ResponseError'Read (S, error);
-      JS.Key ("id");
-
-      declare
-         Result : ResponseMessage (Is_Error => error.Is_Set);
-         Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-      begin
-         Read_String (JS, +"jsonrpc", Result.jsonrpc);
-
-         if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-            Result.id :=
-              (Is_Number => False, String => LSP.Types.Empty_LSP_String);
-         elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-            Result.id := (Is_Number => False, String => +Value.Get);
-         else
-            Result.id := (Is_Number => True, Number => Value.Get);
-         end if;
-
-         Result.error := error;
-
-         return Result;
-      end;
+      Optional_ResponseError'Read (S, V.error);
    end Read_Response_Prefix;
+
+   --------------------------
+   -- Read_ResponseMessage --
+   --------------------------
+
+   procedure Read_ResponseMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ResponseMessage)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Response_Prefix (S, V);
+      JS.End_Object;
+   end Read_ResponseMessage;
 
    -----------------------
    -- Read_RenameParams --
@@ -2702,24 +2680,6 @@ package body LSP.Messages is
         (JS, +"dynamicRegistration", Optional_Boolean (V));
       JS.End_Object;
    end Write_dynamicRegistration;
-
-   -----------------------------------
-   -- Write_ExecuteCommand_Response --
-   -----------------------------------
-
-   procedure Write_ExecuteCommand_Response
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ExecuteCommand_Response)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Response_Prefix (S, V);
-      JS.Key ("result");
-      JS.Write (GNATCOLL.JSON.JSON_Null);
-      JS.End_Object;
-   end Write_ExecuteCommand_Response;
 
    ---------------------------------
    -- Write_ExecuteCommandOptions --
