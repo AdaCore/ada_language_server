@@ -404,15 +404,7 @@
             "jsonrpc": "2.0", 
             "method": "textDocument/didClose"
          }, 
-         "wait": [
-            {
-               "params": {
-                  "uri": "$URI{main.adb}", 
-                  "diagnostics": []
-               }, 
-               "method": "textDocument/publishDiagnostics"
-            }
-         ]
+         "wait": []
       }
    }, 
    {
@@ -426,15 +418,7 @@
             "jsonrpc": "2.0", 
             "method": "textDocument/didClose"
          }, 
-         "wait": [
-            {
-               "params": {
-                  "uri": "$URI{p.ads}", 
-                  "diagnostics": []
-               }, 
-               "method": "textDocument/publishDiagnostics"
-            }
-         ]
+         "wait": []
       }
    }, 
    {
@@ -448,15 +432,7 @@
             "jsonrpc": "2.0", 
             "method": "textDocument/didClose"
          }, 
-         "wait": [
-            {
-               "params": {
-                  "uri": "$URI{q.ads}", 
-                  "diagnostics": []
-               }, 
-               "method": "textDocument/publishDiagnostics"
-            }
-         ]
+         "wait": []
       }
    }, 
    {
