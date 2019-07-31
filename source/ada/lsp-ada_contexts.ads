@@ -150,11 +150,9 @@ private
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       Root           : LSP.Types.LSP_String;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
-      Extra_Files    : File_Sets.Set;
-      --  Set of opened files that don't belong to the project
+
       Source_Files   : GNATCOLL.VFS.File_Array_Access;
       --  Cache for the list of Ada source files in the loaded project tree
-      --  together with Extra_Files.
 
       Documents      : Document_Maps.Map;
 

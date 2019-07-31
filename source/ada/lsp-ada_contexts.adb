@@ -411,21 +411,6 @@ package body LSP.Ada_Contexts is
    begin
       Self.Documents.Delete (Item.uri);
       Free (Document);
-
-      declare
-         Name : constant LSP.Types.LSP_String := Self.URI_To_File (Item.uri);
-         File : constant Virtual_File := Create
-           (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
-            Normalize => True);
-      begin
-         if Self.Extra_Files.Contains (File) then
-            --  This file doesn't belong to the project, so after closing it
-            --  we don't track it any more for cross references, so delete it
-            --  from the source list
-            Self.Extra_Files.Delete (File);
-            Self.Update_Source_Files;
-         end if;
-      end;
    end Unload_Document;
 
    -------------------------
@@ -433,40 +418,9 @@ package body LSP.Ada_Contexts is
    -------------------------
 
    procedure Update_Source_Files (Self : in out Context) is
-
-      function Update_Extra_Files return Natural;
-      --  Update Self.Extra_Files and return its length
-
-      ------------------------
-      -- Update_Extra_Files --
-      ------------------------
-
-      function Update_Extra_Files return Natural is
-      begin
-         Self.Extra_Files.Clear;
-
-         for J in Self.Documents.Iterate loop
-            declare
-               Name : constant LSP.Types.LSP_String :=
-                 Self.URI_To_File (Document_Maps.Key (J));
-
-               File : constant Virtual_File := Create
-                 (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
-                  Normalize => True);
-            begin
-               if not Self.Is_Part_Of_Project (File) then
-                  Self.Extra_Files.Insert (File);
-               end if;
-            end;
-         end loop;
-
-         return Natural (Self.Extra_Files.Length);
-      end Update_Extra_Files;
-
-      Extra_Files     : constant Natural := Update_Extra_Files;
       All_Sources     : File_Array_Access :=
         Self.Project_Tree.Root_Project.Source_Files (Recursive => True);
-      All_Ada_Sources : File_Array (1 .. All_Sources'Length + Extra_Files);
+      All_Ada_Sources : File_Array (1 .. All_Sources'Length);
       Free_Index      : Natural := All_Ada_Sources'First;
       Set             : File_Info_Set;
    begin
@@ -489,12 +443,6 @@ package body LSP.Ada_Contexts is
                end if;
             end;
          end if;
-      end loop;
-
-      --  Append extra files to All_Ada_Sources
-      for Extra_File of Self.Extra_Files loop
-         All_Ada_Sources (Free_Index) := Extra_File;
-         Free_Index := Free_Index + 1;
       end loop;
 
       Unchecked_Free (All_Sources);
