@@ -463,8 +463,10 @@ package body LSP.Ada_Handlers is
       Self.Context.Unload_Document (Value.textDocument);
 
       --  Clean diagnostics up on closing document
-      Diag.uri := Value.textDocument.uri;
-      Self.Server.Publish_Diagnostics (Diag);
+      if Self.Context.Get_Diagnostics_Enabled then
+         Diag.uri := Value.textDocument.uri;
+         Self.Server.Publish_Diagnostics (Diag);
+      end if;
    end On_DidCloseTextDocument_Notification;
 
    -----------------------------------------

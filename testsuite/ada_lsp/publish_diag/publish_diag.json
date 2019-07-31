@@ -101,7 +101,28 @@
                 }
             }]
         }
-    },  {
+    }, {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didClose",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}"
+                    }
+                }
+            },
+            "wait":[
+               {
+               "params": {
+                  "uri": "$URI{aaa.ads}", 
+                  "diagnostics": []
+               }, 
+               "method": "textDocument/publishDiagnostics"
+              }
+           ]
+        }
+    }, {
         "send": {
             "request": {
                 "jsonrpc":"2.0",

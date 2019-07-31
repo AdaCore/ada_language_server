@@ -174,13 +174,6 @@
          }, 
          "wait": [           
             {
-               "params": {
-                  "uri": "$URI{pack.ads}", 
-                  "diagnostics": []
-               }, 
-               "method": "textDocument/publishDiagnostics"
-            }, 
-            {
                "id": 3, 
                "result": null
             }
