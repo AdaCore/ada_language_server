@@ -1,0 +1,96 @@
+[
+    {
+        "comment":[
+            "This test check no reference to names in synthetic files like __standard"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.ads}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package P is\n   X : Integer;\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.ads}"
+                    },
+                    "position": {
+                        "line": 1,
+                        "character": 10
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "result":[]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
