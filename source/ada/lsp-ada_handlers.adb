@@ -72,6 +72,49 @@ package body LSP.Ada_Handlers is
    --  Send a message in case of a possible imprecise result.
    --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
 
+   procedure Append_Location
+     (Self   : access Message_Handler;
+      Result : in out LSP.Messages.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
+   --  Append given Node location to the Result.
+   --  Do nothing if the item inside of an synthetic file (like __standard).
+   --  See description of Kind in Get_Node_Location comments.
+
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Self   : access Message_Handler;
+      Result : in out LSP.Messages.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+   is
+      function Is_Synthetic return Boolean;
+      --  Check if Node is in a synthetic file (like "__standard").
+      --  TODO: Replace this with LAL property as it will be available.
+
+      ------------------
+      -- Is_Synthetic --
+      ------------------
+
+      function Is_Synthetic return Boolean is
+         Std  : constant String := "__standard";
+         File : constant String := Node.Unit.Get_Filename;
+      begin
+         return File'Length >= Std'Length
+           and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
+      end Is_Synthetic;
+
+      Location : constant LSP.Messages.Location :=
+        Self.Get_Node_Location (Libadalang.Analysis.As_Ada_Node (Node), Kind);
+   begin
+      if not Is_Synthetic then
+         Result.Append (Location);
+      end if;
+   end Append_Location;
+
    -----------------------
    -- Get_Node_Location --
    -----------------------
@@ -288,11 +331,6 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      procedure Append_Location
-        (Result     : in out LSP.Messages.Location_Vector;
-         Definition : Defining_Name);
-      --  Append given defining name location to the result
-
       function Find_Next_Part
         (Definition : Defining_Name) return Defining_Name;
       --  Find defining name of a completion if any
@@ -300,22 +338,6 @@ package body LSP.Ada_Handlers is
       function Find_First_Part
         (Definition : Defining_Name) return Defining_Name;
       --  Find defining name of a declaration for given completion
-
-      ---------------------
-      -- Append_Location --
-      ---------------------
-
-      procedure Append_Location
-        (Result     : in out LSP.Messages.Location_Vector;
-         Definition : Defining_Name)
-      is
-         Location : constant LSP.Messages.Location :=
-                      Get_Node_Location
-                        (Self => Self,
-                         Node => As_Ada_Node (Definition));
-      begin
-         Result.Append (Location);
-      end Append_Location;
 
       ---------------------
       -- Find_First_Part --
@@ -388,7 +410,7 @@ package body LSP.Ada_Handlers is
          Self.Imprecise_Resolve_Name (Value, Definition, LSP.Messages.Info);
 
          if Definition /= No_Defining_Name then
-            Append_Location (Response.result, Definition);
+            Self.Append_Location (Response.result, Definition);
          end if;
       else  --  If we are on a defining_name already
          Other_Part := Find_Next_Part (Definition);
@@ -399,7 +421,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          if Other_Part /= No_Defining_Name then
-            Append_Location (Response.result, Other_Part);
+            Self.Append_Location (Response.result, Other_Part);
          end if;
       end if;
 
@@ -416,7 +438,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Location_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Response  : LSP.Messages.Location_Response (Is_Error => False);
       Document  : constant LSP.Ada_Documents.Document_Access :=
@@ -425,7 +446,6 @@ package body LSP.Ada_Handlers is
                     LSP.Lal_Utils.Get_Node_As_Name
                       (Document.Get_Node_At (Value.position));
       Type_Decl : Base_Type_Decl;
-      Location  : LSP.Messages.Location;
    begin
       if Name_Node = No_Name then
          return Response;
@@ -442,17 +462,12 @@ package body LSP.Ada_Handlers is
       --  A private API already exists in LAL for that: waiting for it to be
       --  public.
 
-      if Type_Decl.Kind in Ada_Anonymous_Type_Decl then
-         Location := Get_Node_Location
-           (Self => Self,
-            Node => As_Ada_Node (Type_Decl));
-      else
-         Location := Get_Node_Location
-           (Self => Self,
-            Node => As_Ada_Node (Type_Decl));
-      end if;
+--        if Type_Decl.Kind in Ada_Anonymous_Type_Decl then
+--           --  When LAL will be ready update this with
+--           Type_Decl := Type_Decl.P_Pointed_Type or something
+--        end if;
 
-      Response.result.Append (Location);
+      Self.Append_Location (Response.result, Type_Decl);
 
       return Response;
    end On_Type_Definition_Request;
@@ -927,27 +942,17 @@ package body LSP.Ada_Handlers is
            Self.Context.Find_All_References (Definition);
       begin
          for Node of References loop
-            declare
-               Location : constant LSP.Messages.Location :=
-                  Get_Node_Location
-                     (Self => Self,
-                      Node => As_Ada_Node (Node),
-                      Kind => Get_Reference_Kind (Node.As_Ada_Node));
-            begin
-               Response.result.Append (Location);
-            end;
+            Self.Append_Location
+              (Response.result,
+               Node,
+               Get_Reference_Kind (Node.As_Ada_Node));
          end loop;
 
          if Value.context.includeDeclaration then
-            declare
-               Location : constant LSP.Messages.Location :=
-                  Get_Node_Location
-                     (Self => Self,
-                      Node => Definition.As_Ada_Node,
-                      Kind => Get_Reference_Kind (Definition.As_Ada_Node));
-            begin
-               Response.result.Append (Location);
-            end;
+            Self.Append_Location
+              (Response.result,
+               Definition,
+               Get_Reference_Kind (Definition.As_Ada_Node));
          end if;
 
          return Response;
@@ -1002,8 +1007,7 @@ package body LSP.Ada_Handlers is
                Subp_And_Refs.name := To_LSP_String
                  (Langkit_Support.Text.To_UTF8 (Node.Text));
                for Ref of Refs loop
-                  Subp_And_Refs.refs.Append
-                    (Get_Node_Location (Self, Ref.As_Ada_Node));
+                  Self.Append_Location (Subp_And_Refs.refs, Ref);
                end loop;
                Response.result.Append (Subp_And_Refs);
             end;
