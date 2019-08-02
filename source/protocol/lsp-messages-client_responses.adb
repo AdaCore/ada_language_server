@@ -14,38 +14,29 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---  Types for requests sent to the client.
 
-with LSP.Generic_Requests;
-with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
+package body LSP.Messages.Client_Responses is
 
-package LSP.Messages.Client_Requests is
-
-   type Client_Request is abstract new LSP.Messages.RequestMessage
-     with null record;
-
-   procedure Visit
-     (Self    : Client_Request;
-      Reciver : access Client_Request_Receiver'Class) is abstract;
-
-   package ShowMessage_Requests is
-     new LSP.Generic_Requests (Client_Request, ShowMessageParams);
-
-   type ShowMessage_Request is
-     new ShowMessage_Requests.Request with null record;
+   -----------
+   -- Visit --
+   -----------
 
    overriding procedure Visit
-     (Self    : ShowMessage_Request;
-      Reciver : access Client_Request_Receiver'Class);
+     (Self    : ApplyWorkspaceEdit_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_ApplyWorkspaceEdit_Response (Self);
+   end Visit;
 
-   package Workspace_Apply_Edit_Requests is
-     new LSP.Generic_Requests (Client_Request, ApplyWorkspaceEditParams);
-
-   type Workspace_Apply_Edit_Request is
-     new Workspace_Apply_Edit_Requests.Request with null record;
+   -----------
+   -- Visit --
+   -----------
 
    overriding procedure Visit
-     (Self    : Workspace_Apply_Edit_Request;
-      Reciver : access Client_Request_Receiver'Class);
+     (Self    : ShowMessage_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_ShowMessage_Response (Self);
+   end Visit;
 
-end LSP.Messages.Client_Requests;
+end LSP.Messages.Client_Responses;
