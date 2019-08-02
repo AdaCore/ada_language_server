@@ -9,8 +9,17 @@ from os.path import join
 LSP_Messages_Generic_Header = """--  Automatically generated, do not edit.
 
 with LSP.Generic_{kind}s;
+with LSP.Server_{kind}_Receivers;
+use LSP.Server_{kind}_Receivers;
 
 package LSP.Messages.Server_{kind}s is
+
+   type Server_{kind} is abstract new LSP.Messages.{kind}Message
+     with null record;
+
+   procedure Visit
+     (Self    : Server_{kind};
+      Handler : access Server_{kind}_Receiver'Class) is abstract;
 """
 
 C_Method_Function_Snippet = """
@@ -28,23 +37,40 @@ C_Method_Function_Snippet_Noparam = """
 
 C_Method_Procedure_Snippet = """
    procedure On_{request_name}_{kind}
-     (Self  : access Server_{kind}_Handler;
+     (Self  : access Server_{kind}_Receiver;
       Value : LSP.Messages.{params_name}) is abstract;
 """
 
 C_Method_Procedure_Snippet_Noparam = """
    procedure On_{request_name}_{kind}
-     (Self  : access Server_{kind}_Handler) is abstract;
+     (Self  : access Server_{kind}_Receiver) is abstract;
 """
 
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
-with LSP.JSON_Streams;
-with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
-
 package body LSP.Messages.Server_{kind}s is
 
    --  These messages are sent from client to server.
+"""
+
+C_Method_Visit_Body_Snippet = """
+   overriding procedure Visit
+     (Self    : {request_name}_{kind};
+      Handler : access Server_{kind}_Receiver'Class) is
+   begin
+      Handler.On_{request_name}_{kind} (Self.params);
+   end Visit;
+"""
+
+C_Method_Visit_Body_Snippet_Noparams = """
+   overriding procedure Visit
+     (Self    : {request_name}_{kind};
+      Handler : access Server_{kind}_Receiver'Class)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Handler.On_{request_name}_{kind};
+   end Visit;
 """
 
 LSP_Servers_Decode_Body = """--  Automatically generated, do not edit.
@@ -192,65 +218,35 @@ end LSP.Messages.Server_{kind}s;
 
 LSP_Messages_Generic_Type_Snippet = """
    package {request_name}_{kind}s is
-     new LSP.Generic_{kind}s ({params_name});
+     new LSP.Generic_{kind}s
+       (Server_{kind},
+        {params_name});
 
    type {request_name}_{kind} is
      new {request_name}_{kind}s.{kind} with null record;
+
+   overriding procedure Visit
+     (Self    : {request_name}_{kind};
+      Handler : access Server_Notification_Receiver'Class);
 """
 
 LSP_Messages_Generic_Type_Snippet_Noparams = """
-   type {request_name}_{kind} is new {kind}Message with null record;
-"""
+   type {request_name}_{kind} is new Server_{kind} with null record;
 
-LSP_Messages_Private_Snippet = """
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out {request_name}_{kind});
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : {request_name}_{kind});
-   for {request_name}_{kind}'Read use Read;
-   for {request_name}_{kind}'Write use Write;"""
-
-LSP_Messages_Generic_Write_Snippet = """
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out {request_name}_{kind})
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Set_Common_{kind}_Fields (V, JS);
-      JS.Key ("params");
-      {params_name}'Read (S, V.params);
-      JS.End_Object;
-   end Read;
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : {request_name}_{kind})
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_{kind}_Prefix (S, V);
-      JS.Key ("params");
-      {params_name}'Write (S, V.params);
-      JS.End_Object;
-   end Write;
+   overriding procedure Visit
+     (Self    : {request_name}_{kind};
+      Handler : access Server_Notification_Receiver'Class);
 """
 
 LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
 
 with LSP.Messages{extra_with};
 
-package LSP.Server_{kind}_Handlers is
+package LSP.Server_{kind}_{handler}s is
 
-   type Server_{kind}_Handler is limited interface;
-   type Server_{kind}_Handler_Access is
-     access all Server_{kind}_Handler'Class;
+   type Server_{kind}_{handler} is limited interface;
+   type Server_{kind}_{handler}_Access is
+     access all Server_{kind}_{handler}'Class;
    --  A type which represents a handler which supports reacting
    --  to {kind}s. Clients implementing this interface should override
    --  the *_{kind} methods, and clients making use of this interface
@@ -259,7 +255,7 @@ package LSP.Server_{kind}_Handlers is
 """
 
 LSP_Server_Handlers_Footer = """
-end LSP.Server_{kind}_Handlers;
+end LSP.Server_{kind}_{handler}s;
 """
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -346,6 +342,29 @@ def write_message_types():
 
             ads.write(LSP_Messages_Generic_Footer.format(kind=kind))
 
+    def write_body(data_array, kind, adb_name, handler_is_procedure):
+        """Factorization function"""
+
+        # Write the .ads
+        with open(adb_name, 'wb') as adb:
+            adb.write(LSP_Messages_Generic_Body_Header.format(kind=kind))
+
+            for l in data_array:
+                request_name = l[1]
+                params_name = l[2]
+                if params_name:
+                    adb.write(
+                        C_Method_Visit_Body_Snippet.format(
+                            request_name=request_name,
+                            kind=kind))
+                else:
+                    adb.write(
+                        C_Method_Visit_Body_Snippet_Noparams.format(
+                            request_name=request_name,
+                            kind=kind))
+
+            adb.write(LSP_Messages_Generic_Footer.format(kind=kind))
+
     gen_dir = join(basedir, 'source', 'protocol', 'generated')
     write_package(REQUESTS, 'Request',
                   join(gen_dir, 'lsp-messages-server_requests.ads'),
@@ -353,6 +372,9 @@ def write_message_types():
     write_package(NOTIFICATIONS, 'Notification',
                   join(gen_dir, 'lsp-messages-server_notifications.ads'),
                   True)
+    write_body(NOTIFICATIONS, 'Notification',
+               join(gen_dir, 'lsp-messages-server_notifications.adb'),
+               True)
 
 
 def write_handle_request():
@@ -409,9 +431,9 @@ def write_handle_request():
     write_package(REQUESTS, 'Request',
                   join(gen_dir, 'lsp-servers-handle_request.adb'),
                   False)
-    write_package(NOTIFICATIONS, 'Notification',
-                  join(gen_dir, 'lsp-servers-handle_notification.adb'),
-                  True)
+#    write_package(NOTIFICATIONS, 'Notification',
+#                  join(gen_dir, 'lsp-servers-handle_notification.adb'),
+#                  True)
 
 
 def write_message_decoders():
@@ -461,7 +483,8 @@ def write_message_decoders():
 def write_server_handlers():
     """ Write source/server/lsp-server_{request/notification}_handlers.ads """
 
-    def write_package(data_array, kind, ads_name, handler_is_procedure):
+    def write_package(data_array, kind, handler_name,
+                      ads_name, handler_is_procedure):
         """Factorization function"""
 
         # Write the .ads
@@ -469,7 +492,7 @@ def write_server_handlers():
             extra_with = '' if handler_is_procedure else '.Server_Responses'
 
             ads.write(LSP_Server_Handlers_Header.format(
-                kind=kind,
+                kind=kind, handler=handler_name,
                 extra_with=extra_with))
 
             for l in data_array:
@@ -510,14 +533,15 @@ def write_server_handlers():
    --  request processing loop.
 """)
 
-            ads.write(LSP_Server_Handlers_Footer.format(kind=kind))
+            ads.write(LSP_Server_Handlers_Footer.format(
+                kind=kind, handler=handler_name))
 
     gen_dir = join(basedir, 'source', 'protocol', 'generated')
-    write_package(REQUESTS, 'Request',
+    write_package(REQUESTS, 'Request', 'Handler',
                   join(gen_dir, 'lsp-server_request_handlers.ads'),
                   False)
-    write_package(NOTIFICATIONS, 'Notification',
-                  join(gen_dir, 'lsp-server_notification_handlers.ads'),
+    write_package(NOTIFICATIONS, 'Notification', 'Receiver',
+                  join(gen_dir, 'lsp-server_notification_receivers.ads'),
                   True)
 
 

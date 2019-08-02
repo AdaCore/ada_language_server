@@ -28,7 +28,6 @@ with LSP.Messages.Client_Notifications;
 with LSP.Messages.Server_Notifications;
 with LSP.Servers.Decode_Notification;
 with LSP.Servers.Decode_Request;
-with LSP.Servers.Handle_Notification;
 with LSP.Servers.Handle_Request;
 
 with GNATCOLL.JSON;
@@ -168,8 +167,8 @@ package body LSP.Servers is
    -- Log_Message --
    -----------------
 
-   overriding procedure Log_Message
-     (Self   : in out Server;
+   overriding procedure On_Log_Message
+     (Self   : access Server;
       Params : LSP.Messages.LogMessageParams)
    is
       Message : Message_Access :=
@@ -179,7 +178,7 @@ package body LSP.Servers is
             jsonrpc => <>);
    begin
       Self.Send_Notification (Message);
-   end Log_Message;
+   end On_Log_Message;
 
    -------------------------
    -- Process_One_Message --
@@ -473,8 +472,8 @@ package body LSP.Servers is
    -- Publish_Diagnostics --
    -------------------------
 
-   overriding procedure Publish_Diagnostics
-     (Self   : in out Server;
+   overriding procedure On_Publish_Diagnostics
+     (Self   : access Server;
       Params : LSP.Messages.PublishDiagnosticsParams)
    is
       Message : Message_Access :=
@@ -484,7 +483,7 @@ package body LSP.Servers is
            params  => Params);
    begin
       Self.Send_Notification (Message);
-   end Publish_Diagnostics;
+   end On_Publish_Diagnostics;
 
    ---------
    -- Run --
@@ -495,7 +494,8 @@ package body LSP.Servers is
       Request      : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access) is
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access)
+   is
    begin
       Self.Processing_Task.Start (Request, Notification);
       Self.Output_Task.Start;
@@ -597,8 +597,8 @@ package body LSP.Servers is
    -- Show_Message --
    ------------------
 
-   overriding procedure Show_Message
-     (Self   : in out Server;
+   overriding procedure On_Show_Message
+     (Self   : access Server;
       Params : LSP.Messages.ShowMessageParams)
    is
       Message : Message_Access :=
@@ -608,7 +608,7 @@ package body LSP.Servers is
            params  => Params);
    begin
       Self.Send_Notification (Message);
-   end Show_Message;
+   end On_Show_Message;
 
    ----------
    -- Stop --
@@ -775,7 +775,7 @@ package body LSP.Servers is
       Req_Handler : LSP.Server_Request_Handlers.Server_Request_Handler_Access;
 
       Notif_Handler :
-        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access;
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
 
       Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
       Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
@@ -783,8 +783,8 @@ package body LSP.Servers is
       procedure Initialize
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Handlers
-           .Server_Notification_Handler_Access);
+         Notification : not null LSP.Server_Notification_Receivers
+           .Server_Notification_Receiver_Access);
       --  Initializes internal data structures
 
       procedure Process_Message (Message : Message_Access);
@@ -796,8 +796,8 @@ package body LSP.Servers is
       procedure Initialize
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Handlers
-           .Server_Notification_Handler_Access)
+         Notification : not null LSP.Server_Notification_Receivers
+           .Server_Notification_Receiver_Access)
       is
       begin
          Req_Handler := Request;
@@ -810,11 +810,12 @@ package body LSP.Servers is
 
       procedure Process_Message (Message : Message_Access) is
       begin
-         if Message.all in LSP.Messages.NotificationMessage'Class then
+         if Message.all in
+           LSP.Messages.Server_Notifications.Server_Notification'Class
+         then
             --  This is a notification
-            LSP.Servers.Handle_Notification
-              (Notif_Handler,
-               LSP.Messages.NotificationMessage'Class (Message.all));
+            LSP.Messages.Server_Notifications.Server_Notification'Class
+              (Message.all).Visit (Notif_Handler);
 
             return;
          end if;
@@ -849,8 +850,8 @@ package body LSP.Servers is
       accept Start
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Handlers
-           .Server_Notification_Handler_Access)
+         Notification : not null LSP.Server_Notification_Receivers
+           .Server_Notification_Receiver_Access)
       do
          Initialize (Request, Notification);
       end Start;

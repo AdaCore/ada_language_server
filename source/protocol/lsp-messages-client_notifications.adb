@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2019, AdaCore                          --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,32 +14,43 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  Interface to process notifications sent to the client.
 
-with LSP.Messages;
+package body LSP.Messages.Client_Notifications is
 
-package LSP.Client_Notifications is
+   -----------
+   -- Visit --
+   -----------
 
-   type Client_Notification_Handler is limited interface;
-   --  Handler of notification on LSP client side
+   overriding procedure Visit
+     (Self    : LogMessage_Notification;
+      Reciver : access Client_Notification_Receiver'Class)
+   is
+   begin
+      Reciver.On_Log_Message (Self.params);
+   end Visit;
 
-   type Client_Notification_Handler_Access is
-     access all Client_Notification_Handler'Class;
+   -----------
+   -- Visit --
+   -----------
 
-   procedure Show_Message
-     (Self   : in out Client_Notification_Handler;
-      Params : LSP.Messages.ShowMessageParams) is null;
-   --  Process window/showMessage notification
+   overriding procedure Visit
+     (Self    : ShowMessage_Notification;
+      Reciver : access Client_Notification_Receiver'Class)
+   is
+   begin
+      Reciver.On_Show_Message (Self.params);
+   end Visit;
 
-   procedure Log_Message
-     (Self   : in out Client_Notification_Handler;
-      Params : LSP.Messages.LogMessageParams) is null;
-   --  Process window/logMessage notification
+   -----------
+   -- Visit --
+   -----------
 
-   procedure Publish_Diagnostics
-     (Self   : in out Client_Notification_Handler;
-      Params : LSP.Messages.PublishDiagnosticsParams) is null;
-   --  Process textDocument/publishDiagnostics notification
+   overriding procedure Visit
+     (Self    : PublishDiagnostics_Notification;
+      Reciver : access Client_Notification_Receiver'Class)
+   is
+   begin
+      Reciver.On_Publish_Diagnostics (Self.params);
+   end Visit;
 
-end LSP.Client_Notifications;
+end LSP.Messages.Client_Notifications;

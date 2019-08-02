@@ -22,10 +22,10 @@
 
 with Ada.Streams;
 
-with LSP.Client_Notifications;
+with LSP.Client_Notification_Receivers;
 with LSP.Messages;
 with LSP.Server_Request_Handlers;
-with LSP.Server_Notification_Handlers;
+with LSP.Server_Notification_Receivers;
 with LSP.Types;
 
 private with Ada.Strings.Unbounded;
@@ -37,9 +37,10 @@ private with System;
 package LSP.Servers is
 
    type Server is limited
-     new LSP.Client_Notifications.Client_Notification_Handler with private;
+     new LSP.Client_Notification_Receivers.Client_Notification_Receiver
+       with private;
    --  The representation of LSP server.
-   --  Use methods of Client_Notification_Handler to send notifications to
+   --  Use methods of Client_Notification_Receiver to send notifications to
    --  LSP client.
 
    procedure Initialize
@@ -55,7 +56,7 @@ package LSP.Servers is
       Request      : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notification_Handlers.Server_Notification_Handler_Access);
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access);
    --  Run the server using given Request and Notification handler.
 
    procedure Stop (Self : in out Server);
@@ -110,8 +111,8 @@ private
       entry Start
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Handlers
-           .Server_Notification_Handler_Access);
+         Notification : not null LSP.Server_Notification_Receivers
+           .Server_Notification_Receiver_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;
@@ -139,7 +140,7 @@ private
    end Input_Task_Type;
 
    type Server is limited
-     new LSP.Client_Notifications.Client_Notification_Handler with
+     new LSP.Client_Notification_Receivers.Client_Notification_Receiver with
    record
       Stop          : GNAT.Semaphores.Binary_Semaphore
                           (Initially_Available => False,
@@ -158,16 +159,16 @@ private
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
    end record;
 
-   overriding procedure Show_Message
-     (Self   : in out Server;
+   overriding procedure On_Show_Message
+     (Self   : access Server;
       Params : LSP.Messages.ShowMessageParams);
 
-   overriding procedure Log_Message
-     (Self   : in out Server;
+   overriding procedure On_Log_Message
+     (Self   : access Server;
       Params : LSP.Messages.LogMessageParams);
 
-   overriding procedure Publish_Diagnostics
-     (Self   : in out Server;
+   overriding procedure On_Publish_Diagnostics
+     (Self   : access Server;
       Params : LSP.Messages.PublishDiagnosticsParams);
 
 end LSP.Servers;

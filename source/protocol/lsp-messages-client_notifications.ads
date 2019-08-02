@@ -16,25 +16,49 @@
 ------------------------------------------------------------------------------
 
 with LSP.Generic_Notifications;
+with LSP.Client_Notification_Receivers;
+use LSP.Client_Notification_Receivers;
 
 package LSP.Messages.Client_Notifications is
 
-   package LogMessages is
-     new LSP.Generic_Notifications (LSP.Messages.LogMessageParams);
+   type Client_Notification is abstract new LSP.Messages.NotificationMessage
+     with null record;
+
+   procedure Visit
+     (Self    : Client_Notification;
+      Reciver : access Client_Notification_Receiver'Class) is abstract;
+
+   package LogMessages is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.LogMessageParams);
 
    type LogMessage_Notification is
      new LogMessages.Notification with null record;
 
-   package ShowMessages is
-     new LSP.Generic_Notifications (LSP.Messages.ShowMessageParams);
+   overriding procedure Visit
+     (Self    : LogMessage_Notification;
+      Reciver : access Client_Notification_Receiver'Class);
+
+   package ShowMessages is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.ShowMessageParams);
 
    type ShowMessage_Notification is
      new ShowMessages.Notification with null record;
 
-   package PublishDiagnostics is
-     new LSP.Generic_Notifications (LSP.Messages.PublishDiagnosticsParams);
+   overriding procedure Visit
+     (Self    : ShowMessage_Notification;
+      Reciver : access Client_Notification_Receiver'Class);
+
+   package PublishDiagnostics is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.PublishDiagnosticsParams);
 
    type PublishDiagnostics_Notification is
      new PublishDiagnostics.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : PublishDiagnostics_Notification;
+      Reciver : access Client_Notification_Receiver'Class);
 
 end LSP.Messages.Client_Notifications;

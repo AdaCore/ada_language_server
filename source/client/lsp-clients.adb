@@ -17,13 +17,14 @@
 
 with GNATCOLL.JSON;
 
-with LSP.Client_Notifications;
+with LSP.Client_Notification_Receivers;
 with LSP.Clients.Request_Handlers;
 with LSP.Clients.Response_Handlers;
 with LSP.JSON_Streams;
 with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 with LSP.Messages.Client_Notifications;
+use LSP.Messages.Client_Notifications;
 with LSP.Messages.Server_Responses;
 with LSP.Messages.Client_Responses;
 
@@ -132,18 +133,18 @@ package body LSP.Clients is
 
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class);
+         Handler : access LSP.Client_Notification_Receivers
+           .Client_Notification_Receiver'Class);
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class);
+         Handler : access LSP.Client_Notification_Receivers
+           .Client_Notification_Receiver'Class);
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class);
+         Handler : access LSP.Client_Notification_Receivers
+           .Client_Notification_Receiver'Class);
 
    end Decoders;
 
@@ -404,14 +405,13 @@ package body LSP.Clients is
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class)
+         Handler : access LSP.Client_Notification_Receivers
+         .Client_Notification_Receiver'Class)
       is
-         use LSP.Messages.Client_Notifications;
          Message : LogMessage_Notification;
       begin
          LogMessage_Notification'Read (Stream, Message);
-         Handler.Log_Message (Message.params);
+         Handler.On_Log_Message (Message.params);
       end Log_Message;
 
       -------------------------
@@ -420,14 +420,13 @@ package body LSP.Clients is
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class)
+         Handler : access LSP.Client_Notification_Receivers
+         .Client_Notification_Receiver'Class)
       is
-         use LSP.Messages.Client_Notifications;
          Message : PublishDiagnostics_Notification;
       begin
          PublishDiagnostics_Notification'Read (Stream, Message);
-         Handler.Publish_Diagnostics (Message.params);
+         Handler.On_Publish_Diagnostics (Message.params);
       end Publish_Diagnostics;
 
       ------------------
@@ -436,14 +435,13 @@ package body LSP.Clients is
 
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-         Handler : access
-           LSP.Client_Notifications.Client_Notification_Handler'Class)
+         Handler : access LSP.Client_Notification_Receivers
+         .Client_Notification_Receiver'Class)
       is
-         use LSP.Messages.Client_Notifications;
          Message : ShowMessage_Notification;
       begin
          ShowMessage_Notification'Read (Stream, Message);
-         Handler.Show_Message (Message.params);
+         Handler.On_Show_Message (Message.params);
       end Show_Message;
 
    end Decoders;
@@ -644,7 +642,8 @@ package body LSP.Clients is
 
    procedure Set_Notification_Handler
      (Self  : in out Client'Class;
-      Value : access Client_Notifications.Client_Notification_Handler'Class) is
+      Value : access Client_Notification_Receivers
+      .Client_Notification_Receiver'Class) is
    begin
       Self.Notification := Value;
    end Set_Notification_Handler;

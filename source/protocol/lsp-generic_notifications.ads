@@ -23,11 +23,14 @@ with Ada.Streams;
 with LSP.Messages;
 
 generic
+   type Base_Message is abstract new LSP.Messages.NotificationMessage
+     with private;
+
    type T is private;
    --  Type of notification parameter
 
 package LSP.Generic_Notifications is
-   type Notification is new LSP.Messages.NotificationMessage with record
+   type Notification is abstract new Base_Message with record
       params : T;
    end record;
 
