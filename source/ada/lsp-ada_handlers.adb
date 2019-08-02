@@ -163,7 +163,7 @@ package body LSP.Ada_Handlers is
       File : constant GNATCOLL.VFS.Virtual_File := Create
         (+(URIs.Conversions.To_File (To_UTF_8_String (URI))));
    begin
-      Self.Server.Show_Message
+      Self.Server.On_Show_Message
         ((Msg_Type,
          "Imprecise fallback used to compute cross-references on entity at:"
          & To_LSP_String
@@ -496,7 +496,7 @@ package body LSP.Ada_Handlers is
          Document.Get_Errors (Diag.diagnostics);
 
          Diag.uri := Value.textDocument.uri;
-         Self.Server.Publish_Diagnostics (Diag);
+         Self.Server.On_Publish_Diagnostics (Diag);
       end if;
    end On_DidChangeTextDocument_Notification;
 
@@ -515,7 +515,7 @@ package body LSP.Ada_Handlers is
       --  Clean diagnostics up on closing document
       if Self.Context.Get_Diagnostics_Enabled then
          Diag.uri := Value.textDocument.uri;
-         Self.Server.Publish_Diagnostics (Diag);
+         Self.Server.On_Publish_Diagnostics (Diag);
       end if;
    end On_DidCloseTextDocument_Notification;
 
@@ -568,20 +568,20 @@ package body LSP.Ada_Handlers is
             Errors);
 
          if not LSP.Types.Is_Empty (Errors.message) then
-            Self.Server.Show_Message (Errors);
+            Self.Server.On_Show_Message (Errors);
          end if;
       end if;
 
       --  Send notifications "loading document" / "done loading document"
       --  around the load of documents: this gets logged by the IDE,
       --  and helps tracking the performance of the language server.
-      Self.Server.Show_Message
+      Self.Server.On_Show_Message
         ((LSP.Messages.Log,
          "loading document " & Value.textDocument.uri));
 
       Document := Self.Context.Load_Document (Value.textDocument);
 
-      Self.Server.Show_Message
+      Self.Server.On_Show_Message
         ((LSP.Messages.Log,
          "done loading document " & Value.textDocument.uri));
 
@@ -589,7 +589,7 @@ package body LSP.Ada_Handlers is
          Document.Get_Errors (Diag.diagnostics);
 
          Diag.uri := Value.textDocument.uri;
-         Self.Server.Publish_Diagnostics (Diag);
+         Self.Server.On_Publish_Diagnostics (Diag);
       end if;
    end On_DidOpenTextDocument_Notification;
 
@@ -1144,8 +1144,8 @@ package body LSP.Ada_Handlers is
    --------------------------------------------
 
    overriding procedure On_DidChangeConfiguration_Notification
-     (Self     : access Message_Handler;
-      Value    : LSP.Messages.DidChangeConfigurationParams)
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams)
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
@@ -1199,7 +1199,7 @@ package body LSP.Ada_Handlers is
          Errors);
 
       if not LSP.Types.Is_Empty (Errors.message) then
-         Self.Server.Show_Message (Errors);
+         Self.Server.On_Show_Message (Errors);
       end if;
    end On_DidChangeConfiguration_Notification;
 

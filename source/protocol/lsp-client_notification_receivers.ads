@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2019, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,12 +14,29 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Interface to process notifications sent to the client.
 
-with LSP.Server_Notification_Handlers;
+with LSP.Messages;
 
-procedure LSP.Servers.Handle_Notification
-  (Self         : not null LSP.Server_Notification_Handlers
-     .Server_Notification_Handler_Access;
-   Notification : LSP.Messages.NotificationMessage'Class);
---  This dispatches a Notification to the appropriate
---  *_Notification subprogram implemented by clients.
+package LSP.Client_Notification_Receivers is
+
+   type Client_Notification_Receiver is limited interface;
+   --  Receiver of notification on LSP client side
+
+   procedure On_Show_Message
+     (Self   : access Client_Notification_Receiver;
+      Params : LSP.Messages.ShowMessageParams) is abstract;
+   --  Process window/showMessage notification
+
+   procedure On_Log_Message
+     (Self    : access Client_Notification_Receiver;
+      Params : LSP.Messages.LogMessageParams) is abstract;
+   --  Process window/logMessage notification
+
+   procedure On_Publish_Diagnostics
+     (Self   : access Client_Notification_Receiver;
+      Params : LSP.Messages.PublishDiagnosticsParams) is abstract;
+   --  Process textDocument/publishDiagnostics notification
+
+end LSP.Client_Notification_Receivers;

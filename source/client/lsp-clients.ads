@@ -22,18 +22,18 @@ with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
 with LSP.Messages;
-with LSP.Server_Notification_Handlers;
+with LSP.Server_Notification_Receivers;
 with LSP.Raw_Clients;
 with LSP.Types;
 
 limited with LSP.Clients.Request_Handlers;
 limited with LSP.Clients.Response_Handlers;
-limited with LSP.Client_Notifications;
+limited with LSP.Client_Notification_Receivers;
 
 package LSP.Clients is
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and Server_Notification_Handlers.Server_Notification_Handler
+     and Server_Notification_Receivers.Server_Notification_Receiver
    with private;
    --  Client object to send/recieve request and notification to/from
    --  the LSP server
@@ -77,7 +77,8 @@ package LSP.Clients is
 
    procedure Set_Notification_Handler
      (Self  : in out Client'Class;
-      Value : access Client_Notifications.Client_Notification_Handler'Class);
+      Value : access Client_Notification_Receivers
+        .Client_Notification_Receiver'Class);
    --  Set notification handler
 
    --  Routines to send request to the LSP server
@@ -177,7 +178,8 @@ private
 
    type Notification_Decoder is access procedure
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
-      Handler : access Client_Notifications.Client_Notification_Handler'Class);
+      Handler : access LSP.Client_Notification_Receivers
+        .Client_Notification_Receiver'Class);
 
    package Notification_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => Ada.Strings.Unbounded.Unbounded_String,
@@ -186,7 +188,7 @@ private
       Equivalent_Keys => Ada.Strings.Unbounded."=");
 
    type Client is new LSP.Raw_Clients.Raw_Client
-     and Server_Notification_Handlers.Server_Notification_Handler
+     and Server_Notification_Receivers.Server_Notification_Receiver
    with record
       Request_Id       : LSP.Types.LSP_Number := 0;  --  Id of prev request
       Request_Map      : Request_Maps.Map;  --  issued requests
@@ -196,7 +198,7 @@ private
       Request_Handler  : access
         LSP.Clients.Request_Handlers.Request_Handler'Class;
       Notification     : access
-        LSP.Client_Notifications.Client_Notification_Handler'Class;
+        LSP.Client_Notification_Receivers.Client_Notification_Receiver'Class;
    end record;
 
    overriding procedure On_Raw_Message
