@@ -14,12 +14,18 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--  Types for responses sent to the server.
 
 with LSP.Generic_Responses;
+with LSP.Client_Response_Senders; use LSP.Client_Response_Senders;
 
 package LSP.Messages.Client_Responses is
 
-   type Client_Response is new ResponseMessage with null record;
+   type Client_Response is abstract new ResponseMessage with null record;
+
+   procedure Visit
+     (Self    : Client_Response;
+      Handler : access Client_Response_Sender'Class) is abstract;
 
    package ApplyWorkspaceEdit_Responses is new LSP.Generic_Responses
      (Client_Response,
@@ -28,6 +34,14 @@ package LSP.Messages.Client_Responses is
    type ApplyWorkspaceEdit_Response is
      new ApplyWorkspaceEdit_Responses.Response with null record;
 
+   overriding procedure Visit
+     (Self    : ApplyWorkspaceEdit_Response;
+      Handler : access Client_Response_Sender'Class);
+
    type ShowMessage_Response is new Client_Response with null record;
+
+   overriding procedure Visit
+     (Self    : ShowMessage_Response;
+      Handler : access Client_Response_Sender'Class);
 
 end LSP.Messages.Client_Responses;

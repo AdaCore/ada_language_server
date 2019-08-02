@@ -14,6 +14,7 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--  Types for notifications sent to the client.
 
 with LSP.Generic_Notifications;
 with LSP.Client_Notification_Receivers;

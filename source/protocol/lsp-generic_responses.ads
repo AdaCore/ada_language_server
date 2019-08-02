@@ -23,7 +23,8 @@ with Ada.Streams;
 with LSP.Messages;
 
 generic
-   type ResponseMessage is new LSP.Messages.ResponseMessage with private;
+   type ResponseMessage is abstract new LSP.Messages.ResponseMessage
+     with private;
    --  Base response
 
    type T is private;
@@ -31,7 +32,8 @@ generic
 
 package LSP.Generic_Responses is
 
-   type Response (Is_Error : Boolean) is new ResponseMessage (Is_Error) with
+   type Response (Is_Error : Boolean) is
+     abstract new ResponseMessage (Is_Error) with
    record
       case Is_Error is
          when False =>
