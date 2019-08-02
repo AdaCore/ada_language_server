@@ -14,35 +14,37 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  This package provides a template to create LSP Request based on
---  request parameter type.
---
 
-with Ada.Streams;
-with LSP.Messages;
+with LSP.Generic_Requests;
+with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
 
-generic
-   type Base_Message is abstract new LSP.Messages.RequestMessage
-     with private;
+package LSP.Messages.Client_Requests is
 
-   type T is private;
-   --  Type of request parameter
+   type Client_Request is abstract new LSP.Messages.RequestMessage
+     with null record;
 
-package LSP.Generic_Requests is
-   type Request is abstract new Base_Message with record
-      params : T;
-   end record;
+   procedure Visit
+     (Self    : Client_Request;
+      Reciver : access Client_Request_Receiver'Class) is abstract;
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Request);
+   package ShowMessage_Requests is
+     new LSP.Generic_Requests (Client_Request, ShowMessageParams);
 
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Request);
+   type ShowMessage_Request is
+     new ShowMessage_Requests.Request with null record;
 
-   for Request'Read use Read;
-   for Request'Write use Write;
+   overriding procedure Visit
+     (Self    : ShowMessage_Request;
+      Reciver : access Client_Request_Receiver'Class);
 
-end LSP.Generic_Requests;
+   package Workspace_Apply_Edit_Requests is
+     new LSP.Generic_Requests (Client_Request, ApplyWorkspaceEditParams);
+
+   type Workspace_Apply_Edit_Request is
+     new Workspace_Apply_Edit_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Apply_Edit_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
+end LSP.Messages.Client_Requests;

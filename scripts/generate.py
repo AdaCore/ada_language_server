@@ -46,6 +46,13 @@ C_Method_Procedure_Snippet_Noparam = """
      (Self  : access Server_{kind}_Receiver) is abstract;
 """
 
+C_Method_Request_Snippet = """
+   procedure On_{request_name}_{kind}
+     (Self  : access Server_{kind}_Receiver;
+      Value : LSP.Messages.Server_{kind}s.{request_name}_{kind})
+        is abstract;
+"""
+
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
 package body LSP.Messages.Server_{kind}s is
@@ -58,7 +65,7 @@ C_Method_Visit_Body_Snippet = """
      (Self    : {request_name}_{kind};
       Handler : access Server_{kind}_Receiver'Class) is
    begin
-      Handler.On_{request_name}_{kind} (Self.params);
+      Handler.On_{request_name}_{kind} (Self{params});
    end Visit;
 """
 
@@ -227,7 +234,7 @@ LSP_Messages_Generic_Type_Snippet = """
 
    overriding procedure Visit
      (Self    : {request_name}_{kind};
-      Handler : access Server_Notification_Receiver'Class);
+      Handler : access Server_{kind}_Receiver'Class);
 """
 
 LSP_Messages_Generic_Type_Snippet_Noparams = """
@@ -235,7 +242,7 @@ LSP_Messages_Generic_Type_Snippet_Noparams = """
 
    overriding procedure Visit
      (Self    : {request_name}_{kind};
-      Handler : access Server_Notification_Receiver'Class);
+      Handler : access Server_{kind}_Receiver'Class);
 """
 
 LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
@@ -256,6 +263,15 @@ package LSP.Server_{kind}_{handler}s is
 
 LSP_Server_Handlers_Footer = """
 end LSP.Server_{kind}_{handler}s;
+"""
+
+LSP_Server_Recievers_Header = """--  Automatically generated, do not edit.
+
+limited with LSP.Messages.Server_{kind}s;
+
+package LSP.Server_{kind}_{handler}s is
+
+   type Server_{kind}_{handler} is limited interface;
 """
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -352,11 +368,12 @@ def write_message_types():
             for l in data_array:
                 request_name = l[1]
                 params_name = l[2]
-                if params_name:
+                if params_name or not handler_is_procedure:
                     adb.write(
                         C_Method_Visit_Body_Snippet.format(
                             request_name=request_name,
-                            kind=kind))
+                            kind=kind,
+                            params=".params" if handler_is_procedure else ""))
                 else:
                     adb.write(
                         C_Method_Visit_Body_Snippet_Noparams.format(
@@ -375,6 +392,9 @@ def write_message_types():
     write_body(NOTIFICATIONS, 'Notification',
                join(gen_dir, 'lsp-messages-server_notifications.adb'),
                True)
+    write_body(REQUESTS, 'Request',
+               join(gen_dir, 'lsp-messages-server_requests.adb'),
+               False)
 
 
 def write_handle_request():
@@ -489,7 +509,7 @@ def write_server_handlers():
 
         # Write the .ads
         with open(ads_name, 'wb') as ads:
-            extra_with = '' if handler_is_procedure else '.Server_Responses'
+            extra_with = '.Server_Responses'
 
             ads.write(LSP_Server_Handlers_Header.format(
                 kind=kind, handler=handler_name,
@@ -499,34 +519,20 @@ def write_server_handlers():
                 request_name = l[1]
                 params_name = l[2]
                 if params_name:
-                    if handler_is_procedure:
-                        ads.write(
-                            C_Method_Procedure_Snippet.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind))
-                    else:
-                        ads.write(
-                            C_Method_Function_Snippet.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                response_name=l[3],
-                                kind=kind))
+                    ads.write(
+                        C_Method_Function_Snippet.format(
+                            request_name=request_name,
+                            params_name=params_name,
+                            response_name=l[3],
+                            kind=kind))
                 else:
-                    if handler_is_procedure:
-                        ads.write(
-                            C_Method_Procedure_Snippet_Noparam.format(
-                                request_name=request_name,
-                                kind=kind))
-                    else:
-                        ads.write(
-                            C_Method_Function_Snippet_Noparam.format(
-                                request_name=request_name,
-                                response_name=l[3],
-                                kind=kind))
+                    ads.write(
+                        C_Method_Function_Snippet_Noparam.format(
+                            request_name=request_name,
+                            response_name=l[3],
+                            kind=kind))
 
-            if not handler_is_procedure:
-                ads.write("""
+            ads.write("""
    procedure Handle_Error
      (Self  : access Server_Request_Handler) is null;
    --  This procedure will be called when an unexpected error is raised in the
@@ -536,13 +542,70 @@ def write_server_handlers():
             ads.write(LSP_Server_Handlers_Footer.format(
                 kind=kind, handler=handler_name))
 
-    gen_dir = join(basedir, 'source', 'protocol', 'generated')
+    gen_dir = join(basedir, 'source', 'server', 'generated')
     write_package(REQUESTS, 'Request', 'Handler',
                   join(gen_dir, 'lsp-server_request_handlers.ads'),
                   False)
+
+
+def write_server_receivers():
+    """ Write source/server/lsp-server_{request/notification}_handlers.ads """
+
+    def write_package(data_array, kind, handler_name,
+                      ads_name, is_request):
+        """Factorization function"""
+
+        # Write the .ads
+        with open(ads_name, 'wb') as ads:
+            if is_request:
+                ads.write(LSP_Server_Recievers_Header.format(
+                    kind=kind, handler=handler_name))
+            else:
+                ads.write(LSP_Server_Handlers_Header.format(
+                    kind=kind, handler=handler_name,
+                    extra_with=""))
+
+            for l in data_array:
+                request_name = l[1]
+                params_name = l[2]
+                if params_name:
+                    if is_request:
+                        ads.write(
+                            C_Method_Request_Snippet.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                response_name=l[3],
+                                kind=kind))
+                    else:
+                        ads.write(
+                            C_Method_Procedure_Snippet.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                kind=kind))
+                else:
+                    if is_request:
+                        ads.write(
+                            C_Method_Request_Snippet.format(
+                                request_name=request_name,
+                                params_name=params_name,
+                                response_name=l[3],
+                                kind=kind))
+                    else:
+                        ads.write(
+                            C_Method_Procedure_Snippet_Noparam.format(
+                                request_name=request_name,
+                                kind=kind))
+
+            ads.write(LSP_Server_Handlers_Footer.format(
+                kind=kind, handler=handler_name))
+
+    gen_dir = join(basedir, 'source', 'protocol', 'generated')
+    write_package(REQUESTS, 'Request', 'Receiver',
+                  join(gen_dir, 'lsp-server_request_receivers.ads'),
+                  True)
     write_package(NOTIFICATIONS, 'Notification', 'Receiver',
                   join(gen_dir, 'lsp-server_notification_receivers.ads'),
-                  True)
+                  False)
 
 
 if __name__ == '__main__':
@@ -550,3 +613,4 @@ if __name__ == '__main__':
     write_handle_request()
     write_message_decoders()
     write_server_handlers()
+    write_server_receivers()

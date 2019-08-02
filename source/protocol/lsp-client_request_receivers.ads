@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2019, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,34 +15,22 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  This package provides a template to create LSP Request based on
---  request parameter type.
---
+--  Interface to process request sent to the client.
 
-with Ada.Streams;
-with LSP.Messages;
+limited with LSP.Messages.Client_Requests;
 
-generic
-   type Base_Message is abstract new LSP.Messages.RequestMessage
-     with private;
+package LSP.Client_Request_Receivers is
 
-   type T is private;
-   --  Type of request parameter
+   type Client_Request_Receiver is limited interface;
+   --  Receiver of request on LSP client side
 
-package LSP.Generic_Requests is
-   type Request is abstract new Base_Message with record
-      params : T;
-   end record;
+   procedure On_ShowMessage_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.ShowMessage_Request) is abstract;
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Request);
+   procedure On_Workspace_Apply_Edit_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request)
+        is abstract;
 
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Request);
-
-   for Request'Read use Read;
-   for Request'Write use Write;
-
-end LSP.Generic_Requests;
+end LSP.Client_Request_Receivers;
