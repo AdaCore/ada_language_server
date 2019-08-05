@@ -22,8 +22,8 @@ with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
 
-with GNATCOLL.Traces;
-with GNATCOLL.VFS;
+with GNATCOLL.Traces;         use GNATCOLL.Traces;
+with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with LSP.Servers;
 with LSP.Stdio_Streams;
@@ -37,13 +37,18 @@ with LSP.Ada_Handlers;
 
 procedure LSP.Ada_Driver is
 
+   Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
+   --  Main trace for the LSP.
+
+   In_Trace  : constant Trace_Handle := Create ("ALS.IN", Off);
+   Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
+   --  Traces that logs all input & output. For debugging purposes.
+
    Server  : aliased LSP.Servers.Server;
    Stream  : aliased LSP.Stdio_Streams.Stdio_Stream;
-   Context : aliased LSP.Ada_Contexts.Context;
+   Context : aliased LSP.Ada_Contexts.Context (Server_Trace);
    Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Context'Access);
-
-   use GNATCOLL.VFS, GNATCOLL.Traces;
+     (Server'Access, Context'Access, Server_Trace);
 
    function Getenv (Var : String) return String;
    --  Return the value set for the given environment variable
@@ -90,7 +95,12 @@ begin
 
    Server.Initialize (Stream'Unchecked_Access);
    begin
-      Server.Run (Handler'Unchecked_Access, Handler'Unchecked_Access);
+      Server.Run
+        (Handler'Unchecked_Access,
+         Handler'Unchecked_Access,
+         Server_Trace => Server_Trace,
+         In_Trace     => In_Trace,
+         Out_Trace    => Out_Trace);
    exception
       when E : others =>
          Server_Trace.Trace

@@ -212,8 +212,8 @@ package body LSP.Ada_Contexts is
    ----------------
 
    procedure Initialize
-     (Self : in out Context;
-      Root : LSP.Types.LSP_String) is
+     (Self  : in out Context;
+      Root  : LSP.Types.LSP_String) is
    begin
       Self.Root := Root;
       Self.Source_Files := new File_Array'(1 .. 0 => <>);
@@ -339,7 +339,7 @@ package body LSP.Ada_Contexts is
          exception
             when E : GNATCOLL.Projects.Invalid_Project =>
 
-               Server_Trace.Trace (E);
+               Self.Trace.Trace (E);
                Status := Default_Project;
                Errors.the_type := LSP.Messages.Error;
 
@@ -362,7 +362,7 @@ package body LSP.Ada_Contexts is
          --  found, the project could not be loaded, either it wasn't provided
          --  at all. In any case, use a default project.
 
-         Server_Trace.Trace ("Using default project in " & Root);
+         Self.Trace.Trace ("Using default project in " & Root);
 
          Ada.Directories.Set_Directory (Root);
          Self.Project_Tree.Load_Implicit_Project (Project_Env);

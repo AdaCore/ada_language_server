@@ -31,6 +31,7 @@ with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Request;
 
 with GNATCOLL.JSON;
+with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
@@ -279,9 +280,9 @@ package body LSP.Servers is
       procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
          use type LSP.Types.LSP_String;
       begin
-         if Is_Active (In_Trace) then
+         if Self.In_Trace.Is_Active then
             --  Avoid expensive convertion to string when trace is off
-            Trace (In_Trace, To_String (Vector));
+            Self.In_Trace.Trace (To_String (Vector));
          end if;
 
          declare
@@ -315,9 +316,9 @@ package body LSP.Servers is
 
                if Error.Is_Set then
                   --  We have got error from LSP client. Save it in the trace:
-                  Server_Trace.Trace ("Got Error response:");
+                  Self.Server_Trace.Trace ("Got Error response:");
 
-                  Server_Trace.Trace
+                  Self.Server_Trace.Trace
                     (LSP.Types.To_UTF_8_String (Error.Value.message));
                end if;
 
@@ -377,10 +378,9 @@ package body LSP.Servers is
             when E : others =>
                --  Something goes wrong after JSON parsing
 
-               GNATCOLL.Traces.Trace
-                 (LSP.Server_Trace,
-                  "Unexpected exception when processing a message:");
-               Server_Trace.Trace (Symbolic_Traceback (E));
+               Self.Server_Trace.Trace
+                 ("Unexpected exception when processing a message:");
+               Self.Server_Trace.Trace (Symbolic_Traceback (E));
 
          end;
 
@@ -389,10 +389,9 @@ package body LSP.Servers is
             --  If we reach this exception handler, this means we are unable
             --  to parse text as JSON.
 
-            GNATCOLL.Traces.Trace
-              (LSP.Server_Trace,
-               "Unable to parse JSON message:" & To_String (Vector));
-            Server_Trace.Trace (Symbolic_Traceback (E));
+            Self.Server_Trace.Trace
+              ("Unable to parse JSON message:" & To_String (Vector));
+            Self.Server_Trace.Trace (Symbolic_Traceback (E));
 
       end Parse_JSON;
 
@@ -461,11 +460,10 @@ package body LSP.Servers is
       when E : others =>
          --  Catch-all case: make sure no exception in output writing
          --  can cause an exit of the task loop.
-         GNATCOLL.Traces.Trace
-           (LSP.Server_Trace,
-            "Exception when reading input:" & ASCII.LF
+         Self.Server_Trace.Trace
+           ("Exception when reading input:" & ASCII.LF
             & Exception_Name (E) & " - " &  Exception_Message (E));
-         Server_Trace.Trace (Symbolic_Traceback (E));
+         Self.Server_Trace.Trace (Symbolic_Traceback (E));
    end Process_One_Message;
 
    -------------------------
@@ -494,9 +492,16 @@ package body LSP.Servers is
       Request      : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access)
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Server_Trace : GNATCOLL.Traces.Trace_Handle;
+      In_Trace     : GNATCOLL.Traces.Trace_Handle;
+      Out_Trace    : GNATCOLL.Traces.Trace_Handle)
    is
    begin
+      Self.Server_Trace := Server_Trace;
+      Self.In_Trace     := In_Trace;
+      Self.Out_Trace    := Out_Trace;
+
       Self.Processing_Task.Start (Request, Notification);
       Self.Output_Task.Start;
       Self.Input_Task.Start;
@@ -535,12 +540,11 @@ package body LSP.Servers is
       Send_Response (Self, Response, Request_Id);
 
       --  Log details in the traces
-      GNATCOLL.Traces.Trace
-        (LSP.Server_Trace,
-         "Exception when processing request:" & ASCII.LF
+      Self.Server_Trace.Trace
+        ("Exception when processing request:" & ASCII.LF
          & Trace_Text & ASCII.LF
          & Exception_Text);
-      Server_Trace.Trace (Symbolic_Traceback (E));
+      Self.Server_Trace.Trace (Symbolic_Traceback (E));
    end Send_Exception_Response;
 
    --------------------------
@@ -713,9 +717,9 @@ package body LSP.Servers is
          String'Write (Stream, Header);
          String'Write (Stream, Ada.Strings.Unbounded.To_String (Vector));
 
-         if Is_Active (Out_Trace) then
+         if Server.Out_Trace.Is_Active then
             --  Avoid expensive convertion to string when trace is off
-            Trace (Out_Trace, To_String (Vector));
+            Server.Out_Trace.Trace (To_String (Vector));
          end if;
       end Write_JSON_RPC;
 
@@ -742,12 +746,11 @@ package body LSP.Servers is
                when E : others =>
                   --  Catch-all case: make sure no exception in output writing
                   --  can cause an exit of the task loop.
-                  GNATCOLL.Traces.Trace
-                    (LSP.Server_Trace,
-                     "Exception when writing output:" & ASCII.LF
+                  Server.Server_Trace.Trace
+                    ("Exception when writing output:" & ASCII.LF
                      & To_String (Output) & ASCII.LF
                      & Exception_Name (E) & " - " &  Exception_Message (E));
-                  Server_Trace.Trace (Symbolic_Traceback (E));
+                  Server.Server_Trace.Trace (Symbolic_Traceback (E));
 
             end;
          or
@@ -867,7 +870,7 @@ package body LSP.Servers is
                Free (Request);
             exception
                when Ada.IO_Exceptions.End_Error =>
-                  Server_Trace.Trace ("Received EOF.");
+                  Server.Server_Trace.Trace ("Received EOF.");
                   exit;
 
                when E : others =>

@@ -15,13 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.Traces; use GNATCOLL.Traces;
-
 package LSP is
-   Server_Trace : Trace_Handle := Create ("ALS.MAIN", From_Config);
-   --  Main trace for the LSP.
-
-   In_Trace  : Trace_Handle := Create ("ALS.IN", Off);
-   Out_Trace : Trace_Handle := Create ("ALS.OUT", Off);
-   --  Traces that logs all input & output. For debugging purposes.
+   pragma Pure;
 end LSP;
