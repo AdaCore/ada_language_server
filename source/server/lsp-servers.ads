@@ -28,6 +28,8 @@ with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
 with LSP.Types;
 
+with GNATCOLL.Traces;
+
 private with Ada.Strings.Unbounded;
 private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
@@ -56,8 +58,14 @@ package LSP.Servers is
       Request      : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access);
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Server_Trace : GNATCOLL.Traces.Trace_Handle;
+      In_Trace     : GNATCOLL.Traces.Trace_Handle;
+      Out_Trace    : GNATCOLL.Traces.Trace_Handle);
    --  Run the server using given Request and Notification handler.
+   --  Server_Trace - main trace for the LSP.
+   --  In_Trace and Out_Trace - traces that logs all input & output for
+   --  debugging purposes.
 
    procedure Stop (Self : in out Server);
    --  Ask server to stop
@@ -157,6 +165,10 @@ private
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
+
+      Server_Trace    : GNATCOLL.Traces.Trace_Handle;
+      In_Trace        : GNATCOLL.Traces.Trace_Handle;
+      Out_Trace       : GNATCOLL.Traces.Trace_Handle;
    end record;
 
    overriding procedure On_Show_Message

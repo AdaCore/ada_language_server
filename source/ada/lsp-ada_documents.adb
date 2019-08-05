@@ -74,7 +74,7 @@ package body LSP.Ada_Documents is
           (Self.Context.URI_To_File (Self.URI));  --  Delete file://
       Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
-      Server_Trace.Trace ("Applying changes for document " & File);
+      Self.Context.Trace.Trace ("Applying changes for document " & File);
       for Change of reverse Vector loop
          --  If whole document then reparse it
          if not Change.span.Is_Set then
@@ -85,7 +85,7 @@ package body LSP.Ada_Documents is
                Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Change.text));
          end if;
       end loop;
-      Server_Trace.Trace ("Done applying changes for document " & File);
+      Self.Context.Trace.Trace ("Done applying changes for document " & File);
    end Apply_Changes;
 
    ----------------
@@ -423,7 +423,7 @@ package body LSP.Ada_Documents is
       --  Get the corresponding LAL node
 
    begin
-      Server_Trace.Trace
+      Self.Context.Trace.Trace
         ("Getting completions, Pos = ("
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
@@ -431,7 +431,7 @@ package body LSP.Ada_Documents is
       declare
          Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
       begin
-         Server_Trace.Trace
+         Self.Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
          for BD of Raw_Completions loop
             if not BD.Is_Null then

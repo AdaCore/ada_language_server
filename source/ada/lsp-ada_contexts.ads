@@ -22,6 +22,7 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
 private with GNATCOLL.Projects;
+with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
@@ -32,14 +33,16 @@ with LSP.Types;
 
 package LSP.Ada_Contexts is
 
-   type Context is tagged limited private;
+   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is
+     tagged limited private;
    --  Context includes set of edited documents, Libadalang context, project
    --  tree and others data.
 
    procedure Initialize
-     (Self : in out Context;
-      Root : LSP.Types.LSP_String);
+     (Self  : in out Context;
+      Root  : LSP.Types.LSP_String);
    --  Reset context. Set Root directory as LSP client provides it.
+   --  Use Trace to log errors.
 
    function Is_Initialized (Self : Context) return Boolean;
    --  Check if context has been initialized
@@ -143,7 +146,7 @@ private
       Equivalent_Elements => GNATCOLL.VFS."=",
       "="                 => GNATCOLL.VFS."=");
 
-   type Context is tagged limited record
+   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
 

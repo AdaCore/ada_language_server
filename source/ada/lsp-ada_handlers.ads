@@ -18,6 +18,8 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
+with GNATCOLL.Traces;
+
 with LSP.Messages.Server_Responses;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
@@ -29,7 +31,8 @@ package LSP.Ada_Handlers is
 
    type Message_Handler
      (Server  : access LSP.Servers.Server;
-      Context : access LSP.Ada_Contexts.Context) is
+      Context : access LSP.Ada_Contexts.Context;
+      Trace   : GNATCOLL.Traces.Trace_Handle) is
    limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
    with private;
@@ -38,8 +41,9 @@ package LSP.Ada_Handlers is
 private
 
    type Message_Handler
-     (Server : access LSP.Servers.Server;
-      Context : access LSP.Ada_Contexts.Context)
+     (Server  : access LSP.Servers.Server;
+      Context : access LSP.Ada_Contexts.Context;
+      Trace   : GNATCOLL.Traces.Trace_Handle)
    is limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver with
    record

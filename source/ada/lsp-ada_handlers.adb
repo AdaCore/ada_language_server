@@ -24,7 +24,6 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS;               use GNATCOLL.VFS;
-with GNATCOLL.Traces;
 
 with LSP.Types; use LSP.Types;
 
@@ -261,7 +260,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Log the context root
-      Server_Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+      Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
 
       Self.Context.Initialize (Root);
 
@@ -531,16 +530,14 @@ package body LSP.Ada_Handlers is
       Diag     : LSP.Messages.PublishDiagnosticsParams;
       Document : LSP.Ada_Documents.Document_Access;
    begin
-      GNATCOLL.Traces.Trace (Server_Trace, "In Text_Document_Did_Open");
-      GNATCOLL.Traces.Trace
-        (Server_Trace, "Uri : " & To_UTF_8_String (Value.textDocument.uri));
+      Self.Trace.Trace ("In Text_Document_Did_Open");
+      Self.Trace.Trace ("Uri : " & To_UTF_8_String (Value.textDocument.uri));
 
       --  Some clients don't properly call initialize, in which case we want to
       --  call it anyway at the first open file request.
 
       if not Self.Context.Is_Initialized then
-         GNATCOLL.Traces.Trace
-           (Server_Trace, "No project loaded, creating default one ...");
+         Self.Trace.Trace ("No project loaded, creating default one ...");
 
          declare
             Root : LSP.Types.LSP_String :=
@@ -549,8 +546,7 @@ package body LSP.Ada_Handlers is
             Root := To_LSP_String
               (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
 
-            GNATCOLL.Traces.Trace
-              (Server_Trace, "Root : " & To_UTF_8_String (Root));
+            Self.Trace.Trace ("Root : " & To_UTF_8_String (Root));
 
             Self.Context.Initialize (Root);
 
@@ -564,7 +560,6 @@ package body LSP.Ada_Handlers is
             --  We're loading a default project: set the default charset
             --  to latin-1, since this is the GNAT default.
             "iso-8859-1",
-
             Errors);
 
          if not LSP.Types.Is_Empty (Errors.message) then
