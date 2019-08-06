@@ -364,6 +364,8 @@ package body LSP.Servers is
 
             end if;
 
+            Self.Logger.Visit (Message.all);
+
             --  Now we have a message to process. Push it to the processing
             --  task
             Self.Input_Queue.Enqueue (Message);
@@ -501,6 +503,8 @@ package body LSP.Servers is
       Self.Server_Trace := Server_Trace;
       Self.In_Trace     := In_Trace;
       Self.Out_Trace    := Out_Trace;
+
+      Self.Logger.Initialize (Server_Trace);
 
       Self.Processing_Task.Start (Request, Notification);
       Self.Output_Task.Start;
@@ -730,6 +734,7 @@ package body LSP.Servers is
          select
             --  Process all available outputs before acceptiong Stop
             Output_Queue.Dequeue (Message);
+            Server.Logger.Visit (Message.all);
 
             declare
                Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;

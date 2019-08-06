@@ -23,6 +23,7 @@
 with Ada.Streams;
 
 with LSP.Client_Notification_Receivers;
+with LSP.Message_Loggers;
 with LSP.Messages;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
@@ -169,6 +170,7 @@ private
       Server_Trace    : GNATCOLL.Traces.Trace_Handle;
       In_Trace        : GNATCOLL.Traces.Trace_Handle;
       Out_Trace       : GNATCOLL.Traces.Trace_Handle;
+      Logger          : aliased LSP.Message_Loggers.Message_Logger;
    end record;
 
    overriding procedure On_Show_Message
