@@ -17,7 +17,9 @@
 --
 --  This is driver to run LSP server for Ada language.
 
+with Ada.Text_IO;
 with Ada.Exceptions;          use Ada.Exceptions;
+with GNAT.Command_Line;       use GNAT.Command_Line;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
@@ -65,6 +67,7 @@ procedure LSP.Ada_Driver is
       end return;
    end Getenv;
 
+   Cmdline   : Command_Line_Configuration;
    ALS_Home  : constant String := Getenv ("ALS_HOME");
    Home_Dir  : constant Virtual_File :=
                  (if ALS_Home /= "" then Create (+ALS_Home)
@@ -72,18 +75,54 @@ procedure LSP.Ada_Driver is
    ALS_Dir   : constant Virtual_File := Home_Dir / ".als";
    GNATdebug : constant Virtual_File := Create_From_Base (".gnatdebug");
 
+   use GNAT.Strings;
+   Tracefile_Name : aliased String_Access;
+   Config_File    : Virtual_File;
+   Help_Arg       : aliased Boolean := False;
 begin
+   --  Handle the command line
+   Set_Usage
+     (Cmdline,
+      Help => "Command line interface for the Ada Language Server");
 
-   --  Look for a .gnatdebug file locally; if it exists, use its contents as
-   --  traces config file. If not, if the ".als" directory exists in the home
-   --  directory, initialize traces there.
-   if GNATdebug.Is_Regular_File then
+   Define_Switch
+     (Cmdline,
+      Output      => Tracefile_Name'Access,
+      Long_Switch => "--tracefile=",
+      Help        => "Full path to a file containing traces configuration");
+
+   Define_Switch
+     (Cmdline,
+      Output      => Help_Arg'Access,
+      Long_Switch => "--help",
+      Help        => "Display this help");
+
+   begin
+      Getopt (Cmdline);
+   exception
+      when GNAT.Command_Line.Exit_From_Command_Line => GNAT.OS_Lib.OS_Exit (0);
+   end;
+
+   --  Look for a traces file, in this order:
+   --     - passed on the command line via --tracefile,
+   --     - in a .gnatdebug file locally
+   --     - in "traces.cfg" in the ALS home directory
+   if Tracefile_Name /= null
+     and then Tracefile_Name.all /= ""
+   then
+      Config_File := Create (+Tracefile_Name.all);
+      if not Config_File.Is_Regular_File then
+         Ada.Text_IO.Put_Line ("Could not find the specified traces file");
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
+      Parse_Config_File (Config_File);
+
+   elsif GNATdebug.Is_Regular_File then
       Parse_Config_File (GNATdebug);
 
    elsif ALS_Dir.Is_Directory then
       --  Search for custom traces config in traces.cfg
-      Parse_Config_File
-        (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
+      Parse_Config_File (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
 
       --  Set log file
       Set_Default_Stream
