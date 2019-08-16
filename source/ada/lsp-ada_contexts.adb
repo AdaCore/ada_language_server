@@ -38,6 +38,12 @@ package body LSP.Ada_Contexts is
      (LSP.Ada_Documents.Document,
       Internal_Document_Access);
 
+   function Get_Corresponding_Context
+     (Self : in out Context'Class;
+      URI  : LSP.Types.LSP_String) return Libadalang.Analysis.Analysis_Context;
+   --  Return LAL_Context corresponding to given URI. If file belongs to the
+   --  project it returns main context, otherwise - second context.
+
    -----------------
    -- File_To_URI --
    -----------------
@@ -244,24 +250,21 @@ package body LSP.Ada_Contexts is
    is
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self'Unchecked_Access);
+      Name : constant LSP.Types.LSP_String := Self.URI_To_File (Item.uri);
+      File : constant Virtual_File := Create
+        (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
+         Normalize => True);
    begin
-      Object.Initialize (Self.LAL_Context, Item);
-      Self.Documents.Insert (Item.uri, Object);
+      if not Self.Is_Part_Of_Project (File) then
+         --  File that we are loading doesn't belong to the project, so
+         --  firstly recompute project view just in case this is a new file
+         --  in the project. Then update list of source files.
+         Self.Project_Tree.Recompute_View;
+         Self.Update_Source_Files;
+      end if;
 
-      declare
-         Name : constant LSP.Types.LSP_String := Self.URI_To_File (Item.uri);
-         File : constant Virtual_File := Create
-           (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
-            Normalize => True);
-      begin
-         if not Self.Is_Part_Of_Project (File) then
-            --  File that we are loading doesn't belong to the project, so
-            --  firstly recompute project view just in case this is a new file
-            --  in the project. Then update list of source files.
-            Self.Project_Tree.Recompute_View;
-            Self.Update_Source_Files;
-         end if;
-      end;
+      Object.Initialize (Self.Get_Corresponding_Context (Item.uri), Item);
+      Self.Documents.Insert (Item.uri, Object);
 
       return LSP.Ada_Documents.Document_Access (Object);
    end Load_Document;
@@ -391,10 +394,12 @@ package body LSP.Ada_Contexts is
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
 
+      Self.Second_Context := (Is_Set => False);
+
       --  After re-creation of the LAL context all Analysis_Units become
       --  outdated, let's refresh all of them
       for Document of Self.Documents loop
-         Document.Reload (Self.LAL_Context);
+         Document.Reload (Self.Get_Corresponding_Context (Document.URI));
       end loop;
    end Reload;
 
@@ -487,6 +492,35 @@ package body LSP.Ada_Contexts is
    begin
       return Self.Diagnostics_Enabled;
    end Get_Diagnostics_Enabled;
+
+   -------------------------------
+   -- Get_Corresponding_Context --
+   -------------------------------
+
+   function Get_Corresponding_Context
+     (Self : in out Context'Class;
+      URI  : LSP.Types.LSP_String) return Libadalang.Analysis.Analysis_Context
+   is
+      Name : constant LSP.Types.LSP_String := Self.URI_To_File (URI);
+      File : constant Virtual_File := Create
+        (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
+         Normalize => True);
+   begin
+      if Self.Is_Part_Of_Project (File) then
+         return Self.LAL_Context;
+      else
+         if not Self.Second_Context.Is_Set then
+            Self.Second_Context :=
+              (Is_Set => True,
+               Value  => Libadalang.Analysis.Create_Context
+                 (Unit_Provider => Self.Unit_Provider,
+                  With_Trivia   => True,
+                  Charset       => Self.Get_Charset));
+         end if;
+
+         return Self.Second_Context.Value;
+      end if;
+   end Get_Corresponding_Context;
 
    -----------------
    -- Get_Node_At --

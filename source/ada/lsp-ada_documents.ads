@@ -44,6 +44,9 @@ package LSP.Ada_Documents is
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
 
+   function URI (Self : Document) return LSP.Messages.DocumentUri;
+   --  Get original URI of the document.
+
    procedure Get_Errors
      (Self   : Document;
       Errors : out LSP.Messages.Diagnostic_Vector);

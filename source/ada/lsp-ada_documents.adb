@@ -463,4 +463,13 @@ package body LSP.Ada_Documents is
          Reparse  => False);
    end Unit;
 
+   ---------
+   -- URI --
+   ---------
+
+   function URI (Self : Document) return LSP.Messages.DocumentUri is
+   begin
+      return Self.URI;
+   end URI;
+
 end LSP.Ada_Documents;

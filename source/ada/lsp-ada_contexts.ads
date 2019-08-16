@@ -146,9 +146,22 @@ private
       Equivalent_Elements => GNATCOLL.VFS."=",
       "="                 => GNATCOLL.VFS."=");
 
+   type Optional_Analysis_Context (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when True =>
+            Value : Libadalang.Analysis.Analysis_Context;
+         when False =>
+            null;
+      end case;
+   end record;
+
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
+
+      Second_Context : Optional_Analysis_Context;
+      --  The context to parse out-of-project files. The idea is to protect
+      --  main LAL context from influence by non-project files.
 
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       Root           : LSP.Types.LSP_String;
