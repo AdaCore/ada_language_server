@@ -22,7 +22,7 @@ with Langkit_Support.Slocs;
 with Libadalang.Common;
 with Libadalang.Iterators;
 
-with LSP.Ada_Contexts;
+with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Types;
 
 package body LSP.Ada_Documents is
@@ -70,8 +70,7 @@ package body LSP.Ada_Documents is
       Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
       File : constant String :=
-        Types.To_UTF_8_String
-          (Self.Context.URI_To_File (Self.URI));  --  Delete file://
+        Types.To_UTF_8_String (URI_To_File (Self.URI));
       Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
       Self.Context.Trace.Trace ("Applying changes for document " & File);
@@ -276,8 +275,7 @@ package body LSP.Ada_Documents is
       LAL  : Libadalang.Analysis.Analysis_Context;
       Item : LSP.Messages.TextDocumentItem)
    is
-      File : constant LSP.Types.LSP_String :=
-        Self.Context.URI_To_File (Item.uri);  --  Delete file://
+      File : constant LSP.Types.LSP_String := URI_To_File (Item.uri);
       Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
       Dummy := LAL.Get_From_Buffer
@@ -303,8 +301,7 @@ package body LSP.Ada_Documents is
      (Self : in out Document;
       LAL  : Libadalang.Analysis.Analysis_Context)
    is
-      File : constant LSP.Types.LSP_String :=
-        Self.Context.URI_To_File (Self.URI);  --  Delete file://
+      File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
       Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
       Dummy := LAL.Get_From_Buffer
@@ -455,8 +452,7 @@ package body LSP.Ada_Documents is
    ----------
 
    function Unit (Self : Document) return Libadalang.Analysis.Analysis_Unit is
-      File : constant LSP.Types.LSP_String :=
-        Self.Context.URI_To_File (Self.URI);
+      File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
    begin
       return Self.LAL.Get_From_File
         (Filename => LSP.Types.To_UTF_8_String (File),

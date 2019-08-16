@@ -43,11 +43,8 @@ package body LSP.Ada_Contexts is
    -----------------
 
    function File_To_URI
-     (Self : Context;
-      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
+     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
-      pragma Unreferenced (Self);
-
       Result : constant URIs.URI_String :=
         URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
    begin
@@ -249,7 +246,7 @@ package body LSP.Ada_Contexts is
       Self.Documents.Insert (Item.uri, Object);
 
       declare
-         Name : constant LSP.Types.LSP_String := Self.URI_To_File (Item.uri);
+         Name : constant LSP.Types.LSP_String := URI_To_File (Item.uri);
          File : constant Virtual_File := Create
            (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
             Normalize => True);
@@ -457,11 +454,8 @@ package body LSP.Ada_Contexts is
    -----------------
 
    function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
+     (URI : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
-      pragma Unreferenced (Self);
-
       To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
       Result : constant String := URIs.Conversions.To_File (To);
    begin
@@ -510,7 +504,7 @@ package body LSP.Ada_Contexts is
          return Self.Get_Document (URI).Get_Node_At (Position.position);
       else
          Unit := Self.LAL_Context.Get_From_File
-           (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+           (LSP.Types.To_UTF_8_String (URI_To_File (URI)),
             Charset => Self.Get_Charset);
 
          if Unit.Root = Libadalang.Analysis.No_Ada_Node then

@@ -29,6 +29,7 @@ with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
+with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -46,8 +47,7 @@ package body LSP.Ada_Handlers is
      LSP.Types.To_LSP_String;
 
    function Get_Node_Location
-     (Self : access Message_Handler;
-      Node : Libadalang.Analysis.Ada_Node;
+     (Node : Libadalang.Analysis.Ada_Node;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location;
    --  Return the location of the given node. Populate alsKind field of the
@@ -72,8 +72,7 @@ package body LSP.Ada_Handlers is
    --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
 
    procedure Append_Location
-     (Self   : access Message_Handler;
-      Result : in out LSP.Messages.Location_Vector;
+     (Result : in out LSP.Messages.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  Append given Node location to the Result.
@@ -85,8 +84,7 @@ package body LSP.Ada_Handlers is
    ---------------------
 
    procedure Append_Location
-     (Self   : access Message_Handler;
-      Result : in out LSP.Messages.Location_Vector;
+     (Result : in out LSP.Messages.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
    is
@@ -107,7 +105,7 @@ package body LSP.Ada_Handlers is
       end Is_Synthetic;
 
       Location : constant LSP.Messages.Location :=
-        Self.Get_Node_Location (Libadalang.Analysis.As_Ada_Node (Node), Kind);
+        Get_Node_Location (Libadalang.Analysis.As_Ada_Node (Node), Kind);
    begin
       if not Is_Synthetic then
          Result.Append (Location);
@@ -119,8 +117,7 @@ package body LSP.Ada_Handlers is
    -----------------------
 
    function Get_Node_Location
-     (Self : access Message_Handler;
-      Node : Libadalang.Analysis.Ada_Node;
+     (Node : Libadalang.Analysis.Ada_Node;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location
    is
@@ -142,7 +139,7 @@ package body LSP.Ada_Handlers is
                           UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
       Location : constant LSP.Messages.Location :=
-                   (uri  => Self.Context.File_To_URI (+Node.Unit.Get_Filename),
+                   (uri  => File_To_URI (+Node.Unit.Get_Filename),
                     span => LSP.Messages.Span'(First_Position, Last_Position),
                     alsKind => Kind);
    begin
@@ -245,7 +242,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.alsCalledByProvider := True;
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
-         Root := Self.Context.URI_To_File (Value.rootUri);
+         Root := URI_To_File (Value.rootUri);
       else
          --  URI isn't provided, rollback to deprecated rootPath
          Root := Value.rootPath;
@@ -414,7 +411,7 @@ package body LSP.Ada_Handlers is
          Self.Imprecise_Resolve_Name (Value, Definition, LSP.Messages.Info);
 
          if Definition /= No_Defining_Name then
-            Self.Append_Location (Response.result, Definition);
+            Append_Location (Response.result, Definition);
          end if;
       else  --  If we are on a defining_name already
          Other_Part := Find_Next_Part (Definition);
@@ -425,7 +422,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          if Other_Part /= No_Defining_Name then
-            Self.Append_Location (Response.result, Other_Part);
+            Append_Location (Response.result, Other_Part);
          end if;
       end if;
 
@@ -472,7 +469,7 @@ package body LSP.Ada_Handlers is
 --           Type_Decl := Type_Decl.P_Pointed_Type or something
 --        end if;
 
-      Self.Append_Location (Response.result, Type_Decl);
+      Append_Location (Response.result, Type_Decl);
 
       return Response;
    end On_Type_Definition_Request;
@@ -541,7 +538,7 @@ package body LSP.Ada_Handlers is
 
          declare
             Root : LSP.Types.LSP_String :=
-              Self.Context.URI_To_File (Value.textDocument.uri);
+              URI_To_File (Value.textDocument.uri);
          begin
             Root := To_LSP_String
               (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
@@ -948,14 +945,14 @@ package body LSP.Ada_Handlers is
            Self.Context.Find_All_References (Definition);
       begin
          for Node of References loop
-            Self.Append_Location
+            Append_Location
               (Response.result,
                Node,
                Get_Reference_Kind (Node.As_Ada_Node));
          end loop;
 
          if Value.context.includeDeclaration then
-            Self.Append_Location
+            Append_Location
               (Response.result,
                Definition,
                Get_Reference_Kind (Definition.As_Ada_Node));
@@ -1010,11 +1007,11 @@ package body LSP.Ada_Handlers is
                  Element (C);
                Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
             begin
-               Subp_And_Refs.loc := Get_Node_Location (Self, Ada_Node (Node));
+               Subp_And_Refs.loc := Get_Node_Location (Ada_Node (Node));
                Subp_And_Refs.name := To_LSP_String
                  (Langkit_Support.Text.To_UTF8 (Node.Text));
                for Ref of Refs loop
-                  Self.Append_Location (Subp_And_Refs.refs, Ref);
+                  Append_Location (Subp_And_Refs.refs, Ref);
                end loop;
                Response.result.Append (Subp_And_Refs);
             end;
@@ -1113,9 +1110,7 @@ package body LSP.Ada_Handlers is
          for Node of References loop
             declare
                Location : constant LSP.Messages.Location :=
-                  Get_Node_Location
-                     (Self => Self,
-                      Node => Node.As_Ada_Node);
+                  Get_Node_Location (Node => Node.As_Ada_Node);
                Item : constant LSP.Messages.TextEdit :=
                  (span    => Location.span,
                   newText => Value.newName);
@@ -1164,7 +1159,7 @@ package body LSP.Ada_Handlers is
 
             --  Drop uri scheme if present
             if LSP.Types.Starts_With (File, "file:") then
-               File := Self.Context.URI_To_File (File);
+               File := URI_To_File (File);
             end if;
          end if;
 

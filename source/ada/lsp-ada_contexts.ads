@@ -100,13 +100,11 @@ package LSP.Ada_Contexts is
    --  store it.
 
    function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+     (URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path by stripping schema from it
 
    function File_To_URI
-     (Self : Context;
-      File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+     (File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
 
    function Get_Node_At
