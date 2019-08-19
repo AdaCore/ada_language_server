@@ -1,0 +1,368 @@
+[
+   {
+      "comment": [
+         "test contents of hover on function prototypes"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true, 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "textDocumentSync": 1, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "prj.gpr", 
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package X is\n\n   function F1 return not null access String;\n   -- yo\n\n   function F2 (Z : access String := null) return String;\n\n   function F3 (Z : Boolean := not True) return String;\n\n   function F4 (Z : Boolean := not True) return access String;\n\n   function F5 (Z : Boolean := not True) return not null access String;\n\n   function F6 return not null access String;\n\n   function F7 (Z : Boolean := (True or True) and not False) return String;\n   function F8 (Z : Boolean := (True or True) and not False and False) return String;\n\nend X;\n", 
+                  "version": 0, 
+                  "uri": "$URI{x.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": {
+                  "contents": [
+                     {
+                        "value": "function F1 return not null access String", 
+                        "language": "ada"
+                     }, 
+                     "yo"
+                  ]
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 5, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": {
+                  "contents": {
+                     "value": "function F2 (Z : access String := null) return String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 7, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": {
+                  "contents": {
+                     "value": "function F3 (Z : Boolean := not True) return String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 9, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": {
+                  "contents": {
+                     "value": "function F4 (Z : Boolean := not True) return access String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 11, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 6, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 6, 
+               "result": {
+                  "contents": {
+                     "value": "function F5 (Z : Boolean := not True) return not null access String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 13, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": {
+                  "contents": {
+                     "value": "function F6 return not null access String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 15, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 8, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 8, 
+               "result": {
+                  "contents": {
+                     "value": "function F7 (Z : Boolean := (True or True) and not False) return String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 16, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 9, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 9, 
+               "result": {
+                  "contents": {
+                     "value": "function F8 (Z : Boolean := (True or True) and not False and False) return String", 
+                     "language": "ada"
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{x.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 10, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 10, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

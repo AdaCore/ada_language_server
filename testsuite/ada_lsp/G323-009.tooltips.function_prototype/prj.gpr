@@ -1,0 +1,6 @@
+project Prj is
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnat05");
+   end Compiler;
+end Prj;
