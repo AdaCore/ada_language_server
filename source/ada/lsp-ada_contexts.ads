@@ -39,10 +39,9 @@ package LSP.Ada_Contexts is
    --  tree and others data.
 
    procedure Initialize
-     (Self  : in out Context;
-      Root  : LSP.Types.LSP_String);
+     (Self : in out Context;
+      Root : LSP.Types.LSP_String);
    --  Reset context. Set Root directory as LSP client provides it.
-   --  Use Trace to log errors.
 
    function Is_Initialized (Self : Context) return Boolean;
    --  Check if context has been initialized
@@ -60,14 +59,6 @@ package LSP.Ada_Contexts is
    --  In case of errors create and load default project.
    --  Set the charset as well.
    --  Return warnings and errors in Errors parameter.
-
-   procedure Set_Diagnostics_Enabled
-     (Self    : in out Context;
-      Enabled : Boolean);
-   --  Enable/Disable diagnostics; by default, diagnostics are enabled
-
-   function Get_Diagnostics_Enabled (Self : Context) return Boolean;
-   --  Return whether diagnostics are enabled
 
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
@@ -121,6 +112,11 @@ package LSP.Ada_Contexts is
    --  Finds all references to a given defining name in all units of the
    --  context.
 
+   function Is_Part_Of_Project
+     (Self : Context;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Check if given file belongs to the project loaded in the Context
+
 private
    use type Types.LSP_String;
    use type GNATCOLL.Projects.Project_Tree_Access;
@@ -147,24 +143,18 @@ private
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
-
-      Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       Root           : LSP.Types.LSP_String;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
       Source_Files   : GNATCOLL.VFS.File_Array_Access;
       --  Cache for the list of Ada source files in the loaded project tree
 
+      Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
+      --  The currently loaded project tree, or null for contexts that
+      --  don't have a project.
+
       Documents      : Document_Maps.Map;
-
-      Diagnostics_Enabled : Boolean := True;
-      --  Whether to publish diagnostics
    end record;
-
-   function Is_Part_Of_Project
-     (Self : Context;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean;
-   --  Check if given file belongs to the project loaded in the Context
 
    procedure Update_Source_Files (Self : in out Context);
    --  Update Self.Source_Files value

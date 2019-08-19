@@ -23,7 +23,6 @@ with Ada.Directories;
 with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
-with GNATCOLL.VFS;               use GNATCOLL.VFS;
 
 with LSP.Types; use LSP.Types;
 
@@ -64,6 +63,7 @@ package body LSP.Ada_Handlers is
 
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
+      In_Context : Context_Access;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
       Definition : out Libadalang.Analysis.Defining_Name;
       Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log);
@@ -77,7 +77,99 @@ package body LSP.Ada_Handlers is
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
+   --  Do not append if the location is already in Result.
    --  See description of Kind in Get_Node_Location comments.
+
+   function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
+     (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
+   --  Utility conversion function
+
+   procedure Ensure_Context_Initialized
+     (Self : access Message_Handler;
+      Root : LSP.Types.LSP_String);
+   --  This function makes sure that the contexts in Self are properly
+   --  initialized, and, if they are not initialized, initialize them.
+   --  This initializes two contexts in Self.Context, in this order:
+   --   - a "project" context using Root as root directory
+   --   - a "projectless" context
+
+   ---------------------------
+   -- Multi-context support --
+   ---------------------------
+
+   --  A set of ucilities for dealing with multiple contexts
+
+   function Get_Best_Context_For_File
+     (Contexts : Context_Lists.List;
+      File     : Virtual_File) return Context_Access;
+   --  Return the first context in Contexts which contains a project
+   --  which knows about file.
+   --  ??? Nest this into Get_Best_Context_For_URI or is it used
+   --  somewhere else?
+
+   function Get_Best_Context_For_URI
+     (Contexts : Context_Lists.List;
+      URI      : LSP.Messages.DocumentUri) return Context_Access;
+   --  Return the Context most suitable to use for this URI: if a context
+   --  contains an opened document for this URI, then return it, otherwise
+   --  return the first context where the project tree knows about this file.
+   --  defaulting on the last context in Contexts.
+
+   function Get_Document
+     (Contexts : Context_Lists.List;
+      URI      : LSP.Messages.DocumentUri)
+      return LSP.Ada_Documents.Document_Access;
+   --  Return the document for URI in the first context in which it is open,
+   --  null if it isn't open.
+
+   -------------------------------
+   -- Get_Best_Context_For_File --
+   -------------------------------
+
+   function Get_Best_Context_For_File
+     (Contexts : Context_Lists.List;
+      File     : Virtual_File) return Context_Access is
+   begin
+      for Context of Contexts loop
+         if Context.Is_Part_Of_Project (File) then
+            return Context;
+         end if;
+      end loop;
+
+      return Contexts.Last_Element;
+   end Get_Best_Context_For_File;
+
+   ------------------------------
+   -- Get_Best_Context_For_URI --
+   ------------------------------
+
+   function Get_Best_Context_For_URI
+     (Contexts : Context_Lists.List;
+      URI      : LSP.Messages.DocumentUri) return Context_Access is
+   begin
+      for Context of Contexts loop
+         if Context.Has_Document (URI) then
+            return Context;
+         end if;
+      end loop;
+
+      return Get_Best_Context_For_File (Contexts, To_File (URI));
+   end Get_Best_Context_For_URI;
+
+   ------------------
+   -- Get_Document --
+   ------------------
+
+   function Get_Document
+     (Contexts : Context_Lists.List;
+      URI      : LSP.Messages.DocumentUri)
+      return LSP.Ada_Documents.Document_Access
+   is
+      C : constant Context_Access :=
+        Get_Best_Context_For_URI (Contexts, URI);
+   begin
+      return C.Get_Document (URI);
+   end Get_Document;
 
    ---------------------
    -- Append_Location --
@@ -107,7 +199,9 @@ package body LSP.Ada_Handlers is
       Location : constant LSP.Messages.Location :=
         Get_Node_Location (Libadalang.Analysis.As_Ada_Node (Node), Kind);
    begin
-      if not Is_Synthetic then
+      if not Is_Synthetic
+        and then not Result.Contains (Location)
+      then
          Result.Append (Location);
       end if;
    end Append_Location;
@@ -156,8 +250,7 @@ package body LSP.Ada_Handlers is
       Position : LSP.Messages.Position;
       Msg_Type : LSP.Messages.MessageType)
    is
-      File : constant GNATCOLL.VFS.Virtual_File := Create
-        (+(URIs.Conversions.To_File (To_UTF_8_String (URI))));
+      File : constant GNATCOLL.VFS.Virtual_File := To_File (URI);
    begin
       Self.Server.On_Show_Message
         ((Msg_Type,
@@ -176,6 +269,7 @@ package body LSP.Ada_Handlers is
 
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
+      In_Context : Context_Access;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
       Definition : out Libadalang.Analysis.Defining_Name;
       Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log)
@@ -183,7 +277,7 @@ package body LSP.Ada_Handlers is
       use type Libadalang.Analysis.Name;
 
       Name_Node : constant Libadalang.Analysis.Name :=
-        LSP.Lal_Utils.Get_Node_As_Name (Self.Context.Get_Node_At (Position));
+        LSP.Lal_Utils.Get_Node_As_Name (In_Context.Get_Node_At (Position));
 
       Imprecise  : Boolean;
    begin
@@ -212,6 +306,57 @@ package body LSP.Ada_Handlers is
    begin
       Self.Server.Stop;
    end On_Exit_Notification;
+
+   --------------------------------
+   -- Ensure_Context_Initialized --
+   --------------------------------
+
+   procedure Ensure_Context_Initialized
+     (Self : access Message_Handler;
+      Root : LSP.Types.LSP_String)
+   is
+      C      : constant Context_Access := new Context (Self.Trace);
+      Errors : LSP.Messages.ShowMessageParams;
+   begin
+      if Integer (Self.Contexts.Length) >= 2 then
+         --  Rely on the fact that there are at least two contexts initialized
+         --  as a guarantee that the initialization has been done.
+         return;
+      end if;
+
+      if Integer (Self.Contexts.Length) = 1 then
+         --  We should never have only one context, there should always
+         --  be at least two contexts.
+         raise Program_Error with "inconsistent context initialization";
+      end if;
+
+      Self.Trace.Trace ("No project loaded, creating default context ...");
+      Self.Trace.Trace ("Root : " & To_UTF_8_String (Root));
+      C.Initialize (Root);
+      C.Load_Project
+        (Empty_LSP_String, GNATCOLL.JSON.JSON_Null,
+
+         --  We're loading a default project: set the default charset
+         --  to latin-1, since this is the GNAT default.
+         "iso-8859-1",
+         Errors);
+
+      if not LSP.Types.Is_Empty (Errors.message) then
+         Self.Server.On_Show_Message (Errors);
+      end if;
+
+      Self.Contexts.Prepend (C);
+
+      --  Initialize the context that has no project, ie the last entry
+      --  in Self.Contexts
+      declare
+         Projectless_Context : constant Context_Access :=
+           new Context (Self.Trace);
+      begin
+         Projectless_Context.Initialize (Root);
+         Self.Contexts.Append (Projectless_Context);
+      end;
+   end Ensure_Context_Initialized;
 
    ------------------------
    -- Initialize_Request --
@@ -256,10 +401,10 @@ package body LSP.Ada_Handlers is
          Root := To_LSP_String (".");
       end if;
 
+      Ensure_Context_Initialized (Self, Root);
+
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
-
-      Self.Context.Initialize (Root);
 
       return Response;
    end On_Initialize_Request;
@@ -331,6 +476,9 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
+
       function Find_Next_Part
         (Definition : Defining_Name) return Defining_Name;
       --  Find defining name of a completion if any
@@ -338,6 +486,10 @@ package body LSP.Ada_Handlers is
       function Find_First_Part
         (Definition : Defining_Name) return Defining_Name;
       --  Find defining name of a declaration for given completion
+
+      procedure Resolve_In_Context (C : Context_Access);
+      --  Utility function, appends to Resonse.result all results of the
+      --  definition requests found in context C.
 
       ---------------------
       -- Find_First_Part --
@@ -391,40 +543,48 @@ package body LSP.Ada_Handlers is
             return No_Defining_Name;
       end Find_Next_Part;
 
-      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-        (Self.Context.Get_Node_At (Value));
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
 
-      Definition : Defining_Name;
-      Other_Part : Defining_Name;
-      Response   : LSP.Messages.Server_Responses.Location_Response
-        (Is_Error => False);
+      procedure Resolve_In_Context (C : Context_Access) is
+         Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+           (C.Get_Node_At (Value));
+         Definition : Defining_Name;
+         Other_Part : Defining_Name;
+      begin
+         if Name_Node = No_Name then
+            return;
+         end if;
+
+         --  Check is we are on some defining name
+         Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
+
+         if Definition = No_Defining_Name then
+            Self.Imprecise_Resolve_Name
+              (C, Value, Definition, LSP.Messages.Info);
+
+            if Definition /= No_Defining_Name then
+               Append_Location (Response.result, Definition);
+            end if;
+         else  --  If we are on a defining_name already
+            Other_Part := Find_Next_Part (Definition);
+
+            if Other_Part = No_Defining_Name then
+               --  No next part is found. Check first defining name
+               Other_Part := Find_First_Part (Definition);
+            end if;
+
+            if Other_Part /= No_Defining_Name then
+               Append_Location (Response.result, Other_Part);
+            end if;
+         end if;
+      end Resolve_In_Context;
+
    begin
-
-      if Name_Node = No_Name then
-         return Response;
-      end if;
-
-      --  Check is we are on some defining name
-      Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
-
-      if Definition = No_Defining_Name then
-         Self.Imprecise_Resolve_Name (Value, Definition, LSP.Messages.Info);
-
-         if Definition /= No_Defining_Name then
-            Append_Location (Response.result, Definition);
-         end if;
-      else  --  If we are on a defining_name already
-         Other_Part := Find_Next_Part (Definition);
-
-         if Other_Part = No_Defining_Name then
-            --  No next part is found. Check first defining name
-            Other_Part := Find_First_Part (Definition);
-         end if;
-
-         if Other_Part /= No_Defining_Name then
-            Append_Location (Response.result, Other_Part);
-         end if;
-      end if;
+      for C of Self.Contexts loop
+         Resolve_In_Context (C);
+      end loop;
 
       return Response;
    end On_Definition_Request;
@@ -443,7 +603,7 @@ package body LSP.Ada_Handlers is
       Response  : LSP.Messages.Server_Responses.Location_Response
         (Is_Error => False);
       Document  : constant LSP.Ada_Documents.Document_Access :=
-                    Self.Context.Get_Document (Value.textDocument.uri);
+        Get_Document (Self.Contexts, Value.textDocument.uri);
       Name_Node : constant Name :=
                     LSP.Lal_Utils.Get_Node_As_Name
                       (Document.Get_Node_At (Value.position));
@@ -483,12 +643,12 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
+        Get_Document (Self.Contexts, Value.textDocument.uri);
       Diag     : LSP.Messages.PublishDiagnosticsParams;
    begin
       Document.Apply_Changes (Value.contentChanges);
 
-      if Self.Context.Get_Diagnostics_Enabled then
+      if Self.Diagnostics_Enabled then
          Document.Get_Errors (Diag.diagnostics);
 
          Diag.uri := Value.textDocument.uri;
@@ -506,10 +666,14 @@ package body LSP.Ada_Handlers is
    is
       Diag : LSP.Messages.PublishDiagnosticsParams;
    begin
-      Self.Context.Unload_Document (Value.textDocument);
+      for Context of Self.Contexts loop
+         if Context.Has_Document (Value.textDocument.uri) then
+            Context.Unload_Document (Value.textDocument);
+         end if;
+      end loop;
 
       --  Clean diagnostics up on closing document
-      if Self.Context.Get_Diagnostics_Enabled then
+      if Self.Diagnostics_Enabled then
          Diag.uri := Value.textDocument.uri;
          Self.Server.On_Publish_Diagnostics (Diag);
       end if;
@@ -523,46 +687,19 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
-      Errors   : LSP.Messages.ShowMessageParams;
       Diag     : LSP.Messages.PublishDiagnosticsParams;
       Document : LSP.Ada_Documents.Document_Access;
    begin
       Self.Trace.Trace ("In Text_Document_Did_Open");
       Self.Trace.Trace ("Uri : " & To_UTF_8_String (Value.textDocument.uri));
 
-      --  Some clients don't properly call initialize, in which case we want to
-      --  call it anyway at the first open file request.
-
-      if not Self.Context.Is_Initialized then
-         Self.Trace.Trace ("No project loaded, creating default one ...");
-
-         declare
-            Root : LSP.Types.LSP_String :=
-              URI_To_File (Value.textDocument.uri);
-         begin
-            Root := To_LSP_String
-              (Ada.Directories.Containing_Directory (To_UTF_8_String (Root)));
-
-            Self.Trace.Trace ("Root : " & To_UTF_8_String (Root));
-
-            Self.Context.Initialize (Root);
-
-         end;
-      end if;
-
-      if not Self.Context.Has_Project then
-         Self.Context.Load_Project
-           (Empty_LSP_String, GNATCOLL.JSON.JSON_Null,
-
-            --  We're loading a default project: set the default charset
-            --  to latin-1, since this is the GNAT default.
-            "iso-8859-1",
-            Errors);
-
-         if not LSP.Types.Is_Empty (Errors.message) then
-            Self.Server.On_Show_Message (Errors);
-         end if;
-      end if;
+      --  Some clients don't properly call initialize, in which case we want
+      --  to call it anyway at the first open file request, using the
+      --  directory containing the file being opened.
+      Ensure_Context_Initialized
+        (Self,
+         To_LSP_String (Ada.Directories.Containing_Directory
+           (To_UTF_8_String (URI_To_File (Value.textDocument.uri)))));
 
       --  Send notifications "loading document" / "done loading document"
       --  around the load of documents: this gets logged by the IDE,
@@ -571,18 +708,23 @@ package body LSP.Ada_Handlers is
         ((LSP.Messages.Log,
          "loading document " & Value.textDocument.uri));
 
-      Document := Self.Context.Load_Document (Value.textDocument);
+      declare
+         Best_Context : constant Context_Access := Get_Best_Context_For_URI
+           (Self.Contexts, Value.textDocument.uri);
+      begin
+         Document := Best_Context.Load_Document (Value.textDocument);
 
-      Self.Server.On_Show_Message
-        ((LSP.Messages.Log,
-         "done loading document " & Value.textDocument.uri));
+         Self.Server.On_Show_Message
+           ((LSP.Messages.Log,
+            "done loading document " & Value.textDocument.uri));
 
-      if Self.Context.Get_Diagnostics_Enabled then
-         Document.Get_Errors (Diag.diagnostics);
+         if Self.Diagnostics_Enabled then
+            Document.Get_Errors (Diag.diagnostics);
 
-         Diag.uri := Value.textDocument.uri;
-         Self.Server.On_Publish_Diagnostics (Diag);
-      end if;
+            Diag.uri := Value.textDocument.uri;
+            Self.Server.On_Publish_Diagnostics (Diag);
+         end if;
+      end;
    end On_DidOpenTextDocument_Notification;
 
    --------------------------
@@ -820,8 +962,13 @@ package body LSP.Ada_Handlers is
          GNAT.Strings.Free (Lines);
       end Create_Decl_Text_For_Subp_Spec;
 
+      C : constant Context_Access :=
+        Get_Best_Context_For_URI (Self.Contexts, Value.textDocument.uri);
+      --  For the Hover request, we're only interested in the "best"
+      --  response value, not in the list of values for all contexts
+
    begin
-      Self.Imprecise_Resolve_Name (Value, Defining_Name_Node);
+      Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
 
       if Defining_Name_Node = No_Defining_Name then
          return Response;
@@ -892,6 +1039,13 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
+
+      procedure Process_Context (C : Context_Access);
+      --  Process the references found in one context and append
+      --  them to Response.results.
+
       function Get_Reference_Kind
         (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set;
       --  Fetch reference kind for given node
@@ -930,36 +1084,45 @@ package body LSP.Ada_Handlers is
          return Result;
       end Get_Reference_Kind;
 
-      Definition : Defining_Name;
-      Response   : LSP.Messages.Server_Responses.Location_Response
-        (Is_Error => False);
-   begin
-      Self.Imprecise_Resolve_Name (Value, Definition);
+      ---------------------
+      -- Process_Context --
+      ---------------------
 
-      if Definition = No_Defining_Name then
-         return Response;
-      end if;
-
-      declare
-         References  : constant Base_Id_Array :=
-           Self.Context.Find_All_References (Definition);
+      procedure Process_Context (C : Context_Access) is
+         Definition : Defining_Name;
       begin
-         for Node of References loop
-            Append_Location
-              (Response.result,
-               Node,
-               Get_Reference_Kind (Node.As_Ada_Node));
-         end loop;
+         Self.Imprecise_Resolve_Name (C, Value, Definition);
 
-         if Value.context.includeDeclaration then
-            Append_Location
-              (Response.result,
-               Definition,
-               Get_Reference_Kind (Definition.As_Ada_Node));
+         if Definition = No_Defining_Name then
+            return;
          end if;
 
-         return Response;
-      end;
+         declare
+            References  : constant Base_Id_Array :=
+              C.Find_All_References (Definition);
+         begin
+            for Node of References loop
+               Append_Location
+                 (Response.result,
+                  Node,
+                  Get_Reference_Kind (Node.As_Ada_Node));
+            end loop;
+
+            if Value.context.includeDeclaration then
+               Append_Location
+                 (Response.result,
+                  Definition,
+                  Get_Reference_Kind (Definition.As_Ada_Node));
+            end if;
+         end;
+      end Process_Context;
+
+   begin
+      for C of Self.Contexts loop
+         Process_Context (C);
+      end loop;
+
+      return Response;
    end On_References_Request;
 
    ------------------------------
@@ -974,50 +1137,66 @@ package body LSP.Ada_Handlers is
       use Libadalang.Analysis;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
 
-      Definition : Defining_Name;
       Response   : LSP.Messages.Server_Responses.ALS_Called_By_Response
         (Is_Error => False);
-   begin
-      Self.Imprecise_Resolve_Name (Value, Definition);
 
-      --  Attempt to resolve the name, return no results if we can't or if the
-      --  name does not resolve to a subprogram.
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
 
-      if Definition = No_Defining_Name
-        or else Definition.P_Basic_Decl.Kind not in
-          Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
-      then
-         return Response;
-      end if;
+      ---------------------
+      -- Process_Context --
+      ---------------------
 
-      declare
-
-         Called      : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
-           LSP.Lal_Utils.Is_Called_By (Self.Context.all, Definition);
-
-         use LSP.Lal_Utils.References_By_Subprogram;
-         C : Cursor := Called.First;
+      procedure Process_Context (C : Context_Access) is
+         Definition : Defining_Name;
       begin
-         --  Iterate through all the results, converting them to protocol
-         --  objects.
-         while Has_Element (C) loop
-            declare
-               Node : constant Defining_Name := Key (C);
-               Refs : constant LSP.Lal_Utils.References_List.List :=
-                 Element (C);
-               Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
-            begin
-               Subp_And_Refs.loc := Get_Node_Location (Ada_Node (Node));
-               Subp_And_Refs.name := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Node.Text));
-               for Ref of Refs loop
-                  Append_Location (Subp_And_Refs.refs, Ref);
-               end loop;
-               Response.result.Append (Subp_And_Refs);
-            end;
-            Next (C);
-         end loop;
-      end;
+         Self.Imprecise_Resolve_Name (C, Value, Definition);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a subprogram.
+
+         if Definition = No_Defining_Name
+           or else Definition.P_Basic_Decl.Kind not in
+             Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
+         then
+            return;
+         end if;
+
+         declare
+            Called  : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
+              LSP.Lal_Utils.Is_Called_By (C.all, Definition);
+
+            use LSP.Lal_Utils.References_By_Subprogram;
+            C : Cursor := Called.First;
+         begin
+            --  Iterate through all the results, converting them to protocol
+            --  objects.
+            while Has_Element (C) loop
+               declare
+                  Node : constant Defining_Name := Key (C);
+                  Refs : constant LSP.Lal_Utils.References_List.List :=
+                    Element (C);
+                  Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
+               begin
+                  Subp_And_Refs.loc := Get_Node_Location (Ada_Node (Node));
+                  Subp_And_Refs.name := To_LSP_String
+                    (Langkit_Support.Text.To_UTF8 (Node.Text));
+                  for Ref of Refs loop
+                     Append_Location (Subp_And_Refs.refs, Ref);
+                  end loop;
+                  Response.result.Append (Subp_And_Refs);
+               end;
+               Next (C);
+            end loop;
+         end;
+      end Process_Context;
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts loop
+         Process_Context (C);
+      end loop;
 
       return Response;
    end On_ALS_Called_By_Request;
@@ -1052,10 +1231,13 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DocumentSymbolParams)
       return LSP.Messages.Server_Responses.Symbol_Response
    is
+      --  The list of symbols for one document shouldn't depend
+      --  on the project: we can just choose the best context for this.
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
+        Get_Document (Self.Contexts, Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
+
    begin
       Document.Get_Symbols (Response.result);
       return Response;
@@ -1072,61 +1254,86 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      Position : constant LSP.Messages.TextDocumentPositionParams :=
-                   (Value.textDocument, Value.position);
-
-      Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-        (Self.Context.Get_Node_At (Position));
-
-      Definition : Defining_Name;
       Response   : LSP.Messages.Server_Responses.Rename_Response
         (Is_Error => False);
-      Imprecise  : Boolean;
-      Empty      : LSP.Messages.TextEdit_Vector;
-   begin
-      if Name_Node = No_Name then
-         return Response;
-      end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name
-        (Name_Node,
-         Imprecise => Imprecise);
+      procedure Process_Context (C : Context_Access);
+      --  Process the rename request for the given context, and add
+      --  the results to response.
 
-      --  If we used the imprecise fallback to get to the definition, stop
-      if Imprecise then
-         return Response;
-      end if;
+      ---------------------
+      -- Process_Context --
+      ---------------------
 
-      if Definition = No_Defining_Name then
-         return Response;
-      end if;
+      procedure Process_Context (C : Context_Access) is
+         Position : constant LSP.Messages.TextDocumentPositionParams :=
+           (Value.textDocument, Value.position);
 
-      declare
-         References  : constant Base_Id_Array :=
-           Self.Context.Find_All_References (Definition)
-           --  Append Definition itself so that it is also renamed
-             & Definition.P_Relative_Name.As_Base_Id;
+         Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+           (C.Get_Node_At (Position));
+
+         Definition : Defining_Name;
+         Imprecise  : Boolean;
+         Empty      : LSP.Messages.TextEdit_Vector;
       begin
-         for Node of References loop
-            declare
-               Location : constant LSP.Messages.Location :=
-                  Get_Node_Location (Node => Node.As_Ada_Node);
-               Item : constant LSP.Messages.TextEdit :=
-                 (span    => Location.span,
-                  newText => Value.newName);
-            begin
-               if not Response.result.changes.Contains (Location.uri) then
-                  --  We haven't touch this document yet, create an empty
-                  --  change list
-                  Response.result.changes.Insert (Location.uri, Empty);
-               end if;
+         if Name_Node = No_Name then
+            return;
+         end if;
 
-               Response.result.changes (Location.uri).Append (Item);
-            end;
-         end loop;
+         Definition := LSP.Lal_Utils.Resolve_Name
+           (Name_Node,
+            Imprecise => Imprecise);
 
-         return Response;
-      end;
+         --  If we used the imprecise fallback to get to the definition, stop
+         if Imprecise then
+            return;
+         end if;
+
+         if Definition = No_Defining_Name then
+            return;
+         end if;
+
+         declare
+            References  : constant Base_Id_Array :=
+              C.Find_All_References (Definition)
+              --  Append Definition itself so that it is also renamed
+              & Definition.P_Relative_Name.As_Base_Id;
+         begin
+            for Node of References loop
+               declare
+                  Location : constant LSP.Messages.Location :=
+                    Get_Node_Location (Node => Node.As_Ada_Node);
+                  Item : constant LSP.Messages.TextEdit :=
+                    (span    => Location.span,
+                     newText => Value.newName);
+               begin
+                  if not Response.result.changes.Contains (Location.uri) then
+                     --  We haven't touched this document yet, create an empty
+                     --  change list
+                     Response.result.changes.Insert (Location.uri, Empty);
+                  end if;
+
+                  --  When iterating over all contexts (and therefore all
+                  --  projects), it's possible to encounter the same
+                  --  definitions more than once, so verify that the result
+                  --  is not already recorded before adding it.
+                  if not Response.result.changes
+                    (Location.uri).Contains (Item)
+                  then
+                     Response.result.changes (Location.uri).Append (Item);
+                  end if;
+               end;
+            end loop;
+
+            return;
+         end;
+      end Process_Context;
+
+   begin
+      for C of Self.Contexts loop
+         Process_Context (C);
+      end loop;
+      return Response;
    end On_Rename_Request;
 
    --------------------------------------------
@@ -1178,15 +1385,23 @@ package body LSP.Ada_Handlers is
          --  InitializeParams.capabilities.textDocument. So we support
          --  deactivating of diagnostics via a setting here.
          if Ada.Has_Field (enableDiagnostics) then
-            Self.Context.Set_Diagnostics_Enabled
-              (Ada.Get (enableDiagnostics));
+            Self.Diagnostics_Enabled := Ada.Get (enableDiagnostics);
          end if;
       end if;
 
-      Self.Context.Load_Project
-        (File, Variables,
-         Standard.Ada.Strings.Unbounded.To_String (Charset),
-         Errors);
+      --  Temporary behavior: at the moment, we support only one project
+      --  tree loaded at the same time. So, Self.Contexts contains, in this
+      --  order, the context for the current project, and the context for
+      --  no projects.
+
+      declare
+         C : constant Context_Access := Self.Contexts.First_Element;
+      begin
+         C.Load_Project
+           (File, Variables,
+            Standard.Ada.Strings.Unbounded.To_String (Charset),
+            Errors);
+      end;
 
       if not LSP.Types.Is_Empty (Errors.message) then
          Self.Server.On_Show_Message (Errors);
@@ -1244,8 +1459,12 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.TextDocumentPositionParams)
       return LSP.Messages.Server_Responses.Completion_Response
    is
+      --  We're completing only based on one context, ie one project
+      --  tree: this seems reasonable. One further refinement could
+      --  be to return only results that are available for all
+      --  project contexts.
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Context.Get_Document (Value.textDocument.uri);
+        Get_Document (Self.Contexts, Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
@@ -1260,8 +1479,10 @@ package body LSP.Ada_Handlers is
    overriding procedure Handle_Error
      (Self : access Message_Handler) is
    begin
-      --  Reload the context in case of unexpected errors.
-      Self.Context.Reload;
+      --  Reload the contexts in case of unexpected errors.
+      for C of Self.Contexts loop
+         C.Reload;
+      end loop;
    end Handle_Error;
 
 end LSP.Ada_Handlers;
