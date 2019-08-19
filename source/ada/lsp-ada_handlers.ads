@@ -18,6 +18,9 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
+with Ada.Containers.Doubly_Linked_Lists;
+
+with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with LSP.Messages.Server_Responses;
@@ -31,7 +34,6 @@ package LSP.Ada_Handlers is
 
    type Message_Handler
      (Server  : access LSP.Servers.Server;
-      Context : access LSP.Ada_Contexts.Context;
       Trace   : GNATCOLL.Traces.Trace_Handle) is
    limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
@@ -40,14 +42,26 @@ package LSP.Ada_Handlers is
 
 private
 
+   type Context_Access is access LSP.Ada_Contexts.Context;
+
+   package Context_Lists is new Ada.Containers.Doubly_Linked_Lists
+     (Context_Access);
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
-      Context : access LSP.Ada_Contexts.Context;
       Trace   : GNATCOLL.Traces.Trace_Handle)
    is limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver with
    record
-      null;
+      Contexts : Context_Lists.List;
+      --  There is one context in this list per loaded project.
+      --  Note: the last context in this list is a special case, not associated
+      --  to a given project.
+      --  There should always be at least one "project" context, and exactly
+      --  one "projectless" context.
+
+      Diagnostics_Enabled : Boolean := True;
+      --  Whether to publish diagnostics
    end record;
 
    overriding function On_Initialize_Request

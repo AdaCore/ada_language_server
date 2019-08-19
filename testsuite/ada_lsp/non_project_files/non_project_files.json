@@ -1,0 +1,223 @@
+[
+    {
+        "comment":[
+            "Loading non-project file shouldn't break navigation in the project"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package body P is\n   procedure Proc is\n   begin\n      null;\n   end Proc;\nend P;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 13
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "result":[{
+                    "uri": "$URI{p.ads}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{non_prj/p2.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package body P is\n   procedure Proc is\n   begin\n      return;\n   end Proc;\nend P;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-2",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{non_prj/p2.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 13
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-2",
+                "result":[{
+                    "uri": "$URI{p.ads}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-3",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.ads}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 8
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-3",
+                "result":[{
+                    "uri": "$URI{p.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 14
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-4",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{p.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 13
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-4",
+                "result":[{
+                    "uri": "$URI{p.ads}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

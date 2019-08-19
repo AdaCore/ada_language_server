@@ -30,7 +30,6 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
-with LSP.Ada_Contexts;
 with LSP.Ada_Handlers;
 
 --------------------
@@ -48,9 +47,8 @@ procedure LSP.Ada_Driver is
 
    Server  : aliased LSP.Servers.Server;
    Stream  : aliased LSP.Stdio_Streams.Stdio_Stream;
-   Context : aliased LSP.Ada_Contexts.Context (Server_Trace);
    Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Context'Access, Server_Trace);
+     (Server'Access, Server_Trace);
 
    function Getenv (Var : String) return String;
    --  Return the value set for the given environment variable
