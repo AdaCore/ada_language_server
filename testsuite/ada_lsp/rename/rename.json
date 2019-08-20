@@ -150,6 +150,60 @@
         "send": {
             "request": {
                 "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (A));\nend Main;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-3",
+                "method":"textDocument/rename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 3
+                    },
+                    "newName":"BB"
+                }
+            },
+            "wait":[{
+                "id": "rename-3",
+                "result":{
+                    "changes":{
+                        "$URI{main.adb}":[{
+                            "range":{
+                                "start":{"line":5,"character":40},
+                                "end":{"line":5,"character":41}
+                            },
+                            "newText":"BB"
+                        },{
+                            "range":{
+                                "start":{"line":3,"character":3},
+                                "end":{"line":3,"character":4}
+                            },
+                            "newText":"BB"
+                        }]
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
                 "id": "shutdown",
                 "method":"shutdown",
                 "params":null
