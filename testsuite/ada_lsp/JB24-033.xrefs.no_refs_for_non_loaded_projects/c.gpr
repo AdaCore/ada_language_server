@@ -1,0 +1,4 @@
+project C is
+   for Source_Dirs use ("c");
+   for Object_Dir use "obj";
+end C;

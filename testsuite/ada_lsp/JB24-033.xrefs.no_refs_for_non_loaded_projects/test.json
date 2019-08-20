@@ -1,0 +1,218 @@
+[
+   {
+      "comment": [
+         "test that textDocument/references does not count references present in non-loaded projects"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 9629,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "a.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package C is\n   procedure Foo;\nend C;\n",
+                  "version": 0,
+                  "uri": "$URI{c/c.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 14
+               },
+               "textDocument": {
+                  "uri": "$URI{c/c.ads}"
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/references"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 11
+                        }
+                     },
+                     "alsKind": [
+                        "c"
+                     ],
+                     "uri": "$URI{a/a.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 10
+                        }
+                     },
+                     "uri": "$URI{c/c.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 16
+                        }
+                     },
+                     "uri": "$URI{c/c.ads}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 16
+                        }
+                     },
+                     "uri": "$URI{c/c.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{c/c.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
