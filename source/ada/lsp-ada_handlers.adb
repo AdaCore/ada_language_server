@@ -342,6 +342,18 @@ package body LSP.Ada_Handlers is
          Errors);
 
       if not LSP.Types.Is_Empty (Errors.message) then
+         --  We might have encountered errors when loading the project, for
+         --  instance for projects which need scenario variables to be set...
+         --  but we should not report them to the user at this stage:
+         --    - for project-aware clients, the expectation is that they
+         --      will send the project information as part of the
+         --      didChangeConfiguration notification
+         --    - for clients that are not project aware, the burden is on them
+         --      to indicate a directory where there is a single loadable
+         --      project
+         --  We change the error type to Log so that these get recorded
+         --  in the log file.
+         Errors.the_type := LSP.Messages.Log;
          Self.Server.On_Show_Message (Errors);
       end if;
 
