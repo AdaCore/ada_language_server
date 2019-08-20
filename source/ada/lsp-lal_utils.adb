@@ -71,6 +71,13 @@ package body LSP.Lal_Utils is
       --  them correctly.
       begin
          Result := Name_Node.P_Xref (Imprecise_Fallback => False);
+
+         if Result = No_Defining_Name and then Name_Node.P_Is_Defining then
+            --  When Name_Node is part of defining_name and it isn't a
+            --  completion of another declaration, then P_Xref returns
+            --  No_Defining_Name. In this case we return current defining_name.
+            return Name_Node.P_Enclosing_Defining_Name;
+         end if;
       exception
          when Property_Error =>
             Result := No_Defining_Name;
@@ -81,18 +88,11 @@ package body LSP.Lal_Utils is
       --  Set the Imprecise fallback to True in that case, to warn the caller
       --  that we might get an imprecise result.
       if Result = No_Defining_Name then
-         Imprecise := True;
          Result := Name_Node.P_Xref (Imprecise_Fallback => True);
+         Imprecise := Result /= No_Defining_Name;
       end if;
 
-      if Name_Node.P_Is_Defining and then Result = No_Defining_Name then
-         --  When Name_Node is part of defining_name and it isn't a completion
-         --  of another declaration, then P_Xref returns No_Defining_Name.
-         --  In this case we return current defining_name.
-         return Name_Node.P_Enclosing_Defining_Name;
-      else
-         return Result;
-      end if;
+      return Result;
 
    exception
       when Property_Error =>
