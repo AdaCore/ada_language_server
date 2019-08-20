@@ -1,0 +1,6 @@
+aggregate library project Agglib is
+   for Project_Files use ("sublib.gpr");
+   for Library_Name use "agglib";
+   for Library_Kind use "static";
+   for Library_Dir use "lib";
+end Agglib;
