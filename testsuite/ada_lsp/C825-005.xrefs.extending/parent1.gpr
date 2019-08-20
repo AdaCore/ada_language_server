@@ -1,0 +1,12 @@
+project Parent1 is
+
+   for Object_Dir use "parent1";
+
+   package Naming is
+      for Body_Suffix ("Ada") use ".body";
+      for Spec_Suffix ("Ada") use ".spec";
+   end Naming;
+
+end Parent1;
+
+

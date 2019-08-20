@@ -1,0 +1,12 @@
+project Child extends "parent3.gpr" is
+
+   for Main use ("main");
+
+   package Naming is
+      for Body_Suffix ("Ada") use ".adb";
+      for Spec_Suffix ("Ada") use ".ads";
+      for Dot_Replacement use "-";
+   end Naming;
+
+end Child;
+
