@@ -1,0 +1,8 @@
+library project Sublib is
+   for Source_Dirs use ("srclib");
+   for Object_Dir use "objlib";
+   for Library_Dir use "liblib";
+   for Library_Name use "sublib";
+   for Library_Kind use "static";
+
+end Sublib;
