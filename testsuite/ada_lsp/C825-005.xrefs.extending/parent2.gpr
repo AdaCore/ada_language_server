@@ -1,0 +1,12 @@
+project Parent2 extends "parent1" is
+
+   for Object_Dir use "parent2";
+
+   package Naming is
+      for Body_Suffix ("Ada") use ".bod";
+      for Spec_Suffix ("Ada") use ".spe";
+   end Naming;
+
+end Parent2;
+
+
