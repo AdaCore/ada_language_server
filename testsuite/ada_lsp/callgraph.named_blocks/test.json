@@ -1,0 +1,135 @@
+[
+   {
+      "comment": [
+         "test that textDocument/alsCalledBy works well with named blocks"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 16051,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure P1 is\n\n   procedure A is begin null; end A;\n\n   procedure B is\n   begin\n      Named_Loop: loop\n         A;\n      end loop Named_Loop;\n   end B;\n\nbegin\n   B;\nend P1;\n",
+                  "version": 0,
+                  "uri": "$URI{p1.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p1.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
