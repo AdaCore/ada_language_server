@@ -1,0 +1,221 @@
+[
+   {
+      "comment": [
+         "test that textDocument/definition works well with generics"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 883,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "pg.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with G1;\nwith G2;\nprocedure Ag is\nbegin\n G1.Init;\n G2.Init;\nend Ag;\n",
+                  "version": 0,
+                  "uri": "$URI{ag.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 4
+               },
+               "textDocument": {
+                  "uri": "$URI{ag.adb}"
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/references"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 4
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 8
+                        }
+                     },
+                     "alsKind": [
+                        "c"
+                     ],
+                     "uri": "$URI{ag.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 4
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 8
+                        }
+                     },
+                     "alsKind": [
+                        "c"
+                     ],
+                     "uri": "$URI{ag.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 11
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 15
+                        }
+                     },
+                     "uri": "$URI{g_g.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 16
+                        }
+                     },
+                     "uri": "$URI{g_g.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ag.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
