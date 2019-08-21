@@ -20,6 +20,7 @@ with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
@@ -548,7 +549,6 @@ package body LSP.Servers is
         ("Exception when processing request:" & ASCII.LF
          & Trace_Text & ASCII.LF
          & Exception_Text);
-      Self.Server_Trace.Trace (Symbolic_Traceback (E));
    end Send_Exception_Response;
 
    --------------------------
@@ -845,12 +845,48 @@ package body LSP.Servers is
             end;
 
          exception
-            when E : others =>
-               --  If we reach this exception handler, this means an exception
-               --  was raised when processing the request.
+            --  If we reach this exception handler, this means an exception
+            --  was raised when processing the request.
+            --
+            --  Property errors are expected to happen in the normal flow
+            --  of events in LAL. However, for any other error than a
+            --  property error, we want to reload the context.
+            when E : Property_Error =>
                Send_Exception_Response
-                 (Server.all, E, "To_String (Vector)", Request.id);
+                 (Server.all, E,
+                  Ada.Tags.External_Tag (Message'Tag), Request.id);
+
+            when E : others =>
+               Send_Exception_Response
+                 (Server.all, E,
+                  Ada.Tags.External_Tag (Message'Tag), Request.id);
+
+               Req_Handler.Handle_Error;
          end;
+
+      exception
+         --  Catch-all case: make sure no exception in any message
+         --  processing can cause an exit of the task main loop.
+         --
+         --  Property errors are expected to happen in the normal flow
+         --  of events in LAL. However, for any other error than a
+         --  property error, we want to reload the context.
+         when E : Property_Error =>
+            --  ... and log this in the traces
+            Server.Server_Trace.Trace
+              ("Exception when processing notification:" & ASCII.LF
+               & Ada.Tags.External_Tag (Message'Tag) & ASCII.LF
+               & Exception_Name (E) & ASCII.LF &
+                 Symbolic_Traceback (E));
+
+         when E : others =>
+            Req_Handler.Handle_Error;
+            --  ... and log this in the traces
+            Server.Server_Trace.Trace
+              ("Exception when processing notification:" & ASCII.LF
+               & Ada.Tags.External_Tag (Message'Tag) & ASCII.LF
+               & Exception_Name (E) & ASCII.LF &
+                 Symbolic_Traceback (E));
       end Process_Message;
 
    begin
@@ -870,35 +906,8 @@ package body LSP.Servers is
             Input_Queue.Dequeue (Request);
 
             --  Process the request
-            begin
-               Process_Message (Request);
-               Free (Request);
-            exception
-               when Ada.IO_Exceptions.End_Error =>
-                  Server.Server_Trace.Trace ("Received EOF.");
-                  exit;
-
-               when E : others =>
-                  --  Catch-all case: make sure no exception in any request
-                  --  processing can cause an exit of the task main loop.
-
-                  --  Send the response to the stream. If we reach this
-                  --  exception handler, this means the request could be
-                  --  decoded, but an exception was raised when processing it.
-                  Send_Exception_Response
-                    (Server.all, E,
-                     "To_String (Request)",
-                     (Is_Number => False,
-                      String    => LSP.Types.Empty_LSP_String));
-
-                  --  Property errors are expected to happen in the normal flow
-                  --  of events in LAL. However, for any other error than a
-                  --  property error, we want to reload the context.
-                  if Exception_Identity (E) /= Property_Error'Identity then
-                     Req_Handler.Handle_Error;
-                  end if;
-                  --  ... and log this in the traces
-            end;
+            Process_Message (Request);
+            Free (Request);
          or
             delay 0.1;
 
