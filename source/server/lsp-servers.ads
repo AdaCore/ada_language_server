@@ -71,6 +71,12 @@ package LSP.Servers is
    procedure Stop (Self : in out Server);
    --  Ask server to stop
 
+   type Message_Access is access all LSP.Messages.Message'Class;
+
+   function Look_Ahead_Message (Self : Server) return Message_Access;
+   --  Get next nessage in the queue if any. Only request/notification
+   --  handlers are alloved to call this function.
+
 private
 
    -------------------------
@@ -88,13 +94,12 @@ private
    --    The output task:
    --         This task reads the responses coming from the output queue,
    --         and writes them to the standard output.
-
-   type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
-
-   type Message_Access is access all LSP.Messages.Message'Class;
+   --
    --  There are two flows of messages:
    --  * Message created byt Input_Tast and destroyed by Processing_Task.
    --  * Message created by Processing_Task and destroyed by Output_Task.
+
+   type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
    package Message_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
@@ -162,6 +167,8 @@ private
 
       --  Queues and tasks used for asynchronous processing, see doc above
       Input_Queue     : Input_Queues.Queue;
+      Look_Ahead      : Message_Access;
+      --  One message look-ahead buffer for Input_Queue
       Output_Queue    : Output_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);

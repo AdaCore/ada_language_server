@@ -29,6 +29,7 @@ with LSP.Types; use LSP.Types;
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Messages.Server_Notifications;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -654,10 +655,51 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
+      function Skip_Did_Change return Boolean;
+      --  Check if the following message in the queue is didChange for
+      --  the same document
+
+      ---------------------
+      -- Skip_Did_Change --
+      ---------------------
+
+      function Skip_Did_Change return Boolean is
+         use type LSP.Servers.Message_Access;
+
+         subtype DidChangeTextDocument_Notification is LSP.Messages
+           .Server_Notifications.DidChangeTextDocument_Notification;
+
+         Next : constant LSP.Servers.Message_Access :=
+           Self.Server.Look_Ahead_Message;
+      begin
+         if Next = null
+           or else Next.all not in
+             DidChangeTextDocument_Notification'Class
+         then
+            return False;
+         end if;
+
+         declare
+            Object : DidChangeTextDocument_Notification'Class renames
+              DidChangeTextDocument_Notification'Class (Next.all);
+         begin
+            if Object.params.textDocument.uri /= Value.textDocument.uri then
+               return False;
+            end if;
+         end;
+
+         return True;
+      end Skip_Did_Change;
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Document (Self.Contexts, Value.textDocument.uri);
       Diag     : LSP.Messages.PublishDiagnosticsParams;
    begin
+      if Skip_Did_Change then
+         --  Don't process the notification if next message overrides it
+         return;
+      end if;
+
       Document.Apply_Changes (Value.contentChanges);
 
       if Self.Diagnostics_Enabled then

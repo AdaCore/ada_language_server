@@ -21,6 +21,7 @@ with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
+with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
@@ -778,7 +779,6 @@ package body LSP.Servers is
    --------------------------
 
    task body Processing_Task_Type is
-      Request : Message_Access;
 
       Req_Handler : LSP.Server_Request_Handlers.Server_Request_Handler_Access;
 
@@ -889,6 +889,7 @@ package body LSP.Servers is
                  Symbolic_Traceback (E));
       end Process_Message;
 
+      Request : Message_Access;
    begin
       --  Perform initialization
       accept Start
@@ -901,13 +902,34 @@ package body LSP.Servers is
       end Start;
 
       loop
-         select
-            --  Process all available requests before acceptiong Stop
-            Input_Queue.Dequeue (Request);
+         --  Process all messages in the Input_Queue
+         declare
+            Continue : Boolean := True;
+         begin
+            while Continue loop
+               Request := Server.Look_Ahead;
 
-            --  Process the request
-            Process_Message (Request);
-            Free (Request);
+               select
+                  Input_Queue.Dequeue (Server.Look_Ahead);
+
+               else
+                  --  No more message in the queue
+                  Server.Look_Ahead := null;
+
+                  Continue := False;
+               end select;
+
+               if Request /= null then
+                  Process_Message (Request);
+                  Free (Request);
+               end if;
+            end loop;
+         end;
+
+         --  Now there are no messages in the queue and Look_Ahead is empty.
+         --  Wait for some time and then check for Stop signal
+         select
+            Input_Queue.Dequeue (Server.Look_Ahead);
          or
             delay 0.1;
 
@@ -923,5 +945,18 @@ package body LSP.Servers is
          end select;
       end loop;
    end Processing_Task_Type;
+
+   ------------------------
+   -- Look_Ahead_Message --
+   ------------------------
+
+   function Look_Ahead_Message (Self : Server) return Message_Access is
+      use type Ada.Task_Identification.Task_Id;
+   begin
+      pragma Assert
+        (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
+
+      return Self.Look_Ahead;
+   end Look_Ahead_Message;
 
 end LSP.Servers;
