@@ -1,0 +1,691 @@
+[
+   {
+      "comment": [
+         "This test checks that textDocument/rename works well on not-up-to-date files"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 29489,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 3,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 4,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A :\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 5,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 6,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : I\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 7,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : In\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 8,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Int\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 9,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Inte\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 10,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integ\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 11,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Intege\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 12,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 13,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 14,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer :\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 15,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer :=\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 16,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 17,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 6\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 18,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := \n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 19,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 20,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5;\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (B));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 21,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "newName": "Zboob",
+               "position": {
+                  "line": 4,
+                  "character": 3
+               },
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/rename"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "changes": {
+                     "$URI{src/main.adb}": [
+                        {
+                           "newText": "Zboob",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 40
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 41
+                              }
+                           }
+                        },
+                        {
+                           "newText": "Zboob",
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 4
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5;\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image ());\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 22,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5;\n   B : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (Zboob));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 23,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5;\n    : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (Zboob));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 24,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 5;\n   Zboob : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (Zboob));\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 25,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
