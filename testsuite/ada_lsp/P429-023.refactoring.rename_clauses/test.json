@@ -1,0 +1,218 @@
+[
+   {
+      "comment": [
+         "This test checks that textDocument/rename works well with rename clauses"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 22276,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Foo;\npackage Bar is\n   procedure Get renames Foo.Get;\nend Bar;\n",
+                  "version": 0,
+                  "uri": "$URI{bar.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "newName": "GGGet",
+               "position": {
+                  "line": 2,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{bar.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/rename"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "changes": {
+                     "$URI{bar.ads}": [
+                        {
+                           "newText": "GGGet",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 2,
+                                 "character": 16
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Foo;\npackage Bar is\n   procedure  renames Foo.Get;\nend Bar;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{bar.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Foo;\npackage Bar is\n   procedure GGGet renames Foo.Get;\nend Bar;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{bar.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{bar.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

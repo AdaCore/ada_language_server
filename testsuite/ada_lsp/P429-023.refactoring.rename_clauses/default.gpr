@@ -1,0 +1,3 @@
+project Default is
+   for Object_Dir use "obj";
+end Default;
