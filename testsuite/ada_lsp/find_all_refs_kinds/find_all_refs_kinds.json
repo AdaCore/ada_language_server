@@ -94,7 +94,7 @@
                             "character": 20
                         }
                     },
-                    "alsKind": ["d"]
+                    "alsKind": ["dispatching call"]
                 }]
             }]
         }
@@ -132,7 +132,7 @@
                             "character": 7
                         }
                     },
-                    "alsKind": ["c"]
+                    "alsKind": ["call"]
                 }, {
                     "uri": "$URI{aaa.adb}",
                     "range": {
@@ -182,7 +182,7 @@
                             "character": 39
                         }
                     },
-                    "alsKind": ["w"]
+                    "alsKind": ["write"]
                 }]
             }]
         }

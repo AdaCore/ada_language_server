@@ -234,9 +234,11 @@ package body LSP.Ada_Handlers is
                           UTF_16_Index (End_Sloc_Range.End_Column) - 1);
 
       Location : constant LSP.Messages.Location :=
-                   (uri  => File_To_URI (+Node.Unit.Get_Filename),
-                    span => LSP.Messages.Span'(First_Position, Last_Position),
+                   (uri     => File_To_URI (+Node.Unit.Get_Filename),
+                    span    =>
+                      LSP.Messages.Span'(First_Position, Last_Position),
                     alsKind => Kind);
+
    begin
       return Location;
    end Get_Node_Location;
@@ -1115,21 +1117,22 @@ package body LSP.Ada_Handlers is
          Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
       begin
          begin
-            Result (LSP.Messages.Write) := Id.P_Is_Write_Reference;
+            Result.As_Flags (LSP.Messages.Write) := Id.P_Is_Write_Reference;
          exception
             when Libadalang.Common.Property_Error =>
                null;
          end;
 
          begin
-            Result (LSP.Messages.Static_Call) := Id.P_Is_Static_Call;
+            Result.As_Flags (LSP.Messages.Static_Call) := Id.P_Is_Static_Call;
          exception
             when Libadalang.Common.Property_Error =>
                null;
          end;
 
          begin
-            Result (LSP.Messages.Dispatching_Call) := Id.P_Is_Dispatching_Call;
+            Result.As_Flags (LSP.Messages.Dispatching_Call) :=
+              Id.P_Is_Dispatching_Call;
          exception
             when Libadalang.Common.Property_Error =>
                null;

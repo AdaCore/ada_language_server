@@ -133,7 +133,7 @@
                         }
                      },
                      "alsKind": [
-                        "c"
+                        "call"
                      ],
                      "uri": "$URI{a/a.adb}"
                   },

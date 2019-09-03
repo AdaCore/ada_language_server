@@ -183,7 +183,7 @@
                         }
                      }, 
                      "uri": "$URI{main.adb}",
-                     "alsKind": ["c"]
+                     "alsKind": ["call"]
                   }, 
                   {
                      "range": {
@@ -197,7 +197,7 @@
                         }
                      }, 
                      "uri": "$URI{subsrc/other_main.adb}",
-                     "alsKind": ["c"]
+                     "alsKind": ["call"]
                   }, 
                   {
                      "range": {
