@@ -318,9 +318,18 @@ package LSP.Messages is
    --  }
 
    type AlsReferenceKind is (Write, Static_Call, Dispatching_Call);
-   type AlsReferenceKind_Set is array (AlsReferenceKind) of Boolean;
+   type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
+   type AlsReferenceKind_Set (Is_Server_Side : Boolean := True) is record
+      case Is_Server_Side is
+         when True =>
+            As_Flags   : AlsReferenceKind_Array := (others => False);
+
+         when False =>
+            As_Strings : LSP.Types.LSP_String_Vector;
+      end case;
+   end record;
    function Empty_Set return AlsReferenceKind_Set is
-      (AlsReferenceKind => False);
+      (Is_Server_Side => True, As_Flags => (others => False));
 
    procedure Read_AlsReferenceKind_Set
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -338,9 +347,13 @@ package LSP.Messages is
    --   AlsKind?: AlsReferenceKind[];
    --}
    --```
+   --
+   --  This type has different representation for server and client sides,
+   --  and it is controlled by Is_Server_Side discriminant.
+
    type Location is record
-      uri: DocumentUri;
-      span: LSP.Messages.Span;  --  range: is reserved word
+      uri     : DocumentUri;
+      span    : LSP.Messages.Span;  --  range: is reserved word
       alsKind : AlsReferenceKind_Set := Empty_Set;
    end record;
 

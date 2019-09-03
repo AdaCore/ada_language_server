@@ -13,12 +13,12 @@ extra field to the `Location` type:
 
 ```typescript
 
-export type AlsReferenceKind = 'w' | 'c' | 'd';
+export type AlsReferenceKind = 'write' | 'call' | 'dispatching call';
 
 export namespace AlsReferenceKind {
-   export const Write            : AlsReferenceKind = 'w';
-   export const Static_Call      : AlsReferenceKind = 'c';
-   export const Dispatching_Call : AlsReferenceKind = 'd';
+   export const Write            : AlsReferenceKind = 'write';
+   export const Static_Call      : AlsReferenceKind = 'call';
+   export const Dispatching_Call : AlsReferenceKind = 'dispatching call';
 }
 
 interface Location {

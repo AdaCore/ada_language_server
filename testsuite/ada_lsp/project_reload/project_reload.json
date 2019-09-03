@@ -105,7 +105,7 @@
                             "character": 15
                         }
                     },
-                    "alsKind": ["c"]
+                    "alsKind": ["call"]
                 }, {
                     "uri": "$URI{to_be_called.adb}",
                     "range": {
@@ -186,7 +186,7 @@
                             "character": 15
                         }
                     },
-                    "alsKind": ["c"]
+                    "alsKind": ["call"]
                 }, {
                     "uri": "$URI{to_be_called.adb}",
                     "range": {

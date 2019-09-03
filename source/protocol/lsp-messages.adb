@@ -105,11 +105,20 @@ package body LSP.Messages is
       UnknownErrorCode     => -32001,
       RequestCancelled     => -32800);
 
+   Write_Reference_Image            : aliased constant Standard.String :=
+                                        "write";
+   Static_Call_Reference_Image      : aliased constant Standard.String :=
+                                        "call";
+   Dispatching_Call_Reference_Image : aliased constant Standard.String :=
+                                        "dispatching call";
+
+   type String_Constant_Access is access constant Standard.String;
+
    AlsReferenceKind_Map : constant array
-     (AlsReferenceKind) of Standard.String (1 .. 1) :=
-     (Write            => "w",
-      Static_Call      => "c",
-      Dispatching_Call => "d");
+     (AlsReferenceKind) of not null String_Constant_Access :=
+     (Write            => Write_Reference_Image'Access,
+      Static_Call      => Static_Call_Reference_Image'Access,
+      Dispatching_Call => Dispatching_Call_Reference_Image'Access);
 
    -------------------------------
    -- Read_AlsReferenceKind_Set --
@@ -121,29 +130,36 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-      Vector : GNATCOLL.JSON.JSON_Array;
+
    begin
-      V := Empty_Set;
+      --  ??? It is assumed that read is used on client side only, thus
+      --  change discriminant of the object.
 
-      if Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
-         Vector := Value.Get;
+      V := (Is_Server_Side => False, others => <>);
 
-         for J in 1 .. GNATCOLL.JSON.Length (Vector) loop
-            if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-               declare
-                  Text : constant Standard.String :=
-                    GNATCOLL.JSON.Get (Vector, J).Get;
-               begin
-                  for J in AlsReferenceKind_Map'Range loop
-                     if Text = AlsReferenceKind_Map (J) then
-                        V (J) := True;
-                     end if;
-                  end loop;
-               end;
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         declare
+            Text : constant Standard.String := JS.Read.Get;
+
+         begin
+            if V.Is_Server_Side then
+               for J in AlsReferenceKind_Map'Range loop
+                  if Text = AlsReferenceKind_Map (J).all then
+                     V.As_Flags (J) := True;
+
+                     exit;
+                  end if;
+               end loop;
+
+            else
+               V.As_Strings.Append (+Text);
             end if;
-         end loop;
-      end if;
+         end;
+      end loop;
+
+      JS.End_Array;
    end Read_AlsReferenceKind_Set;
 
    --------------------------------
@@ -160,11 +176,20 @@ package body LSP.Messages is
       if V /= Empty_Set then
          JS.Start_Array;
 
-         for J in V'Range loop
-            if V (J) then
-               JS.Write (GNATCOLL.JSON.Create (AlsReferenceKind_Map (J)));
-            end if;
-         end loop;
+         if V.Is_Server_Side then
+            for J in V.As_Flags'Range loop
+               if V.As_Flags (J) then
+                  JS.Write
+                    (GNATCOLL.JSON.Create (AlsReferenceKind_Map (J).all));
+               end if;
+            end loop;
+
+         else
+            for K of V.As_Strings loop
+               JS.Write
+                 (GNATCOLL.JSON.Create (LSP.Types.To_UTF_8_String (K)));
+            end loop;
+         end if;
 
          JS.End_Array;
       end if;
@@ -952,8 +977,10 @@ package body LSP.Messages is
       DocumentUri'Read (S, V.uri);
       JS.Key ("range");
       Span'Read (S, V.span);
+
       JS.Key ("alsKind");
       AlsReferenceKind_Set'Read (S, V.alsKind);
+
       JS.End_Object;
    end Read_Location;
 

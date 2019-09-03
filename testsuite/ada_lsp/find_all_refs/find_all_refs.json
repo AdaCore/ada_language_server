@@ -100,7 +100,7 @@
                             "character": 23
                         }
                     },
-                    "alsKind": ["c"]
+                    "alsKind": ["call"]
                 }, {
                     "uri": "$URI{ccc.adb}",
                     "range": {
@@ -113,7 +113,7 @@
                             "character": 23
                         }
                     },
-                    "alsKind": ["c"]
+                    "alsKind": ["call"]
                 }]
             }]
         }
