@@ -108,6 +108,7 @@ class ALSTestsuite(Testsuite):
                     self.test_dir))
 
             elif os.path.dirname(dirpath) == ada_lsp_dir:
+                print ("No test.yaml in {}".format(dirpath))
                 logging.warn('No test.yaml in %s', dirpath)
 
         # If requested, keep only testcases that match one sublist item
