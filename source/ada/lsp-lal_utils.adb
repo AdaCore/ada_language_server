@@ -92,7 +92,7 @@ package body LSP.Lal_Utils is
          Imprecise := Result /= No_Defining_Name;
       end if;
 
-      return Result;
+      return Result.P_Canonical_Part;
 
    exception
       when Property_Error =>
