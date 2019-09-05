@@ -65,34 +65,34 @@ package body LSP.Lal_Utils is
    begin
       Imprecise := False;
 
-      --  Try to get the cross reference without enabling the imprecise
-      --  fallback first.
-      --  Property_Error exceptions can be raised so make sure to handle
-      --  them correctly.
+      --  First try to resolve precisely
       begin
-         Result := Name_Node.P_Xref (Imprecise_Fallback => False);
-
-         if Result = No_Defining_Name and then Name_Node.P_Is_Defining then
-            --  When Name_Node is part of defining_name and it isn't a
-            --  completion of another declaration, then P_Xref returns
-            --  No_Defining_Name. In this case we return current defining_name.
-            return Name_Node.P_Enclosing_Defining_Name;
+         if Name_Node.P_Is_Defining then
+            Result := Name_Node.P_Enclosing_Defining_Name.P_Canonical_Part;
+         else
+            Result := Name_Node.P_Referenced_Defining_Name
+              (Imprecise_Fallback => False).P_Canonical_Part;
          end if;
       exception
          when Property_Error =>
             Result := No_Defining_Name;
       end;
 
-      --  Get the cross reference with the imprecise fallback if the previous
-      --  query has failed.
-      --  Set the Imprecise fallback to True in that case, to warn the caller
-      --  that we might get an imprecise result.
-      if Result = No_Defining_Name then
-         Result := Name_Node.P_Xref (Imprecise_Fallback => True);
+      --  The result was found precisely: return it
+      if Result /= No_Defining_Name then
+         return Result;
+      end if;
+
+      --  If we reach this, it means we've failed to get a precise result.
+      --  Try again with the imprecise fallback.
+      if not Name_Node.P_Is_Defining then
+         Result := Name_Node.P_Referenced_Defining_Name
+           (Imprecise_Fallback => True).P_Canonical_Part;
+
          Imprecise := Result /= No_Defining_Name;
       end if;
 
-      return Result.P_Canonical_Part;
+      return Result;
 
    exception
       when Property_Error =>
