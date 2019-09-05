@@ -117,6 +117,7 @@
             "id": 2,
             "method": "textDocument/references"
          },
+         "sortReply": { "result": "uri" },
          "wait": [
             {
                "id": 2,
@@ -161,7 +162,7 @@
                            "character": 16
                         }
                      },
-                     "uri": "$URI{c/c.ads}"
+                     "uri": "$URI{c/c.adb}"
                   },
                   {
                      "range": {
@@ -174,7 +175,7 @@
                            "character": 16
                         }
                      },
-                     "uri": "$URI{c/c.adb}"
+                     "uri": "$URI{c/c.ads}"
                   }
                ]
             }
