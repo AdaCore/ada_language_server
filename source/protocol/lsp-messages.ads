@@ -340,6 +340,11 @@ package LSP.Messages is
    for AlsReferenceKind_Set'Read use Read_AlsReferenceKind_Set;
    for AlsReferenceKind_Set'Write use Write_AlsReferenceKind_Set;
 
+   package Optional_AlsReferenceKind_Sets is
+     new LSP.Generic_Optional (AlsReferenceKind_Set);
+   type Optional_AlsReferenceKind_Set is
+     new Optional_AlsReferenceKind_Sets.Optional_Type;
+
    --```typescript
    --interface Location {
    --	uri: DocumentUri;
@@ -1674,6 +1679,7 @@ package LSP.Messages is
 
       --  ALS-specific capabilities
       alsCalledByProvider : Optional_Boolean;
+      alsReferenceKinds   : Optional_AlsReferenceKind_Set;
    end record;
 
    procedure Read_ServerCapabilities

@@ -400,6 +400,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.hoverProvider := True;
 
       Response.result.capabilities.alsCalledByProvider := True;
+      Response.result.capabilities.alsReferenceKinds :=
+        (Is_Set => True,
+         Value  => (Is_Server_Side => True, As_Flags => (others => True)));
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := URI_To_File (Value.rootUri);

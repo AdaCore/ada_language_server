@@ -77,6 +77,11 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.Optional_Number);
 
+   procedure Write_Optional_AlsReferenceKind_Set
+    (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Optional_AlsReferenceKind_Set);
+
    procedure Write_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -3061,6 +3066,21 @@ package body LSP.Messages is
       end if;
    end Write_Optional_Number;
 
+   -----------------------------------------
+   -- Write_Optional_AlsReferenceKind_Set --
+   -----------------------------------------
+
+   procedure Write_Optional_AlsReferenceKind_Set
+    (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Optional_AlsReferenceKind_Set) is
+   begin
+      if Item.Is_Set then
+         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+         AlsReferenceKind_Set'Write (Stream, Item.Value);
+      end if;
+   end Write_Optional_AlsReferenceKind_Set;
+
    ---------------------------
    -- Write_Optional_String --
    ---------------------------
@@ -3372,8 +3392,12 @@ package body LSP.Messages is
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
 
+      --  ALS extensions
+
       Write_Optional_Boolean
         (JS, +"alsCalledByProvider", V.alsCalledByProvider);
+      Write_Optional_AlsReferenceKind_Set
+        (JS'Access, +"alsReferenceKinds", V.alsReferenceKinds);
 
       JS.End_Object;
    end Write_ServerCapabilities;
