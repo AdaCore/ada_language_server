@@ -38,6 +38,10 @@ package body LSP.Ada_Contexts is
      (LSP.Ada_Documents.Document,
       Internal_Document_Access);
 
+   function Analysis_Units
+     (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
+   --  Return the analysis units for all Ada sources known to this context
+
    -----------------
    -- File_To_URI --
    -----------------
@@ -51,14 +55,12 @@ package body LSP.Ada_Contexts is
       return LSP.Types.To_LSP_String (Result);
    end File_To_URI;
 
-   -------------------------
-   -- Find_All_References --
-   -------------------------
+   --------------------
+   -- Analysis_Units --
+   --------------------
 
-   function Find_All_References
-     (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-        return Libadalang.Analysis.Base_Id_Array
+   function Analysis_Units
+     (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array
    is
       Source_Units : Libadalang.Analysis.Analysis_Unit_Array
         (Self.Source_Files'Range);
@@ -68,9 +70,34 @@ package body LSP.Ada_Contexts is
            (Self.Source_Files (N).Display_Full_Name,
             Charset => Self.Get_Charset);
       end loop;
+      return Source_Units;
+   end Analysis_Units;
 
-      return Definition.P_Find_All_References (Source_Units);
+   -------------------------
+   -- Find_All_References --
+   -------------------------
+
+   function Find_All_References
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+        return Libadalang.Analysis.Base_Id_Array is
+   begin
+      return Definition.P_Find_All_References (Self.Analysis_Units);
    end Find_All_References;
+
+   ------------------
+   -- Is_Called_By --
+   ------------------
+
+   function Is_Called_By
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+      return Libadalang.Analysis.Base_Id_Array is
+   begin
+      return Definition.P_Is_Called_By
+        (Self.Analysis_Units,
+         Imprecise_Fallback => True);
+   end Is_Called_By;
 
    -----------------------
    -- Find_Project_File --

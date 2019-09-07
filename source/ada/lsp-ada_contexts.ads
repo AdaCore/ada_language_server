@@ -112,6 +112,13 @@ package LSP.Ada_Contexts is
    --  Finds all references to a given defining name in all units of the
    --  context.
 
+   function Is_Called_By
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+      return Libadalang.Analysis.Base_Id_Array;
+   --  Return all the enclosing entities that call Definition in all sources
+   --  known to this project.
+
    function Is_Part_Of_Project
      (Self : Context;
       File : GNATCOLL.VFS.Virtual_File) return Boolean;

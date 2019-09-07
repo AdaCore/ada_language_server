@@ -137,37 +137,31 @@ package body LSP.Lal_Utils is
 
       --  Obtain all the references
       Refs : constant Base_Id_Array :=
-        Context.Find_All_References (Definition);
+        Context.Is_Called_By (Definition);
    begin
-
       --  Go through all references to Name, organising them by containing
       --  subprogram.
 
       for Ref of Refs loop
-         --  Only consider references that are calls.
-         --  ??? To be discussed: how do we want to handle an access to
-         --  a subprogram?
-         if Ref.P_Is_Call then
-            --  We have a reference, and this a call: find the containing
-            --  subprogram or task
-            Containing := Containing_Entity (Ref.As_Ada_Node);
+         --  We have a reference, and this a call: find the containing
+         --  subprogram or task
+         Containing := Containing_Entity (Ref.As_Ada_Node);
 
-            if Containing /= No_Defining_Name then
-               if Result.Contains (Containing) then
-                  declare
-                     L : List := Result.Element (Containing);
-                  begin
-                     L.Append (Ref);
-                     Result.Replace (Containing, L);
-                  end;
-               else
-                  declare
-                     L : List;
-                  begin
-                     L.Append (Ref);
-                     Result.Insert (Containing, L);
-                  end;
-               end if;
+         if Containing /= No_Defining_Name then
+            if Result.Contains (Containing) then
+               declare
+                  L : List := Result.Element (Containing);
+               begin
+                  L.Append (Ref);
+                  Result.Replace (Containing, L);
+               end;
+            else
+               declare
+                  L : List;
+               begin
+                  L.Append (Ref);
+                  Result.Insert (Containing, L);
+               end;
             end if;
          end if;
       end loop;
