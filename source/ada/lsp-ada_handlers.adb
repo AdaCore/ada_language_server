@@ -1214,11 +1214,13 @@ package body LSP.Ada_Handlers is
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
          --  Attempt to resolve the name, return no results if we can't or if
-         --  the name does not resolve to a subprogram.
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
 
          if Definition = No_Defining_Name
            or else Definition.P_Basic_Decl.Kind not in
              Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
+               | Ada_Entry_Decl | Ada_Entry_Body
          then
             return;
          end if;
