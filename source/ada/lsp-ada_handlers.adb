@@ -42,6 +42,9 @@ with URIs;
 
 package body LSP.Ada_Handlers is
 
+   type Cancel_Countdown is mod 128;
+   --  Counter to restrict frequency of Request.Canceled checks
+
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
@@ -437,7 +440,7 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Shutdown_Request)
       return LSP.Messages.Server_Responses.Shutdown_Response
    is
-      pragma Unreferenced (Self);
+      pragma Unreferenced (Self, Request);
    begin
       return Response : LSP.Messages.Server_Responses.Shutdown_Response
         (Is_Error => False);
@@ -606,6 +609,8 @@ package body LSP.Ada_Handlers is
    begin
       for C of Self.Contexts loop
          Resolve_In_Context (C);
+
+         exit when Request.Canceled;
       end loop;
 
       return Response;
@@ -639,7 +644,7 @@ package body LSP.Ada_Handlers is
 
       Type_Decl := Name_Node.P_Expression_Type;
 
-      if Type_Decl = No_Basic_Decl then
+      if Type_Decl = No_Basic_Decl or else Request.Canceled then
          return Response;
       end if;
 
@@ -1044,7 +1049,7 @@ package body LSP.Ada_Handlers is
       --  Get the associated basic declaration
       Decl := Defining_Name_Node.P_Basic_Decl;
 
-      if Decl = No_Basic_Decl then
+      if Decl = No_Basic_Decl or else Request.Canceled then
          return Response;
       end if;
 
@@ -1162,19 +1167,24 @@ package body LSP.Ada_Handlers is
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
-         if Definition = No_Defining_Name then
+         if Definition = No_Defining_Name or else Request.Canceled then
             return;
          end if;
 
          declare
+            Count       : Cancel_Countdown := 0;
             References  : constant Base_Id_Array :=
               C.Find_All_References (Definition);
          begin
             for Node of References loop
+               Count := Count - 1;
+
                Append_Location
                  (Response.result,
                   Node,
                   Get_Reference_Kind (Node.As_Ada_Node));
+
+               exit when Count = 0  and then Request.Canceled;
             end loop;
 
             if Value.context.includeDeclaration then
@@ -1189,6 +1199,8 @@ package body LSP.Ada_Handlers is
    begin
       for C of Self.Contexts loop
          Process_Context (C);
+
+         exit when Request.Canceled;
       end loop;
 
       return Response;
@@ -1232,6 +1244,7 @@ package body LSP.Ada_Handlers is
            or else Definition.P_Basic_Decl.Kind not in
              Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
                | Ada_Entry_Decl | Ada_Entry_Body
+           or else Request.Canceled
          then
             return;
          end if;
@@ -1241,7 +1254,8 @@ package body LSP.Ada_Handlers is
               LSP.Lal_Utils.Is_Called_By (C.all, Definition);
 
             use LSP.Lal_Utils.References_By_Subprogram;
-            C : Cursor := Called.First;
+            C     : Cursor := Called.First;
+            Count : Cancel_Countdown := 0;
          begin
             --  Iterate through all the results, converting them to protocol
             --  objects.
@@ -1255,12 +1269,19 @@ package body LSP.Ada_Handlers is
                   Subp_And_Refs.loc := Get_Node_Location (Ada_Node (Node));
                   Subp_And_Refs.name := To_LSP_String
                     (Langkit_Support.Text.To_UTF8 (Node.Text));
+
                   for Ref of Refs loop
                      Append_Location (Subp_And_Refs.refs, Ref);
+                     Count := Count - 1;
+
+                     if Count = 0 and then Request.Canceled then
+                        return;
+                     end if;
                   end loop;
+
                   Response.result.Append (Subp_And_Refs);
+                  Next (C);
                end;
-               Next (C);
             end loop;
          end;
       end Process_Context;
@@ -1269,6 +1290,8 @@ package body LSP.Ada_Handlers is
       --  Find the references in all contexts
       for C of Self.Contexts loop
          Process_Context (C);
+
+         exit when Request.Canceled;
       end loop;
 
       return Response;
@@ -1364,11 +1387,12 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         if Definition = No_Defining_Name then
+         if Definition = No_Defining_Name or Request.Canceled then
             return;
          end if;
 
          declare
+            Count       : Cancel_Countdown := 0;
             References  : constant Base_Id_Array :=
               C.Find_All_References (Definition)
               --  Append Definition itself so that it is also renamed
@@ -1397,16 +1421,20 @@ package body LSP.Ada_Handlers is
                   then
                      Response.result.changes (Location.uri).Append (Item);
                   end if;
+
+                  exit when Count = 0 and then Request.Canceled;
+
+                  Count := Count - 1;
                end;
             end loop;
-
-            return;
          end;
       end Process_Context;
 
    begin
       for C of Self.Contexts loop
          Process_Context (C);
+
+         exit when Request.Canceled;
       end loop;
       return Response;
    end On_Rename_Request;

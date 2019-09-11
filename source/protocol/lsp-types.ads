@@ -103,6 +103,9 @@ package LSP.Types is
    function Hash
      (Item : LSP.Types.LSP_Number_Or_String) return Ada.Containers.Hash_Type;
 
+   function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
+      return Ada.Strings.UTF_Encoding.UTF_8_String;
+
    type Line_Number is new Natural;
    --  Line number. In LSP first line has zero number
    type UTF_16_Index is new Natural;
