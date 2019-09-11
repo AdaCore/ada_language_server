@@ -16,8 +16,9 @@
 ------------------------------------------------------------------------------
 
 with GNATCOLL.JSON;
+with LSP.Messages.Server_Requests;
 function LSP.Servers.Decode_Request
   (Document : GNATCOLL.JSON.JSON_Value)
-   return LSP.Messages.RequestMessage'Class;
+   return LSP.Messages.Server_Requests.Server_Request'Class;
 --  Decode the request present in the input document. Document is a JSON
 --  representation of the protocol string.

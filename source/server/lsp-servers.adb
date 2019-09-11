@@ -293,6 +293,7 @@ package body LSP.Servers is
               GNATCOLL.JSON.Read (Vector);
 
             Message    : Message_Access;
+            Request    : Request_Access;
             JS         : aliased LSP.JSON_Streams.JSON_Stream;
             JSON_Array : GNATCOLL.JSON.JSON_Array;
             Version    : LSP.Types.LSP_String;
@@ -338,8 +339,9 @@ package body LSP.Servers is
                end if;
 
                begin
-                  Message := new LSP.Messages.RequestMessage'Class'
-                    (LSP.Servers.Decode_Request (Document));
+                  Request :=
+                    new LSP.Messages.Server_Requests.Server_Request'Class'
+                      (LSP.Servers.Decode_Request (Document));
                exception
                   when E : others =>
                      --  If we reach this exception handler, this means the
@@ -353,12 +355,15 @@ package body LSP.Servers is
                      return;
                end;
 
+               Message := Message_Access (Request);
+
             elsif Initialized
               or else Method.Value = +"exit"
             then
                --  This is a notification
-               Message := new LSP.Messages.NotificationMessage'Class'
-                 (LSP.Servers.Decode_Notification (Document));
+               Message :=
+                 new Messages.Server_Notifications.Server_Notification'Class'
+                   (LSP.Servers.Decode_Notification (Document));
 
             else
                --  Ignore any notification (except 'exit') until initialization

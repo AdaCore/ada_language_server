@@ -36,6 +36,7 @@ private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
+private with LSP.Messages.Server_Requests;
 
 package LSP.Servers is
 
@@ -100,6 +101,9 @@ private
    --  * Message created by Processing_Task and destroyed by Output_Task.
 
    type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
+
+   type Request_Access is
+     access all LSP.Messages.Server_Requests.Server_Request'Class;
 
    package Message_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces

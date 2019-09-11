@@ -8,7 +8,7 @@ with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 
 function LSP.Servers.Decode_Request
    (Document : GNATCOLL.JSON.JSON_Value)
-    return LSP.Messages.RequestMessage'Class
+    return LSP.Messages.Server_Requests.Server_Request'Class
 is
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
