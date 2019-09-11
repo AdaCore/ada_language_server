@@ -17,6 +17,7 @@
 
 with Ada.Directories;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Unchecked_Deallocation;
 with GNATCOLL.VFS;
 with Libadalang.Unit_Files;
 
@@ -69,19 +70,17 @@ package body LSP.Ada_Unit_Providers is
    is
       use all type GNATCOLL.VFS.Filesystem_String;
 
-      Root : constant GNATCOLL.Projects.Project_Type :=
-        Self.Project_Tree.Root_Project;
-
       Convert : constant array (Analysis_Unit_Kind)
         of GNATCOLL.Projects.Unit_Parts :=
           (Unit_Specification => GNATCOLL.Projects.Unit_Spec,
            Unit_Body          => GNATCOLL.Projects.Unit_Body);
 
-      File : constant GNATCOLL.VFS.Filesystem_String := Root.File_From_Unit
-        (Unit_Name =>
-           Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Name),
-         Part      => Convert (Kind),
-         Language  => "Ada");
+      File : constant GNATCOLL.VFS.Filesystem_String :=
+        Self.Project.File_From_Unit
+          (Unit_Name =>
+             Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Name),
+           Part      => Convert (Kind),
+           Language  => "Ada");
    begin
       if File'Length = 0 then
          return "";
@@ -108,8 +107,13 @@ package body LSP.Ada_Unit_Providers is
    -------------
 
    overriding procedure Release (Provider : in out Unit_Provider) is
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (GNATCOLL.Projects.Project_Type'Class,
+         GNATCOLL.Projects.Project_Type_Access);
+      X : GNATCOLL.Projects.Project_Type_Access;
    begin
-      null;
+      X := Provider.Project;
+      Unchecked_Free (X);
    end Release;
 
 end LSP.Ada_Unit_Providers;
