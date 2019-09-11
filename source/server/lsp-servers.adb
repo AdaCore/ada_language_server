@@ -702,7 +702,7 @@ package body LSP.Servers is
       Message : Message_Access;
       Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
 
-      Output_Queue : Output_Queues.Queue renames Server.Output_Queue;
+      Output_Queue : Message_Queues.Queue renames Server.Output_Queue;
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
@@ -785,8 +785,8 @@ package body LSP.Servers is
       Notif_Handler :
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
 
-      Input_Queue   : Input_Queues.Queue renames Server.Input_Queue;
-      Output_Queue  : Output_Queues.Queue renames Server.Output_Queue;
+      Input_Queue   : Message_Queues.Queue renames Server.Input_Queue;
+      Output_Queue  : Message_Queues.Queue renames Server.Output_Queue;
 
       procedure Initialize
         (Request      : not null LSP.Server_Request_Handlers
