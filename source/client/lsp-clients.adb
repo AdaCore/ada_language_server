@@ -777,6 +777,7 @@ package body LSP.Clients is
          Decoders.Text_Document_Type_Definition_Response'Access,
          Message);
    end Text_Document_Type_Definition_Request;
+
    -------------------------------------------
    -- On_DidChangeTextDocument_Notification --
    -------------------------------------------
@@ -832,6 +833,20 @@ package body LSP.Clients is
    begin
       Self.Send_Notification ("textDocument/didSave", Message);
    end On_DidSaveTextDocument_Notification;
+
+   ----------------------------
+   -- On_Cancel_Notification --
+   ----------------------------
+
+   overriding procedure On_Cancel_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.CancelParams)
+   is
+      Message : Cancel_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("$/cancelRequest", Message);
+   end On_Cancel_Notification;
 
    -------------------------------------
    -- Text_Document_Highlight_Request --

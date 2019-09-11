@@ -55,6 +55,17 @@ begin
       end;
    end if;
 
+   if To_UTF_8_String (Method) = "$/cancelRequest" then
+      declare
+         R : Cancel_Notification;
+      begin
+         Set_Common_Notification_Fields (R, JS);
+         JS.Key ("params");
+         LSP.Messages.CancelParams'Read (JS'Access, R.params);
+         return R;
+      end;
+   end if;
+
    if To_UTF_8_String (Method) = "textDocument/didOpen" then
       declare
          R : DidOpenTextDocument_Notification;

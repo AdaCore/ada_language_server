@@ -164,6 +164,21 @@ package body LSP.Message_Loggers is
    end On_ApplyWorkspaceEdit_Response;
 
    ----------------------------
+   -- On_Cancel_Notification --
+   ----------------------------
+
+   overriding procedure On_Cancel_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.CancelParams)
+   is
+      Id : constant String :=
+        (if Value.id.Is_Number then Value.id.Number'Image
+         else '"' & (+Value.id.String) & '"');
+   begin
+      Self.Trace.Trace ("On_Cancel_Notification: " & Id);
+   end On_Cancel_Notification;
+
+   ----------------------------
    -- On_Client_Notification --
    ----------------------------
 

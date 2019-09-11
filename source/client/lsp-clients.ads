@@ -65,6 +65,10 @@ package LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidCloseTextDocumentParams);
 
+   overriding procedure On_Cancel_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.CancelParams);
+
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
       Value : access LSP.Clients.Response_Handlers.Response_Handler'Class);

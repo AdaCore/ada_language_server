@@ -171,6 +171,12 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeConfigurationParams);
 
+   overriding procedure On_Cancel_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CancelParams) is null;
+   --  This is intentionally null procedure, because cancel is implemented by
+   --  LSP server itself.
+
    overriding procedure Handle_Error
      (Self : access Message_Handler);
 end LSP.Ada_Handlers;
