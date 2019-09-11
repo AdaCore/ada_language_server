@@ -6,8 +6,9 @@ use LSP.Server_Request_Receivers;
 
 package LSP.Messages.Server_Requests is
 
-   type Server_Request is abstract new LSP.Messages.RequestMessage
-     with null record;
+   type Server_Request is abstract new LSP.Messages.RequestMessage with record
+      Canceled : Boolean := False with Atomic;
+   end record;
 
    procedure Visit
      (Self    : Server_Request;

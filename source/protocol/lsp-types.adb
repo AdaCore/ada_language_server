@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Unchecked_Conversion;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 
 with LSP.JSON_Streams;
@@ -214,6 +213,24 @@ package body LSP.Types is
       Wide : constant Wide_String := To_Wide_String (Value);
    begin
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
+   end To_UTF_8_String;
+
+   ---------------------
+   -- To_UTF_8_String --
+   ---------------------
+
+   function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
+      return Ada.Strings.UTF_Encoding.UTF_8_String is
+   begin
+      if Item.Is_Number then
+         declare
+            Image : constant String := LSP_Number'Image (Item.Number);
+         begin
+            return Image (2 .. Image'Last);
+         end;
+      else
+         return To_UTF_8_String (Item.String);
+      end if;
    end To_UTF_8_String;
 
    -------------------------------

@@ -27,7 +27,6 @@ with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
-with LSP.Messages.Server_Notifications;
 with LSP.Servers.Decode_Notification;
 with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Request;
@@ -106,6 +105,11 @@ package body LSP.Servers is
      (Self       : in out Server'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String);
    --  Send "not initialized" response
+
+   procedure Send_Canceled_Request
+     (Self       : in out Server'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String);
+   --  Send RequestCancelled response
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => LSP.Messages.Message'Class,
@@ -209,6 +213,11 @@ package body LSP.Servers is
       procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String);
       --  Process Vector as complete JSON document.
 
+      procedure Process_JSON_Document
+        (Document : GNATCOLL.JSON.JSON_Value;
+         Vector   : Ada.Strings.Unbounded.Unbounded_String);
+      --  Process one JSON message. Vector is corresponding text for traces.
+
       Buffer_Size : constant := 512;
 
       ------------------
@@ -275,12 +284,132 @@ package body LSP.Servers is
          end loop;
       end Parse_Header;
 
+      ---------------------------
+      -- Process_JSON_Document --
+      ---------------------------
+
+      procedure Process_JSON_Document
+        (Document : GNATCOLL.JSON.JSON_Value;
+         Vector   : Ada.Strings.Unbounded.Unbounded_String)
+      is
+         use type LSP.Types.LSP_String;
+
+         Message      : Message_Access;
+         Request      : Request_Access;
+         Notification : Notification_Access;
+
+         JS         : aliased LSP.JSON_Streams.JSON_Stream;
+         JSON_Array : GNATCOLL.JSON.JSON_Array;
+         Version    : LSP.Types.LSP_String;
+         Method     : LSP.Types.Optional_String;
+         Request_Id : LSP.Types.LSP_Number_Or_String;
+         Error      : LSP.Messages.Optional_ResponseError;
+      begin
+         --  Read request id and method if any
+         GNATCOLL.JSON.Append (JSON_Array, Document);
+         JS.Set_JSON_Document (JSON_Array);
+         JS.Start_Object;
+         Read_Number_Or_String (JS, +"id", Request_Id);
+         LSP.Types.Read_String (JS, +"jsonrpc", Version);
+         LSP.Types.Read_Optional_String (JS, +"method", Method);
+
+         --  Decide if this is a request, response or notification
+
+         if not Method.Is_Set then
+            --  TODO: Process client responses here.
+
+            JS.Key ("error");
+            LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
+
+            if Error.Is_Set then
+               --  We have got error from LSP client. Save it in the trace:
+               Self.Server_Trace.Trace ("Got Error response:");
+
+               Self.Server_Trace.Trace
+                 (LSP.Types.To_UTF_8_String (Error.Value.message));
+            end if;
+
+            return;
+
+         elsif LSP.Types.Assigned (Request_Id) then  --  This is a request
+
+            if not Initialized then
+               if Method.Value = +"initialize" then
+                  Initialized := True;
+               else
+                  Send_Not_Initialized (Self, Request_Id);
+                  return;
+               end if;
+            end if;
+
+            begin
+               Request :=
+                 new LSP.Messages.Server_Requests.Server_Request'Class'
+                   (LSP.Servers.Decode_Request (Document));
+            exception
+               when E : others =>
+                  --  If we reach this exception handler, this means the
+                  --  request could not be decoded.
+                  Send_Exception_Response
+                    (Self, E,
+                     To_String (Vector),
+                     Request_Id,
+                     LSP.Messages.InvalidParams);
+
+                  return;
+            end;
+
+            Self.Request_Map.Include (Request_Id, Request);
+
+            Message := Message_Access (Request);
+
+         elsif Initialized
+           or else Method.Value = +"exit"
+         then
+            --  This is a notification
+            Notification :=
+              new Messages.Server_Notifications.Server_Notification'Class'
+                (LSP.Servers.Decode_Notification (Document));
+
+            --  Process '$/cancelRequest' notification
+            if Notification.all in
+              LSP.Messages.Server_Notifications.Cancel_Notification
+            then
+               Request_Id :=
+                 LSP.Messages.Server_Notifications.Cancel_Notification
+                   (Notification.all).params.id;
+
+               if Self.Request_Map.Contains (Request_Id) then
+                  Self.Request_Map (Request_Id).Canceled := True;
+               end if;
+            end if;
+
+            Message := Message_Access (Notification);
+         else
+            --  Ignore any notification (except 'exit') until initialization
+            return;
+
+         end if;
+
+         Self.Logger.Visit (Message.all);
+
+         --  Now we have a message to process. Push it to the processing
+         --  task
+         Self.Input_Queue.Enqueue (Message);
+
+         if Message.all in
+           LSP.Messages.Server_Notifications.Exit_Notification
+         then
+            --  After "exit" notification don't read any further input.
+            EOF := True;
+         end if;
+      end Process_JSON_Document;
+
       ----------------
       -- Parse_JSON --
       ----------------
 
       procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
-         use type LSP.Types.LSP_String;
       begin
          if Self.In_Trace.Is_Active then
             --  Avoid expensive convertion to string when trace is off
@@ -292,97 +421,8 @@ package body LSP.Servers is
             Document : constant GNATCOLL.JSON.JSON_Value :=
               GNATCOLL.JSON.Read (Vector);
 
-            Message    : Message_Access;
-            Request    : Request_Access;
-            JS         : aliased LSP.JSON_Streams.JSON_Stream;
-            JSON_Array : GNATCOLL.JSON.JSON_Array;
-            Version    : LSP.Types.LSP_String;
-            Method     : LSP.Types.Optional_String;
-            Request_Id : LSP.Types.LSP_Number_Or_String;
-            Error      : LSP.Messages.Optional_ResponseError;
          begin
-            --  Read request id and method if any
-            GNATCOLL.JSON.Append (JSON_Array, Document);
-            JS.Set_JSON_Document (JSON_Array);
-            JS.Start_Object;
-            Read_Number_Or_String (JS, +"id", Request_Id);
-            LSP.Types.Read_String (JS, +"jsonrpc", Version);
-            LSP.Types.Read_Optional_String (JS, +"method", Method);
-
-            --  Decide if this is a request, response or notification
-
-            if not Method.Is_Set then
-               --  TODO: Process client responses here.
-
-               JS.Key ("error");
-               LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
-
-               if Error.Is_Set then
-                  --  We have got error from LSP client. Save it in the trace:
-                  Self.Server_Trace.Trace ("Got Error response:");
-
-                  Self.Server_Trace.Trace
-                    (LSP.Types.To_UTF_8_String (Error.Value.message));
-               end if;
-
-               return;
-
-            elsif LSP.Types.Assigned (Request_Id) then  --  This is a request
-
-               if not Initialized then
-                  if Method.Value = +"initialize" then
-                     Initialized := True;
-                  else
-                     Send_Not_Initialized (Self, Request_Id);
-                     return;
-                  end if;
-               end if;
-
-               begin
-                  Request :=
-                    new LSP.Messages.Server_Requests.Server_Request'Class'
-                      (LSP.Servers.Decode_Request (Document));
-               exception
-                  when E : others =>
-                     --  If we reach this exception handler, this means the
-                     --  request could not be decoded.
-                     Send_Exception_Response
-                       (Self, E,
-                        To_String (Vector),
-                        Request_Id,
-                        LSP.Messages.InvalidParams);
-
-                     return;
-               end;
-
-               Message := Message_Access (Request);
-
-            elsif Initialized
-              or else Method.Value = +"exit"
-            then
-               --  This is a notification
-               Message :=
-                 new Messages.Server_Notifications.Server_Notification'Class'
-                   (LSP.Servers.Decode_Notification (Document));
-
-            else
-               --  Ignore any notification (except 'exit') until initialization
-               return;
-
-            end if;
-
-            Self.Logger.Visit (Message.all);
-
-            --  Now we have a message to process. Push it to the processing
-            --  task
-            Self.Input_Queue.Enqueue (Message);
-
-            if Message.all in
-              LSP.Messages.Server_Notifications.Exit_Notification
-            then
-               --  After "exit" notification don't read any further input.
-               EOF := True;
-            end if;
+            Process_JSON_Document (Document, Vector);
          exception
             when E : others =>
                --  Something goes wrong after JSON parsing
@@ -578,6 +618,23 @@ package body LSP.Servers is
       Send_Response (Self, Response, Request_Id);
    end Send_Not_Initialized;
 
+   procedure Send_Canceled_Request
+     (Self       : in out Server'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String)
+   is
+      Response : Response_Access := new LSP.Messages.ResponseMessage'
+        (Is_Error => True,
+         jsonrpc  => <>,  --  we will set this latter
+         id       => <>,  --  we will set this latter
+         error    =>
+           (Is_Set => True,
+            Value  => (code    => LSP.Messages.RequestCancelled,
+                       message => +"Request was canceled",
+                       others  => <>)));
+   begin
+      Send_Response (Self, Response, Request_Id);
+   end Send_Canceled_Request;
+
    -----------------------
    -- Send_Notification --
    -----------------------
@@ -676,11 +733,25 @@ package body LSP.Servers is
 
    task body Input_Task_Type is
       Initialized : Boolean := False;
-      EOF : Boolean := False;
+      EOF         : Boolean := False;
+      Message     : Message_Access;
    begin
       accept Start;
 
       loop
+         loop
+            --  Destroy any processed request
+            select
+               --  Process all available outputs before acceptiong Stop
+               Server.Destroy_Queue.Dequeue (Message);
+               Server.Request_Map.Delete (Request_Access (Message).id);
+               Free (Message);
+
+            else
+               exit;
+            end select;
+         end loop;
+
          select
             accept Stop;
             exit;
@@ -800,7 +871,7 @@ package body LSP.Servers is
            .Server_Notification_Receiver_Access);
       --  Initializes internal data structures
 
-      procedure Process_Message (Message : Message_Access);
+      procedure Process_Message (Message : in out Message_Access);
 
       ----------------
       -- Initialize --
@@ -821,7 +892,7 @@ package body LSP.Servers is
       -- Process_Message --
       ---------------------
 
-      procedure Process_Message (Message : Message_Access) is
+      procedure Process_Message (Message : in out Message_Access) is
       begin
          if Message.all in
            LSP.Messages.Server_Notifications.Server_Notification'Class
@@ -830,14 +901,25 @@ package body LSP.Servers is
             LSP.Messages.Server_Notifications.Server_Notification'Class
               (Message.all).Visit (Notif_Handler);
 
+            Free (Message);
+
             return;
          end if;
 
          declare
             --  This is a request
-            Request    : LSP.Messages.RequestMessage'Class renames
-              LSP.Messages.RequestMessage'Class (Message.all);
+            Request : LSP.Messages.Server_Requests.Server_Request'Class renames
+              LSP.Messages.Server_Requests.Server_Request'Class (Message.all);
          begin
+
+            if Request.Canceled then
+               --  The request has been canceled
+               Server.Send_Canceled_Request (Request.id);
+               Server.Destroy_Queue.Enqueue (Message);
+               --  Request will be deleted by Input_Task
+               return;
+            end if;
+
             --  Nest a declare block so we can catch specifically an
             --  exception raised during the processing of a request.
             declare
@@ -847,6 +929,8 @@ package body LSP.Servers is
             begin
                Output_Queue.Enqueue (Response);
                --  Response will be deleted by Output_Task
+               Server.Destroy_Queue.Enqueue (Message);
+               --  Request will be deleted by Input_Task
             end;
 
          exception
@@ -926,7 +1010,6 @@ package body LSP.Servers is
 
                if Request /= null then
                   Process_Message (Request);
-                  Free (Request);
                end if;
             end loop;
          end;

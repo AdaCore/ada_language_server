@@ -32,10 +32,12 @@ with LSP.Types;
 with GNATCOLL.Traces;
 
 private with Ada.Strings.Unbounded;
+private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
+private with LSP.Messages.Server_Notifications;
 private with LSP.Messages.Server_Requests;
 
 package LSP.Servers is
@@ -87,7 +89,7 @@ private
    --  The server has 3 tasks:
    --    The input task
    --         This reads input coming from stdin, forms requests, and places
-   --         them on the requests queue.
+   --         them on the requests queue. It also destroys processed requests.
    --    The processing task:
    --         This is the task where libadalang lives. This task receives
    --         requests from the request queue, processes them, and returns
@@ -96,14 +98,30 @@ private
    --         This task reads the responses coming from the output queue,
    --         and writes them to the standard output.
    --
-   --  There are two flows of messages:
-   --  * Message created byt Input_Tast and destroyed by Processing_Task.
-   --  * Message created by Processing_Task and destroyed by Output_Task.
+   --  There are next flows of messages:
+   --  * Notifications created by Input_Tast are processed and destroyed by
+   --    Processing_Task.
+   --  * Requests created by Input_Tast, processed by Processing_Task, but
+   --    destroyed by Input_Task.
+   --  * Messages created by Processing_Task are destroyed by Output_Task.
+   --
+   --  Because Input_Task controls life time of any request, it is able to
+   --  mark it canceled
 
    type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
    type Request_Access is
      access all LSP.Messages.Server_Requests.Server_Request'Class;
+
+   type Notification_Access is
+     access all LSP.Messages.Server_Notifications.Server_Notification'Class;
+
+   package Request_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Types.LSP_Number_Or_String,  --  Request id
+      Element_Type    => Request_Access,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=",
+      "="             => "=");
 
    package Message_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
@@ -171,6 +189,8 @@ private
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
+      Request_Map     : Request_Maps.Map;
+      Destroy_Queue   : Message_Queues.Queue;
 
       Server_Trace    : GNATCOLL.Traces.Trace_Handle;
       In_Trace        : GNATCOLL.Traces.Trace_Handle;
