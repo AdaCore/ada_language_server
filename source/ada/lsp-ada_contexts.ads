@@ -21,7 +21,7 @@ with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
-private with GNATCOLL.Projects;
+with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
@@ -38,31 +38,28 @@ package LSP.Ada_Contexts is
    --  Context includes set of edited documents, Libadalang context, project
    --  tree and others data.
 
-   procedure Initialize
-     (Self : in out Context;
-      Root : LSP.Types.LSP_String);
-   --  Reset context. Set Root directory as LSP client provides it.
-
-   function Is_Initialized (Self : Context) return Boolean;
-   --  Check if context has been initialized
+   procedure Initialize (Self : in out Context);
+   --  Initialize the context
 
    function Has_Project (Self : Context) return Boolean;
    --  Check if context has a project
 
    procedure Load_Project
      (Self     : in out Context;
-      File     : LSP.Types.LSP_String;
-      Scenario : LSP.Types.LSP_Any;
-      Charset  : String;
-      Errors   : out LSP.Messages.ShowMessageParams);
-   --  Load given project File using given Scenario variables.
-   --  In case of errors create and load default project.
-   --  Set the charset as well.
-   --  Return warnings and errors in Errors parameter.
+      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
+      Root     : not null GNATCOLL.Projects.Project_Type_Access;
+      Charset  : String);
+   --  Use the given project tree, and root project within this project
+   --  tree, as project for this context. Root must be a non-aggregate
+   --  projec tree representing the root of a hierarchy inside Tree.
 
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
+
+   procedure Unload (Self : in out Context);
+   --  Release the memory associated to this context. Do not use the
+   --  context after this.
 
    function Load_Document
      (Self : aliased in out Context;
@@ -150,7 +147,6 @@ private
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
-      Root           : LSP.Types.LSP_String;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
       Source_Files   : GNATCOLL.VFS.File_Array_Access;
@@ -165,18 +161,6 @@ private
 
    procedure Update_Source_Files (Self : in out Context);
    --  Update Self.Source_Files value
-
-   procedure Find_Project_File
-     (Self      : in out Context;
-      File      : LSP.Types.LSP_String;
-      Error     : out LSP.Types.LSP_String;
-      Project   : out GNATCOLL.VFS.Virtual_File;
-      Status    : out Project_Status);
-   --  Find GPR file. Fill Error is specified project doesn't exist
-
-   function Is_Initialized (Self : Context) return Boolean
-   is
-     (Self.Root /= Types.Empty_LSP_String);
 
    function Has_Project (Self : Context) return Boolean
    is

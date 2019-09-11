@@ -61,6 +61,10 @@ private
       --  There should always be at least one "project" context, and exactly
       --  one "projectless" context.
 
+      Root : Virtual_File;
+      --  The directory passed under rootURI/rootPath during the initialize
+      --  request.
+
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
    end record;

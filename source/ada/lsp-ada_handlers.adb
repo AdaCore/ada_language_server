@@ -15,14 +15,17 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
-with Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
 
 with GNAT.Strings;
+with GNATCOLL.Projects;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
+with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
 with LSP.Types; use LSP.Types;
 
@@ -88,20 +91,60 @@ package body LSP.Ada_Handlers is
      (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
    --  Utility conversion function
 
-   procedure Ensure_Context_Initialized
+   ---------------------
+   -- Project loading --
+   ---------------------
+
+   --  The heuristics that is used for loading a project is the following:
+   --
+   --     * if a project (and optionally a scenario) was specified by
+   --       the user via the workspace/didChangeConfiguration request,
+   --       attempt to use this. If this fails to load, report an error
+   --       but do not attempt to load another project.
+   --     => This case is handled by a call to Load_Project in
+   --        On_DidChangeConfiguration_Notification.
+   --
+   --     * if no project was specified by the user, then look in the Root
+   --       directory, mimicking the behavior of gprbuild:
+   --           * if there are zero .gpr files in this directory, load the
+   --             implicit project
+   --           * if there is exactly one .gpr file in this directory, load
+   --             it, returning an error if this failed
+   --           * if there are more than one .gpr files in this directory,
+   --             display an error
+   --      => These cases are handled by Ensure_Project_Loaded
+   --
+   --  At any point where requests are made, Self.Contexts should
+   --  contain, in this order:
+   --   - one or more contexts, each one containing a non-aggregate project
+   --       hierarchy.
+   --   - a "projectless" context
+   --  The creation of the "projectless" context is handled by
+   --  Create_Projectless_Context
+
+   procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
       Root : LSP.Types.LSP_String);
    --  This function makes sure that the contexts in Self are properly
-   --  initialized, and, if they are not initialized, initialize them.
-   --  This initializes two contexts in Self.Context, in this order:
-   --   - a "project" context using Root as root directory
-   --   - a "projectless" context
+   --  initialized and a project is loaded. If they are not initialized,
+   --  initialize them.
+
+   procedure Load_Project
+     (Self     : access Message_Handler;
+      GPR      : Virtual_File;
+      Scenario : LSP.Types.LSP_Any;
+      Charset  : String);
+   --  Attempt to load the given project file, with the scenario provided.
+   --  This unloads all currently loaded project contexts.
+
+   procedure Create_Projectless_Context (Self : access Message_Handler);
+   --  This creates the context for "no project" if it's not created already
 
    ---------------------------
    -- Multi-context support --
    ---------------------------
 
-   --  A set of ucilities for dealing with multiple contexts
+   --  A set of utilities for dealing with multiple contexts
 
    function Get_Best_Context_For_File
      (Contexts : Context_Lists.List;
@@ -313,16 +356,17 @@ package body LSP.Ada_Handlers is
       Self.Server.Stop;
    end On_Exit_Notification;
 
-   --------------------------------
-   -- Ensure_Context_Initialized --
-   --------------------------------
+   ---------------------------
+   -- Ensure_Project_Loaded --
+   ---------------------------
 
-   procedure Ensure_Context_Initialized
+   procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
       Root : LSP.Types.LSP_String)
    is
-      C      : constant Context_Access := new Context (Self.Trace);
-      Errors : LSP.Messages.ShowMessageParams;
+      GPRs_Found : Natural := 0;
+      Files      : File_Array_Access;
+      GPR        : Virtual_File;
    begin
       if Integer (Self.Contexts.Length) >= 2 then
          --  Rely on the fact that there are at least two contexts initialized
@@ -330,51 +374,83 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      if Integer (Self.Contexts.Length) = 1 then
-         --  We should never have only one context, there should always
-         --  be at least two contexts.
-         raise Program_Error with "inconsistent context initialization";
+      --  If we never passed through Initialize, this might be empty:
+      --  initialize it now
+      if Self.Root = No_File then
+         Self.Root := Create (+To_UTF_8_String (Root));
       end if;
 
-      Self.Trace.Trace ("No project loaded, creating default context ...");
-      Self.Trace.Trace ("Root : " & To_UTF_8_String (Root));
-      C.Initialize (Root);
-      C.Load_Project
-        (Empty_LSP_String, GNATCOLL.JSON.JSON_Null,
+      Self.Trace.Trace ("Project loading ...");
+      Self.Trace.Trace ("Root : " & To_UTF_8_String
+                        (+Self.Root.Display_Full_Name));
 
-         --  We're loading a default project: set the default charset
-         --  to latin-1, since this is the GNAT default.
-         "iso-8859-1",
-         Errors);
+      --  We're going to look for a project in Root: list all the files
+      --  in this directory, looking for .gpr files.
 
-      if not LSP.Types.Is_Empty (Errors.message) then
-         --  We might have encountered errors when loading the project, for
-         --  instance for projects which need scenario variables to be set...
-         --  but we should not report them to the user at this stage:
-         --    - for project-aware clients, the expectation is that they
-         --      will send the project information as part of the
-         --      didChangeConfiguration notification
-         --    - for clients that are not project aware, the burden is on them
-         --      to indicate a directory where there is a single loadable
-         --      project
-         --  We change the error type to Log so that these get recorded
-         --  in the log file.
-         Errors.the_type := LSP.Messages.Log;
-         Self.Server.On_Show_Message (Errors);
+      Files := Self.Root.Read_Dir (Files_Only);
+      if Files /= null then
+         for X of Files.all loop
+            if Ends_With (+X.Base_Name, ".gpr") then
+               GPRs_Found := GPRs_Found + 1;
+               exit when GPRs_Found > 1;
+               GPR := X;
+            end if;
+         end loop;
+         Unchecked_Free (Files);
       end if;
 
-      Self.Contexts.Prepend (C);
+      --  What we do depends on the number of .gpr files found:
 
-      --  Initialize the context that has no project, ie the last entry
-      --  in Self.Contexts
-      declare
-         Projectless_Context : constant Context_Access :=
-           new Context (Self.Trace);
-      begin
-         Projectless_Context.Initialize (Root);
-         Self.Contexts.Append (Projectless_Context);
-      end;
-   end Ensure_Context_Initialized;
+      if GPRs_Found = 0 then
+         --  We have found zero .gpr files: load the implicit project
+
+         Self.Trace.Trace ("Loading the implicit project");
+         declare
+            C : constant Context_Access := new Context (Self.Trace);
+            use GNATCOLL.Projects;
+            Tree         : Project_Tree_Access;
+            Root_Project : Project_Type_Access;
+         begin
+            Tree := new Project_Tree;
+            C.Initialize;
+            Load_Implicit_Project (Tree.all);
+            Root_Project := new Project_Type'(Tree.Root_Project);
+            C.Load_Project (Tree, Root_Project, "iso-8859-1");
+            Self.Contexts.Prepend (C);
+         end;
+      elsif GPRs_Found = 1 then
+         --  We have not found exactly one .gpr file: load the default
+         --  project.
+         Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
+         Self.Load_Project (GPR, GNATCOLL.JSON.JSON_Null, "iso-8859-1");
+      else
+         --  We have found more than one project: warn the user!
+
+         Self.Server.On_Show_Message
+           ((LSP.Messages.Error,
+            To_LSP_String
+              ("More than one .gpr found." & ASCII.LF &
+                 "Note: you can configure a project " &
+                 " through the ada.projectFile setting.")));
+      end if;
+   end Ensure_Project_Loaded;
+
+   --------------------------------
+   -- Create_Projectless_Context --
+   --------------------------------
+
+   procedure Create_Projectless_Context (Self : access Message_Handler) is
+      Projectless_Context : constant Context_Access :=
+        new Context (Self.Trace);
+   begin
+      if not Self.Contexts.Is_Empty then
+         --  We have already created the projectless context: we can return
+         return;
+      end if;
+
+      Projectless_Context.Initialize;
+      Self.Contexts.Append (Projectless_Context);
+   end Create_Projectless_Context;
 
    ------------------------
    -- Initialize_Request --
@@ -415,6 +491,8 @@ package body LSP.Ada_Handlers is
          Root := Value.rootPath;
       end if;
 
+      Self.Root := Create (+To_UTF_8_String (Root));
+
       --  Some clients - notably VS Code as of version 33, when opening a file
       --  rather than a workspace - don't provide a root at all. In that case
       --  use the current directory as root.
@@ -423,7 +501,8 @@ package body LSP.Ada_Handlers is
          Root := To_LSP_String (".");
       end if;
 
-      Ensure_Context_Initialized (Self, Root);
+      Self.Create_Projectless_Context;
+      Ensure_Project_Loaded (Self, Root);
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
@@ -766,7 +845,8 @@ package body LSP.Ada_Handlers is
       --  Some clients don't properly call initialize, in which case we want
       --  to call it anyway at the first open file request, using the
       --  directory containing the file being opened.
-      Ensure_Context_Initialized
+      Self.Create_Projectless_Context;
+      Ensure_Project_Loaded
         (Self,
          To_LSP_String (Ada.Directories.Containing_Directory
            (To_UTF_8_String (URI_To_File (Value.textDocument.uri)))));
@@ -1454,15 +1534,12 @@ package body LSP.Ada_Handlers is
       defaultCharset    : constant String := "defaultCharset";
       enableDiagnostics : constant String := "enableDiagnostics";
 
-      --  Default the charset to iso-8859-1, since this is the GNAT default
-      Charset   : Ada.Strings.Unbounded.Unbounded_String :=
-        Ada.Strings.Unbounded.To_Unbounded_String ("iso-8859-1");
-
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
+      Charset   : Unbounded_String;
       Variables : LSP.Types.LSP_Any;
-      Errors    : LSP.Messages.ShowMessageParams;
    begin
+      Self.Create_Projectless_Context;
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (projectFile) then
             File := +Ada.Get (projectFile).Get;
@@ -1492,24 +1569,142 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      --  Temporary behavior: at the moment, we support only one project
-      --  tree loaded at the same time. So, Self.Contexts contains, in this
-      --  order, the context for the current project, and the context for
-      --  no projects.
+      if File /= Empty_LSP_String then
+         --  The projectFile may be either an absolute path or a
+         --  relative path; if so, we're assuming it's relative
+         --  to Self.Root.
+         declare
+            Project_File : constant Filesystem_String :=
+              +To_UTF_8_String (File);
+            GPR : Virtual_File;
+         begin
+            if Is_Absolute_Path (Project_File) then
+               GPR := Create (Project_File);
+            else
+               GPR := Create_From_Dir (Self.Root, Project_File);
+            end if;
 
-      declare
-         C : constant Context_Access := Self.Contexts.First_Element;
+            Self.Load_Project (GPR, Variables, To_String (Charset));
+         end;
+      end if;
+
+      Self.Ensure_Project_Loaded (Empty_LSP_String);
+   end On_DidChangeConfiguration_Notification;
+
+   ------------------
+   -- Load_Project --
+   ------------------
+
+   procedure Load_Project
+     (Self     : access Message_Handler;
+      GPR      : Virtual_File;
+      Scenario : LSP.Types.LSP_Any;
+      Charset  : String)
+   is
+      use GNATCOLL.Projects;
+      use Ada.Containers;
+      Project_Env   : Project_Environment_Access;
+      Tree : Project_Tree_Access;
+      Errors        : LSP.Messages.ShowMessageParams;
+      Error_Text    : LSP.Types.LSP_String_Vector;
+
+      procedure Create_Context_For_Non_Aggregate (P : Project_Type);
+      procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
+      procedure On_Error (Text : String);
+
+      ------------------
+      -- Add_Variable --
+      ------------------
+
+      procedure Add_Variable
+        (Name : String; Value : GNATCOLL.JSON.JSON_Value)
+      is
+         use type GNATCOLL.JSON.JSON_Value_Type;
       begin
-         C.Load_Project
-           (File, Variables,
-            Standard.Ada.Strings.Unbounded.To_String (Charset),
-            Errors);
+         if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
+            Project_Env.Change_Environment (Name, Value.Get);
+         end if;
+      end Add_Variable;
+
+      --------------
+      -- On_Error --
+      --------------
+
+      procedure On_Error (Text : String) is
+      begin
+         LSP.Types.Append (Error_Text, LSP.Types.To_LSP_String (Text));
+      end On_Error;
+
+      --------------------------------------
+      -- Create_Context_For_Non_Aggregate --
+      --------------------------------------
+
+      procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
+         C : constant Context_Access := new Context (Self.Trace);
+         Project_Access : Project_Type_Access;
+      begin
+         C.Initialize;
+         Project_Access := new Project_Type'(P);
+         C.Load_Project (Tree    => Tree,
+                         Root    => Project_Access,
+                         Charset => Charset);
+         Self.Contexts.Prepend (C);
+      end Create_Context_For_Non_Aggregate;
+
+   begin
+      --  Unload all the contexts except the projectless context
+      while Self.Contexts.Length > 1 loop
+         declare
+            C : constant Context_Access := Self.Contexts.First_Element;
+         begin
+            C.Unload;
+         end;
+         Self.Contexts.Delete_First;
+      end loop;
+
+      --  Now load the new project
+      Errors.the_type := LSP.Messages.Warning;
+      Initialize (Project_Env);
+      if not Scenario.Is_Empty then
+         Scenario.Map_JSON_Object (Add_Variable'Access);
+      end if;
+
+      begin
+         Tree := new Project_Tree;
+         Tree.Load (GPR, Project_Env, Errors => On_Error'Unrestricted_Access);
+         if Tree.Root_Project.Is_Aggregate_Project then
+            declare
+               Aggregated : constant Project_Array_Access :=
+                 Tree.Root_Project.Aggregated_Projects;
+            begin
+               for X of Aggregated.all loop
+                  Create_Context_For_Non_Aggregate (X);
+               end loop;
+            end;
+         else
+            Create_Context_For_Non_Aggregate (Tree.Root_Project);
+         end if;
+      exception
+         when E : Invalid_Project =>
+
+            Self.Trace.Trace (E);
+            Errors.the_type := LSP.Messages.Error;
+
+            LSP.Types.Append
+              (Errors.message,
+               LSP.Types.To_LSP_String
+                 ("Unable to load project file: " &
+                  (+GPR.Full_Name.all)));
       end;
 
-      if not LSP.Types.Is_Empty (Errors.message) then
+      --  Report the errors, if any
+      if not Error_Text.Is_Empty then
+         for Line of Error_Text loop
+            LSP.Types.Append (Errors.message, Line);
+         end loop;
          Self.Server.On_Show_Message (Errors);
       end if;
-   end On_DidChangeConfiguration_Notification;
+   end Load_Project;
 
    ------------------------------------------
    -- On_Workspace_Execute_Command_Request --

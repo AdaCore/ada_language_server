@@ -26,16 +26,20 @@ with Libadalang.Common;     use Libadalang.Common;
 package LSP.Ada_Unit_Providers is
 
    type Unit_Provider
-     (Project_Tree : not null GNATCOLL.Projects.Project_Tree_Access) is
+     (Project_Tree : not null GNATCOLL.Projects.Project_Tree_Access;
+      Project      : not null GNATCOLL.Projects.Project_Type_Access) is
         new Libadalang.Analysis.Unit_Provider_Interface with private;
 --  The unit provider is improved version of libadalang one.
 --  It normalizes file path to avoid double directory separators.
 --  This aids correct file name comparison.
+--  This provider will resolve unit names in the project hierarchy denoted
+--  by Project - this is a non-aggregate project roots inside Project_Tree.
 
 private
 
    type Unit_Provider
-     (Project_Tree : not null GNATCOLL.Projects.Project_Tree_Access)
+     (Project_Tree : not null GNATCOLL.Projects.Project_Tree_Access;
+      Project      : not null GNATCOLL.Projects.Project_Type_Access)
    is new Libadalang.Analysis.Unit_Provider_Interface with null record;
 
    overriding function Get_Unit_Filename

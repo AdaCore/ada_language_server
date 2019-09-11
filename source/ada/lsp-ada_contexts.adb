@@ -15,9 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Directories;
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
-with Ada.Strings.UTF_Encoding;
 with Ada.Unchecked_Deallocation;
 
 with GNATCOLL.JSON;
@@ -105,104 +103,6 @@ package body LSP.Ada_Contexts is
          Imprecise_Fallback => True);
    end Is_Called_By;
 
-   -----------------------
-   -- Find_Project_File --
-   -----------------------
-
-   procedure Find_Project_File
-     (Self      : in out Context;
-      File      : LSP.Types.LSP_String;
-      Error     : out LSP.Types.LSP_String;
-      Project   : out GNATCOLL.VFS.Virtual_File;
-      Status    : out Project_Status)
-   is
-
-      procedure Search_GPR_File
-        (Root     : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result   : out GNATCOLL.VFS.Virtual_File;
-         Multiple : in out Boolean;
-         Status   : in out Project_Status);
-      --  Look for suitable GPR file under given directory. Set Multiple if
-      --  several project files have been found
-
-      Root : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        LSP.Types.To_UTF_8_String (Self.Root);
-
-      ---------------------
-      -- Search_GPR_File --
-      ---------------------
-
-      procedure Search_GPR_File
-        (Root     : Ada.Strings.UTF_Encoding.UTF_8_String;
-         Result   : out GNATCOLL.VFS.Virtual_File;
-         Multiple : in out Boolean;
-         Status   : in out Project_Status)
-      is
-         procedure On_File (Item : Ada.Directories.Directory_Entry_Type);
-
-         -------------
-         -- On_File --
-         -------------
-
-         procedure On_File (Item : Ada.Directories.Directory_Entry_Type) is
-         begin
-            case Status is
-               when Default_Project =>
-                  Status := Found_Unique_Project;
-               when Found_Unique_Project =>
-                  Multiple := True;
-               when User_Provided_Project =>
-                  raise Program_Error;  --  This should never happen
-            end case;
-
-            Result := GNATCOLL.VFS.Create
-              (GNATCOLL.VFS.Filesystem_String
-                 (Ada.Directories.Full_Name (Item)));
-         end On_File;
-
-         Files_Only : constant Ada.Directories.Filter_Type :=
-           (Ada.Directories.Ordinary_File => True, others => False);
-      begin
-         Ada.Directories.Search (Root, "*.gpr", Files_Only, On_File'Access);
-      end Search_GPR_File;
-
-      Name : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        LSP.Types.To_UTF_8_String (File);
-
-      Found_Non_Unique_Project : Boolean := False;
-
-   begin
-      --  If Name was provided, search for the corresponding project
-      if Name /= "" then
-
-         --  First, search the project file relatively to the root
-         Project := GNATCOLL.VFS.Create_From_Base
-           (Base_Dir  => GNATCOLL.VFS.Filesystem_String (Root),
-            Base_Name => GNATCOLL.VFS.Filesystem_String (Name));
-
-         if Project.Is_Regular_File then
-            Status := User_Provided_Project;
-            return;
-         else
-            LSP.Types.Append (Error, "Specified project doesn't exist: ");
-            LSP.Types.Append (Error, File);
-         end if;
-      end if;
-
-      --  If not found, perform a search in the root directory
-      Status := Default_Project;
-
-      --  This call changes Status if project found
-      Search_GPR_File (Root, Project, Found_Non_Unique_Project, Status);
-
-      if Found_Non_Unique_Project then
-         LSP.Types.Append
-           (Error, "Please specify project file in ada.projectFile setting.");
-         --  Fallback to default project
-         Status := Default_Project;
-      end if;
-   end Find_Project_File;
-
    ------------------
    -- Has_Document --
    ------------------
@@ -242,10 +142,8 @@ package body LSP.Ada_Contexts is
    ----------------
 
    procedure Initialize
-     (Self : in out Context;
-      Root : LSP.Types.LSP_String) is
+     (Self : in out Context) is
    begin
-      Self.Root := Root;
       Self.Source_Files := new File_Array'(1 .. 0 => <>);
 
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
@@ -322,111 +220,21 @@ package body LSP.Ada_Contexts is
 
    procedure Load_Project
      (Self     : in out Context;
-      File     : LSP.Types.LSP_String;
-      Scenario : LSP.Types.LSP_Any;
-      Charset  : String;
-      Errors   : out LSP.Messages.ShowMessageParams)
-   is
-      procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
-      procedure On_Error (Text : String);
-
-      Project_Env   : GNATCOLL.Projects.Project_Environment_Access;
-      Error_Text    : LSP.Types.LSP_String_Vector;
-
-      ------------------
-      -- Add_Variable --
-      ------------------
-
-      procedure Add_Variable
-        (Name : String; Value : GNATCOLL.JSON.JSON_Value)
-      is
-         use type GNATCOLL.JSON.JSON_Value_Type;
-      begin
-         if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-            Project_Env.Change_Environment (Name, Value.Get);
-         end if;
-      end Add_Variable;
-
-      --------------
-      -- On_Error --
-      --------------
-
-      procedure On_Error (Text : String) is
-      begin
-         LSP.Types.Append (Error_Text, LSP.Types.To_LSP_String (Text));
-      end On_Error;
-
-      GPR    : GNATCOLL.VFS.Virtual_File;
-      Status : Project_Status;
-      Root   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        LSP.Types.To_UTF_8_String (Self.Root);
-
+      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
+      Root     : not null GNATCOLL.Projects.Project_Type_Access;
+      Charset  : String) is
    begin
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
-      --  Here, we overwrite previous content of Self.Project_Tree without
-      --  freeing. That's OK because the Unit provider owns it and will free
-      --  the old project tree when we renew the provider.
-
-      Errors.the_type := LSP.Messages.Warning;
-      Self.Project_Tree := new GNATCOLL.Projects.Project_Tree;
-
-      GNATCOLL.Projects.Initialize (Project_Env);
-
-      if not Scenario.Is_Empty then
-         Scenario.Map_JSON_Object (Add_Variable'Access);
-      end if;
-
-      Self.Find_Project_File (File, Errors.message, GPR, Status);
-
-      if Status /= Default_Project then
-         begin
-            --  We have existing file, try to load it
-
-            Self.Project_Tree.Load
-              (GPR, Project_Env, Errors => On_Error'Unrestricted_Access);
-
-         exception
-            when E : GNATCOLL.Projects.Invalid_Project =>
-
-               Self.Trace.Trace (E);
-               Status := Default_Project;
-               Errors.the_type := LSP.Messages.Error;
-
-               LSP.Types.Append
-                 (Errors.message,
-                  LSP.Types.To_LSP_String
-                    ("Unable to load project file: " &
-                     (+GPR.Full_Name.all)));
-         end;
-
-         --  Populate Errors if there is any error/warning
-         for Line of Error_Text loop
-            LSP.Types.Append (Errors.message, Line);
-         end loop;
-      end if;
-
-      if Status = Default_Project then
-
-         --  At this stage, either a project file name was provided but not
-         --  found, the project could not be loaded, either it wasn't provided
-         --  at all. In any case, use a default project.
-
-         Self.Trace.Trace ("Using default project in " & Root);
-
-         Ada.Directories.Set_Directory (Root);
-         Self.Project_Tree.Load_Implicit_Project (Project_Env);
-
-      end if;
-
+      Self.Project_Tree := Tree;
       declare
-         Provider : LSP.Ada_Unit_Providers.Unit_Provider (Self.Project_Tree);
+         Provider : LSP.Ada_Unit_Providers.Unit_Provider
+             (Self.Project_Tree, Root);
       begin
          Self.Unit_Provider.Set (Provider);
       end;
 
       Self.Reload;
-
       Self.Update_Source_Files;
    end Load_Project;
 
@@ -447,6 +255,18 @@ package body LSP.Ada_Contexts is
          Document.Reload (Self.LAL_Context);
       end loop;
    end Reload;
+
+   ------------
+   -- Unload --
+   ------------
+
+   procedure Unload (Self : in out Context) is
+   begin
+      for Document of Self.Documents loop
+         Free (Document);
+      end loop;
+      Self.Documents.Clear;
+   end Unload;
 
    ---------------------
    -- Unload_Document --
