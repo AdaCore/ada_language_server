@@ -105,18 +105,12 @@ private
      Ada.Containers.Synchronized_Queue_Interfaces
        (Message_Access);
 
-   package Unbounded_String_Queue_Interface is new
-     Ada.Containers.Synchronized_Queue_Interfaces
-       (Ada.Strings.Unbounded.Unbounded_String);
-   package Input_Queues is new
-     Ada.Containers.Unbounded_Synchronized_Queues
-       (Message_Queue_Interface);
-   package Output_Queues is new
+   package Message_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
        (Message_Queue_Interface);
 
-   type Input_Queue_Access is access Input_Queues.Queue;
-   type Output_Queue_Access is access Output_Queues.Queue;
+   type Input_Queue_Access is access Message_Queues.Queue;
+   type Output_Queue_Access is access Message_Queues.Queue;
 
    --  The processing task
    task type Processing_Task_Type
@@ -166,10 +160,10 @@ private
       Vector        : Ada.Strings.Unbounded.Unbounded_String;
 
       --  Queues and tasks used for asynchronous processing, see doc above
-      Input_Queue     : Input_Queues.Queue;
+      Input_Queue     : Message_Queues.Queue;
       Look_Ahead      : Message_Access;
       --  One message look-ahead buffer for Input_Queue
-      Output_Queue    : Output_Queues.Queue;
+      Output_Queue    : Message_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
