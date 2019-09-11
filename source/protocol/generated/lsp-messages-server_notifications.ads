@@ -37,6 +37,18 @@ package LSP.Messages.Server_Notifications is
      (Self    : DidChangeConfiguration_Notification;
       Handler : access Server_Notification_Receiver'Class);
 
+   package Cancel_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        CancelParams);
+
+   type Cancel_Notification is
+     new Cancel_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : Cancel_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
    package DidOpenTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,

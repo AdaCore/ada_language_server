@@ -114,6 +114,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.DidCloseTextDocumentParams);
 
+   overriding procedure On_Cancel_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.CancelParams);
+
    overriding procedure On_Initialize_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Initialize_Request);

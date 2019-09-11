@@ -30,6 +30,13 @@ package body LSP.Messages.Server_Notifications is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Cancel_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_Cancel_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : DidOpenTextDocument_Notification;
       Handler : access Server_Notification_Receiver'Class) is
    begin
