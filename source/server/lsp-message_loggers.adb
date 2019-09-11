@@ -358,7 +358,7 @@ package body LSP.Message_Loggers is
    is
    begin
       Self.Trace.Trace
-        ("DidChangeTextDocument_Notification: "
+        ("DidCloseTextDocument_Notification: "
          & (+Value.textDocument.uri));
    end On_DidCloseTextDocument_Notification;
 
