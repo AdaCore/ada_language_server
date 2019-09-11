@@ -23,15 +23,9 @@ package LSP.Messages.Server_{kind}s is
 """
 
 C_Method_Function_Snippet = """
-   function On_{request_name}_{kind}
-     (Self  : access Server_{kind}_Handler;
-      Value : LSP.Messages.{params_name})
-      return LSP.Messages.Server_Responses.{response_name} is abstract;
-"""
-
-C_Method_Function_Snippet_Noparam = """
-   function On_{request_name}_{kind}
-     (Self : access Server_{kind}_Handler)
+   function On_{request_name}_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.{request_name}_Request)
       return LSP.Messages.Server_Responses.{response_name} is abstract;
 """
 
@@ -171,20 +165,7 @@ C_Handler_Snippet_Function = """
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_{request_name}_{kind}
-                  ({request_name}_{kind} ({kind}).params);
-         begin
-            R.jsonrpc := +"2.0";
-            R.id := Request.id;
-            return R;
-         end;
-      end if;
-"""
-
-C_Handler_Snippet_Function_Noparams = """
-      if {kind} in {request_name}_{kind}'Class then
-         declare
-            R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_{request_name}_{kind};
+                  ({request_name}_{kind} ({kind}));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -247,18 +228,19 @@ LSP_Messages_Generic_Type_Snippet_Noparams = """
 
 LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
 
-with LSP.Messages{extra_with};
+with LSP.Messages.Server_Requests;
+with LSP.Messages.Server_Responses;
 
-package LSP.Server_{kind}_{handler}s is
+package LSP.Server_Request_{handler}s is
 
-   type Server_{kind}_{handler} is limited interface;
-   type Server_{kind}_{handler}_Access is
-     access all Server_{kind}_{handler}'Class;
+   type Server_Request_{handler} is limited interface;
+   type Server_Request_{handler}_Access is
+     access all Server_Request_{handler}'Class;
    --  A type which represents a handler which supports reacting
-   --  to {kind}s. Clients implementing this interface should override
-   --  the *_{kind} methods, and clients making use of this interface
-   --  should simply call Handle_{kind} when they want to dispatch
-   --  a {kind} to the handler.
+   --  to Requests. Clients implementing this interface should override
+   --  the *_Request methods, and clients making use of this interface
+   --  should simply call Handle_Request when they want to dispatch
+   --  a Request to the handler.
 """
 
 LSP_Server_Handlers_Footer = """
@@ -267,11 +249,13 @@ end LSP.Server_{kind}_{handler}s;
 
 LSP_Server_Recievers_Header = """--  Automatically generated, do not edit.
 
-limited with LSP.Messages.Server_{kind}s;
+limited with LSP.Messages{extra_with};
 
 package LSP.Server_{kind}_{handler}s is
 
    type Server_{kind}_{handler} is limited interface;
+   type Server_{kind}_{handler}_Access is
+     access all Server_{kind}_{handler}'Class;
 """
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -409,34 +393,16 @@ def write_handle_request():
             for l in data_array:
                 protocol_name = l[0]
                 request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    if handler_is_procedure:
-                        handler_snippets += \
-                            C_Handler_Snippet_Procedure.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-                    else:
-                        handler_snippets += \
-                            C_Handler_Snippet_Function.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-
+                if handler_is_procedure:
+                    handler_snippets += \
+                        C_Handler_Snippet_Procedure.format(
+                            request_name=request_name,
+                            kind=kind)
                 else:
-                    if handler_is_procedure:
-                        handler_snippets += \
-                            C_Handler_Snippet_Procedure_Noparams.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
-                    else:
-                        handler_snippets += \
-                            C_Handler_Snippet_Function_Noparams.format(
-                                request_name=request_name,
-                                params_name=params_name,
-                                kind=kind)
+                    handler_snippets += \
+                        C_Handler_Snippet_Function.format(
+                            request_name=request_name,
+                            kind=kind)
 
             if handler_is_procedure:
                 adb.write(C_Handler_Procedure_Body.format(
@@ -451,9 +417,6 @@ def write_handle_request():
     write_package(REQUESTS, 'Request',
                   join(gen_dir, 'lsp-servers-handle_request.adb'),
                   False)
-#    write_package(NOTIFICATIONS, 'Notification',
-#                  join(gen_dir, 'lsp-servers-handle_notification.adb'),
-#                  True)
 
 
 def write_message_decoders():
@@ -503,34 +466,21 @@ def write_message_decoders():
 def write_server_handlers():
     """ Write source/server/lsp-server_{request/notification}_handlers.ads """
 
-    def write_package(data_array, kind, handler_name,
+    def write_package(data_array, handler_name,
                       ads_name, handler_is_procedure):
         """Factorization function"""
 
         # Write the .ads
         with open(ads_name, 'wb') as ads:
-            extra_with = '.Server_Responses'
 
             ads.write(LSP_Server_Handlers_Header.format(
-                kind=kind, handler=handler_name,
-                extra_with=extra_with))
+                handler=handler_name))
 
             for l in data_array:
-                request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    ads.write(
-                        C_Method_Function_Snippet.format(
-                            request_name=request_name,
-                            params_name=params_name,
-                            response_name=l[3],
-                            kind=kind))
-                else:
-                    ads.write(
-                        C_Method_Function_Snippet_Noparam.format(
-                            request_name=request_name,
-                            response_name=l[3],
-                            kind=kind))
+                ads.write(
+                    C_Method_Function_Snippet.format(
+                        request_name=l[1],
+                        response_name=l[3]))
 
             ads.write("""
    procedure Handle_Error
@@ -540,10 +490,10 @@ def write_server_handlers():
 """)
 
             ads.write(LSP_Server_Handlers_Footer.format(
-                kind=kind, handler=handler_name))
+                kind='Request', handler=handler_name))
 
     gen_dir = join(basedir, 'source', 'server', 'generated')
-    write_package(REQUESTS, 'Request', 'Handler',
+    write_package(REQUESTS, 'Handler',
                   join(gen_dir, 'lsp-server_request_handlers.ads'),
                   False)
 
@@ -557,13 +507,9 @@ def write_server_receivers():
 
         # Write the .ads
         with open(ads_name, 'wb') as ads:
-            if is_request:
-                ads.write(LSP_Server_Recievers_Header.format(
-                    kind=kind, handler=handler_name))
-            else:
-                ads.write(LSP_Server_Handlers_Header.format(
-                    kind=kind, handler=handler_name,
-                    extra_with=""))
+            ads.write(LSP_Server_Recievers_Header.format(
+                kind=kind, handler=handler_name,
+                extra_with=".Server_Requests" if is_request else""))
 
             for l in data_array:
                 request_name = l[1]

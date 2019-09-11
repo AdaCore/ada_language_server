@@ -17,7 +17,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Initialize_Request
-                  (Initialize_Request (Request).params);
+                  (Initialize_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -28,7 +28,8 @@ begin
       if Request in Shutdown_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_Shutdown_Request;
+               Self.On_Shutdown_Request
+                  (Shutdown_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -40,7 +41,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_CodeAction_Request
-                  (CodeAction_Request (Request).params);
+                  (CodeAction_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -52,7 +53,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Completion_Request
-                  (Completion_Request (Request).params);
+                  (Completion_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -64,7 +65,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Definition_Request
-                  (Definition_Request (Request).params);
+                  (Definition_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -76,7 +77,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Type_Definition_Request
-                  (Type_Definition_Request (Request).params);
+                  (Type_Definition_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -88,7 +89,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Highlight_Request
-                  (Highlight_Request (Request).params);
+                  (Highlight_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -100,7 +101,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Hover_Request
-                  (Hover_Request (Request).params);
+                  (Hover_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -112,7 +113,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_References_Request
-                  (References_Request (Request).params);
+                  (References_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -124,7 +125,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Signature_Help_Request
-                  (Signature_Help_Request (Request).params);
+                  (Signature_Help_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -136,7 +137,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Document_Symbols_Request
-                  (Document_Symbols_Request (Request).params);
+                  (Document_Symbols_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -148,7 +149,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Rename_Request
-                  (Rename_Request (Request).params);
+                  (Rename_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -160,7 +161,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Execute_Command_Request
-                  (Execute_Command_Request (Request).params);
+                  (Execute_Command_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -172,7 +173,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Workspace_Symbols_Request
-                  (Workspace_Symbols_Request (Request).params);
+                  (Workspace_Symbols_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -184,7 +185,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Workspace_Execute_Command_Request
-                  (Workspace_Execute_Command_Request (Request).params);
+                  (Workspace_Execute_Command_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;
@@ -196,7 +197,7 @@ begin
          declare
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_ALS_Called_By_Request
-                  (ALS_Called_By_Request (Request).params);
+                  (ALS_Called_By_Request (Request));
          begin
             R.jsonrpc := +"2.0";
             R.id := Request.id;

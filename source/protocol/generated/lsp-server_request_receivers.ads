@@ -5,6 +5,8 @@ limited with LSP.Messages.Server_Requests;
 package LSP.Server_Request_Receivers is
 
    type Server_Request_Receiver is limited interface;
+   type Server_Request_Receiver_Access is
+     access all Server_Request_Receiver'Class;
 
    procedure On_Initialize_Request
      (Self  : access Server_Request_Receiver;
