@@ -1,17 +1,12 @@
 --  Automatically generated, do not edit.
 
-with LSP.Messages;
+limited with LSP.Messages;
 
 package LSP.Server_Notification_Receivers is
 
    type Server_Notification_Receiver is limited interface;
    type Server_Notification_Receiver_Access is
      access all Server_Notification_Receiver'Class;
-   --  A type which represents a handler which supports reacting
-   --  to Notifications. Clients implementing this interface should override
-   --  the *_Notification methods, and clients making use of this interface
-   --  should simply call Handle_Notification when they want to dispatch
-   --  a Notification to the handler.
 
    procedure On_Initialized_Notification
      (Self  : access Server_Notification_Receiver) is abstract;

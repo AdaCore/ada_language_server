@@ -23,6 +23,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
+with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
@@ -65,82 +66,83 @@ private
    end record;
 
    overriding function On_Initialize_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.InitializeParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Initialize_Request)
       return LSP.Messages.Server_Responses.Initialize_Response;
 
    overriding function On_Shutdown_Request
-     (Self  : access Message_Handler)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Shutdown_Request)
       return LSP.Messages.Server_Responses.Shutdown_Response;
 
    overriding function On_CodeAction_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.CodeActionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.CodeAction_Request)
       return LSP.Messages.Server_Responses.CodeAction_Response;
 
    overriding function On_Completion_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response;
 
    overriding function On_Definition_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Definition_Request)
       return LSP.Messages.Server_Responses.Location_Response;
 
    overriding function On_Type_Definition_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Type_Definition_Request)
       return LSP.Messages.Server_Responses.Location_Response;
 
    overriding function On_Highlight_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Highlight_Request)
       return LSP.Messages.Server_Responses.Highlight_Response;
 
    overriding function On_Hover_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Hover_Request)
       return LSP.Messages.Server_Responses.Hover_Response;
 
    overriding function On_References_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ReferenceParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.References_Request)
       return LSP.Messages.Server_Responses.Location_Response;
 
    overriding function On_Signature_Help_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Signature_Help_Request)
       return LSP.Messages.Server_Responses.SignatureHelp_Response;
 
    overriding function On_Document_Symbols_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DocumentSymbolParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response;
 
    overriding function On_Rename_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.RenameParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Rename_Request)
       return LSP.Messages.Server_Responses.Rename_Response;
 
    overriding function On_Execute_Command_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ExecuteCommandParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response;
 
    overriding function On_Workspace_Symbols_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.WorkspaceSymbolParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response;
 
    overriding function On_Workspace_Execute_Command_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.ExecuteCommandParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response;
 
    overriding function On_ALS_Called_By_Request
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.TextDocumentPositionParams)
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response;
 
    overriding procedure On_Initialized_Notification
