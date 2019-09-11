@@ -237,6 +237,16 @@ package LSP.Messages is
       id: LSP_Number_Or_String;
    end record;
 
+   procedure Read_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CancelParams);
+   for CancelParams'Read use Read_CancelParams;
+
+   procedure Write_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CancelParams);
+   for CancelParams'Write use Write_CancelParams;
+
    --```typescript
    --type DocumentUri = string;
    --```

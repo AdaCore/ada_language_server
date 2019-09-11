@@ -77,6 +77,11 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.Optional_Number);
 
+   procedure Write_Number_Or_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number_Or_String);
+
    procedure Write_Optional_AlsReferenceKind_Set
     (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -256,6 +261,22 @@ package body LSP.Messages is
          --  could provide an object instead of boolean.
       end if;
    end Read_Boolean;
+
+   -----------------------
+   -- Read_CancelParams --
+   -----------------------
+
+   procedure Read_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CancelParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number_Or_String (JS, +"id", V.id);
+      JS.End_Object;
+   end Read_CancelParams;
 
    -----------------------------
    -- Read_ClientCapabilities --
@@ -2168,6 +2189,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ApplyWorkspaceEditResult;
 
+   ------------------------
+   -- Write_CancelParams --
+   ------------------------
+
+   procedure Write_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CancelParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number_Or_String (JS, +"id", V.id);
+      JS.End_Object;
+   end Write_CancelParams;
+
    ------------------------------
    -- Write_ClientCapabilities --
    ------------------------------
@@ -2433,12 +2470,7 @@ package body LSP.Messages is
       Span'Write (S, V.span);
       JS.Key ("severity");
       Optional_DiagnosticSeverity'Write (S, V.severity);
-
-      if V.code.Is_Number then
-         Write_Number (JS, +"code", V.code.Number);
-      elsif not Is_Empty (V.code.String) then
-         Write_String (JS, +"code", V.code.String);
-      end if;
+      Write_Number_Or_String (JS, +"code", V.code);
       Write_Optional_String (JS, +"source", V.source);
       Write_String (JS, +"message", V.message);
       JS.End_Object;
@@ -3024,6 +3056,22 @@ package body LSP.Messages is
       Stream.Write (GNATCOLL.JSON.Create (Item));
    end Write_Number;
 
+   ----------------------------
+   -- Write_Number_Or_String --
+   ----------------------------
+
+   procedure Write_Number_Or_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number_Or_String) is
+   begin
+      if Item.Is_Number then
+         Write_Number (Stream, Key, Item.Number);
+      elsif not Is_Empty (Item.String) then
+         Write_String (Stream, Key, Item.String);
+      end if;
+   end Write_Number_Or_String;
+
    -------------------
    -- Write_Boolean --
    -------------------
@@ -3244,13 +3292,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       Write_String (JS, +"jsonrpc", V.jsonrpc);
-
-      if V.id.Is_Number then
-         Write_Number (JS, +"id", V.id.Number);
-      elsif not Is_Empty (V.id.String) then
-         Write_String (JS, +"id", V.id.String);
-      end if;
-
+      Write_Number_Or_String (JS, +"id", V.id);
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prefix;
@@ -3269,13 +3311,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_String (JS, +"jsonrpc", V.jsonrpc);
       Write_String (JS, +"method", V.method);
-
-      if V.id.Is_Number then
-         Write_Number (JS, +"id", V.id.Number);
-      elsif not Is_Empty (V.id.String) then
-         Write_String (JS, +"id", V.id.String);
-      end if;
-
+      Write_Number_Or_String (JS, +"id", V.id);
       JS.End_Object;
    end Write_RequestMessage;
 
