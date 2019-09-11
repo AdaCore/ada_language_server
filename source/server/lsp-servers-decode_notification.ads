@@ -16,9 +16,10 @@
 ------------------------------------------------------------------------------
 
 with GNATCOLL.JSON;
+with LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
   (Document : GNATCOLL.JSON.JSON_Value)
-   return LSP.Messages.NotificationMessage'Class;
+   return LSP.Messages.Server_Notifications.Server_Notification'Class;
 --  Decode the request present in the input document. Document is a JSON
 --  representation of the protocol string.
