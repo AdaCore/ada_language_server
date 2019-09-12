@@ -27,6 +27,7 @@ with GNATCOLL.VFS;      use GNATCOLL.VFS;
 with URIs;
 with LSP.Ada_Unit_Providers;
 
+with Libadalang.Common;
 with Langkit_Support.Slocs;
 
 package body LSP.Ada_Contexts is
@@ -83,6 +84,11 @@ package body LSP.Ada_Contexts is
         return Libadalang.Analysis.Base_Id_Array is
    begin
       return Definition.P_Find_All_References (Self.Analysis_Units);
+   exception
+      when Libadalang.Common.Property_Error =>
+         return Definition.P_Find_All_References
+           (Self.Analysis_Units,
+            Imprecise_Fallback => True);
    end Find_All_References;
 
    ------------------
