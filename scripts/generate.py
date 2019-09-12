@@ -256,6 +256,11 @@ package LSP.Server_{kind}_{handler}s is
    type Server_{kind}_{handler} is limited interface;
    type Server_{kind}_{handler}_Access is
      access all Server_{kind}_{handler}'Class;
+   --  A type which represents a handler which supports reacting
+   --  to {kind}s. Clients implementing this interface should override
+   --  the *_{kind} methods, and clients making use of this interface
+   --  should simply call corresponding method when they want to dispatch
+   --  a {kind} to the handler.
 """
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

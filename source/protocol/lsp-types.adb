@@ -226,7 +226,7 @@ package body LSP.Types is
          declare
             Image : constant String := LSP_Number'Image (Item.Number);
          begin
-            return Image (2 .. Image'Last);
+            return Image (Image'First + 1 .. Image'Last);
          end;
       else
          return To_UTF_8_String (Item.String);
