@@ -51,7 +51,7 @@ in the array item to compare.
 Where _wait_ object is expected server answer. Each property of this object
 should be in server response, but some string values have a special meaning:
  * `<ANY>`  - matches any string value
- * `<ABSENT>` - ensures than there is no such property at all
+ * `<ABSENT>` - ensures that there is no such property at all
 
 ### Command `comment`
 
