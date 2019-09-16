@@ -121,6 +121,13 @@ package body LSP.Ada_Handlers is
    --   - a "projectless" context
    --  The creation of the "projectless" context is handled by
    --  Create_Projectless_Context
+   --
+   --  The attempt to load a project should be done in reaction to
+   --  On_DidChangeConfiguration_Notification. However, the IDEs that
+   --  are not configured specifically for this language server might
+   --  not pass a .gpr file to didChangeConfiguration: for these IDEs,
+   --  we fallback to loading the project the first time an editor is
+   --  open.
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
@@ -491,8 +498,6 @@ package body LSP.Ada_Handlers is
          Root := Value.rootPath;
       end if;
 
-      Self.Root := Create (+To_UTF_8_String (Root));
-
       --  Some clients - notably VS Code as of version 33, when opening a file
       --  rather than a workspace - don't provide a root at all. In that case
       --  use the current directory as root.
@@ -501,11 +506,12 @@ package body LSP.Ada_Handlers is
          Root := To_LSP_String (".");
       end if;
 
-      Self.Create_Projectless_Context;
-      Ensure_Project_Loaded (Self, Root);
+      Self.Root := Create (+To_UTF_8_String (Root));
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+
+      Self.Create_Projectless_Context;
 
       return Response;
    end On_Initialize_Request;
@@ -842,9 +848,9 @@ package body LSP.Ada_Handlers is
       Self.Trace.Trace ("In Text_Document_Did_Open");
       Self.Trace.Trace ("Uri : " & To_UTF_8_String (Value.textDocument.uri));
 
-      --  Some clients don't properly call initialize, in which case we want
-      --  to call it anyway at the first open file request, using the
-      --  directory containing the file being opened.
+      --  Some clients don't properly call initialize, or don't pass the
+      --  project to didChangeConfiguration: fallback here on loading a
+      --  project in this directory, if needed.
       Self.Create_Projectless_Context;
       Ensure_Project_Loaded
         (Self,
@@ -1588,7 +1594,8 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
-      Self.Ensure_Project_Loaded (Empty_LSP_String);
+      Self.Ensure_Project_Loaded
+        (To_LSP_String (Self.Root.Display_Full_Name));
    end On_DidChangeConfiguration_Notification;
 
    ------------------
