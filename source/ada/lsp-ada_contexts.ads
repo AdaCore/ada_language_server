@@ -103,15 +103,19 @@ package LSP.Ada_Contexts is
    --  but it works even when given document hasn't opened yet.
 
    function Find_All_References
-     (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-        return Libadalang.Analysis.Base_Id_Array;
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array;
    --  Finds all references to a given defining name in all units of the
    --  context.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
 
    function Is_Called_By
-     (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
       return Libadalang.Analysis.Base_Id_Array;
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.

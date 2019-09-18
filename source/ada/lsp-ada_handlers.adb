@@ -91,6 +91,12 @@ package body LSP.Ada_Handlers is
      (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
    --  Utility conversion function
 
+   procedure Show_Message
+     (Self : access Message_Handler;
+      Text : String;
+      Mode : LSP.Messages.MessageType := LSP.Messages.Error);
+   --  Convenience function to send a message to the user.
+
    ---------------------
    -- Project loading --
    ---------------------
@@ -433,12 +439,10 @@ package body LSP.Ada_Handlers is
       else
          --  We have found more than one project: warn the user!
 
-         Self.Server.On_Show_Message
-           ((LSP.Messages.Error,
-            To_LSP_String
-              ("More than one .gpr found." & ASCII.LF &
-                 "Note: you can configure a project " &
-                 " through the ada.projectFile setting.")));
+         Self.Show_Message
+           ("More than one .gpr found." & ASCII.LF &
+              "Note: you can configure a project " &
+              " through the ada.projectFile setting.");
       end if;
    end Ensure_Project_Loaded;
 
@@ -1200,6 +1204,7 @@ package body LSP.Ada_Handlers is
       Value      : LSP.Messages.ReferenceParams renames Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Response
         (Is_Error => False);
+      Imprecise  : Boolean := False;
 
       procedure Process_Context (C : Context_Access);
       --  Process the references found in one context and append
@@ -1258,10 +1263,13 @@ package body LSP.Ada_Handlers is
          end if;
 
          declare
-            Count       : Cancel_Countdown := 0;
-            References  : constant Base_Id_Array :=
-              C.Find_All_References (Definition);
+            Count          : Cancel_Countdown := 0;
+            This_Imprecise : Boolean;
+            References     : constant Base_Id_Array :=
+              C.Find_All_References (Definition, This_Imprecise);
          begin
+            Imprecise := Imprecise or This_Imprecise;
+
             for Node of References loop
                Count := Count - 1;
 
@@ -1289,6 +1297,12 @@ package body LSP.Ada_Handlers is
          exit when Request.Canceled;
       end loop;
 
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'references' are approximate.",
+            LSP.Messages.Warning);
+      end if;
+
       return Response;
    end On_References_Request;
 
@@ -1308,6 +1322,7 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response   : LSP.Messages.Server_Responses.ALS_Called_By_Response
         (Is_Error => False);
+      Imprecise  : Boolean := False;
 
       procedure Process_Context (C : Context_Access);
       --  Process the calls found in one context and append
@@ -1336,13 +1351,16 @@ package body LSP.Ada_Handlers is
          end if;
 
          declare
+            This_Imprecise : Boolean;
             Called  : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Is_Called_By (C.all, Definition);
+              LSP.Lal_Utils.Is_Called_By (C.all, Definition, This_Imprecise);
 
             use LSP.Lal_Utils.References_By_Subprogram;
             C     : Cursor := Called.First;
             Count : Cancel_Countdown := 0;
          begin
+            Imprecise := Imprecise or This_Imprecise;
+
             --  Iterate through all the results, converting them to protocol
             --  objects.
             while Has_Element (C) loop
@@ -1379,6 +1397,12 @@ package body LSP.Ada_Handlers is
 
          exit when Request.Canceled;
       end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'called by' are approximate.",
+            LSP.Messages.Warning);
+      end if;
 
       return Response;
    end On_ALS_Called_By_Request;
@@ -1503,11 +1527,19 @@ package body LSP.Ada_Handlers is
 
          declare
             Count       : Cancel_Countdown := 0;
+            Imprecise   : Boolean;
             References  : constant Base_Id_Array :=
-              C.Find_All_References (Definition)
+              C.Find_All_References (Definition, Imprecise)
               --  Append Definition itself so that it is also renamed
               & Definition.P_Relative_Name.As_Base_Id;
          begin
+            if Imprecise then
+               Self.Show_Message
+                 ("References are not precise: renamed cancelled",
+                  LSP.Messages.Warning);
+               return;
+            end if;
+
             for Node of References loop
                declare
                   Location : constant LSP.Messages.Location :=
@@ -1815,5 +1847,17 @@ package body LSP.Ada_Handlers is
          C.Reload;
       end loop;
    end Handle_Error;
+
+   ------------------
+   -- Show_Message --
+   ------------------
+
+   procedure Show_Message
+     (Self : access Message_Handler;
+      Text : String;
+      Mode : LSP.Messages.MessageType := LSP.Messages.Error) is
+   begin
+      Self.Server.On_Show_Message ((Mode, To_LSP_String (Text)));
+   end Show_Message;
 
 end LSP.Ada_Handlers;
