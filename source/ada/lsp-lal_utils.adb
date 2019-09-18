@@ -126,8 +126,9 @@ package body LSP.Lal_Utils is
    ------------------
 
    function Is_Called_By
-     (Context    : LSP.Ada_Contexts.Context;
-      Definition : Defining_Name)
+     (Context           : LSP.Ada_Contexts.Context;
+      Definition        : Defining_Name;
+      Imprecise_Results : out Boolean)
       return References_By_Subprogram.Map
    is
       use References_By_Subprogram;
@@ -136,8 +137,8 @@ package body LSP.Lal_Utils is
       Containing : Defining_Name;
 
       --  Obtain all the references
-      Refs : constant Base_Id_Array :=
-        Context.Is_Called_By (Definition);
+      Refs      : constant Base_Id_Array := Context.Is_Called_By
+        (Definition, Imprecise_Results);
    begin
       --  Go through all references to Name, organising them by containing
       --  subprogram.

@@ -18,6 +18,8 @@
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
 
+with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
+
 with GNATCOLL.JSON;
 with GNATCOLL.Projects; use GNATCOLL.Projects;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
@@ -77,16 +79,33 @@ package body LSP.Ada_Contexts is
    -------------------------
 
    function Find_All_References
-     (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-        return Libadalang.Analysis.Base_Id_Array is
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array
+   is
+      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
+        Self.Analysis_Units;
    begin
-      return Definition.P_Find_All_References (Self.Analysis_Units);
+      --  Make two attempts: first with precise results, then with the
+      --  imprecise_fallback.
+      begin
+         return Definition.P_Find_All_References (Units);
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            Imprecise_Results := True;
+            Self.Trace.Trace
+              ("Property_Error in Find_All_References (precise)");
+            Self.Trace.Trace (Symbolic_Traceback (E));
+            return Definition.P_Find_All_References
+              (Units, Imprecise_Fallback => True);
+      end;
    exception
-      when Libadalang.Common.Property_Error =>
-         return Definition.P_Find_All_References
-           (Self.Analysis_Units,
-            Imprecise_Fallback => True);
+      when E : Libadalang.Common.Property_Error =>
+         Self.Trace.Trace
+           ("Property_Error in Find_All_References (imprecise)");
+         Self.Trace.Trace (Symbolic_Traceback (E));
+         return (1 .. 0 => <>);
    end Find_All_References;
 
    ------------------
@@ -94,13 +113,31 @@ package body LSP.Ada_Contexts is
    ------------------
 
    function Is_Called_By
-     (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-      return Libadalang.Analysis.Base_Id_Array is
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array
+   is
+      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
+        Self.Analysis_Units;
    begin
-      return Definition.P_Is_Called_By
-        (Self.Analysis_Units,
-         Imprecise_Fallback => True);
+      --  Make two attempts: first with precise results, then with the
+      --  imprecise_fallback.
+      begin
+         return Definition.P_Is_Called_By (Units);
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            Imprecise_Results := True;
+            Self.Trace.Trace ("Property_Error in Is_Called_By (precise)");
+            Self.Trace.Trace (Symbolic_Traceback (E));
+            return Definition.P_Is_Called_By
+              (Units, Imprecise_Fallback => True);
+      end;
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Self.Trace.Trace ("Property_Error in Is_Called_By (imprecise)");
+         Self.Trace.Trace (Symbolic_Traceback (E));
+         return (1 .. 0 => <>);
    end Is_Called_By;
 
    ------------------

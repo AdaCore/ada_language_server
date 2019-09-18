@@ -57,8 +57,9 @@ package LSP.Lal_Utils is
       "="          => References_List."=");
 
    function Is_Called_By
-     (Context    : LSP.Ada_Contexts.Context;
-      Definition : Defining_Name)
+     (Context           : LSP.Ada_Contexts.Context;
+      Definition        : Defining_Name;
+      Imprecise_Results : out Boolean)
       return References_By_Subprogram.Map
      with Pre =>
        Definition.P_Basic_Decl.Kind in Libadalang.Common.Ada_Subp_Decl
@@ -69,5 +70,7 @@ package LSP.Lal_Utils is
    --  Return the list of all the calls made to the subprogram pointed at by
    --  the node given by Definition, organized by the subprograms in which
    --  these calls are listed, ordered by the name of these subprograms.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
 
 end LSP.Lal_Utils;
