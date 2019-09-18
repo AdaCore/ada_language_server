@@ -200,5 +200,16 @@ begin
       end;
    end if;
 
+   if To_UTF_8_String (Method) = "$/alsDebug" then
+      declare
+         R : ALS_Debug_Request;
+      begin
+         Set_Common_Request_Fields (R, JS);
+         JS.Key ("params");
+         LSP.Messages.ALSDebugParams'Read (JS'Access, R.params);
+         return R;
+      end;
+   end if;
+
    raise Program_Error; --  Request not found
 end LSP.Servers.Decode_Request;

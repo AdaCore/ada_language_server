@@ -1383,6 +1383,30 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_ALS_Called_By_Request;
 
+   --------------------------
+   -- On_ALS_Debug_Request --
+   --------------------------
+
+   overriding function On_ALS_Debug_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Debug_Request)
+      return LSP.Messages.Server_Responses.ALS_Debug_Response is
+   begin
+      case Request.params.Kind is
+         when LSP.Messages.Suspend_Execution =>
+            declare
+               Limit : constant Positive := Request.params.inputQueueLength;
+            begin
+               while Self.Server.Input_Queue_Length < Limit loop
+                  delay 0.1;
+               end loop;
+            end;
+      end case;
+
+      return Response : LSP.Messages.Server_Responses.ALS_Debug_Response
+        (Is_Error => False);
+   end On_ALS_Debug_Request;
+
    -------------------------------
    -- On_Signature_Help_Request --
    -------------------------------

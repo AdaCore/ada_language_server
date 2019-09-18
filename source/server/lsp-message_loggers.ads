@@ -182,6 +182,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.ALS_Called_By_Request);
 
+   overriding procedure On_ALS_Debug_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.ALS_Debug_Request);
+
    overriding procedure On_Initialize_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Initialize_Response);
@@ -221,6 +225,10 @@ private
    overriding procedure On_ALS_Called_By_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.ALS_Called_By_Response);
+
+   overriding procedure On_ALS_Debug_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.ALS_Debug_Response);
 
    overriding procedure On_ExecuteCommand_Response
      (Self   : in out Message_Logger;

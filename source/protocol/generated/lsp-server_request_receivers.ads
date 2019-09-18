@@ -93,4 +93,9 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.ALS_Called_By_Request)
         is abstract;
 
+   procedure On_ALS_Debug_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.ALS_Debug_Request)
+        is abstract;
+
 end LSP.Server_Request_Receivers;

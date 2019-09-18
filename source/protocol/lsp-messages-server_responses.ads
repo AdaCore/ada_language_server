@@ -144,4 +144,10 @@ package LSP.Messages.Server_Responses is
      (Self    : Shutdown_Response;
       Handler : access Server_Response_Sender'Class);
 
+   type ALS_Debug_Response is new Server_Response with null record;
+
+   overriding procedure Visit
+     (Self    : ALS_Debug_Response;
+      Handler : access Server_Response_Sender'Class);
+
 end LSP.Messages.Server_Responses;

@@ -149,6 +149,11 @@ private
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response;
 
+   overriding function On_ALS_Debug_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Debug_Request)
+      return LSP.Messages.Server_Responses.ALS_Debug_Response;
+
    overriding procedure On_Initialized_Notification
      (Self  : access Message_Handler) is null;
 

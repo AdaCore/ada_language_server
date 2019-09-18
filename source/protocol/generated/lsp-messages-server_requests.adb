@@ -116,4 +116,11 @@ package body LSP.Messages.Server_Requests is
       Handler.On_ALS_Called_By_Request (Self);
    end Visit;
 
+   overriding procedure Visit
+     (Self    : ALS_Debug_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_ALS_Debug_Request (Self);
+   end Visit;
+
 end LSP.Messages.Server_Requests;

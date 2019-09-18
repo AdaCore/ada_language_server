@@ -205,6 +205,18 @@ begin
          end;
       end if;
 
+      if Request in ALS_Debug_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_ALS_Debug_Request
+                  (ALS_Debug_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
    return LSP.Messages.ResponseMessage'
      (Is_Error => True,
       jsonrpc  => <>,
