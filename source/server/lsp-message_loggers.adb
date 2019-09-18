@@ -140,6 +140,36 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_ALS_Called_By_Response;
 
+   --------------------------
+   -- On_ALS_Debug_Request --
+   --------------------------
+
+   overriding procedure On_ALS_Debug_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.ALS_Debug_Request) is
+   begin
+      Self.Trace.Trace ("On_ALS_Debug_Request: " & Image (Value));
+   end On_ALS_Debug_Request;
+
+   ---------------------------
+   -- On_ALS_Debug_Response --
+   ---------------------------
+
+   overriding procedure On_ALS_Debug_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.ALS_Debug_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("ALS_Debug_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace ("ALS_Debug_Response: " & Image (Value));
+   end On_ALS_Debug_Response;
+
    ------------------------------------
    -- On_ApplyWorkspaceEdit_Response --
    ------------------------------------

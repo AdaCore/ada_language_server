@@ -4020,6 +4020,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ALS_Subprogram_And_References;
 
+   -------------------------
+   -- Read_ALSDebugParams --
+   -------------------------
+
+   procedure Read_ALSDebugParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALSDebugParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number (JS, +"inputQueueLength", V.inputQueueLength);
+      JS.End_Object;
+   end Read_ALSDebugParams;
+
    -----------------------------------------
    -- Write_ALS_Subprogram_And_References --
    -----------------------------------------
@@ -4088,5 +4104,21 @@ package body LSP.Messages is
       end loop;
       JS.End_Array;
    end Write_ALS_Subprogram_And_References_Vector;
+
+   --------------------------
+   -- Write_ALSDebugParams --
+   --------------------------
+
+   procedure Write_ALSDebugParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALSDebugParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number (JS, +"inputQueueLength", V.inputQueueLength);
+      JS.End_Object;
+   end Write_ALSDebugParams;
 
 end LSP.Messages;

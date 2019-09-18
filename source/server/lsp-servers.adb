@@ -727,6 +727,15 @@ package body LSP.Servers is
       return GNATCOLL.JSON.Write (JSON_Object);
    end To_Unbounded_String;
 
+   ------------------------
+   -- Input_Queue_Length --
+   ------------------------
+
+   function Input_Queue_Length (Self : Server) return Natural is
+   begin
+      return Natural (Self.Input_Queue.Current_Use);
+   end Input_Queue_Length;
+
    ---------------------
    -- Input_Task_Type --
    ---------------------

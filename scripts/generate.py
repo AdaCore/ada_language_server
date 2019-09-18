@@ -298,6 +298,7 @@ REQUESTS = [
     # ALS-specific requests
     ('textDocument/alsCalledBy', 'ALS_Called_By', 'TextDocumentPositionParams',
      'ALS_Called_By_Response'),
+    ('$/alsDebug', 'ALS_Debug', 'ALSDebugParams', 'ALS_Debug_Response'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name,
 #   response name)

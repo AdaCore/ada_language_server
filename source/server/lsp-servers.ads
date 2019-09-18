@@ -80,6 +80,10 @@ package LSP.Servers is
    --  Get next nessage in the queue if any. Only request/notification
    --  handlers are alloved to call this function.
 
+   function Input_Queue_Length (Self : Server) return Natural;
+   --  Return number of messages pending in Input_Queue.
+   --  For debug purposes only!
+
 private
 
    -------------------------

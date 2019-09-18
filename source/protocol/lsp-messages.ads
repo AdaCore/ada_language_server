@@ -3546,6 +3546,30 @@ package LSP.Messages is
    for ALS_Subprogram_And_References_Vector'Write use
      Write_ALS_Subprogram_And_References_Vector;
 
+   type ALS_Debug_Kinds is (Suspend_Execution);
+   --  Suspend_Execution - stop processing task until input queue has given
+   --  number of messages. After getting this request ALS stops message
+   --  processing, but still accepts new requests/notifications. Once
+   --  number of input messages reaches given limit, ALS resumes message
+   --  processing.
+
+   type ALSDebugParams (Kind : ALS_Debug_Kinds := Suspend_Execution) is record
+      case Kind is
+         when Suspend_Execution =>
+            inputQueueLength : LSP.Types.LSP_Number;
+      end case;
+   end record;
+
+   procedure Read_ALSDebugParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALSDebugParams);
+   for ALSDebugParams'Read use Read_ALSDebugParams;
+
+   procedure Write_ALSDebugParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALSDebugParams);
+   for ALSDebugParams'Write use Write_ALSDebugParams;
+
 private
 
    procedure Write_String

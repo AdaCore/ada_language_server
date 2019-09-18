@@ -161,4 +161,16 @@ package body LSP.Messages.Server_Responses is
       Handler.On_Shutdown_Response (Self);
    end Visit;
 
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : ALS_Debug_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_ALS_Debug_Response (Self);
+   end Visit;
+
 end LSP.Messages.Server_Responses;
