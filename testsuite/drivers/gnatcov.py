@@ -90,7 +90,7 @@ class GNATcov(object):
         self.main_projects = [p for p in self.projects if p.has_mains]
 
         # Files to contain trace files decoding data for gnatcov
-        self.isi_files = []
+        self.sid_files = []
 
         # We are going to instrument several programs, so make the rest of the
         # testsuite use the instrumented version.
@@ -144,14 +144,14 @@ class GNATcov(object):
         # Instrument projects with mains: this will also instrument its
         # dependencies (see --projects below).
         for p in self.main_projects:
-            isi_file = os.path.join(self.gnatcov_dir, p.prj + '.isi')
+            sid_file = os.path.join(self.gnatcov_dir, p.prj + '.sid')
             self.checked_run(
                 ['gnatcov', 'instrument', '--level', self.covlevel,
                  '-P', os.path.join(self.repo_base, p.prj_file)] +
                 ['--projects={}'.format(pic.prj)
                  for pic in p.projects_in_closure] +
-                ['--dump-method', 'atexit', isi_file])
-            self.isi_files.append(isi_file)
+                ['--dump-method', 'atexit', sid_file])
+            self.sid_files.append(sid_file)
 
         # Finally build instrumented programs. Disable style checks, as it does
         # not make sense for instrumented sources. Also disable warnings as
@@ -202,8 +202,8 @@ class GNATcov(object):
         logging.info('Consolidating coverage results')
         ckpt_file = os.path.join(self.gnatcov_dir, 'report.ckpt')
         args = ['gnatcov', 'coverage', '--level', self.covlevel]
-        for isi_file in self.isi_files:
-            args += ['--isi', isi_file]
+        for sid_file in self.sid_files:
+            args += ['--sid', sid_file]
         args += ['--save-checkpoint', ckpt_file, '@' + traces_list]
         self.checked_run(args)
 
