@@ -1328,6 +1328,33 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      function Get_Reference_Kind
+        (Node : Name) return LSP.Messages.AlsReferenceKind_Set;
+      --  Query whether Node is a static or a dispatching call, and format
+      --  this into an AlsReferenceKind_Set.
+
+      ------------------------
+      -- Get_Reference_Kind --
+      ------------------------
+
+      function Get_Reference_Kind
+        (Node : Name) return LSP.Messages.AlsReferenceKind_Set
+      is
+         Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
+      begin
+         begin
+            Result.As_Flags (LSP.Messages.Static_Call) :=
+              Node.P_Is_Static_Call;
+            Result.As_Flags (LSP.Messages.Dispatching_Call) :=
+              Node.P_Is_Dispatching_Call;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
+         end;
+
+         return Result;
+      end Get_Reference_Kind;
+
       procedure Process_Context (C : Context_Access);
       --  Process the calls found in one context and append
       --  them to Response.results.
@@ -1379,7 +1406,8 @@ package body LSP.Ada_Handlers is
                     (Langkit_Support.Text.To_UTF8 (Node.Text));
 
                   for Ref of Refs loop
-                     Append_Location (Subp_And_Refs.refs, Ref);
+                     Append_Location (Subp_And_Refs.refs, Ref,
+                                      Get_Reference_Kind (Ref.As_Name));
                      Count := Count - 1;
 
                      if Count = 0 and then Request.Canceled then
