@@ -1384,7 +1384,7 @@ package body LSP.Ada_Handlers is
          declare
             This_Imprecise : Boolean;
             Called  : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Is_Called_By (C.all, Definition, This_Imprecise);
+              LSP.Lal_Utils.Find_All_Calls (C.all, Definition, This_Imprecise);
 
             use LSP.Lal_Utils.References_By_Subprogram;
             C     : Cursor := Called.First;

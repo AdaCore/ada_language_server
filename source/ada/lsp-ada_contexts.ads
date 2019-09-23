@@ -112,7 +112,7 @@ package LSP.Ada_Contexts is
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
 
-   function Is_Called_By
+   function Find_All_Calls
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
