@@ -105,11 +105,11 @@ package body LSP.Ada_Contexts is
          return (1 .. 0 => <>);
    end Find_All_References;
 
-   ------------------
-   -- Is_Called_By --
-   ------------------
+   --------------------
+   -- Find_All_Calls --
+   --------------------
 
-   function Is_Called_By
+   function Find_All_Calls
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
@@ -123,19 +123,19 @@ package body LSP.Ada_Contexts is
       --  Make two attempts: first with precise results, then with the
       --  imprecise_fallback.
       begin
-         return Definition.P_Is_Called_By (Units);
+         return Definition.P_Find_All_Calls (Units);
       exception
          when E : Libadalang.Common.Property_Error =>
             Imprecise_Results := True;
             Log (Self.Trace, E, "in Is_Called_By (precise)");
-            return Definition.P_Is_Called_By
+            return Definition.P_Find_All_Calls
               (Units, Imprecise_Fallback => True);
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
          Log (Self.Trace, E, "in Is_Called_By (imprecise)");
          return (1 .. 0 => <>);
-   end Is_Called_By;
+   end Find_All_Calls;
 
    ------------------
    -- Has_Document --

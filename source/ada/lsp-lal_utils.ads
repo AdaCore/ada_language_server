@@ -58,7 +58,7 @@ package LSP.Lal_Utils is
       "<"          => "<",
       "="          => References_List."=");
 
-   function Is_Called_By
+   function Find_All_Calls
      (Context           : LSP.Ada_Contexts.Context;
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)

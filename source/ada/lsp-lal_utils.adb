@@ -125,11 +125,11 @@ package body LSP.Lal_Utils is
       return No_Defining_Name;
    end Containing_Entity;
 
-   ------------------
-   -- Is_Called_By --
-   ------------------
+   --------------------
+   -- Find_All_Calls --
+   --------------------
 
-   function Is_Called_By
+   function Find_All_Calls
      (Context           : LSP.Ada_Contexts.Context;
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)
@@ -141,7 +141,7 @@ package body LSP.Lal_Utils is
       Containing : Defining_Name;
 
       --  Obtain all the references
-      Refs      : constant Base_Id_Array := Context.Is_Called_By
+      Refs      : constant Base_Id_Array := Context.Find_All_Calls
         (Definition, Imprecise_Results);
    begin
       --  Go through all references to Name, organising them by containing
@@ -173,6 +173,6 @@ package body LSP.Lal_Utils is
 
       --  TODO: sort?
       return Result;
-   end Is_Called_By;
+   end Find_All_Calls;
 
 end LSP.Lal_Utils;
