@@ -21,6 +21,7 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Doubly_Linked_Lists;
 
 with GNATCOLL.VFS;
+with GNATCOLL.Traces;
 
 with LSP.Ada_Contexts;
 
@@ -35,6 +36,7 @@ package LSP.Lal_Utils is
 
    function Resolve_Name
      (Name_Node : Name;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
       Imprecise : out Boolean) return Defining_Name;
    --  Return the definition node (canonical part) of the given name.
    --  Imprecise is set to True if LAL's imprecise fallback mechanism has been

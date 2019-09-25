@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Common;        use LSP.Common;
 with Libadalang.Common; use Libadalang.Common;
 
 package body LSP.Lal_Utils is
@@ -59,6 +60,7 @@ package body LSP.Lal_Utils is
 
    function Resolve_Name
      (Name_Node : Name;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
       Imprecise : out Boolean) return Defining_Name
    is
       Result : Defining_Name;
@@ -74,7 +76,8 @@ package body LSP.Lal_Utils is
               (Imprecise_Fallback => False).P_Canonical_Part;
          end if;
       exception
-         when Property_Error =>
+         when E : Property_Error =>
+            Log (Trace, E);
             Result := No_Defining_Name;
       end;
 
@@ -95,7 +98,8 @@ package body LSP.Lal_Utils is
       return Result;
 
    exception
-      when Property_Error =>
+      when E : Property_Error =>
+         Log (Trace, E);
          return No_Defining_Name;
    end Resolve_Name;
 
