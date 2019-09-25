@@ -30,6 +30,7 @@ with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
+with LSP.Common;       use LSP.Common;
 with LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Messages.Server_Notifications;
@@ -349,6 +350,7 @@ package body LSP.Ada_Handlers is
 
       Definition := LSP.Lal_Utils.Resolve_Name
         (Name_Node,
+         Self.Trace,
          Imprecise => Imprecise);
 
       --  If we used the imprecise fallback to get to the definition, log it
@@ -624,7 +626,8 @@ package body LSP.Ada_Handlers is
 
                Next := Prev;
             exception
-               when Libadalang.Common.Property_Error =>
+               when E : Libadalang.Common.Property_Error =>
+                  Log (Self.Trace, E);
                   exit;
             end;
          end loop;
@@ -653,7 +656,8 @@ package body LSP.Ada_Handlers is
             return Next;
          end if;
       exception
-         when Libadalang.Common.Property_Error =>
+         when E :  Libadalang.Common.Property_Error =>
+            Log (Self.Trace, E);
             return No_Defining_Name;
       end Find_Next_Part;
 
@@ -1227,23 +1231,23 @@ package body LSP.Ada_Handlers is
          begin
             Result.As_Flags (LSP.Messages.Write) := Id.P_Is_Write_Reference;
          exception
-            when Libadalang.Common.Property_Error =>
-               null;
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
          end;
 
          begin
             Result.As_Flags (LSP.Messages.Static_Call) := Id.P_Is_Static_Call;
          exception
-            when Libadalang.Common.Property_Error =>
-               null;
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
          end;
 
          begin
             Result.As_Flags (LSP.Messages.Dispatching_Call) :=
               Id.P_Is_Dispatching_Call;
          exception
-            when Libadalang.Common.Property_Error =>
-               null;
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
          end;
 
          return Result;
@@ -1514,6 +1518,7 @@ package body LSP.Ada_Handlers is
 
          Definition := LSP.Lal_Utils.Resolve_Name
            (Name_Node,
+            Self.Trace,
             Imprecise => Imprecise);
 
          --  If we used the imprecise fallback to get to the definition, stop

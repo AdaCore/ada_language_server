@@ -18,14 +18,13 @@
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
 
-with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
-
 with GNATCOLL.JSON;
 with GNATCOLL.Projects; use GNATCOLL.Projects;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
 
 with URIs;
 with LSP.Ada_Unit_Providers;
+with LSP.Common; use LSP.Common;
 
 with Libadalang.Common;
 with Langkit_Support.Slocs;
@@ -94,17 +93,13 @@ package body LSP.Ada_Contexts is
       exception
          when E : Libadalang.Common.Property_Error =>
             Imprecise_Results := True;
-            Self.Trace.Trace
-              ("Property_Error in Find_All_References (precise)");
-            Self.Trace.Trace (Symbolic_Traceback (E));
+            Log (Self.Trace, E, "in Find_All_References (precise)");
             return Definition.P_Find_All_References
               (Units, Imprecise_Fallback => True);
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Self.Trace.Trace
-           ("Property_Error in Find_All_References (imprecise)");
-         Self.Trace.Trace (Symbolic_Traceback (E));
+         Log (Self.Trace, E, "in Find_All_References (imprecise)");
          return (1 .. 0 => <>);
    end Find_All_References;
 
@@ -128,15 +123,13 @@ package body LSP.Ada_Contexts is
       exception
          when E : Libadalang.Common.Property_Error =>
             Imprecise_Results := True;
-            Self.Trace.Trace ("Property_Error in Is_Called_By (precise)");
-            Self.Trace.Trace (Symbolic_Traceback (E));
+            Log (Self.Trace, E, "in Is_Called_By (precise)");
             return Definition.P_Is_Called_By
               (Units, Imprecise_Fallback => True);
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Self.Trace.Trace ("Property_Error in Is_Called_By (imprecise)");
-         Self.Trace.Trace (Symbolic_Traceback (E));
+         Log (Self.Trace, E, "in Is_Called_By (imprecise)");
          return (1 .. 0 => <>);
    end Is_Called_By;
 
