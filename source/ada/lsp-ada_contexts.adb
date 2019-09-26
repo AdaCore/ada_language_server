@@ -87,6 +87,8 @@ package body LSP.Ada_Contexts is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
+      Imprecise_Results := False;
+
       --  Make two attempts: first with precise results, then with the
       --  imprecise_fallback.
       begin
@@ -121,6 +123,8 @@ package body LSP.Ada_Contexts is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
+      Imprecise_Results := False;
+
       --  Make two attempts: first with precise results, then with the
       --  imprecise_fallback.
       begin
