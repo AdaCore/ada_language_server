@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
@@ -29,6 +30,11 @@ package LSP.Raw_Clients is
      (Self  : in out Raw_Client;
       Error : String) is null;
    --  Callback to be called on LSP server termination.
+
+   procedure On_Exception
+     (Self       : in out Raw_Client;
+      Occurrence : Ada.Exceptions.Exception_Occurrence) is null;
+   --  Called when an exception is raised by the underlying listener
 
    procedure On_Raw_Message
      (Self : in out Raw_Client;
@@ -98,6 +104,10 @@ private
    overriding procedure Finished
      (Self      : in out Listener;
       Exit_Code : Integer);
+
+   overriding procedure Exception_Occurred
+     (Self       : in out Listener;
+      Occurrence : Ada.Exceptions.Exception_Occurrence);
 
    type Raw_Client is tagged limited record
       Server    : Spawn.Processes.Process;

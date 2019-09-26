@@ -337,6 +337,17 @@ package body LSP.Raw_Clients is
       Self.Client.On_Finished;
    end Finished;
 
+   ------------------------
+   -- Exception_Occurred --
+   ------------------------
+
+   overriding procedure Exception_Occurred
+     (Self       : in out Listener;
+      Occurrence : Ada.Exceptions.Exception_Occurrence) is
+   begin
+      Self.Client.On_Exception (Occurrence);
+   end Exception_Occurred;
+
    ----------
    -- Stop --
    ----------
