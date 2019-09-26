@@ -45,7 +45,7 @@ package body Spawn.Processes is
    function Child_Watch is new Glib.Main.Generic_Child_Add_Watch
      (User_Data => Internal.Process_Reference);
 
-   procedure My_Death_Collback
+   procedure My_Death_Callback
      (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
@@ -301,7 +301,7 @@ package body Spawn.Processes is
 
       Self.Event := Child_Watch
         (Self.pid,
-         My_Death_Collback'Access,
+         My_Death_Callback'Access,
          Self.Reference'Access);
 
       Self.Status := Running;
@@ -352,10 +352,10 @@ package body Spawn.Processes is
    end Listener;
 
    -----------------------
-   -- My_Death_Collback --
+   -- My_Death_Callback --
    -----------------------
 
-   procedure My_Death_Collback
+   procedure My_Death_Callback
      (pid    : Glib.Spawn.GPid;
       status : Glib.Gint;
       data   : access Internal.Process_Reference)
@@ -379,7 +379,10 @@ package body Spawn.Processes is
 
       Process.Status := Not_Running;
       Process.Listener.Finished (Process.Exit_Code);
-   end My_Death_Collback;
+   exception
+      when E : others =>
+         Process.Listener.Exception_Occurred (E);
+   end My_Death_Callback;
 
    --------------------
    -- My_IO_Callback --
@@ -441,6 +444,10 @@ package body Spawn.Processes is
       end case;
 
       return Watch;
+   exception
+      when E : others =>
+         Process.Listener.Exception_Occurred (E);
+         return Watch;
    end My_IO_Callback;
 
    -------------

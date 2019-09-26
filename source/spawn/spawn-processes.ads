@@ -17,6 +17,7 @@
 
 --  Asynchronous API with listener pattern
 
+with Ada.Exceptions;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 
@@ -51,6 +52,12 @@ package Spawn.Processes is
    procedure Error_Occurred
     (Self          : in out Process_Listener;
      Process_Error : Integer) is null;
+
+   procedure Exception_Occurred
+     (Self       : in out Process_Listener;
+      Occurrence : Ada.Exceptions.Exception_Occurrence) is null;
+   --  This will be called when an exception occurred in one of the
+   --  callbacks set in place
 
    type Process_Error is (Failed_To_Start);
 
