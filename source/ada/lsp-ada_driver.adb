@@ -27,10 +27,10 @@ with GNAT.Strings;
 with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
+with LSP.Ada_Handlers;
+with LSP.Property_Error_Decorators;
 with LSP.Servers;
 with LSP.Stdio_Streams;
-
-with LSP.Ada_Handlers;
 
 --------------------
 -- LSP.Ada_Driver --
@@ -49,6 +49,11 @@ procedure LSP.Ada_Driver is
    Stream  : aliased LSP.Stdio_Streams.Stdio_Stream;
    Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Server_Trace);
+
+   Property_Error_Decorator : aliased LSP.Property_Error_Decorators
+     .Property_Error_Decorator (Server_Trace, Handler'Unchecked_Access);
+   --  This decorator catches all Property_Error exception and provides
+   --  default responses for each request.
 
    function Getenv (Var : String) return String;
    --  Return the value set for the given environment variable
@@ -135,7 +140,7 @@ begin
    Server.Initialize (Stream'Unchecked_Access);
    begin
       Server.Run
-        (Handler'Unchecked_Access,
+        (Property_Error_Decorator'Unchecked_Access,
          Handler'Unchecked_Access,
          Server_Trace => Server_Trace,
          In_Trace     => In_Trace,
