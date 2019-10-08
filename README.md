@@ -74,13 +74,13 @@ See more about the project testsuite in a
 
 ### General Requests
 
-| Request                               | Supported          | Notes             |
-| :------------------------------------ | :----------------: | :---------------: |
-| `initialize`                          | :white_check_mark: |                   |
-| `initialized`                         | :white_check_mark: |                   |
-| `shutdown`                            | :white_check_mark: |                   |
-| `exit`                                | :white_check_mark: |                   |
-| `$/cancelRequest`                     |                    | Planned for 2020  |
+| Request                               | Supported          |
+| :------------------------------------ | :----------------: |
+| `initialize`                          | :white_check_mark: |
+| `initialized`                         | :white_check_mark: |
+| `shutdown`                            | :white_check_mark: |
+| `exit`                                | :white_check_mark: |
+| `$/cancelRequest`                     | :white_check_mark: |
 
 ### Workspace Requests
 

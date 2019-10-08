@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -e -x
 
 function linux_before_install()
 {
@@ -7,7 +9,9 @@ function linux_before_install()
 
 function linux_script()
 {
-    docker run -i -t -v$(pwd)/upload:/upload lsp /bin/bash -c \
+    TAG=${TRAVIS_TAG:-latest}
+    sed -i -e "s/VERSION/$TAG/g" integration/travis/bintray.json
+    docker run -i -t -v$(pwd)/upload:/upload --env TRAVIS_TAG lsp /bin/bash -c \
  'make -C /tmp/ada_language_server LIBRARY_TYPE=relocatable deploy'
 
 }

@@ -1,7 +1,10 @@
 #!/bin/bash -e
 
+set -x
+
 PLATFORM=$1
 DIR=integration/vscode/ada/$PLATFORM
+TAG=${TRAVIS_TAG:-latest}
 
 function linux_deploy()
 {
@@ -16,7 +19,10 @@ function linux_deploy()
 
     cp $LIB/gcc/x86_64-pc-linux-gnu/8.3.1/adalib/lib{gnat,gnarl}-2019.so $DIR
 
-    tar czvf /upload/$PLATFORM.tar.gz -C integration/vscode/ada/ $PLATFORM
+    tar czvf /upload/$PLATFORM-$TAG-dbg.tar.gz -C integration/vscode/ada/ $PLATFORM
+
+    strip $DIR/*
+    tar czvf /upload/$PLATFORM-$TAG.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
 
 function drop_rpath ()
@@ -60,30 +66,36 @@ function darwin_deploy()
     install_name_tool -add_rpath @executable_path $DIR/ada_language_server
 
     mkdir upload
-    tar czvf upload/$PLATFORM.tar.gz -C integration/vscode/ada/ $PLATFORM
+    tar czvf upload/$PLATFORM-$TAG.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
 
 function vsix_deploy()
 {
+    sed -e 's/:white_check_mark:/Yes               /g' README.md > \
+      integration/vscode/ada/README.md
+    cp -f LICENSE integration/vscode/ada/
+    sed -i -e "s/VERSION/$TAG/g" integration/vscode/ada/package.json
     pushd integration/vscode/ada
 
     wget -nv -Owin32.zip \
-         "https://dl.bintray.com/reznikmm/ada-language-server/win32.zip"
+         "https://dl.bintray.com/reznikmm/ada-language-server/win32-$TAG.zip"
     unzip win32.zip
     rm win32.zip
 
     for J in darwin linux ; do
         wget -nv -O- \
-             "https://dl.bintray.com/reznikmm/ada-language-server/$J.tar.gz" |\
+             "https://dl.bintray.com/reznikmm/ada-language-server/$J-$TAG.tar.gz" |\
              tar xzvf -
     done
 
     npm install
     npm install -g vsce
-    vsce package
+    [ -z "$TRAVIS_TAG" ] || vsce publish -p $VSCE_TOKEN
+    vsce package || true
     popd
     mkdir upload
     cp -v integration/vscode/ada/*.vsix upload/
 }
 
+sed -i -e "s/VERSION/$TAG/g" integration/travis/bintray.json
 ${PLATFORM}_deploy
