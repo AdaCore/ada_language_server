@@ -128,6 +128,8 @@ begin
            ".$T.$$.log:buffer_size=0");
    end if;
 
+   Server_Trace.Trace ("ALS version: " & $VERSION);
+
    Server_Trace.Trace ("Initializing server ...");
 
    Server.Initialize (Stream'Unchecked_Access);

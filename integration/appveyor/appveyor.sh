@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Terminate on any error
-set -e
+set -e -x
 
 export BUILD_FOLDER=/Projects/ada-language-server
 export ADALIB_DIR=$BUILD_FOLDER/adalib
@@ -26,7 +26,7 @@ function do_install()
 function do_build()
 {
   cd $BUILD_FOLDER
-  make deploy USER=appveyor
+  make deploy USER=appveyor TRAVIS_TAG=$APPVEYOR_REPO_TAG_NAME
 }
 
 do_$1
