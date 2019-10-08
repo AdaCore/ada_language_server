@@ -15,8 +15,8 @@ script:
 
 deploy:
   on:
-    branch:
-      - master
+    all_branches: true
+    condition: $TRAVIS_BRANCH == master || $TRAVIS_TAG =~ ^[0-9.]+$
   skip_cleanup: true
   provider: bintray
   file: integration/travis/bintray.json
@@ -28,6 +28,10 @@ jobs:
   include:
     - stage: deploy
       os: linux
-      if: branch = master
+      if: ( branch = master OR tag =~ /^[0-9.]+$/ ) AND type = push
       before_install: echo before_install
       script: integration/travis/deploy.sh vsix
+
+env:
+  global: # VSCE_TOKEN variable
+    secure: "2UktUSXjy1zYT23x/MeEwhsFLoCowRbABN+A26RWjqJCbOnrR4BahQE+Jiyn3ofDq0pzzlyHmkxRAGhKuUhWXRXYAkkoqbBYbmDopbuWYS3yvI7m5GH52AxOzjl0GKuviuys2fo+vZl20cRI+vPPB8mPo4AF2VlK+fklNp2oYOUqGEvKi0kE/S2AB42xyERJ9PQzTo0ilQBqvDhxy1bmLmd3r+AcN/Gi0Ff7Qk2jm5AAlqOWT68jJPVmqx9MeP4iATzpJqdYqWBMr0ycS7LWWQE9z5Q8BG6PAQ5rRjL/ixjwS8qp5hrrYNXeEC46IbaI6CkPtwG1nQAjVwnJY3ySwj0KNTcGRZa2QlJzgD76eCAAYgvYUinoLvGMGJsWm2JFw4JPo6uDUSpGIuSI1g+g9kPJj83f8ey91jB+iAivkFC6z5N4PrNwfplzJptaAksNkJAipw9HZLEaqMBld63I/ibBnmpZ3sl+RaISnLk/yE19je8Uwm3CuiKWQsbtHm/c516EVMZ7U7oHNHwF7FJhlAmHJXR1ksj6Dek8hjBU1KQi37ZMdD6g/jcTzT/Dmz4DKzNMhhmZsKjhyW8sg0qZgj8D1bjkL/iyYeXyWn3DMcSoc1K5UN1tVne7esrxplltlaIQq4kdM9ddVorHUIXCIGSVcZCeEpRkhkgkIlmfoO8="

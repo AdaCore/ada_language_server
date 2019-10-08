@@ -1,9 +1,12 @@
 #!/bin/bash -e
 
+set -x
+
 PLATFORM=$1
 DIR=integration/vscode/ada/$PLATFORM
 LIB=/Projects/ada-language-server/adalib/lib
 GNAT=/c/GNAT/
+TAG=${APPVEYOR_REPO_TAG_NAME:-latest}
 
 function add_dll()
 {
@@ -47,6 +50,7 @@ add_dll libgnatcoll        $LIB/gnatcoll.relocatable
 add_dll libgnatcoll_gmp    $LIB/gnatcoll_gmp.relocatable
 add_dll libgnatcoll_iconv  $LIB/gnatcoll_iconv.relocatable
 add_dll liblangkit_support $LIB/langkit_support.relocatable
+add_dll libgpr             $LIB/gpr/relocatable/gpr
 add_dll libxmlada_dom           $GNAT/bin/
 add_dll libxmlada_input_sources $GNAT/bin/
 add_dll libxmlada_sax           $GNAT/bin/
@@ -55,7 +59,6 @@ add_dll libxmlada_unicode       $GNAT/bin/
 add_dll libgcc_s_seh-1          $GNAT/bin/
 add_dll libgnarl-2019           $GNAT/bin/
 add_dll libgnat-2019            $GNAT/bin/
-add_dll libgpr                  $GNAT/bin/
 add_dll libgmp-10               /mingw64/bin/
 add_dll libiconv-2              /mingw64/bin/
 
@@ -64,5 +67,8 @@ cat >> $DIR/ada_language_server.exe.manifest <<EOF
 EOF
 
 pushd integration/vscode/ada/
-7z a ../../../$PLATFORM.zip $PLATFORM
+7z a ../../../$PLATFORM-$TAG-dbg.zip $PLATFORM
+
+strip $PLATFORM/*/*.dll $PLATFORM/*.exe
+7z a ../../../$PLATFORM-$TAG.zip $PLATFORM
 popd
