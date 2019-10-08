@@ -2,7 +2,7 @@
     "name": "ada",
     "displayName": "Language Support for Ada",
     "description": "A Language Server and Language Support for Ada for Visual Studio Code",
-    "version": "0.0.1",
+    "version": "VERSION",
     "publisher": "AdaCore",
     "license": "GPL-3.0",
     "repository": {
@@ -19,7 +19,6 @@
         "onLanguage:ada"
     ],
     "main": "./extension",
-    "preview": true,
     "icon": "icons/ada.png",
     "bugs": "https://github.com/AdaCore/ada_language_server/issues",
     "repository": {
@@ -105,7 +104,7 @@
     "devDependencies": {
         "@types/mocha": "^2.2.42",
         "@types/node": "^6.0.88",
-        "vscode": "^1.1.5",
+        "vscode": "^1.1.35",
         "eslint": "^4.6.1",
         "typescript": "^2.5.2"
     },
@@ -113,7 +112,7 @@
         "postinstall": "vscode-install"
     },
     "dependencies": {
-        "vscode-languageclient": "^3.4.2",
+        "vscode-languageclient": "^5.2.1",
         "ws": "^6.0.0",
         "process": "^0.10.0"
     }

@@ -6,13 +6,8 @@ install:
 build_script:
  - C:\msys64\usr\bin\bash --login -c "$(cygpath ${APPVEYOR_BUILD_FOLDER})/integration/appveyor/appveyor.sh build"
 
-for:
--
-  branches:
-    only:
-      - master
-  artifacts:
-      - path: win32.zip
+artifacts:
+  - path: win32*.zip
 
 deploy:
   - provider: BinTray
@@ -24,7 +19,20 @@ deploy:
     subject: reznikmm
     repo: ada-language-server
     package: ada-language-server
-    version: 0.1-git
+    version: latest
+    publish: true
+    override: true
+    explode: false
+  - provider: BinTray
+    on:
+      APPVEYOR_REPO_TAG: true
+    username: reznikmm
+    api_key:
+      secure: A1Zo2PTNbMuel5lJMl2ymTrMMTYyQm2bc3sp04HIW8A4Dw3AP9038+5/1RsoA/ZT
+    subject: reznikmm
+    repo: ada-language-server
+    package: ada-language-server
+    version: $(APPVEYOR_REPO_TAG_NAME)
     publish: true
     override: true
     explode: false

@@ -43,7 +43,7 @@ endif
 
 all:
 	$(GPRBUILD) -P gnat/lsp.gpr -p $(LIBRARY_FLAGS)
-	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(LIBRARY_FLAGS)
+	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(LIBRARY_FLAGS) -XVERSION=$(TRAVIS_TAG)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(LIBRARY_FLAGS)
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(LIBRARY_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(LIBRARY_FLAGS)
