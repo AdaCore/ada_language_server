@@ -23,4 +23,4 @@ RUN apt-get update && apt-get install -y \
  && apt-get purge -y --auto-remove fontconfig dbus wget git libx11-6 libx11-xcb1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-COPY lsp.tar.gz /tmp/
+COPY . /tmp/ada_language_server/
