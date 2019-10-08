@@ -123,6 +123,7 @@
                         "value": "subtype Test_Type is Natural range 0.. 100;",
                         "language": "ada"
                      },
+                      "at example_j.ads (4:1)",
                      "\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57"
                   ]
                }

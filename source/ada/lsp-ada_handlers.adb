@@ -934,6 +934,8 @@ package body LSP.Ada_Handlers is
       Subp_Spec_Node     : Base_Subp_Spec;
       Decl_Text          : LSP_String;
       Comments_Text      : LSP_String;
+      Location_Text      : LSP_String;
+      Decl_Unit_File     : Virtual_File;
 
       procedure Create_Decl_Text_For_Basic_Decl;
       --  Create the hover text for for basic declarations
@@ -1175,13 +1177,31 @@ package body LSP.Ada_Handlers is
                value     => Decl_Text,
                language  => To_LSP_String ("ada")));
 
+         --  Append the declaration's location
+
+         Decl_Unit_File := GNATCOLL.VFS.Create (+Decl.Unit.Get_Filename);
+
+         Location_Text := To_LSP_String
+           ("at " & Decl_Unit_File.Display_Base_Name & " ("
+            & GNATCOLL.Utils.Image
+              (Integer (Decl.Sloc_Range.Start_Line), Min_Width => 1)
+            & ":"
+            & GNATCOLL.Utils.Image
+              (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
+            & ")");
+
+         Response.result.contents.Append
+           (LSP.Messages.MarkedString'
+              (Is_String => True,
+               value     => Location_Text));
+
+         --  Append the comments associated with the basic declaration
+         --  if any.
+
          Comments_Text := To_LSP_String
            (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
               (Libadalang.Doc_Utils.Get_Documentation
                    (Decl).Doc.To_String));
-
-         --  Append the comments associated with the basic declaration
-         --  if any.
 
          if Comments_Text /= Empty_LSP_String then
             Response.result.contents.Append
