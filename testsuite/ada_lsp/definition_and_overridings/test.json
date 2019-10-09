@@ -1,0 +1,339 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 17578,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     },
+                     "documentLink": {},
+                     "formatting": {},
+                     "documentHighlight": {},
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "codeLens": {},
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": false,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     },
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "write",
+                        "call",
+                        "dispatching call"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "documentLinkProvider": {},
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                      "enableDiagnostics": false,
+                      "enableIndexing": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "\nwith Class_Definition.Subclass;\nwith User;\n\nprocedure Gb is\n\n   V1 : constant Class_Definition.A'Class := Class_Definition.Subclass.Gen;\n   V2 : constant Class_Definition.A'Class := User.Gen;\n\nbegin\n   Class_Definition.P1 (V1);\n   Class_Definition.P1 (V2);\nend Gb;\n",
+                  "version": 0,
+                  "uri": "$URI{gb.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 10,
+                  "character": 20
+               },
+               "textDocument": {
+                  "uri": "$URI{gb.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 15
+                        }
+                     },
+                     "uri": "$URI{class_definition.ads}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 25
+                        }
+                     },
+                     "uri": "$URI{class_definition.subclass.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 17,
+                           "character": 10
+                        }
+                     },
+                     "uri": "$URI{user.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "\n\n\npackage Class_Definition is\n\n   type A is abstract tagged null record;\n\n   procedure P1 (Pa : A) is abstract;\n\n   generic\n      type Extended_A is new A with private;\n   procedure Generic_P1 (E : Extended_A);\n\nend Class_Definition;\n",
+                  "version": 0,
+                  "uri": "$URI{class_definition.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 7,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{class_definition.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 25
+                        }
+                     },
+                     "uri": "$URI{class_definition.subclass.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 17,
+                           "character": 10
+                        }
+                     },
+                     "uri": "$URI{user.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "\npackage body Class_Definition.Subclass is\n\n   type B is new A with\n      record\n         F : Integer := 0;\n      end record;\n\n   procedure P1 (Pb : B);\n\n   procedure Instansited_P1 is new Generic_P1 (Extended_A => B);\n\n   procedure P1 (Pb : B) renames Instansited_P1;\n\n   function Gen return A'Class is\n      Vb : B;\n   begin\n      return A'Class (Vb);\n   end Gen;\n\nend Class_Definition.Subclass;\n",
+                  "version": 0,
+                  "uri": "$URI{class_definition.subclass.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gb.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{class_definition.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{class_definition.subclass.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
