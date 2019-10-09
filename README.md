@@ -173,6 +173,45 @@ Here is an example config file from the gnatcov project:
 }
 ```
 
+# Integration with emacs lsp-mode
+
+The configuration for each project can be provided using a `.dir-locals.el`
+file defined at the root of each project.
+
+The scenario variables should be declared in your `.emacs` or any loaded
+Emacs configuration file.
+
+```elisp
+(defgroup project-build nil
+  "LSP options for Project"
+  :group 'ada-mode)
+
+(defcustom project-build-type "Debug"
+  "Controls the type of build of a project.
+   Default is Debug, other choices are Release and Coverage."
+  :type '(choice
+          (const "Debug")
+          (const "Coverage")
+          (const "Release"))
+  :group 'project-build)
+```
+
+Your `.dir-locals.el` in the project root should be similar to:
+
+```elisp
+((ada-mode .
+  ((eval . (lsp-register-custom-settings
+      '(("ada.scenarioVariables.BINUTILS_SRC_DIR" project-binutils-dir)
+        ("ada.scenarioVariables.BUILD_TYPE" project-build-type "Release"))))
+   (lsp-ada-project-file . "/home/username/project/project.gpr"))
+  ))
+```
+
+The [lsp-mode](https://github.com/emacs-lsp/lsp-mode) provides built-in support
+for the `ada_language_server` and defines default customizable configuration
+values in the `lsp-ada` group that can be edited similarly to
+`lsp-ada-project-file` in the example above.
+
 ## Maintainer
 
 [@MaximReznik](https://github.com/reznikmm).
