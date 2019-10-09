@@ -105,6 +105,38 @@ package body LSP.Ada_Contexts is
          return (1 .. 0 => <>);
    end Find_All_References;
 
+   ------------------------
+   -- Find_All_Overrides --
+   ------------------------
+
+   function Find_All_Overrides
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Basic_Decl_Array
+   is
+      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
+                Self.Analysis_Units;
+   begin
+      Imprecise_Results := False;
+
+      --  Make two attempts: first with precise results, then with the
+      --  imprecise_fallback.
+      begin
+         return Decl.P_Find_All_Overrides (Units);
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            Imprecise_Results := True;
+            Log (Self.Trace, E, "in Find_All_Overrides (precise)");
+            return Decl.P_Find_All_Overrides
+              (Units, Imprecise_Fallback => True);
+      end;
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Log (Self.Trace, E, "in Find_All_Overrides (imprecise)");
+         return (1 .. 0 => <>);
+   end Find_All_Overrides;
+
    --------------------
    -- Find_All_Calls --
    --------------------

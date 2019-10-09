@@ -112,6 +112,17 @@ package LSP.Ada_Contexts is
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
 
+   function Find_All_Overrides
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Basic_Decl_Array;
+   --  Finds all overriding subprograms of the given basic declaration.
+   --  This is used to propose all the implementations of a given subprogram
+   --  when textDocument/definition requests happen on dispatching calls.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
+
    function Find_All_Calls
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
