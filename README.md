@@ -173,6 +173,49 @@ Here is an example config file from the gnatcov project:
 }
 ```
 
+# Integration with LanguageClient-Neovim
+
+If you want to integrate the Ada Language Server into Neovim, you can use the
+[LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim).
+
+You'll have to [install](#install) the Ada Language Server manually somewhere on your
+computer, and then you can add the following line to your `init.vim` file:
+
+```viml
+" replace the path below with the proper path to the ada_language_server executable
+let g:LanguageClient_serverCommands = {
+    \ 'ada': ['path/to/ada_language_server'],
+    \ }
+" if you already have LanguageClient_serverCommands, just add a line for ada.
+```
+
+To configure the Ada Language Server for a specific workspace/project, you can
+use the `.vim/settings.json` file. It is mandatory as soon as you want to use a
+specific `.gpr` project file.
+
+This is the way to specify a project file, eg. you cannot open a project file
+another way.
+
+Here is an example of a settings file:
+
+```json
+{
+    "ada.projectFile": "project.gpr",
+    "ada.scenarioVariables": {
+        "GLFW_Version": "3",
+        "GLFW_Lib": "-lglfw",
+        "Windowing_System": "x11"
+    }
+}
+```
+
+The location where the `.vim` folder is located will determine the relative
+path of the project file (so no need to prefix with `..`). When vim is opened
+in the folder containing this `.vim` directory, it will use those settings for
+the language server *even for files which might have nothing to do with that
+specific project*, so this needs to be taken into account. Ultimately what this
+means is that the configuration is determined by where you open vim.  
+
 # Integration with emacs lsp-mode
 
 The configuration for each project can be provided using a `.dir-locals.el`
