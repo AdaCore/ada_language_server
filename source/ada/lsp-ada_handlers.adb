@@ -865,22 +865,11 @@ package body LSP.Ada_Handlers is
          To_LSP_String (Ada.Directories.Containing_Directory
            (To_UTF_8_String (URI_To_File (Value.textDocument.uri)))));
 
-      --  Send notifications "loading document" / "done loading document"
-      --  around the load of documents: this gets logged by the IDE,
-      --  and helps tracking the performance of the language server.
-      Self.Server.On_Show_Message
-        ((LSP.Messages.Log,
-         "loading document " & Value.textDocument.uri));
-
       declare
          Best_Context : constant Context_Access := Get_Best_Context_For_URI
            (Self.Contexts, Value.textDocument.uri);
       begin
          Document := Best_Context.Load_Document (Value.textDocument);
-
-         Self.Server.On_Show_Message
-           ((LSP.Messages.Log,
-            "done loading document " & Value.textDocument.uri));
 
          if Self.Diagnostics_Enabled then
             Document.Get_Errors (Diag.diagnostics);
@@ -889,6 +878,8 @@ package body LSP.Ada_Handlers is
             Self.Server.On_Publish_Diagnostics (Diag);
          end if;
       end;
+
+      Self.Trace.Trace ("Finished Text_Document_Did_Open");
    end On_DidOpenTextDocument_Notification;
 
    --------------------------
