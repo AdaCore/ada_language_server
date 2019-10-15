@@ -74,7 +74,10 @@ function vsix_deploy()
     sed -e 's/:white_check_mark:/Yes               /g' README.md > \
       integration/vscode/ada/README.md
     cp -f LICENSE integration/vscode/ada/
-    sed -i -e "s/VERSION/$TAG/g" integration/vscode/ada/package.json
+
+    [ -z "$TRAVIS_TAG" ] || sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" \
+      integration/vscode/ada/package.json
+
     pushd integration/vscode/ada
 
     wget -nv -Owin32.zip \
