@@ -732,8 +732,13 @@ package body LSP.Servers is
    ------------------------
 
    function Input_Queue_Length (Self : Server) return Natural is
+      Result : Natural := Natural (Self.Input_Queue.Current_Use);
    begin
-      return Natural (Self.Input_Queue.Current_Use);
+      if Self.Look_Ahead /= null then
+         Result := Result + 1;  --  One extra message in the look ahead buffer
+      end if;
+
+      return Result;
    end Input_Queue_Length;
 
    ---------------------
