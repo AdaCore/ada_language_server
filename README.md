@@ -14,7 +14,7 @@ Current features:
  * Document symbol search
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
-[extension as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-0.0.1.vsix).
+[extension as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-20.0.999.vsix).
 
 ## Install
 
@@ -26,11 +26,11 @@ To install binary image download an archive corresponding to your OS and unpack 
 somewhere. You will find `ada_language_server` inside unpacked folder.
 We provide binaries for
  * Linux x86_64 - take
-[linux.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/linux.tar.gz)
+[linux.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/linux-latest.tar.gz)
  * Window 64 bit - take
-[win32.zip](https://dl.bintray.com/reznikmm/ada-language-server/win32.zip)
+[win32.zip](https://dl.bintray.com/reznikmm/ada-language-server/win32-latest.zip)
  * Mac OS X - take
-[darwin.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/darwin.tar.gz)
+[darwin.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/darwin-latest.tar.gz)
 
 To build is from source install dependencies and run
 ```
