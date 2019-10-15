@@ -87,7 +87,13 @@
                 "method": "$/cancelRequest",
                 "params": {"id": "defname-1"}
             },
-            "wait":[]
+            "wait":[{
+                "id": "defname-1",
+                "error": {
+                    "code":-32800,
+                    "message":"Request was canceled"
+                }
+            }]
         }
     }, {
         "send": {
@@ -106,12 +112,6 @@
                 }
             },
             "wait":[{
-                "id": "defname-1",
-                "error": {
-                    "code":-32800,
-                    "message":"Request was canceled"
-                }
-            }, {
                 "id": "defname-2",
                 "result":[{
                     "uri": "$URI{aaa.adb}",
