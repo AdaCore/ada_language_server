@@ -57,19 +57,22 @@ package LSP.Servers is
    procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
 
+   type Uncaught_Exception_Handler is access procedure;
+
    procedure Run
      (Self         : in out Server;
       Request      : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
       Out_Trace    : GNATCOLL.Traces.Trace_Handle);
    --  Run the server using given Request and Notification handler.
    --  Server_Trace - main trace for the LSP.
    --  In_Trace and Out_Trace - traces that logs all input & output for
-   --  debugging purposes.
+   --  debugging purposes. Call On_Error in case of uncaught exceptions.
 
    procedure Stop (Self : in out Server);
    --  Ask server to stop
@@ -200,6 +203,7 @@ private
       In_Trace        : GNATCOLL.Traces.Trace_Handle;
       Out_Trace       : GNATCOLL.Traces.Trace_Handle;
       Logger          : aliased LSP.Message_Loggers.Message_Logger;
+      On_Error        : Uncaught_Exception_Handler;
    end record;
 
    overriding procedure On_Show_Message

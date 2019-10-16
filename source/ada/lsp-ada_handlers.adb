@@ -1883,7 +1883,7 @@ package body LSP.Ada_Handlers is
    -- Handle_Error --
    ------------------
 
-   overriding procedure Handle_Error
+   procedure Handle_Error
      (Self : access Message_Handler) is
    begin
       --  Reload the contexts in case of unexpected errors.
