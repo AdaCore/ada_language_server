@@ -542,6 +542,7 @@ package body LSP.Servers is
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
       Out_Trace    : GNATCOLL.Traces.Trace_Handle)
@@ -550,6 +551,7 @@ package body LSP.Servers is
       Self.Server_Trace := Server_Trace;
       Self.In_Trace     := In_Trace;
       Self.Out_Trace    := Out_Trace;
+      Self.On_Error     := On_Error;
 
       Self.Logger.Initialize (Server_Trace);
 
@@ -951,20 +953,11 @@ package body LSP.Servers is
             --  If we reach this exception handler, this means an exception
             --  was raised when processing the request.
             --
-            --  Property errors are expected to happen in the normal flow
-            --  of events in LAL. However, for any other error than a
-            --  property error, we want to reload the context.
-            when E : Property_Error =>
-               Send_Exception_Response
-                 (Server.all, E,
-                  Ada.Tags.External_Tag (Message'Tag), Request.id);
-
             when E : others =>
                Send_Exception_Response
                  (Server.all, E,
                   Ada.Tags.External_Tag (Message'Tag), Request.id);
 
-               Req_Handler.Handle_Error;
          end;
 
       exception
@@ -983,7 +976,7 @@ package body LSP.Servers is
                  Symbolic_Traceback (E));
 
          when E : others =>
-            Req_Handler.Handle_Error;
+            Server.On_Error.all;
             --  ... and log this in the traces
             Server.Server_Trace.Trace
               ("Exception when processing notification:" & ASCII.LF

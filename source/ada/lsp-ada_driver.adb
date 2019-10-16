@@ -28,7 +28,7 @@ with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with LSP.Ada_Handlers;
-with LSP.Property_Error_Decorators;
+with LSP.Error_Decorators;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -37,6 +37,12 @@ with LSP.Stdio_Streams;
 --------------------
 
 procedure LSP.Ada_Driver is
+
+   function Getenv (Var : String) return String;
+   --  Return the value set for the given environment variable
+
+   procedure On_Uncaught_Exception;
+   --  Reset LAL contexts in Message_Handler after catching some exception.
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
@@ -50,13 +56,11 @@ procedure LSP.Ada_Driver is
    Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Server_Trace);
 
-   Property_Error_Decorator : aliased LSP.Property_Error_Decorators
-     .Property_Error_Decorator (Server_Trace, Handler'Unchecked_Access);
-   --  This decorator catches all Property_Error exception and provides
-   --  default responses for each request.
-
-   function Getenv (Var : String) return String;
-   --  Return the value set for the given environment variable
+   Error_Decorator : aliased LSP.Error_Decorators.Error_Decorator
+       (Server_Trace, Handler'Unchecked_Access, On_Uncaught_Exception'Access);
+   --  This decorator catches all Property_Error exceptions and provides
+   --  default responses for each request. It also reset Libadalang Context
+   --  on any other exception.
 
    ------------
    -- Getenv --
@@ -69,6 +73,15 @@ procedure LSP.Ada_Driver is
          GNAT.Strings.Free (Str);
       end return;
    end Getenv;
+
+   ---------------------------
+   -- On_Uncaught_Exception --
+   ---------------------------
+
+   procedure On_Uncaught_Exception is
+   begin
+      Handler.Handle_Error;
+   end On_Uncaught_Exception;
 
    Cmdline   : Command_Line_Configuration;
    ALS_Home  : constant String := Getenv ("ALS_HOME");
@@ -140,8 +153,9 @@ begin
    Server.Initialize (Stream'Unchecked_Access);
    begin
       Server.Run
-        (Property_Error_Decorator'Unchecked_Access,
+        (Error_Decorator'Unchecked_Access,
          Handler'Unchecked_Access,
+         On_Error     => On_Uncaught_Exception'Unrestricted_Access,
          Server_Trace => Server_Trace,
          In_Trace     => In_Trace,
          Out_Trace    => Out_Trace);

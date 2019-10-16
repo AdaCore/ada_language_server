@@ -41,6 +41,10 @@ package LSP.Ada_Handlers is
    with private;
    --  A handler of LSP notifications and requests from Ada language
 
+   procedure Handle_Error (Self : access Message_Handler);
+   --  This procedure will be called when an unexpected error is raised in the
+   --  request processing loop.
+
 private
 
    type Context_Access is access LSP.Ada_Contexts.Context;
@@ -186,6 +190,4 @@ private
    --  This is intentionally null procedure, because cancel is implemented by
    --  LSP server itself.
 
-   overriding procedure Handle_Error
-     (Self : access Message_Handler);
 end LSP.Ada_Handlers;
