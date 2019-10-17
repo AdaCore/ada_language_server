@@ -1,0 +1,410 @@
+[
+   {
+      "comment": [
+         "test that textDocument/definition works fine with separates"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 21400,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "write",
+                        "call",
+                        "dispatching call"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with A;\nprocedure Main is\nbegin\n   A.Foo;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 5
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/hover"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "contents": [
+                     {
+                        "value": "procedure Foo",
+                        "language": "ada"
+                     },
+                     "at a.ads (2:3)"
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 5
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 15
+                        }
+                     },
+                     "uri": "$URI{a.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package A is\n  procedure Foo;\nend A;\n",
+                  "version": 0,
+                  "uri": "$URI{a.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{a.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 16
+                        }
+                     },
+                     "uri": "$URI{a.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body A is\n   procedure Foo is separate;\nend A;\n",
+                  "version": 0,
+                  "uri": "$URI{a.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{a.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/hover"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "contents": [
+                     {
+                        "value": "procedure Foo",
+                        "language": "ada"
+                     },
+                     "at a.ads (2:3)"
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{a.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 10
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 13
+                        }
+                     },
+                     "uri": "$URI{a~foo.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "separate (A)\nprocedure Foo is\nbegin\n   null;\nend Foo;\n",
+                  "version": 0,
+                  "uri": "$URI{a~foo.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a~foo.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
