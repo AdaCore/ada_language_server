@@ -41,6 +41,27 @@ package LSP.Lal_Utils is
    --  Imprecise is set to True if LAL's imprecise fallback mechanism has been
    --  used to compute the cross reference.
 
+   function Find_Next_Part
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
+   --  Wrapper around P_Next_Part which returns No_Defining_Name if this
+   --  called returns Definition, and catches and traces Property_Error.
+
+   function Find_Canonical_Part
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
+   --  Wrapper around P_Next_Part which catches the case when it returns self,
+   --  and catches and traces Property_Error.
+
+   function Find_Other_Part_Fallback
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
+   --  Attempt to find the other part of a definition manually, with
+   --  simple heuristics that look at the available entities with matching
+   --- names and profiles.
+   --  This should be called only if straightforward Libadalang calls
+   --  have failed.
+
    ---------------
    -- Called_By --
    ---------------

@@ -594,72 +594,11 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Response
         (Is_Error => False);
-
-      function Find_Next_Part
-        (Definition : Defining_Name) return Defining_Name;
-      --  Find defining name of a completion if any
-
-      function Find_First_Part
-        (Definition : Defining_Name) return Defining_Name;
-      --  Find defining name of a declaration for given completion
+      Imprecise  : Boolean := False;
 
       procedure Resolve_In_Context (C : Context_Access);
       --  Utility function, appends to Resonse.result all results of the
       --  definition requests found in context C.
-
-      ---------------------
-      -- Find_First_Part --
-      ---------------------
-
-      function Find_First_Part
-        (Definition : Defining_Name) return Defining_Name
-      is
-         Next : Defining_Name := Definition;
-         Prev : Defining_Name;
-      begin
-         --  Iterate over Next.P_Previous_Part names until no name found
-         loop
-            begin
-               Prev := Next.P_Previous_Part;
-
-               exit when Prev in No_Defining_Name | Next;
-
-               Next := Prev;
-            exception
-               when E : Libadalang.Common.Property_Error =>
-                  Log (Self.Trace, E);
-                  exit;
-            end;
-         end loop;
-
-         if Next = Definition then
-            return No_Defining_Name;
-         else
-            return Next;
-         end if;
-      end Find_First_Part;
-
-      --------------------
-      -- Find_Next_Part --
-      --------------------
-
-      function Find_Next_Part
-        (Definition : Defining_Name) return Defining_Name
-      is
-         Next : Defining_Name;
-      begin
-         Next := Definition.P_Next_Part;
-
-         if Next = Definition then
-            return No_Defining_Name;
-         else
-            return Next;
-         end if;
-      exception
-         when E :  Libadalang.Common.Property_Error =>
-            Log (Self.Trace, E);
-            return No_Defining_Name;
-      end Find_Next_Part;
 
       ------------------------
       -- Resolve_In_Context --
@@ -670,13 +609,15 @@ package body LSP.Ada_Handlers is
            (C.Get_Node_At (Value));
          Definition : Defining_Name;
          Other_Part : Defining_Name;
+         Manual_Fallback : Defining_Name;
+
       begin
          if Name_Node = No_Name then
             return;
          end if;
 
          --  Check is we are on some defining name
-         Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
+         Definition := Get_Name_As_Defining (Name_Node);
 
          if Definition = No_Defining_Name then
             Self.Imprecise_Resolve_Name
@@ -686,15 +627,29 @@ package body LSP.Ada_Handlers is
                Append_Location (Response.result, Definition);
             end if;
          else  --  If we are on a defining_name already
-            Other_Part := Find_Next_Part (Definition);
+            Other_Part := Find_Next_Part (Definition, Self.Trace);
 
             if Other_Part = No_Defining_Name then
                --  No next part is found. Check first defining name
-               Other_Part := Find_First_Part (Definition);
+               Other_Part := Find_Canonical_Part (Definition, Self.Trace);
             end if;
 
             if Other_Part /= No_Defining_Name then
                Append_Location (Response.result, Other_Part);
+            else
+               --  We were on a defining name, but did not manage to find
+               --  an answer using Find_Next_Part / Find_Canonical_Part.
+               --  Use the manual fallback to attempt to find a good enough
+               --  result.
+               Manual_Fallback := Find_Other_Part_Fallback
+                 (Definition, Self.Trace);
+
+               if Manual_Fallback /= No_Defining_Name then
+                  --  We have found a result using the imprecise heuristics.
+                  --  We'll warn the user and send the result.
+                  Imprecise := True;
+                  Append_Location (Response.result, Manual_Fallback);
+               end if;
             end if;
          end if;
       end Resolve_In_Context;
@@ -705,6 +660,12 @@ package body LSP.Ada_Handlers is
 
          exit when Request.Canceled;
       end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The result of 'definition' is approximate.",
+            LSP.Messages.Warning);
+      end if;
 
       return Response;
    end On_Definition_Request;
