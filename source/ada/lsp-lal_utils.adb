@@ -18,6 +18,10 @@
 with LSP.Common;        use LSP.Common;
 with Libadalang.Common; use Libadalang.Common;
 
+with Langkit_Support;
+with Langkit_Support.Text;
+with Langkit_Support.Slocs;
+
 package body LSP.Lal_Utils is
 
    function Containing_Entity (Ref : Ada_Node) return Defining_Name;
@@ -102,6 +106,145 @@ package body LSP.Lal_Utils is
          Log (Trace, E);
          return No_Defining_Name;
    end Resolve_Name;
+
+   ---------------------
+   -- Find_First_Part --
+   ---------------------
+
+   function Find_Canonical_Part
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name
+   is
+      Canonical : Defining_Name;
+   begin
+      Canonical := Definition.P_Canonical_Part;
+
+      if Canonical = Definition then
+         return No_Defining_Name;
+      else
+         return Canonical;
+      end if;
+
+   exception
+      when E :  Libadalang.Common.Property_Error =>
+         Log (Trace, E);
+         return No_Defining_Name;
+   end Find_Canonical_Part;
+
+   --------------------
+   -- Find_Next_Part --
+   --------------------
+
+   function Find_Next_Part
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name
+   is
+      Next : Defining_Name;
+   begin
+      Next := Definition.P_Next_Part;
+
+      if Next = Definition then
+         return No_Defining_Name;
+      else
+         return Next;
+      end if;
+   exception
+      when E :  Libadalang.Common.Property_Error =>
+         Log (Trace, E);
+         return No_Defining_Name;
+   end Find_Next_Part;
+
+   ---------------------------------
+   -- Find_Defining_Name_Manually --
+   ---------------------------------
+
+   function Find_Other_Part_Fallback
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name
+   is
+      Qualified_Name : constant Langkit_Support.Text.Text_Type :=
+        Definition.P_Basic_Decl.P_Fully_Qualified_Name;
+      --  The name that we'll try to match
+
+      Found : Defining_Name := No_Defining_Name;
+      --  The result that has been found
+
+      function Matches
+        (Node : Ada_Node'Class) return Libadalang.Common.Visit_Status;
+      --  Return True if the name of Node matches Qualified_Name
+
+      -------------
+      -- Matches --
+      -------------
+
+      function Matches
+        (Node : Ada_Node'Class) return Libadalang.Common.Visit_Status
+      is
+         use type Langkit_Support.Slocs.Line_Number;
+      begin
+         if Node.Kind not in Libadalang.Common.Ada_Basic_Decl then
+            return Libadalang.Common.Into;
+         end if;
+
+         --  Note: in this function, we are simply looking at the first
+         --  result that matches.
+         --  TODO: improve this by find all entities that match, and
+         --  finding the best through a distance/scoring heuristics.
+
+         if Node.As_Basic_Decl.P_Fully_Qualified_Name = Qualified_Name
+           and then Node.Sloc_Range.Start_Line
+             /= Definition.Sloc_Range.Start_Line
+         then
+            Found := Node.As_Basic_Decl.P_Defining_Name;
+            return Libadalang.Common.Stop;
+         end if;
+
+         return Libadalang.Common.Into;
+      end Matches;
+
+      Parent_Spec : Defining_Name;
+      Parent_Body : Defining_Name;
+   begin
+      --  The heuristics implemented is the following: we're looking at the
+      --  spec and body of the enclosing entity, to find an entity that
+      --  could correspond to Definition.
+      --
+      --  For instance, if Definition points to a function Foo that is defined
+      --  in a package P, we're going to look in the spec and body of P for
+      --  any items named Foo, excluding Definition itself.
+
+      --  First obtain the spec.
+      --  Note: we could refine the number of calls to P_Semantic_Parent.
+      --  Two calls to P_Semantic_Parents are needed in the case of a
+      --  subprogram: the first jumps to the SubpDecl, the second to the
+      --  PackageDecl.
+      Parent_Spec := Definition.P_Semantic_Parent.
+        As_Basic_Decl.P_Semantic_Parent.As_Basic_Decl.
+          P_Canonical_Part.P_Defining_Name;
+
+      --  Traverse the spec. The visiting function assigns the matching
+      --  result, if any, to Found.
+      Parent_Spec.Parent.Traverse (Matches'Unrestricted_Access);
+
+      --  If we didn't find a result when traversing the spec, traverse the
+      --  body of the containing entity.
+      if Found = No_Defining_Name then
+         Parent_Body := Find_Next_Part (Parent_Spec, Trace);
+         if Parent_Body = No_Defining_Name then
+            Parent_Body := Find_Next_Part (Parent_Spec, Trace);
+         end if;
+         if Parent_Body /= No_Defining_Name then
+            Parent_Body.Parent.Traverse (Matches'Unrestricted_Access);
+         end if;
+      end if;
+
+      return Found;
+
+   exception
+      when E : Property_Error =>
+         Log (Trace, E);
+         return No_Defining_Name;
+   end Find_Other_Part_Fallback;
 
    -----------------------
    -- Containing_Entity --

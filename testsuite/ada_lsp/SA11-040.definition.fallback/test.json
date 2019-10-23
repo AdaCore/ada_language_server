@@ -1,0 +1,258 @@
+[
+   {
+      "comment": [
+         "test the fallback navigation to subprograms that don't have an exact profile"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "textDocumentSync": 1, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package P is\n\n   procedure Foo (A : Integer; Other_Param : Boolean);\n\n   package Nested is\n      procedure Foo (A : Integer);\n\n      procedure Bla (A : Integer);\n   end Nested;\n\n   procedure Bla (A : Integer);\n\nend P;\n", 
+                  "version": 0, 
+                  "uri": "$URI{p.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "params": {
+                  "message": "The result of 'definition' is approximate.", 
+                  "type": 2
+               }, 
+               "method": "window/showMessage"
+            }, 
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 6, 
+                           "character": 16
+                        }
+                     }, 
+                     "uri": "$URI{p.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body P is\n\n   ---------\n   -- Foo --\n   ---------\n\n   procedure Foo (A : Integer) is\n   begin\n      null;\n   end Foo;\n\n   ------------\n   -- Nested --\n   ------------\n\n   package body Nested is\n\n      procedure Foo (A : Integer) is\n      begin\n         null;\n      end Foo;\n\n      procedure Bla (A : Integer; Other_Param : Boolean) is null;\n\n   end Nested;\n\n   procedure Bla is null;\n\nend P;\n", 
+                  "version": 0, 
+                  "uri": "$URI{p.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 22, 
+                  "character": 16
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "params": {
+                  "message": "The result of 'definition' is approximate.", 
+                  "type": 2
+               }, 
+               "method": "window/showMessage"
+            }, 
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7, 
+                           "character": 16
+                        }, 
+                        "end": {
+                           "line": 7, 
+                           "character": 19
+                        }
+                     }, 
+                     "uri": "$URI{p.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
