@@ -66,6 +66,7 @@ package LSP.Lal_Utils is
      with Pre =>
        Definition.P_Basic_Decl.Kind in Libadalang.Common.Ada_Subp_Decl
          | Libadalang.Common.Ada_Subp_Body
+         | Libadalang.Common.Ada_Abstract_Subp_Decl
          | Libadalang.Common.Ada_Null_Subp_Decl
          | Libadalang.Common.Ada_Entry_Decl
          | Libadalang.Common.Ada_Entry_Body;

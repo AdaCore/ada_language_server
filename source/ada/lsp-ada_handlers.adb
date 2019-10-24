@@ -1386,6 +1386,7 @@ package body LSP.Ada_Handlers is
          if Definition = No_Defining_Name
            or else Definition.P_Basic_Decl.Kind not in
              Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
+               | Ada_Abstract_Subp_Decl
                | Ada_Entry_Decl | Ada_Entry_Body
            or else Request.Canceled
          then
