@@ -1,0 +1,196 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "textDocumentSync": 1, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package P is\n   type Root is abstract tagged null record;\n\n   procedure Foo (R : Root) is abstract;\nend P;\n", 
+                  "version": 0, 
+                  "uri": "$URI{p.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/alsCalledBy"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 6
+                              }
+                           }, 
+                           "alsKind": [
+                              "dispatching call"
+                           ], 
+                           "uri": "$URI{main.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 3, 
+                              "character": 10
+                           }, 
+                           "end": {
+                              "line": 3, 
+                              "character": 14
+                           }
+                        }, 
+                        "uri": "$URI{main.adb}"
+                     }, 
+                     "name": "Main"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
