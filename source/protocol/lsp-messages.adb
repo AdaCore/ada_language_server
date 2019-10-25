@@ -1588,6 +1588,18 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_TextDocumentEdit;
 
+   --------------------------
+   -- Read_Document_Change --
+   --------------------------
+
+   procedure Read_Document_Change
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Document_Change) is
+   begin
+      --  FIXME: rewrite reading procedure
+      TextDocumentEdit'Read (S, V.Text_Document_Edit);
+   end Read_Document_Change;
+
    ---------------------------------
    -- Read_TextDocumentIdentifier --
    ---------------------------------
@@ -1800,7 +1812,7 @@ package body LSP.Messages is
          JS.End_Object;
       else
          JS.Key ("documentChanges");
-         TextDocumentEdit_Vector'Write (S, V.documentChanges);
+         Document_Change_Vector'Write (S, V.documentChanges);
       end if;
 
       JS.End_Object;
@@ -3191,6 +3203,26 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_TextDocumentEdit;
 
+   ---------------------------
+   -- Write_Document_Change --
+   ---------------------------
+
+   procedure Write_Document_Change
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Document_Change) is
+   begin
+      case V.Kind is
+         when Text_Document_Edit =>
+            TextDocumentEdit'Write (S, V.Text_Document_Edit);
+         when Create_File =>
+            CreateFile'Write (S, V.Create_File);
+         when Rename_File =>
+            RenameFile'Write (S, V.Rename_File);
+         when Delete_File =>
+            DeleteFile'Write (S, V.Delete_File);
+      end case;
+   end Write_Document_Change;
+
    ----------------------------------
    -- Write_TextDocumentIdentifier --
    ----------------------------------
@@ -3381,7 +3413,7 @@ package body LSP.Messages is
          end if;
       else
          JS.Key ("documentChanges");
-         TextDocumentEdit_Vector'Write (S, V.documentChanges);
+         Document_Change_Vector'Write (S, V.documentChanges);
       end if;
       JS.End_Object;
    end Write_WorkspaceEdit;
