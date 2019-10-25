@@ -26,7 +26,6 @@ with GNATCOLL.Traces;
 with LSP.Ada_Contexts;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common;
 
 package LSP.Lal_Utils is
 
@@ -63,13 +62,7 @@ package LSP.Lal_Utils is
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)
       return References_By_Subprogram.Map
-     with Pre =>
-       Definition.P_Basic_Decl.Kind in Libadalang.Common.Ada_Subp_Decl
-         | Libadalang.Common.Ada_Subp_Body
-         | Libadalang.Common.Ada_Abstract_Subp_Decl
-         | Libadalang.Common.Ada_Null_Subp_Decl
-         | Libadalang.Common.Ada_Entry_Decl
-         | Libadalang.Common.Ada_Entry_Body;
+     with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
    --  Return the list of all the calls made to the subprogram pointed at by
    --  the node given by Definition, organized by the subprograms in which
    --  these calls are listed, ordered by the name of these subprograms.
