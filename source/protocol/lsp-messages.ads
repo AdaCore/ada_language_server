@@ -3252,6 +3252,38 @@ package LSP.Messages is
 
    --```typescript
    --/**
+   -- * A symbol kind.
+   -- */
+   --export namespace SymbolKind {
+   --	export const File = 1;
+   --	export const Module = 2;
+   --	export const Namespace = 3;
+   --	export const Package = 4;
+   --	export const Class = 5;
+   --	export const Method = 6;
+   --	export const Property = 7;
+   --	export const Field = 8;
+   --	export const Constructor = 9;
+   --	export const Enum = 10;
+   --	export const Interface = 11;
+   --	export const Function = 12;
+   --	export const Variable = 13;
+   --	export const Constant = 14;
+   --	export const String = 15;
+   --	export const Number = 16;
+   --	export const Boolean = 17;
+   --	export const Array = 18;
+   --	export const Object = 19;
+   --	export const Key = 20;
+   --	export const Null = 21;
+   --	export const EnumMember = 22;
+   --	export const Struct = 23;
+   --	export const Event = 24;
+   --	export const Operator = 25;
+   --	export const TypeParameter = 26;
+   --}
+   --
+   --/**
    -- * Represents information about programming constructs like variables, classes,
    -- * interfaces etc.
    -- */
@@ -3281,36 +3313,13 @@ package LSP.Messages is
    --
    --	/**
    --	 * The name of the symbol containing this symbol. This information is for
-   --	 * user interface purposes (e.g. to render a qaulifier in the user interface
+   --	 * user interface purposes (e.g. to render a qualifier in the user interface
    --	 * if necessary). It can't be used to re-infer a hierarchy for the document
    --	 * symbols.
    --	 */
    --	containerName?: string;
    --}
    --
-   --/**
-   -- * A symbol kind.
-   -- */
-   --export namespace SymbolKind {
-   --	export const File = 1;
-   --	export const Module = 2;
-   --	export const Namespace = 3;
-   --	export const Package = 4;
-   --	export const Class = 5;
-   --	export const Method = 6;
-   --	export const Property = 7;
-   --	export const Field = 8;
-   --	export const Constructor = 9;
-   --	export const Enum = 10;
-   --	export const Interface = 11;
-   --	export const Function = 12;
-   --	export const Variable = 13;
-   --	export const Constant = 14;
-   --	export const String = 15;
-   --	export const Number = 16;
-   --	export const Boolean = 17;
-   --	export const Array = 18;
-   --}
    --```
    type SymbolKind is
      (File,
@@ -3330,7 +3339,15 @@ package LSP.Messages is
       String,
       Number,
       A_Boolean,
-      An_Array);
+      An_Array,
+      Object,
+      Key,
+      A_Null,
+      EnumMember,
+      Struct,
+      Event,
+      Operator,
+      TypeParameter);
 
    type SymbolInformation is record
       name: LSP_String;
