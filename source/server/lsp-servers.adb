@@ -532,6 +532,23 @@ package body LSP.Servers is
       Self.Send_Notification (Message);
    end On_Publish_Diagnostics;
 
+   -----------------
+   -- On_Progress --
+   -----------------
+
+   overriding procedure On_Progress
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_Params)
+   is
+      Message : Message_Access :=
+        new LSP.Messages.Client_Notifications.Progress_Notification'
+          (jsonrpc => <>,
+           method  => +"$/progress",
+           params  => Params);
+   begin
+      Self.Send_Notification (Message);
+   end On_Progress;
+
    ---------
    -- Run --
    ---------

@@ -271,4 +271,46 @@ package body LSP.Types is
       JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V)));
    end Write;
 
+   ------------------
+   -- Write_Number --
+   ------------------
+
+   procedure Write_Number
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number) is
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Write (GNATCOLL.JSON.Create (Item));
+   end Write_Number;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_String) is
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (Item)));
+   end Write_String;
+
+   ----------------------------
+   -- Write_Number_Or_String --
+   ----------------------------
+
+   procedure Write_Number_Or_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number_Or_String) is
+   begin
+      if Item.Is_Number then
+         Write_Number (Stream, Key, Item.Number);
+      elsif not Is_Empty (Item.String) then
+         Write_String (Stream, Key, Item.String);
+      end if;
+   end Write_Number_Or_String;
+
 end LSP.Types;

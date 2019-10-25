@@ -62,4 +62,15 @@ package LSP.Messages.Client_Notifications is
      (Self    : PublishDiagnostics_Notification;
       Reciver : access Client_Notification_Receiver'Class);
 
+   package Progress_Params is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.Progress_Params);
+
+   type Progress_Notification is
+     new Progress_Params.Notification with null record;
+
+   overriding procedure Visit
+     (Self     : Progress_Notification;
+      Receiver : access Client_Notification_Receiver'Class);
+
 end LSP.Messages.Client_Notifications;

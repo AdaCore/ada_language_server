@@ -164,6 +164,16 @@ package LSP.Types is
      Item   : out LSP.Types.LSP_String);
    --  Read string from the JSON stream under given Key
 
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_String);
+
+   procedure Write_Number
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number);
+
    procedure Read_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -175,5 +185,17 @@ package LSP.Types is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_Number_Or_String);
    --  Read number or string from the JSON stream under given Key
+
+   procedure Write_Number_Or_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.LSP_Number_Or_String);
+   --  Write number or string from the JSON stream under given Key
+
+   -------------------
+   -- ProgressToken --
+   -------------------
+
+   subtype ProgressToken is LSP_Number_Or_String;
 
 end LSP.Types;

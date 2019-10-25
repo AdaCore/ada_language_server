@@ -20,6 +20,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 
 with GNATCOLL.JSON;
+with LSP.JSON_Streams;
 
 package body LSP.Messages is
 
@@ -76,11 +77,6 @@ package body LSP.Messages is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.Optional_Number);
-
-   procedure Write_Number_Or_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number_Or_String);
 
    procedure Write_Optional_AlsReferenceKind_Set
     (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
@@ -3043,35 +3039,6 @@ package body LSP.Messages is
       Write_String (JS, +"method", V.method);
    end Write_Notification_Prefix;
 
-   ------------------
-   -- Write_Number --
-   ------------------
-
-   procedure Write_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (Item));
-   end Write_Number;
-
-   ----------------------------
-   -- Write_Number_Or_String --
-   ----------------------------
-
-   procedure Write_Number_Or_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number_Or_String) is
-   begin
-      if Item.Is_Number then
-         Write_Number (Stream, Key, Item.Number);
-      elsif not Is_Empty (Item.String) then
-         Write_String (Stream, Key, Item.String);
-      end if;
-   end Write_Number_Or_String;
-
    -------------------
    -- Write_Boolean --
    -------------------
@@ -3542,19 +3509,6 @@ package body LSP.Messages is
       Position'Write (S, V.last);
       JS.End_Object;
    end Write_Span;
-
-   ------------------
-   -- Write_String --
-   ------------------
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_String) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (Item)));
-   end Write_String;
 
    -------------------------
    -- Write_String_Vector --
@@ -4120,5 +4074,180 @@ package body LSP.Messages is
       Write_Number (JS, +"inputQueueLength", V.inputQueueLength);
       JS.End_Object;
    end Write_ALSDebugParams;
+
+   ---------------------------------
+   -- Write_WorkDoneProgressBegin --
+   ---------------------------------
+
+   procedure Write_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressBegin)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"kind", +"begin");
+      Write_String (JS, +"title", V.title);
+      Write_Optional_Boolean (JS, +"cancellable", V.cancellable);
+      Write_Optional_String (JS, +"message", V.message);
+      Write_Optional_Number (JS, +"percentage", V.percentage);
+      JS.End_Object;
+   end Write_WorkDoneProgressBegin;
+
+   ----------------------------------
+   -- Write_WorkDoneProgressReport --
+   ----------------------------------
+
+   procedure Write_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressReport)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"kind", +"report");
+      Write_Optional_Boolean (JS, +"cancellable", V.cancellable);
+      Write_Optional_String (JS, +"message", V.message);
+      Write_Optional_Number (JS, +"percentage", V.percentage);
+      JS.End_Object;
+   end Write_WorkDoneProgressReport;
+
+   -------------------------------
+   -- Write_WorkDoneProgressEnd --
+   -------------------------------
+
+   procedure Write_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressEnd)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"kind", +"end");
+      Write_Optional_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Write_WorkDoneProgressEnd;
+
+   --------------------------
+   -- Read_Progress_Params --
+   --------------------------
+
+   procedure Read_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_Params)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      kind  : LSP_String;
+      token : LSP_Number_Or_String;
+   begin
+      JS.Start_Object;
+      Read_Number_Or_String (JS, +"token", token);
+      JS.Key ("value");
+      JS.Start_Object;
+      Read_String (JS, +"kind", kind);
+      if kind = +"begin" then
+         declare
+            P : Progress_Params (Progress_Begin);
+         begin
+            P.Begin_Param.token := token;
+            Read_String (JS, +"title", P.Begin_Param.value.title);
+            Read_Optional_Boolean (JS, +"cancellable",
+                                   P.Begin_Param.value.cancellable);
+            Read_Optional_String (JS, +"message",
+                                  P.Begin_Param.value.message);
+            Read_Optional_Number (JS, +"percentage",
+                                  P.Begin_Param.value.percentage);
+            JS.End_Object;
+            JS.End_Object;
+            V := P;
+            return;
+         end;
+      elsif kind = +"report" then
+         declare
+            P : Progress_Params (Progress_Report);
+         begin
+            P.Report_Param.token := token;
+            Read_Optional_Boolean (JS, +"cancellable",
+                                   P.Report_Param.value.cancellable);
+            Read_Optional_String (JS, +"message",
+                                  P.Report_Param.value.message);
+            Read_Optional_Number (JS, +"percentage",
+                                  P.Report_Param.value.percentage);
+            JS.End_Object;
+            JS.End_Object;
+            V := P;
+            return;
+         end;
+      elsif kind = +"end" then
+         declare
+            P : Progress_Params (Progress_End);
+         begin
+            P.End_Param.token := token;
+            Read_Optional_String (JS, +"message",
+                                  P.End_Param.value.message);
+            JS.End_Object;
+            JS.End_Object;
+            V := P;
+            return;
+         end;
+      else
+         --  Not implemented
+         raise Program_Error;
+      end if;
+   end Read_Progress_Params;
+
+   ---------------------------
+   -- Write_Progress_Params --
+   ---------------------------
+
+   procedure Write_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_Params)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      case V.Kind is
+         when Progress_Begin =>
+            Write_Number_Or_String (JS, +"token", V.Begin_Param.token);
+            JS.Key ("value");
+            JS.Start_Object;
+            Write_String (JS, +"kind", +"begin");
+            Write_String (JS, +"title", V.Begin_Param.value.title);
+            Write_Optional_Boolean (JS, +"cancellable",
+                                    V.Begin_Param.value.cancellable);
+            Write_Optional_String (JS, +"message",
+                                   V.Begin_Param.value.message);
+            Write_Optional_Number (JS, +"percentage",
+                                   V.Begin_Param.value.percentage);
+            JS.End_Object;
+         when Progress_Report =>
+            Write_Number_Or_String (JS, +"token", V.Report_Param.token);
+            JS.Key ("value");
+            JS.Start_Object;
+            Write_String (JS, +"kind", +"report");
+            Write_Optional_Boolean (JS, +"cancellable",
+                                    V.Report_Param.value.cancellable);
+            Write_Optional_String (JS, +"message",
+                                   V.Report_Param.value.message);
+            Write_Optional_Number (JS, +"percentage",
+                                   V.Report_Param.value.percentage);
+            JS.End_Object;
+         when Progress_End =>
+            Write_Number_Or_String (JS, +"token", V.End_Param.token);
+            JS.Key ("value");
+            JS.Start_Object;
+            Write_String (JS, +"kind", +"end");
+            Write_Optional_String (JS, +"message", V.End_Param.value.message);
+            JS.End_Object;
+      end case;
+
+      JS.End_Object;
+   end Write_Progress_Params;
 
 end LSP.Messages;

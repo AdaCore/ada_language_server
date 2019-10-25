@@ -125,6 +125,14 @@ package LSP.Ada_Contexts is
       File : GNATCOLL.VFS.Virtual_File) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
+   function List_Files (Self : Context) return GNATCOLL.VFS.File_Array_Access;
+   --  Return the list of files known to this context. The result is
+   --  guaranteed not to be null. Caller must not free the result.
+
+   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File);
+   --  Index the given file. This translates to refreshing the Libadalang
+   --  Analysis_Unit associated to it.
+
 private
    use type Types.LSP_String;
    use type GNATCOLL.Projects.Project_Tree_Access;
@@ -153,8 +161,10 @@ private
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
-      Source_Files   : GNATCOLL.VFS.File_Array_Access;
-      --  Cache for the list of Ada source files in the loaded project tree
+      Source_Files   : GNATCOLL.VFS.File_Array_Access :=
+        new GNATCOLL.VFS.File_Array'(1 .. 0 => <>);
+      --  Cache for the list of Ada source files in the loaded project tree.
+      --  This should never be null.
 
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       --  The currently loaded project tree, or null for contexts that
