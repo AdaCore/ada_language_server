@@ -75,10 +75,14 @@ vscode:
 
 check: all
 	set -e; \
-        for a in $(TD)/*/*.json; do \
-           echo $$a ; \
-           (cd `dirname $$a ` ; $(TESTER) `basename $$a`) ;\
-        done
+        if [ `python -c "import sys;print 'e3' in sys.modules"` = "True" ]; then\
+           (cd testsuite ; sh run.sh ) ; \
+        else \
+           for a in $(TD)/*/*.json; do \
+              echo $$a ; \
+              (cd `dirname $$a ` ; $(TESTER) `basename $$a`) ;\
+           done; \
+        fi
 	${CODEC_TEST} < testsuite/codecs/index.txt
 
 deploy: check
