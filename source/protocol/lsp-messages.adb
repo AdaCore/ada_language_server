@@ -605,8 +605,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"documentChanges", Optional_Boolean (V));
+      Read_Optional_Boolean (JS, +"documentChanges", V.documentChanges);
+      JS.Key ("resourceOperations");
+      Optional_ResourceOperationKindSet'Read (S, V.resourceOperations);
+      JS.Key ("failureHandling");
+      Optional_FailureHandlingKind'Read (S, V.failureHandling);
       JS.End_Object;
    end Read_documentChanges;
 
@@ -1237,6 +1240,34 @@ package body LSP.Messages is
       Read_String (JS, +"newName", V.newName);
       JS.End_Object;
    end Read_RenameParams;
+
+   procedure Read_ResourceOperationKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ResourceOperationKindSet)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := (others => False);
+      JS.Start_Array;
+      while not JS.End_Of_Array loop
+         declare
+            Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+            Text  : constant GNATCOLL.JSON.UTF8_String := Value.Get;
+         begin
+            if Text = "create" then
+               V (create) := True;
+            elsif Text = "rename" then
+               V (rename) := True;
+            elsif Text = "delete" then
+               V (delete) := True;
+            else
+               null;
+            end if;
+         end;
+      end loop;
+      JS.End_Array;
+   end Read_ResourceOperationKindSet;
 
    ------------------------
    -- Read_ResponseError --
@@ -2259,8 +2290,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"documentChanges", Optional_Boolean (V));
+      Write_Optional_Boolean (JS, +"documentChanges", V.documentChanges);
+      JS.Key ("resourceOperations");
+      Optional_ResourceOperationKindSet'Write (S, V.resourceOperations);
+      JS.Key ("failureHandling");
+      Optional_FailureHandlingKind'Write (S, V.failureHandling);
       JS.End_Object;
    end Write_documentChanges;
 
@@ -2866,6 +2900,50 @@ package body LSP.Messages is
       Write_String (JS, +"newName", V.newName);
       JS.End_Object;
    end Write_RenameParams;
+
+   ------------------------------------
+   -- Write_ResourceOperationKindSet --
+   ------------------------------------
+
+   procedure Write_ResourceOperationKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResourceOperationKindSet)
+   is
+      function To_String
+        (Value : ResourceOperationKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      ---------------
+      -- To_String --
+      ---------------
+
+      function To_String
+        (Value : ResourceOperationKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when create =>
+               return "create";
+            when rename =>
+               return "rename";
+            when delete =>
+               return "delete";
+         end case;
+      end To_String;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Array;
+
+      for K in V'Range loop
+         if V (K) then
+            JS.Write (GNATCOLL.JSON.Create (To_String (K)));
+         end if;
+      end loop;
+
+      JS.End_Array;
+   end Write_ResourceOperationKindSet;
 
    -------------------------
    -- Write_ResponseError --
