@@ -2806,6 +2806,13 @@ package LSP.Messages is
    --	export const Color = 16;
    --	export const File = 17;
    --	export const Reference = 18;
+   --	export const Folder = 19;
+   --	export const EnumMember = 20;
+   --	export const Constant = 21;
+   --	export const Struct = 22;
+   --	export const Event = 23;
+   --	export const Operator = 24;
+   --	export const TypeParameter = 25;
    --}
    --```
    type InsertTextFormat is (PlainText, Snippet);
@@ -2840,7 +2847,14 @@ package LSP.Messages is
       Snippet,
       Color,
       File,
-      Reference);
+      Reference,
+      Folder,
+      EnumMember,
+      A_Constant,
+      Struct,
+      Event,
+      Operator,
+      TypeParameter);
 
    procedure Read_CompletionItemKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
