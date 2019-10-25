@@ -1094,6 +1094,20 @@ package LSP.Messages is
    --		 */
    --		dynamicRegistration?: boolean;
    --	};
+   --
+   --	/**
+   --	 * The client has support for workspace folders.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	workspaceFolders?: boolean;
+   --
+   --	/**
+   --	 * The client supports `workspace/configuration` requests.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	configuration?: boolean;
    --}
    --```
 
@@ -1152,6 +1166,8 @@ package LSP.Messages is
       didChangeWatchedFiles: dynamicRegistration;
       symbol: dynamicRegistration;
       executeCommand: dynamicRegistration;
+      workspaceFolders: Optional_Boolean;
+      configuration: Optional_Boolean;
    end record;
 
    procedure Read_WorkspaceClientCapabilities
