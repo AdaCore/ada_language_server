@@ -964,20 +964,63 @@ package LSP.Messages is
    for dynamicRegistration'Read use Read_dynamicRegistration;
    for dynamicRegistration'Write use Write_dynamicRegistration;
 
-   type documentChanges is new Optional_Boolean;
-
-   procedure Read_documentChanges
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out documentChanges);
-
-   procedure Write_documentChanges
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : documentChanges);
-
-   for documentChanges'Read use Read_documentChanges;
-   for documentChanges'Write use Write_documentChanges;
    --
    --```typescript
+   --
+   --/**
+   -- * The kind of resource operations supported by the client.
+   -- */
+   --export type ResourceOperationKind = 'create' | 'rename' | 'delete';
+   --
+   --export namespace ResourceOperationKind {
+   --
+   --	/**
+   --	 * Supports creating new files and folders.
+   --	 */
+   --	export const Create: ResourceOperationKind = 'create';
+   --
+   --	/**
+   --	 * Supports renaming existing files and folders.
+   --	 */
+   --	export const Rename: ResourceOperationKind = 'rename';
+   --
+   --	/**
+   --	 * Supports deleting existing files and folders.
+   --	 */
+   --	export const Delete: ResourceOperationKind = 'delete';
+   --}
+   --
+   --export type FailureHandlingKind = 'abort' | 'transactional' | 'undo' | 'textOnlyTransactional';
+   --
+   --export namespace FailureHandlingKind {
+   --
+   --	/**
+   --	 * Applying the workspace change is simply aborted if one of the changes provided
+   --	 * fails. All operations executed before the failing operation stay executed.
+   --	 */
+   --	export const Abort: FailureHandlingKind = 'abort';
+   --
+   --	/**
+   --	 * All operations are executed transactionally. That means they either all
+   --	 * succeed or no changes at all are applied to the workspace.
+   --	 */
+   --	export const Transactional: FailureHandlingKind = 'transactional';
+   --
+   --
+   --	/**
+   --	 * If the workspace edit contains only textual file changes they are executed transactionally.
+   --	 * If resource changes (create, rename or delete file) are part of the change the failure
+   --	 * handling strategy is abort.
+   --	 */
+   --	export const TextOnlyTransactional: FailureHandlingKind = 'textOnlyTransactional';
+   --
+   --	/**
+   --	 * The client tries to undo the operations already executed. But there is no
+   --	 * guarantee that this succeeds.
+   --	 */
+   --	export const Undo: FailureHandlingKind = 'undo';
+   --}
+   --
    --/**
    -- * Workspace specific client capabilities.
    -- */
@@ -996,6 +1039,18 @@ package LSP.Messages is
    --		 * The client supports versioned document changes in `WorkspaceEdit`s
    --		 */
    --		documentChanges?: boolean;
+   --
+   --		/**
+   --		 * The resource operations the client supports. Clients should at least
+   --		 * support 'create', 'rename' and 'delete' files and folders.
+   --		 */
+   --		resourceOperations?: ResourceOperationKind[];
+   --
+   --		/**
+   --		 * The failure handling strategy of a client if applying the workspace edit
+   --		 * fails.
+   --		 */
+   --		failureHandling?: FailureHandlingKind;
    --	};
    --
    --	/**
@@ -1041,6 +1096,54 @@ package LSP.Messages is
    --	};
    --}
    --```
+
+   type ResourceOperationKind is (create, rename, delete);
+
+   type ResourceOperationKindSet is array (ResourceOperationKind) of Boolean;
+
+   procedure Read_ResourceOperationKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ResourceOperationKindSet);
+
+   procedure Write_ResourceOperationKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResourceOperationKindSet);
+
+   for ResourceOperationKindSet'Read use Read_ResourceOperationKindSet;
+   for ResourceOperationKindSet'Write use Write_ResourceOperationKindSet;
+
+   package Optional_ResourceOperationKindSets is
+     new LSP.Generic_Optional (ResourceOperationKindSet);
+
+   type Optional_ResourceOperationKindSet is
+     new Optional_ResourceOperationKindSets.Optional_Type;
+
+   type FailureHandlingKind is
+     (abortApplying,  --  'abort' is reserver word in Ada, so change it
+      transactional, undo, textOnlyTransactional);
+
+   package Optional_FailureHandlingKinds is
+     new LSP.Generic_Optional (FailureHandlingKind);
+
+   type Optional_FailureHandlingKind is
+     new Optional_FailureHandlingKinds.Optional_Type;
+
+   type documentChanges is record
+      documentChanges : Optional_Boolean;
+      resourceOperations : Optional_ResourceOperationKindSet;
+      failureHandling : Optional_FailureHandlingKind;
+   end record;
+
+   procedure Read_documentChanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out documentChanges);
+
+   procedure Write_documentChanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : documentChanges);
+
+   for documentChanges'Read use Read_documentChanges;
+   for documentChanges'Write use Write_documentChanges;
 
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
