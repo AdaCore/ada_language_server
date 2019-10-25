@@ -34,7 +34,7 @@ with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
 
-   pragma Style_Checks ("M125-bcht");
+   pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
 
    --```typescript
@@ -62,7 +62,7 @@ package LSP.Messages is
    --	/**
    --	 * The method's params.
    --	 */
-   --	params?: any
+   --	params?: Array<any> | object;
    --}
    --```
    type RequestMessage is new Message with record
@@ -88,10 +88,10 @@ package LSP.Messages is
    --	id: number | string | null;
    --
    --	/**
-   --	 * The result of a request. This can be omitted in
-   --	 * the case of an error.
+   --	 * The result of a request. This member is REQUIRED on success.
+   --	 * This member MUST NOT exist if there was an error invoking the method.
    --	 */
-   --	result?: any;
+   --	result?: string | number | boolean | object | null;
    --
    --	/**
    --	 * The error object in case a request fails.
@@ -198,7 +198,7 @@ package LSP.Messages is
    --	/**
    --	 * The notification's params.
    --	 */
-   --	params?: any
+   --	params?: Array<any> | object;
    --}
    --```
    type NotificationMessage is new Message with record
@@ -264,7 +264,12 @@ package LSP.Messages is
    --	line: number;
    --
    --	/**
-   --	 * Character offset on a line in a document (zero-based).
+   --	 * Character offset on a line in a document (zero-based). Assuming that the line is
+   --	 * represented as a string, the `character` value represents the gap between the
+   --	 * `character` and `character + 1`.
+   --	 *
+   --	 * If the character value is greater than the line length it defaults back to the
+   --	 * line length.
    --	 */
    --	character: number;
    --}
@@ -432,7 +437,7 @@ package LSP.Messages is
    --	severity?: number;
    --
    --	/**
-   --	 * The diagnostic's code. Can be omitted.
+   --	 * The diagnostic's code, which might appear in the user interface.
    --	 */
    --	code?: number | string;
    --
@@ -624,7 +629,7 @@ package LSP.Messages is
      new TextDocumentEdit_Vectors.Vector with null record;
 
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_String,
+     (Key_Type        => DocumentUri,
       Element_Type    => TextEdit_Vector,
       Hash            => LSP.Types.Hash,
       Equivalent_Keys => LSP.Types."=");
@@ -634,7 +639,7 @@ package LSP.Messages is
    --	/**
    --	 * Holds changes to existing resources.
    --	 */
-   --	changes?: { [uri: string]: TextEdit[]; };
+   --	changes?: { [uri: DocumentUri]: TextEdit[]; };
    --
    --	/**
    --	 * An array of `TextDocumentEdit`s to express changes to n different text documents
@@ -749,6 +754,14 @@ package LSP.Messages is
    --
    --	/**
    --	 * A glob pattern, like `*.{ts,js}`.
+   --	 *
+   --	 * Glob patterns can have the following syntax:
+   --	 * - `*` to match one or more characters in a path segment
+   --	 * - `?` to match on one character in a path segment
+   --	 * - `**` to match any number of path segments, including none
+   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
    --	 */
    --	pattern?: string;
    --}
@@ -827,7 +840,9 @@ package LSP.Messages is
    --	 */
    --	didChangeWatchedFiles?: {
    --		/**
-   --		 * Did change watched files notification supports dynamic registration.
+   --		 * Did change watched files notification supports dynamic registration. Please note
+   --		 * that the current protocol doesn't support static configuration for file changes
+   --		 * from the server side.
    --		 */
    --		dynamicRegistration?: boolean;
    --	};
@@ -919,7 +934,7 @@ package LSP.Messages is
    --		 */
    --		completionItem?: {
    --			/**
-   --			 * Client supports snippets as insert text.
+   --			 * The client supports snippets as insert text.
    --			 *
    --			 * A snippet can define tab stops and placeholders with `$1`, `$2`
    --			 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
@@ -1293,7 +1308,7 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Format document on type options
+   -- * Format document on type options.
    -- */
    --export interface DocumentOnTypeFormattingOptions {
    --	/**
@@ -1343,20 +1358,23 @@ package LSP.Messages is
    --	 */
    --	openClose?: boolean;
    --	/**
-   --	 * Change notificatins are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKindIncremental.
+   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
+   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
    --	 */
    --	change?: number;
    --	/**
-   --	 * Will save notifications are sent to the server.
+   --	 * If present will save notifications are sent to the server. If omitted the notification should not be
+   --	 * sent.
    --	 */
    --	willSave?: boolean;
    --	/**
-   --	 * Will save wait until requests are sent to the server.
+   --	 * If present will save wait until requests are sent to the server. If omitted the request should not be
+   --	 * sent.
    --	 */
    --	willSaveWaitUntil?: boolean;
    --	/**
-   --	 * Save notifications are sent to the server.
+   --	 * If present save notifications are sent to the server. If omitted the notification should not be
+   --	 * sent.
    --	 */
    --	save?: SaveOptions;
    --}
@@ -1364,7 +1382,7 @@ package LSP.Messages is
    --interface ServerCapabilities {
    --	/**
    --	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
-   --	 * for backwards compatibility the TextDocumentSyncKind number.
+   --	 * for backwards compatibility the TextDocumentSyncKind number. If omitted it defaults to `TextDocumentSyncKind.None`.
    --	 */
    --	textDocumentSync?: TextDocumentSyncOptions | number;
    --	/**
@@ -1668,16 +1686,9 @@ package LSP.Messages is
    for InitializeResult'Read use Read_InitializeResult;
 
    --```typescript
-   --void
-   --```
-   --
-   --  Note, LSP version 3.14 define parameters of 'initialized' notification
-   --  as below, and they are defined in this way.
-   --
-   --'''typescript
    --interface InitializedParams {
    --}
-   --'''
+   --```
    type InitializedParams is null record;
 
    not overriding procedure Read_InitializedParams
@@ -1847,12 +1858,12 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * Descibe options to be used when registered for text document change events.
+   -- * Describe options to be used when registering for text document change events.
    -- */
    --export interface TextDocumentChangeRegistrationOptions extends TextDocumentRegistrationOptions {
    --	/**
    --	 * How documents are synced to the server. See TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKindIncremental.
+   --	 * and TextDocumentSyncKind.Incremental.
    --	 */
    --	syncKind: number;
    --}
@@ -1879,7 +1890,14 @@ package LSP.Messages is
    --```typescript
    --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions {
    --	/**
-   --	 * The characters that trigger completion automatically.
+   --	 * Most tools trigger completion request automatically without explicitly requesting
+   --	 * it using a keyboard shortcut (e.g. Ctrl+Space). Typically they do so when the user
+   --	 * starts to type an identifier. For example if the user types `c` in a JavaScript file
+   --	 * code complete will automatically pop up present `console` besides others as a
+   --	 * completion item. Characters that make up identifiers don't need to be listed here.
+   --	 *
+   --	 * If code complete should automatically be trigger on characters not being valid inside
+   --	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
    --	 */
    --	triggerCharacters?: string[];
    --
@@ -2112,9 +2130,9 @@ package LSP.Messages is
    --	textDocument: VersionedTextDocumentIdentifier;
    --
    --	/**
-   --	 * The actual content changes. The content changes descibe single state changes
+   --	 * The actual content changes. The content changes describe single state changes
    --	 * to the document. So if there are two content changes c1 and c2 for a document
-   --	 * in state S10 then c1 move the document to S11 and c2 to S12.
+   --	 * in state S then c1 move the document to S' and c2 to S''.
    --	 */
    --	contentChanges: TextDocumentContentChangeEvent[];
    --}
@@ -2229,7 +2247,7 @@ package LSP.Messages is
    --
    --	/**
    --	 * Optional the content when saved. Depends on the includeText value
-   --	 * when the save notifcation was requested.
+   --	 * when the save notification was requested.
    --	 */
    --	text?: string;
    --}
@@ -2362,6 +2380,7 @@ package LSP.Messages is
    --	 * this list.
    --	 */
    --	isIncomplete: boolean;
+   --
    --	/**
    --	 * The completion items.
    --	 */
@@ -2385,8 +2404,6 @@ package LSP.Messages is
    --	 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
    --	 * the end of the snippet. Placeholders with equal identifiers are linked,
    --	 * that is typing in one will update others too.
-   --	 *
-   --	 * See also: https://github.com/Microsoft/vscode/blob/master/src/vs/editor/contrib/snippet/common/snippet.md
    --	 */
    --	export const Snippet = 2;
    --}
@@ -2400,40 +2417,56 @@ package LSP.Messages is
    --	 * this completion.
    --	 */
    --	label: string;
+   --
    --	/**
    --	 * The kind of this completion item. Based of the kind
-   --	 * an icon is chosen by the editor.
+   --	 * an icon is chosen by the editor. The standardized set
+   --	 * of available values is defined in `CompletionItemKind`.
    --	 */
    --	kind?: number;
+   --
    --	/**
    --	 * A human-readable string with additional information
    --	 * about this item, like type or symbol information.
    --	 */
    --	detail?: string;
+   --
    --	/**
    --	 * A human-readable string that represents a doc-comment.
    --	 */
    --	documentation?: string;
    --	/**
-   --	 * A string that shoud be used when comparing this item
+   --	 * A string that should be used when comparing this item
    --	 * with other items. When `falsy` the label is used.
    --	 */
    --	sortText?: string;
+   --
    --	/**
    --	 * A string that should be used when filtering a set of
    --	 * completion items. When `falsy` the label is used.
    --	 */
    --	filterText?: string;
+   --
    --	/**
-   --	 * A string that should be inserted a document when selecting
+   --	 * A string that should be inserted into a document when selecting
    --	 * this completion. When `falsy` the label is used.
+   --	 *
+   --	 * The `insertText` is subject to interpretation by the client side.
+   --	 * Some tools might not take the string literally. For example
+   --	 * VS Code when code complete is requested in this example `con<cursor position>`
+   --	 * and a completion item with an `insertText` of `console` is provided it
+   --	 * will only insert `sole`. Therefore it is recommended to use `textEdit` instead
+   --	 * since it avoids additional client side interpretation.
    --	 */
    --	insertText?: string;
+   --
    --	/**
    --	 * The format of the insert text. The format applies to both the `insertText` property
-   --	 * and the `newText` property of a provided `textEdit`.
+   --	 * and the `newText` property of a provided `textEdit`. If ommitted defaults to
+   --	 * `InsertTextFormat.PlainText`.
    --	 */
    --	insertTextFormat?: InsertTextFormat;
+   --
    --	/**
    --	 * An edit which is applied to a document when selecting this completion. When an edit is provided the value of
    --	 * `insertText` is ignored.
@@ -2442,26 +2475,34 @@ package LSP.Messages is
    --	 * has been requested.
    --	 */
    --	textEdit?: TextEdit;
+   --
    --	/**
    --	 * An optional array of additional text edits that are applied when
-   --	 * selecting this completion. Edits must not overlap with the main edit
-   --	 * nor with themselves.
+   --	 * selecting this completion. Edits must not overlap (including the same insert position)
+   --	 * with the main edit nor with themselves.
+   --	 *
+   --	 * Additional text edits should be used to change text unrelated to the current cursor position
+   --	 * (for example adding an import statement at the top of the file if the completion item will
+   --	 * insert an unqualified type).
    --	 */
    --	additionalTextEdits?: TextEdit[];
+   --
    --	/**
    --	 * An optional set of characters that when pressed while this completion is active will accept it first and
    --	 * then type that character. *Note* that all commit characters should have `length=1` and that superfluous
    --	 * characters will be ignored.
    --	 */
    --	commitCharacters?: string[];
+   --
    --	/**
    --	 * An optional command that is executed *after* inserting this completion. *Note* that
    --	 * additional modifications to the current document should be described with the
    --	 * additionalTextEdits-property.
    --	 */
    --	command?: Command;
+   --
    --	/**
-   --	 * An data entry field that is preserved on a completion item between
+   --	 * A data entry field that is preserved on a completion item between
    --	 * a completion and a completion resolve request.
    --	 */
    --	data?: any
@@ -2587,7 +2628,7 @@ package LSP.Messages is
    --/**
    -- * MarkedString can be used to render human readable text. It is either a markdown string
    -- * or a code-block that provides a language and a code snippet. The language identifier
-   -- * is sematically equal to the optional language identifier in fenced code blocks in GitHub
+   -- * is semantically equal to the optional language identifier in fenced code blocks in GitHub
    -- * issues. See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
    -- *
    -- * The pair of a language and a value is an equivalent to markdown:
@@ -2596,7 +2637,8 @@ package LSP.Messages is
    -- * ```
    -- *
    -- * Note that markdown strings will be sanitized - that means html will be escaped.
-   -- */
+   --* @deprecated use MarkupContent instead.
+   --*/
    --type MarkedString = string | { language: string; value: string };
    --```
    type MarkedString (Is_String : Boolean := True) is record
@@ -2672,7 +2714,7 @@ package LSP.Messages is
    --	 * make an active decision about the active signature and shouldn't
    --	 * rely on a default value.
    --	 * In future version of the protocol this property might become
-   --	 * mandantory to better express this.
+   --	 * mandatory to better express this.
    --	 */
    --	activeSignature?: number;
    --
@@ -2682,7 +2724,7 @@ package LSP.Messages is
    --	 * defaults to 0 if the active signature has parameters. If
    --	 * the active signature has no parameters it is ignored.
    --	 * In future version of the protocol this property might become
-   --	 * mandantory to better express the active parameter if the
+   --	 * mandatory to better express the active parameter if the
    --	 * active signature does have any.
    --	 */
    --	activeParameter?: number;
@@ -2785,6 +2827,10 @@ package LSP.Messages is
    for SignatureHelp'Read use Read_SignatureHelp;
 
    --```typescript
+   --interface ReferenceParams extends TextDocumentPositionParams {
+   --	context: ReferenceContext
+   --}
+   --
    --interface ReferenceContext {
    --	/**
    --	 * Include the declaration of the current symbol.
@@ -2805,11 +2851,6 @@ package LSP.Messages is
    for ReferenceContext'Read use Read_ReferenceContext;
    for ReferenceContext'Write use Write_ReferenceContext;
 
-   --```typescript
-   --interface ReferenceParams extends TextDocumentPositionParams {
-   --	context: ReferenceContext
-   --}
-   --```
    type ReferenceParams is new TextDocumentPositionParams with record
       context: ReferenceContext;
    end record;
@@ -2939,8 +2980,8 @@ package LSP.Messages is
    --	 * The location of this symbol. The location's range is used by a tool
    --	 * to reveal the location in the editor. If the symbol is selected in the
    --	 * tool the range's start information is used to position the cursor. So
-   --	 * the range usually spwans more then the actual symbol's name and does
-   --	 * normally include thinks like visibility modifiers.
+   --	 * the range usually spans more then the actual symbol's name and does
+   --	 * normally include things like visibility modifiers.
    --	 *
    --	 * The range doesn't have to denote a node range in the sense of a abstract
    --	 * syntax tree. It can therefore not be used to re-construct a hierarchy of
@@ -3285,7 +3326,7 @@ package LSP.Messages is
    --```typescript
    --interface RenameParams {
    --	/**
-   --	 * The document to format.
+   --	 * The document to rename.
    --	 */
    --	textDocument: TextDocumentIdentifier;
    --
