@@ -629,17 +629,177 @@ package LSP.Messages is
       V : TextDocumentEdit);
    for TextDocumentEdit'Write use Write_TextDocumentEdit;
 
-   package TextDocumentEdit_Vectors is
-     new LSP.Generic_Vectors (TextDocumentEdit);
-
-   type TextDocumentEdit_Vector is
-     new TextDocumentEdit_Vectors.Vector with null record;
-
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => DocumentUri,
       Element_Type    => TextEdit_Vector,
       Hash            => LSP.Types.Hash,
       Equivalent_Keys => LSP.Types."=");
+
+   --```typescript
+   --/**
+   -- * Options to create a file.
+   -- */
+   --export interface CreateFileOptions {
+   --	/**
+   --	 * Overwrite existing file. Overwrite wins over `ignoreIfExists`
+   --	 */
+   --	overwrite?: boolean;
+   --	/**
+   --	 * Ignore if exists.
+   --	 */
+   --	ignoreIfExists?: boolean;
+   --}
+   --
+   --/**
+   -- * Create file operation
+   -- */
+   --export interface CreateFile {
+   --	/**
+   --	 * A create
+   --	 */
+   --	kind: 'create';
+   --	/**
+   --	 * The resource to create.
+   --	 */
+   --	uri: DocumentUri;
+   --	/**
+   --	 * Additional options
+   --	 */
+   --	options?: CreateFileOptions;
+   --}
+   --
+   --/**
+   -- * Rename file options
+   -- */
+   --export interface RenameFileOptions {
+   --	/**
+   --	 * Overwrite target if existing. Overwrite wins over `ignoreIfExists`
+   --	 */
+   --	overwrite?: boolean;
+   --	/**
+   --	 * Ignores if target exists.
+   --	 */
+   --	ignoreIfExists?: boolean;
+   --}
+   --
+   --/**
+   -- * Rename file operation
+   -- */
+   --export interface RenameFile {
+   --	/**
+   --	 * A rename
+   --	 */
+   --	kind: 'rename';
+   --	/**
+   --	 * The old (existing) location.
+   --	 */
+   --	oldUri: DocumentUri;
+   --	/**
+   --	 * The new location.
+   --	 */
+   --	newUri: DocumentUri;
+   --	/**
+   --	 * Rename options.
+   --	 */
+   --	options?: RenameFileOptions;
+   --}
+   --
+   --/**
+   -- * Delete file options
+   -- */
+   --export interface DeleteFileOptions {
+   --	/**
+   --	 * Delete the content recursively if a folder is denoted.
+   --	 */
+   --	recursive?: boolean;
+   --	/**
+   --	 * Ignore the operation if the file doesn't exist.
+   --	 */
+   --	ignoreIfNotExists?: boolean;
+   --}
+   --
+   --/**
+   -- * Delete file operation
+   -- */
+   --export interface DeleteFile {
+   --	/**
+   --	 * A delete
+   --	 */
+   --	kind: 'delete';
+   --	/**
+   --	 * The file to delete.
+   --	 */
+   --	uri: DocumentUri;
+   --	/**
+   --	 * Delete options.
+   --	 */
+   --	options?: DeleteFileOptions;
+   --}
+   --```
+
+   type CreateFileOptions is record
+      overwrite      : Optional_Boolean;
+      ignoreIfExists : Optional_Boolean;
+   end record;
+
+   type CreateFile is record
+      uri     : DocumentUri;
+      options : CreateFileOptions;
+   end record;
+
+   type RenameFileOptions is record
+      overwrite      : Optional_Boolean;
+      ignoreIfExists : Optional_Boolean;
+   end record;
+
+   type RenameFile is record
+      oldUri  : DocumentUri;
+      newUri  : DocumentUri;
+      options : RenameFileOptions;
+   end record;
+
+   type DeleteFileOptions is record
+      recursive         : Optional_Boolean;
+      ignoreIfNotExists : Optional_Boolean;
+   end record;
+
+   type DeleteFile is record
+      uri     : DocumentUri;
+      options : DeleteFileOptions;
+   end record;
+
+   type Document_Change_Kind is
+     (Text_Document_Edit, Create_File, Rename_File, Delete_File);
+
+   type Document_Change
+     (Kind : Document_Change_Kind := Text_Document_Edit) is record
+      case Kind is
+         when Text_Document_Edit =>
+            Text_Document_Edit : TextDocumentEdit;
+         when Create_File =>
+            Create_File : CreateFile;
+         when Rename_File =>
+            Rename_File : RenameFile;
+         when Delete_File =>
+            Delete_File : DeleteFile;
+      end case;
+   end record;
+
+   procedure Read_Document_Change
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Document_Change);
+   for Document_Change'Read use Read_Document_Change;
+
+   procedure Write_Document_Change
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Document_Change);
+   for Document_Change'Write use Write_Document_Change;
+
+   package Document_Change_Vectors is
+     new LSP.Generic_Vectors (Document_Change);
+
+   type Document_Change_Vector is
+     new Document_Change_Vectors.Vector with null record;
 
    --```typescript
    --export interface WorkspaceEdit {
@@ -649,17 +809,23 @@ package LSP.Messages is
    --	changes?: { [uri: DocumentUri]: TextEdit[]; };
    --
    --	/**
-   --	 * An array of `TextDocumentEdit`s to express changes to n different text documents
-   --	 * where each text document edit addresses a specific version of a text document.
+   --	 * Depending on the client capability `workspace.workspaceEdit.resourceOperations` document changes
+   --	 * are either an array of `TextDocumentEdit`s to express changes to n different text documents
+   --	 * where each text document edit addresses a specific version of a text document. Or it can contain
+   --	 * above `TextDocumentEdit`s mixed with create, rename and delete file / folder operations.
+   --	 *
    --	 * Whether a client supports versioned document edits is expressed via
-   --	 * `WorkspaceClientCapabilities.workspaceEdit.documentChanges`.
+   --	 * `workspace.workspaceEdit.documentChanges` client capability.
+   --	 *
+   --	 * If a client neither supports `documentChanges` nor `workspace.workspaceEdit.resourceOperations` then
+   --	 * only plain `TextEdit`s using the `changes` property are supported.
    --	 */
-   --	documentChanges?: TextDocumentEdit[];
+   --	documentChanges?: (TextDocumentEdit[] | (TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]);
    --}
    --```
    type WorkspaceEdit is record
       changes: TextDocumentEdit_Maps.Map;
-      documentChanges: TextDocumentEdit_Vector;
+      documentChanges: Document_Change_Vector;
    end record;
 
    procedure Read_WorkspaceEdit
