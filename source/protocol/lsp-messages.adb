@@ -74,9 +74,12 @@ package body LSP.Messages is
      Item   : LSP.Types.Optional_Boolean);
 
    procedure Write_Optional_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_Number);
+    (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key        : LSP.Types.LSP_String;
+     Item       : LSP.Types.Optional_Number;
+     Write_Null : Boolean := False);
+   --  If Item has a value write its value into Key. Otherwise if Write_Null,
+   --  then write 'null' into Key. Otherwise do nothing.
 
    procedure Write_Optional_AlsReferenceKind_Set
     (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
@@ -1712,7 +1715,7 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
-      Read_Number (JS, +"version", LSP_Number (V.version));
+      Read_Optional_Number (JS, +"version", V.version);
       JS.End_Object;
    end Read_VersionedTextDocumentIdentifier;
 
@@ -2641,12 +2644,16 @@ package body LSP.Messages is
    ---------------------------
 
    procedure Write_Optional_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_Number) is
+    (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key        : LSP.Types.LSP_String;
+     Item       : LSP.Types.Optional_Number;
+     Write_Null : Boolean := False) is
    begin
       if Item.Is_Set then
          Write_Number (Stream, Key, Item.Value);
+      elsif Write_Null then
+         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+         Stream.Write (GNATCOLL.JSON.Create);
       end if;
    end Write_Optional_Number;
 
@@ -3309,7 +3316,7 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
-      Write_Number (JS, +"version", LSP_Number (V.version));
+      Write_Optional_Number (JS, +"version", V.version, Write_Null => True);
       JS.End_Object;
    end Write_VersionedTextDocumentIdentifier;
 
