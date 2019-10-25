@@ -31,7 +31,7 @@ with LSP.Types; use LSP.Types;
 
 with LSP.Ada_Documents;
 with LSP.Common;       use LSP.Common;
-with LSP.Lal_Utils;
+with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Messages.Server_Notifications;
 
@@ -1331,7 +1331,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.ALS_Called_By_Response
    is
       use Libadalang.Analysis;
-      use all type Libadalang.Common.Ada_Node_Kind_Type;
 
       Value      : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
@@ -1384,10 +1383,7 @@ package body LSP.Ada_Handlers is
          --  or an entry.
 
          if Definition = No_Defining_Name
-           or else Definition.P_Basic_Decl.Kind not in
-             Ada_Subp_Decl | Ada_Subp_Body | Ada_Null_Subp_Decl
-               | Ada_Abstract_Subp_Decl
-               | Ada_Entry_Decl | Ada_Entry_Body
+           or else not Definition.P_Basic_Decl.P_Is_Subprogram
            or else Request.Canceled
          then
             return;
