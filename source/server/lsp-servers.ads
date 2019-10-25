@@ -218,4 +218,8 @@ private
      (Self   : access Server;
       Params : LSP.Messages.PublishDiagnosticsParams);
 
+   overriding procedure On_Progress
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_Params);
+
 end LSP.Servers;

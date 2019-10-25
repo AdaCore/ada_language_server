@@ -250,6 +250,10 @@ private
      (Self   : access Message_Logger;
       Params : LSP.Messages.PublishDiagnosticsParams);
 
+   overriding procedure On_Progress
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_Params);
+
    overriding procedure On_ShowMessage_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.ShowMessage_Request);

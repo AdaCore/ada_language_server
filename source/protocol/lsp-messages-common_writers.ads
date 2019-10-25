@@ -18,6 +18,8 @@
 --  This package provides utilities for factorizing the coding/decoding
 --  of common message types. It is meant to be used internally only.
 
+with LSP.JSON_Streams;
+
 package LSP.Messages.Common_Writers is
 
    procedure Write_Notification_Prefix

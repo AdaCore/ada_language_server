@@ -22,6 +22,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
 
 with GNAT.Strings;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNATCOLL.Projects;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
@@ -97,6 +98,14 @@ package body LSP.Ada_Handlers is
       Text : String;
       Mode : LSP.Messages.MessageType := LSP.Messages.Error);
    --  Convenience function to send a message to the user.
+
+   function Get_Unique_Progress_Token
+     (Self      : access Message_Handler;
+      Operation : String := "") return LSP_Number_Or_String;
+   --  Return an unique token for indicating progress
+
+   procedure Index_Files (Self : access Message_Handler);
+   --  Index all loaded files in each context. Emit progress information.
 
    ---------------------
    -- Project loading --
@@ -1769,7 +1778,130 @@ package body LSP.Ada_Handlers is
          end loop;
          Self.Server.On_Show_Message (Errors);
       end if;
+
+      --  Index the files immediately after loading a project
+      Self.Index_Files;
    end Load_Project;
+
+   -------------------------------
+   -- Get_Unique_Progress_Token --
+   -------------------------------
+
+   function Get_Unique_Progress_Token
+     (Self      : access Message_Handler;
+      Operation : String := "") return LSP_Number_Or_String
+   is
+
+      Pid : constant String :=
+        GNATCOLL.Utils.Image (Pid_To_Integer (Current_Process_Id), 1);
+   begin
+      Self.Token_Id := Self.Token_Id + 1;
+      --  Generate an identifier that has little risk of collision with
+      --  other language servers, or other occurrences of this server.
+      --  (There is still a very small risk of collision with PID recyclings,
+      --  but the consequences are acceptable.)
+      return
+        (Is_Number => False,
+         String    => To_LSP_String
+           ("ada_ls-"
+            & Pid & "-" & Operation & "-"
+            & GNATCOLL.Utils.Image (Self.Token_Id, 1)));
+   end Get_Unique_Progress_Token;
+
+   -----------------
+   -- Index_Files --
+   -----------------
+
+   procedure Index_Files (Self : access Message_Handler) is
+      type Context_And_Files is record
+         Context : Context_Access;
+         Sources : File_Array_Access;
+      end record;
+      type Context_And_Files_Array is array
+        (Natural range <>) of Context_And_Files;
+
+      Arr   : Context_And_Files_Array (1 .. Natural (Self.Contexts.Length));
+
+      token : constant LSP.Types.LSP_Number_Or_String
+        := Self.Get_Unique_Progress_Token ("indexing");
+
+      procedure Emit_Progress_Begin;
+      procedure Emit_Progress_Report (Percent : Natural);
+      procedure Emit_Progress_End;
+      --  Emit a message to inform that the indexing has begun / is in
+      --  progress / has finished.
+
+      -------------------------
+      -- Emit_Progress_Begin --
+      -------------------------
+
+      procedure Emit_Progress_Begin is
+         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Begin);
+      begin
+         P.Begin_Param.token := token;
+         P.Begin_Param.value.title := LSP.Types.To_LSP_String ("Indexing");
+         P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
+         Self.Server.On_Progress (P);
+      end Emit_Progress_Begin;
+
+      --------------------------
+      -- Emit_Progress_Report --
+      --------------------------
+
+      procedure Emit_Progress_Report (Percent : Natural) is
+         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
+      begin
+         P.Report_Param.token := token;
+         P.Report_Param.value.percentage := (Is_Set => True, Value => Percent);
+         Self.Server.On_Progress (P);
+      end Emit_Progress_Report;
+
+      -----------------------
+      -- Emit_Progress_End --
+      -----------------------
+
+      procedure Emit_Progress_End is
+         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_End);
+      begin
+         P.End_Param.token := token;
+         Self.Server.On_Progress (P);
+      end Emit_Progress_End;
+
+      Index           : Natural := 1;
+      Total           : Natural := 0;
+      Last_Percent    : Natural := 0;
+      Current_Percent : Natural := 0;
+   begin
+      --  Collect the contexts and their sources: we do this so that we are
+      --  able to produce a progress bar covering the total number of files.
+
+      for Context of Self.Contexts loop
+         Arr (Index).Context := Context;
+         Arr (Index).Sources := Context.List_Files;
+         Total := Total + Arr (Index).Sources'Length;
+         Index := Index + 1;
+      end loop;
+
+      Emit_Progress_Begin;
+
+      Index := 0;
+      for E of Arr loop
+         for F of E.Sources.all loop
+            Current_Percent := (Index * 100) / Total;
+            --  If the value of the indexing increased by at least one percent,
+            --  emit one progress report.
+            if Current_Percent > Last_Percent then
+               Emit_Progress_Report (Current_Percent);
+               Last_Percent := Current_Percent;
+            end if;
+
+            E.Context.Index_File (F);
+            Index := Index + 1;
+         end loop;
+      end loop;
+
+      Emit_Progress_End;
+   end Index_Files;
 
    ------------------------------------------
    -- On_Workspace_Execute_Command_Request --

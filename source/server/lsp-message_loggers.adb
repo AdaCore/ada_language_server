@@ -17,6 +17,7 @@
 
 with Ada.Containers;
 with LSP.Types;
+with LSP.Messages; use LSP.Messages;
 
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with GNATCOLL.JSON;
@@ -659,6 +660,30 @@ package body LSP.Message_Loggers is
          & (+Params.uri)
          & Ada.Containers.Count_Type'Image (Params.diagnostics.Length));
    end On_Publish_Diagnostics;
+
+   -----------------------
+   -- On_Progress_Begin --
+   -----------------------
+
+   overriding procedure On_Progress
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_Params) is
+   begin
+      case Params.Kind is
+         when Progress_Begin =>
+            Self.Trace.Trace ("Progress_Begin: "
+                              & (LSP.Types.To_UTF_8_String
+                                (Params.Begin_Param.token)));
+         when Progress_Report =>
+            Self.Trace.Trace ("Progress_Report: "
+                              & (LSP.Types.To_UTF_8_String
+                                (Params.Report_Param.token)));
+         when Progress_End =>
+            Self.Trace.Trace ("Progress_End: "
+                              & (LSP.Types.To_UTF_8_String
+                                (Params.End_Param.token)));
+      end case;
+   end On_Progress;
 
    ---------------------------
    -- On_References_Request --

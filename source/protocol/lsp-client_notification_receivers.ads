@@ -39,4 +39,9 @@ package LSP.Client_Notification_Receivers is
       Params : LSP.Messages.PublishDiagnosticsParams) is abstract;
    --  Process textDocument/publishDiagnostics notification
 
+   procedure On_Progress
+     (Self   : access Client_Notification_Receiver;
+      Params : LSP.Messages.Progress_Params) is abstract;
+   --  Process a $/progress notification
+
 end LSP.Client_Notification_Receivers;

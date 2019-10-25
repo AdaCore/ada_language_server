@@ -71,6 +71,9 @@ private
 
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
+
+      Token_Id : Integer := 0;
+      --  An ever-increasing number used to generate unique progress tokens
    end record;
 
    overriding function On_Initialize_Request

@@ -32,8 +32,6 @@ with Ada.Streams;
 with LSP.Generic_Optional;
 with LSP.Types; use LSP.Types;
 
-with LSP.JSON_Streams;
-
 package LSP.Messages is
 
    pragma Style_Checks ("M125-bcht");
@@ -3501,6 +3499,200 @@ package LSP.Messages is
    subtype CompletionParams is TextDocumentPositionParams;
    --  ??? this is not in sync with protocol v3
 
+   ----------------------
+   -- Present in v3.15 --
+   ----------------------
+
+   --  Here are protocol elements defined in the v3.15 working version, which
+   --  is not yet published: these might change when the spec is finalized.
+
+   --```typescript
+   --type ProgressToken = number | string;
+   --interface ProgressParams<T> {
+   --	/**
+   --	 * The progress token provided by the client or server.
+   --	 */
+   --	token: ProgressToken;
+   --
+   --	/**
+   --	 * The progress data.
+   --	 */
+   --	value: T;
+   --}
+   --```
+
+   generic
+      type T is private;
+   package Generic_ProgressParam is
+      type ProgressParam is record
+         token: ProgressToken;
+         value: T;
+      end record;
+   end Generic_ProgressParam;
+
+   --export interface WorkDoneProgressBegin {
+   --
+   --  kind: 'begin';
+   --
+   --	/**
+   --	 * Mandatory title of the progress operation. Used to briefly inform about
+   --	 * the kind of operation being performed.
+   --	 *
+   --	 * Examples: "Indexing" or "Linking dependencies".
+   --	 */
+   --	title: string;
+   --
+   --	/**
+   --	 * Controls if a cancel button should show to allow the user to cancel the
+   --	 * long running operation. Clients that don't support cancellation are allowed
+   --	 * to ignore the setting.
+   --	 */
+   --	cancellable?: boolean;
+   --
+   --	/**
+   --	 * Optional, more detailed associated progress message. Contains
+   --	 * complementary information to the `title`.
+   --	 *
+   --	 * Examples: "3/25 files", "project/src/module2", "node_modules/some_dep".
+   --	 * If unset, the previous progress message (if any) is still valid.
+   --	 */
+   --	message?: string;
+   --
+   --	/**
+   --	 * Optional progress percentage to display (value 100 is considered 100%).
+   --	 * If not provided infinite progress is assumed and clients are allowed
+   --	 * to ignore the `percentage` value in subsequent in report notifications.
+   --	 *
+   --	 * The value should be steadily rising. Clients are free to ignore values
+   --	 * that are not following this rule.
+   --	 */
+   --	percentage?: number;
+   --}
+   --```
+   type WorkDoneProgressBegin is record
+      kind        : LSP_String := LSP.Types.To_LSP_String ("begin");
+      title       : LSP_String;
+      cancellable : Optional_Boolean;
+      message     : Optional_String;
+      percentage  : Optional_Number;
+   end record;
+
+   --```typescript
+   --export interface WorkDoneProgressReport {
+   --
+   --	kind: 'report';
+
+   --	/**
+   --	 * Controls enablement state of a cancel button. This property is only valid if a cancel
+   --	 * button got requested in the `WorkDoneProgressStart` payload.
+   --	 *
+   --	 * Clients that don't support cancellation or don't support control the button's
+   --	 * enablement state are allowed to ignore the setting.
+   --	 */
+   --	cancellable?: boolean;
+
+   --	/**
+   --	 * Optional, more detailed associated progress message. Contains
+   --	 * complementary information to the `title`.
+   --	 *
+   --	 * Examples: "3/25 files", "project/src/module2", "node_modules/some_dep".
+   --	 * If unset, the previous progress message (if any) is still valid.
+   --	 */
+   --	message?: string;
+
+   --	/**
+   --	 * Optional progress percentage to display (value 100 is considered 100%).
+   --	 * If not provided infinite progress is assumed and clients are allowed
+   --	 * to ignore the `percentage` value in subsequent in report notifications.
+   --	 *
+   --	 * The value should be steadily rising. Clients are free to ignore values
+   --	 * that are not following this rule.
+   --	 */
+   --	percentage?: number;
+   --}
+   --```
+   type WorkDoneProgressReport is record
+      kind        : LSP_String := LSP.Types.To_LSP_String ("report");
+      cancellable : Optional_Boolean;
+      message     : Optional_String;
+      percentage  : Optional_Number;
+   end record;
+
+   --export interface WorkDoneProgressEnd {
+   --
+   --	kind: 'end';
+   --
+   --	/**
+   --	 * Optional, a final message indicating to for example indicate the outcome
+   --	 * of the operation.
+   --	 */
+   --	message?: string;
+   --}
+   type WorkDoneProgressEnd is record
+      kind    : LSP_String := LSP.Types.To_LSP_String ("end");
+      message : Optional_String;
+   end record;
+
+   --  Writers
+   procedure Write_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressBegin);
+   for WorkDoneProgressBegin'Write use Write_WorkDoneProgressBegin;
+   procedure Write_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressReport);
+   for WorkDoneProgressReport'Write use Write_WorkDoneProgressReport;
+   procedure Write_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressEnd);
+   for WorkDoneProgressEnd'Write use Write_WorkDoneProgressEnd;
+
+   --  Pre-instantiate the use cases for the ProgressParams
+
+   package ProgressParam_Begin_Package is new Generic_ProgressParam
+     (WorkDoneProgressBegin);
+   subtype Progress_Begin_Params is ProgressParam_Begin_Package.ProgressParam;
+
+   package ProgressParam_Report_Package is new Generic_ProgressParam
+     (WorkDoneProgressReport);
+   subtype Progress_Report_Params is ProgressParam_Report_Package.ProgressParam;
+
+   package ProgressParam_End_Package is new Generic_ProgressParam
+     (WorkDoneProgressEnd);
+   subtype Progress_End_Params is ProgressParam_Begin_Package.ProgressParam;
+
+   --  The $/progress request has a parameter of the form
+   --    {
+   --       token: ProgressToken;
+   --       value: {
+   --          kind : <a string>
+   --          <other fields that depend on the value of 'kind' above>
+   --
+   --  The code below provides an enumerated type and a record with
+   --  discriminant to give a type-safe representation of this.
+
+   type Progress_Kind is (Progress_Begin, Progress_Report, Progress_End);
+   type Progress_Params (Kind : Progress_Kind := Progress_Begin) is record
+      case Kind is
+         when Progress_Begin =>
+            Begin_Param : Progress_Begin_Params;
+         when Progress_Report =>
+            Report_Param : Progress_Report_Params;
+         when Progress_End =>
+            End_Param : Progress_End_Params;
+      end case;
+   end record;
+
+   procedure Read_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_Params);
+   for Progress_Params'Read use Read_Progress_Params;
+
+   procedure Write_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_Params);
+   for Progress_Params'Write use Write_Progress_Params;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
@@ -3571,16 +3763,6 @@ package LSP.Messages is
    for ALSDebugParams'Write use Write_ALSDebugParams;
 
 private
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_String);
-
-   procedure Write_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number);
 
    procedure Read_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

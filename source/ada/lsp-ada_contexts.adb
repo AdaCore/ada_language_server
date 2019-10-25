@@ -178,8 +178,6 @@ package body LSP.Ada_Contexts is
    procedure Initialize
      (Self : in out Context) is
    begin
-      Self.Source_Files := new File_Array'(1 .. 0 => <>);
-
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
         ("iso-8859-1");
       Self.LAL_Context := Libadalang.Analysis.Create_Context
@@ -427,5 +425,26 @@ package body LSP.Ada_Contexts is
          end if;
       end if;
    end Get_Node_At;
+
+   ----------------
+   -- List_Files --
+   ----------------
+
+   function List_Files
+     (Self : Context) return GNATCOLL.VFS.File_Array_Access is
+   begin
+      return Self.Source_Files;
+   end List_Files;
+
+   ----------------
+   -- Index_File --
+   ----------------
+
+   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File) is
+      Ignored : Libadalang.Analysis.Analysis_Unit;
+   begin
+      Ignored := Self.LAL_Context.Get_From_File
+        (File.Display_Full_Name, Charset => Self.Get_Charset);
+   end Index_File;
 
 end LSP.Ada_Contexts;

@@ -146,6 +146,11 @@ package body LSP.Clients is
          Handler : access LSP.Client_Notification_Receivers
            .Client_Notification_Receiver'Class);
 
+      procedure Progress
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access LSP.Client_Notification_Receivers
+            .Client_Notification_Receiver'Class);
+
    end Decoders;
 
    -------------------------
@@ -444,6 +449,21 @@ package body LSP.Clients is
          Handler.On_Show_Message (Message.params);
       end Show_Message;
 
+      --------------
+      -- Progress --
+      --------------
+
+      procedure Progress
+        (Stream  : access Ada.Streams.Root_Stream_Type'Class;
+         Handler : access LSP.Client_Notification_Receivers
+         .Client_Notification_Receiver'Class)
+      is
+         Message : Progress_Notification;
+      begin
+         Progress_Notification'Read (Stream, Message);
+         Handler.On_Progress (Message.params);
+      end Progress;
+
    end Decoders;
 
    --------------------------
@@ -475,6 +495,9 @@ package body LSP.Clients is
       Self.Notif_Decoders.Insert
         (-"textDocument/publishDiagnostics",
          Decoders.Publish_Diagnostics'Access);
+      Self.Notif_Decoders.Insert
+        (-"$/progress",
+         Decoders.Progress'Access);
    end Initialize;
 
    ------------------------
