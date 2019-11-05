@@ -1130,6 +1130,23 @@ package LSP.Messages is
    --		 * Symbol request supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
+   --		 */
+   --		symbolKind?: {
+   --			/**
+   --			 * The symbol kind values the client supports. When this
+   --			 * property exists the client also guarantees that it will
+   --			 * handle values outside its set gracefully and falls back
+   --			 * to a default value when unknown.
+   --			 *
+   --			 * If this property is not present the client only supports
+   --			 * the symbol kinds from `File` to `Array` as defined in
+   --			 * the initial version of the protocol.
+   --			 */
+   --			valueSet?: SymbolKind[];
+   --		}
    --	};
    --
    --	/**
@@ -1206,12 +1223,95 @@ package LSP.Messages is
    for documentChanges'Read use Read_documentChanges;
    for documentChanges'Write use Write_documentChanges;
 
+   type SymbolKind is
+     (File,
+      Module,
+      Namespace,
+      A_Package,
+      Class,
+      Method,
+      Property,
+      Field,
+      Constructor,
+      Enum,
+      An_Interface,
+      A_Function,
+      Variable,
+      A_Constant,
+      String,
+      Number,
+      A_Boolean,
+      An_Array,
+      Object,
+      Key,
+      A_Null,
+      EnumMember,
+      Struct,
+      Event,
+      Operator,
+      TypeParameter);
+
+   procedure Read_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolKind);
+
+   procedure Write_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolKind);
+
+   for SymbolKind'Read use Read_SymbolKind;
+   for SymbolKind'Write use Write_SymbolKind;
+
+   type SymbolKindSet is array (SymbolKind) of Boolean;
+
+   procedure Read_SymbolKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolKindSet);
+
+   procedure Write_SymbolKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolKindSet);
+
+   for SymbolKindSet'Read use Read_SymbolKindSet;
+   for SymbolKindSet'Write use Write_SymbolKindSet;
+
+   Default_SymbolKindSet : constant SymbolKindSet :=
+     (File .. An_Array => True, others => False);
+
+   package Optional_SymbolKindSets is
+     new LSP.Generic_Optional (SymbolKindSet);
+
+   type Optional_SymbolKindSet is
+     new Optional_SymbolKindSets.Optional_Type;
+
+   type Workspace_Symbol_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      symbolKind: Optional_SymbolKindSet;
+   end record;
+
+   procedure Read_Workspace_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Workspace_Symbol_Capability);
+
+   procedure Write_Workspace_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Workspace_Symbol_Capability);
+
+   for Workspace_Symbol_Capability'Read use Read_Workspace_Symbol_Capability;
+   for Workspace_Symbol_Capability'Write use Write_Workspace_Symbol_Capability;
+
+   package Optional_Workspace_Symbol_Capabilities is
+     new LSP.Generic_Optional (Workspace_Symbol_Capability);
+
+   type Optional_Workspace_Symbol_Capability is
+     new Optional_Workspace_Symbol_Capabilities.Optional_Type;
+
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
       workspaceEdit: documentChanges;
       didChangeConfiguration: dynamicRegistration;
       didChangeWatchedFiles: dynamicRegistration;
-      symbol: dynamicRegistration;
+      symbol: Optional_Workspace_Symbol_Capability;
       executeCommand: dynamicRegistration;
       workspaceFolders: Optional_Boolean;
       configuration: Optional_Boolean;
@@ -1332,6 +1432,28 @@ package LSP.Messages is
    --		 * Whether document symbol supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * Specific capabilities for the `SymbolKind`.
+   --		 */
+   --		symbolKind?: {
+   --			/**
+   --			 * The symbol kind values the client supports. When this
+   --			 * property exists the client also guarantees that it will
+   --			 * handle values outside its set gracefully and falls back
+   --			 * to a default value when unknown.
+   --			 *
+   --			 * If this property is not present the client only supports
+   --			 * the symbol kinds from `File` to `Array` as defined in
+   --			 * the initial version of the protocol.
+   --			 */
+   --			valueSet?: SymbolKind[];
+   --		}
+   --
+   --		/**
+   --		 * The client supports hierarchical document symbols.
+   --		 */
+   --		hierarchicalDocumentSymbolSupport?: boolean;
    --	};
    --
    --	/**
@@ -1460,6 +1582,29 @@ package LSP.Messages is
    for completion'Read use Read_completion;
    for completion'Write use Write_completion;
 
+   type Document_Symbol_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      symbolKind: Optional_SymbolKindSet;
+      hierarchicalDocumentSymbolSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_Document_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Document_Symbol_Capability);
+
+   procedure Write_Document_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Document_Symbol_Capability);
+
+   for Document_Symbol_Capability'Read use Read_Document_Symbol_Capability;
+   for Document_Symbol_Capability'Write use Write_Document_Symbol_Capability;
+
+   package Optional_Document_Symbol_Capabilities is
+     new LSP.Generic_Optional (Document_Symbol_Capability);
+
+   type Optional_Document_Symbol_Capability is
+     new Optional_Document_Symbol_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
@@ -1467,7 +1612,7 @@ package LSP.Messages is
       signatureHelp     : dynamicRegistration;
       references        : dynamicRegistration;
       documentHighlight : dynamicRegistration;
-      documentSymbol    : dynamicRegistration;
+      documentSymbol    : Optional_Document_Symbol_Capability;
       formatting        : dynamicRegistration;
       rangeFormatting   : dynamicRegistration;
       onTypeFormatting  : dynamicRegistration;
@@ -3384,34 +3529,6 @@ package LSP.Messages is
    --}
    --
    --```
-   type SymbolKind is
-     (File,
-      Module,
-      Namespace,
-      A_Package,
-      Class,
-      Method,
-      Property,
-      Field,
-      Constructor,
-      Enum,
-      An_Interface,
-      A_Function,
-      Variable,
-      A_Constant,
-      String,
-      Number,
-      A_Boolean,
-      An_Array,
-      Object,
-      Key,
-      A_Null,
-      EnumMember,
-      Struct,
-      Event,
-      Operator,
-      TypeParameter);
-
    type SymbolInformation is record
       name: LSP_String;
       kind: SymbolKind;

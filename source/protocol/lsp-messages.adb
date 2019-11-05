@@ -1261,6 +1261,10 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_RenameParams;
 
+   -----------------------------------
+   -- Read_ResourceOperationKindSet --
+   -----------------------------------
+
    procedure Read_ResourceOperationKindSet
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ResourceOperationKindSet)
@@ -1526,13 +1530,51 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_String (JS, +"name", V.name);
       JS.Key ("kind");
-      V.kind := SymbolKind'Val (JS.Read.Get - 1);
+      SymbolKind'Read (S, V.kind);
       JS.Key ("location");
       Location'Read (S, V.location);
       JS.Key ("edits");
       Read_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Read_SymbolInformation;
+
+   ---------------------
+   -- Read_SymbolKind --
+   ---------------------
+
+   procedure Read_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := SymbolKind'Val (JS.Read.Get - 1);
+   end Read_SymbolKind;
+
+   ------------------------
+   -- Read_SymbolKindSet --
+   ------------------------
+
+   procedure Read_SymbolKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolKindSet)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := (others => False);
+      JS.Start_Array;
+      while not JS.End_Of_Array loop
+         declare
+            Key : SymbolKind;
+         begin
+            SymbolKind'Read (S, Key);
+            V (Key) := True;
+         end;
+      end loop;
+      JS.End_Array;
+   end Read_SymbolKindSet;
 
    --------------------------
    -- Read_synchronization --
@@ -1579,7 +1621,7 @@ package body LSP.Messages is
       JS.Key ("documentHighlight");
       dynamicRegistration'Read (S, V.documentHighlight);
       JS.Key ("documentSymbol");
-      dynamicRegistration'Read (S, V.documentSymbol);
+      Optional_Document_Symbol_Capability'Read (S, V.documentSymbol);
       JS.Key ("formatting");
       dynamicRegistration'Read (S, V.formatting);
       JS.Key ("rangeFormatting");
@@ -1650,6 +1692,34 @@ package body LSP.Messages is
       --  FIXME: rewrite reading procedure
       TextDocumentEdit'Read (S, V.Text_Document_Edit);
    end Read_Document_Change;
+
+   -------------------------------------
+   -- Read_Document_Symbol_Capability --
+   -------------------------------------
+
+   procedure Read_Document_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Document_Symbol_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+
+      JS.Key ("symbolKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_SymbolKindSet'Read (S, V.symbolKind);
+      JS.End_Object;
+
+      Read_Optional_Boolean
+        (JS,
+         +"hierarchicalDocumentSymbolSupport",
+         V.hierarchicalDocumentSymbolSupport);
+      JS.End_Object;
+   end Read_Document_Symbol_Capability;
 
    ---------------------------------
    -- Read_TextDocumentIdentifier --
@@ -1783,6 +1853,30 @@ package body LSP.Messages is
    end Read_VersionedTextDocumentIdentifier;
 
    --------------------------------------
+   -- Read_Workspace_Symbol_Capability --
+   --------------------------------------
+
+   procedure Read_Workspace_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Workspace_Symbol_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+
+      JS.Key ("symbolKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_SymbolKindSet'Read (S, V.symbolKind);
+      JS.End_Object;
+
+      JS.End_Object;
+   end Read_Workspace_Symbol_Capability;
+
+   --------------------------------------
    -- Read_WorkspaceClientCapabilities --
    --------------------------------------
 
@@ -1802,7 +1896,7 @@ package body LSP.Messages is
       JS.Key ("didChangeWatchedFiles");
       dynamicRegistration'Read (S, V.didChangeWatchedFiles);
       JS.Key ("symbol");
-      dynamicRegistration'Read (S, V.symbol);
+      Optional_Workspace_Symbol_Capability'Read (S, V.symbol);
       JS.Key ("executeCommand");
       dynamicRegistration'Read (S, V.executeCommand);
       Read_Optional_Boolean (JS, +"workspaceFolders", V.workspaceFolders);
@@ -3211,16 +3305,56 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_String (JS, +"name", V.name);
       JS.Key ("kind");
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(SymbolKind'Pos (V.kind)) + 1));
-
+      SymbolKind'Write (S, V.kind);
       JS.Key ("location");
       Location'Write (S, V.location);
       JS.Key ("edits");
       Write_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
+
+   ----------------------
+   -- Write_SymbolKind --
+   ----------------------
+
+   procedure Write_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(SymbolKind'Pos (V)) + 1));
+   end Write_SymbolKind;
+
+   -------------------------
+   -- Write_SymbolKindSet --
+   -------------------------
+
+   procedure Write_SymbolKindSet
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolKindSet)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V = (SymbolKind => False) then
+         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
+         return;
+      end if;
+
+      JS.Start_Array;
+
+      for K in V'Range loop
+         if V (K) then
+            SymbolKind'Write (S, K);
+         end if;
+      end loop;
+
+      JS.End_Array;
+   end Write_SymbolKindSet;
 
    ---------------------------
    -- Write_synchronization --
@@ -3267,7 +3401,7 @@ package body LSP.Messages is
       JS.Key ("documentHighlight");
       dynamicRegistration'Write (S, V.documentHighlight);
       JS.Key ("documentSymbol");
-      dynamicRegistration'Write (S, V.documentSymbol);
+      Optional_Document_Symbol_Capability'Write (S, V.documentSymbol);
       JS.Key ("formatting");
       dynamicRegistration'Write (S, V.formatting);
       JS.Key ("rangeFormatting");
@@ -3346,6 +3480,34 @@ package body LSP.Messages is
             DeleteFile'Write (S, V.Delete_File);
       end case;
    end Write_Document_Change;
+
+   --------------------------------------
+   -- Write_Document_Symbol_Capability --
+   --------------------------------------
+
+   procedure Write_Document_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Document_Symbol_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+
+      JS.Key ("symbolKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_SymbolKindSet'Write (S, V.symbolKind);
+      JS.End_Object;
+
+      Write_Optional_Boolean
+        (JS,
+         +"hierarchicalDocumentSymbolSupport",
+         V.hierarchicalDocumentSymbolSupport);
+      JS.End_Object;
+   end Write_Document_Symbol_Capability;
 
    ----------------------------------
    -- Write_TextDocumentIdentifier --
@@ -3477,6 +3639,30 @@ package body LSP.Messages is
    end Write_VersionedTextDocumentIdentifier;
 
    ---------------------------------------
+   -- Write_Workspace_Symbol_Capability --
+   ---------------------------------------
+
+   procedure Write_Workspace_Symbol_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Workspace_Symbol_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+
+      JS.Key ("symbolKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_SymbolKindSet'Write (S, V.symbolKind);
+      JS.End_Object;
+
+      JS.End_Object;
+   end Write_Workspace_Symbol_Capability;
+
+   ---------------------------------------
    -- Write_WorkspaceClientCapabilities --
    ---------------------------------------
 
@@ -3496,7 +3682,7 @@ package body LSP.Messages is
       JS.Key ("didChangeWatchedFiles");
       dynamicRegistration'Write (S, V.didChangeWatchedFiles);
       JS.Key ("symbol");
-      dynamicRegistration'Write (S, V.symbol);
+      Optional_Workspace_Symbol_Capability'Write (S, V.symbol);
       JS.Key ("executeCommand");
       dynamicRegistration'Write (S, V.executeCommand);
       Write_Optional_Boolean (JS, +"workspaceFolders", V.workspaceFolders);
