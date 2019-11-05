@@ -488,8 +488,28 @@ package body LSP.Messages is
       LSP.Types.Read_Number_Or_String (JS, +"code", V.code);
       Read_Optional_String (JS, +"source", V.source);
       Read_String (JS, +"message", V.message);
+      JS.Key ("relatedInformation");
+      DiagnosticRelatedInformation_Vector'Read (S, V.relatedInformation);
       JS.End_Object;
    end Read_Diagnostic;
+
+   ---------------------------------------
+   -- Read_DiagnosticRelatedInformation --
+   ---------------------------------------
+
+   procedure Read_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DiagnosticRelatedInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("location");
+      Location'Read (S, V.location);
+      Read_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Read_DiagnosticRelatedInformation;
 
    -----------------------------
    -- Read_DiagnosticSeverity --
@@ -2173,8 +2193,32 @@ package body LSP.Messages is
       Write_Number_Or_String (JS, +"code", V.code);
       Write_Optional_String (JS, +"source", V.source);
       Write_String (JS, +"message", V.message);
+
+      if not V.relatedInformation.Is_Empty then
+         JS.Key ("relatedInformation");
+         DiagnosticRelatedInformation_Vector'Write (S, V.relatedInformation);
+      end if;
+
       JS.End_Object;
    end Write_Diagnostic;
+
+   ----------------------------------------
+   -- Write_DiagnosticRelatedInformation --
+   ----------------------------------------
+
+   procedure Write_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DiagnosticRelatedInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("location");
+      Location'Write (S, V.location);
+      Write_String (JS, +"message", V.message);
+      JS.End_Object;
+   end Write_DiagnosticRelatedInformation;
 
    ------------------------------
    -- Write_DiagnosticSeverity --
