@@ -424,6 +424,46 @@ package LSP.Messages is
    type Optional_DiagnosticSeverity is new Optional_DiagnosticSeveritys.Optional_Type;
 
    --```typescript
+   --/**
+   -- * Represents a related message and source code location for a diagnostic. This should be
+   -- * used to point to code locations that cause or related to a diagnostics, e.g when duplicating
+   -- * a symbol in a scope.
+   -- */
+   --export interface DiagnosticRelatedInformation {
+   --	/**
+   --	 * The location of this related diagnostic information.
+   --	 */
+   --	location: Location;
+   --
+   --	/**
+   --	 * The message of this related diagnostic information.
+   --	 */
+   --	message: string;
+   --}
+   --```
+   type DiagnosticRelatedInformation is record
+      location: LSP.Messages.Location;
+      message: LSP_String;
+   end record;
+
+   procedure Read_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DiagnosticRelatedInformation);
+   for DiagnosticRelatedInformation'Read use Read_DiagnosticRelatedInformation;
+
+   procedure Write_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DiagnosticRelatedInformation);
+   for DiagnosticRelatedInformation'Write
+     use Write_DiagnosticRelatedInformation;
+
+   package DiagnosticRelatedInformation_Vectors is new LSP.Generic_Vectors
+     (DiagnosticRelatedInformation);
+
+   type DiagnosticRelatedInformation_Vector is
+     new DiagnosticRelatedInformation_Vectors.Vector with null record;
+
+   --```typescript
    --interface Diagnostic {
    --	/**
    --	 * The range at which the message applies.
@@ -451,6 +491,12 @@ package LSP.Messages is
    --	 * The diagnostic's message.
    --	 */
    --	message: string;
+   --
+   --	/**
+   --	 * An array of related diagnostic information, e.g. when symbol-names within
+   --	 * a scope collide all definitions can be marked via this property.
+   --	 */
+   --	relatedInformation?: DiagnosticRelatedInformation[];
    --}
    --```
    type Diagnostic is record
@@ -459,6 +505,7 @@ package LSP.Messages is
       code: LSP_Number_Or_String;
       source: Optional_String;
       message: LSP_String;
+      relatedInformation: DiagnosticRelatedInformation_Vector;
    end record;
 
    procedure Read_Diagnostic
