@@ -366,32 +366,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Command;
 
-   -------------------------
-   -- Read_Command_Vector --
-   -------------------------
-
-   procedure Read_Command_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Command_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : Command;
-         begin
-            Command'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_Command_Vector;
-
    ---------------------
    -- Read_completion --
    ---------------------
@@ -409,32 +383,6 @@ package body LSP.Messages is
       Read_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
       JS.End_Object;
    end Read_completion;
-
-   --------------------------------
-   -- Read_CompletionItem_Vector --
-   --------------------------------
-
-   procedure Read_CompletionItem_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItem_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : CompletionItem;
-         begin
-            CompletionItem'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_CompletionItem_Vector;
 
    -------------------------
    -- Read_CompletionList --
@@ -539,30 +487,6 @@ package body LSP.Messages is
       Read_String (JS, +"message", V.message);
       JS.End_Object;
    end Read_Diagnostic;
-
-   ----------------------------
-   -- Read_Diagnostic_Vector --
-   ----------------------------
-
-   procedure Read_Diagnostic_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Diagnostic_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : Diagnostic;
-         begin
-            Diagnostic'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_Diagnostic_Vector;
 
    -----------------------------
    -- Read_DiagnosticSeverity --
@@ -701,30 +625,6 @@ package body LSP.Messages is
       V.kind := DocumentHighlightKind'Val (JS.Read.Get - 1);
       JS.End_Object;
    end Read_DocumentHighlight;
-
-   -----------------------------------
-   -- Read_DocumentHighlight_Vector --
-   -----------------------------------
-
-   procedure Read_DocumentHighlight_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentHighlight_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : DocumentHighlight;
-         begin
-            DocumentHighlight'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_DocumentHighlight_Vector;
 
    --------------------------------
    -- Read_DocumentHighlightKind --
@@ -1006,32 +906,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Location;
 
-   --------------------------
-   -- Read_Location_Vector --
-   --------------------------
-
-   procedure Read_Location_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Location_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : Location;
-         begin
-            Location'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_Location_Vector;
-
    ---------------------------
    -- Read_LogMessageParams --
    ---------------------------
@@ -1078,30 +952,6 @@ package body LSP.Messages is
             V := (Is_String => True, Value => Empty_LSP_String);
       end case;
    end Read_MarkedString;
-
-   ------------------------------
-   -- Read_MarkedString_Vector --
-   ------------------------------
-
-   procedure Read_MarkedString_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out MarkedString_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : MarkedString;
-         begin
-            MarkedString'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_MarkedString_Vector;
 
    procedure Read_MessageType
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -1239,30 +1089,6 @@ package body LSP.Messages is
       Read_Optional_String (JS, +"documentation", V.documentation);
       JS.End_Object;
    end Read_ParameterInformation;
-
-   --------------------------------------
-   -- Read_ParameterInformation_Vector --
-   --------------------------------------
-
-   procedure Read_ParameterInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ParameterInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : ParameterInformation;
-         begin
-            ParameterInformation'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_ParameterInformation_Vector;
 
    -------------------
    -- Read_Position --
@@ -1512,32 +1338,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_SignatureInformation;
 
-   --------------------------------------
-   -- Read_SignatureInformation_Vector --
-   --------------------------------------
-
-   procedure Read_SignatureInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : SignatureInformation;
-         begin
-            SignatureInformation'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_SignatureInformation_Vector;
-
    ------------------------
    -- Read_SignatureHelp --
    ------------------------
@@ -1680,32 +1480,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_SymbolInformation;
 
-   -----------------------------------
-   -- Read_SymbolInformation_Vector --
-   -----------------------------------
-
-   procedure Read_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : SymbolInformation;
-         begin
-            SymbolInformation'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_SymbolInformation_Vector;
-
    --------------------------
    -- Read_synchronization --
    --------------------------
@@ -1792,30 +1566,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_TextDocumentContentChangeEvent;
 
-   ------------------------------------------------
-   -- Read_TextDocumentContentChangeEvent_Vector --
-   ------------------------------------------------
-
-   procedure Read_TextDocumentContentChangeEvent_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentContentChangeEvent_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : TextDocumentContentChangeEvent;
-         begin
-            TextDocumentContentChangeEvent'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_TextDocumentContentChangeEvent_Vector;
-
    ---------------------------
    -- Read_TextDocumentEdit --
    ---------------------------
@@ -1834,30 +1584,6 @@ package body LSP.Messages is
       TextEdit_Vector'Read (S, V.edits);
       JS.End_Object;
    end Read_TextDocumentEdit;
-
-   ----------------------------------
-   -- Read_TextDocumentEdit_Vector --
-   ----------------------------------
-
-   procedure Read_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentEdit_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : TextDocumentEdit;
-         begin
-            TextDocumentEdit'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_TextDocumentEdit_Vector;
 
    ---------------------------------
    -- Read_TextDocumentIdentifier --
@@ -1971,30 +1697,6 @@ package body LSP.Messages is
       Read_String (JS, +"newText", V.newText);
       JS.End_Object;
    end Read_TextEdit;
-
-   --------------------------
-   -- Read_TextEdit_Vector --
-   --------------------------
-
-   procedure Read_TextEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextEdit_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Item : TextEdit;
-         begin
-            TextEdit'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_TextEdit_Vector;
 
    ------------------------------------------
    -- Read_VersionedTextDocumentIdentifier --
@@ -2299,29 +2001,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Command;
 
-   --------------------------
-   -- Write_Command_Vector --
-   --------------------------
-
-   procedure Write_Command_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         Command'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_Command_Vector;
-
    ----------------------
    -- Write_completion --
    ----------------------
@@ -2375,29 +2054,6 @@ package body LSP.Messages is
       Optional_Command'Write (S, V.command);
       JS.End_Object;
    end Write_CompletionItem;
-
-   ---------------------------------
-   -- Write_CompletionItem_Vector --
-   ---------------------------------
-
-   procedure Write_CompletionItem_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItem_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         CompletionItem'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_CompletionItem_Vector;
 
    ------------------------------
    -- Write_CompletionItemKind --
@@ -2471,24 +2127,6 @@ package body LSP.Messages is
       Write_String (JS, +"message", V.message);
       JS.End_Object;
    end Write_Diagnostic;
-
-   -----------------------------
-   -- Write_Diagnostic_Vector --
-   -----------------------------
-
-   procedure Write_Diagnostic_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Diagnostic_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Array;
-      for Item of V loop
-         Diagnostic'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_Diagnostic_Vector;
 
    ------------------------------
    -- Write_DiagnosticSeverity --
@@ -2632,29 +2270,6 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_DocumentHighlight;
-
-   ------------------------------------
-   -- Write_DocumentHighlight_Vector --
-   ------------------------------------
-
-   procedure Write_DocumentHighlight_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentHighlight_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         DocumentHighlight'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_DocumentHighlight_Vector;
 
    ---------------------------------
    -- Write_DocumentHighlightKind --
@@ -2912,29 +2527,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Location;
 
-   ---------------------------
-   -- Write_Location_Vector --
-   ---------------------------
-
-   procedure Write_Location_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Location_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         Location'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_Location_Vector;
-
    ----------------------------
    -- Write_LogMessageParams --
    ----------------------------
@@ -2972,29 +2564,6 @@ package body LSP.Messages is
          JS.End_Object;
       end if;
    end Write_MarkedString;
-
-   -------------------------------
-   -- Write_MarkedString_Vector --
-   -------------------------------
-
-   procedure Write_MarkedString_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : MarkedString_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         MarkedString'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_MarkedString_Vector;
 
    -----------------------
    -- Write_MessageType --
@@ -3143,29 +2712,6 @@ package body LSP.Messages is
       Write_Optional_String (JS, +"documentation", V.documentation);
       JS.End_Object;
    end Write_ParameterInformation;
-
-   ---------------------------------------
-   -- Write_ParameterInformation_Vector --
-   ---------------------------------------
-
-   procedure Write_ParameterInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ParameterInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         ParameterInformation'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_ParameterInformation_Vector;
 
    --------------------
    -- Write_Position --
@@ -3469,28 +3015,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_SignatureInformation;
 
-   ---------------------------------------
-   -- Write_SignatureInformation_Vector --
-   ---------------------------------------
-
-   procedure Write_SignatureInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-      else
-         JS.Start_Array;
-         for Item of V loop
-            SignatureInformation'Write (S, Item);
-         end loop;
-         JS.End_Array;
-      end if;
-   end Write_SignatureInformation_Vector;
-
    ----------------
    -- Write_Span --
    ----------------
@@ -3554,28 +3078,6 @@ package body LSP.Messages is
       Write_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
-
-   ------------------------------------
-   -- Write_SymbolInformation_Vector --
-   ------------------------------------
-
-   procedure Write_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolInformation_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-      else
-         JS.Start_Array;
-         for Item of V loop
-            SymbolInformation'Write (S, Item);
-         end loop;
-         JS.End_Array;
-      end if;
-   end Write_SymbolInformation_Vector;
 
    ---------------------------
    -- Write_synchronization --
@@ -3663,26 +3165,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_TextDocumentContentChangeEvent;
 
-   -------------------------------------------------
-   -- Write_TextDocumentContentChangeEvent_Vector --
-   -------------------------------------------------
-
-   procedure Write_TextDocumentContentChangeEvent_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentContentChangeEvent_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Array;
-
-      for Item of V loop
-         TextDocumentContentChangeEvent'Write (S, Item);
-      end loop;
-
-      JS.End_Array;
-   end Write_TextDocumentContentChangeEvent_Vector;
-
    ----------------------------
    -- Write_TextDocumentEdit --
    ----------------------------
@@ -3701,29 +3183,6 @@ package body LSP.Messages is
       TextEdit_Vector'Write (S, V.edits);
       JS.End_Object;
    end Write_TextDocumentEdit;
-
-   -----------------------------------
-   -- Write_TextDocumentEdit_Vector --
-   -----------------------------------
-
-   procedure Write_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentEdit_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         TextDocumentEdit'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_TextDocumentEdit_Vector;
 
    ----------------------------------
    -- Write_TextDocumentIdentifier --
@@ -3835,24 +3294,6 @@ package body LSP.Messages is
       Write_String (JS, +"newText", V.newText);
       JS.End_Object;
    end Write_TextEdit;
-
-   ---------------------------
-   -- Write_TextEdit_Vector --
-   ---------------------------
-
-   procedure Write_TextEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextEdit_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Array;
-      for Item of V loop
-         TextEdit'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_TextEdit_Vector;
 
    -------------------------------------------
    -- Write_VersionedTextDocumentIdentifier --
@@ -4009,55 +3450,6 @@ package body LSP.Messages is
       Location_Vector'Write (S, V.refs);
       JS.End_Object;
    end Write_ALS_Subprogram_And_References;
-
-   -----------------------------------------------
-   -- Read_ALS_Subprogram_And_References_Vector --
-   -----------------------------------------------
-
-   procedure Read_ALS_Subprogram_And_References_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ALS_Subprogram_And_References_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : ALS_Subprogram_And_References;
-         begin
-            ALS_Subprogram_And_References'Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-   end Read_ALS_Subprogram_And_References_Vector;
-
-   ------------------------------------------------
-   -- Write_ALS_Subprogram_And_References_Vector --
-   ------------------------------------------------
-
-   procedure Write_ALS_Subprogram_And_References_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ALS_Subprogram_And_References_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-      for Item of V loop
-         ALS_Subprogram_And_References'Write (S, Item);
-      end loop;
-      JS.End_Array;
-   end Write_ALS_Subprogram_And_References_Vector;
 
    --------------------------
    -- Write_ALSDebugParams --

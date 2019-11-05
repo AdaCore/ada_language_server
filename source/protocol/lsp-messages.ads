@@ -26,7 +26,7 @@
 --
 
 with Ada.Containers.Hashed_Maps;
-with Ada.Containers.Vectors;
+with LSP.Generic_Vectors;
 with Ada.Streams;
 
 with LSP.Generic_Optional;
@@ -379,19 +379,9 @@ package LSP.Messages is
    for Location'Read use Read_Location;
    for Location'Write use Write_Location;
 
-   package Location_Vectors is new Ada.Containers.Vectors
-     (Positive, Location);
+   package Location_Vectors is new LSP.Generic_Vectors (Location);
 
    type Location_Vector is new Location_Vectors.Vector with null record;
-
-   procedure Read_Location_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Location_Vector);
-   procedure Write_Location_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Location_Vector);
-   for Location_Vector'Read use Read_Location_Vector;
-   for Location_Vector'Write use Write_Location_Vector;
 
    --
    --```typescript
@@ -476,21 +466,9 @@ package LSP.Messages is
       V : Diagnostic);
    for Diagnostic'Write use Write_Diagnostic;
 
-   package Diagnostic_Vectors is new Ada.Containers.Vectors
-     (Positive, Diagnostic);
+   package Diagnostic_Vectors is new LSP.Generic_Vectors (Diagnostic);
 
    type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
-
-   procedure Read_Diagnostic_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Diagnostic_Vector);
-
-   procedure Write_Diagnostic_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Diagnostic_Vector);
-
-   for Diagnostic_Vector'Read use Read_Diagnostic_Vector;
-   for Diagnostic_Vector'Write use Write_Diagnostic_Vector;
 
    --```typescript
    --interface Command {
@@ -524,19 +502,9 @@ package LSP.Messages is
    for Command'Read use Read_Command;
    for Command'Write use Write_Command;
 
-   package Command_Vectors is new Ada.Containers.Vectors
-     (Positive, Command);
+   package Command_Vectors is new LSP.Generic_Vectors (Command);
 
    type Command_Vector is new Command_Vectors.Vector with null record;
-
-   procedure Read_Command_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Command_Vector);
-   procedure Write_Command_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command_Vector);
-   for Command_Vector'Read use Read_Command_Vector;
-   for Command_Vector'Write use Write_Command_Vector;
 
    --```typescript
    --interface TextEdit {
@@ -571,18 +539,8 @@ package LSP.Messages is
    package Optional_TextEdits is new LSP.Generic_Optional (TextEdit);
    type Optional_TextEdit is new Optional_TextEdits.Optional_Type;
 
-   package TextEdit_Vectors is new Ada.Containers.Vectors (Positive, TextEdit);
+   package TextEdit_Vectors is new LSP.Generic_Vectors (TextEdit);
    type TextEdit_Vector is new TextEdit_Vectors.Vector with null record;
-
-   procedure Read_TextEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextEdit_Vector);
-   for TextEdit_Vector'Read use Read_TextEdit_Vector;
-
-   procedure Write_TextEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextEdit_Vector);
-   for TextEdit_Vector'Write use Write_TextEdit_Vector;
 
    --
    --```typescript
@@ -660,20 +618,10 @@ package LSP.Messages is
    for TextDocumentEdit'Write use Write_TextDocumentEdit;
 
    package TextDocumentEdit_Vectors is
-     new Ada.Containers.Vectors (Positive, TextDocumentEdit);
+     new LSP.Generic_Vectors (TextDocumentEdit);
 
    type TextDocumentEdit_Vector is
      new TextDocumentEdit_Vectors.Vector with null record;
-
-   procedure Read_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentEdit_Vector);
-   for TextDocumentEdit_Vector'Read use Read_TextDocumentEdit_Vector;
-
-   procedure Write_TextDocumentEdit_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentEdit_Vector);
-   for TextDocumentEdit_Vector'Write use Write_TextDocumentEdit_Vector;
 
    package TextDocumentEdit_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Types.LSP_String,
@@ -811,8 +759,7 @@ package LSP.Messages is
       pattern: LSP.Types.Optional_String;
    end record;
 
-   package DocumentFilter_Vectors is new Ada.Containers.Vectors
-     (Positive, DocumentFilter);
+   package DocumentFilter_Vectors is new LSP.Generic_Vectors (DocumentFilter);
    --```typescript
    --export type DocumentSelector = DocumentFilter[];
    --```
@@ -2106,8 +2053,7 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
-   package Unregistration_Vectors is new Ada.Containers.Vectors
-     (Positive, Unregistration);
+   package Unregistration_Vectors is new LSP.Generic_Vectors (Unregistration);
 
    type UnregistrationParams is
      new Unregistration_Vectors.Vector with null record;
@@ -2209,20 +2155,11 @@ package LSP.Messages is
    for TextDocumentContentChangeEvent'Read use Read_TextDocumentContentChangeEvent;
    for TextDocumentContentChangeEvent'Write use Write_TextDocumentContentChangeEvent;
 
-   package TextDocumentContentChangeEvent_Vectors is new Ada.Containers.Vectors
-     (Positive, TextDocumentContentChangeEvent);
+   package TextDocumentContentChangeEvent_Vectors is new LSP.Generic_Vectors
+     (TextDocumentContentChangeEvent);
 
    type TextDocumentContentChangeEvent_Vector is
      new TextDocumentContentChangeEvent_Vectors.Vector with null record;
-
-   procedure Read_TextDocumentContentChangeEvent_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentContentChangeEvent_Vector);
-   procedure Write_TextDocumentContentChangeEvent_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentContentChangeEvent_Vector);
-   for TextDocumentContentChangeEvent_Vector'Read use Read_TextDocumentContentChangeEvent_Vector;
-   for TextDocumentContentChangeEvent_Vector'Write use Write_TextDocumentContentChangeEvent_Vector;
 
    type DidChangeTextDocumentParams is record
       textDocument: VersionedTextDocumentIdentifier;
@@ -2372,7 +2309,7 @@ package LSP.Messages is
       the_type : FileChangeType;  -- type: is reserver word
    end record;
 
-   package FileEvent_Vectors is new Ada.Containers.Vectors (Positive, FileEvent);
+   package FileEvent_Vectors is new LSP.Generic_Vectors (FileEvent);
    type FileEvent_Vector is new FileEvent_Vectors.Vector with null record;
 
    --```typescript
@@ -2628,19 +2565,9 @@ package LSP.Messages is
    for CompletionItem'Read use Read_CompletionItem;
    for CompletionItem'Write use Write_CompletionItem;
 
-   package CompletionItem_Vectors is new Ada.Containers.Vectors
-     (Positive, CompletionItem);
+   package CompletionItem_Vectors is new LSP.Generic_Vectors (CompletionItem);
    type CompletionItem_Vector is
      new CompletionItem_Vectors.Vector with null record;
-
-   procedure Read_CompletionItem_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItem_Vector);
-   procedure Write_CompletionItem_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItem_Vector);
-   for CompletionItem_Vector'Read use Read_CompletionItem_Vector;
-   for CompletionItem_Vector'Write use Write_CompletionItem_Vector;
 
    type CompletionList is record
       isIncomplete: Boolean := False;
@@ -2692,18 +2619,8 @@ package LSP.Messages is
    for MarkedString'Read use Read_MarkedString;
    for MarkedString'Write use Write_MarkedString;
 
-   package MarkedString_Vectors is new Ada.Containers.Vectors
-     (Positive, MarkedString);
+   package MarkedString_Vectors is new LSP.Generic_Vectors (MarkedString);
    type MarkedString_Vector is new MarkedString_Vectors.Vector with null record;
-
-   procedure Read_MarkedString_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out MarkedString_Vector);
-   procedure Write_MarkedString_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : MarkedString_Vector);
-   for MarkedString_Vector'Read use Read_MarkedString_Vector;
-   for MarkedString_Vector'Write use Write_MarkedString_Vector;
 
    --```typescript
    --/**
@@ -2827,19 +2744,10 @@ package LSP.Messages is
    for ParameterInformation'Read use Read_ParameterInformation;
    for ParameterInformation'Write use Write_ParameterInformation;
 
-   package ParameterInformation_Vectors is new Ada.Containers.Vectors
-     (Positive, ParameterInformation);
+   package ParameterInformation_Vectors is new LSP.Generic_Vectors
+     (ParameterInformation);
    type ParameterInformation_Vector is
      new ParameterInformation_Vectors.Vector with null record;
-
-   procedure Read_ParameterInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ParameterInformation_Vector);
-   procedure Write_ParameterInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ParameterInformation_Vector);
-   for ParameterInformation_Vector'Write use Write_ParameterInformation_Vector;
-   for ParameterInformation_Vector'Read use Read_ParameterInformation_Vector;
 
    type SignatureInformation is record
       label: LSP_String;
@@ -2856,19 +2764,10 @@ package LSP.Messages is
    for SignatureInformation'Read use Read_SignatureInformation;
    for SignatureInformation'Write use Write_SignatureInformation;
 
-   package SignatureInformation_Vectors is new Ada.Containers.Vectors
-     (Positive, SignatureInformation);
+   package SignatureInformation_Vectors is new LSP.Generic_Vectors
+     (SignatureInformation);
    type SignatureInformation_Vector is
      new SignatureInformation_Vectors.Vector with null record;
-
-   procedure Read_SignatureInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureInformation_Vector);
-   procedure Write_SignatureInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureInformation_Vector);
-   for SignatureInformation_Vector'Read use Read_SignatureInformation_Vector;
-   for SignatureInformation_Vector'Write use Write_SignatureInformation_Vector;
 
    type SignatureHelp is record
 	signatures: SignatureInformation_Vector;
@@ -2993,20 +2892,11 @@ package LSP.Messages is
    for DocumentHighlight'Read use Read_DocumentHighlight;
    for DocumentHighlight'Write use Write_DocumentHighlight;
 
-   package DocumentHighlight_Vectors is new Ada.Containers.Vectors
-     (Positive, DocumentHighlight);
+   package DocumentHighlight_Vectors is new LSP.Generic_Vectors
+     (DocumentHighlight);
 
    type DocumentHighlight_Vector is
      new DocumentHighlight_Vectors.Vector with null record;
-   procedure Read_DocumentHighlight_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentHighlight_Vector);
-   procedure Write_DocumentHighlight_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentHighlight_Vector);
-
-   for DocumentHighlight_Vector'Read use Read_DocumentHighlight_Vector;
-   for DocumentHighlight_Vector'Write use Write_DocumentHighlight_Vector;
 
    --```typescript
    --interface DocumentSymbolParams {
@@ -3127,20 +3017,11 @@ package LSP.Messages is
    for SymbolInformation'Read use Read_SymbolInformation;
    for SymbolInformation'Write use Write_SymbolInformation;
 
-   package SymbolInformation_Vectors is new Ada.Containers.Vectors
-     (Positive, SymbolInformation);
+   package SymbolInformation_Vectors is new LSP.Generic_Vectors
+     (SymbolInformation);
 
    type SymbolInformation_Vector is
      new SymbolInformation_Vectors.Vector with null record;
-
-   procedure Read_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolInformation_Vector);
-   procedure Write_SymbolInformation_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolInformation_Vector);
-   for SymbolInformation_Vector'Read use Read_SymbolInformation_Vector;
-   for SymbolInformation_Vector'Write use Write_SymbolInformation_Vector;
 
    --```typescript
    --/**
@@ -3721,22 +3602,10 @@ package LSP.Messages is
    for ALS_Subprogram_And_References'Write use
      Write_ALS_Subprogram_And_References;
 
-   package ALS_Subprogram_And_References_Vectors is new Ada.Containers.Vectors
-     (Positive, ALS_Subprogram_And_References);
+   package ALS_Subprogram_And_References_Vectors is new LSP.Generic_Vectors
+     (ALS_Subprogram_And_References);
    type ALS_Subprogram_And_References_Vector is
      new ALS_Subprogram_And_References_Vectors.Vector with null record;
-
-   procedure Read_ALS_Subprogram_And_References_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ALS_Subprogram_And_References_Vector);
-   for ALS_Subprogram_And_References_Vector'Read use
-     Read_ALS_Subprogram_And_References_Vector;
-
-   procedure Write_ALS_Subprogram_And_References_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ALS_Subprogram_And_References_Vector);
-   for ALS_Subprogram_And_References_Vector'Write use
-     Write_ALS_Subprogram_And_References_Vector;
 
    type ALS_Debug_Kinds is (Suspend_Execution);
    --  Suspend_Execution - stop processing task until input queue has given
