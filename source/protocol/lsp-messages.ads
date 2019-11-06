@@ -1724,7 +1724,28 @@ package LSP.Messages is
    --	};
    --
    --	/**
-   --	 * Capabilities specific to the `textDocument/definition`
+   --		* Capabilities specific to the `textDocument/declaration`
+   --		*/
+   --	declaration?: {
+   --		/**
+   --		 * Whether declaration supports dynamic registration. If this is set to `true`
+   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --		 * return value for the corresponding server capability as well.
+   --		 */
+   --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * The client supports additional metadata in the form of declaration links.
+   --		 *
+   --		 * Since 3.14.0
+   --		 */
+   --		linkSupport?: boolean;
+   --	};
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/definition`.
+   --	 *
+   --	 * Since 3.14.0
    --	 */
    --	definition?: {
    --		/**
@@ -2009,6 +2030,28 @@ package LSP.Messages is
    type Optional_Document_Symbol_Capability is
      new Optional_Document_Symbol_Capabilities.Optional_Type;
 
+   type declaration_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      linkSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_declaration_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out declaration_Capability);
+
+   procedure Write_declaration_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : declaration_Capability);
+
+   for declaration_Capability'Read use Read_declaration_Capability;
+   for declaration_Capability'Write use Write_declaration_Capability;
+
+   package Optional_declaration_Capabilities is
+     new LSP.Generic_Optional (declaration_Capability);
+
+   type Optional_declaration_Capability is
+     new Optional_declaration_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
@@ -2020,6 +2063,7 @@ package LSP.Messages is
       formatting        : dynamicRegistration;
       rangeFormatting   : dynamicRegistration;
       onTypeFormatting  : dynamicRegistration;
+      declaration       : Optional_declaration_Capability;
       definition        : dynamicRegistration;
       typeDefinition    : dynamicRegistration;
       codeAction        : dynamicRegistration;

@@ -646,6 +646,24 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_DidSaveTextDocumentParams;
 
+   ---------------------------------
+   -- Read_declaration_Capability --
+   ---------------------------------
+
+   procedure Read_declaration_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out declaration_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Read_Optional_Boolean (JS, +"linkSupport", V.linkSupport);
+      JS.End_Object;
+   end Read_declaration_Capability;
+
    --------------------------
    -- Read_documentChanges --
    --------------------------
@@ -1786,6 +1804,8 @@ package body LSP.Messages is
       dynamicRegistration'Read (S, V.rangeFormatting);
       JS.Key ("onTypeFormatting");
       dynamicRegistration'Read (S, V.onTypeFormatting);
+      JS.Key ("declaration");
+      Optional_declaration_Capability'Read (S, V.declaration);
       JS.Key ("definition");
       dynamicRegistration'Read (S, V.definition);
       JS.Key ("typeDefinition");
@@ -2608,6 +2628,24 @@ package body LSP.Messages is
       Write_Optional_String (JS, +"text", V.text);
       JS.End_Object;
    end Write_DidSaveTextDocumentParams;
+
+   ----------------------------------
+   -- Write_declaration_Capability --
+   ----------------------------------
+
+   procedure Write_declaration_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : declaration_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Write_Optional_Boolean (JS, +"linkSupport", V.linkSupport);
+      JS.End_Object;
+   end Write_declaration_Capability;
 
    ---------------------------
    -- Write_documentChanges --
@@ -3740,6 +3778,8 @@ package body LSP.Messages is
       dynamicRegistration'Write (S, V.rangeFormatting);
       JS.Key ("onTypeFormatting");
       dynamicRegistration'Write (S, V.onTypeFormatting);
+      JS.Key ("declaration");
+      Optional_declaration_Capability'Write (S, V.declaration);
       JS.Key ("definition");
       dynamicRegistration'Write (S, V.definition);
       JS.Key ("typeDefinition");
