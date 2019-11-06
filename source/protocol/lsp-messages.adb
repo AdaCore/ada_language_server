@@ -1036,6 +1036,50 @@ package body LSP.Messages is
       end case;
    end Read_MarkedString;
 
+   ------------------------
+   -- Read_MarkupContent --
+   ------------------------
+
+   procedure Read_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupContent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      MarkupKind'Read (S, V.kind);
+      Read_String (JS, +"value", V.value);
+      JS.End_Object;
+   end Read_MarkupContent;
+
+   ---------------------
+   -- Read_MarkupKind --
+   ---------------------
+
+   procedure Read_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         if Standard.String'(Value.Get) = "markdown" then
+            V := markdown;
+            return;
+         end if;
+      end if;
+
+      V := plaintext;
+   end Read_MarkupKind;
+
+   ----------------------
+   -- Read_MessageType --
+   ----------------------
+
    procedure Read_MessageType
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -2855,6 +2899,43 @@ package body LSP.Messages is
          JS.End_Object;
       end if;
    end Write_MarkedString;
+
+   -------------------------
+   -- Write_MarkupContent --
+   -------------------------
+
+   procedure Write_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupContent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      MarkupKind'Write (S, V.kind);
+      Write_String (JS, +"value", V.value);
+      JS.End_Object;
+   end Write_MarkupContent;
+
+   ----------------------
+   -- Write_MarkupKind --
+   ----------------------
+
+   procedure Write_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      case V is
+         when plaintext =>
+            JS.Write (GNATCOLL.JSON.Create ("plaintext"));
+         when markdown =>
+            JS.Write (GNATCOLL.JSON.Create ("markdown"));
+      end case;
+   end Write_MarkupKind;
 
    -----------------------
    -- Write_MessageType --
