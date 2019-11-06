@@ -1542,7 +1542,48 @@ package LSP.Messages is
    --			 * that is typing in one will update others too.
    --			 */
    --			snippetSupport?: boolean;
+   --
+   --			/**
+   --			 * The client supports commit characters on a completion item.
+   --			 */
+   --			commitCharactersSupport?: boolean
+   --
+   --			/**
+   --			 * The client supports the following content formats for the documentation
+   --			 * property. The order describes the preferred format of the client.
+   --			 */
+   --			documentationFormat?: MarkupKind[];
+   --
+   --			/**
+   --			 * The client supports the deprecated property on a completion item.
+   --			 */
+   --			deprecatedSupport?: boolean;
+   --
+   --			/**
+   --			 * The client supports the preselect property on a completion item.
+   --			 */
+   --			preselectSupport?: boolean;
    --		}
+   --
+   --		completionItemKind?: {
+   --			/**
+   --			 * The completion item kind values the client supports. When this
+   --			 * property exists the client also guarantees that it will
+   --			 * handle values outside its set gracefully and falls back
+   --			 * to a default value when unknown.
+   --			 *
+   --			 * If this property is not present the client only supports
+   --			 * the completion items kinds from `Text` to `Reference` as defined in
+   --			 * the initial version of the protocol.
+   --			 */
+   --			valueSet?: CompletionItemKind[];
+   --		},
+   --
+   --		/**
+   --		 * The client supports to send additional context information for a
+   --		 * `textDocument/completion` request.
+   --		 */
+   --		contextSupport?: boolean;
    --	};
    --
    --	/**
@@ -1727,9 +1768,85 @@ package LSP.Messages is
    for synchronization'Read use Read_synchronization;
    for synchronization'Write use Write_synchronization;
 
+   type completionItemCapability is record
+      snippetSupport : Optional_Boolean;
+      commitCharactersSupport : Optional_Boolean;
+      documentationFormat : MarkupKind_Vector;
+      deprecatedSupport : Optional_Boolean;
+      preselectSupport : Optional_Boolean;
+   end record;
+
+   procedure Read_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out completionItemCapability);
+
+   procedure Write_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : completionItemCapability);
+
+   for completionItemCapability'Read use Read_completionItemCapability;
+   for completionItemCapability'Write use Write_completionItemCapability;
+
+   package Optional_completionItemCapabilities is
+     new LSP.Generic_Optional (completionItemCapability);
+
+   type Optional_completionItemCapability is
+     new Optional_completionItemCapabilities.Optional_Type;
+
+   type CompletionItemKind is (
+      Text,
+      Method,
+      A_Function,
+      Constructor,
+      Field,
+      Variable,
+      Class,
+      An_Interface,
+      Module,
+      Property,
+      Unit,
+      Value,
+      Enum,
+      Keyword,
+      Snippet,
+      Color,
+      File,
+      Reference,
+      Folder,
+      EnumMember,
+      A_Constant,
+      Struct,
+      Event,
+      Operator,
+      TypeParameter);
+
+   procedure Read_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItemKind);
+   procedure Write_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemKind);
+   for CompletionItemKind'Read use Read_CompletionItemKind;
+   for CompletionItemKind'Write use Write_CompletionItemKind;
+
+   package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind);
+
+   type CompletionItemKindSet is new CompletionItemKindSets.Set;
+
+   Default_CompletionItemKindSet : constant CompletionItemKindSet :=
+     To_Set (From => Text, To => Reference);
+
+   package Optional_CompletionItemKindSets is
+     new LSP.Generic_Optional (CompletionItemKindSet);
+
+   type Optional_CompletionItemKindSet is
+     new Optional_CompletionItemKindSets.Optional_Type;
+
    type completion is record
       dynamicRegistration : Optional_Boolean;
-      snippetSupport : Optional_Boolean;
+      completionItem : Optional_completionItemCapability;
+      completionItemKind : Optional_CompletionItemKindSet;
+      contextSupport : Optional_Boolean;
    end record;
 
    procedure Read_completion
@@ -3197,42 +3314,6 @@ package LSP.Messages is
 
    package Optional_InsertTextFormats is new LSP.Generic_Optional (InsertTextFormat);
    type Optional_InsertTextFormat is new Optional_InsertTextFormats.Optional_Type;
-
-   type CompletionItemKind is (
-      Text,
-      Method,
-      A_Function,
-      Constructor,
-      Field,
-      Variable,
-      Class,
-      An_Interface,
-      Module,
-      Property,
-      Unit,
-      Value,
-      Enum,
-      Keyword,
-      Snippet,
-      Color,
-      File,
-      Reference,
-      Folder,
-      EnumMember,
-      A_Constant,
-      Struct,
-      Event,
-      Operator,
-      TypeParameter);
-
-   procedure Read_CompletionItemKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItemKind);
-   procedure Write_CompletionItemKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItemKind);
-   for CompletionItemKind'Read use Read_CompletionItemKind;
-   for CompletionItemKind'Write use Write_CompletionItemKind;
 
    package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
    type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;

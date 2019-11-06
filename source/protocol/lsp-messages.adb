@@ -383,7 +383,16 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_Optional_Boolean
         (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
+      JS.Key ("completionItem");
+      Optional_completionItemCapability'Read (S, V.completionItem);
+
+      JS.Key ("completionItemKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_CompletionItemKindSet'Read (S, V.completionItemKind);
+      JS.End_Object;
+
+      Read_Optional_Boolean (JS, +"contextSupport", V.contextSupport);
       JS.End_Object;
    end Read_completion;
 
@@ -437,6 +446,30 @@ package body LSP.Messages is
       Optional_Command'Read (S, V.command);
       JS.End_Object;
    end Read_CompletionItem;
+
+   -----------------------------------
+   -- Read_completionItemCapability --
+   -----------------------------------
+
+   procedure Read_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out completionItemCapability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
+      Read_Optional_Boolean
+        (JS, +"commitCharactersSupport", V.commitCharactersSupport);
+
+      JS.Key ("documentationFormat");
+      MarkupKind_Vector'Read (S, V.documentationFormat);
+      Read_Optional_Boolean (JS, +"deprecatedSupport", V.deprecatedSupport);
+      Read_Optional_Boolean (JS, +"preselectSupport", V.preselectSupport);
+
+      JS.End_Object;
+   end Read_completionItemCapability;
 
    -----------------------------
    -- Read_CompletionItemKind --
@@ -2246,7 +2279,16 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_Optional_Boolean
         (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Write_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
+      JS.Key ("completionItem");
+      Optional_completionItemCapability'Write (S, V.completionItem);
+
+      JS.Key ("completionItemKind");
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_CompletionItemKindSet'Write (S, V.completionItemKind);
+      JS.End_Object;
+
+      Write_Optional_Boolean (JS, +"contextSupport", V.contextSupport);
       JS.End_Object;
    end Write_completion;
 
@@ -2285,6 +2327,30 @@ package body LSP.Messages is
       Optional_Command'Write (S, V.command);
       JS.End_Object;
    end Write_CompletionItem;
+
+   ------------------------------------
+   -- Write_completionItemCapability --
+   ------------------------------------
+
+   procedure Write_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : completionItemCapability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
+      Write_Optional_Boolean
+        (JS, +"commitCharactersSupport", V.commitCharactersSupport);
+
+      JS.Key ("documentationFormat");
+      MarkupKind_Vector'Write (S, V.documentationFormat);
+      Write_Optional_Boolean (JS, +"deprecatedSupport", V.deprecatedSupport);
+      Write_Optional_Boolean (JS, +"preselectSupport", V.preselectSupport);
+
+      JS.End_Object;
+   end Write_completionItemCapability;
 
    ------------------------------
    -- Write_CompletionItemKind --
