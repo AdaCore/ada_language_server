@@ -1250,6 +1250,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ParameterInformation;
 
+   ------------------------------------------
+   -- Read_parameterInformation_Capability --
+   ------------------------------------------
+
+   procedure Read_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out parameterInformation_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean (JS, +"labelOffsetSupport", V.labelOffsetSupport);
+      JS.End_Object;
+   end Read_parameterInformation_Capability;
+
    -------------------
    -- Read_Position --
    -------------------
@@ -1503,6 +1519,26 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ServerCapabilities;
 
+   -----------------------------------
+   -- Read_signatureHelp_Capability --
+   -----------------------------------
+
+   procedure Read_signatureHelp_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out signatureHelp_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      JS.Key ("signatureInformation");
+      Optional_signatureInformation_Capability'Read
+        (S, V.signatureInformation);
+      JS.End_Object;
+   end Read_signatureHelp_Capability;
+
    -------------------------------
    -- Read_SignatureInformation --
    -------------------------------
@@ -1521,6 +1557,26 @@ package body LSP.Messages is
       ParameterInformation_Vector'Read (S, V.parameters);
       JS.End_Object;
    end Read_SignatureInformation;
+
+   ------------------------------------------
+   -- Read_signatureInformation_Capability --
+   ------------------------------------------
+
+   procedure Read_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out signatureInformation_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentationFormat");
+      Optional_MarkupKind_Vector'Read (S, V.documentationFormat);
+      JS.Key ("parameterInformation");
+      Optional_parameterInformation_Capability'Read
+        (S, V.parameterInformation);
+      JS.End_Object;
+   end Read_signatureInformation_Capability;
 
    ------------------------
    -- Read_SignatureHelp --
@@ -1717,7 +1773,7 @@ package body LSP.Messages is
       JS.Key ("hover");
       Optional_Hover_Capability'Read (S, V.hover);
       JS.Key ("signatureHelp");
-      dynamicRegistration'Read (S, V.signatureHelp);
+      Optional_signatureHelp_Capability'Read (S, V.signatureHelp);
       JS.Key ("references");
       dynamicRegistration'Read (S, V.references);
       JS.Key ("documentHighlight");
@@ -3161,6 +3217,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ParameterInformation;
 
+   -------------------------------------------
+   -- Write_parameterInformation_Capability --
+   -------------------------------------------
+
+   procedure Write_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : parameterInformation_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean (JS, +"labelOffsetSupport", V.labelOffsetSupport);
+      JS.End_Object;
+   end Write_parameterInformation_Capability;
+
    --------------------
    -- Write_Position --
    --------------------
@@ -3480,6 +3552,26 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_SignatureHelpOptions;
 
+   ------------------------------------
+   -- Write_signatureHelp_Capability --
+   ------------------------------------
+
+   procedure Write_signatureHelp_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : signatureHelp_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      JS.Key ("signatureInformation");
+      Optional_signatureInformation_Capability'Write
+        (S, V.signatureInformation);
+      JS.End_Object;
+   end Write_signatureHelp_Capability;
+
    --------------------------------
    -- Write_SignatureInformation --
    --------------------------------
@@ -3498,6 +3590,26 @@ package body LSP.Messages is
       ParameterInformation_Vector'Write (S, V.parameters);
       JS.End_Object;
    end Write_SignatureInformation;
+
+   -------------------------------------------
+   -- Write_signatureInformation_Capability --
+   -------------------------------------------
+
+   procedure Write_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : signatureInformation_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentationFormat");
+      Optional_MarkupKind_Vector'Write (S, V.documentationFormat);
+      JS.Key ("parameterInformation");
+      Optional_parameterInformation_Capability'Write
+        (S, V.parameterInformation);
+      JS.End_Object;
+   end Write_signatureInformation_Capability;
 
    ----------------
    -- Write_Span --
@@ -3615,7 +3727,7 @@ package body LSP.Messages is
       JS.Key ("hover");
       Optional_Hover_Capability'Write (S, V.hover);
       JS.Key ("signatureHelp");
-      dynamicRegistration'Write (S, V.signatureHelp);
+      Optional_signatureHelp_Capability'Write (S, V.signatureHelp);
       JS.Key ("references");
       dynamicRegistration'Write (S, V.references);
       JS.Key ("documentHighlight");

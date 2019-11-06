@@ -1616,6 +1616,29 @@ package LSP.Messages is
    --		 * Whether signature help supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * The client supports the following `SignatureInformation`
+   --		 * specific properties.
+   --		 */
+   --		signatureInformation?: {
+   --			/**
+   --			 * The client supports the follow content formats for the documentation
+   --			 * property. The order describes the preferred format of the client.
+   --			 */
+   --			documentationFormat?: MarkupKind[];
+   --
+   --			/**
+   --			 * Client capabilities specific to parameter information.
+   --			 */
+   --			parameterInformation?: {
+   --				/**
+   --				 * The client supports processing label offsets instead of a
+   --				 * simple label string.
+   --				 */
+   --				labelOffsetSupport?: boolean;
+   --			}
+   --		};
    --	};
    --
    --	/**
@@ -1894,6 +1917,75 @@ package LSP.Messages is
    type Optional_Hover_Capability is
      new Optional_Hover_Capabilities.Optional_Type;
 
+   type parameterInformation_Capability is record
+      labelOffsetSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out parameterInformation_Capability);
+
+   procedure Write_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : parameterInformation_Capability);
+
+   for parameterInformation_Capability'Read
+     use Read_parameterInformation_Capability;
+   for parameterInformation_Capability'Write
+     use Write_parameterInformation_Capability;
+
+   package Optional_parameterInformation_Capabilities is
+     new LSP.Generic_Optional (parameterInformation_Capability);
+
+   type Optional_parameterInformation_Capability is
+     new Optional_parameterInformation_Capabilities.Optional_Type;
+
+   type signatureInformation_Capability is record
+      documentationFormat: Optional_MarkupKind_Vector;
+      parameterInformation: Optional_parameterInformation_Capability;
+   end record;
+
+   procedure Read_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out signatureInformation_Capability);
+
+   procedure Write_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : signatureInformation_Capability);
+
+   for signatureInformation_Capability'Read
+     use Read_signatureInformation_Capability;
+   for signatureInformation_Capability'Write
+     use Write_signatureInformation_Capability;
+
+   package Optional_signatureInformation_Capabilities is
+     new LSP.Generic_Optional (signatureInformation_Capability);
+
+   type Optional_signatureInformation_Capability is
+     new Optional_signatureInformation_Capabilities.Optional_Type;
+
+   type signatureHelp_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      signatureInformation: Optional_signatureInformation_Capability;
+   end record;
+
+   procedure Read_signatureHelp_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out signatureHelp_Capability);
+
+   procedure Write_signatureHelp_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : signatureHelp_Capability);
+
+   for signatureHelp_Capability'Read use Read_signatureHelp_Capability;
+   for signatureHelp_Capability'Write use Write_signatureHelp_Capability;
+
+   package Optional_signatureHelp_Capabilities is
+     new LSP.Generic_Optional (signatureHelp_Capability);
+
+   type Optional_signatureHelp_Capability is
+     new Optional_signatureHelp_Capabilities.Optional_Type;
+
    type Document_Symbol_Capability is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
@@ -1921,7 +2013,7 @@ package LSP.Messages is
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
       hover             : Optional_Hover_Capability;
-      signatureHelp     : dynamicRegistration;
+      signatureHelp     : Optional_signatureHelp_Capability;
       references        : dynamicRegistration;
       documentHighlight : dynamicRegistration;
       documentSymbol    : Optional_Document_Symbol_Capability;
