@@ -1635,6 +1635,8 @@ package LSP.Messages is
    --				/**
    --				 * The client supports processing label offsets instead of a
    --				 * simple label string.
+   --				 *
+   --				 * Since 3.14.0
    --				 */
    --				labelOffsetSupport?: boolean;
    --			}
@@ -1752,18 +1754,54 @@ package LSP.Messages is
    --		 * Whether definition supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * The client supports additional metadata in the form of definition links.
+   --		 */
+   --		linkSupport?: boolean;
    --	};
    --
    --	/**
    --	 * Capabilities specific to the `textDocument/typeDefinition`
+   --	 *
+   --	 * Since 3.6.0
    --	 */
-   --  	typeDefinition?: {
-   --  		/**
-   --  		 * Whether typeDefinition supports dynamic registration.
-   --            */
-   --  		dynamicRegistration?: boolean;
-   --  	};
+   --	typeDefinition?: {
+   --		/**
+   --		 * Whether typeDefinition supports dynamic registration. If this is set to `true`
+   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --		 * return value for the corresponding server capability as well.
+   --		 */
+   --		dynamicRegistration?: boolean;
    --
+   --		/**
+   --		 * The client supports additional metadata in the form of definition links.
+   --		 *
+   --		 * Since 3.14.0
+   --		 */
+   --		linkSupport?: boolean;
+   --	};
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/implementation`.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	implementation?: {
+   --		/**
+   --		 * Whether implementation supports dynamic registration. If this is set to `true`
+   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --		 * return value for the corresponding server capability as well.
+   --		 */
+   --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * The client supports additional metadata in the form of definition links.
+   --		 *
+   --		 * Since 3.14.0
+   --		 */
+   --		linkSupport?: boolean;
+   --	};
    --
    --	/**
    --	 * Capabilities specific to the `textDocument/codeAction`
@@ -2052,6 +2090,12 @@ package LSP.Messages is
    type Optional_declaration_Capability is
      new Optional_declaration_Capabilities.Optional_Type;
 
+   subtype Optional_definition_Capability is Optional_declaration_Capability;
+   subtype Optional_typeDefinition_Capability is
+     Optional_declaration_Capability;
+   subtype Optional_implementation_Capability is
+     Optional_declaration_Capability;
+
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
@@ -2064,8 +2108,9 @@ package LSP.Messages is
       rangeFormatting   : dynamicRegistration;
       onTypeFormatting  : dynamicRegistration;
       declaration       : Optional_declaration_Capability;
-      definition        : dynamicRegistration;
-      typeDefinition    : dynamicRegistration;
+      definition        : Optional_definition_Capability;
+      typeDefinition    : Optional_typeDefinition_Capability;
+      implementation    : Optional_implementation_Capability;
       codeAction        : dynamicRegistration;
       codeLens          : dynamicRegistration;
       documentLink      : dynamicRegistration;

@@ -1807,9 +1807,11 @@ package body LSP.Messages is
       JS.Key ("declaration");
       Optional_declaration_Capability'Read (S, V.declaration);
       JS.Key ("definition");
-      dynamicRegistration'Read (S, V.definition);
+      Optional_definition_Capability'Read (S, V.definition);
       JS.Key ("typeDefinition");
-      dynamicRegistration'Read (S, V.typeDefinition);
+      Optional_typeDefinition_Capability'Read (S, V.typeDefinition);
+      JS.Key ("implementation");
+      Optional_implementation_Capability'Read (S, V.implementation);
       JS.Key ("codeAction");
       dynamicRegistration'Read (S, V.codeAction);
       JS.Key ("codeLens");
@@ -3781,9 +3783,11 @@ package body LSP.Messages is
       JS.Key ("declaration");
       Optional_declaration_Capability'Write (S, V.declaration);
       JS.Key ("definition");
-      dynamicRegistration'Write (S, V.definition);
+      Optional_definition_Capability'Write (S, V.definition);
       JS.Key ("typeDefinition");
-      dynamicRegistration'Write (S, V.typeDefinition);
+      Optional_typeDefinition_Capability'Write (S, V.typeDefinition);
+      JS.Key ("implementation");
+      Optional_implementation_Capability'Write (S, V.implementation);
       JS.Key ("codeAction");
       dynamicRegistration'Write (S, V.codeAction);
       JS.Key ("codeLens");
