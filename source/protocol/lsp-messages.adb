@@ -1715,7 +1715,7 @@ package body LSP.Messages is
       JS.Key ("completion");
       completion'Read (S, V.completion);
       JS.Key ("hover");
-      dynamicRegistration'Read (S, V.hover);
+      Optional_Hover_Capability'Read (S, V.hover);
       JS.Key ("signatureHelp");
       dynamicRegistration'Read (S, V.signatureHelp);
       JS.Key ("references");
@@ -2740,6 +2740,44 @@ package body LSP.Messages is
    end Write_Hover;
 
    ----------------------------
+   -- Write_Hover_Capability --
+   ----------------------------
+
+   procedure Write_Hover_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Hover_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      JS.Key ("contentFormat");
+      Optional_MarkupKind_Vector'Write (S, V.contentFormat);
+      JS.End_Object;
+   end Write_Hover_Capability;
+
+   ---------------------------
+   -- Read_Hover_Capability --
+   ---------------------------
+
+   procedure Read_Hover_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Hover_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      JS.Key ("contentFormat");
+      Optional_MarkupKind_Vector'Read (S, V.contentFormat);
+      JS.End_Object;
+   end Read_Hover_Capability;
+
+   ----------------------------
    -- Write_InitializeParams --
    ----------------------------
 
@@ -3575,7 +3613,7 @@ package body LSP.Messages is
       JS.Key ("completion");
       completion'Write (S, V.completion);
       JS.Key ("hover");
-      dynamicRegistration'Write (S, V.hover);
+      Optional_Hover_Capability'Write (S, V.hover);
       JS.Key ("signatureHelp");
       dynamicRegistration'Write (S, V.signatureHelp);
       JS.Key ("references");

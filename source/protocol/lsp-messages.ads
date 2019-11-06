@@ -1474,6 +1474,12 @@ package LSP.Messages is
    package MarkupKind_Vectors is new LSP.Generic_Vectors (MarkupKind);
    type MarkupKind_Vector is new MarkupKind_Vectors.Vector with null record;
 
+   package Optional_MarkupKind_Vectors is
+     new LSP.Generic_Optional (MarkupKind_Vector);
+
+   type Optional_MarkupKind_Vector is
+     new Optional_MarkupKind_Vectors.Optional_Type;
+
    type MarkupContent is record
       kind  : MarkupKind;
       value : LSP_String;
@@ -1594,6 +1600,12 @@ package LSP.Messages is
    --		 * Whether hover supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --
+   --		/**
+   --		 * The client supports the follow content formats for the content
+   --		 * property. The order describes the preferred format of the client.
+   --		 */
+   --		contentFormat?: MarkupKind[];
    --	};
    --
    --	/**
@@ -1860,6 +1872,28 @@ package LSP.Messages is
    for completion'Read use Read_completion;
    for completion'Write use Write_completion;
 
+   type Hover_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      contentFormat: Optional_MarkupKind_Vector;
+   end record;
+
+   procedure Read_Hover_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Hover_Capability);
+
+   procedure Write_Hover_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Hover_Capability);
+
+   for Hover_Capability'Read use Read_Hover_Capability;
+   for Hover_Capability'Write use Write_Hover_Capability;
+
+   package Optional_Hover_Capabilities is
+     new LSP.Generic_Optional (Hover_Capability);
+
+   type Optional_Hover_Capability is
+     new Optional_Hover_Capabilities.Optional_Type;
+
    type Document_Symbol_Capability is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
@@ -1886,7 +1920,7 @@ package LSP.Messages is
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
-      hover             : dynamicRegistration;
+      hover             : Optional_Hover_Capability;
       signatureHelp     : dynamicRegistration;
       references        : dynamicRegistration;
       documentHighlight : dynamicRegistration;
