@@ -1362,37 +1362,29 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_RenameParams;
 
-   -----------------------------------
-   -- Read_ResourceOperationKindSet --
-   -----------------------------------
+   --------------------------------
+   -- Read_ResourceOperationKind --
+   --------------------------------
 
-   procedure Read_ResourceOperationKindSet
+   procedure Read_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResourceOperationKindSet)
+      V : out ResourceOperationKind)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+      Text  : constant GNATCOLL.JSON.UTF8_String := Value.Get;
    begin
-      V := (others => False);
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-            Text  : constant GNATCOLL.JSON.UTF8_String := Value.Get;
-         begin
-            if Text = "create" then
-               V (create) := True;
-            elsif Text = "rename" then
-               V (rename) := True;
-            elsif Text = "delete" then
-               V (delete) := True;
-            else
-               null;
-            end if;
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_ResourceOperationKindSet;
+      if Text = "create" then
+         V := create;
+      elsif Text = "rename" then
+         V := rename;
+      elsif Text = "delete" then
+         V := delete;
+      else
+         V := create;
+      end if;
+   end Read_ResourceOperationKind;
 
    ------------------------
    -- Read_ResponseError --
@@ -1652,30 +1644,6 @@ package body LSP.Messages is
    begin
       V := SymbolKind'Val (JS.Read.Get - 1);
    end Read_SymbolKind;
-
-   ------------------------
-   -- Read_SymbolKindSet --
-   ------------------------
-
-   procedure Read_SymbolKindSet
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolKindSet)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := (others => False);
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
-         declare
-            Key : SymbolKind;
-         begin
-            SymbolKind'Read (S, Key);
-            V (Key) := True;
-         end;
-      end loop;
-      JS.End_Array;
-   end Read_SymbolKindSet;
 
    --------------------------
    -- Read_synchronization --
@@ -3224,13 +3192,13 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_RenameParams;
 
-   ------------------------------------
-   -- Write_ResourceOperationKindSet --
-   ------------------------------------
+   ---------------------------------
+   -- Write_ResourceOperationKind --
+   ---------------------------------
 
-   procedure Write_ResourceOperationKindSet
+   procedure Write_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResourceOperationKindSet)
+      V : ResourceOperationKind)
    is
       function To_String
         (Value : ResourceOperationKind)
@@ -3257,16 +3225,8 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Array;
-
-      for K in V'Range loop
-         if V (K) then
-            JS.Write (GNATCOLL.JSON.Create (To_String (K)));
-         end if;
-      end loop;
-
-      JS.End_Array;
-   end Write_ResourceOperationKindSet;
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_ResourceOperationKind;
 
    -------------------------
    -- Write_ResponseError --
@@ -3511,33 +3471,6 @@ package body LSP.Messages is
         (GNATCOLL.JSON.Create
            (Integer'(SymbolKind'Pos (V)) + 1));
    end Write_SymbolKind;
-
-   -------------------------
-   -- Write_SymbolKindSet --
-   -------------------------
-
-   procedure Write_SymbolKindSet
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolKindSet)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V = (SymbolKind => False) then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-         return;
-      end if;
-
-      JS.Start_Array;
-
-      for K in V'Range loop
-         if V (K) then
-            SymbolKind'Write (S, K);
-         end if;
-      end loop;
-
-      JS.End_Array;
-   end Write_SymbolKindSet;
 
    ---------------------------
    -- Write_synchronization --
