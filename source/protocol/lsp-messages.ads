@@ -26,10 +26,11 @@
 --
 
 with Ada.Containers.Hashed_Maps;
-with LSP.Generic_Vectors;
 with Ada.Streams;
 
 with LSP.Generic_Optional;
+with LSP.Generic_Sets;
+with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
@@ -1255,18 +1256,21 @@ package LSP.Messages is
 
    type ResourceOperationKind is (create, rename, delete);
 
-   type ResourceOperationKindSet is array (ResourceOperationKind) of Boolean;
-
-   procedure Read_ResourceOperationKindSet
+   procedure Read_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResourceOperationKindSet);
+      V : out ResourceOperationKind);
 
-   procedure Write_ResourceOperationKindSet
+   procedure Write_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResourceOperationKindSet);
+      V : ResourceOperationKind);
 
-   for ResourceOperationKindSet'Read use Read_ResourceOperationKindSet;
-   for ResourceOperationKindSet'Write use Write_ResourceOperationKindSet;
+   for ResourceOperationKind'Read use Read_ResourceOperationKind;
+   for ResourceOperationKind'Write use Write_ResourceOperationKind;
+
+   package ResourceOperationKindSets is
+     new LSP.Generic_Sets (ResourceOperationKind);
+
+   type ResourceOperationKindSet is new ResourceOperationKindSets.Set;
 
    package Optional_ResourceOperationKindSets is
      new LSP.Generic_Optional (ResourceOperationKindSet);
@@ -1340,21 +1344,12 @@ package LSP.Messages is
    for SymbolKind'Read use Read_SymbolKind;
    for SymbolKind'Write use Write_SymbolKind;
 
-   type SymbolKindSet is array (SymbolKind) of Boolean;
+   package SymbolKindSets is new LSP.Generic_Sets (SymbolKind);
 
-   procedure Read_SymbolKindSet
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolKindSet);
-
-   procedure Write_SymbolKindSet
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolKindSet);
-
-   for SymbolKindSet'Read use Read_SymbolKindSet;
-   for SymbolKindSet'Write use Write_SymbolKindSet;
+   type SymbolKindSet is new SymbolKindSets.Set;
 
    Default_SymbolKindSet : constant SymbolKindSet :=
-     (File .. An_Array => True, others => False);
+     To_Set (From => File, To => An_Array);
 
    package Optional_SymbolKindSets is
      new LSP.Generic_Optional (SymbolKindSet);
