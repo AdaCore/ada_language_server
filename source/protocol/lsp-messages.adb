@@ -932,6 +932,63 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Location;
 
+   -----------------------
+   -- Read_LocationLink --
+   -----------------------
+
+   procedure Read_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LocationLink)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("originSelectionRange");
+      Optional_Span'Read (S, V.originSelectionRange);
+      Read_String (JS, +"targetUri", V.targetUri);
+      JS.Key ("targetRange");
+      Span'Read (S, V.targetRange);
+      JS.Key ("targetSelectionRange");
+      Span'Read (S, V.targetSelectionRange);
+      JS.Key ("alsKind");
+      AlsReferenceKind_Set'Read (S, V.alsKind);
+      JS.End_Object;
+   end Read_LocationLink;
+
+   ----------------------------------
+   -- Read_Location_Or_Link_Vector --
+   ----------------------------------
+
+   procedure Read_Location_Or_Link_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Location_Or_Link_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Look_Ahead.Kind not in GNATCOLL.JSON.JSON_Array_Type then
+         V := (Kind => Empty_Vector_Kind);
+         return;
+      end if;
+
+      declare
+         Vector : constant GNATCOLL.JSON.JSON_Array := Look_Ahead.Get;
+      begin
+         if GNATCOLL.JSON.Length (Vector) = 0 then
+            V := (Kind => Empty_Vector_Kind);
+            return;
+         elsif GNATCOLL.JSON.Get (Vector, 1).Has_Field ("uri") then
+            V := (Kind => Location_Vector_Kind, Locations => <>);
+            Location_Vector'Read (S, V.Locations);
+         else
+            V := (Kind => LocationLink_Vector_Kind, LocationLinks => <>);
+            LocationLink_Vector'Read (S, V.LocationLinks);
+         end if;
+      end;
+   end Read_Location_Or_Link_Vector;
+
    ---------------------------
    -- Read_LogMessageParams --
    ---------------------------
@@ -2715,6 +2772,51 @@ package body LSP.Messages is
       AlsReferenceKind_Set'Write (S, V.alsKind);
       JS.End_Object;
    end Write_Location;
+
+   ------------------------
+   -- Write_LocationLink --
+   ------------------------
+
+   procedure Write_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LocationLink)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("originSelectionRange");
+      Optional_Span'Write (S, V.originSelectionRange);
+      Write_String (JS, +"targetUri", V.targetUri);
+      JS.Key ("targetRange");
+      Span'Write (S, V.targetRange);
+      JS.Key ("targetSelectionRange");
+      Span'Write (S, V.targetSelectionRange);
+      JS.Key ("alsKind");
+      AlsReferenceKind_Set'Write (S, V.alsKind);
+      JS.End_Object;
+   end Write_LocationLink;
+
+   -----------------------------------
+   -- Write_Location_Or_Link_Vector --
+   -----------------------------------
+
+   procedure Write_Location_Or_Link_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Location_Or_Link_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      case V.Kind is
+         when Empty_Vector_Kind =>
+            JS.Write (GNATCOLL.JSON.JSON_Null);
+         when Location_Vector_Kind =>
+            Location_Vector'Write (S, V.Locations);
+         when LocationLink_Vector_Kind =>
+            LocationLink_Vector'Write (S, V.LocationLinks);
+      end case;
+   end Write_Location_Or_Link_Vector;
 
    ----------------------------
    -- Write_LogMessageParams --

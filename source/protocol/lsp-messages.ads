@@ -388,6 +388,84 @@ package LSP.Messages is
 
    type Location_Vector is new Location_Vectors.Vector with null record;
 
+   --```typescript
+   --interface LocationLink {
+   --
+   --	/**
+   --	 * Span of the origin of this link.
+   --	 *
+   --	 * Used as the underlined span for mouse interaction. Defaults to the word range at
+   --	 * the mouse position.
+   --	 */
+   --	originSelectionRange?: Range;
+   --
+   --	/**
+   --	 * The target resource identifier of this link.
+   --	 */
+   --	targetUri: DocumentUri;
+   --
+   --	/**
+   --	 * The full target range of this link. If the target for example is a symbol then target range is the
+   --	 * range enclosing this symbol not including leading/trailing whitespace but everything else
+   --	 * like comments. This information is typically used to highlight the range in the editor.
+   --	 */
+   --	targetRange: Range;
+   --
+   --	/**
+   --	 * The range that should be selected and revealed when this link is being followed, e.g the name of a function.
+   --	 * Must be contained by the the `targetRange`. See also `DocumentSymbol#range`
+   --	 */
+   --	targetSelectionRange: Range;
+   --}
+   --```
+   type LocationLink is record
+      originSelectionRange : Optional_Span;
+      targetUri            : LSP_String;
+      targetRange          : Span;
+      targetSelectionRange : Span;
+      alsKind              : AlsReferenceKind_Set := Empty_Set;
+   end record;
+
+   procedure Read_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LocationLink);
+   procedure Write_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LocationLink);
+   for LocationLink'Read use Read_LocationLink;
+   for LocationLink'Write use Write_LocationLink;
+
+   package LocationLink_Vectors is new LSP.Generic_Vectors (LocationLink);
+
+   type LocationLink_Vector is new LocationLink_Vectors.Vector with null record;
+
+   type Location_Or_Link_Kind is
+     (Empty_Vector_Kind,
+      Location_Vector_Kind,
+      LocationLink_Vector_Kind);
+
+   type Location_Or_Link_Vector
+     (Kind : Location_Or_Link_Kind := Empty_Vector_Kind) is
+   record
+      case Kind is
+         when Empty_Vector_Kind =>
+            null;
+         when Location_Vector_Kind =>
+            Locations : Location_Vector;
+         when LocationLink_Vector_Kind =>
+            LocationLinks : LocationLink_Vector;
+      end case;
+   end record;
+
+   procedure Read_Location_Or_Link_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Location_Or_Link_Vector);
+   procedure Write_Location_Or_Link_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Location_Or_Link_Vector);
+   for Location_Or_Link_Vector'Read use Read_Location_Or_Link_Vector;
+   for Location_Or_Link_Vector'Write use Write_Location_Or_Link_Vector;
+
    --
    --```typescript
    --namespace DiagnosticSeverity {
