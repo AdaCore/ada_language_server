@@ -1408,6 +1408,94 @@ package LSP.Messages is
 
    --```typescript
    --/**
+   -- * Describes the content type that a client supports in various
+   -- * result literals like `Hover`, `ParameterInfo` or `CompletionItem`.
+   -- *
+   -- * Please note that `MarkupKinds` must not start with a `$`. This kinds
+   -- * are reserved for internal usage.
+   -- */
+   --export namespace MarkupKind {
+   --	/**
+   --	 * Plain text is supported as a content format
+   --	 */
+   --	export const PlainText: 'plaintext' = 'plaintext';
+   --
+   --	/**
+   --	 * Markdown is supported as a content format
+   --	 */
+   --	export const Markdown: 'markdown' = 'markdown';
+   --}
+   --export type MarkupKind = 'plaintext' | 'markdown';
+   --
+   --/**
+   -- * A `MarkupContent` literal represents a string value which content is interpreted base on its
+   -- * kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.
+   -- *
+   -- * If the kind is `markdown` then the value can contain fenced code blocks like in GitHub issues.
+   -- * See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+   -- *
+   -- * Here is an example how such a string can be constructed using JavaScript / TypeScript:
+   -- * ```typescript
+   -- * let markdown: MarkdownContent = {
+   -- *  kind: MarkupKind.Markdown,
+   -- *	value: [
+   -- *		'# Header',
+   -- *		'Some text',
+   -- *		'```typescript',
+   -- *		'someCode();',
+   -- *		'```'
+   -- *	].join('\n')
+   -- * };
+   -- * ```
+   -- *
+   -- * *Please Note* that clients might sanitize the return markdown. A client could decide to
+   -- * remove HTML from the markdown to avoid script execution.
+   -- */
+   --export interface MarkupContent {
+   --	/**
+   --	 * The type of the Markup
+   --	 */
+   --	kind: MarkupKind;
+   --
+   --	/**
+   --	 * The content itself
+   --	 */
+   --	value: string;
+   --}
+   --```
+
+   type MarkupKind is (plaintext, markdown);
+
+   procedure Read_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupKind);
+
+   procedure Write_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupKind);
+   for MarkupKind'Read use Read_MarkupKind;
+   for MarkupKind'Write use Write_MarkupKind;
+
+   package MarkupKind_Vectors is new LSP.Generic_Vectors (MarkupKind);
+   type MarkupKind_Vector is new MarkupKind_Vectors.Vector with null record;
+
+   type MarkupContent is record
+      kind  : MarkupKind;
+      value : LSP_String;
+   end record;
+
+   procedure Read_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupContent);
+
+   procedure Write_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupContent);
+   for MarkupContent'Read use Read_MarkupContent;
+   for MarkupContent'Write use Write_MarkupContent;
+
+   --```typescript
+   --/**
    -- * Text document specific client capabilities.
    -- */
    --export interface TextDocumentClientCapabilities {
