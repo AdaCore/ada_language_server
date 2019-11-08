@@ -314,6 +314,37 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CodeActionContext;
 
+   -------------------------
+   -- Read_CodeActionKind --
+   -------------------------
+
+   procedure Read_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Text : constant Standard.String := JS.Read.Get;
+   begin
+      if Text = "quickfix" then
+         V := QuickFix;
+      elsif Text = "refactor" then
+         V := Refactor;
+      elsif Text = "refactor.extract" then
+         V := RefactorExtract;
+      elsif Text = "refactor.inline" then
+         V := RefactorInline;
+      elsif Text = "refactor.rewrite" then
+         V := RefactorRewrite;
+      elsif Text = "source" then
+         V := Source;
+      elsif Text = "source.organizeImports" then
+         V := SourceOrganizeImports;
+      else
+         V := Empty;
+      end if;
+   end Read_CodeActionKind;
+
    ---------------------------
    -- Read_CodeActionParams --
    ---------------------------
@@ -2281,6 +2312,49 @@ package body LSP.Messages is
       Diagnostic_Vector'Write (S, V.diagnostics);
       JS.End_Object;
    end Write_CodeActionContext;
+
+   --------------------------
+   -- Write_CodeActionKind --
+   --------------------------
+
+   procedure Write_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function Image (V : CodeActionKind) return GNATCOLL.JSON.UTF8_String;
+
+      -----------
+      -- Image --
+      -----------
+
+      function Image (V : CodeActionKind) return GNATCOLL.JSON.UTF8_String is
+      begin
+         case V is
+            when Empty =>
+               return "";
+            when QuickFix =>
+               return "quickfix";
+            when Refactor =>
+               return "refactor";
+            when RefactorExtract =>
+               return "refactor.extract";
+            when RefactorInline =>
+               return "refactor.inline";
+            when RefactorRewrite =>
+               return "refactor.rewrite";
+            when Source =>
+               return "source";
+            when SourceOrganizeImports =>
+               return "source.organizeImports";
+         end case;
+      end Image;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (Image (V)));
+   end Write_CodeActionKind;
 
    ----------------------------
    -- Write_CodeActionParams --
