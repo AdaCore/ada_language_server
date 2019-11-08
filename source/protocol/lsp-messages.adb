@@ -1503,6 +1503,24 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_RenameParams;
 
+   ----------------------------
+   -- Read_rename_Capability --
+   ----------------------------
+
+   procedure Read_rename_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out rename_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Read_Optional_Boolean (JS, +"prepareSupport", V.prepareSupport);
+      JS.End_Object;
+   end Read_rename_Capability;
+
    --------------------------------
    -- Read_ResourceOperationKind --
    --------------------------------
@@ -1895,7 +1913,7 @@ package body LSP.Messages is
       JS.Key ("colorProvider");
       dynamicRegistration'Read (S, V.colorProvider);
       JS.Key ("rename");
-      dynamicRegistration'Read (S, V.rename);
+      Optional_rename_Capability'Read (S, V.rename);
       JS.End_Object;
    end Read_TextDocumentClientCapabilities;
 
@@ -3569,6 +3587,24 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_RenameParams;
 
+   -----------------------------
+   -- Write_rename_Capability --
+   -----------------------------
+
+   procedure Write_rename_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : rename_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Write_Optional_Boolean (JS, +"prepareSupport", V.prepareSupport);
+      JS.End_Object;
+   end Write_rename_Capability;
+
    ---------------------------------
    -- Write_ResourceOperationKind --
    ---------------------------------
@@ -3958,7 +3994,7 @@ package body LSP.Messages is
       JS.Key ("colorProvider");
       dynamicRegistration'Write (S, V.colorProvider);
       JS.Key ("rename");
-      dynamicRegistration'Write (S, V.rename);
+      Optional_rename_Capability'Write (S, V.rename);
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
 
