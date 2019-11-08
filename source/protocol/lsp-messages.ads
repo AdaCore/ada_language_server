@@ -340,6 +340,11 @@ package LSP.Messages is
    for CodeActionKind'Read use Read_CodeActionKind;
    for CodeActionKind'Write use Write_CodeActionKind;
 
+   package CodeActionKindSets is
+     new LSP.Generic_Sets (CodeActionKind);
+
+   type CodeActionKindSet is new CodeActionKindSets.Set;
+
    --  reference_kinds ALS extension:
    --
    --  export type AlsReferenceKind = 'w' | 'c' | 'd';
@@ -1830,6 +1835,28 @@ package LSP.Messages is
    --		 * Whether code action supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --		/**
+   --		 * The client support code action literals as a valid
+   --		 * response of the `textDocument/codeAction` request.
+   --		 *
+   --		 * Since 3.8.0
+   --		 */
+   --		codeActionLiteralSupport?: {
+   --			/**
+   --			 * The code action kind is support with the following value
+   --			 * set.
+   --			 */
+   --			codeActionKind: {
+   --
+   --				/**
+   --				 * The code action kind values the client supports. When this
+   --				 * property exists the client also guarantees that it will
+   --				 * handle values outside its set gracefully and falls back
+   --				 * to a default value when unknown.
+   --				 */
+   --				valueSet: CodeActionKind[];
+   --			};
+   --		};
    --	};
    --
    --	/**
@@ -2115,6 +2142,49 @@ package LSP.Messages is
    subtype Optional_implementation_Capability is
      Optional_declaration_Capability;
 
+   type codeActionLiteralSupport_Capability is record
+      codeActionKind: CodeActionKindSet;
+   end record;
+
+   procedure Read_codeActionLiteralSupport_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out codeActionLiteralSupport_Capability);
+
+   procedure Write_codeActionLiteralSupport_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : codeActionLiteralSupport_Capability);
+
+   for codeActionLiteralSupport_Capability'Read use Read_codeActionLiteralSupport_Capability;
+   for codeActionLiteralSupport_Capability'Write use Write_codeActionLiteralSupport_Capability;
+
+   package Optional_codeActionLiteralSupport_Capabilities is
+     new LSP.Generic_Optional (codeActionLiteralSupport_Capability);
+
+   type Optional_codeActionLiteralSupport_Capability is
+     new Optional_codeActionLiteralSupport_Capabilities.Optional_Type;
+
+   type codeAction_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
+   end record;
+
+   procedure Read_codeAction_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out codeAction_Capability);
+
+   procedure Write_codeAction_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : codeAction_Capability);
+
+   for codeAction_Capability'Read use Read_codeAction_Capability;
+   for codeAction_Capability'Write use Write_codeAction_Capability;
+
+   package Optional_codeAction_Capabilities is
+     new LSP.Generic_Optional (codeAction_Capability);
+
+   type Optional_codeAction_Capability is
+     new Optional_codeAction_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
@@ -2130,7 +2200,7 @@ package LSP.Messages is
       definition        : Optional_definition_Capability;
       typeDefinition    : Optional_typeDefinition_Capability;
       implementation    : Optional_implementation_Capability;
-      codeAction        : dynamicRegistration;
+      codeAction        : Optional_codeAction_Capability;
       codeLens          : dynamicRegistration;
       documentLink      : dynamicRegistration;
       rename            : dynamicRegistration;
