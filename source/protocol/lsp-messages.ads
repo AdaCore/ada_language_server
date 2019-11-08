@@ -1908,6 +1908,16 @@ package LSP.Messages is
    --		 */
    --		prepareSupport?: boolean;
    --	};
+   --
+   --	/**
+   --	 * Capabilities specific to `textDocument/publishDiagnostics`.
+   --	 */
+   --	publishDiagnostics?: {
+   --		/**
+   --		 * Whether the clients accepts diagnostics with related information.
+   --		 */
+   --		relatedInformation?: boolean;
+   --	};
    --	};
    --}
    --```
@@ -2228,26 +2238,48 @@ package LSP.Messages is
    type Optional_rename_Capability is
      new Optional_rename_Capabilities.Optional_Type;
 
+   type publishDiagnostics_Capability is record
+      relatedInformation: Optional_Boolean;
+   end record;
+
+   procedure Read_publishDiagnostics_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out publishDiagnostics_Capability);
+
+   procedure Write_publishDiagnostics_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : publishDiagnostics_Capability);
+
+   for publishDiagnostics_Capability'Read use Read_publishDiagnostics_Capability;
+   for publishDiagnostics_Capability'Write use Write_publishDiagnostics_Capability;
+
+   package Optional_publishDiagnostics_Capabilities is
+     new LSP.Generic_Optional (publishDiagnostics_Capability);
+
+   type Optional_publishDiagnostics_Capability is
+     new Optional_publishDiagnostics_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
-      synchronization   : LSP.Messages.synchronization;
-      completion        : LSP.Messages.completion;
-      hover             : Optional_Hover_Capability;
-      signatureHelp     : Optional_signatureHelp_Capability;
-      references        : dynamicRegistration;
-      documentHighlight : dynamicRegistration;
-      documentSymbol    : Optional_Document_Symbol_Capability;
-      formatting        : dynamicRegistration;
-      rangeFormatting   : dynamicRegistration;
-      onTypeFormatting  : dynamicRegistration;
-      declaration       : Optional_declaration_Capability;
-      definition        : Optional_definition_Capability;
-      typeDefinition    : Optional_typeDefinition_Capability;
-      implementation    : Optional_implementation_Capability;
-      codeAction        : Optional_codeAction_Capability;
-      codeLens          : dynamicRegistration;
-      documentLink      : dynamicRegistration;
-      colorProvider     : dynamicRegistration;
-      rename            : Optional_rename_Capability;
+      synchronization    : LSP.Messages.synchronization;
+      completion         : LSP.Messages.completion;
+      hover              : Optional_Hover_Capability;
+      signatureHelp      : Optional_signatureHelp_Capability;
+      references         : dynamicRegistration;
+      documentHighlight  : dynamicRegistration;
+      documentSymbol     : Optional_Document_Symbol_Capability;
+      formatting         : dynamicRegistration;
+      rangeFormatting    : dynamicRegistration;
+      onTypeFormatting   : dynamicRegistration;
+      declaration        : Optional_declaration_Capability;
+      definition         : Optional_definition_Capability;
+      typeDefinition     : Optional_typeDefinition_Capability;
+      implementation     : Optional_implementation_Capability;
+      codeAction         : Optional_codeAction_Capability;
+      codeLens           : dynamicRegistration;
+      documentLink       : dynamicRegistration;
+      colorProvider      : dynamicRegistration;
+      rename             : Optional_rename_Capability;
+      publishDiagnostics : Optional_publishDiagnostics_Capability;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
