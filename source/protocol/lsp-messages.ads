@@ -1918,6 +1918,28 @@ package LSP.Messages is
    --		 */
    --		relatedInformation?: boolean;
    --	};
+   --	/**
+   --	 * Capabilities specific to `textDocument/foldingRange` requests.
+   --	 *
+   --	 * Since 3.10.0
+   --	 */
+   --	foldingRange?: {
+   --		/**
+   --		 * Whether implementation supports dynamic registration for folding range providers. If this is set to `true`
+   --		 * the client supports the new `(FoldingRangeProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --		 * return value for the corresponding server capability as well.
+   --		 */
+   --		dynamicRegistration?: boolean;
+   --		/**
+   --		 * The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
+   --		 * hint, servers are free to follow the limit.
+   --		 */
+   --		rangeLimit?: number;
+   --		/**
+   --		 * If set, the client signals that it only supports folding complete lines. If set, client will
+   --		 * ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
+   --		 */
+   --		lineFoldingOnly?: boolean;
    --	};
    --}
    --```
@@ -2259,6 +2281,29 @@ package LSP.Messages is
    type Optional_publishDiagnostics_Capability is
      new Optional_publishDiagnostics_Capabilities.Optional_Type;
 
+   type foldingRange_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      rangeLimit: Optional_Number;
+      lineFoldingOnly: Optional_Boolean;
+   end record;
+
+   procedure Read_foldingRange_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out foldingRange_Capability);
+
+   procedure Write_foldingRange_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : foldingRange_Capability);
+
+   for foldingRange_Capability'Read use Read_foldingRange_Capability;
+   for foldingRange_Capability'Write use Write_foldingRange_Capability;
+
+   package Optional_foldingRange_Capabilities is
+     new LSP.Generic_Optional (foldingRange_Capability);
+
+   type Optional_foldingRange_Capability is
+     new Optional_foldingRange_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
       synchronization    : LSP.Messages.synchronization;
       completion         : LSP.Messages.completion;
@@ -2280,6 +2325,7 @@ package LSP.Messages is
       colorProvider      : dynamicRegistration;
       rename             : Optional_rename_Capability;
       publishDiagnostics : Optional_publishDiagnostics_Capability;
+      foldingRange       : Optional_foldingRange_Capability;
    end record;
 
    procedure Read_TextDocumentClientCapabilities

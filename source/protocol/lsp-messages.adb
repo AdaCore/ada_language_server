@@ -898,6 +898,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ExecuteCommandParams;
 
+   ----------------------------------
+   -- Read_foldingRange_Capability --
+   ----------------------------------
+
+   procedure Read_foldingRange_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out foldingRange_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Read_Optional_Number (JS, +"rangeLimit", V.rangeLimit);
+      Read_Optional_Boolean (JS, +"lineFoldingOnly", V.lineFoldingOnly);
+      JS.End_Object;
+   end Read_foldingRange_Capability;
+
    ----------------
    -- Read_Hover --
    ----------------
@@ -1933,6 +1952,8 @@ package body LSP.Messages is
       Optional_rename_Capability'Read (S, V.rename);
       JS.Key ("publishDiagnostics");
       Optional_publishDiagnostics_Capability'Read (S, V.publishDiagnostics);
+      JS.Key ("foldingRange");
+      Optional_foldingRange_Capability'Read (S, V.foldingRange);
       JS.End_Object;
    end Read_TextDocumentClientCapabilities;
 
@@ -3008,6 +3029,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ExecuteCommandParams;
 
+   -----------------------------------
+   -- Write_foldingRange_Capability --
+   -----------------------------------
+
+   procedure Write_foldingRange_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : foldingRange_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"dynamicRegistration", V.dynamicRegistration);
+      Write_Optional_Number (JS, +"rangeLimit", V.rangeLimit);
+      Write_Optional_Boolean (JS, +"lineFoldingOnly", V.lineFoldingOnly);
+      JS.End_Object;
+   end Write_foldingRange_Capability;
+
    -----------------
    -- Write_Hover --
    -----------------
@@ -4033,6 +4073,8 @@ package body LSP.Messages is
       Optional_rename_Capability'Write (S, V.rename);
       JS.Key ("publishDiagnostics");
       Optional_publishDiagnostics_Capability'Write (S, V.publishDiagnostics);
+      JS.Key ("foldingRange");
+      Optional_foldingRange_Capability'Write (S, V.foldingRange);
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
 
