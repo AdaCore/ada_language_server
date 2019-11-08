@@ -1892,6 +1892,8 @@ package body LSP.Messages is
       dynamicRegistration'Read (S, V.codeLens);
       JS.Key ("documentLink");
       dynamicRegistration'Read (S, V.documentLink);
+      JS.Key ("colorProvider");
+      dynamicRegistration'Read (S, V.colorProvider);
       JS.Key ("rename");
       dynamicRegistration'Read (S, V.rename);
       JS.End_Object;
@@ -3953,6 +3955,8 @@ package body LSP.Messages is
       dynamicRegistration'Write (S, V.codeLens);
       JS.Key ("documentLink");
       dynamicRegistration'Write (S, V.documentLink);
+      JS.Key ("colorProvider");
+      dynamicRegistration'Write (S, V.colorProvider);
       JS.Key ("rename");
       dynamicRegistration'Write (S, V.rename);
       JS.End_Object;

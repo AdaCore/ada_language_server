@@ -1880,6 +1880,21 @@ package LSP.Messages is
    --	};
    --
    --	/**
+   --	 * Capabilities specific to the `textDocument/documentColor` and the
+   --	 * `textDocument/colorPresentation` request.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	colorProvider?: {
+   --		/**
+   --		 * Whether colorProvider supports dynamic registration. If this is set to `true`
+   --		 * the client supports the new `(ColorProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --		 * return value for the corresponding server capability as well.
+   --		 */
+   --		dynamicRegistration?: boolean;
+   --	}
+   --
+   --	/**
    --	 * Capabilities specific to the `textDocument/rename`
    --	 */
    --	rename?: {
@@ -2203,6 +2218,7 @@ package LSP.Messages is
       codeAction        : Optional_codeAction_Capability;
       codeLens          : dynamicRegistration;
       documentLink      : dynamicRegistration;
+      colorProvider     : dynamicRegistration;
       rename            : dynamicRegistration;
    end record;
 
