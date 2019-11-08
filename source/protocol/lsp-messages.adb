@@ -112,7 +112,8 @@ package body LSP.Messages is
       serverErrorEnd       => -32000,
       ServerNotInitialized => -32002,
       UnknownErrorCode     => -32001,
-      RequestCancelled     => -32800);
+      RequestCancelled     => -32800,
+      ContentModified      => -32801);
 
    Write_Reference_Image            : aliased constant Standard.String :=
                                         "write";
