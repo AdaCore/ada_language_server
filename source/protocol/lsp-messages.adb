@@ -1394,6 +1394,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_PublishDiagnosticsParams;
 
+   ----------------------------------------
+   -- Read_publishDiagnostics_Capability --
+   ----------------------------------------
+
+   procedure Read_publishDiagnostics_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out publishDiagnostics_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean
+        (JS, +"relatedInformation", V.relatedInformation);
+      JS.End_Object;
+   end Read_publishDiagnostics_Capability;
+
    ---------------------------
    -- Read_ReferenceContext --
    ---------------------------
@@ -1914,6 +1931,8 @@ package body LSP.Messages is
       dynamicRegistration'Read (S, V.colorProvider);
       JS.Key ("rename");
       Optional_rename_Capability'Read (S, V.rename);
+      JS.Key ("publishDiagnostics");
+      Optional_publishDiagnostics_Capability'Read (S, V.publishDiagnostics);
       JS.End_Object;
    end Read_TextDocumentClientCapabilities;
 
@@ -3494,6 +3513,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_PublishDiagnosticsParams;
 
+   -----------------------------------------
+   -- Write_publishDiagnostics_Capability --
+   -----------------------------------------
+
+   procedure Write_publishDiagnostics_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : publishDiagnostics_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean
+        (JS, +"relatedInformation", V.relatedInformation);
+      JS.End_Object;
+   end Write_publishDiagnostics_Capability;
+
    ----------------------------
    -- Write_ReferenceContext --
    ----------------------------
@@ -3995,6 +4031,8 @@ package body LSP.Messages is
       dynamicRegistration'Write (S, V.colorProvider);
       JS.Key ("rename");
       Optional_rename_Capability'Write (S, V.rename);
+      JS.Key ("publishDiagnostics");
+      Optional_publishDiagnostics_Capability'Write (S, V.publishDiagnostics);
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
 
