@@ -2375,6 +2375,42 @@ package LSP.Messages is
    for ClientCapabilities'Write use Write_ClientCapabilities;
 
    --```typescript
+   --export interface WorkspaceFolder {
+   --	/**
+   --	 * The associated URI for this workspace folder.
+   --	 */
+   --	uri: DocumentUri;
+   --
+   --	/**
+   --	 * The name of the workspace folder. Used to refer to this
+   --	 * workspace folder in the user interface.
+   --	 */
+   --	name: string;
+   --}
+   --```
+   type WorkspaceFolder is record
+      uri: DocumentUri;
+      name: LSP_String;
+   end record;
+
+   procedure Read_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceFolder);
+
+   procedure Write_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceFolder);
+
+   for WorkspaceFolder'Read use Read_WorkspaceFolder;
+   for WorkspaceFolder'Write use Write_WorkspaceFolder;
+
+   package WorkspaceFolder_Vectors is new LSP.Generic_Vectors (WorkspaceFolder);
+   type WorkspaceFolder_Vector is new WorkspaceFolder_Vectors.Vector with null record;
+
+   package Optional_WorkspaceFolder_Vectors is new LSP.Generic_Optional (WorkspaceFolder_Vector);
+   type Optional_WorkspaceFolder_Vector is new Optional_WorkspaceFolder_Vectors.Optional_Type;
+
+   --```typescript
    --interface InitializeParams {
    --	/**
    --	 * The process Id of the parent process that started
@@ -2412,6 +2448,16 @@ package LSP.Messages is
    --	 * The initial trace setting. If omitted trace is disabled ('off').
    --	 */
    --	trace?: 'off' | 'messages' | 'verbose';
+   --
+   --	/**
+   --	 * The workspace folders configured in the client when the server starts.
+   --	 * This property is only available if the client supports workspace folders.
+   --	 * It can be `null` if the client supports workspace folders but none are
+   --	 * configured.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	workspaceFolders?: WorkspaceFolder[] | null;
    --}
    --```
    type InitializeParams is record
@@ -2421,6 +2467,7 @@ package LSP.Messages is
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
       trace: Trace_Kinds;
+      workspaceFolders: Optional_WorkspaceFolder_Vector;
    end record;
 
    procedure Read_InitializeParams

@@ -1002,6 +1002,8 @@ package body LSP.Messages is
          V.trace := LSP.Types.Verbose;
       end if;
 
+      JS.Key ("workspaceFolders");
+      Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
       JS.End_Object;
    end Read_InitializeParams;
 
@@ -2279,6 +2281,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceEdit;
 
+   --------------------------
+   -- Read_WorkspaceFolder --
+   --------------------------
+
+   procedure Read_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceFolder)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"uri", V.uri);
+      Read_String (JS, +"name", V.name);
+      JS.End_Object;
+   end Read_WorkspaceFolder;
+
    --------------------------------
    -- Read_WorkspaceSymbolParams --
    --------------------------------
@@ -3149,6 +3168,8 @@ package body LSP.Messages is
          Write_Optional_String (JS, +"trace", Trace);
       end if;
 
+      JS.Key ("workspaceFolders");
+      Optional_WorkspaceFolder_Vector'Write (S, V.workspaceFolders);
       JS.End_Object;
    end Write_InitializeParams;
 
@@ -4384,6 +4405,23 @@ package body LSP.Messages is
       end if;
       JS.End_Object;
    end Write_WorkspaceEdit;
+
+   ---------------------------
+   -- Write_WorkspaceFolder --
+   ---------------------------
+
+   procedure Write_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceFolder)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"uri", V.uri);
+      Write_String (JS, +"name", V.name);
+      JS.End_Object;
+   end Write_WorkspaceFolder;
 
    ---------------------------------
    -- Write_WorkspaceSymbolParams --
