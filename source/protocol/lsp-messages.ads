@@ -1902,6 +1902,12 @@ package LSP.Messages is
    --		 * Whether rename supports dynamic registration.
    --		 */
    --		dynamicRegistration?: boolean;
+   --		/**
+   --		 * The client supports testing for validity of rename operations
+   --		 * before execution.
+   --		 */
+   --		prepareSupport?: boolean;
+   --	};
    --	};
    --}
    --```
@@ -2200,6 +2206,28 @@ package LSP.Messages is
    type Optional_codeAction_Capability is
      new Optional_codeAction_Capabilities.Optional_Type;
 
+   type rename_Capability is record
+      dynamicRegistration: Optional_Boolean;
+      prepareSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_rename_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out rename_Capability);
+
+   procedure Write_rename_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : rename_Capability);
+
+   for rename_Capability'Read use Read_rename_Capability;
+   for rename_Capability'Write use Write_rename_Capability;
+
+   package Optional_rename_Capabilities is
+     new LSP.Generic_Optional (rename_Capability);
+
+   type Optional_rename_Capability is
+     new Optional_rename_Capabilities.Optional_Type;
+
    type TextDocumentClientCapabilities is record
       synchronization   : LSP.Messages.synchronization;
       completion        : LSP.Messages.completion;
@@ -2219,7 +2247,7 @@ package LSP.Messages is
       codeLens          : dynamicRegistration;
       documentLink      : dynamicRegistration;
       colorProvider     : dynamicRegistration;
-      rename            : dynamicRegistration;
+      rename            : Optional_rename_Capability;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
