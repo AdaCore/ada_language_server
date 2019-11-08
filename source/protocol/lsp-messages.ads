@@ -323,6 +323,23 @@ package LSP.Messages is
    package Optional_Spans is new LSP.Generic_Optional (Span);
    type Optional_Span is new Optional_Spans.Optional_Type;
 
+   type CodeActionKind is
+     (Empty,
+      QuickFix,
+      Refactor, RefactorExtract, RefactorInline, RefactorRewrite,
+      Source, SourceOrganizeImports);
+
+   procedure Read_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionKind);
+
+   procedure Write_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionKind);
+
+   for CodeActionKind'Read use Read_CodeActionKind;
+   for CodeActionKind'Write use Write_CodeActionKind;
+
    --  reference_kinds ALS extension:
    --
    --  export type AlsReferenceKind = 'w' | 'c' | 'd';
@@ -4053,6 +4070,88 @@ package LSP.Messages is
    --	 * Context carrying additional information.
    --	 */
    --	context: CodeActionContext;
+   --}
+   --
+   --/**
+   -- * The kind of a code action.
+   -- *
+   -- * Kinds are a hierarchical list of identifiers separated by `.`, e.g. `"refactor.extract.function"`.
+   -- *
+   -- * The set of kinds is open and client needs to announce the kinds it supports to the server during
+   -- * initialization.
+   -- */
+   --export type CodeActionKind = string;
+   --
+   --/**
+   -- * A set of predefined code action kinds
+   -- */
+   --export namespace CodeActionKind {
+   --
+   --	/**
+   --	 * Empty kind.
+   --	 */
+   --	export const Empty: CodeActionKind = '';
+   --
+   --	/**
+   --	 * Base kind for quickfix actions: 'quickfix'
+   --	 */
+   --	export const QuickFix: CodeActionKind = 'quickfix';
+   --
+   --	/**
+   --	 * Base kind for refactoring actions: 'refactor'
+   --	 */
+   --	export const Refactor: CodeActionKind = 'refactor';
+   --
+   --	/**
+   --	 * Base kind for refactoring extraction actions: 'refactor.extract'
+   --	 *
+   --	 * Example extract actions:
+   --	 *
+   --	 * - Extract method
+   --	 * - Extract function
+   --	 * - Extract variable
+   --	 * - Extract interface from class
+   --	 * - ...
+   --	 */
+   --	export const RefactorExtract: CodeActionKind = 'refactor.extract';
+   --
+   --	/**
+   --	 * Base kind for refactoring inline actions: 'refactor.inline'
+   --	 *
+   --	 * Example inline actions:
+   --	 *
+   --	 * - Inline function
+   --	 * - Inline variable
+   --	 * - Inline constant
+   --	 * - ...
+   --	 */
+   --	export const RefactorInline: CodeActionKind = 'refactor.inline';
+   --
+   --	/**
+   --	 * Base kind for refactoring rewrite actions: 'refactor.rewrite'
+   --	 *
+   --	 * Example rewrite actions:
+   --	 *
+   --	 * - Convert JavaScript function to class
+   --	 * - Add or remove parameter
+   --	 * - Encapsulate field
+   --	 * - Make method static
+   --	 * - Move method to base class
+   --	 * - ...
+   --	 */
+   --	export const RefactorRewrite: CodeActionKind = 'refactor.rewrite';
+   --
+   --	/**
+   --	 * Base kind for source actions: `source`
+   --	 *
+   --	 * Source code actions apply to the entire file.
+   --	 */
+   --	export const Source: CodeActionKind = 'source';
+   --
+   --	/**
+   --	 * Base kind for an organize imports source action: `source.organizeImports`
+   --	 */
+   --	export const SourceOrganizeImports: CodeActionKind = 'source.organizeImports';
    --}
    --
    --/**
