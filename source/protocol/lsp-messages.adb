@@ -1538,6 +1538,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ResponseMessage;
 
+   ------------------------
+   -- Read_RenameOptions --
+   ------------------------
+
+   procedure Read_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean (JS, +"prepareProvider", V.prepareProvider);
+      JS.End_Object;
+   end Read_RenameOptions;
+
    -----------------------
    -- Read_RenameParams --
    -----------------------
@@ -1672,7 +1688,8 @@ package body LSP.Messages is
       JS.Key ("documentOnTypeFormattingProvider");
       Optional_DocumentOnTypeFormattingOptions'Read
         (S, V.documentOnTypeFormattingProvider);
-      Read_Optional_Boolean (JS, +"renameProvider", V.renameProvider);
+      JS.Key ("renameProvider");
+      Optional_RenameOptions'Read (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Read (S, V.documentLinkProvider);
       JS.Key ("executeCommandProvider");
@@ -3698,6 +3715,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_RequestMessage;
 
+   -------------------------
+   -- Write_RenameOptions --
+   -------------------------
+
+   procedure Write_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean (JS, +"prepareProvider", V.prepareProvider);
+      JS.End_Object;
+   end Write_RenameOptions;
+
    ------------------------
    -- Write_RenameParams --
    ------------------------
@@ -3860,7 +3893,8 @@ package body LSP.Messages is
       JS.Key ("documentOnTypeFormattingProvider");
       Optional_DocumentOnTypeFormattingOptions'Write
         (S, V.documentOnTypeFormattingProvider);
-      Write_Optional_Boolean (JS, +"renameProvider", V.renameProvider);
+      JS.Key ("renameProvider");
+      Optional_RenameOptions'Write (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Write (S, V.documentLinkProvider);
       JS.Key ("executeCommandProvider");
