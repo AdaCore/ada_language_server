@@ -314,6 +314,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CodeActionContext;
 
+   ----------------------------
+   -- Read_CodeActionOptions --
+   ----------------------------
+
+   procedure Read_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("codeActionKinds");
+      Optional_CodeActionKindSet'Read (S, V.codeActionKinds);
+      JS.End_Object;
+   end Read_CodeActionOptions;
+
    -------------------------
    -- Read_CodeActionKind --
    -------------------------
@@ -1644,8 +1661,8 @@ package body LSP.Messages is
         (JS, +"documentSymbolProvider", V.documentSymbolProvider);
       Read_Optional_Boolean
         (JS, +"workspaceSymbolProvider", V.workspaceSymbolProvider);
-      Read_Optional_Boolean
-        (JS, +"codeActionProvider", V.codeActionProvider);
+      JS.Key ("codeActionProvider");
+      Optional_CodeActionOptions'Read (S, V.codeActionProvider);
       Read_Optional_Boolean
         (JS, +"documentFormattingProvider", V.documentFormattingProvider);
       Read_Optional_Boolean
@@ -2433,6 +2450,23 @@ package body LSP.Messages is
       Diagnostic_Vector'Write (S, V.diagnostics);
       JS.End_Object;
    end Write_CodeActionContext;
+
+   -----------------------------
+   -- Write_CodeActionOptions --
+   -----------------------------
+
+   procedure Write_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("codeActionKinds");
+      Optional_CodeActionKindSet'Write (S, V.codeActionKinds);
+      JS.End_Object;
+   end Write_CodeActionOptions;
 
    --------------------------
    -- Write_CodeActionKind --
@@ -3815,7 +3849,8 @@ package body LSP.Messages is
         (JS, +"documentSymbolProvider", V.documentSymbolProvider);
       Write_Optional_Boolean
         (JS, +"workspaceSymbolProvider", V.workspaceSymbolProvider);
-      Write_Optional_Boolean (JS, +"codeActionProvider", V.codeActionProvider);
+      JS.Key ("codeActionProvider");
+      Optional_CodeActionOptions'Write (S, V.codeActionProvider);
       Write_Optional_Boolean
         (JS, +"documentFormattingProvider", V.documentFormattingProvider);
       Write_Optional_Boolean
