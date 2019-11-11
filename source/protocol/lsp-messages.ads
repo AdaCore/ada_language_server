@@ -2575,7 +2575,17 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Document link options
+   -- * Rename options
+   -- */
+   --export interface RenameOptions {
+   --	/**
+   --	 * Renames should be checked and tested before being executed.
+   --	 */
+   --	prepareProvider?: boolean;
+   --}
+   --
+   --/**
+   -- * Document link options.
    -- */
    --export interface DocumentLinkOptions {
    --	/**
@@ -2696,9 +2706,11 @@ package LSP.Messages is
    --	 */
    --	documentOnTypeFormattingProvider?: DocumentOnTypeFormattingOptions;
    --	/**
-   --	 * The server provides rename support.
+   --	 * The server provides rename support. RenameOptions may only be
+   --	 * specified if the client states that it supports
+   --	 * `prepareSupport` in its initial `initialize` request.
    --	 */
-   --	renameProvider?: boolean;
+   --	renameProvider?: boolean | RenameOptions;
    --	/**
    --	 * The server provides document link support.
    --	 */
@@ -2785,11 +2797,11 @@ package LSP.Messages is
       V : CompletionOptions);
    for CompletionOptions'Write use Write_CompletionOptions;
 
-   package Optional_CompletionOptionss is
+   package Optional_Completion_Package is
      new LSP.Generic_Optional (CompletionOptions);
 
    type Optional_CompletionOptions is
-     new Optional_CompletionOptionss.Optional_Type;
+     new Optional_Completion_Package.Optional_Type;
 
    type SignatureHelpOptions is record
       triggerCharacters: LSP.Types.LSP_String_Vector;
@@ -2807,11 +2819,11 @@ package LSP.Messages is
 
    for SignatureHelpOptions'Write use Write_SignatureHelpOptions;
 
-   package Optional_SignatureHelpOptionss is
+   package Optional_SignatureHelp_Package is
      new LSP.Generic_Optional (SignatureHelpOptions);
 
    type Optional_SignatureHelpOptions is
-     new Optional_SignatureHelpOptionss.Optional_Type;
+     new Optional_SignatureHelp_Package.Optional_Type;
 
    type CodeActionOptions is record
       codeActionKinds: Optional_CodeActionKindSet;
@@ -2844,11 +2856,11 @@ package LSP.Messages is
    for CodeLensOptions'Read use Read_CodeLensOptions;
    for CodeLensOptions'Write use Write_CodeLensOptions;
 
-   package Optional_CodeLensOptionss is
+   package Optional_CodeLens_Package is
      new LSP.Generic_Optional (CodeLensOptions);
 
    type Optional_CodeLensOptions is
-     new Optional_CodeLensOptionss.Optional_Type;
+     new Optional_CodeLens_Package.Optional_Type;
 
    type DocumentOnTypeFormattingOptions is record
       firstTriggerCharacter: LSP.Types.LSP_String;
@@ -2867,11 +2879,29 @@ package LSP.Messages is
 
    for DocumentOnTypeFormattingOptions'Write use Write_DocumentOnTypeFormattingOptions;
 
-   package Optional_DocumentOnTypeFormattingOptionss is
+   package Optional_DocumentOnTypeFormatting_Package is
      new LSP.Generic_Optional (DocumentOnTypeFormattingOptions);
 
    type Optional_DocumentOnTypeFormattingOptions is
-     new Optional_DocumentOnTypeFormattingOptionss.Optional_Type;
+     new Optional_DocumentOnTypeFormatting_Package.Optional_Type;
+
+   type RenameOptions is record
+      prepareProvider: LSP.Types.Optional_Boolean;
+   end record;
+
+   procedure Read_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameOptions);
+
+   procedure Write_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameOptions);
+
+   for RenameOptions'Write use Write_RenameOptions;
+   for RenameOptions'Read use Read_RenameOptions;
+
+   package Optional_Rename_Package is new LSP.Generic_Optional (RenameOptions);
+   type Optional_RenameOptions is new Optional_Rename_Package.Optional_Type;
 
    type DocumentLinkOptions is record
       resolveProvider: LSP.Types.Optional_Boolean;
@@ -2917,7 +2947,7 @@ package LSP.Messages is
       documentFormattingProvider: Optional_Boolean;
       documentRangeFormattingProvider: Optional_Boolean;
       documentOnTypeFormattingProvider: Optional_DocumentOnTypeFormattingOptions;
-      renameProvider: Optional_Boolean;
+      renameProvider: Optional_RenameOptions;
       documentLinkProvider: DocumentLinkOptions;
       executeCommandProvider: ExecuteCommandOptions;
       --	experimental?: any;
