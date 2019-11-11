@@ -342,8 +342,12 @@ package LSP.Messages is
 
    package CodeActionKindSets is
      new LSP.Generic_Sets (CodeActionKind);
-
    type CodeActionKindSet is new CodeActionKindSets.Set;
+
+   package Optional_CodeActionKindSets is
+     new LSP.Generic_Optional (CodeActionKindSet);
+   type Optional_CodeActionKindSet is
+     new Optional_CodeActionKindSets.Optional_Type;
 
    --  reference_kinds ALS extension:
    --
@@ -2533,6 +2537,19 @@ package LSP.Messages is
    --}
    --
    --/**
+   -- * Code Action options.
+   -- */
+   --export interface CodeActionOptions {
+   --	/**
+   --	 * CodeActionKinds that this server may return.
+   --	 *
+   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
+   --	 * may list out every specific kind they provide.
+   --	 */
+   --	codeActionKinds?: CodeActionKind[];
+   --}
+   --
+   --/**
    -- * Code Lens options.
    -- */
    --export interface CodeLensOptions {
@@ -2657,9 +2674,11 @@ package LSP.Messages is
    --	 */
    --	workspaceSymbolProvider?: boolean;
    --	/**
-   --	 * The server provides code actions.
+   --	 * The server provides code actions. The `CodeActionOptions` return type is only
+   --	 * valid if the client signals code action literal support via the property
+   --	 * `textDocument.codeAction.codeActionLiteralSupport`.
    --	 */
-   --	codeActionProvider?: boolean;
+   --	codeActionProvider?: boolean | CodeActionOptions;
    --	/**
    --	 * The server provides code lens.
    --	 */
@@ -2794,6 +2813,24 @@ package LSP.Messages is
    type Optional_SignatureHelpOptions is
      new Optional_SignatureHelpOptionss.Optional_Type;
 
+   type CodeActionOptions is record
+      codeActionKinds: Optional_CodeActionKindSet;
+   end record;
+
+   procedure Read_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionOptions);
+   procedure Write_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionOptions);
+   for CodeActionOptions'Write use Write_CodeActionOptions;
+   for CodeActionOptions'Read use Read_CodeActionOptions;
+
+   package Optional_CodeActionOptions_Package is
+     new LSP.Generic_Optional (CodeActionOptions);
+   type Optional_CodeActionOptions is
+     new Optional_CodeActionOptions_Package.Optional_Type;
+
    type CodeLensOptions is record
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
@@ -2875,7 +2912,7 @@ package LSP.Messages is
       documentHighlightProvider: Optional_Boolean;
       documentSymbolProvider: Optional_Boolean;
       workspaceSymbolProvider: Optional_Boolean;
-      codeActionProvider: Optional_Boolean;
+      codeActionProvider: Optional_CodeActionOptions;
       codeLensProvider: Optional_CodeLensOptions;
       documentFormattingProvider: Optional_Boolean;
       documentRangeFormattingProvider: Optional_Boolean;
