@@ -91,8 +91,6 @@ private
    type State_Kinds is (Array_State, Object_State);
 
    type State (Kind : State_Kinds := Array_State) is record
-      Modified : Boolean := False;
-
       case Kind is
          when Array_State =>
             Current_Array : GNATCOLL.JSON.JSON_Array;
@@ -107,8 +105,9 @@ private
    package State_Vectors is new Ada.Containers.Vectors (Positive, State);
 
    type JSON_Stream is new Ada.Streams.Root_Stream_Type with record
-      Current : State;
-      Stack   : State_Vectors.Vector;
+      Writable : Boolean := True;  --  True means stream to write
+      Current  : State;
+      Stack    : State_Vectors.Vector;
    end record;
 
    overriding procedure Read

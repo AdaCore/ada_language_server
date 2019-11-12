@@ -107,7 +107,7 @@ package body LSP.JSON_Streams is
    ---------
 
    procedure Pop (Self : not null access JSON_Stream'Class) is
-      Modified : constant Boolean := Self.Current.Modified;
+      Modified : constant Boolean := Self.Writable;
       Value    : constant GNATCOLL.JSON.JSON_Value
         := (case Self.Current.Kind is
                when Array_State => GNATCOLL.JSON.Create
@@ -139,11 +139,10 @@ package body LSP.JSON_Streams is
       case Kind is
          when Array_State =>
             Self.Current :=
-             (Array_State, False, GNATCOLL.JSON.Empty_Array, 1);
+             (Array_State, GNATCOLL.JSON.Empty_Array, 1);
          when Object_State =>
             Self.Current :=
              (Kind           => Object_State,
-              Modified       => False,
               Current_Object => GNATCOLL.JSON.Create_Object,
               Key            => <>);
       end case;
@@ -158,7 +157,7 @@ package body LSP.JSON_Streams is
      Data : GNATCOLL.JSON.JSON_Array) is
    begin
       Self.Stack.Append (Self.Current);
-      Self.Current := (Array_State, False, Data, 1);
+      Self.Current := (Array_State, Data, 1);
    end Push;
 
    ----------
@@ -172,7 +171,6 @@ package body LSP.JSON_Streams is
       Self.Stack.Append (Self.Current);
       Self.Current :=
        (Kind           => Object_State,
-        Modified       => False,
         Current_Object => Data,
         Key            => <>);
    end Push;
@@ -219,8 +217,8 @@ package body LSP.JSON_Streams is
      (Self : not null access JSON_Stream'Class;
       Data : GNATCOLL.JSON.JSON_Array) is
    begin
-
-      Self.Current := (Array_State, False, Data, 1);
+      Self.Writable := False;  --  Read-only stream
+      Self.Current := (Array_State, Data, 1);
    end Set_JSON_Document;
 
    -----------------
@@ -337,8 +335,6 @@ package body LSP.JSON_Streams is
                To_UTF_8_String (Self.Current.Key),
                Value);
       end case;
-
-      Self.Current.Modified := True;
    end Update;
 
    -----------
