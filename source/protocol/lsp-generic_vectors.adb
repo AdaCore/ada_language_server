@@ -58,17 +58,13 @@ package body LSP.Generic_Vectors is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      if V.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-      else
-         JS.Start_Array;
+      JS.Start_Array;
 
-         for Item of V loop
-            Element'Write (S, Item);
-         end loop;
+      for Item of V loop
+         Element'Write (S, Item);
+      end loop;
 
-         JS.End_Array;
-      end if;
+      JS.End_Array;
    end Write_Vector;
 
 end LSP.Generic_Vectors;

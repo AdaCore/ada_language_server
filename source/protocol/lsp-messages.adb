@@ -4416,24 +4416,18 @@ package body LSP.Messages is
       if V.documentChanges.Is_Empty then
          JS.Key ("changes");
 
-         if V.changes.Is_Empty then
-            --  Special case for an empty result: return 'changes:{}'
-            --  Without it JSON_Stream optimizes result to nothing.
-            JS.Write (GNATCOLL.JSON.Create_Object);
-         else
-            JS.Start_Object;
-            for Cursor in V.changes.Iterate loop
-               JS.Key
-                 (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String
-                    (TextDocumentEdit_Maps.Key (Cursor)));
-               JS.Start_Array;
-               for Edit of V.changes (Cursor) loop
-                  TextEdit'Write (S, Edit);
-               end loop;
-               JS.End_Array;
+         JS.Start_Object;
+         for Cursor in V.changes.Iterate loop
+            JS.Key
+              (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String
+                 (TextDocumentEdit_Maps.Key (Cursor)));
+            JS.Start_Array;
+            for Edit of V.changes (Cursor) loop
+               TextEdit'Write (S, Edit);
             end loop;
-            JS.End_Object;
-         end if;
+            JS.End_Array;
+         end loop;
+         JS.End_Object;
       else
          JS.Key ("documentChanges");
          Document_Change_Vector'Write (S, V.documentChanges);
