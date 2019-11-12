@@ -2614,9 +2614,22 @@ package LSP.Messages is
    --	includeText?: boolean;
    --}
    --
+   --/**
+   -- * Color provider options.
+   -- */
+   --export interface ColorProviderOptions {
+   --}
+   --
+   --/**
+   -- * Folding range provider options.
+   -- */
+   --export interface FoldingRangeProviderOptions {
+   --}
+   --
    --export interface TextDocumentSyncOptions {
    --	/**
-   --	 * Open and close notifications are sent to the server.
+   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
+   --	 * be sent.
    --	 */
    --	openClose?: boolean;
    --	/**
@@ -2639,6 +2652,17 @@ package LSP.Messages is
    --	 * sent.
    --	 */
    --	save?: SaveOptions;
+   --}
+   --
+   --/**
+   -- * Static registration options to be returned in the initialize request.
+   -- */
+   --interface StaticRegistrationOptions {
+   --	/**
+   --	 * The id used to register the request. The id can be used to deregister
+   --	 * the request again. See also Registration#id.
+   --	 */
+   --	id?: string;
    --}
    --
    --interface ServerCapabilities {
@@ -2664,9 +2688,17 @@ package LSP.Messages is
    --	 */
    --	definitionProvider?: boolean;
    --	/**
-   --	 * The server provides goto type definition support.
+   --	 * The server provides Goto Type Definition support.
+   --	 *
+   --	 * Since 3.6.0
    --	 */
-   --	typeDefinitionProvider?: boolean;
+   --	typeDefinitionProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
+   --	/**
+   --	 * The server provides Goto Implementation support.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	implementationProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
    --	/**
    --	 * The server provides find references support.
    --	 */
@@ -2715,6 +2747,24 @@ package LSP.Messages is
    --	 * The server provides document link support.
    --	 */
    --	documentLinkProvider?: DocumentLinkOptions;
+   --	/**
+   --	 * The server provides color provider support.
+   --	 *
+   --	 * Since 3.6.0
+   --	 */
+   --	colorProvider?: boolean | ColorProviderOptions | (ColorProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions);
+   --	/**
+   --	 * The server provides folding provider support.
+   --	 *
+   --	 * Since 3.10.0
+   --	 */
+   --	foldingRangeProvider?: boolean | FoldingRangeProviderOptions | (FoldingRangeProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions);
+   --	/**
+   --	 * The server provides go to declaration support.
+   --	 *
+   --	 * Since 3.14.0
+   --	 */
+   --	declarationProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
    --	/**
    --	 * The server provides execute command support.
    --	 */
@@ -2824,6 +2874,61 @@ package LSP.Messages is
 
    type Optional_SignatureHelpOptions is
      new Optional_SignatureHelp_Package.Optional_Type;
+
+   --  Here we define Ada type StaticRegistrationOptions that corresponds to
+   --  (TextDocumentRegistrationOptions & StaticRegistrationOptions)
+   --  typescript type, because it is always used with
+   --  TextDocumentRegistrationOptions and we don't have '&' operator (or
+   --  something similar) for Ada types.
+   type StaticRegistrationOptions is record
+      id: Optional_String;
+      documentSelector:  LSP.Messages.DocumentSelector;
+   end record;
+
+   procedure Read_StaticRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out StaticRegistrationOptions);
+
+   procedure Write_StaticRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : StaticRegistrationOptions);
+
+   for StaticRegistrationOptions'Read use Read_StaticRegistrationOptions;
+   for StaticRegistrationOptions'Write use Write_StaticRegistrationOptions;
+
+   package Optional_StaticRegistration_Package is
+     new LSP.Generic_Optional (StaticRegistrationOptions);
+
+   type Optional_StaticRegistrationOptions is
+     new Optional_StaticRegistration_Package.Optional_Type;
+
+   --  Ada type Provider_Options correspond to this typescript type:
+   --  boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions) | {}
+   type Provider_Options (Is_Boolean : Boolean := False) is record
+      case Is_Boolean is
+         when True =>
+            Bool : Boolean;
+         when False =>
+            Options : Optional_StaticRegistrationOptions;
+      end case;
+   end record;
+
+   procedure Read_Provider_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Provider_Options);
+
+   procedure Write_Provider_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Provider_Options);
+
+   for Provider_Options'Read use Read_Provider_Options;
+   for Provider_Options'Write use Write_Provider_Options;
+
+   package Optional_Provider_Package is
+     new LSP.Generic_Optional (Provider_Options);
+
+   type Optional_Provider_Options is
+     new Optional_Provider_Package.Optional_Type;
 
    type CodeActionOptions is record
       codeActionKinds: Optional_CodeActionKindSet;
@@ -2936,8 +3041,9 @@ package LSP.Messages is
       hoverProvider: Optional_Boolean;
       completionProvider: Optional_CompletionOptions;
       signatureHelpProvider: Optional_SignatureHelpOptions;
-      definitionProvider    : Optional_Boolean;
-      typeDefinitionProvider : Optional_Boolean;
+      definitionProvider: Optional_Boolean;
+      typeDefinitionProvider: Optional_Provider_Options;
+      implementationProvider: Optional_Provider_Options;
       referencesProvider: Optional_Boolean;
       documentHighlightProvider: Optional_Boolean;
       documentSymbolProvider: Optional_Boolean;
@@ -2949,6 +3055,9 @@ package LSP.Messages is
       documentOnTypeFormattingProvider: Optional_DocumentOnTypeFormattingOptions;
       renameProvider: Optional_RenameOptions;
       documentLinkProvider: DocumentLinkOptions;
+      colorProvider: Optional_Provider_Options;
+      foldingRangeProvider: Optional_Provider_Options;
+      declarationProvider: Optional_Provider_Options;
       executeCommandProvider: ExecuteCommandOptions;
       --	experimental?: any;
 

@@ -1413,6 +1413,37 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Position;
 
+   ---------------------------
+   -- Read_Provider_Options --
+   ---------------------------
+
+   procedure Read_Provider_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Provider_Options)
+   is
+      use type GNATCOLL.JSON.JSON_Value_Type;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Look_Ahead.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
+         V := (Is_Boolean => True,
+               Bool       => Look_Ahead.Get);
+      elsif Look_Ahead.Kind = GNATCOLL.JSON.JSON_Object_Type
+        and then Look_Ahead.Has_Field ("documentSelector")
+      then
+         V := (Is_Boolean => False,
+               Options    => (Is_Set => True, Value => <>));
+
+         Optional_StaticRegistrationOptions'Read (S, V.Options);
+      else
+         V := (Is_Boolean => False,
+               Options    => (Is_Set => False));
+      end if;
+   end Read_Provider_Options;
+
    -----------------------------------
    -- Read_PublishDiagnosticsParams --
    -----------------------------------
@@ -1667,8 +1698,10 @@ package body LSP.Messages is
       Optional_SignatureHelpOptions'Read (S, V.signatureHelpProvider);
       Read_Optional_Boolean
         (JS, +"definitionProvider", V.definitionProvider);
-      Read_Optional_Boolean
-        (JS, +"typeDefinitionProvider", V.typeDefinitionProvider);
+      JS.Key ("typeDefinitionProvider");
+      Optional_Provider_Options'Read (S, V.typeDefinitionProvider);
+      JS.Key ("implementationProvider");
+      Optional_Provider_Options'Read (S, V.implementationProvider);
       Read_Optional_Boolean
         (JS, +"referencesProvider", V.referencesProvider);
       Read_Optional_Boolean
@@ -1692,6 +1725,12 @@ package body LSP.Messages is
       Optional_RenameOptions'Read (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Read (S, V.documentLinkProvider);
+      JS.Key ("colorProvider");
+      Optional_Provider_Options'Read (S, V.colorProvider);
+      JS.Key ("foldingRangeProvider");
+      Optional_Provider_Options'Read (S, V.foldingRangeProvider);
+      JS.Key ("declarationProvider");
+      Optional_Provider_Options'Read (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Read (S, V.executeCommandProvider);
 
@@ -1859,6 +1898,24 @@ package body LSP.Messages is
       Position'Read (S, V.last);
       JS.End_Object;
    end Read_Span;
+
+   ------------------------------------
+   -- Read_StaticRegistrationOptions --
+   ------------------------------------
+
+   procedure Read_StaticRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out StaticRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_String (JS, +"id", V.id);
+      JS.Key ("documentSelector");
+      DocumentSelector'Read (S, V.documentSelector);
+      JS.End_Object;
+   end Read_StaticRegistrationOptions;
 
    ------------------------
    -- Read_String_Vector --
@@ -3600,6 +3657,26 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Position;
 
+   ----------------------------
+   -- Write_Provider_Options --
+   ----------------------------
+
+   procedure Write_Provider_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Provider_Options)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V.Is_Boolean then
+         JS.Write (GNATCOLL.JSON.Create (V.Bool));
+      elsif V.Options.Is_Set then
+         Optional_StaticRegistrationOptions'Write (S, V.Options);
+      else
+         JS.Write (GNATCOLL.JSON.Create_Object);  --  Write {}
+      end if;
+   end Write_Provider_Options;
+
    ------------------------------------
    -- Write_PublishDiagnosticsParams --
    ------------------------------------
@@ -3872,8 +3949,10 @@ package body LSP.Messages is
       Optional_SignatureHelpOptions'Write (S, V.signatureHelpProvider);
       Write_Optional_Boolean
         (JS, +"definitionProvider", V.definitionProvider);
-      Write_Optional_Boolean
-        (JS, +"typeDefinitionProvider", V.typeDefinitionProvider);
+      JS.Key ("typeDefinitionProvider");
+      Optional_Provider_Options'Write (S, V.typeDefinitionProvider);
+      JS.Key ("implementationProvider");
+      Optional_Provider_Options'Write (S, V.implementationProvider);
       Write_Optional_Boolean
         (JS, +"referencesProvider", V.referencesProvider);
       Write_Optional_Boolean
@@ -3897,6 +3976,12 @@ package body LSP.Messages is
       Optional_RenameOptions'Write (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Write (S, V.documentLinkProvider);
+      JS.Key ("colorProvider");
+      Optional_Provider_Options'Write (S, V.colorProvider);
+      JS.Key ("foldingRangeProvider");
+      Optional_Provider_Options'Write (S, V.foldingRangeProvider);
+      JS.Key ("declarationProvider");
+      Optional_Provider_Options'Write (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
 
@@ -4032,6 +4117,24 @@ package body LSP.Messages is
       Position'Write (S, V.last);
       JS.End_Object;
    end Write_Span;
+
+   -------------------------------------
+   -- Write_StaticRegistrationOptions --
+   -------------------------------------
+
+   procedure Write_StaticRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : StaticRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_String (JS, +"id", V.id);
+      JS.Key ("documentSelector");
+      DocumentSelector'Write (S, V.documentSelector);
+      JS.End_Object;
+   end Write_StaticRegistrationOptions;
 
    -------------------------
    -- Write_String_Vector --
