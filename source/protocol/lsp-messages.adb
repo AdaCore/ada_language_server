@@ -311,6 +311,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("diagnostics");
       Diagnostic_Vector'Read (S, V.diagnostics);
+      JS.Key ("only");
+      Optional_CodeActionKindSet'Read (S, V.only);
       JS.End_Object;
    end Read_CodeActionContext;
 
@@ -2736,6 +2738,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("diagnostics");
       Diagnostic_Vector'Write (S, V.diagnostics);
+      JS.Key ("only");
+      Optional_CodeActionKindSet'Write (S, V.only);
       JS.End_Object;
    end Write_CodeActionContext;
 
