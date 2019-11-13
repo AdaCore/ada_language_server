@@ -3957,6 +3957,20 @@ package LSP.Messages is
    --	documentation?: string | MarkupContent;
    --
    --	/**
+   --	 * Indicates if this item is deprecated.
+   --	 */
+   --	deprecated?: boolean;
+   --
+   --	/**
+   --	 * Select this item when showing.
+   --	 *
+   --	 * *Note* that only one completion item can be selected and that the
+   --	 * tool / client decides which item that is. The rule is that the *first*
+   --	 * item of those that match best is selected.
+   --	 */
+   --	preselect?: boolean;
+   --
+   --	/**
    --	 * A string that should be used when comparing this item
    --	 * with other items. When `falsy` the label is used.
    --	 */
@@ -4085,6 +4099,8 @@ package LSP.Messages is
       kind: Optional_CompletionItemKind;
       detail: Optional_String;
       documentation: Optional_String_Or_MarkupContent;
+      deprecated: Optional_Boolean;
+      preselect: Optional_Boolean;
       sortText: Optional_String;
       filterText: Optional_String;
       insertText: Optional_String;

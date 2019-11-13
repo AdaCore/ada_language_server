@@ -524,6 +524,8 @@ package body LSP.Messages is
       Read_Optional_String (JS, +"detail", V.detail);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Read (S, V.documentation);
+      Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
+      Read_Optional_Boolean (JS, +"preselect", V.preselect);
       Read_Optional_String (JS, +"sortText", V.sortText);
       Read_Optional_String (JS, +"filterText", V.filterText);
       Read_Optional_String (JS, +"insertText", V.insertText);
@@ -2795,6 +2797,8 @@ package body LSP.Messages is
       Write_Optional_String (JS, +"detail", V.detail);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Write (S, V.documentation);
+      Write_Optional_Boolean (JS, +"deprecated", V.deprecated);
+      Write_Optional_Boolean (JS, +"preselect", V.preselect);
       Write_Optional_String (JS, +"sortText", V.sortText);
       Write_Optional_String (JS, +"filterText", V.filterText);
       Write_Optional_String (JS, +"insertText", V.insertText);
