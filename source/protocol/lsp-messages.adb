@@ -945,25 +945,12 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Hover)
    is
-      use type GNATCOLL.JSON.JSON_Value_Type;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
       JS.Key ("contents");
-
-      if JS.Read.Kind = GNATCOLL.JSON.JSON_Array_Type then
-         MarkedString_Vector'Read (S, V.contents);
-      else
-         declare
-            Item : MarkedString;
-         begin
-            MarkedString'Read (S, Item);
-            V.contents.Clear;
-            V.contents.Append (Item);
-         end;
-      end if;
-
+      MarkupContent_Or_MarkedString_Vector'Read (S, V.contents);
       JS.Key ("range");
       Optional_Span'Read (S, V.Span);
       JS.End_Object;
@@ -1219,6 +1206,47 @@ package body LSP.Messages is
       Read_String (JS, +"value", V.value);
       JS.End_Object;
    end Read_MarkupContent;
+
+   -----------------------------------------------
+   -- Read_MarkupContent_Or_MarkedString_Vector --
+   -----------------------------------------------
+
+   procedure Read_MarkupContent_Or_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupContent_Or_MarkedString_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         V := (Is_MarkupContent => False,
+               Vector           => <>);
+         V.Vector.Append
+           (MarkedString'(Is_String => True,
+                          value     => To_LSP_String
+                                         (Unbounded_String'(Value.Get))));
+      elsif Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
+         V := (Is_MarkupContent => False,
+               Vector           => <>);
+         MarkedString_Vector'Read (S, V.Vector);
+      elsif Value.Kind not in GNATCOLL.JSON.JSON_Object_Type then
+         null;  --  Nothing to do if this is not an object
+      elsif Value.Has_Field ("kind") then
+         V := (Is_MarkupContent => True,
+               MarkupContent    => <>);
+         MarkupContent'Read (S, V.MarkupContent);
+      else
+         declare
+            Item : MarkedString;
+         begin
+            V := (Is_MarkupContent => False,
+                  Vector           => <>);
+            MarkedString'Read (S, Item);
+            V.Vector.Append (Item);
+         end;
+      end if;
+   end Read_MarkupContent_Or_MarkedString_Vector;
 
    ---------------------
    -- Read_MarkupKind --
@@ -3254,13 +3282,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       JS.Key ("contents");
-
-      if V.contents.Last_Index = 1 then
-         MarkedString'Write (S, V.contents.First_Element);
-      else
-         MarkedString_Vector'Write (S, V.contents);
-      end if;
-
+      MarkupContent_Or_MarkedString_Vector'Write (S, V.contents);
       JS.Key ("range");
       Optional_Span'Write (S, V.Span);
       JS.End_Object;
@@ -3518,6 +3540,23 @@ package body LSP.Messages is
       Write_String (JS, +"value", V.value);
       JS.End_Object;
    end Write_MarkupContent;
+
+   ------------------------------------------------
+   -- Write_MarkupContent_Or_MarkedString_Vector --
+   ------------------------------------------------
+
+   procedure Write_MarkupContent_Or_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupContent_Or_MarkedString_Vector) is
+   begin
+      if V.Is_MarkupContent then
+         MarkupContent'Write (S, V.MarkupContent);
+      elsif V.Vector.Last_Index = 1 then
+         MarkedString'Write (S, V.Vector.First_Element);
+      else
+         MarkedString_Vector'Write (S, V.Vector);
+      end if;
+   end Write_MarkupContent_Or_MarkedString_Vector;
 
    ----------------------
    -- Write_MarkupKind --
