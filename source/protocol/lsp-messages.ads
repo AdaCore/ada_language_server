@@ -26,6 +26,7 @@
 --
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
 
 with LSP.Generic_Optional;
@@ -4552,6 +4553,53 @@ package LSP.Messages is
    --}
    --
    --/**
+   -- * Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
+   -- * hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
+   -- * e.g. the range of an identifier.
+   -- */
+   --export class DocumentSymbol {
+   --
+   --	/**
+   --	 * The name of this symbol. Will be displayed in the user interface and therefore must not be
+   --	 * an empty string or a string only consisting of white spaces.
+   --	 */
+   --	name: string;
+   --
+   --	/**
+   --	 * More detail for this symbol, e.g the signature of a function.
+   --	 */
+   --	detail?: string;
+   --
+   --	/**
+   --	 * The kind of this symbol.
+   --	 */
+   --	kind: SymbolKind;
+   --
+   --	/**
+   --	 * Indicates if this symbol is deprecated.
+   --	 */
+   --	deprecated?: boolean;
+   --
+   --	/**
+   --	 * The range enclosing this symbol not including leading/trailing whitespace but everything else
+   --	 * like comments. This information is typically used to determine if the clients cursor is
+   --	 * inside the symbol to reveal in the symbol in the UI.
+   --	 */
+   --	range: Range;
+   --
+   --	/**
+   --	 * The range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
+   --	 * Must be contained by the `range`.
+   --	 */
+   --	selectionRange: Range;
+   --
+   --	/**
+   --	 * Children of this symbol, e.g. properties of a class.
+   --	 */
+   --	children?: DocumentSymbol[];
+   --}
+   --
+   --/**
    -- * Represents information about programming constructs like variables, classes,
    -- * interfaces etc.
    -- */
@@ -4565,6 +4613,11 @@ package LSP.Messages is
    --	 * The kind of this symbol.
    --	 */
    --	kind: number;
+   --
+   --	/**
+   --	 * Indicates if this symbol is deprecated.
+   --	 */
+   --	deprecated?: boolean;
    --
    --	/**
    --	 * The location of this symbol. The location's range is used by a tool
@@ -4589,9 +4642,35 @@ package LSP.Messages is
    --}
    --
    --```
+   type DocumentSymbol is record
+      name: LSP_String;
+      detail: Optional_String;
+      kind: SymbolKind;
+      deprecated: Optional_Boolean;
+      span: LSP.Messages.Span;
+      selectionRange: LSP.Messages.Span;
+      children: Boolean;  --  True if emit children in JSON
+   end record;
+
+   package DocumentSymbol_Trees is new Ada.Containers.Multiway_Trees
+     (DocumentSymbol);
+
+   type DocumentSymbol_Tree is
+     new DocumentSymbol_Trees.Tree with null record;
+
+   procedure Read_DocumentSymbol_Tree
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentSymbol_Tree);
+   procedure Write_DocumentSymbol_Tree
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbol_Tree);
+   for DocumentSymbol_Tree'Read use Read_DocumentSymbol_Tree;
+   for DocumentSymbol_Tree'Write use Write_DocumentSymbol_Tree;
+
    type SymbolInformation is record
       name: LSP_String;
       kind: SymbolKind;
+      deprecated: Optional_Boolean;
       location: LSP.Messages.Location;
       containerName: Optional_String;
    end record;
@@ -4610,6 +4689,24 @@ package LSP.Messages is
 
    type SymbolInformation_Vector is
      new SymbolInformation_Vectors.Vector with null record;
+
+   type Symbol_Vector (Is_Tree : Boolean := False) is record
+      case Is_Tree is
+         when True =>
+            Tree : DocumentSymbol_Tree;
+         when False =>
+            Vector : SymbolInformation_Vector;
+      end case;
+   end record;
+
+   procedure Read_Symbol_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Symbol_Vector);
+   procedure Write_Symbol_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Symbol_Vector);
+   for Symbol_Vector'Read use Read_Symbol_Vector;
+   for Symbol_Vector'Write use Write_Symbol_Vector;
 
    --```typescript
    --/**

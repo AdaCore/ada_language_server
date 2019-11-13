@@ -868,6 +868,70 @@ package body LSP.Messages is
    end Read_DocumentSymbolParams;
 
    ------------------------------
+   -- Read_DocumentSymbol_Tree --
+   ------------------------------
+
+   procedure Read_DocumentSymbol_Tree
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentSymbol_Tree)
+   is
+      procedure Read_Array (Parent : DocumentSymbol_Trees.Cursor);
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      ----------------
+      -- Read_Array --
+      ----------------
+
+      procedure Read_Array (Parent : DocumentSymbol_Trees.Cursor) is
+      begin
+         JS.Start_Array;
+
+         while not JS.End_Of_Array loop
+            declare
+               Item : DocumentSymbol;
+               Next : DocumentSymbol_Trees.Cursor;
+            begin
+               JS.Start_Object;
+               Read_String (JS, +"name", Item.name);
+               Read_Optional_String (JS, +"detail", Item.detail);
+               JS.Key ("kind");
+               SymbolKind'Read (S, Item.kind);
+               Read_Optional_Boolean (JS, +"deprecated", Item.deprecated);
+               JS.Key ("span");
+               Span'Read (S, Item.span);
+               JS.Key ("selectionRange");
+               Span'Read (S, Item.selectionRange);
+               JS.Key ("children");
+
+               if JS.Read.Kind in GNATCOLL.JSON.JSON_Array_Type then
+                  Item.children := True;
+
+                  V.Insert_Child
+                    (Parent   => Parent,
+                     Before   => DocumentSymbol_Trees.No_Element,
+                     New_Item => Item,
+                     Position => Next);
+
+                  Read_Array (Next);
+               else
+                  Item.children := False;
+                  V.Append_Child (Parent, Item);
+               end if;
+
+               JS.End_Object;
+            end;
+         end loop;
+
+         JS.End_Array;
+      end Read_Array;
+   begin
+      V.Clear;
+      Read_Array (V.Root);
+   end Read_DocumentSymbol_Tree;
+
+   ------------------------------
    -- Read_dynamicRegistration --
    ------------------------------
 
@@ -2032,6 +2096,7 @@ package body LSP.Messages is
       Read_String (JS, +"name", V.name);
       JS.Key ("kind");
       SymbolKind'Read (S, V.kind);
+      Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Read (S, V.location);
       JS.Key ("edits");
@@ -2179,6 +2244,40 @@ package body LSP.Messages is
       --  FIXME: rewrite reading procedure
       TextDocumentEdit'Read (S, V.Text_Document_Edit);
    end Read_Document_Change;
+
+   ------------------------
+   -- Read_Symbol_Vector --
+   ------------------------
+
+   procedure Read_Symbol_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Symbol_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
+         declare
+            Vector : constant GNATCOLL.JSON.JSON_Array := Value.Get;
+            --  ??? This copies whole array and slow, try to avoid it.
+         begin
+            if GNATCOLL.JSON.Length (Vector) > 0 then
+               if GNATCOLL.JSON.Get (Vector, 1).Has_Field ("range") then
+                  V := (Is_Tree => True, Tree => <>);
+                  DocumentSymbol_Tree'Read (S, V.Tree);
+               else
+                  V := (Is_Tree => False, Vector => <>);
+                  SymbolInformation_Vector'Read (S, V.Vector);
+               end if;
+            else
+               V := (Is_Tree => False, Vector => <>);
+            end if;
+         end;
+      else
+         V := (Is_Tree => False, Vector => <>);
+      end if;
+   end Read_Symbol_Vector;
 
    -------------------------------------
    -- Read_Document_Symbol_Capability --
@@ -3222,6 +3321,57 @@ package body LSP.Messages is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.End_Object;
    end Write_DocumentSymbolParams;
+
+   -------------------------------
+   -- Write_DocumentSymbol_Tree --
+   -------------------------------
+
+   procedure Write_DocumentSymbol_Tree
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbol_Tree)
+   is
+      procedure Write_Array (Parent : DocumentSymbol_Trees.Cursor);
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      -----------------
+      -- Write_Array --
+      -----------------
+
+      procedure Write_Array (Parent : DocumentSymbol_Trees.Cursor) is
+      begin
+         JS.Start_Array;
+
+         for J in V.Iterate_Children (Parent) loop
+            declare
+               Item : DocumentSymbol renames DocumentSymbol_Trees.Element (J);
+            begin
+               JS.Start_Object;
+               Write_String (JS, +"name", Item.name);
+               Write_Optional_String (JS, +"detail", Item.detail);
+               JS.Key ("kind");
+               SymbolKind'Write (S, Item.kind);
+               Write_Optional_Boolean (JS, +"deprecated", Item.deprecated);
+               JS.Key ("span");
+               Span'Write (S, Item.span);
+               JS.Key ("selectionRange");
+               Span'Write (S, Item.selectionRange);
+
+               if Item.children then
+                  JS.Key ("children");
+                  Write_Array (J);
+               end if;
+
+               JS.End_Object;
+            end;
+         end loop;
+
+         JS.End_Array;
+      end Write_Array;
+   begin
+      Write_Array (V.Root);
+   end Write_DocumentSymbol_Tree;
 
    -------------------------------
    -- Write_dynamicRegistration --
@@ -4347,6 +4497,7 @@ package body LSP.Messages is
       Write_String (JS, +"name", V.name);
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
+      Write_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Write (S, V.location);
       JS.Key ("edits");
@@ -4369,6 +4520,21 @@ package body LSP.Messages is
         (GNATCOLL.JSON.Create
            (Integer'(SymbolKind'Pos (V)) + 1));
    end Write_SymbolKind;
+
+   -------------------------
+   -- Write_Symbol_Vector --
+   -------------------------
+
+   procedure Write_Symbol_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Symbol_Vector) is
+   begin
+      if V.Is_Tree then
+         DocumentSymbol_Tree'Write (S, V.Tree);
+      else
+         SymbolInformation_Vector'Write (S, V.Vector);
+      end if;
+   end Write_Symbol_Vector;
 
    ---------------------------
    -- Write_synchronization --
