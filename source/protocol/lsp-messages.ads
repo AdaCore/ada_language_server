@@ -3385,6 +3385,18 @@ package LSP.Messages is
    --	triggerCharacters?: string[];
    --
    --	/**
+   --	 * The list of all possible characters that commit a completion. This field can be used
+   --	 * if clients don't support individual commmit characters per completion item. See
+   --	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+   --	 *
+   --	 * If a server provides both `allCommitCharacters` and commit characters on an individual
+   --	 * completion item the ones on the completion item win.
+   --	 *
+   --     * Since 3.2.0
+   --	 */
+   --	allCommitCharacters?: string[];
+   --
+   --	/**
    --	 * The server provides support to resolve additional
    --	 * information for a completion item.
    --	 */
@@ -3393,6 +3405,7 @@ package LSP.Messages is
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
       triggerCharacters: LSP_String_Vector;
+      allCommitCharacters: LSP_String_Vector;
       resolveProvider: Optional_Boolean;
    end record;
 
