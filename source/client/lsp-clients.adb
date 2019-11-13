@@ -967,11 +967,12 @@ package body LSP.Clients is
    procedure Workspace_Apply_Edit
      (Self    : in out Client'Class;
       Request : LSP.Types.LSP_Number_Or_String;
-      Applied : Boolean)
+      Failure : LSP.Types.Optional_String)
    is
       Message : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response :=
         (Is_Error => False,
-         result => (applied => Applied),
+         result => (applied => not Failure.Is_Set,
+                    failureReason => Failure),
          error => (Is_Set => False),
          others => <>);
    begin

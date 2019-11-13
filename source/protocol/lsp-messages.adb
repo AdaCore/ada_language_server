@@ -235,6 +235,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_Boolean (JS, +"applied", V.applied);
+      Read_Optional_String (JS, +"failureReason", V.failureReason);
       JS.End_Object;
    end Read_ApplyWorkspaceEditResult;
 
@@ -2686,6 +2687,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_Boolean (JS, +"applied", V.applied);
+      Write_Optional_String (JS, +"failureReason", V.failureReason);
       JS.End_Object;
    end Write_ApplyWorkspaceEditResult;
 

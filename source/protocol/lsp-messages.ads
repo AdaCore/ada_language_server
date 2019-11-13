@@ -4953,11 +4953,17 @@ package LSP.Messages is
    --	 * The uri this link points to. If missing a resolve request is sent later.
    --	 */
    --	target?: DocumentUri;
+   --	/**
+   --	 * A data entry field that is preserved on a document link between a
+   --	 * DocumentLinkRequest and a DocumentLinkResolveRequest.
+   --	 */
+   --	data?: any;
    --}
    --```
    type DocumentLink is record
       span: LSP.Messages.Span;
       target: DocumentUri;  --  Optional ???
+      --  data?: any
    end record;
 
    --```typescript
@@ -5123,12 +5129,20 @@ package LSP.Messages is
    --```typescript
    --export interface ApplyWorkspaceEditParams {
    --	/**
+   --	 * An optional label of the workspace edit. This label is
+   --	 * presented in the user interface for example on an undo
+   --	 * stack to undo the workspace edit.
+   --	 */
+   --	label?: string;
+   --
+   --	/**
    --	 * The edits to apply.
    --	 */
    --	edit: WorkspaceEdit;
    --}
    --```
    type ApplyWorkspaceEditParams is record
+      label: Optional_String;
       edit: WorkspaceEdit;
    end record;
 
@@ -5138,10 +5152,19 @@ package LSP.Messages is
    --	 * Indicates whether the edit was applied or not.
    --	 */
    --	applied: boolean;
+   --
+   --	/**
+   --	 * An optional textual description for why the edit was not applied.
+   --	 * This may be used may be used by the server for diagnostic
+   --	 * logging or to provide a suitable error for a request that
+   --	 * triggered the edit.
+   --	 */
+   --	failureReason?: string;
    --}
    --```
    type ApplyWorkspaceEditResult is record
       applied: Boolean;
+      failureReason: Optional_String;
    end record;
 
    procedure Read_ApplyWorkspaceEditResult
