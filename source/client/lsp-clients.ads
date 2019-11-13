@@ -156,7 +156,7 @@ package LSP.Clients is
    procedure Workspace_Apply_Edit
      (Self    : in out Client'Class;
       Request : LSP.Types.LSP_Number_Or_String;
-      Applied : Boolean);
+      Failure : LSP.Types.Optional_String);
 
    function Allocate_Request_Id
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String;
