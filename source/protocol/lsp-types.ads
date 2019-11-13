@@ -106,6 +106,25 @@ package LSP.Types is
    function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
       return Ada.Strings.UTF_Encoding.UTF_8_String;
 
+   type LSP_Boolean_Or_String (Is_Boolean : Boolean := False) is record
+      case Is_Boolean is
+         when True =>
+            Boolean : Standard.Boolean;
+         when False =>
+            String : LSP_String;
+      end case;
+   end record;
+
+   procedure Read_LSP_Boolean_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Boolean_Or_String);
+
+   procedure Write_LSP_Boolean_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Boolean_Or_String);
+   for LSP_Boolean_Or_String'Read use Read_LSP_Boolean_Or_String;
+   for LSP_Boolean_Or_String'Write use Write_LSP_Boolean_Or_String;
+
    type Line_Number is new Natural;
    --  Line number. In LSP first line has zero number
    type UTF_16_Index is new Natural;

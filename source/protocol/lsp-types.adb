@@ -73,6 +73,32 @@ package body LSP.Types is
       V := To_LSP_String (Unbounded_String'(JS.Read.Get));
    end Read;
 
+   --------------------------------
+   -- Read_LSP_Boolean_Or_String --
+   --------------------------------
+
+   procedure Read_LSP_Boolean_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Boolean_Or_String)
+   is
+      use type GNATCOLL.JSON.JSON_Value_Type;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
+         V := (Is_Boolean => False,
+               String     => To_LSP_String (Unbounded_String'(Value.Get)));
+      elsif Value.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
+         V := (Is_Boolean => True,
+               Boolean    => GNATCOLL.JSON.Get (Value));
+      else
+         V := (Is_Boolean => True,
+               Boolean    => True);
+      end if;
+   end Read_LSP_Boolean_Or_String;
+
    ---------------------------
    -- Read_Number_Or_String --
    ---------------------------
@@ -312,5 +338,24 @@ package body LSP.Types is
          Write_String (Stream, Key, Item.String);
       end if;
    end Write_Number_Or_String;
+
+   ---------------------------------
+   -- Write_LSP_Boolean_Or_String --
+   ---------------------------------
+
+   procedure Write_LSP_Boolean_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Boolean_Or_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      case V.Is_Boolean is
+         when True =>
+            JS.Write (GNATCOLL.JSON.Create (V.Boolean));
+         when False =>
+            JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V.String)));
+      end case;
+   end Write_LSP_Boolean_Or_String;
 
 end LSP.Types;

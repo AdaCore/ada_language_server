@@ -2770,6 +2770,32 @@ package LSP.Messages is
    --	 */
    --	executeCommandProvider?: ExecuteCommandOptions;
    --	/**
+   --	 * Workspace specific server capabilities
+   --	 */
+   --	workspace?: {
+   --		/**
+   --		 * The server supports workspace folder.
+   --		 *
+   --		 * Since 3.6.0
+   --		 */
+   --		workspaceFolders?: {
+   --			/**
+   --			* The server has support for workspace folders
+   --			*/
+   --			supported?: boolean;
+   --			/**
+   --			* Whether the server wants to receive workspace folder
+   --			* change notifications.
+   --			*
+   --			* If a strings is provided the string is treated as a ID
+   --			* under which the notification is registered on the client
+   --			* side. The ID can be used to unregister for these events
+   --			* using the `client/unregisterCapability` request.
+   --			*/
+   --			changeNotifications?: string | boolean;
+   --		}
+   --	}
+   --	/**
    --	 * Experimental server capabilities.
    --	 */
    --	experimental?: any;
@@ -3036,6 +3062,51 @@ package LSP.Messages is
    for ExecuteCommandOptions'Write use Write_ExecuteCommandOptions;
    for ExecuteCommandOptions'Read use Read_ExecuteCommandOptions;
 
+   package Optional_Boolean_Or_String_Package is
+     new LSP.Generic_Optional (LSP_Boolean_Or_String);
+
+   type Optional_Boolean_Or_String is
+     new Optional_Boolean_Or_String_Package.Optional_Type;
+
+   type workspaceFolders is record
+      supported: Optional_Boolean;
+      changeNotifications: Optional_Boolean_Or_String;
+   end record;
+
+   procedure Read_workspaceFolders
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out workspaceFolders);
+   procedure Write_workspaceFolders
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : workspaceFolders);
+   for workspaceFolders'Write use Write_workspaceFolders;
+   for workspaceFolders'Read use Read_workspaceFolders;
+
+   package Optional_workspaceFolders_Package is
+     new LSP.Generic_Optional (workspaceFolders);
+
+   type Optional_workspaceFolders is
+     new Optional_workspaceFolders_Package.Optional_Type;
+
+   type workspace_Options is record
+      workspaceFolders: Optional_workspaceFolders;
+   end record;
+
+   procedure Read_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out workspace_Options);
+   procedure Write_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : workspace_Options);
+   for workspace_Options'Write use Write_workspace_Options;
+   for workspace_Options'Read use Read_workspace_Options;
+
+   package Optional_workspace_Options_Package is
+     new LSP.Generic_Optional (workspace_Options);
+
+   type Optional_workspace_Options is
+     new Optional_workspace_Options_Package.Optional_Type;
+
    type ServerCapabilities is record
       textDocumentSync: Optional_TextDocumentSyncOptions;
       hoverProvider: Optional_Boolean;
@@ -3059,6 +3130,7 @@ package LSP.Messages is
       foldingRangeProvider: Optional_Provider_Options;
       declarationProvider: Optional_Provider_Options;
       executeCommandProvider: ExecuteCommandOptions;
+      workspace: Optional_workspace_Options;
       --	experimental?: any;
 
       --  ALS-specific capabilities
