@@ -1733,6 +1733,8 @@ package body LSP.Messages is
       Optional_Provider_Options'Read (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Read (S, V.executeCommandProvider);
+      JS.Key ("workspace");
+      Optional_workspace_Options'Read (S, V.workspace);
 
       Read_Optional_Boolean (JS, +"alsCalledByProvider",
                              V.alsCalledByProvider);
@@ -2388,6 +2390,41 @@ package body LSP.Messages is
       Read_String (JS, +"name", V.name);
       JS.End_Object;
    end Read_WorkspaceFolder;
+
+   ---------------------------
+   -- Read_workspaceFolders --
+   ---------------------------
+
+   procedure Read_workspaceFolders
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out workspaceFolders)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_Boolean (JS, +"supported", V.supported);
+      JS.Key ("changeNotifications");
+      Optional_Boolean_Or_String'Read (S, V.changeNotifications);
+      JS.End_Object;
+   end Read_workspaceFolders;
+
+   ----------------------------
+   -- Read_workspace_Options --
+   ----------------------------
+
+   procedure Read_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out workspace_Options)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("workspaceFolders");
+      Optional_workspaceFolders'Read (S, V.workspaceFolders);
+      JS.End_Object;
+   end Read_workspace_Options;
 
    --------------------------------
    -- Read_WorkspaceSymbolParams --
@@ -3984,6 +4021,8 @@ package body LSP.Messages is
       Optional_Provider_Options'Write (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
       ExecuteCommandOptions'Write (S, V.executeCommandProvider);
+      JS.Key ("workspace");
+      Optional_workspace_Options'Write (S, V.workspace);
 
       --  ALS extensions
 
@@ -4588,6 +4627,41 @@ package body LSP.Messages is
       Write_String (JS, +"name", V.name);
       JS.End_Object;
    end Write_WorkspaceFolder;
+
+   ----------------------------
+   -- Write_workspaceFolders --
+   ----------------------------
+
+   procedure Write_workspaceFolders
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : workspaceFolders)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_Boolean (JS, +"supported", V.supported);
+      JS.Key ("changeNotifications");
+      Optional_Boolean_Or_String'Write (S, V.changeNotifications);
+      JS.End_Object;
+   end Write_workspaceFolders;
+
+   -----------------------------
+   -- Write_workspace_Options --
+   -----------------------------
+
+   procedure Write_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : workspace_Options)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("workspaceFolders");
+      Optional_workspaceFolders'Write (S, V.workspaceFolders);
+      JS.End_Object;
+   end Write_workspace_Options;
 
    ---------------------------------
    -- Write_WorkspaceSymbolParams --
