@@ -522,7 +522,8 @@ package body LSP.Messages is
       JS.Key ("kind");
       Optional_CompletionItemKind'Read (S, V.kind);
       Read_Optional_String (JS, +"detail", V.detail);
-      Read_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Read (S, V.documentation);
       Read_Optional_String (JS, +"sortText", V.sortText);
       Read_Optional_String (JS, +"filterText", V.filterText);
       Read_Optional_String (JS, +"insertText", V.insertText);
@@ -1376,7 +1377,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_String (JS, +"label", V.label);
-      Read_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Read (S, V.documentation);
       JS.End_Object;
    end Read_ParameterInformation;
 
@@ -1775,7 +1777,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Read_String (JS, +"label", V.label);
-      Read_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Read (S, V.documentation);
       JS.Key ("parameters");
       ParameterInformation_Vector'Read (S, V.parameters);
       JS.End_Object;
@@ -1918,6 +1921,27 @@ package body LSP.Messages is
       DocumentSelector'Read (S, V.documentSelector);
       JS.End_Object;
    end Read_StaticRegistrationOptions;
+
+   ----------------------------------
+   -- Read_String_Or_MarkupContent --
+   ----------------------------------
+
+   procedure Read_String_Or_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out String_Or_MarkupContent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         V := (Is_String => True,
+               String    => To_LSP_String (Unbounded_String'(Value.Get)));
+      else
+         V := (Is_String => False, Content => <>);
+         MarkupContent'Read (S, V.Content);
+      end if;
+   end Read_String_Or_MarkupContent;
 
    ------------------------
    -- Read_String_Vector --
@@ -2769,7 +2793,8 @@ package body LSP.Messages is
       JS.Key ("kind");
       Optional_CompletionItemKind'Write (S, V.kind);
       Write_Optional_String (JS, +"detail", V.detail);
-      Write_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Write (S, V.documentation);
       Write_Optional_String (JS, +"sortText", V.sortText);
       Write_Optional_String (JS, +"filterText", V.filterText);
       Write_Optional_String (JS, +"insertText", V.insertText);
@@ -3657,7 +3682,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_String (JS, +"label", V.label);
-      Write_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Write (S, V.documentation);
       JS.End_Object;
    end Write_ParameterInformation;
 
@@ -4112,7 +4138,8 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       Write_String (JS, +"label", V.label);
-      Write_Optional_String (JS, +"documentation", V.documentation);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Write (S, V.documentation);
       JS.Key ("parameters");
       ParameterInformation_Vector'Write (S, V.parameters);
       JS.End_Object;
@@ -4174,6 +4201,26 @@ package body LSP.Messages is
       DocumentSelector'Write (S, V.documentSelector);
       JS.End_Object;
    end Write_StaticRegistrationOptions;
+
+   -----------------------------------
+   -- Write_String_Or_MarkupContent --
+   -----------------------------------
+
+   procedure Write_String_Or_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : String_Or_MarkupContent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      case V.Is_String is
+         when True =>
+            JS.Write
+              (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+         when False =>
+            MarkupContent'Write (S, V.Content);
+      end case;
+   end Write_String_Or_MarkupContent;
 
    -------------------------
    -- Write_String_Vector --

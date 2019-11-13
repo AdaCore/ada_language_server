@@ -1523,6 +1523,30 @@ package LSP.Messages is
    for MarkupContent'Read use Read_MarkupContent;
    for MarkupContent'Write use Write_MarkupContent;
 
+   type String_Or_MarkupContent (Is_String : Boolean := False) is record
+      case Is_String is
+         when True =>
+            String : LSP_String;
+         when False =>
+            Content : MarkupContent;
+      end case;
+   end record;
+
+   procedure Read_String_Or_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out String_Or_MarkupContent);
+   procedure Write_String_Or_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : String_Or_MarkupContent);
+   for String_Or_MarkupContent'Read use Read_String_Or_MarkupContent;
+   for String_Or_MarkupContent'Write use Write_String_Or_MarkupContent;
+
+   package Optional_String_Or_MarkupContent_Package is
+     new LSP.Generic_Optional (String_Or_MarkupContent);
+
+   type Optional_String_Or_MarkupContent is
+     new Optional_String_Or_MarkupContent_Package.Optional_Type;
+
    --```typescript
    --/**
    -- * Text document specific client capabilities.
@@ -3930,7 +3954,8 @@ package LSP.Messages is
    --	/**
    --	 * A human-readable string that represents a doc-comment.
    --	 */
-   --	documentation?: string;
+   --	documentation?: string | MarkupContent;
+   --
    --	/**
    --	 * A string that should be used when comparing this item
    --	 * with other items. When `falsy` the label is used.
@@ -4059,7 +4084,7 @@ package LSP.Messages is
       label: LSP_String;
       kind: Optional_CompletionItemKind;
       detail: Optional_String;
-      documentation: Optional_String;
+      documentation: Optional_String_Or_MarkupContent;
       sortText: Optional_String;
       filterText: Optional_String;
       insertText: Optional_String;
@@ -4220,7 +4245,7 @@ package LSP.Messages is
    --	 * The human-readable doc-comment of this signature. Will be shown
    --	 * in the UI but can be omitted.
    --	 */
-   --	documentation?: string;
+   --	documentation?: string | MarkupContent;
    --
    --	/**
    --	 * The parameters of this signature.
@@ -4243,12 +4268,12 @@ package LSP.Messages is
    --	 * The human-readable doc-comment of this parameter. Will be shown
    --	 * in the UI but can be omitted.
    --	 */
-   --	documentation?: string;
+   --	documentation?: string | MarkupContent;
    --}
    --```
    type ParameterInformation is record
       label: LSP_String;
-      documentation: Optional_String;
+      documentation: Optional_String_Or_MarkupContent;
    end record;
 
    procedure Read_ParameterInformation
@@ -4267,7 +4292,7 @@ package LSP.Messages is
 
    type SignatureInformation is record
       label: LSP_String;
-      documentation: Optional_String;
+      documentation: Optional_String_Or_MarkupContent;
       parameters: ParameterInformation_Vector;
    end record;
 
