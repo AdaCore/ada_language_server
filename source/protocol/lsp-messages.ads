@@ -5248,7 +5248,6 @@ package LSP.Messages is
    --	 */
    --	percentage?: number;
    --}
-   --```
    type WorkDoneProgressBegin is record
       kind        : LSP_String := LSP.Types.To_LSP_String ("begin");
       title       : LSP_String;
@@ -5372,6 +5371,56 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Progress_Params);
    for Progress_Params'Write use Write_Progress_Params;
+
+   --```typescript
+   --export interface DidChangeWorkspaceFoldersParams {
+   --	/**
+   --	 * The actual workspace folder change event.
+   --	 */
+   --	event: WorkspaceFoldersChangeEvent;
+   --}
+   --
+   --/**
+   -- * The workspace folder change event.
+   -- */
+   --export interface WorkspaceFoldersChangeEvent {
+   --	/**
+   --	 * The array of added workspace folders
+   --	 */
+   --	added: WorkspaceFolder[];
+   --
+   --	/**
+   --	 * The array of the removed workspace folders
+   --	 */
+   --	removed: WorkspaceFolder[];
+   --}
+   --```
+   type WorkspaceFoldersChangeEvent is record
+      added: WorkspaceFolder_Vector;
+      removed: WorkspaceFolder_Vector;
+   end record;
+
+   procedure Read_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceFoldersChangeEvent);
+   procedure Write_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceFoldersChangeEvent);
+   for WorkspaceFoldersChangeEvent'Read use Read_WorkspaceFoldersChangeEvent;
+   for WorkspaceFoldersChangeEvent'Write use Write_WorkspaceFoldersChangeEvent;
+
+   type DidChangeWorkspaceFoldersParams is record
+      event: WorkspaceFoldersChangeEvent;
+   end record;
+
+   procedure Read_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWorkspaceFoldersParams);
+   procedure Write_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWorkspaceFoldersParams);
+   for DidChangeWorkspaceFoldersParams'Read use Read_DidChangeWorkspaceFoldersParams;
+   for DidChangeWorkspaceFoldersParams'Write use Write_DidChangeWorkspaceFoldersParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
