@@ -691,6 +691,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_DidChangeTextDocumentParams;
 
+   ------------------------------------------
+   -- Read_DidChangeWorkspaceFoldersParams --
+   ------------------------------------------
+
+   procedure Read_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWorkspaceFoldersParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("event");
+      WorkspaceFoldersChangeEvent'Read (S, V.event);
+      JS.End_Object;
+   end Read_DidChangeWorkspaceFoldersParams;
+
    -------------------------------------
    -- Read_DidCloseTextDocumentParams --
    -------------------------------------
@@ -2571,6 +2588,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceFolder;
 
+   --------------------------------------
+   -- Read_WorkspaceFoldersChangeEvent --
+   --------------------------------------
+
+   procedure Read_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkspaceFoldersChangeEvent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("added");
+      WorkspaceFolder_Vector'Read (S, V.added);
+      JS.Key ("removed");
+      WorkspaceFolder_Vector'Read (S, V.removed);
+      JS.End_Object;
+   end Read_WorkspaceFoldersChangeEvent;
+
    ---------------------------
    -- Read_workspaceFolders --
    ---------------------------
@@ -3147,6 +3183,23 @@ package body LSP.Messages is
       TextDocumentContentChangeEvent_Vector'Write (S, V.contentChanges);
       JS.End_Object;
    end Write_DidChangeTextDocumentParams;
+
+   -------------------------------------------
+   -- Write_DidChangeWorkspaceFoldersParams --
+   -------------------------------------------
+
+   procedure Write_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWorkspaceFoldersParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("event");
+      WorkspaceFoldersChangeEvent'Write (S, V.event);
+      JS.End_Object;
+   end Write_DidChangeWorkspaceFoldersParams;
 
    --------------------------------------
    -- Write_DidCloseTextDocumentParams --
@@ -4936,6 +4989,25 @@ package body LSP.Messages is
       Write_String (JS, +"name", V.name);
       JS.End_Object;
    end Write_WorkspaceFolder;
+
+   ---------------------------------------
+   -- Write_WorkspaceFoldersChangeEvent --
+   ---------------------------------------
+
+   procedure Write_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceFoldersChangeEvent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("added");
+      WorkspaceFolder_Vector'Write (S, V.added);
+      JS.Key ("removed");
+      WorkspaceFolder_Vector'Write (S, V.removed);
+      JS.End_Object;
+   end Write_WorkspaceFoldersChangeEvent;
 
    ----------------------------
    -- Write_workspaceFolders --
