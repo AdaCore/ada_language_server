@@ -4292,11 +4292,18 @@ package LSP.Messages is
    -- * have a label and a doc-comment.
    -- */
    --interface ParameterInformation {
+   --
    --	/**
-   --	 * The label of this parameter. Will be shown in
-   --	 * the UI.
+   --	 * The label of this parameter information.
+   --	 *
+   --	 * Either a string or an inclusive start and exclusive end offsets within its containing
+   --	 * signature label. (see SignatureInformation.label). The offsets are based on a UTF-16
+   --	 * string representation as `Position` and `Range` does.
+   --	 *
+   --	 * *Note*: a label of type string should be a substring of its containing signature label.
+   --	 * Its intended use case is to highlight the parameter label part in the `SignatureInformation.label`.
    --	 */
-   --	label: string;
+   --	label: string | [number, number];
    --
    --	/**
    --	 * The human-readable doc-comment of this parameter. Will be shown
@@ -4305,8 +4312,26 @@ package LSP.Messages is
    --	documentation?: string | MarkupContent;
    --}
    --```
+   type Parameter_Label (Is_String : Boolean := True) is record
+      case Is_String is
+         when True =>
+            String : LSP_String;
+         when False =>
+            From, Till : UTF_16_Index;
+      end case;
+   end record;
+
+   procedure Read_Parameter_Label
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Parameter_Label);
+   procedure Write_Parameter_Label
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Parameter_Label);
+   for Parameter_Label'Read use Read_Parameter_Label;
+   for Parameter_Label'Write use Write_Parameter_Label;
+
    type ParameterInformation is record
-      label: LSP_String;
+      label: Parameter_Label;
       documentation: Optional_String_Or_MarkupContent;
    end record;
 

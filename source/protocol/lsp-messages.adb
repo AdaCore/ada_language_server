@@ -1406,11 +1406,35 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Read_String (JS, +"label", V.label);
+      JS.Key ("label");
+      Parameter_Label'Read (S, V.label);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Read (S, V.documentation);
       JS.End_Object;
    end Read_ParameterInformation;
+
+   --------------------------
+   -- Read_Parameter_Label --
+   --------------------------
+
+   procedure Read_Parameter_Label
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Parameter_Label)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         V := (Is_String => True,
+               String    => To_LSP_String (Unbounded_String'(Value.Get)));
+      else
+         JS.Start_Array;
+         V.From := UTF_16_Index (Integer'(JS.Read.Get));
+         V.Till := UTF_16_Index (Integer'(JS.Read.Get));
+         JS.End_Array;
+      end if;
+   end Read_Parameter_Label;
 
    ------------------------------------------
    -- Read_parameterInformation_Capability --
@@ -3724,11 +3748,34 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_String (JS, +"label", V.label);
+      JS.Key ("label");
+      Parameter_Label'Write (S, V.label);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Write (S, V.documentation);
       JS.End_Object;
    end Write_ParameterInformation;
+
+   ---------------------------
+   -- Write_Parameter_Label --
+   ---------------------------
+
+   procedure Write_Parameter_Label
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Parameter_Label)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V.Is_String then
+         JS.Write
+           (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+      else
+         JS.Start_Array;
+         JS.Write (GNATCOLL.JSON.Create (Integer (V.From)));
+         JS.Write (GNATCOLL.JSON.Create (Integer (V.Till)));
+         JS.End_Array;
+      end if;
+   end Write_Parameter_Label;
 
    -------------------------------------------
    -- Write_parameterInformation_Capability --
