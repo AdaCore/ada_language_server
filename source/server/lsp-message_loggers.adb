@@ -558,10 +558,15 @@ package body LSP.Message_Loggers is
          return;
       end if;
 
-      Self.Trace.Trace
-        ("Hover_Response: "
-         & Image (Value)
-         & Ada.Containers.Count_Type'Image (Value.result.contents.Length));
+      if Value.result.contents.Is_MarkupContent then
+         Self.Trace.Trace ("Hover_Response: " & Image (Value));
+      else
+         Self.Trace.Trace
+           ("Hover_Response: "
+            & Image (Value)
+            & Ada.Containers.Count_Type'Image
+              (Value.result.contents.Vector.Length));
+      end if;
    end On_Hover_Response;
 
    ---------------------------

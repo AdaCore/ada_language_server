@@ -4179,6 +4179,24 @@ package LSP.Messages is
    package MarkedString_Vectors is new LSP.Generic_Vectors (MarkedString);
    type MarkedString_Vector is new MarkedString_Vectors.Vector with null record;
 
+   type MarkupContent_Or_MarkedString_Vector (Is_MarkupContent : Boolean := False) is record
+      case Is_MarkupContent is
+         when True =>
+            MarkupContent : LSP.Messages.MarkupContent;
+         when False =>
+            Vector : MarkedString_Vector;
+      end case;
+   end record;
+
+   procedure Read_MarkupContent_Or_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkupContent_Or_MarkedString_Vector);
+   procedure Write_MarkupContent_Or_MarkedString_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupContent_Or_MarkedString_Vector);
+   for MarkupContent_Or_MarkedString_Vector'Read use Read_MarkupContent_Or_MarkedString_Vector;
+   for MarkupContent_Or_MarkedString_Vector'Write use Write_MarkupContent_Or_MarkedString_Vector;
+
    --```typescript
    --/**
    -- * The result of a hover request.
@@ -4187,7 +4205,7 @@ package LSP.Messages is
    --	/**
    --	 * The hover's content
    --	 */
-   --	contents: MarkedString | MarkedString[];
+   --	contents: MarkedString | MarkedString[] | MarkupContent;
    --
    --	/**
    --	 * An optional range is a range inside a text document
@@ -4197,7 +4215,7 @@ package LSP.Messages is
    --}
    --```
    type Hover is record
-      contents: MarkedString_Vector;
+      contents: MarkupContent_Or_MarkedString_Vector;
       Span: Optional_Span;
    end record;
 

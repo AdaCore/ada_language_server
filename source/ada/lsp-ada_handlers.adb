@@ -1136,7 +1136,7 @@ package body LSP.Ada_Handlers is
       --  Append the associated basic declaration's text to the response.
       --  We set the language for highlighting.
       if Decl_Text /= Empty_LSP_String then
-         Response.result.contents.Append
+         Response.result.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => False,
                value     => Decl_Text,
@@ -1155,7 +1155,7 @@ package body LSP.Ada_Handlers is
               (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
             & ")");
 
-         Response.result.contents.Append
+         Response.result.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
                value     => Location_Text));
@@ -1169,7 +1169,7 @@ package body LSP.Ada_Handlers is
                    (Decl).Doc.To_String));
 
          if Comments_Text /= Empty_LSP_String then
-            Response.result.contents.Append
+            Response.result.contents.Vector.Append
               (LSP.Messages.MarkedString'
                  (Is_String => True,
                   value     => Comments_Text));
