@@ -4844,10 +4844,19 @@ package LSP.Messages is
    --	 * An array of diagnostics.
    --	 */
    --	diagnostics: Diagnostic[];
+   --
+   --	/**
+   --	 * Requested kind of actions to return.
+   --	 *
+   --	 * Actions not of this kind are filtered out by the client before being shown. So servers
+   --	 * can omit computing them.
+   --	 */
+   --	only?: CodeActionKind[];
    --}
    --```
    type CodeActionContext is record
       diagnostics: Diagnostic_Vector;
+      only: Optional_CodeActionKindSet;
    end record;
 
    procedure Read_CodeActionContext
