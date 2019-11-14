@@ -27,6 +27,7 @@
     },
     "os": [ "linux", "win32", "darwin" ],
     "cpu": [ "x64" ],
+    "keywords": [ "Ada", "ada", "adb", "adc", "ads", "gpr" ],
     "contributes": {
         "languages": [
             {
@@ -42,6 +43,17 @@
                     ".ads"
                 ],
                 "configuration": "./language-configuration.json"
+            },
+            {
+                "id": "gpr",
+                "aliases": [
+                    "GNAT Project",
+                    "gpr"
+                ],
+                "extensions": [
+                    ".gpr"
+                ],
+                "configuration": "./gpr-language-configuration.json"
             }
         ],
         "grammars": [
@@ -49,12 +61,21 @@
                 "language": "ada",
                 "scopeName": "source.ada",
                 "path": "./syntaxes/ada.tmLanguage"
+            },
+            {
+                "language": "gpr",
+                "scopeName": "source.gpr",
+                "path": "./syntaxes/gpr.tmLanguage.json"
             }
         ],
         "snippets": [
             {
                 "language": "ada",
                 "path": "./ada-snippets.json"
+            },
+            {
+                "language": "gpr",
+                "path": "./gpr-snippets.json"
             }
         ],
         "configuration": [
