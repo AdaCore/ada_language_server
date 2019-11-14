@@ -107,7 +107,7 @@
                 "fileLocation": ["relative", "${workspaceRoot}"],
                 "pattern": [
                     {
-                        "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|)(?:\\s+)?(.*)$",
+                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(warning|)(?:[:]\\s+)?(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
