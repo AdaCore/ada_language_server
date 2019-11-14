@@ -5,10 +5,6 @@
     "version": "20.0.999",
     "publisher": "MaximReznik",
     "license": "GPL-3.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/AdaCore/ada_language_server"
-    },
     "engines": {
         "vscode": "^1.17.0"
     },
