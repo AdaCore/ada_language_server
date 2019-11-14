@@ -1,0 +1,105 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "gpr",
+    "patterns": [
+        { "include": "#comment" },
+        { "include": "#package" },
+        { "include": "#attribute" },
+        { "include": "#keyword" },
+        { "include": "#value" }
+    ],
+    "repository": {
+        "attribute": {
+            "patterns": [
+                {
+                    "name": "meta.attribute.gpr",
+                    "begin": "\\bfor\\s+(\\w|_)+(\\s*\\(.*\\))?\\s+use\\b",
+                    "end": ";",
+                    "captures": {
+                        "0": {
+                            "patterns": [
+                                { "include": "#keyword" },
+                                { "include": "#value" },
+                                {
+                                    "name": "entity.other.attribute-name",
+                                    "match": "\\b(\\w|_)+\\b"
+                                }
+                            ]
+                        }
+                    },
+                    "patterns": [
+                        { "include": "#value" }
+                    ]
+                }
+            ]
+        },
+        "comment": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-dash.ada",
+                    "match": "--[^-]+--\\s*$",
+                    "captures": {
+                        "0": {
+                            "patterns": [
+                                {
+                                    "name": "entity.name.section",
+                                    "match": "\\b(\\w|\\s|_)*\\b"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "comment.line.double-dash.ada",
+                    "match": "--.*$"
+                }
+            ]
+        },
+        "keyword": {
+            "patterns": [
+                {
+                    "name": "keyword.gpr",
+                    "match": "(?i)\\b(abstract|aggregate|all|at|case|end|extends|external|external_as_list|for|is|library|limited|null|others|package|project|renames|type|use|when|with)\\b"
+                }
+            ]
+        },
+        "package": {
+            "patterns": [
+                {
+                    "name": "meta.package.gpr",
+                    "begin": "(?i)\\bpackage\\s+(\\w|_)+\\s+is\\b",
+                    "end": "(?i)\\bend\\s+(\\w|_)+\\b",
+                    "captures": {
+                        "0": {
+                            "patterns": [
+                                { "include": "#keyword" },
+                                {
+                                    "name": "entity.name.package.gpr",
+                                    "match": "\\b(\\w|_)+\\b"
+                                }
+                            ]
+                        }
+                    },
+                    "patterns": [
+                        { "include": "#comment" },
+                        { "include": "#attribute" }
+                    ]
+                }
+            ]
+        },
+        "value": {
+            "patterns": [
+                {
+                    "name": "string.quoted.single.gpr",
+                    "match": "'.'"
+                },
+                {
+                    "name": "string.quoted.double.gpr",
+                    "begin": "\"",
+                    "end": "\""
+                }
+            ]
+        }
+    },
+    "scopeName": "source.gpr"
+}
