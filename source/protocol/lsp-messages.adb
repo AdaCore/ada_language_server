@@ -502,6 +502,47 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ColorInformation;
 
+   ----------------------------
+   -- Read_ColorPresentation --
+   ----------------------------
+
+   procedure Read_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorPresentation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"label", V.label);
+      JS.Key ("textEdit");
+      Optional_TextEdit'Read (S, V.textEdit);
+      JS.Key ("additionalTextEdits");
+      TextEdit_Vector'Read (S, V.additionalTextEdits);
+      JS.End_Object;
+   end Read_ColorPresentation;
+
+   ----------------------------------
+   -- Read_ColorPresentationParams --
+   ----------------------------------
+
+   procedure Read_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorPresentationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.Key ("color");
+      RGBA_Color'Read (S, V.color);
+      JS.Key ("range");
+      Span'Read (S, V.span);
+      JS.End_Object;
+   end Read_ColorPresentationParams;
+
    ------------------
    -- Read_Command --
    ------------------
@@ -3194,6 +3235,51 @@ package body LSP.Messages is
       RGBA_Color'Write (S, V.color);
       JS.End_Object;
    end Write_ColorInformation;
+
+   -----------------------------
+   -- Write_ColorPresentation --
+   -----------------------------
+
+   procedure Write_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorPresentation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"label", V.label);
+      JS.Key ("textEdit");
+      Optional_TextEdit'Write (S, V.textEdit);
+
+      if not V.additionalTextEdits.Is_Empty then
+         JS.Key ("additionalTextEdits");
+         TextEdit_Vector'Write (S, V.additionalTextEdits);
+      end if;
+
+      JS.End_Object;
+   end Write_ColorPresentation;
+
+   -----------------------------------
+   -- Write_ColorPresentationParams --
+   -----------------------------------
+
+   procedure Write_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorPresentationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("color");
+      RGBA_Color'Write (S, V.color);
+      JS.Key ("range");
+      Span'Write (S, V.span);
+      JS.End_Object;
+   end Write_ColorPresentationParams;
 
    -------------------
    -- Write_Command --
