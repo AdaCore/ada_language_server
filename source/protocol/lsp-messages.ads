@@ -350,6 +350,9 @@ package LSP.Messages is
    type Optional_CodeActionKindSet is
      new Optional_CodeActionKindSets.Optional_Type;
 
+   package Optional_CodeActionKinds is new LSP.Generic_Optional (CodeActionKind);
+   type Optional_CodeActionKind is new Optional_CodeActionKinds.Optional_Type;
+
    --  reference_kinds ALS extension:
    --
    --  export type AlsReferenceKind = 'w' | 'c' | 'd';
@@ -629,6 +632,9 @@ package LSP.Messages is
    package Diagnostic_Vectors is new LSP.Generic_Vectors (Diagnostic);
 
    type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
+
+   package Optional_Diagnostic_Vectors is new LSP.Generic_Optional (Diagnostic_Vector);
+   type Optional_Diagnostic_Vector is new Optional_Diagnostic_Vectors.Optional_Type;
 
    --```typescript
    --interface Command {
@@ -992,6 +998,9 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceEdit);
    for WorkspaceEdit'Write use Write_WorkspaceEdit;
+
+   package Optional_WorkspaceEdits is new LSP.Generic_Optional (WorkspaceEdit);
+   type Optional_WorkspaceEdit is new Optional_WorkspaceEdits.Optional_Type;
 
    --```typescript
    --interface TextDocumentItem {
@@ -5644,6 +5653,67 @@ package LSP.Messages is
       V : CompletionParams);
    for CompletionParams'Read use Read_CompletionParams;
    for CompletionParams'Write use Write_CompletionParams;
+
+   --```typescript
+   --/**
+   -- * A code action represents a change that can be performed in code, e.g. to fix a problem or
+   -- * to refactor code.
+   -- *
+   -- * A CodeAction must set either `edit` and/or a `command`. If both are supplied, the `edit` is applied first, then the `command` is executed.
+   -- */
+   --export interface CodeAction {
+   --
+   --	/**
+   --	 * A short, human-readable, title for this code action.
+   --	 */
+   --	title: string;
+   --
+   --	/**
+   --	 * The kind of the code action.
+   --	 *
+   --	 * Used to filter code actions.
+   --	 */
+   --	kind?: CodeActionKind;
+   --
+   --	/**
+   --	 * The diagnostics that this code action resolves.
+   --	 */
+   --	diagnostics?: Diagnostic[];
+   --
+   --	/**
+   --	 * The workspace edit this code action performs.
+   --	 */
+   --	edit?: WorkspaceEdit;
+   --
+   --	/**
+   --	 * A command this code action executes. If a code action
+   --	 * provides an edit and a command, first the edit is
+   --	 * executed and then the command.
+   --	 */
+   --	command?: Command;
+   --}
+   --```
+   type CodeAction is record
+      title: LSP_String;
+      kind: Optional_CodeActionKind;
+      diagnostics: Optional_Diagnostic_Vector;
+      edit: Optional_WorkspaceEdit;
+      command: Optional_Command;
+   end record;
+
+   procedure Read_CodeAction
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeAction);
+   procedure Write_CodeAction
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeAction);
+   for CodeAction'Read use Read_CodeAction;
+   for CodeAction'Write use Write_CodeAction;
+
+   package CodeAction_Vectors is new LSP.Generic_Vectors (CodeAction);
+   type CodeAction_Vector is new CodeAction_Vectors.Vector with null record;
+   --  CodeAction_Vector represents a sequence of CodeAction OR Command.
+   --  Command is represented as CodeAction with just `command` property set.
 
    -----------------------------------------
    -- ALS-specific messages and responses --

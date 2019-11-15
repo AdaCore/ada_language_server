@@ -298,6 +298,45 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ClientCapabilities;
 
+   ---------------------
+   -- Read_CodeAction --
+   ---------------------
+
+   procedure Read_CodeAction
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeAction)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      JS.Start_Object;
+
+      --  if the object is Command set just V.command property
+
+      JS.Key ("command");
+      Value := JS.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         V.command := (Is_Set => True, Value => <>);
+         Read_String (JS, +"title", V.command.Value.title);
+         Read_String (JS, +"command", V.command.Value.command);
+         JS.Key ("arguments");
+         V.command.Value.arguments := JS.Read;
+      else
+         Optional_Command'Read (S, V.command);
+         Read_String (JS, +"title", V.title);
+         JS.Key ("kind");
+         Optional_CodeActionKind'Read (S, V.kind);
+         JS.Key ("diagnostics");
+         Optional_Diagnostic_Vector'Read (S, V.diagnostics);
+         JS.Key ("edit");
+         Optional_WorkspaceEdit'Read (S, V.edit);
+      end if;
+
+      JS.End_Object;
+   end Read_CodeAction;
+
    ----------------------------
    -- Read_CodeActionContext --
    ----------------------------
@@ -2912,6 +2951,34 @@ package body LSP.Messages is
       TextDocumentClientCapabilities'Write (S, V.textDocument);
       JS.End_Object;
    end Write_ClientCapabilities;
+
+   ----------------------
+   -- Write_CodeAction --
+   ----------------------
+
+   procedure Write_CodeAction
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeAction)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if LSP.Types.Is_Empty (V.title) and then V.command.Is_Set then
+         Optional_Command'Write (S, V.command);
+      else
+         JS.Start_Object;
+         Write_String (JS, +"title", V.title);
+         JS.Key ("kind");
+         Optional_CodeActionKind'Write (S, V.kind);
+         JS.Key ("diagnostics");
+         Optional_Diagnostic_Vector'Write (S, V.diagnostics);
+         JS.Key ("edit");
+         Optional_WorkspaceEdit'Write (S, V.edit);
+         JS.Key ("command");
+         Optional_Command'Write (S, V.command);
+         JS.End_Object;
+      end if;
+   end Write_CodeAction;
 
    -----------------------------
    -- Write_CodeActionContext --
