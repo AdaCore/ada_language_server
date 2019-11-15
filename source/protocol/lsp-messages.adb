@@ -1222,6 +1222,43 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_FileSystemWatcher;
 
+   -----------------------
+   -- Read_FoldingRange --
+   -----------------------
+
+   procedure Read_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FoldingRange)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number (JS, +"startLine", V.startLine);
+      Read_Optional_Number (JS, +"startCharacter", V.startCharacter);
+      Read_Number (JS, +"endLine", V.endLine);
+      Read_Optional_Number (JS, +"endCharacter", V.endCharacter);
+      Read_Optional_String (JS, +"kind", V.kind);
+      JS.End_Object;
+   end Read_FoldingRange;
+
+   -----------------------------
+   -- Read_FoldingRangeParams --
+   -----------------------------
+
+   procedure Read_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FoldingRangeParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.End_Object;
+   end Read_FoldingRangeParams;
+
    ----------------------------------
    -- Read_foldingRange_Capability --
    ----------------------------------
@@ -3918,6 +3955,43 @@ package body LSP.Messages is
       WatchKind_Set'Write (S, V.kind);
       JS.End_Object;
    end Write_FileSystemWatcher;
+
+   ------------------------
+   -- Write_FoldingRange --
+   ------------------------
+
+   procedure Write_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FoldingRange)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number (JS, +"startLine", V.startLine);
+      Write_Optional_Number (JS, +"startCharacter", V.startCharacter);
+      Write_Number (JS, +"endLine", V.endLine);
+      Write_Optional_Number (JS, +"endCharacter", V.endCharacter);
+      Write_Optional_String (JS, +"kind", V.kind);
+      JS.End_Object;
+   end Write_FoldingRange;
+
+   ------------------------------
+   -- Write_FoldingRangeParams --
+   ------------------------------
+
+   procedure Write_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FoldingRangeParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_FoldingRangeParams;
 
    ---------------------------------
    -- Write_ExecuteCommandOptions --
