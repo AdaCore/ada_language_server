@@ -5875,6 +5875,103 @@ package LSP.Messages is
       prepareProvider: Optional_Boolean;
    end record;
 
+   --```typescript
+   --export interface FoldingRangeParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --}
+   --
+   --```
+   type FoldingRangeParams is record
+      textDocument: TextDocumentIdentifier;
+   end record;
+
+   procedure Read_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FoldingRangeParams);
+   procedure Write_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FoldingRangeParams);
+   for FoldingRangeParams'Read use Read_FoldingRangeParams;
+   for FoldingRangeParams'Write use Write_FoldingRangeParams;
+
+   --```typescript
+   --/**
+   -- * Enum of known range kinds
+   -- */
+   --export enum FoldingRangeKind {
+   --	/**
+   --	 * Folding range for a comment
+   --	 */
+   --	Comment = 'comment',
+   --	/**
+   --	 * Folding range for a imports or includes
+   --	 */
+   --	Imports = 'imports',
+   --	/**
+   --	 * Folding range for a region (e.g. `#region`)
+   --	 */
+   --	Region = 'region'
+   --}
+   --
+   --/**
+   -- * Represents a folding range.
+   -- */
+   --export interface FoldingRange {
+   --
+   --	/**
+   --	 * The zero-based line number from where the folded range starts.
+   --	 */
+   --	startLine: number;
+   --
+   --	/**
+   --	 * The zero-based character offset from where the folded range starts. If not defined, defaults to the length of the start line.
+   --	 */
+   --	startCharacter?: number;
+   --
+   --	/**
+   --	 * The zero-based line number where the folded range ends.
+   --	 */
+   --	endLine: number;
+   --
+   --	/**
+   --	 * The zero-based character offset before the folded range ends. If not defined, defaults to the length of the end line.
+   --	 */
+   --	endCharacter?: number;
+   --
+   --	/**
+   --	 * Describes the kind of the folding range such as `comment' or 'region'. The kind
+   --	 * is used to categorize folding ranges and used by commands like 'Fold all comments'. See
+   --	 * [FoldingRangeKind](#FoldingRangeKind) for an enumeration of standardized kinds.
+   --	 */
+   --	kind?: string;
+   --}
+   --```
+   type FoldingRange is record
+      startLine: LSP_Number;
+      startCharacter: Optional_Number;
+      endLine: LSP_Number;
+      endCharacter: Optional_Number;
+      kind: Optional_String;
+   end record;
+
+   procedure Read_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FoldingRange);
+   procedure Write_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FoldingRange);
+   for FoldingRange'Read use Read_FoldingRange;
+   for FoldingRange'Write use Write_FoldingRange;
+
+   subtype FoldingRangeKind is LSP_String;
+
+   Comment : constant FoldingRangeKind := LSP.Types.To_LSP_String ("comment");
+   Imports : constant FoldingRangeKind := LSP.Types.To_LSP_String ("imports");
+   Region  : constant FoldingRangeKind := LSP.Types.To_LSP_String ("region");
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
