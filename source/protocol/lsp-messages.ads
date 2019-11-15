@@ -5176,9 +5176,6 @@ package LSP.Messages is
    for ApplyWorkspaceEditResult'Read use Read_ApplyWorkspaceEditResult;
    for ApplyWorkspaceEditResult'Write use Write_ApplyWorkspaceEditResult;
 
-   subtype CompletionParams is TextDocumentPositionParams;
-   --  ??? this is not in sync with protocol v3
-
    ----------------------
    -- Present in v3.15 --
    ----------------------
@@ -5563,6 +5560,90 @@ package LSP.Messages is
       V : DidChangeWatchedFilesRegistrationOptions);
    for DidChangeWatchedFilesRegistrationOptions'Read use Read_DidChangeWatchedFilesRegistrationOptions;
    for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
+
+   --```typescript
+   --export interface CompletionParams extends TextDocumentPositionParams {
+   --
+   --	/**
+   --	 * The completion context. This is only available if the client specifies
+   --	 * to send this using `ClientCapabilities.textDocument.completion.contextSupport === true`
+   --	 */
+   --	context?: CompletionContext;
+   --}
+   --
+   --/**
+   -- * How a completion was triggered
+   -- */
+   --export namespace CompletionTriggerKind {
+   --	/**
+   --	 * Completion was triggered by typing an identifier (24x7 code
+   --	 * complete), manual invocation (e.g Ctrl+Space) or via API.
+   --	 */
+   --	export const Invoked: 1 = 1;
+   --
+   --	/**
+   --	 * Completion was triggered by a trigger character specified by
+   --	 * the `triggerCharacters` properties of the `CompletionRegistrationOptions`.
+   --	 */
+   --	export const TriggerCharacter: 2 = 2;
+   --
+   --	/**
+   --	 * Completion was re-triggered as the current completion list is incomplete.
+   --	 */
+   --	export const TriggerForIncompleteCompletions: 3 = 3;
+   --}
+   --export type CompletionTriggerKind = 1 | 2 | 3;
+   --
+   --
+   --/**
+   -- * Contains additional information about the context in which a completion request is triggered.
+   -- */
+   --export interface CompletionContext {
+   --	/**
+   --	 * How the completion was triggered.
+   --	 */
+   --	triggerKind: CompletionTriggerKind;
+   --
+   --	/**
+   --	 * The trigger character (a single character) that has trigger code complete.
+   --	 * Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
+   --	 */
+   --	triggerCharacter?: string;
+   --}
+   --```
+
+   type CompletionTriggerKind is
+     (Invoked, TriggerCharacter, TriggerForIncompleteCompletions);
+
+   type CompletionContext is record
+      triggerKind: CompletionTriggerKind;
+      triggerCharacter: Optional_String;
+   end record;
+
+   procedure Read_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionContext);
+   procedure Write_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionContext);
+   for CompletionContext'Read use Read_CompletionContext;
+   for CompletionContext'Write use Write_CompletionContext;
+
+   package Optional_CompletionContexts is new LSP.Generic_Optional (CompletionContext);
+   type Optional_CompletionContext is new Optional_CompletionContexts.Optional_Type;
+
+   type CompletionParams is new TextDocumentPositionParams with record
+      context: Optional_CompletionContext;
+   end record;
+
+   procedure Read_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionParams);
+   procedure Write_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionParams);
+   for CompletionParams'Read use Read_CompletionParams;
+   for CompletionParams'Write use Write_CompletionParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --

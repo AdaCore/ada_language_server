@@ -509,6 +509,37 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CompletionList;
 
+   ----------------------------
+   -- Read_CompletionContext --
+   ----------------------------
+
+   procedure Read_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Map : constant
+        array (LSP_Number range 1 .. 3) of CompletionTriggerKind :=
+        (Invoked, TriggerCharacter, TriggerForIncompleteCompletions);
+
+      Value : LSP_Number;
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      Value := JS.Read.Get;
+
+      if Value in Map'Range then
+         V.triggerKind := Map (Value);
+      else
+         V.triggerKind := Invoked;
+      end if;
+
+      Read_Optional_String (JS, +"triggerCharacter", V.triggerCharacter);
+      JS.End_Object;
+   end Read_CompletionContext;
+
    -------------------------
    -- Read_CompletionItem --
    -------------------------
@@ -598,6 +629,27 @@ package body LSP.Messages is
       Read_String_Vector (JS, +"triggerCharacters", V.triggerCharacters);
       JS.End_Object;
    end Read_CompletionOptions;
+
+   ---------------------------
+   -- Read_CompletionParams --
+   ---------------------------
+
+   procedure Read_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.Key ("position");
+      Position'Read (S, V.position);
+      JS.Key ("context");
+      Optional_CompletionContext'Read (S, V.context);
+      JS.End_Object;
+   end Read_CompletionParams;
 
    ----------------------------
    -- Read_ConfigurationItem --
@@ -3071,6 +3123,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_completion;
 
+   -----------------------------
+   -- Write_CompletionContext --
+   -----------------------------
+
+   procedure Write_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Map : constant array (CompletionTriggerKind) of LSP_Number := (1, 2, 3);
+   begin
+      JS.Start_Object;
+      Write_Number (JS, +"kind", Map (V.triggerKind));
+      Write_Optional_String (JS, +"triggerCharacter", V.triggerCharacter);
+      JS.End_Object;
+   end Write_CompletionContext;
+
    --------------------------
    -- Write_CompletionItem --
    --------------------------
@@ -3184,6 +3255,27 @@ package body LSP.Messages is
       Write_String_Vector (JS, +"triggerCharacters", V.triggerCharacters);
       JS.End_Object;
    end Write_CompletionOptions;
+
+   ----------------------------
+   -- Write_CompletionParams --
+   ----------------------------
+
+   procedure Write_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      Position'Write (S, V.position);
+      JS.Key ("context");
+      Optional_CompletionContext'Write (S, V.context);
+      JS.End_Object;
+   end Write_CompletionParams;
 
    -----------------------------
    -- Write_ConfigurationItem --
