@@ -5863,6 +5863,18 @@ package LSP.Messages is
    for ColorPresentation'Read use Read_ColorPresentation;
    for ColorPresentation'Write use Write_ColorPresentation;
 
+   --```typescript
+   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions {
+   --	/**
+   --	 * Renames should be checked and tested for validity before being executed.
+   --	 */
+   --	prepareProvider?: boolean;
+   --}
+   --```
+   type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
+      prepareProvider: Optional_Boolean;
+   end record;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
