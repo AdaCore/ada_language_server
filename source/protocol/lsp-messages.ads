@@ -5422,6 +5422,53 @@ package LSP.Messages is
    for DidChangeWorkspaceFoldersParams'Read use Read_DidChangeWorkspaceFoldersParams;
    for DidChangeWorkspaceFoldersParams'Write use Write_DidChangeWorkspaceFoldersParams;
 
+   --```typescript
+   --export interface ConfigurationParams {
+   --	items: ConfigurationItem[];
+   --}
+   --
+   --export interface ConfigurationItem {
+   --	/**
+   --	 * The scope to get the configuration section for.
+   --	 */
+   --	scopeUri?: DocumentUri;
+   --
+   --	/**
+   --	 * The configuration section asked for.
+   --	 */
+   --	section?: string;
+   --}
+   --```
+   type ConfigurationItem is record
+      scopeUri: Optional_String;
+      section: Optional_String;
+   end record;
+
+   procedure Read_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ConfigurationItem);
+   procedure Write_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ConfigurationItem);
+   for ConfigurationItem'Read use Read_ConfigurationItem;
+   for ConfigurationItem'Write use Write_ConfigurationItem;
+
+   package ConfigurationItem_Vectors is new LSP.Generic_Vectors (ConfigurationItem);
+   type ConfigurationItem_Vector is new ConfigurationItem_Vectors.Vector with null record;
+
+   type ConfigurationParams is record
+      items: ConfigurationItem_Vector;
+   end record;
+
+   procedure Read_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ConfigurationParams);
+   procedure Write_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ConfigurationParams);
+   for ConfigurationParams'Read use Read_ConfigurationParams;
+   for ConfigurationParams'Write use Write_ConfigurationParams;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------

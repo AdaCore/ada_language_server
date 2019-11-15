@@ -599,6 +599,40 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CompletionOptions;
 
+   ----------------------------
+   -- Read_ConfigurationItem --
+   ----------------------------
+
+   procedure Read_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ConfigurationItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Optional_String (JS, +"scopeUri", V.scopeUri);
+      Read_Optional_String (JS, +"section", V.section);
+      JS.End_Object;
+   end Read_ConfigurationItem;
+
+   ------------------------------
+   -- Read_ConfigurationParams --
+   ------------------------------
+
+   procedure Read_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ConfigurationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("items");
+      ConfigurationItem_Vector'Read (S, V.items);
+      JS.End_Object;
+   end Read_ConfigurationParams;
+
    ---------------------
    -- Read_Diagnostic --
    ---------------------
@@ -3085,6 +3119,40 @@ package body LSP.Messages is
       Write_String_Vector (JS, +"triggerCharacters", V.triggerCharacters);
       JS.End_Object;
    end Write_CompletionOptions;
+
+   -----------------------------
+   -- Write_ConfigurationItem --
+   -----------------------------
+
+   procedure Write_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ConfigurationItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Optional_String (JS, +"scopeUri", V.scopeUri);
+      Write_Optional_String (JS, +"section", V.section);
+      JS.End_Object;
+   end Write_ConfigurationItem;
+
+   -------------------------------
+   -- Write_ConfigurationParams --
+   -------------------------------
+
+   procedure Write_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ConfigurationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("items");
+      ConfigurationItem_Vector'Write (S, V.items);
+      JS.End_Object;
+   end Write_ConfigurationParams;
 
    ----------------------
    -- Write_Diagnostic --
