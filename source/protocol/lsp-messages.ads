@@ -5469,6 +5469,101 @@ package LSP.Messages is
    for ConfigurationParams'Read use Read_ConfigurationParams;
    for ConfigurationParams'Write use Write_ConfigurationParams;
 
+   --```typescript
+   --/**
+   -- * Describe options to be used when registering for file system change events.
+   -- */
+   --export interface DidChangeWatchedFilesRegistrationOptions {
+   --	/**
+   --	 * The watchers to register.
+   --	 */
+   --	watchers: FileSystemWatcher[];
+   --}
+   --
+   --export interface FileSystemWatcher {
+   --	/**
+   --	 * The  glob pattern to watch.
+   --	 *
+   --	 * Glob patterns can have the following syntax:
+   --	 * - `*` to match one or more characters in a path segment
+   --	 * - `?` to match on one character in a path segment
+   --	 * - `**` to match any number of path segments, including none
+   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 */
+   --	globPattern: string;
+   --
+   --	/**
+   --	 * The kind of events of interest. If omitted it defaults
+   --	 * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
+   --	 * which is 7.
+   --	 */
+   --	kind?: number;
+   --}
+   --
+   --export namespace WatchKind {
+   --	/**
+   --	 * Interested in create events.
+   --	 */
+   --	export const Create = 1;
+   --
+   --	/**
+   --	 * Interested in change events
+   --	 */
+   --	export const Change = 2;
+   --
+   --	/**
+   --	 * Interested in delete events
+   --	 */
+   --	export const Delete = 4;
+   --}
+   --```
+
+   type WatchKind is (Create, Change, Delete);
+   type WatchKind_Set is array (WatchKind) of Boolean;
+
+   procedure Read_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WatchKind_Set);
+   procedure Write_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WatchKind_Set);
+   for WatchKind_Set'Read use Read_WatchKind_Set;
+   for WatchKind_Set'Write use Write_WatchKind_Set;
+
+   Default_WatchKind_Set : constant WatchKind_Set := (WatchKind => True);
+
+   type FileSystemWatcher is record
+      globPattern: LSP_String;
+      kind: WatchKind_Set;
+   end record;
+
+   procedure Read_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileSystemWatcher);
+   procedure Write_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileSystemWatcher);
+   for FileSystemWatcher'Read use Read_FileSystemWatcher;
+   for FileSystemWatcher'Write use Write_FileSystemWatcher;
+
+   package FileSystemWatcher_Vectors is new LSP.Generic_Vectors (FileSystemWatcher);
+   type FileSystemWatcher_Vector is new FileSystemWatcher_Vectors.Vector with null record;
+
+   type DidChangeWatchedFilesRegistrationOptions is record
+      watchers: FileSystemWatcher_Vector;
+   end record;
+
+   procedure Read_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesRegistrationOptions);
+   procedure Write_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesRegistrationOptions);
+   for DidChangeWatchedFilesRegistrationOptions'Read use Read_DidChangeWatchedFilesRegistrationOptions;
+   for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
