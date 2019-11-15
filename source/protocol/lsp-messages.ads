@@ -5725,6 +5725,75 @@ package LSP.Messages is
       This : CodeActionOptions;
    end record;
 
+   --```typescript
+   --interface ColorInformation {
+   --	/**
+   --	 * The range in the document where this color appears.
+   --	 */
+   --	range: Range;
+   --
+   --	/**
+   --	 * The actual color value for this color range.
+   --	 */
+   --	color: Color;
+   --}
+   --
+   --/**
+   -- * Represents a color in RGBA space.
+   -- */
+   --interface Color {
+   --
+   --	/**
+   --	 * The red component of this color in the range [0-1].
+   --	 */
+   --	readonly red: number;
+   --
+   --	/**
+   --	 * The green component of this color in the range [0-1].
+   --	 */
+   --	readonly green: number;
+   --
+   --	/**
+   --	 * The blue component of this color in the range [0-1].
+   --	 */
+   --	readonly blue: number;
+   --
+   --	/**
+   --	 * The alpha component of this color in the range [0-1].
+   --	 */
+   --	readonly alpha: number;
+   --}
+   --```
+   type RGBA_Color is record
+      red: LSP_Number;
+      green: LSP_Number;
+      blue: LSP_Number;
+      alpha: LSP_Number;
+   end record;
+
+   procedure Read_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RGBA_Color);
+   procedure Write_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RGBA_Color);
+   for RGBA_Color'Read use Read_RGBA_Color;
+   for RGBA_Color'Write use Write_RGBA_Color;
+
+   type ColorInformation is record
+      span: LSP.Messages.Span;  --  Range is reservet keyword
+      color: RGBA_Color;
+   end record;
+
+   procedure Read_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorInformation);
+   procedure Write_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorInformation);
+   for ColorInformation'Read use Read_ColorInformation;
+   for ColorInformation'Write use Write_ColorInformation;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------

@@ -483,6 +483,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CodeLensOptions;
 
+   ---------------------------
+   -- Read_ColorInformation --
+   ---------------------------
+
+   procedure Read_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("range");
+      Span'Read (S, V.span);
+      JS.Key ("color");
+      RGBA_Color'Read (S, V.color);
+      JS.End_Object;
+   end Read_ColorInformation;
+
    ------------------
    -- Read_Command --
    ------------------
@@ -1853,6 +1872,25 @@ package body LSP.Messages is
       Optional_ResponseError'Read (S, V.error);
    end Read_Response_Prefix;
 
+   ---------------------
+   -- Read_RGBA_Color --
+   ---------------------
+
+   procedure Read_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RGBA_Color)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number (JS, +"red", V.red);
+      Read_Number (JS, +"green", V.green);
+      Read_Number (JS, +"blue", V.blue);
+      Read_Number (JS, +"alpha", V.alpha);
+      JS.End_Object;
+   end Read_RGBA_Color;
+
    --------------------------
    -- Read_ResponseMessage --
    --------------------------
@@ -3138,6 +3176,25 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_CodeLensOptions;
 
+   ----------------------------
+   -- Write_ColorInformation --
+   ----------------------------
+
+   procedure Write_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorInformation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("range");
+      Span'Write (S, V.span);
+      JS.Key ("color");
+      RGBA_Color'Write (S, V.color);
+      JS.End_Object;
+   end Write_ColorInformation;
+
    -------------------
    -- Write_Command --
    -------------------
@@ -4407,6 +4464,25 @@ package body LSP.Messages is
         (JS, +"relatedInformation", V.relatedInformation);
       JS.End_Object;
    end Write_publishDiagnostics_Capability;
+
+   ----------------------
+   -- Write_RGBA_Color --
+   ----------------------
+
+   procedure Write_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RGBA_Color)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number (JS, +"red", V.red);
+      Write_Number (JS, +"green", V.green);
+      Write_Number (JS, +"blue", V.blue);
+      Write_Number (JS, +"alpha", V.alpha);
+      JS.End_Object;
+   end Write_RGBA_Color;
 
    ----------------------------
    -- Write_ReferenceContext --
