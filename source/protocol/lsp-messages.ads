@@ -5794,6 +5794,75 @@ package LSP.Messages is
    for ColorInformation'Read use Read_ColorInformation;
    for ColorInformation'Write use Write_ColorInformation;
 
+   --```typescript
+   --interface ColorPresentationParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The color information to request presentations for.
+   --	 */
+   --	color: Color;
+   --
+   --	/**
+   --	 * The range where the color would be inserted. Serves as a context.
+   --	 */
+   --	range: Range;
+   --}
+   --```
+   type ColorPresentationParams is record
+      textDocument: TextDocumentIdentifier;
+      color: RGBA_Color;
+      span: LSP.Messages.Span;  --  Range is reservet keyword
+   end record;
+
+   procedure Read_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorPresentationParams);
+   procedure Write_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorPresentationParams);
+   for ColorPresentationParams'Read use Read_ColorPresentationParams;
+   for ColorPresentationParams'Write use Write_ColorPresentationParams;
+
+   --```typescript
+   --interface ColorPresentation {
+   --	/**
+   --	 * The label of this color presentation. It will be shown on the color
+   --	 * picker header. By default this is also the text that is inserted when selecting
+   --	 * this color presentation.
+   --	 */
+   --	label: string;
+   --	/**
+   --	 * An [edit](#TextEdit) which is applied to a document when selecting
+   --	 * this presentation for the color.  When `falsy` the [label](#ColorPresentation.label)
+   --	 * is used.
+   --	 */
+   --	textEdit?: TextEdit;
+   --	/**
+   --	 * An optional array of additional [text edits](#TextEdit) that are applied when
+   --	 * selecting this color presentation. Edits must not overlap with the main [edit](#ColorPresentation.textEdit) nor with themselves.
+   --	 */
+   --	additionalTextEdits?: TextEdit[];
+   --}
+   --```
+   type ColorPresentation is record
+      label: LSP_String;
+      textEdit: Optional_TextEdit;
+      additionalTextEdits: TextEdit_Vector;
+   end record;
+
+   procedure Read_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ColorPresentation);
+   procedure Write_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorPresentation);
+   for ColorPresentation'Read use Read_ColorPresentation;
+   for ColorPresentation'Write use Write_ColorPresentation;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
