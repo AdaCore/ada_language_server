@@ -725,6 +725,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_DidChangeTextDocumentParams;
 
+   ---------------------------------------------------
+   -- Read_DidChangeWatchedFilesRegistrationOptions --
+   ---------------------------------------------------
+
+   procedure Read_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("watchers");
+      FileSystemWatcher_Vector'Read (S, V.watchers);
+      JS.End_Object;
+   end Read_DidChangeWatchedFilesRegistrationOptions;
+
    ------------------------------------------
    -- Read_DidChangeWorkspaceFoldersParams --
    ------------------------------------------
@@ -1035,6 +1052,24 @@ package body LSP.Messages is
       V.arguments := JS.Read;
       JS.End_Object;
    end Read_ExecuteCommandParams;
+
+   ----------------------------
+   -- Read_FileSystemWatcher --
+   ----------------------------
+
+   procedure Read_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileSystemWatcher)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_String (JS, +"globPattern", V.globPattern);
+      JS.Key ("kind");
+      WatchKind_Set'Read (S, V.kind);
+      JS.End_Object;
+   end Read_FileSystemWatcher;
 
    ----------------------------------
    -- Read_foldingRange_Capability --
@@ -2516,6 +2551,36 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_Workspace_Symbol_Capability;
 
+   ------------------------
+   -- Read_WatchKind_Set --
+   ------------------------
+
+   procedure Read_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WatchKind_Set)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+      Result : LSP_Number;
+      Mask   : LSP_Number := 4;
+   begin
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+         Result := Value.Get;
+
+         for J in reverse WatchKind loop
+            if Result >= Mask then
+               V (J) := True;
+               Result := Result - Mask;
+            end if;
+
+            Mask := Mask / 2;
+         end loop;
+      else
+         V := Default_WatchKind_Set;
+      end if;
+   end Read_WatchKind_Set;
+
    --------------------------------------
    -- Read_WorkspaceClientCapabilities --
    --------------------------------------
@@ -3252,6 +3317,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_DidChangeTextDocumentParams;
 
+   ----------------------------------------------------
+   -- Write_DidChangeWatchedFilesRegistrationOptions --
+   ----------------------------------------------------
+
+   procedure Write_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("watchers");
+      FileSystemWatcher_Vector'Write (S, V.watchers);
+      JS.End_Object;
+   end Write_DidChangeWatchedFilesRegistrationOptions;
+
    -------------------------------------------
    -- Write_DidChangeWorkspaceFoldersParams --
    -------------------------------------------
@@ -3516,6 +3598,24 @@ package body LSP.Messages is
         (JS, +"dynamicRegistration", Optional_Boolean (V));
       JS.End_Object;
    end Write_dynamicRegistration;
+
+   -----------------------------
+   -- Write_FileSystemWatcher --
+   -----------------------------
+
+   procedure Write_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileSystemWatcher)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_String (JS, +"globPattern", V.globPattern);
+      JS.Key ("kind");
+      WatchKind_Set'Write (S, V.kind);
+      JS.End_Object;
+   end Write_FileSystemWatcher;
 
    ---------------------------------
    -- Write_ExecuteCommandOptions --
@@ -4954,6 +5054,32 @@ package body LSP.Messages is
       Write_Optional_Number (JS, +"version", V.version, Write_Null => True);
       JS.End_Object;
    end Write_VersionedTextDocumentIdentifier;
+
+   -------------------------
+   -- Write_WatchKind_Set --
+   -------------------------
+
+   procedure Write_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WatchKind_Set)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Result : LSP_Number := 0;
+      Mask   : LSP_Number := 1;
+   begin
+      if V /= Default_WatchKind_Set then
+         for J in WatchKind loop
+            if V (J) then
+               Result := Result + Mask;
+            end if;
+
+            Mask := Mask * 2;
+         end loop;
+
+         JS.Write (GNATCOLL.JSON.Create (Result));
+      end if;
+   end Write_WatchKind_Set;
 
    ---------------------------------------
    -- Write_Workspace_Symbol_Capability --
