@@ -5715,6 +5715,16 @@ package LSP.Messages is
    --  CodeAction_Vector represents a sequence of CodeAction OR Command.
    --  Command is represented as CodeAction with just `command` property set.
 
+   --```typescript
+   --export interface CodeActionRegistrationOptions extends TextDocumentRegistrationOptions, CodeActionOptions {
+   --}
+   --```
+   type CodeActionRegistrationOptions is
+     new TextDocumentRegistrationOptions with
+   record
+      This : CodeActionOptions;
+   end record;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------
