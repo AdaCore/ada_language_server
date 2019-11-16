@@ -110,9 +110,13 @@ package body LSP.Ada_Documents is
               (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
                  (Error.Message));
 
-            Errors.Append (Item);
-            Nb_Diags := Nb_Diags + 1;
-            exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;
+            --  Filter out diagnostics that simply report "Cannot parse <..>",
+            --  as these are generally not useful to the end user.
+            if not LSP.Types.Starts_With (Item.message, "Cannot parse <") then
+               Errors.Append (Item);
+               Nb_Diags := Nb_Diags + 1;
+               exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;
+            end if;
          end loop;
       end if;
    end Get_Errors;

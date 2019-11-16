@@ -71,32 +71,32 @@
                 "params":{
                     "uri":"$URI{aaa.ads}",
                     "diagnostics": [
-                      {
-                        "range": {
-                          "start": {
-                            "line": 1,
-                            "character": 3
+                        {
+                          "range": {
+                            "start": {
+                              "line": 1,
+                              "character": 20
+                            },
+                            "end": {
+                              "line": 1,
+                              "character": 21
+                            }
                           },
-                          "end": {
-                            "line": 1,
-                            "character": 4
-                          }
+                          "message": "Expected '(', got '''"
                         },
-                        "message": "Cannot parse <sub_object_decl>"
-                      },
-                      {
-                        "range": {
-                          "start": {
-                            "line": 1,
-                            "character": 20
+                        {
+                          "range": {
+                            "start": {
+                              "line": 1,
+                              "character": 20
+                            },
+                            "end": {
+                              "line": 1,
+                              "character": 21
+                            }
                           },
-                          "end": {
-                            "line": 1,
-                            "character": 21
-                          }
-                        },
-                        "message": "Expected '(', got '''"
-                      }
+                          "message": "Skipped token '"
+                        }
                     ]
                 }
             }]

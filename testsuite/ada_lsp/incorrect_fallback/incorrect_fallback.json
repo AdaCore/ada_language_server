@@ -170,19 +170,6 @@
                         "range": {
                            "start": {
                               "line": 7, 
-                              "character": 3
-                           }, 
-                           "end": {
-                              "line": 7, 
-                              "character": 6
-                           }
-                        }, 
-                        "message": "Cannot parse <name>"
-                     }, 
-                     {
-                        "range": {
-                           "start": {
-                              "line": 7, 
                               "character": 13
                            }, 
                            "end": {
@@ -191,6 +178,19 @@
                            }
                         }, 
                         "message": "Expected '<>', got ')'"
+                     },
+                     {
+                        "range": {
+                          "start": {
+                            "line": 7,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 7,
+                            "character": 14
+                          }
+                        },
+                        "message": "Missing ';'"
                      }
                   ]
                }, 
