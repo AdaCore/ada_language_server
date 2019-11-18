@@ -1,0 +1,8 @@
+Repo: https://github.com/microsoft/language-server-protocol.git
+Branch: gh-pages
+
+commit 9255683f91f4403e5f3a43557b065251a7a597a1 (HEAD -> gh-pages, origin/gh-pages)
+Merge: 0be4cb6 12daf34
+Author: Dirk Bäumer <dirkb@microsoft.com>
+Date:   Wed Nov 6 12:01:55 2019 +0100
+
