@@ -105,7 +105,7 @@ package body LSP.Ada_Handlers is
    --  Return an unique token for indicating progress
 
    procedure Index_Files (Self : access Message_Handler);
-   --  Index all loaded files in each context. Emit progress information.
+   --  Index all loaded files in each context. Emit progresormation.
 
    ---------------------
    -- Project loading --
@@ -1780,7 +1780,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Index the files immediately after loading a project
-      Self.Index_Files;
+      Self.Indexing_Required := True;
    end Load_Project;
 
    -------------------------------
@@ -1872,6 +1872,12 @@ package body LSP.Ada_Handlers is
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
    begin
+      --  Prevent work if another request is pending
+      --  if Self.Server.Look_Ahead_Message /= null then
+      --     Self.Indexing_Was_Paused := True;
+      --     return;
+      --  end if;
+
       --  Collect the contexts and their sources: we do this so that we are
       --  able to produce a progress bar covering the total number of files.
 
@@ -1897,10 +1903,19 @@ package body LSP.Ada_Handlers is
 
             E.Context.Index_File (F);
             Index := Index + 1;
+
+            --  Check whether another request is pending. If so, pause the
+            --  indexing; it will be resumed later as part of After_Request.
+            --  if Self.Server.Input_Queue_Length > 0 then
+            if Self.Server.Has_Pending_Work then
+               Emit_Progress_End;
+               return;
+            end if;
          end loop;
       end loop;
 
       Emit_Progress_End;
+      Self.Indexing_Required := False;
    end Index_Files;
 
    ------------------------------------------
@@ -1973,7 +1988,7 @@ package body LSP.Ada_Handlers is
    -- Handle_Error --
    ------------------
 
-   procedure Handle_Error
+   overriding procedure Handle_Error
      (Self : access Message_Handler) is
    begin
       --  Reload the contexts in case of unexpected errors.
@@ -1993,5 +2008,30 @@ package body LSP.Ada_Handlers is
    begin
       Self.Server.On_Show_Message ((Mode, To_LSP_String (Text)));
    end Show_Message;
+
+   -----------------
+   -- Before_Work --
+   -----------------
+
+   overriding procedure Before_Work
+     (Self    : access Message_Handler;
+      Message : LSP.Messages.Message'Class) is null;
+
+   ----------------
+   -- After_Work --
+   ----------------
+
+   overriding procedure After_Work
+     (Self    : access Message_Handler;
+      Message : LSP.Messages.Message'Class)
+   is
+      pragma Unreferenced (Message);
+   begin
+     --  We have finished processing a request or notification:
+     --  if it happens that indexing is required, do it now.
+      if Self.Indexing_Required then
+         Self.Index_Files;
+      end if;
+   end After_Work;
 
 end LSP.Ada_Handlers;
