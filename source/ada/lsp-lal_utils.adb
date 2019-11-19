@@ -15,11 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Wide_Wide_Characters.Handling;
+with Ada.Strings.Wide_Wide_Fixed;
+
 with LSP.Common;        use LSP.Common;
+with LSP.Types;         use LSP.Types;
+
 with Libadalang.Common; use Libadalang.Common;
 
 with Langkit_Support;
-with Langkit_Support.Text;
 with Langkit_Support.Slocs;
 
 package body LSP.Lal_Utils is
@@ -27,6 +31,41 @@ package body LSP.Lal_Utils is
    function Containing_Entity (Ref : Ada_Node) return Defining_Name;
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
+
+   -------------
+   -- Contain --
+   -------------
+
+   function Contain
+     (Token   : Token_Reference;
+      Pattern : Wide_Wide_String;
+      Span    : out LSP.Messages.Span)
+      return Boolean
+   is
+      use Langkit_Support.Text;
+      use Langkit_Support.Slocs;
+
+      T   : constant Text_Type := Ada.Wide_Wide_Characters.Handling.To_Lower
+        (Text (Token));
+      Idx : constant Integer := Ada.Strings.Wide_Wide_Fixed.Index (T, Pattern);
+   begin
+      if Idx < T'First then
+         return False;
+      end if;
+
+      declare
+         Sloc : constant Source_Location_Range := Sloc_Range (Data (Token));
+
+         Line  : constant LSP.Types.Line_Number :=
+           LSP.Types.Line_Number (Sloc.Start_Line) - 1;
+         Start : constant UTF_16_Index := UTF_16_Index
+           (Sloc.Start_Column + Column_Number (Idx - T'First)) - 1;
+      begin
+         Span := (first => (Line, Start),
+                  last  => (Line, Start + T'Length - 1));
+         return True;
+      end;
+   end Contain;
 
    ----------------------
    -- Get_Node_As_Name --
@@ -57,6 +96,21 @@ package body LSP.Lal_Utils is
       return Name_Node.P_Enclosing_Defining_Name;
 
    end Get_Name_As_Defining;
+
+   -------------------
+   -- Get_Last_Name --
+   -------------------
+
+   function Get_Last_Name
+     (Name_Node : Name)
+      return Langkit_Support.Text.Unbounded_Text_Type
+   is
+      Names : constant Unbounded_Text_Type_Array :=
+        P_As_Symbol_Array (Name_Node);
+
+   begin
+      return Names (Names'Last);
+   end Get_Last_Name;
 
    ------------------
    -- Resolve_Name --
