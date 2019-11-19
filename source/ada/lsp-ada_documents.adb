@@ -405,9 +405,10 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList)
    is
-      use LSP.Types;
       use Libadalang.Analysis;
+      use Libadalang.Common;
       use LSP.Messages;
+      use LSP.Types;
 
       Real_Pos : constant LSP.Messages.Position :=
         (Position.line,
@@ -415,18 +416,40 @@ package body LSP.Ada_Documents is
       --  Compute the position we want for completion, which is one character
       --  before the cursor.
 
-      Node       : constant Libadalang.Analysis.Ada_Node :=
+      Node       : Libadalang.Analysis.Ada_Node :=
         Self.Get_Node_At (Real_Pos);
       --  Get the corresponding LAL node
-
    begin
+      Self.Context.Trace.Trace ("In Get_Completions_At");
+
+      --  Get the outermost dotted name of which node is a prefix, so that when
+      --  completing in a situation such as the following:
+      --
+      --      Ada.Tex|
+      --             ^ Cursor here
+      --
+      --  we get the DottedName node rather than just the "Tex" BaseId. We want
+      --  the DottedName rather than the Id so as to get the proper completions
+      --  (all elements in the "Ada" namespace).
+
+      while Node.Kind in Ada_Single_Tok_Node | Ada_Dotted_Name loop
+         if Node.Parent.Kind = Ada_Dotted_Name
+           and then Node.Parent.As_Dotted_Name.F_Suffix = Node
+         then
+            Node := Node.Parent;
+         else
+            exit;
+         end if;
+      end loop;
+
       Self.Context.Trace.Trace
         ("Getting completions, Pos = ("
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
 
       declare
-         Raw_Completions : constant Basic_Decl_Array := Node.P_Complete;
+         Raw_Completions : constant Basic_Decl_Array :=
+           Node.P_Complete;
       begin
          Self.Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
