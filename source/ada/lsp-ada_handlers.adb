@@ -1526,6 +1526,12 @@ package body LSP.Ada_Handlers is
          procedure Process_Comments
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri);
+         --  Iterate over all comments and include them in the responce when
+         --  they contain a remaned word
+
+         -----------------------
+         --  Process_Comments --
+         -----------------------
 
          procedure Process_Comments
            (Node : Ada_Node;
@@ -1542,7 +1548,7 @@ package body LSP.Ada_Handlers is
          begin
             while Token /= No_Token loop
                if Kind (Data (Token)) = Ada_Comment
-                 and then Contain (Token, Name, Span)
+                 and then Contains (Token, Name, Span)
                then
                   declare
                      C : constant LSP.Messages.TextEdit :=

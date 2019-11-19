@@ -44,8 +44,7 @@ package LSP.Lal_Utils is
    --  Imprecise is set to True if LAL's imprecise fallback mechanism has been
    --  used to compute the cross reference.
 
-   function Get_Last_Name
-     (Name_Node : Name)
+   function Get_Last_Name (Name_Node : Name)
       return Langkit_Support.Text.Unbounded_Text_Type;
    --  Return the last name, for example if name is A.B.C then return C
 
@@ -98,7 +97,7 @@ package LSP.Lal_Utils is
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
 
-   function Contain
+   function Contains
      (Token   : Libadalang.Common.Token_Reference;
       Pattern : Wide_Wide_String;
       Span    : out LSP.Messages.Span)

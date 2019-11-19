@@ -32,11 +32,11 @@ package body LSP.Lal_Utils is
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
 
-   -------------
-   -- Contain --
-   -------------
+   --------------
+   -- Contains --
+   --------------
 
-   function Contain
+   function Contains
      (Token   : Token_Reference;
       Pattern : Wide_Wide_String;
       Span    : out LSP.Messages.Span)
@@ -65,7 +65,7 @@ package body LSP.Lal_Utils is
                   last  => (Line, Start + T'Length - 1));
          return True;
       end;
-   end Contain;
+   end Contains;
 
    ----------------------
    -- Get_Node_As_Name --
@@ -101,8 +101,7 @@ package body LSP.Lal_Utils is
    -- Get_Last_Name --
    -------------------
 
-   function Get_Last_Name
-     (Name_Node : Name)
+   function Get_Last_Name (Name_Node : Name)
       return Langkit_Support.Text.Unbounded_Text_Type
    is
       Names : constant Unbounded_Text_Type_Array :=
