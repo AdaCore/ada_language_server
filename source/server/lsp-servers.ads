@@ -27,6 +27,7 @@ with LSP.Message_Loggers;
 with LSP.Messages;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
+with LSP.Server_Backends;
 with LSP.Types;
 
 with GNATCOLL.Traces;
@@ -65,6 +66,7 @@ package LSP.Servers is
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Server       : not null LSP.Server_Backends.Server_Backend_Access;
       On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
@@ -81,11 +83,16 @@ package LSP.Servers is
 
    function Look_Ahead_Message (Self : Server) return Message_Access;
    --  Get next nessage in the queue if any. Only request/notification
-   --  handlers are alloved to call this function.
+   --  handlers are allowed to call this function.
 
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
+
+   function Has_Pending_Work (Self : Server) return Boolean;
+   --  Return True if the server has work in the queue, other than the
+   --  notification/request it's currently processing. This should only be
+   --  called from the processing task.
 
 private
 
@@ -149,7 +156,8 @@ private
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access);
+         .Server_Notification_Receiver_Access;
+         Server       : not null LSP.Server_Backends.Server_Backend_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;

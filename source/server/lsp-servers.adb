@@ -559,6 +559,7 @@ package body LSP.Servers is
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Server       : not null LSP.Server_Backends.Server_Backend_Access;
       On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
@@ -572,7 +573,7 @@ package body LSP.Servers is
 
       Self.Logger.Initialize (Server_Trace);
 
-      Self.Processing_Task.Start (Request, Notification);
+      Self.Processing_Task.Start (Request, Notification, Server);
       Self.Output_Task.Start;
       Self.Input_Task.Start;
 
@@ -893,6 +894,7 @@ package body LSP.Servers is
 
       Notif_Handler :
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Server_Backend : LSP.Server_Backends.Server_Backend_Access;
 
       Input_Queue   : Message_Queues.Queue renames Server.Input_Queue;
       Output_Queue  : Message_Queues.Queue renames Server.Output_Queue;
@@ -901,7 +903,8 @@ package body LSP.Servers is
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access);
+           .Server_Notification_Receiver_Access;
+         Server       : not null LSP.Server_Backends.Server_Backend_Access);
       --  Initializes internal data structures
 
       procedure Process_Message (Message : in out Message_Access);
@@ -914,11 +917,13 @@ package body LSP.Servers is
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access)
+           .Server_Notification_Receiver_Access;
+         Server       : not null LSP.Server_Backends.Server_Backend_Access)
       is
       begin
          Req_Handler := Request;
          Notif_Handler := Notification;
+         Server_Backend := Server;
       end Initialize;
 
       ---------------------
@@ -931,8 +936,11 @@ package body LSP.Servers is
            LSP.Messages.Server_Notifications.Server_Notification'Class
          then
             --  This is a notification
+
+            Server_Backend.Before_Work (Message.all);
             LSP.Messages.Server_Notifications.Server_Notification'Class
               (Message.all).Visit (Notif_Handler);
+            Server_Backend.After_Work (Message.all);
 
             Free (Message);
 
@@ -953,8 +961,7 @@ package body LSP.Servers is
                return;
             end if;
 
-            --  Nest a declare block so we can catch specifically an
-            --  exception raised during the processing of a request.
+            Server_Backend.Before_Work (Message.all);
             declare
                Response : constant Message_Access :=
                  new LSP.Messages.ResponseMessage'Class'
@@ -965,6 +972,7 @@ package body LSP.Servers is
                Server.Destroy_Queue.Enqueue (Message);
                --  Request will be deleted by Input_Task
             end;
+            Server_Backend.After_Work (Message.all);
 
          exception
             --  If we reach this exception handler, this means an exception
@@ -1009,9 +1017,10 @@ package body LSP.Servers is
         (Request      : not null LSP.Server_Request_Handlers
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access)
+           .Server_Notification_Receiver_Access;
+         Server       : not null LSP.Server_Backends.Server_Backend_Access)
       do
-         Initialize (Request, Notification);
+         Initialize (Request, Notification, Server);
       end Start;
 
       loop
@@ -1070,5 +1079,18 @@ package body LSP.Servers is
 
       return Self.Look_Ahead;
    end Look_Ahead_Message;
+
+   ----------------------
+   -- Has_Pending_Work --
+   ----------------------
+
+   function Has_Pending_Work (Self : Server) return Boolean is
+      use type Ada.Task_Identification.Task_Id;
+   begin
+      pragma Assert
+        (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
+
+      return Self.Input_Queue_Length > 0;
+   end Has_Pending_Work;
 
 end LSP.Servers;

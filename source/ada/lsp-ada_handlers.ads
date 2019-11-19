@@ -25,6 +25,7 @@ with GNATCOLL.Traces;
 
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
+with LSP.Server_Backends;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
 with LSP.Servers;
@@ -38,10 +39,11 @@ package LSP.Ada_Handlers is
       Trace   : GNATCOLL.Traces.Trace_Handle) is
    limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Server_Backends.Server_Backend
    with private;
    --  A handler of LSP notifications and requests from Ada language
 
-   procedure Handle_Error (Self : access Message_Handler);
+   overriding procedure Handle_Error (Self : access Message_Handler);
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
 
@@ -56,7 +58,8 @@ private
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
    is limited new LSP.Server_Request_Handlers.Server_Request_Handler
-     and LSP.Server_Notification_Receivers.Server_Notification_Receiver with
+     and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Server_Backends.Server_Backend with
    record
       Contexts : Context_Lists.List;
       --  There is one context in this list per loaded project.
@@ -74,7 +77,38 @@ private
 
       Token_Id : Integer := 0;
       --  An ever-increasing number used to generate unique progress tokens
+
+      Indexing_Required : Boolean := False;
+      --  Set to True if an indexing operation had been paused in order to
+      --  process requests.
+      --  Indexing of sources is performed in the background as soon as needed
+      --  (typically after a project load), and pre-indexes the Ada source
+      --  files, so that subsequent request are fast.
+      --  The way the "backgrounding" works is the following:
+      --
+      --      * each request which should trigger indexing (for instance
+      --        project load) sets Indexing_Required to True
+      --
+      --      * the procedure Index_Files takes care of the indexing; it's also
+      --        looking at the queue after each indexing to see if there
+      --        are requests pending. If a request is pending, it stops
+      --        indexing, and leaves Indexing_Required to True
+      --
+      --      * whenever the server has finished processing a notification
+      --        or a requests, it looks at whether Indexing_Required is True,
+      --        if it is, it runs Indexing_Required
+      --
+      --      * Indexing_Required is set to False when Index_Files has
+      --        completed
    end record;
+
+   overriding procedure Before_Work
+     (Self    : access Message_Handler;
+      Message : LSP.Messages.Message'Class);
+
+   overriding procedure After_Work
+     (Self    : access Message_Handler;
+      Message : LSP.Messages.Message'Class);
 
    overriding function On_Initialize_Request
      (Self    : access Message_Handler;

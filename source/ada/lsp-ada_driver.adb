@@ -155,6 +155,7 @@ begin
       Server.Run
         (Error_Decorator'Unchecked_Access,
          Handler'Unchecked_Access,
+         Server       => Handler'Unchecked_Access,
          On_Error     => On_Uncaught_Exception'Unrestricted_Access,
          Server_Trace => Server_Trace,
          In_Trace     => In_Trace,
