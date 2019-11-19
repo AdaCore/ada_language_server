@@ -52,6 +52,16 @@ private
    package Context_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Context_Access);
 
+   --  Options for refactoring/renaming
+   type Renaming_Options is record
+      In_Comments : Boolean := False;
+   end record;
+
+   --  Options for refactoring
+   type Refactoring_Options is record
+      Renaming : Renaming_Options;
+   end record;
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -74,6 +84,8 @@ private
 
       Token_Id : Integer := 0;
       --  An ever-increasing number used to generate unique progress tokens
+
+      Refactoring : Refactoring_Options;
    end record;
 
    overriding function On_Initialize_Request
