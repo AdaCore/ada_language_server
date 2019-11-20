@@ -70,6 +70,7 @@
                      "projectFile": "default.gpr",
                      "scenarioVariables": {},
                      "enableDiagnostics": false,
+                     "enableIndexing": false,
                      "defaultCharset": "ISO-8859-1"
                   }
                }
