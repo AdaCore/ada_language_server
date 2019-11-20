@@ -1606,6 +1606,7 @@ package body LSP.Ada_Handlers is
       scenarioVariables : constant String := "scenarioVariables";
       defaultCharset    : constant String := "defaultCharset";
       enableDiagnostics : constant String := "enableDiagnostics";
+      enableIndexing    : constant String := "enableIndexing";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -1639,6 +1640,12 @@ package body LSP.Ada_Handlers is
          --  deactivating of diagnostics via a setting here.
          if Ada.Has_Field (enableDiagnostics) then
             Self.Diagnostics_Enabled := Ada.Get (enableDiagnostics);
+         end if;
+
+         --  Similarly to diagnostics, we support selectively activating
+         --  indexing in the parameters to this request.
+         if Ada.Has_Field (enableIndexing) then
+            Self.Indexing_Enabled := Ada.Get (enableIndexing);
          end if;
       end if;
 
@@ -1872,11 +1879,10 @@ package body LSP.Ada_Handlers is
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
    begin
-      --  Prevent work if another request is pending
-      --  if Self.Server.Look_Ahead_Message /= null then
-      --     Self.Indexing_Was_Paused := True;
-      --     return;
-      --  end if;
+      --  Prevent work if the indexing has been explicitly disabled
+      if not Self.Indexing_Enabled then
+         return;
+      end if;
 
       --  Collect the contexts and their sources: we do this so that we are
       --  able to produce a progress bar covering the total number of files.

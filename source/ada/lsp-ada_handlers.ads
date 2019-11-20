@@ -78,6 +78,10 @@ private
       Token_Id : Integer := 0;
       --  An ever-increasing number used to generate unique progress tokens
 
+      Indexing_Enabled  : Boolean := True;
+      --  Whether to index sources in the background. This should be True
+      --  for normal use, and can be disabled for debug or testing purposes.
+
       Indexing_Required : Boolean := False;
       --  Set to True if an indexing operation had been paused in order to
       --  process requests.

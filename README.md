@@ -157,7 +157,11 @@ files from disk by specifying an `"ada.defaultCharset"` key. The default is
 `iso-8859-1`.
 
 You can explicitly deactivate the emission of diagnostics, via the
-`"ada.enableDiagnostics` key. By default, diagnostics are enabled.
+`"ada.enableDiagnostics"` key. By default, diagnostics are enabled.
+
+By default, the server indexes the source files after loading a project,
+to speed up subsequent requests. This behavior can be controlled
+via the `"ada.enableIndexing"` flag in this request.
 
 Here is an example config file from the gnatcov project:
 
