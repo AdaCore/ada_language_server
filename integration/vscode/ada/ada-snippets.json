@@ -22,7 +22,7 @@
     "For Loop Statement": {
         "prefix": "for",
         "body": [
-            "for ${1:J} in ${2} loop",
+            "for ${1:J} ${2|in ,of |} loop",
             "   $0",
             "end loop;"
         ],
@@ -41,7 +41,7 @@
         "prefix": "package",
         "body": [
             "package ${1:body }${2:Name} is",
-            "   ${3:pragma Preelaborate;}$0",
+            "   ${3|pragma Preelaborate;,pragma Pure;|}$0",
             "private",
             "end ${2:Name};"
         ],
@@ -50,7 +50,7 @@
     "Procedure Declaration": {
         "prefix": "procedure",
         "body": [
-            "${1:${2:not }overriding }procedure ${3:Name} (${4:Self} : $5){7: is abstract};"
+            "${1:${2:not }overriding }procedure ${3:Name} (${4:Self} : $5)${6|;, is abstract;, is null;, renames |}"
         ],
         "description": "Procedure Declaration"
     },
@@ -67,14 +67,14 @@
     "Function Declaration": {
         "prefix": "function",
         "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6${7: is abstract};"
+            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6${7|;, is abstract;, is ($8);, renames |}"
         ],
         "description": "Function Declaration"
     },
     "Function Body": {
         "prefix": "function",
         "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return is",
+            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6 is",
             "begin",
             "   $0",
             "end ${3:Name};"
