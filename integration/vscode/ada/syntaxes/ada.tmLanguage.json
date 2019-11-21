@@ -1,0 +1,42 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Ada",
+    "comment": "Ada grammar file",
+    "scopeName": "source.ada",
+    "fileTypes": ["adb", "adc", "ads"],
+    "uuid": "4DDE765F-8597-4242-86C5-377654070343",
+    "patterns": [{
+        "name": "comment.line.double-dash.ada",
+        "match": "--[^\\n\\r]*"
+    }, {
+        "name": "constant.numeric.ada",
+        "match": "([0-9][0-9_]*(\\.[0-9][0-9_]*)?)"
+    }, {
+        "name": "constant.character.ada",
+        "match": "'.'"
+    }, {
+        "name": "constant.lanuage.ada",
+        "match": "\\b(?i:(null|true|false))\\b"
+    }, {
+        "name": "entity.name.function.ada",
+        "match": "\\b(?i:(aaa))\\b"
+    }, {
+        "name": "keyword.control.ada",
+        "match": "\\b(?i:(abort|delay|exit|goto|pragma|raise|requeue|terminate|until))\\b"
+    }, {
+        "name": "keyword.operator.ada",
+        "match": "\\b(?i:(abs|and|in|mod|not|of|or|rem|xor))\\b"
+    }, {
+        "name": "keyword.other.ada",
+        "match": "\\b(?i:(abstract|accept|access|aliased|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|entry|exception|for|function|generic|if|interface|is|limited|loop|new|others|out|overriding|package|private|procedure|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
+    }, {
+        "name": "string.quoted.double.ada",
+        "match": "\"([^\"]|\"\")*\""
+    }, {
+        "name": "support.type.ada",
+        "match": "\\b(?i:(Boolean|Integer|Natural|Positive|Character|String))\\b"
+    }, {
+        "name": "support.function.ada",
+        "match": "\\b(?i:(Ada|Text_IO|Strings))\\b"
+    }]
+}

@@ -56,7 +56,7 @@
             {
                 "language": "ada",
                 "scopeName": "source.ada",
-                "path": "./syntaxes/ada.tmLanguage"
+                "path": "./syntaxes/ada.tmLanguage.json"
             },
             {
                 "language": "gpr",
