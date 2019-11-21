@@ -1259,6 +1259,31 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_FoldingRangeParams;
 
+   ------------------------------
+   -- Read_FailureHandlingKind --
+   ------------------------------
+
+   procedure Read_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FailureHandlingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.UTF8_String := JS.Read.Get;
+   begin
+      if Value = "abort" then
+         V := abortApplying;
+      elsif Value = "transactional" then
+         V := transactional;
+      elsif Value = "undo" then
+         V := undo;
+      elsif Value = "textOnlyTransactional" then
+         V := textOnlyTransactional;
+      else
+         V := abortApplying;
+      end if;
+   end Read_FailureHandlingKind;
+
    ----------------------------------
    -- Read_foldingRange_Capability --
    ----------------------------------
@@ -4026,6 +4051,39 @@ package body LSP.Messages is
       JS.Write (V.arguments);
       JS.End_Object;
    end Write_ExecuteCommandParams;
+
+   -------------------------------
+   -- Write_FailureHandlingKind --
+   -------------------------------
+
+   procedure Write_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FailureHandlingKind)
+   is
+      function Image return GNATCOLL.JSON.UTF8_String;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      -----------
+      -- Image --
+      -----------
+
+      function Image return GNATCOLL.JSON.UTF8_String is
+      begin
+         case V is
+            when abortApplying =>
+               return "abort";
+            when transactional =>
+               return "transactional";
+            when undo =>
+               return "undo";
+            when textOnlyTransactional =>
+               return "textOnlyTransactional";
+         end case;
+      end Image;
+   begin
+      JS.Write (GNATCOLL.JSON.Create (Image));
+   end Write_FailureHandlingKind;
 
    -----------------------------------
    -- Write_foldingRange_Capability --
