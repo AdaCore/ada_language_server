@@ -36,6 +36,12 @@
         "name": "string.quoted.double.ada",
         "match": "\"([^\"]|\"\")*\""
     }, {
+        "name": "keyword.operator.assignment.ada",
+        "match": ":="
+    }, {
+        "name": "keyword.operator.ada",
+        "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\–|\\.|/|<|=|>|\\|"
+    }, {
         "name": "storage.type.ada",
         "match": "\\b(?i:(Boolean|Integer|Natural|Positive|Character|String))\\b"
     }, {
