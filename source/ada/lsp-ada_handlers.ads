@@ -54,6 +54,16 @@ private
    package Context_Lists is new Ada.Containers.Doubly_Linked_Lists
      (Context_Access);
 
+   --  Options for refactoring/renaming
+   type Renaming_Options is record
+      In_Comments : Boolean := False;
+   end record;
+
+   --  Options for refactoring
+   type Refactoring_Options is record
+      Renaming : Renaming_Options;
+   end record;
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -104,6 +114,9 @@ private
       --
       --      * Indexing_Required is set to False when Index_Files has
       --        completed
+
+      Refactoring : Refactoring_Options;
+      --  Configuration options for refactoring
    end record;
 
    overriding procedure Before_Work
