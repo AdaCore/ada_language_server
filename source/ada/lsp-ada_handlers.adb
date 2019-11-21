@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -1521,6 +1522,49 @@ package body LSP.Ada_Handlers is
          Definition : Defining_Name;
          Imprecise  : Boolean;
          Empty      : LSP.Messages.TextEdit_Vector;
+
+         procedure Process_Comments
+           (Node : Ada_Node;
+            Uri  : LSP.Messages.DocumentUri);
+         --  Iterate over all comments and include them in the responce when
+         --  they contain a remaned word
+
+         -----------------------
+         --  Process_Comments --
+         -----------------------
+
+         procedure Process_Comments
+           (Node : Ada_Node;
+            Uri  : LSP.Messages.DocumentUri)
+         is
+            use Libadalang.Common;
+
+            Token : Token_Reference := First_Token (Node.Unit);
+            Name  : constant Wide_Wide_String :=
+              Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
+                (Get_Last_Name (Name_Node));
+            Span  : LSP.Messages.Span;
+
+         begin
+            while Token /= No_Token loop
+               if Kind (Data (Token)) = Ada_Comment
+                 and then Contains (Token, Name, Span)
+               then
+                  declare
+                     C : constant LSP.Messages.TextEdit :=
+                       (span    => Span,
+                        newText => Value.newName);
+                  begin
+                     if not Response.result.changes (Uri).Contains (C) then
+                        Response.result.changes (Uri).Append (C);
+                     end if;
+                  end;
+               end if;
+
+               Token := Next (Token);
+            end loop;
+         end Process_Comments;
+
       begin
          if Name_Node = No_Name then
             return;
@@ -1567,6 +1611,11 @@ package body LSP.Ada_Handlers is
                      --  We haven't touched this document yet, create an empty
                      --  change list
                      Response.result.changes.Insert (Location.uri, Empty);
+
+                     --  Process comments if it is needed
+                     if Self.Refactoring.Renaming.In_Comments then
+                        Process_Comments (Node.As_Ada_Node, Location.uri);
+                     end if;
                   end if;
 
                   --  When iterating over all contexts (and therefore all
@@ -1611,6 +1660,7 @@ package body LSP.Ada_Handlers is
       defaultCharset    : constant String := "defaultCharset";
       enableDiagnostics : constant String := "enableDiagnostics";
       enableIndexing    : constant String := "enableIndexing";
+      renameInComments  : constant String := "renameInComments";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -1650,6 +1700,11 @@ package body LSP.Ada_Handlers is
          --  indexing in the parameters to this request.
          if Ada.Has_Field (enableIndexing) then
             Self.Indexing_Enabled := Ada.Get (enableIndexing);
+         end if;
+
+         if Ada.Has_Field (renameInComments) then
+            Self.Refactoring.Renaming.In_Comments :=
+              Ada.Get (renameInComments);
          end if;
       end if;
 
