@@ -1320,6 +1320,17 @@ package LSP.Messages is
      (abortApplying,  --  'abort' is reserver word in Ada, so change it
       transactional, undo, textOnlyTransactional);
 
+   procedure Read_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FailureHandlingKind);
+
+   procedure Write_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FailureHandlingKind);
+
+   for FailureHandlingKind'Read use Read_FailureHandlingKind;
+   for FailureHandlingKind'Write use Write_FailureHandlingKind;
+
    package Optional_FailureHandlingKinds is
      new LSP.Generic_Optional (FailureHandlingKind);
 
