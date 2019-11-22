@@ -25,13 +25,13 @@
         "match": "\\b(?i:(aaa))\\b"
     }, {
         "name": "keyword.control.ada",
-        "match": "\\b(?i:(abort|delay|exit|goto|pragma|raise|requeue|terminate|until))\\b"
+        "match": "\\b(?i:(abort|case|delay|else|elsif|exit|for|goto|if|loop|pragma|raise|requeue|return|terminate|then|until|while))\\b"
     }, {
         "name": "keyword.operator.ada",
         "match": "\\b(?i:(abs|and|in|mod|not|of|or|rem|xor))\\b"
     }, {
         "name": "keyword.other.ada",
-        "match": "\\b(?i:(abstract|accept|access|aliased|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|entry|exception|for|function|generic|if|interface|is|limited|loop|new|others|out|overriding|package|private|procedure|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
+        "match": "\\b(?i:(abstract|accept|access|aliased|all|array|at|begin|body|constant|declare|delta|digits|do|end|entry|exception|function|generic|interface|is|limited|new|others|out|overriding|package|private|procedure|protected|range|record|renames|reverse|select|separate|some|subtype|synchronized|tagged|task|type|use|when|with))\\b"
     }, {
         "name": "string.quoted.double.ada",
         "match": "\"([^\"]|\"\")*\""
