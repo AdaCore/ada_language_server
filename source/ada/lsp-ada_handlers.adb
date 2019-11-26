@@ -22,7 +22,6 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
 
-with GNAT.Strings;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNATCOLL.Projects;
 with GNATCOLL.JSON;
@@ -922,199 +921,6 @@ package body LSP.Ada_Handlers is
       Location_Text      : LSP_String;
       Decl_Unit_File     : Virtual_File;
 
-      procedure Create_Decl_Text_For_Basic_Decl;
-      --  Create the hover text for for basic declarations
-
-      procedure Create_Decl_Text_For_Subp_Spec;
-      --  Create the hover text for for subprogram declarations
-
-      --------------------------------------
-      -- Create_Decl_Text_For_Basic_Decl --
-      --------------------------------------
-
-      procedure Create_Decl_Text_For_Basic_Decl is
-      begin
-         case Decl.Kind is
-            when Ada_Package_Body =>
-
-               --  This means that user is hovering on the package declaration
-               --  itself: in this case, return a empty response since all the
-               --  relevant information is already visible to the user.
-               return;
-
-            when Ada_Base_Package_Decl =>
-
-               --  Return the first line of the package declaration and its
-               --  generic parameters if any.
-               declare
-                  Text           : constant String :=
-                                     Langkit_Support.Text.To_UTF8  (Decl.Text);
-                  Generic_Params : LSP_String;
-                  End_Idx        : Natural := Text'First;
-               begin
-                  Skip_To_String
-                    (Str       => Text,
-                     Index     => End_Idx,
-                     Substring => " is");
-
-                  if Decl.Parent /= No_Ada_Node
-                    and then Decl.Parent.Kind in Ada_Generic_Decl
-                  then
-                     Generic_Params := To_LSP_String
-                       (Langkit_Support.Text.To_UTF8
-                          (As_Generic_Decl (Decl.Parent).F_Formal_Part.Text)
-                        & ASCII.LF);
-                  end if;
-
-                  Decl_Text := Generic_Params
-                    & To_LSP_String (Text (Text'First .. End_Idx));
-                  return;
-               end;
-
-            when Ada_For_Loop_Var_Decl =>
-
-               --  Return the first line of the enclosing for loop when
-               --  hovering a for loop variable declaration.
-               declare
-                  Parent_Text : constant String := Langkit_Support.Text.To_UTF8
-                    (Decl.P_Semantic_Parent.Text);
-                  End_Idx     : Natural := Parent_Text'First;
-               begin
-                  Skip_To_String
-                    (Str       => Parent_Text,
-                     Index     => End_Idx,
-                     Substring => "loop");
-
-                  Decl_Text := To_LSP_String
-                    (Parent_Text (Parent_Text'First .. End_Idx + 4));
-                  return;
-               end;
-
-            when others =>
-               declare
-                  Text        : constant String := Langkit_Support.Text.To_UTF8
-                    (Decl.Text);
-                  Lines       : GNAT.Strings.String_List_Access := Split
-                    (Text,
-                     On               => ASCII.LF,
-                     Omit_Empty_Lines => True);
-                  Idx         : Integer;
-               begin
-                  --  Return an empty hover text if there is no text for this
-                  --  delclaration (only for safety).
-                  if Text = "" then
-                     return;
-                  end if;
-
-                  --  If it's a single-line declaration, replace all the
-                  --  series of whitespaces by only one blankspace. If it's
-                  --  a multi-line declaration, remove only the unneeded
-                  --  indentation whitespaces.
-
-                  if Lines'Length = 1 then
-                     declare
-                        Res_Idx : Integer := Text'First;
-                        Result  : String (Text'First .. Text'Last);
-                     begin
-                        Idx := Text'First;
-
-                        while Idx <= Text'Last loop
-                           Skip_Blanks (Text, Idx);
-
-                           while Idx <= Text'Last
-                             and then not Is_Whitespace (Text (Idx))
-                           loop
-                              Result (Res_Idx) := Text (Idx);
-                              Idx := Idx + 1;
-                              Res_Idx := Res_Idx + 1;
-                           end loop;
-
-                           if Res_Idx < Result'Last then
-                              Result (Res_Idx) := ' ';
-                              Res_Idx := Res_Idx + 1;
-                           end if;
-                        end loop;
-
-                        if Res_Idx > Text'First then
-                           Decl_Text := To_LSP_String
-                             (Result (Text'First .. Res_Idx - 1));
-                        end if;
-                     end;
-                  else
-                     declare
-                        Blanks_Count_Per_Line : array
-                          (Lines'First + 1 .. Lines'Last) of Natural;
-                        Indent_Blanks_Count   : Natural := Natural'Last;
-                        Start_Idx             : Integer;
-                     begin
-                        Decl_Text := To_LSP_String (Lines (Lines'First).all);
-
-                        --  Count the blankpaces per line and track how many
-                        --  blankspaces we should remove on each line by
-                        --  finding the common identation blankspaces.
-
-                        for J in Lines'First + 1 .. Lines'Last loop
-                           Idx := Lines (J)'First;
-                           Skip_Blanks (Lines (J).all, Idx);
-
-                           Blanks_Count_Per_Line (J) := Idx - Lines (J)'First;
-                           Indent_Blanks_Count := Natural'Min
-                             (Indent_Blanks_Count,
-                              Blanks_Count_Per_Line (J));
-                        end loop;
-
-                        for J in Lines'First + 1 .. Lines'Last loop
-                           Start_Idx := Lines (J)'First + Indent_Blanks_Count;
-                           Decl_Text := Decl_Text & To_LSP_String
-                             (ASCII.LF
-                              & Lines (J).all (Start_Idx .. Lines (J)'Last));
-                        end loop;
-                     end;
-                  end if;
-
-                  GNAT.Strings.Free (Lines);
-               end;
-         end case;
-      end Create_Decl_Text_For_Basic_Decl;
-
-      -------------------------------------
-      -- Create_Decl_Text_For_Subp_Spec --
-      -------------------------------------
-
-      procedure Create_Decl_Text_For_Subp_Spec is
-         Text  : constant String := Langkit_Support.Text.To_UTF8
-           (Subp_Spec_Node.Text);
-         Lines : GNAT.Strings.String_List_Access := Split
-           (Text,
-            On               => ASCII.LF,
-            Omit_Empty_Lines => True);
-         Idx   : Integer;
-      begin
-         --  For single-line subprogram specifications, we display the
-         --  associated text directly.
-         --  For multi-line ones, remove the identation blankspaces to replace
-         --  them by a fixed number of blankspaces.
-
-         if Lines'Length = 1 then
-            Decl_Text := To_LSP_String (Text);
-         else
-            Decl_Text := To_LSP_String (Lines (Lines'First).all);
-
-            for J in Lines'First + 1 .. Lines'Last loop
-               Idx := Lines (J)'First;
-               Skip_Blanks (Lines (J).all, Idx);
-
-               Decl_Text := Decl_Text
-                 & To_LSP_String
-                 (ASCII.LF
-                  & (if Lines (J).all (Idx) = '(' then "  " else "   ")
-                  & Lines (J).all (Idx .. Lines (J).all'Last));
-            end loop;
-         end if;
-
-         GNAT.Strings.Free (Lines);
-      end Create_Decl_Text_For_Subp_Spec;
-
       C : constant Context_Access :=
         Get_Best_Context_For_URI (Self.Contexts, Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
@@ -1138,7 +944,7 @@ package body LSP.Ada_Handlers is
       --  enumeration type declaration instead.
       if Decl.Kind in Ada_Enum_Literal_Decl then
          Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
-         Create_Decl_Text_For_Basic_Decl;
+         Decl_Text := Get_Hover_Text (Decl);
       else
 
          --  Try to retrieve the subprogram spec node, if any: if it's a
@@ -1147,53 +953,55 @@ package body LSP.Ada_Handlers is
          Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
 
          if Subp_Spec_Node /= No_Base_Subp_Spec then
-            Create_Decl_Text_For_Subp_Spec;
+            Decl_Text := Get_Hover_Text (Subp_Spec_Node);
          else
-            Create_Decl_Text_For_Basic_Decl;
+            Decl_Text := Get_Hover_Text (Decl);
          end if;
       end if;
 
-      --  Append the associated basic declaration's text to the response.
-      --  We set the language for highlighting.
-      if Decl_Text /= Empty_LSP_String then
-         Response.result.contents.Vector.Append
-           (LSP.Messages.MarkedString'
-              (Is_String => False,
-               value     => Decl_Text,
-               language  => To_LSP_String ("ada")));
+      if Decl_Text = Empty_LSP_String then
+         return Response;
+      end if;
 
-         --  Append the declaration's location
+      --  Append the whole declaration text to the response
 
-         Decl_Unit_File := GNATCOLL.VFS.Create (+Decl.Unit.Get_Filename);
+      Response.result.contents.Vector.Append
+        (LSP.Messages.MarkedString'
+           (Is_String => False,
+            value     => Decl_Text,
+            language  => To_LSP_String ("ada")));
 
-         Location_Text := To_LSP_String
-           ("at " & Decl_Unit_File.Display_Base_Name & " ("
-            & GNATCOLL.Utils.Image
-              (Integer (Decl.Sloc_Range.Start_Line), Min_Width => 1)
-            & ":"
-            & GNATCOLL.Utils.Image
-              (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
-            & ")");
+      --  Append the declaration's location
 
+      Decl_Unit_File := GNATCOLL.VFS.Create (+Decl.Unit.Get_Filename);
+
+      Location_Text := To_LSP_String
+        ("at " & Decl_Unit_File.Display_Base_Name & " ("
+         & GNATCOLL.Utils.Image
+           (Integer (Decl.Sloc_Range.Start_Line), Min_Width => 1)
+         & ":"
+         & GNATCOLL.Utils.Image
+           (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
+         & ")");
+
+      Response.result.contents.Vector.Append
+        (LSP.Messages.MarkedString'
+           (Is_String => True,
+            value     => Location_Text));
+
+      --  Append the comments associated with the basic declaration
+      --  if any.
+
+      Comments_Text := To_LSP_String
+        (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
+           (Libadalang.Doc_Utils.Get_Documentation
+                (Decl).Doc.To_String));
+
+      if Comments_Text /= Empty_LSP_String then
          Response.result.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
-               value     => Location_Text));
-
-         --  Append the comments associated with the basic declaration
-         --  if any.
-
-         Comments_Text := To_LSP_String
-           (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-              (Libadalang.Doc_Utils.Get_Documentation
-                   (Decl).Doc.To_String));
-
-         if Comments_Text /= Empty_LSP_String then
-            Response.result.contents.Vector.Append
-              (LSP.Messages.MarkedString'
-                 (Is_String => True,
-                  value     => Comments_Text));
-         end if;
+               value     => Comments_Text));
       end if;
 
       return Response;
