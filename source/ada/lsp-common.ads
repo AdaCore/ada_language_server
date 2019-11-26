@@ -19,6 +19,8 @@
 
 with Ada.Exceptions;
 with GNATCOLL.Traces;
+with LSP.Types;           use LSP.Types;
+with Libadalang.Analysis; use Libadalang.Analysis;
 
 package LSP.Common is
 
@@ -27,5 +29,10 @@ package LSP.Common is
       E       : Ada.Exceptions.Exception_Occurrence;
       Message : String := "");
    --  Log an exception in the given traces, with an optional message
+
+   function Get_Hover_Text (Node : Ada_Node'Class) return LSP_String;
+   --  Return a pretty printed version of the node's text to be displayed on
+   --  hover requests, removing unnecessary indentation whitespaces if needed
+   --  and attaching extra information in some cases.
 
 end LSP.Common;
