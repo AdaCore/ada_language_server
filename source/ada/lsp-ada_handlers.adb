@@ -918,6 +918,7 @@ package body LSP.Ada_Handlers is
       Subp_Spec_Node     : Base_Subp_Spec;
       Decl_Text          : LSP_String;
       Comments_Text      : LSP_String;
+      Aspects_Text       : LSP_String := To_LSP_String (ASCII.LF & "with ");
       Location_Text      : LSP_String;
       Decl_Unit_File     : Virtual_File;
 
@@ -962,6 +963,22 @@ package body LSP.Ada_Handlers is
       if Decl_Text = Empty_LSP_String then
          return Response;
       end if;
+
+      --  Append the aspects to the declaration text, if any.
+
+      declare
+         Aspects : constant Aspect_Spec := Decl.F_Aspects;
+      begin
+         if not Aspects.Is_Null then
+            for Aspect of Aspects.F_Aspect_Assocs loop
+               Aspects_Text := Get_Hover_Text (Aspect);
+            end loop;
+
+            if Aspects_Text /= Empty_LSP_String then
+               Decl_Text := Decl_Text & Aspects_Text;
+            end if;
+         end if;
+      end;
 
       --  Append the whole declaration text to the response
 
