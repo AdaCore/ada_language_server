@@ -52,24 +52,6 @@ somewhere in the path.
 
 The `ada_language_server` doesn't require/understand any command line options.
 
-## Debugging
-
-You can activate traces that show all the server input/output. This is done
-by creating a file `$HOME/.als/traces.cfg` with the following contents:
-
-```
-ALS.IN=yes > inout.txt:buffer_size=0
-ALS.OUT=yes > inout.txt:buffer_size=0
-```
-
-When this is present, the ALS will generate a file `$HOME/.als/inout.txt`
-which logs the input received and the output sent by the language server.
-
-## Testsuite
-
-See more about the project testsuite in a
-[separate document](testsuite/README.md).
-
 # Supported LSP Server Requests
 
 ### General Requests
@@ -265,8 +247,9 @@ values in the `lsp-ada` group that can be edited similarly to
 
 ## Contribute
 
-Feel free to dive in!
-[Open an issue](https://github.com/AdaCore/ada_language_server/issues/new) or submit PRs.
+Feel free to dive in! Read the [developer's guide](doc/HACKING.md).
+
+Don't hesitate to [open an issue](https://github.com/AdaCore/ada_language_server/issues/new) or submit PRs.
 
 ## License
 
