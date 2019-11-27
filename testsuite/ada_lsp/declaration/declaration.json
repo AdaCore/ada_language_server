@@ -1,0 +1,135 @@
+[
+    {
+        "comment":[
+            "This test check corresponding declaration for Aaa in call stmt",
+            "and New_Line for Ada.Text_IO.New_Line; statement"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "declarationProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Ada.Text_IO;\nprocedure Aaa is\nbegin\n   Ada.Text_IO.New_Line;\n   Aaa;\nend Aaa;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/declaration",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 4,
+                        "character": 5
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "result":[{
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 10
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 13
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-2",
+                "method":"textDocument/declaration",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 18
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-2",
+                "result":[{
+                    "range": {
+                        "start": {},
+                        "end": {}
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

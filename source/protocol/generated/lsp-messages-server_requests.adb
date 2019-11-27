@@ -40,6 +40,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Declaration_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Declaration_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Type_Definition_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin

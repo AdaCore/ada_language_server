@@ -51,14 +51,14 @@ package LSP.Lal_Utils is
    function Find_Next_Part
      (Definition : Defining_Name;
       Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Wrapper around P_Next_Part which returns No_Defining_Name if this
-   --  called returns Definition, and catches and traces Property_Error.
+   --  Wrapper around P_Next_Part that returns null if next part
+   --  is name itself. It also catches Property_Error and reports it in traces.
 
    function Find_Canonical_Part
      (Definition : Defining_Name;
       Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Wrapper around P_Next_Part which catches the case when it returns self,
-   --  and catches and traces Property_Error.
+   --  Wrapper around P_Canonical_Part that returns null if canonical part
+   --  is name itself. It also catches Property_Error and reports it in traces.
 
    function Find_Other_Part_Fallback
      (Definition : Defining_Name;
@@ -68,6 +68,22 @@ package LSP.Lal_Utils is
    --- names and profiles.
    --  This should be called only if straightforward Libadalang calls
    --  have failed.
+
+   procedure Append_Location
+     (Result : in out LSP.Messages.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
+   --  Append given Node location to the Result.
+   --  Do nothing if the item inside of an synthetic file (like __standard).
+   --  Do not append if the location is already in Result.
+   --  See description of Kind in Get_Node_Location comments.
+   --
+   function Get_Node_Location
+     (Node : Libadalang.Analysis.Ada_Node;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location;
+   --  Return the location of the given node. Populate alsKind field of the
+   --  result with given Kind.
 
    ---------------
    -- Called_By --

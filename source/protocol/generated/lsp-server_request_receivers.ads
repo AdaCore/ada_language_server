@@ -38,6 +38,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Definition_Request)
         is abstract;
 
+   procedure On_Declaration_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Declaration_Request)
+        is abstract;
+
    procedure On_Type_Definition_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Type_Definition_Request)
