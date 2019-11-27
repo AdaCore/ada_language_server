@@ -144,6 +144,18 @@ package LSP.Ada_Contexts is
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 
+   procedure Append_Declarations
+     (Self      : Context;
+      Position  : LSP.Messages.TextDocumentPositionParams;
+      Result    : in out LSP.Messages.Location_Vector;
+      Imprecise : in out Boolean);
+   --  Find corresponding declarations for a name at given Position and append
+   --  their locations to Result.
+   --
+   --  Here we follow C terminology, where 'Declaration' equals to
+   --  Ada subprogram specification while 'Definition' equals to
+   --  Ada subprogram body (completion).
+
 private
    use type Types.LSP_String;
    use type GNATCOLL.Projects.Project_Tree_Access;

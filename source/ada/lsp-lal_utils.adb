@@ -32,6 +32,42 @@ package body LSP.Lal_Utils is
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
 
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Result : in out LSP.Messages.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+   is
+      function Is_Synthetic return Boolean;
+      --  Check if Node is in a synthetic file (like "__standard").
+      --  TODO: Replace this with LAL property as it will be available.
+
+      ------------------
+      -- Is_Synthetic --
+      ------------------
+
+      function Is_Synthetic return Boolean is
+         Std  : constant String := "__standard";
+         File : constant String := Node.Unit.Get_Filename;
+      begin
+         return File'Length >= Std'Length
+           and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
+      end Is_Synthetic;
+
+      Location : constant LSP.Messages.Location :=
+        LSP.Lal_Utils.Get_Node_Location
+          (Libadalang.Analysis.As_Ada_Node (Node), Kind);
+   begin
+      if not Is_Synthetic
+        and then not Result.Contains (Location)
+      then
+         Result.Append (Location);
+      end if;
+   end Append_Location;
+
    --------------
    -- Contains --
    --------------
@@ -110,6 +146,41 @@ package body LSP.Lal_Utils is
    begin
       return Names (Names'Last);
    end Get_Last_Name;
+
+   -----------------------
+   -- Get_Node_Location --
+   -----------------------
+
+   function Get_Node_Location
+     (Node : Libadalang.Analysis.Ada_Node;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location
+   is
+      Start_Sloc_Range                                     :
+      constant Langkit_Support.Slocs.Source_Location_Range :=
+         Sloc_Range (Data (Node.Token_Start));
+      End_Sloc_Range                                       :
+      constant Langkit_Support.Slocs.Source_Location_Range :=
+         Sloc_Range (Data (Node.Token_End));
+
+      First_Position : constant LSP.Messages.Position :=
+                         (Line_Number (Start_Sloc_Range.Start_Line) - 1,
+                          UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
+      Last_Position  : constant LSP.Messages.Position :=
+                         (Line_Number (End_Sloc_Range.End_Line) - 1,
+                          UTF_16_Index (End_Sloc_Range.End_Column) - 1);
+
+      File : constant LSP.Types.LSP_String :=
+        LSP.Types.To_LSP_String (Node.Unit.Get_Filename);
+
+      Location : constant LSP.Messages.Location :=
+        (uri     => LSP.Ada_Contexts.File_To_URI (File),
+         span    => LSP.Messages.Span'(First_Position, Last_Position),
+         alsKind => Kind);
+
+   begin
+      return Location;
+   end Get_Node_Location;
 
    ------------------
    -- Resolve_Name --

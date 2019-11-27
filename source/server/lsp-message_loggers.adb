@@ -314,6 +314,20 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.items.Length));
    end On_Completion_Response;
 
+   ----------------------------
+   -- On_Declaration_Request --
+   ----------------------------
+
+   overriding procedure On_Declaration_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Declaration_Request) is
+   begin
+      Self.Trace.Trace
+        ("Declaration_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Declaration_Request;
+
    ---------------------------
    -- On_Definition_Request --
    ---------------------------

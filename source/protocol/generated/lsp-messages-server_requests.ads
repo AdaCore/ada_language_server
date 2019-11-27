@@ -68,6 +68,18 @@ package LSP.Messages.Server_Requests is
      (Self    : Definition_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Declaration_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        TextDocumentPositionParams);
+
+   type Declaration_Request is
+     new Declaration_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Declaration_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Type_Definition_Requests is
      new LSP.Generic_Requests
        (Server_Request,

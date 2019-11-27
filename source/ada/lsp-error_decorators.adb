@@ -121,6 +121,22 @@ package body LSP.Error_Decorators is
         renames Completion_Request;
 
    ---------------------------
+   -- On_Declaration_Request --
+   ---------------------------
+
+   function Declaration_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Declaration_Request,
+      Response   => LSP.Messages.Server_Responses.Location_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_Declaration_Request);
+
+   overriding function On_Declaration_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Declaration_Request)
+      return LSP.Messages.Server_Responses.Location_Response
+        renames Declaration_Request;
+
+   ---------------------------
    -- On_Definition_Request --
    ---------------------------
 

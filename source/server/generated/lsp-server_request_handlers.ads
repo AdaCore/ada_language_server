@@ -39,6 +39,11 @@ package LSP.Server_Request_Handlers is
       Request : LSP.Messages.Server_Requests.Definition_Request)
       return LSP.Messages.Server_Responses.Location_Response is abstract;
 
+   function On_Declaration_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Declaration_Request)
+      return LSP.Messages.Server_Responses.Location_Response is abstract;
+
    function On_Type_Definition_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Type_Definition_Request)

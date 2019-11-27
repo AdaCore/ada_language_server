@@ -36,7 +36,6 @@ with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Messages.Server_Notifications;
 
-with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
@@ -53,13 +52,6 @@ package body LSP.Ada_Handlers is
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
-
-   function Get_Node_Location
-     (Node : Libadalang.Analysis.Ada_Node;
-      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location;
-   --  Return the location of the given node. Populate alsKind field of the
-   --  result with given Kind.
 
    procedure Send_Imprecise_Xref_Message
      (Self     : access Message_Handler;
@@ -79,15 +71,6 @@ package body LSP.Ada_Handlers is
    --  If node at given Position is a name, then resolve it.
    --  Send a message in case of a possible imprecise result.
    --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
-
-   procedure Append_Location
-     (Result : in out LSP.Messages.Location_Vector;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
-   --  Append given Node location to the Result.
-   --  Do nothing if the item inside of an synthetic file (like __standard).
-   --  Do not append if the location is already in Result.
-   --  See description of Kind in Get_Node_Location comments.
 
    function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
      (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
@@ -240,77 +223,6 @@ package body LSP.Ada_Handlers is
    begin
       return C.Get_Document (URI);
    end Get_Document;
-
-   ---------------------
-   -- Append_Location --
-   ---------------------
-
-   procedure Append_Location
-     (Result : in out LSP.Messages.Location_Vector;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-   is
-      function Is_Synthetic return Boolean;
-      --  Check if Node is in a synthetic file (like "__standard").
-      --  TODO: Replace this with LAL property as it will be available.
-
-      ------------------
-      -- Is_Synthetic --
-      ------------------
-
-      function Is_Synthetic return Boolean is
-         Std  : constant String := "__standard";
-         File : constant String := Node.Unit.Get_Filename;
-      begin
-         return File'Length >= Std'Length
-           and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
-      end Is_Synthetic;
-
-      Location : constant LSP.Messages.Location :=
-        Get_Node_Location (Libadalang.Analysis.As_Ada_Node (Node), Kind);
-   begin
-      if not Is_Synthetic
-        and then not Result.Contains (Location)
-      then
-         Result.Append (Location);
-      end if;
-   end Append_Location;
-
-   -----------------------
-   -- Get_Node_Location --
-   -----------------------
-
-   function Get_Node_Location
-     (Node : Libadalang.Analysis.Ada_Node;
-      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location
-   is
-      use Libadalang.Analysis;
-      use Libadalang.Common;
-
-      Start_Sloc_Range                                     :
-      constant Langkit_Support.Slocs.Source_Location_Range :=
-         Sloc_Range (Data (Node.Token_Start));
-      End_Sloc_Range                                       :
-      constant Langkit_Support.Slocs.Source_Location_Range :=
-         Sloc_Range (Data (Node.Token_End));
-
-      First_Position : constant LSP.Messages.Position :=
-                         (Line_Number (Start_Sloc_Range.Start_Line) - 1,
-                          UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
-      Last_Position  : constant LSP.Messages.Position :=
-                         (Line_Number (End_Sloc_Range.End_Line) - 1,
-                          UTF_16_Index (End_Sloc_Range.End_Column) - 1);
-
-      Location : constant LSP.Messages.Location :=
-                   (uri     => File_To_URI (+Node.Unit.Get_Filename),
-                    span    =>
-                      LSP.Messages.Span'(First_Position, Last_Position),
-                    alsKind => Kind);
-
-   begin
-      return Location;
-   end Get_Node_Location;
 
    ---------------------------------
    -- Send_Imprecise_Xref_Message --
@@ -488,6 +400,9 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
    begin
+      Response.result.capabilities.declarationProvider :=
+        (Is_Set => True,
+         Value => (Is_Boolean => True, Bool => True));
       Response.result.capabilities.definitionProvider := True;
       Response.result.capabilities.typeDefinitionProvider :=
         (Is_Set => True,
@@ -591,6 +506,41 @@ package body LSP.Ada_Handlers is
           data => <>));
       return Response;
    end On_Execute_Command_Request;
+
+   ----------------------------
+   -- On_Declaration_Request --
+   ----------------------------
+
+   overriding function On_Declaration_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Declaration_Request)
+      return LSP.Messages.Server_Responses.Location_Response
+   is
+
+      Position   : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+
+   begin
+      for C of Self.Contexts loop
+         C.Append_Declarations
+           (Position,
+            Response.result,
+            Imprecise);
+
+         exit when Request.Canceled;
+      end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The result of 'declaration' is approximate.",
+            LSP.Messages.Warning);
+      end if;
+
+      return Response;
+   end On_Declaration_Request;
 
    ---------------------------
    -- On_Definition_Request --

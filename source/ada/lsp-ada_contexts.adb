@@ -25,6 +25,7 @@ with GNATCOLL.VFS;      use GNATCOLL.VFS;
 with URIs;
 with LSP.Ada_Unit_Providers;
 with LSP.Common; use LSP.Common;
+with LSP.Lal_Utils;
 
 with Libadalang.Common;
 with Langkit_Support.Slocs;
@@ -41,6 +42,92 @@ package body LSP.Ada_Contexts is
    function Analysis_Units
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
+
+   -------------------------
+   -- Append_Declarations --
+   -------------------------
+
+   procedure Append_Declarations
+     (Self      : Context;
+      Position  : LSP.Messages.TextDocumentPositionParams;
+      Result    : in out LSP.Messages.Location_Vector;
+      Imprecise : in out Boolean)
+   is
+      use type Libadalang.Analysis.Name;
+      use type Libadalang.Analysis.Defining_Name;
+
+      Name_Node : constant Libadalang.Analysis.Name :=
+        LSP.Lal_Utils.Get_Node_As_Name (Self.Get_Node_At (Position));
+
+      Definition              : Libadalang.Analysis.Defining_Name;
+      --  A defining name that corresponds to Name_Node
+      First_Part              : Libadalang.Analysis.Defining_Name;
+      --  "Canonical part" of Definition
+      Prev_Part               : Libadalang.Analysis.Defining_Name;
+      --  A previous name for Definition
+      Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl;
+   begin
+      if Name_Node = Libadalang.Analysis.No_Name then
+         return;
+      end if;
+
+      --  Check if we are on some defining name
+      Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
+
+      if Definition = Libadalang.Analysis.No_Defining_Name then
+         --  If we aren't on a defining_name already then try to resolve
+         declare
+            Is_Imprecise : Boolean;
+         begin
+            Definition := LSP.Lal_Utils.Resolve_Name
+              (Name_Node, Self.Trace, Is_Imprecise);
+
+            Imprecise := Imprecise or Is_Imprecise;
+         end;
+      end if;
+
+      if Definition = Libadalang.Analysis.No_Defining_Name then
+         return;  --  Name resolution fails, nothing to do.
+      end if;
+
+      First_Part := LSP.Lal_Utils.Find_Canonical_Part (Definition, Self.Trace);
+
+      if First_Part = Libadalang.Analysis.No_Defining_Name then
+         Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+      else
+         Decl_For_Find_Overrides := First_Part.P_Basic_Decl;
+      end if;
+
+      begin
+         Prev_Part := Definition.P_Previous_Part;
+      exception
+         when E :  Libadalang.Common.Property_Error =>
+            Log (Self.Trace, E);
+            Prev_Part := Libadalang.Analysis.No_Defining_Name;
+      end;
+
+      if Prev_Part /= Libadalang.Analysis.No_Defining_Name then
+         --  We have found previous part, return it.
+         LSP.Lal_Utils.Append_Location (Result, Prev_Part);
+      elsif Definition /= Libadalang.Analysis.No_Defining_Name then
+         --  No previous part, return definition itself.
+         LSP.Lal_Utils.Append_Location (Result, Definition);
+      end if;
+
+      declare
+         Is_Imprecise     : Boolean;
+         Overriding_Subps : constant Libadalang.Analysis.Basic_Decl_Array :=
+           Self.Find_All_Overrides
+             (Decl_For_Find_Overrides,
+              Imprecise_Results => Is_Imprecise);
+      begin
+         for Subp of Overriding_Subps loop
+            LSP.Lal_Utils.Append_Location (Result, Subp.P_Defining_Name);
+         end loop;
+
+         Imprecise := Imprecise or Is_Imprecise;
+      end;
+   end Append_Declarations;
 
    -----------------
    -- File_To_URI --
