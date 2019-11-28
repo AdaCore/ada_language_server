@@ -235,7 +235,9 @@ package body LSP.Lal_Utils is
       is
          use type Langkit_Support.Slocs.Line_Number;
       begin
-         if Node.Kind not in Libadalang.Common.Ada_Basic_Decl then
+         if Node.Is_Null
+           or else Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+         then
             return Libadalang.Common.Into;
          end if;
 
