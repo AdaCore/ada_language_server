@@ -621,19 +621,17 @@ package body LSP.Ada_Handlers is
             end if;
          end if;
 
-         for C of Self.Contexts loop
-            declare
-               Is_Imprecise     : Boolean;
-               Overriding_Subps : constant Basic_Decl_Array :=
-                                    C.Find_All_Overrides
-                                      (Decl_For_Find_Overrides,
-                                       Imprecise_Results => Is_Imprecise);
-            begin
-               for Subp of Overriding_Subps loop
-                  Append_Location (Response.result, Subp);
-               end loop;
-            end;
-         end loop;
+         declare
+            Is_Imprecise     : Boolean;
+            Overriding_Subps : constant Basic_Decl_Array :=
+              C.Find_All_Overrides
+                (Decl_For_Find_Overrides,
+                 Imprecise_Results => Is_Imprecise);
+         begin
+            for Subp of Overriding_Subps loop
+               Append_Location (Response.result, Subp.P_Defining_Name);
+            end loop;
+         end;
       end Resolve_In_Context;
 
    begin
