@@ -162,11 +162,11 @@
                      "range": {
                         "start": {
                            "line": 8,
-                           "character": 3
+                           "character": 13
                         },
                         "end": {
                            "line": 8,
-                           "character": 25
+                           "character": 15
                         }
                      },
                      "uri": "$URI{class_definition.subclass.adb}"
@@ -175,11 +175,11 @@
                      "range": {
                         "start": {
                            "line": 12,
-                           "character": 3
+                           "character": 13
                         },
                         "end": {
-                           "line": 17,
-                           "character": 10
+                           "line": 12,
+                           "character": 15
                         }
                      },
                      "uri": "$URI{user.adb}"
@@ -230,11 +230,11 @@
                      "range": {
                         "start": {
                            "line": 8,
-                           "character": 3
+                           "character": 13
                         },
                         "end": {
                            "line": 8,
-                           "character": 25
+                           "character": 15
                         }
                      },
                      "uri": "$URI{class_definition.subclass.adb}"
@@ -243,11 +243,11 @@
                      "range": {
                         "start": {
                            "line": 12,
-                           "character": 3
+                           "character": 13
                         },
                         "end": {
-                           "line": 17,
-                           "character": 10
+                           "line": 12,
+                           "character": 15
                         }
                      },
                      "uri": "$URI{user.adb}"
