@@ -21,6 +21,7 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
+with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNATCOLL.Projects;
@@ -89,6 +90,9 @@ package body LSP.Ada_Handlers is
 
    procedure Index_Files (Self : access Message_Handler);
    --  Index all loaded files in each context. Emit progresormation.
+
+   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+     (LSP.Ada_Contexts.Context, Context_Access);
 
    ---------------------
    -- Project loading --
@@ -1587,9 +1591,10 @@ package body LSP.Ada_Handlers is
       --  Unload all the contexts except the projectless context
       while Self.Contexts.Length > 1 loop
          declare
-            C : constant Context_Access := Self.Contexts.First_Element;
+            C : Context_Access := Self.Contexts.First_Element;
          begin
             C.Unload;
+            Unchecked_Free (C);
          end;
          Self.Contexts.Delete_First;
       end loop;
