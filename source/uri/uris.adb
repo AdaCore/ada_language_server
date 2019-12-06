@@ -395,6 +395,7 @@ package body URIs is
          Result : Unbounded_String;
       begin
          if Index > Text'Last or else Text (Index) /= ':' then
+            Port := 0;
             return False;
          end if;
 
