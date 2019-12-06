@@ -84,7 +84,7 @@ package LSP.Ada_Contexts is
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access
      with Pre => Has_Document (Self, URI);
-   --  Retrive document identified by given URI. User shouldn't free it or
+   --  Retrieve document identified by given URI. User shouldn't free it or
    --  store it.
 
    function URI_To_File
