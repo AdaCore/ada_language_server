@@ -18,15 +18,18 @@
 --  This package provides an Ada document abstraction.
 
 with LSP.Messages;
+with LSP.Types;
 with Libadalang.Analysis;
 limited with LSP.Ada_Contexts;
+
+with GNATCOLL.Traces;
 
 package LSP.Ada_Documents is
 
    MAX_NB_DIAGNOSTICS : constant := 2;
 
-   type Document (Context : access LSP.Ada_Contexts.Context'Class)
-     is tagged limited private;
+   type Document (Trace : GNATCOLL.Traces.Trace_Handle) is
+     tagged limited private;
    --  An Ada document (file).
 
    type Document_Access is access all LSP.Ada_Documents.Document
@@ -34,54 +37,68 @@ package LSP.Ada_Documents is
 
    procedure Initialize
      (Self : in out Document;
-      LAL  : Libadalang.Analysis.Analysis_Context;
-      Item : LSP.Messages.TextDocumentItem);
+      URI  : LSP.Messages.DocumentUri;
+      Text : LSP.Types.LSP_String);
    --  Create a new document from a TextDocumentItem. Use LAL as libadalang
    --  context to parse text of the document.
 
+   -----------------------
+   -- Contents handling --
+   -----------------------
+
+   function URI (Self : Document) return LSP.Messages.DocumentUri;
+   --  Return the URI associated with Self
+
+   function Text (Self : Document) return LSP.Types.LSP_String;
+   --  Return the text associated with Self
+
    procedure Apply_Changes
-     (Self   : aliased in out Document;
-      Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector);
+     (Self    : aliased in out Document;
+      Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
 
+   --------------
+   -- Requests --
+   --------------
+
+   --  These requests are meaningful within a document/context pair
+
    procedure Get_Errors
-     (Self   : Document;
-      Errors : out LSP.Messages.Diagnostic_Vector);
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Errors  : out LSP.Messages.Diagnostic_Vector);
    --  Get errors found during document parsing.
 
    procedure Get_Symbols
-     (Self   : Document;
-      Result : out LSP.Messages.SymbolInformation_Vector);
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Result  : out LSP.Messages.SymbolInformation_Vector);
    --  Populate Result with symbols from the document.
 
    function Get_Node_At
      (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
 
    procedure Get_Completions_At
      (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
-   procedure Reload
-     (Self : in out Document;
-      LAL  : Libadalang.Analysis.Analysis_Context);
-   --  Refresh libadalang Analysis_Unit stored in given document using new
-   --  Libadalang context.
-
 private
 
-   type Document (Context : access LSP.Ada_Contexts.Context'Class) is
-     tagged limited
+   type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record
-      URI    : LSP.Messages.DocumentUri;
-      LAL    : Libadalang.Analysis.Analysis_Context;
+      URI  : LSP.Messages.DocumentUri;
+      Text : LSP.Types.LSP_String;
    end record;
 
-   function Unit (Self : Document) return Libadalang.Analysis.Analysis_Unit;
-   --  Return the analysis unit for Self
+   function URI (Self : Document) return LSP.Messages.DocumentUri is
+     (Self.URI);
+   function Text (Self : Document) return LSP.Types.LSP_String is (Self.Text);
 
 end LSP.Ada_Documents;

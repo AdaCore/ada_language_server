@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;  use Ada.Characters.Handling;
-with Ada.Unchecked_Deallocation;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Projects; use GNATCOLL.Projects;
@@ -35,10 +34,6 @@ package body LSP.Ada_Contexts is
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (LSP.Ada_Documents.Document,
-      Internal_Document_Access);
-
    function Analysis_Units
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
@@ -49,6 +44,7 @@ package body LSP.Ada_Contexts is
 
    procedure Append_Declarations
      (Self      : Context;
+      Document  : LSP.Ada_Documents.Document_Access;
       Position  : LSP.Messages.TextDocumentPositionParams;
       Result    : in out LSP.Messages.Location_Vector;
       Imprecise : in out Boolean)
@@ -57,7 +53,8 @@ package body LSP.Ada_Contexts is
       use type Libadalang.Analysis.Defining_Name;
 
       Name_Node : constant Libadalang.Analysis.Name :=
-        LSP.Lal_Utils.Get_Node_As_Name (Self.Get_Node_At (Position));
+        LSP.Lal_Utils.Get_Node_As_Name
+          (Self.Get_Node_At (Document, Position));
 
       Definition              : Libadalang.Analysis.Defining_Name;
       --  A defining name that corresponds to Name_Node
@@ -256,31 +253,6 @@ package body LSP.Ada_Contexts is
          return (1 .. 0 => <>);
    end Find_All_Calls;
 
-   ------------------
-   -- Has_Document --
-   ------------------
-
-   function Has_Document
-     (Self : Context;
-      URI  : LSP.Messages.DocumentUri) return Boolean is
-   begin
-      return Self.Documents.Contains (URI);
-   end Has_Document;
-
-   ------------------
-   -- Get_Document --
-   ------------------
-
-   function Get_Document
-     (Self : Context;
-      URI  : LSP.Messages.DocumentUri)
-        return LSP.Ada_Documents.Document_Access
-   is
-      Object : constant Internal_Document_Access := Self.Documents (URI);
-   begin
-      return LSP.Ada_Documents.Document_Access (Object);
-   end Get_Document;
-
    -----------------
    -- Get_Charset --
    -----------------
@@ -328,43 +300,6 @@ package body LSP.Ada_Contexts is
       end;
    end Is_Part_Of_Project;
 
-   -------------------
-   -- Load_Document --
-   -------------------
-
-   function Load_Document
-     (Self : aliased in out Context;
-      Item : LSP.Messages.TextDocumentItem)
-      return LSP.Ada_Documents.Document_Access
-   is
-      Object : constant Internal_Document_Access :=
-        new LSP.Ada_Documents.Document (Self'Unchecked_Access);
-   begin
-      Object.Initialize (Self.LAL_Context, Item);
-      Self.Documents.Insert (Item.uri, Object);
-
-      declare
-         Name : constant LSP.Types.LSP_String := URI_To_File (Item.uri);
-         File : constant Virtual_File := Create
-           (Filesystem_String (LSP.Types.To_UTF_8_String (Name)),
-            Normalize => True);
-      begin
-         if not Self.Is_Part_Of_Project (File) then
-            --  File that we are loading doesn't belong to the project, so
-            --  firstly recompute project view just in case this is a new file
-            --  in the project. Then update list of source files.
-
-            if Self.Project_Tree /= null then
-               Self.Project_Tree.Recompute_View;
-            end if;
-
-            Self.Update_Source_Files;
-         end if;
-      end;
-
-      return LSP.Ada_Documents.Document_Access (Object);
-   end Load_Document;
-
    ------------------
    -- Load_Project --
    ------------------
@@ -399,40 +334,7 @@ package body LSP.Ada_Contexts is
         (Unit_Provider => Self.Unit_Provider,
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
-
-      --  After re-creation of the LAL context all Analysis_Units become
-      --  outdated, let's refresh all of them
-      for Document of Self.Documents loop
-         Document.Reload (Self.LAL_Context);
-      end loop;
    end Reload;
-
-   ------------
-   -- Unload --
-   ------------
-
-   procedure Unload (Self : in out Context) is
-   begin
-      for Document of Self.Documents loop
-         Free (Document);
-      end loop;
-      Self.Documents.Clear;
-   end Unload;
-
-   ---------------------
-   -- Unload_Document --
-   ---------------------
-
-   procedure Unload_Document
-     (Self : in out Context;
-      Item : LSP.Messages.TextDocumentIdentifier)
-   is
-      Document : Internal_Document_Access :=
-        Self.Documents.Element (Item.uri);
-   begin
-      Self.Documents.Delete (Item.uri);
-      Free (Document);
-   end Unload_Document;
 
    -------------------------
    -- Update_Source_Files --
@@ -499,10 +401,12 @@ package body LSP.Ada_Contexts is
 
    function Get_Node_At
      (Self     : Context;
+      Document : LSP.Ada_Documents.Document_Access;
       Position : LSP.Messages.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node
    is
       use type Libadalang.Analysis.Ada_Node;
+      use type LSP.Ada_Documents.Document_Access;
       use type Langkit_Support.Slocs.Line_Number;
       use type Langkit_Support.Slocs.Column_Number;
 
@@ -517,8 +421,8 @@ package body LSP.Ada_Contexts is
       --  if the file belongs to the project: we don't want to pollute the
       --  LAL context with units that are not in the project.
 
-      if Self.Has_Document (URI) then
-         return Self.Get_Document (URI).Get_Node_At (Position.position);
+      if Document /= null then
+         return Document.Get_Node_At (Self, Position.position);
       else
          File := Create
            (Filesystem_String
@@ -565,5 +469,29 @@ package body LSP.Ada_Contexts is
       Ignored := Self.LAL_Context.Get_From_File
         (File.Display_Full_Name, Charset => Self.Get_Charset);
    end Index_File;
+
+   --------------------
+   -- Index_Document --
+   --------------------
+
+   procedure Index_Document
+     (Self     : Context;
+      Document : LSP.Ada_Documents.Document)
+   is
+      File  : constant LSP.Types.LSP_String := URI_To_File (Document.URI);
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+   begin
+      Unit := Self.LAL_Context.Get_From_Buffer
+        (Filename => LSP.Types.To_UTF_8_String (File),
+         --  Change.text is always encoded in UTF-8, as per the protocol
+         Charset  => "utf-8",
+         Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Document.Text));
+
+      --  After creating an analysis unit, populate the lexical env with it:
+      --  we do this to allow Libadalang to do some work in reaction to
+      --  a file being open in the IDE, in order to speed up the response
+      --  to user queries.
+      Libadalang.Analysis.Populate_Lexical_Env (Unit);
+   end Index_Document;
 
 end LSP.Ada_Contexts;
