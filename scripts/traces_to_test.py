@@ -5,7 +5,7 @@
 
 To use this, do
 
-   traces_to_test.py  name_of_test  [path_to_traces_file]  > name_of_test_driver.json
+  traces_to_test.py  name_of_test  [path_to_traces_file]  > name_of_test_driver.json
 
 """
 
@@ -24,8 +24,6 @@ else:
     inout_file = os.path.join(als_dir, 'inout.txt')
 
 test = traces_to_test(inout_file, root)
-
-os.mkdir(root)
 
 test_yaml_file = os.path.join(root, 'test.yaml')
 print("generating {}".format(test_yaml_file))
