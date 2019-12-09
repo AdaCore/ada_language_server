@@ -80,7 +80,7 @@ class ALSTestsuite(Testsuite):
     def tear_down(self):
         self.stop_time = datetime.datetime.now()
         elapsed = self.stop_time - self.start_time
-        logging.info('Ellapsed time: {}'.format(elapsed))
+        logging.info('Elapsed time: {}'.format(elapsed))
 
         super(ALSTestsuite, self).tear_down()
 
