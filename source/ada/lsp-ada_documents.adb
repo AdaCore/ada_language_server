@@ -23,7 +23,6 @@ with Libadalang.Common;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
-with LSP.Types;
 
 package body LSP.Ada_Documents is
 
@@ -41,6 +40,12 @@ package body LSP.Ada_Documents is
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+
+   function Unit
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit;
+   --  Return the analysis unit for Self in the given context
 
    function To_Completion_Kind
      (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
@@ -66,25 +71,25 @@ package body LSP.Ada_Documents is
    -------------------
 
    procedure Apply_Changes
-     (Self   : aliased in out Document;
-      Vector : LSP.Messages.TextDocumentContentChangeEvent_Vector)
+     (Self    : aliased in out Document;
+      Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
       File : constant String :=
         Types.To_UTF_8_String (URI_To_File (Self.URI));
       Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
-      Self.Context.Trace.Trace ("Applying changes for document " & File);
+      Self.Trace.Trace ("Applying changes for document " & File);
       for Change of reverse Vector loop
-         --  If whole document then reparse it
-         if not Change.span.Is_Set then
-            Dummy := Self.LAL.Get_From_Buffer
-              (Filename => File,
-               --  Change.text is always encoded in UTF-8, as per the protocol
-               Charset  => "utf-8",
-               Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Change.text));
+         --  If whole document then store it as the new text
+         if Change.span.Is_Set then
+            --  TODO: add support for changes given by span here. Until
+            --  this is done, raise an error.
+            raise Program_Error with "change ranges are not yet supported";
+         else
+            Self.Text := Change.text;
          end if;
       end loop;
-      Self.Context.Trace.Trace ("Done applying changes for document " & File);
+      Self.Trace.Trace ("Done applying changes for document " & File);
    end Apply_Changes;
 
    ----------------
@@ -92,13 +97,14 @@ package body LSP.Ada_Documents is
    ----------------
 
    procedure Get_Errors
-     (Self   : Document;
-      Errors : out LSP.Messages.Diagnostic_Vector)
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Errors  : out LSP.Messages.Diagnostic_Vector)
    is
       Item : LSP.Messages.Diagnostic;
       Nb_Diags : Natural := 0;
 
-      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit;
+      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
    begin
       Errors.Clear;
 
@@ -126,8 +132,9 @@ package body LSP.Ada_Documents is
    -----------------
 
    procedure Get_Symbols
-     (Self   : Document;
-      Result : out LSP.Messages.SymbolInformation_Vector)
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Result  : out LSP.Messages.SymbolInformation_Vector)
    is
       Element : Libadalang.Analysis.Ada_Node;
       Item    : LSP.Messages.SymbolInformation;
@@ -137,7 +144,8 @@ package body LSP.Ada_Documents is
       --  This object will be deallocated by Cursor's finalization
 
       Cursor : Libadalang.Iterators.Traverse_Iterator'Class :=
-        Libadalang.Iterators.Find (Self.Unit.Root, Is_Defining_Name);
+        Libadalang.Iterators.Find
+          (Self.Unit (Context).Root, Is_Defining_Name);
 
    begin
       Result.Clear;
@@ -160,13 +168,15 @@ package body LSP.Ada_Documents is
 
    function Get_Node_At
      (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
    is
       use Libadalang.Analysis;
       use Langkit_Support.Slocs;
 
-      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit;
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
    begin
       if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
@@ -276,46 +286,13 @@ package body LSP.Ada_Documents is
 
    procedure Initialize
      (Self : in out Document;
-      LAL  : Libadalang.Analysis.Analysis_Context;
-      Item : LSP.Messages.TextDocumentItem)
+      URI  : LSP.Messages.DocumentUri;
+      Text : LSP.Types.LSP_String)
    is
-      File : constant LSP.Types.LSP_String := URI_To_File (Item.uri);
-      Dummy : Libadalang.Analysis.Analysis_Unit;
    begin
-      Dummy := LAL.Get_From_Buffer
-        (Filename => LSP.Types.To_UTF_8_String (File),
-         --  Change.text is always encoded in UTF-8, as per the protocol
-         Charset  => "utf-8",
-         Buffer   => LSP.Types.To_UTF_8_Unbounded_String (Item.text));
-      Self.URI := Item.uri;
-      Self.LAL := LAL;
-
-      --  After creating an analysis unit, populate the lexical env with it:
-      --  we do this to allow Libadalang to do some work in reaction to
-      --  a file being open in the IDE, in order to speed up the response
-      --  to user queries.
-      Libadalang.Analysis.Populate_Lexical_Env (Self.Unit);
+      Self.URI  := URI;
+      Self.Text := Text;
    end Initialize;
-
-   ------------
-   -- Reload --
-   ------------
-
-   procedure Reload
-     (Self : in out Document;
-      LAL  : Libadalang.Analysis.Analysis_Context)
-   is
-      File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
-      Dummy : Libadalang.Analysis.Analysis_Unit;
-   begin
-      Dummy := LAL.Get_From_Buffer
-        (Filename => LSP.Types.To_UTF_8_String (File),
-         Charset  => "utf-8",  --  Provide text as UTF-8 string
-         Buffer   => Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-           (Self.Unit.Text));
-
-      Self.LAL := LAL;
-   end Reload;
 
    -------------------
    -- To_LSP_String --
@@ -406,6 +383,7 @@ package body LSP.Ada_Documents is
 
    procedure Get_Completions_At
      (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position;
       Result   : out LSP.Messages.CompletionList)
    is
@@ -421,10 +399,10 @@ package body LSP.Ada_Documents is
       --  before the cursor.
 
       Node       : Libadalang.Analysis.Ada_Node :=
-        Self.Get_Node_At (Real_Pos);
+        Self.Get_Node_At (Context, Real_Pos);
       --  Get the corresponding LAL node
    begin
-      Self.Context.Trace.Trace ("In Get_Completions_At");
+      Context.Trace.Trace ("In Get_Completions_At");
 
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
@@ -446,7 +424,7 @@ package body LSP.Ada_Documents is
          end if;
       end loop;
 
-      Self.Context.Trace.Trace
+      Context.Trace.Trace
         ("Getting completions, Pos = ("
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
@@ -455,7 +433,7 @@ package body LSP.Ada_Documents is
          Raw_Completions : constant Basic_Decl_Array :=
            Node.P_Complete;
       begin
-         Self.Context.Trace.Trace
+         Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
          for BD of Raw_Completions loop
             if not BD.Is_Null then
@@ -478,10 +456,14 @@ package body LSP.Ada_Documents is
    -- Unit --
    ----------
 
-   function Unit (Self : Document) return Libadalang.Analysis.Analysis_Unit is
+   function Unit
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit
+   is
       File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
    begin
-      return Self.LAL.Get_From_File
+      return Context.LAL_Context.Get_From_File
         (Filename => LSP.Types.To_UTF_8_String (File),
          Reparse  => False);
    end Unit;

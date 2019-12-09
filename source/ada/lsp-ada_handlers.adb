@@ -31,7 +31,6 @@ with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
 with LSP.Types; use LSP.Types;
 
-with LSP.Ada_Documents;
 with LSP.Common;       use LSP.Common;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
@@ -93,6 +92,9 @@ package body LSP.Ada_Handlers is
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Contexts.Context, Context_Access);
+
+   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+     (LSP.Ada_Documents.Document, Internal_Document_Access);
 
    ---------------------
    -- Project loading --
@@ -156,77 +158,88 @@ package body LSP.Ada_Handlers is
 
    --  A set of utilities for dealing with multiple contexts
 
-   function Get_Best_Context_For_File
-     (Contexts : Context_Lists.List;
-      File     : Virtual_File) return Context_Access;
+   function Get_Best_Context
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri) return Context_Access;
    --  Return the first context in Contexts which contains a project
-   --  which knows about file.
-   --  ??? Nest this into Get_Best_Context_For_URI or is it used
-   --  somewhere else?
+   --  which knows about file. Fallback on the "no project" context.
 
-   function Get_Best_Context_For_URI
-     (Contexts : Context_Lists.List;
-      URI      : LSP.Messages.DocumentUri) return Context_Access;
-   --  Return the Context most suitable to use for this URI: if a context
-   --  contains an opened document for this URI, then return it, otherwise
-   --  return the first context where the project tree knows about this file.
-   --  defaulting on the last context in Contexts.
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri) return Context_Lists.List;
+   --  Return a list of contexts that are suitable for the given URI:
+   --  a list of all contexts where the file is known to be part of the
+   --  project tree. If the file is not known to any project, return
+   --  a singleton containing the projectless context.
+   --  The result should not be freed.
 
-   function Get_Document
-     (Contexts : Context_Lists.List;
-      URI      : LSP.Messages.DocumentUri)
+   function Get_Open_Document
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
-   --  Return the document for URI in the first context in which it is open,
-   --  null if it isn't open.
+   --  Return the document for the given URI, assuming this document
+   --  is open. Return null if this document is not open.
 
-   -------------------------------
-   -- Get_Best_Context_For_File --
-   -------------------------------
+   ----------------------
+   -- Get_Best_Context --
+   ----------------------
 
-   function Get_Best_Context_For_File
-     (Contexts : Context_Lists.List;
-      File     : Virtual_File) return Context_Access is
+   function Get_Best_Context
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri) return Context_Access
+   is
+      File : constant Virtual_File := To_File (URI);
    begin
-      for Context of Contexts loop
+      for Context of Self.Contexts loop
          if Context.Is_Part_Of_Project (File) then
             return Context;
          end if;
       end loop;
 
-      return Contexts.Last_Element;
-   end Get_Best_Context_For_File;
+      return Self.Contexts.Last_Element;
+   end Get_Best_Context;
 
-   ------------------------------
-   -- Get_Best_Context_For_URI --
-   ------------------------------
+   ----------------------
+   -- Contexts_For_URI --
+   ----------------------
 
-   function Get_Best_Context_For_URI
-     (Contexts : Context_Lists.List;
-      URI      : LSP.Messages.DocumentUri) return Context_Access is
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri) return Context_Lists.List
+   is
+      File   : constant Virtual_File := To_File (URI);
+      Result : Context_Lists.List;
    begin
-      for Context of Contexts loop
-         if Context.Has_Document (URI) then
-            return Context;
+      for Context of Self.Contexts loop
+         if Context.Is_Part_Of_Project (File) then
+            Result.Append (Context);
          end if;
       end loop;
 
-      return Get_Best_Context_For_File (Contexts, To_File (URI));
-   end Get_Best_Context_For_URI;
+      --  If no project matched, return the projectless context
+      if Result.Is_Empty then
+         Result.Append (Self.Contexts.Last_Element);
+      end if;
 
-   ------------------
-   -- Get_Document --
-   ------------------
+      return Result;
+   end Contexts_For_URI;
 
-   function Get_Document
-     (Contexts : Context_Lists.List;
-      URI      : LSP.Messages.DocumentUri)
-      return LSP.Ada_Documents.Document_Access
-   is
-      C : constant Context_Access :=
-        Get_Best_Context_For_URI (Contexts, URI);
+   -----------------------
+   -- Get_Open_Document --
+   -----------------------
+
+   function Get_Open_Document
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Documents.Document_Access is
    begin
-      return C.Get_Document (URI);
-   end Get_Document;
+      if Self.Open_Documents.Contains (URI) then
+         return LSP.Ada_Documents.Document_Access
+           (Self.Open_Documents.Element (URI));
+      else
+         return null;
+      end if;
+   end Get_Open_Document;
 
    ---------------------------------
    -- Send_Imprecise_Xref_Message --
@@ -265,7 +278,10 @@ package body LSP.Ada_Handlers is
       use type Libadalang.Analysis.Name;
 
       Name_Node : constant Libadalang.Analysis.Name :=
-        LSP.Lal_Utils.Get_Node_As_Name (In_Context.Get_Node_At (Position));
+        LSP.Lal_Utils.Get_Node_As_Name
+          (In_Context.Get_Node_At
+             (Get_Open_Document (Self, Position.textDocument.uri),
+              Position));
 
       Imprecise  : Boolean;
    begin
@@ -293,6 +309,11 @@ package body LSP.Ada_Handlers is
 
    overriding procedure On_Exit_Notification (Self : access Message_Handler) is
    begin
+      for Document of Self.Open_Documents loop
+         Unchecked_Free (Document);
+      end loop;
+      Self.Open_Documents.Clear;
+
       Self.Server.Stop;
    end On_Exit_Notification;
 
@@ -527,10 +548,14 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Position.textDocument.uri);
+
    begin
-      for C of Self.Contexts loop
+      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
          C.Append_Declarations
-           (Position,
+           (Document,
+            Position,
             Response.result,
             Imprecise);
 
@@ -563,6 +588,9 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
       procedure Resolve_In_Context (C : Context_Access);
       --  Utility function, appends to Resonse.result all results of the
       --  definition requests found in context C.
@@ -574,7 +602,7 @@ package body LSP.Ada_Handlers is
       procedure Resolve_In_Context (C : Context_Access) is
          Name_Node               : constant Name :=
                                      LSP.Lal_Utils.Get_Node_As_Name
-                                       (C.Get_Node_At (Value));
+                                       (C.Get_Node_At (Document, Value));
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
          Manual_Fallback         : Defining_Name;
@@ -584,7 +612,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         --  Check is we are on some defining name
+         --  Check if we are on some defining name
          Definition := Get_Name_As_Defining (Name_Node);
 
          if Definition = No_Defining_Name then
@@ -639,7 +667,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts loop
+      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -670,10 +698,12 @@ package body LSP.Ada_Handlers is
       Response  : LSP.Messages.Server_Responses.Location_Response
         (Is_Error => False);
       Document  : constant LSP.Ada_Documents.Document_Access :=
-        Get_Document (Self.Contexts, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
       Name_Node : constant Name :=
-                    LSP.Lal_Utils.Get_Node_As_Name
-                      (Document.Get_Node_At (Value.position));
+        LSP.Lal_Utils.Get_Node_As_Name
+          (Document.Get_Node_At
+             (Self.Get_Best_Context (Value.textDocument.uri).all,
+              Value.position));
       Type_Decl : Base_Type_Decl;
    begin
       if Name_Node = No_Name then
@@ -746,8 +776,9 @@ package body LSP.Ada_Handlers is
       end Skip_Did_Change;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Document (Self.Contexts, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
       Diag     : LSP.Messages.PublishDiagnosticsParams;
+      Diags_Already_Published : Boolean := False;
    begin
       if Skip_Did_Change then
          --  Don't process the notification if next message overrides it
@@ -756,12 +787,21 @@ package body LSP.Ada_Handlers is
 
       Document.Apply_Changes (Value.contentChanges);
 
-      if Self.Diagnostics_Enabled then
-         Document.Get_Errors (Diag.diagnostics);
+      --  Reindex the document in each of the contexts where it is relevant
 
-         Diag.uri := Value.textDocument.uri;
-         Self.Server.On_Publish_Diagnostics (Diag);
-      end if;
+      for Context of Contexts_For_URI (Self, Value.textDocument.uri) loop
+         Context.Index_Document (Document.all);
+
+         --  Emit diagnostics - do this for only one context
+         if Self.Diagnostics_Enabled
+           and then not Diags_Already_Published
+         then
+            Document.Get_Errors (Context.all, Diag.diagnostics);
+            Diag.uri := Value.textDocument.uri;
+            Self.Server.On_Publish_Diagnostics (Diag);
+            Diags_Already_Published := True;
+         end if;
+      end loop;
    end On_DidChangeTextDocument_Notification;
 
    ------------------------------------------
@@ -772,13 +812,21 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
-      Diag : LSP.Messages.PublishDiagnosticsParams;
+      Diag     : LSP.Messages.PublishDiagnosticsParams;
+      Document : Internal_Document_Access;
    begin
-      for Context of Self.Contexts loop
-         if Context.Has_Document (Value.textDocument.uri) then
-            Context.Unload_Document (Value.textDocument);
-         end if;
-      end loop;
+      if Self.Open_Documents.Contains (Value.textDocument.uri) then
+         Document := Self.Open_Documents.Element (Value.textDocument.uri);
+         Unchecked_Free (Document);
+         Self.Open_Documents.Delete (Value.textDocument.uri);
+      else
+         --  We have received a didCloseTextDocument but the document was
+         --  not open: this is not supposed to happen, log it.
+
+         Self.Trace.Trace
+           ("received a didCloseTextDocument for non-open document with uri: "
+            & To_UTF_8_String (Value.textDocument.uri));
+      end if;
 
       --  Clean diagnostics up on closing document
       if Self.Diagnostics_Enabled then
@@ -795,11 +843,12 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
-      Diag     : LSP.Messages.PublishDiagnosticsParams;
-      Document : LSP.Ada_Documents.Document_Access;
+      URI    : LSP.Messages.DocumentUri renames Value.textDocument.uri;
+      Object : constant Internal_Document_Access :=
+        new LSP.Ada_Documents.Document (Self.Trace);
    begin
       Self.Trace.Trace ("In Text_Document_Did_Open");
-      Self.Trace.Trace ("Uri : " & To_UTF_8_String (Value.textDocument.uri));
+      Self.Trace.Trace ("Uri : " & To_UTF_8_String (URI));
 
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
@@ -808,20 +857,32 @@ package body LSP.Ada_Handlers is
       Ensure_Project_Loaded
         (Self,
          To_LSP_String (Ada.Directories.Containing_Directory
-           (To_UTF_8_String (URI_To_File (Value.textDocument.uri)))));
+           (To_UTF_8_String (URI_To_File (URI)))));
 
+      --  We have received a document: add it to the documents container
+      Object.Initialize (URI, Value.textDocument.text);
+      Self.Open_Documents.Insert (URI, Object);
+
+      --  Index the document in all the contexts where it is relevant
       declare
-         Best_Context : constant Context_Access := Get_Best_Context_For_URI
-           (Self.Contexts, Value.textDocument.uri);
+         Diag : LSP.Messages.PublishDiagnosticsParams;
+         Diags_Already_Published : Boolean := False;
       begin
-         Document := Best_Context.Load_Document (Value.textDocument);
+         for Context of Contexts_For_URI (Self, URI) loop
+            Context.Index_Document (Object.all);
 
-         if Self.Diagnostics_Enabled then
-            Document.Get_Errors (Diag.diagnostics);
+            if Self.Diagnostics_Enabled
+              and then not Diags_Already_Published
+            then
+               Object.Get_Errors (Context.all, Diag.diagnostics);
+               Diag.uri := Value.textDocument.uri;
+               Self.Server.On_Publish_Diagnostics (Diag);
 
-            Diag.uri := Value.textDocument.uri;
-            Self.Server.On_Publish_Diagnostics (Diag);
-         end if;
+               --  Publish diagnostics only for one context,
+               --  to avoid emitting too much noise.
+               Diags_Already_Published := True;
+            end if;
+         end loop;
       end;
 
       Self.Trace.Trace ("Finished Text_Document_Did_Open");
@@ -875,7 +936,7 @@ package body LSP.Ada_Handlers is
       Decl_Unit_File     : Virtual_File;
 
       C : constant Context_Access :=
-        Get_Best_Context_For_URI (Self.Contexts, Value.textDocument.uri);
+        Get_Best_Context (Self, Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
@@ -1077,7 +1138,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Self.Contexts loop
+      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1203,7 +1264,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Find the references in all contexts
-      for C of Self.Contexts loop
+      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1276,12 +1337,14 @@ package body LSP.Ada_Handlers is
       --  on the project: we can just choose the best context for this.
       Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Document (Self.Contexts, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Context  : constant Context_Access :=
+        Get_Best_Context (Self, Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
 
    begin
-      Document.Get_Symbols (Response.result);
+      Document.Get_Symbols (Context.all, Response.result);
       return Response;
    end On_Document_Symbols_Request;
 
@@ -1300,6 +1363,9 @@ package body LSP.Ada_Handlers is
       Response   : LSP.Messages.Server_Responses.Rename_Response
         (Is_Error => False);
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
       procedure Process_Context (C : Context_Access);
       --  Process the rename request for the given context, and add
       --  the results to response.
@@ -1313,7 +1379,7 @@ package body LSP.Ada_Handlers is
            (Value.textDocument, Value.position);
 
          Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-           (C.Get_Node_At (Position));
+           (C.Get_Node_At (Document, Position));
 
          Definition : Defining_Name;
          Imprecise  : Boolean;
@@ -1433,7 +1499,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Self.Contexts loop
+      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1593,7 +1659,6 @@ package body LSP.Ada_Handlers is
          declare
             C : Context_Access := Self.Contexts.First_Element;
          begin
-            C.Unload;
             Unchecked_Free (C);
          end;
          Self.Contexts.Delete_First;
@@ -1642,7 +1707,15 @@ package body LSP.Ada_Handlers is
          Self.Server.On_Show_Message (Errors);
       end if;
 
-      --  Index the files immediately after loading a project
+      --  Reindex all open documents immediately after project reload, so
+      --  that navigation from editors is accurate.
+      for Document of Self.Open_Documents loop
+         for Context of Contexts_For_URI (Self, Document.URI) loop
+            Context.Index_Document (Document.all);
+         end loop;
+      end loop;
+
+      --  Reindex the files from disk in the background after a project reload
       Self.Indexing_Required := True;
    end Load_Project;
 
@@ -1838,11 +1911,14 @@ package body LSP.Ada_Handlers is
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Document (Self.Contexts, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Context  : constant Context_Access :=
+        Get_Best_Context (Self, Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
-      Document.Get_Completions_At (Value.position, Response.result);
+      Document.Get_Completions_At
+        (Context.all, Value.position, Response.result);
       return Response;
    end On_Completion_Request;
 

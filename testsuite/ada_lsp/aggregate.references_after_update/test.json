@@ -1,0 +1,289 @@
+[
+   {
+      "comment": [
+         "test finding all references accross aggregates after editing a document"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     }, 
+                     "documentLink": {}, 
+                     "formatting": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "codeLens": {}, 
+                     "colorProvider": {}
+                  }, 
+                  "workspace": {
+                     "applyEdit": false, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     }, 
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": {}, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "declarationProvider": true, 
+                     "textDocumentSync": 1, 
+                     "documentLinkProvider": {}, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "agg.gpr", 
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package common_pack is\n   Fo : Integer := 42;\nend common_pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{common/common_pack.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 4
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }, 
+               "context": {
+                  "includeDeclaration": true
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/references"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 3
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 5
+                        }
+                     }, 
+                     "uri": "$URI{common/common_pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package common_pack is\n   Foo : Integer := 42;\nend common_pack;\n"
+                  }
+               ], 
+               "textDocument": {
+                  "version": 1, 
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didChange"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 4
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }, 
+               "context": {
+                  "includeDeclaration": true
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/references"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 18
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 21
+                        }
+                     }, 
+                     "uri": "$URI{p/main.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 18
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 21
+                        }
+                     }, 
+                     "uri": "$URI{q/main.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 3
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 6
+                        }
+                     }, 
+                     "uri": "$URI{common/common_pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

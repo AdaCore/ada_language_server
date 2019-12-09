@@ -18,7 +18,6 @@
 --  This package provides a context of Ada Language server.
 
 with Ada.Containers.Hashed_Sets;
-with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -35,8 +34,8 @@ package LSP.Ada_Contexts is
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is
      tagged limited private;
-   --  Context includes set of edited documents, Libadalang context, project
-   --  tree and others data.
+   --  A context contains a non-aggregate project tree and its associated
+   --  libadalang context.
 
    procedure Initialize (Self : in out Context);
    --  Initialize the context
@@ -57,36 +56,6 @@ package LSP.Ada_Contexts is
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
 
-   procedure Unload (Self : in out Context);
-   --  Release the memory associated to this context. Do not use the
-   --  context after this.
-
-   function Load_Document
-     (Self : aliased in out Context;
-      Item : LSP.Messages.TextDocumentItem)
-      return LSP.Ada_Documents.Document_Access;
-   --  Load new document with text provided by LSP client. Document is managed
-   --  by Context, user shouldn't free it or store it. Document will be
-   --  destroyed on Unload_Document call.
-
-   procedure Unload_Document
-     (Self : in out Context;
-      Item : LSP.Messages.TextDocumentIdentifier);
-   --  Remove document from set of openned documents and destroy it.
-
-   function Has_Document
-     (Self : Context;
-      URI  : LSP.Messages.DocumentUri) return Boolean;
-   --  Return whether there is a document being managed by this context
-
-   function Get_Document
-     (Self : Context;
-      URI  : LSP.Messages.DocumentUri)
-      return LSP.Ada_Documents.Document_Access
-     with Pre => Has_Document (Self, URI);
-   --  Retrieve document identified by given URI. User shouldn't free it or
-   --  store it.
-
    function URI_To_File
      (URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path by stripping schema from it
@@ -97,10 +66,12 @@ package LSP.Ada_Contexts is
 
    function Get_Node_At
      (Self     : Context;
+      Document : LSP.Ada_Documents.Document_Access;
       Position : LSP.Messages.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node;
-   --  Return the node at the given location. This is like LSP.Ada_Documents,
-   --  but it works even when given document hasn't opened yet.
+   --  Return the node at the given location.
+   --  If Document is not null, get the location from the document, otherwise
+   --  get it from the file.
 
    function Find_All_References
      (Self              : Context;
@@ -144,29 +115,32 @@ package LSP.Ada_Contexts is
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 
+   procedure Index_Document
+     (Self : Context; Document : LSP.Ada_Documents.Document);
+   --  Index/reindex the given document in this context
+
    procedure Append_Declarations
      (Self      : Context;
+      Document  : LSP.Ada_Documents.Document_Access;
       Position  : LSP.Messages.TextDocumentPositionParams;
       Result    : in out LSP.Messages.Location_Vector;
       Imprecise : in out Boolean);
    --  Find corresponding declarations for a name at given Position and append
    --  their locations to Result.
+   --  Document is the document from which the request originates; it can
+   --  be null if no document is open for this location.
    --
    --  Here we follow C terminology, where 'Declaration' equals to
    --  Ada subprogram specification while 'Definition' equals to
    --  Ada subprogram body (completion).
 
+   function LAL_Context
+     (Self : Context) return Libadalang.Analysis.Analysis_Context;
+   --  Return the LAL context corresponding to Self
+
 private
-   use type Types.LSP_String;
+
    use type GNATCOLL.Projects.Project_Tree_Access;
-
-   type Internal_Document_Access is access all LSP.Ada_Documents.Document;
-
-   package Document_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Messages.DocumentUri,
-      Element_Type    => Internal_Document_Access,
-      Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
 
    type Project_Status is
      (User_Provided_Project,  --  Server uses user provides project
@@ -192,8 +166,6 @@ private
       Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
       --  The currently loaded project tree, or null for contexts that
       --  don't have a project.
-
-      Documents      : Document_Maps.Map;
    end record;
 
    procedure Update_Source_Files (Self : in out Context);
@@ -202,5 +174,9 @@ private
    function Has_Project (Self : Context) return Boolean
    is
      (Self.Project_Tree /= null);
+
+   function LAL_Context
+     (Self : Context) return Libadalang.Analysis.Analysis_Context is
+     (Self.LAL_Context);
 
 end LSP.Ada_Contexts;

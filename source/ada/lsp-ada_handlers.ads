@@ -19,9 +19,12 @@
 --  language.
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Hashed_Maps;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Traces;
+with LSP.Ada_Contexts;
+with LSP.Ada_Documents;
 
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
@@ -29,8 +32,7 @@ with LSP.Server_Backends;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
 with LSP.Servers;
-
-with LSP.Ada_Contexts;
+with LSP.Types;
 
 package LSP.Ada_Handlers is
 
@@ -63,6 +65,15 @@ private
    type Refactoring_Options is record
       Renaming : Renaming_Options;
    end record;
+
+   type Internal_Document_Access is access all LSP.Ada_Documents.Document;
+
+   --  Container for documents indexed by URI
+   package Document_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Messages.DocumentUri,
+      Element_Type    => Internal_Document_Access,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=");
 
    type Message_Handler
      (Server  : access LSP.Servers.Server;
@@ -117,6 +128,9 @@ private
 
       Refactoring : Refactoring_Options;
       --  Configuration options for refactoring
+
+      Open_Documents : Document_Maps.Map;
+      --  The documents that are currently open
    end record;
 
    overriding procedure Before_Work
