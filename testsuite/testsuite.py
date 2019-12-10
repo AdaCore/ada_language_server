@@ -33,6 +33,10 @@ class ALSTestsuite(Testsuite):
             help="Compute the source code coverage of testcases on ALS. This"
                  " requires GNATcoverage working with instrumentation and will"
                  " run a build of ALS before running tests.")
+        self.main.argument_parser.add_argument(
+            "--valgrind_memcheck", action="store_true",
+            help="Runs the Ada Language Server under valgrind, in memory"
+                 " check mode. This requires valgrind on the PATH.")
 
     def lookup_program(self, *args):
         """
@@ -62,8 +66,16 @@ class ALSTestsuite(Testsuite):
         self.env.repo_base = os.path.abspath(os.path.join(
             os.path.dirname(__file__), '..'))
 
+        self.env.wait_factor = 1
+
         # Absolute paths to programs that test drivers can use
-        self.env.als = self.lookup_program('server', 'ada_language_server')
+        if self.env.options.valgrind_memcheck:
+            self.env.als = "{} --tool=memcheck --quiet {}".format(
+                self.lookup_program("valgrind"),
+                self.lookup_program('server', 'ada_language_server'))
+            self.env.wait_factor = 20  # valgrind is slow
+        else:
+            self.env.als = self.lookup_program('server', 'ada_language_server')
         self.env.tester_run = self.lookup_program('tester', 'tester-run')
         self.env.codec_test = self.lookup_program('codec_test', 'codec_test')
 
