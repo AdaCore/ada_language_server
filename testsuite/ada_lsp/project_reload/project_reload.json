@@ -106,18 +106,6 @@
                         }
                     },
                     "alsKind": ["call"]
-                }, {
-                    "uri": "$URI{to_be_called.adb}",
-                    "range": {
-                        "start": {
-                            "line": 3,
-                            "character": 4
-                        },
-                        "end": {
-                            "line": 3,
-                            "character": 16
-                        }
-                    }
                 }]
             }]
         }
@@ -187,18 +175,6 @@
                         }
                     },
                     "alsKind": ["call"]
-                }, {
-                    "uri": "$URI{to_be_called.adb}",
-                    "range": {
-                        "start": {
-                            "line": 3,
-                            "character": 4
-                        },
-                        "end": {
-                            "line": 3,
-                            "character": 16
-                        }
-                    }
                 }]
             }]
         }
