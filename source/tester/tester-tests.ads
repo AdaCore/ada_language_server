@@ -38,8 +38,9 @@ private
       Sort_Reply   : GNATCOLL.JSON.JSON_Value;
       Waits        : GNATCOLL.JSON.JSON_Array;
       --  Array of JSON object to wait
-      Last_Message : GNATCOLL.JSON.JSON_Value;
-      --  Last message got from server
+
+      Full_Server_Output : GNATCOLL.JSON.JSON_Array;
+      --  Complete output received from the server
    end record;
 
    overriding procedure On_Error

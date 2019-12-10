@@ -110,8 +110,10 @@ package body Tester.Tests is
                  (GNATCOLL.JSON.Write
                     (GNATCOLL.JSON.Create (Self.Waits), False));
                Text.Append ("");
-               Text.Append ("Last Message from server:");
-               Text.Append (GNATCOLL.JSON.Write (Self.Last_Message, False));
+               Text.Append ("Full output from server:");
+               Text.Append
+                 (GNATCOLL.JSON.Write
+                    (GNATCOLL.JSON.Create (Self.Full_Server_Output), False));
                Self.Do_Fail (Text);
                exit;
             end;
@@ -410,7 +412,7 @@ package body Tester.Tests is
       end Sort_Reply;
 
    begin
-      Self.Last_Message := JSON;
+      GNATCOLL.JSON.Append (Self.Full_Server_Output, JSON);
 
       if not Self.Sort_Reply.Is_Empty then
          Self.Sort_Reply.Map_JSON_Object (Sort_Reply'Access);
