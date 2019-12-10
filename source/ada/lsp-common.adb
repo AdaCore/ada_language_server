@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
 with Ada.Exceptions;           use Ada.Exceptions;
 with GNAT.Strings;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
@@ -68,6 +69,9 @@ package body LSP.Common is
 
       procedure Get_Loop_Var_Hover_Text;
       --  Create the hover text for loop variable declarations
+
+      procedure Get_Aspect_Hover_Text;
+      --  Create the hover text for aspect statement
 
       -------------------------------
       -- Get_Basic_Decl_Hover_Text --
@@ -157,7 +161,7 @@ package body LSP.Common is
 
                         --  Count the blankpaces per line and track how many
                         --  blankspaces we should remove on each line by
-                        --  finding the common identation blankspaces.
+                        --  finding the common indentation blankspaces.
 
                         for J in Lines'First + 1 .. Lines'Last loop
                            Idx := Lines (J)'First;
@@ -177,8 +181,6 @@ package body LSP.Common is
                         end loop;
                      end;
                   end if;
-
-                  GNAT.Strings.Free (Lines);
                end;
          end case;
       end Get_Basic_Decl_Hover_Text;
@@ -211,8 +213,6 @@ package body LSP.Common is
                   & Lines (J).all (Idx .. Lines (J).all'Last));
             end loop;
          end if;
-
-         GNAT.Strings.Free (Lines);
       end Get_Subp_Spec_Hover_Text;
 
       ---------------------------------
@@ -264,6 +264,48 @@ package body LSP.Common is
            (Parent_Text (Parent_Text'First .. End_Idx + 4));
       end Get_Loop_Var_Hover_Text;
 
+      ---------------------------
+      -- Get_Aspect_Hover_Text --
+      ---------------------------
+
+      procedure Get_Aspect_Hover_Text is
+         Indentation : Integer;
+         Idx         : Integer;
+      begin
+         --  Get the indentation for the first line
+         Idx := Lines (Lines'First)'First;
+         Skip_Blanks (Lines (Lines'First).all, Idx);
+         Indentation := Idx - Lines (Lines'First)'First;
+
+         Result := Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
+           & (2 * " ")  --  Force an indentation of 2 for the first line
+           & To_LSP_String --  Remove the uneeded indentation
+           (Lines (Lines'First).all
+                (Lines (Lines'First)'First + Indentation
+                 .. Lines (Lines'First).all'Last));
+
+         --  The next line should have one more indentation level
+         Indentation := Indentation + 3;
+
+         for J in Lines'First + 1 .. Lines'Last loop
+            Idx := Lines (J)'First;
+            Skip_Blanks (Lines (J).all, Idx);
+
+            if Lines (J)'First + Indentation > Idx then
+               --  Uncommon indentation: just print the line
+               Result := Result
+                 & Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
+                 & To_LSP_String (Lines (J).all);
+            else
+               Result := Result
+                 & Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
+                 & To_LSP_String --  Remove the uneeded indentation
+                 (Lines (J).all
+                      (Lines (J)'First + Indentation .. Lines (J).all'Last));
+            end if;
+         end loop;
+      end Get_Aspect_Hover_Text;
+
    begin
       case Node.Kind is
          when Ada_Package_Body =>
@@ -282,10 +324,14 @@ package body LSP.Common is
          when Ada_Base_Subp_Spec =>
             Get_Subp_Spec_Hover_Text;
 
+         when Ada_Aspect_Assoc =>
+            Get_Aspect_Hover_Text;
+
          when others =>
             Get_Basic_Decl_Hover_Text;
       end case;
 
+      GNAT.Strings.Free (Lines);
       return Result;
    end Get_Hover_Text;
 
