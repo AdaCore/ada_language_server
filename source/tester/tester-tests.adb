@@ -19,7 +19,9 @@ with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with GNAT.OS_Lib;
+with GNAT.OS_Lib;           use GNAT.OS_Lib;
+
+with GNATCOLL.Utils; use GNATCOLL.Utils;
 
 with Spawn.Processes.Monitor_Loop;
 
@@ -31,8 +33,7 @@ package body Tester.Tests is
    type Command_Kind is (Start, Stop, Send, Comment);
 
    procedure Do_Start
-     (Self    : in out Test'Class;
-      Command : GNATCOLL.JSON.JSON_Value);
+     (Self    : in out Test'Class);
 
    procedure Do_Stop
      (Self    : in out Test'Class;
@@ -42,7 +43,12 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
 
-   Is_Windows : constant Boolean := GNAT.OS_Lib.Directory_Separator = '\';
+   function Wait_Factor return Integer;
+   --  Return the factor to multiply the delays with - useful for valgrind
+   --  runs. This is an integer read from the environment variable
+   --  $ALS_WAIT_FACTOR if it is defined.
+
+   Is_Windows : constant Boolean := Directory_Separator = '\';
 
    --------------
    -- Do_Abort --
@@ -50,7 +56,7 @@ package body Tester.Tests is
 
    procedure Do_Abort (Self : Test) is
    begin
-      GNAT.OS_Lib.OS_Exit (1);
+      OS_Exit (1);
    end Do_Abort;
 
    -------------
@@ -98,7 +104,7 @@ package body Tester.Tests is
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
 
          Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
-         if Total_Milliseconds_Waited > Max_Wait then
+         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor then
             declare
                Text : Spawn.String_Vectors.UTF_8_String_Vector;
             begin
@@ -126,8 +132,7 @@ package body Tester.Tests is
    --------------
 
    procedure Do_Start
-     (Self    : in out Test'Class;
-      Command : GNATCOLL.JSON.JSON_Value)
+     (Self    : in out Test'Class)
    is
       function Program_Name (Path : String) return String;
       --  Return full path to an exacutable designated by Path
@@ -138,21 +143,34 @@ package body Tester.Tests is
 
       function Program_Name (Path : String) return String is
       begin
-         if Is_Windows then
+         if Is_Windows
+           and then not Ends_With (Path, ".exe")
+         then
             return Ada.Directories.Full_Name (Path & ".exe");
          else
             return Ada.Directories.Full_Name (Path);
          end if;
       end Program_Name;
 
-      Cmd  : constant GNATCOLL.JSON.JSON_Array := Command.Get ("cmd");
+      Command_Line : constant GNAT.OS_Lib.String_Access := Getenv ("ALS");
+
       Args : Spawn.String_Vectors.UTF_8_String_Vector;
    begin
-      for J in 2 .. GNATCOLL.JSON.Length (Cmd) loop
-         Args.Append (GNATCOLL.JSON.Get (Cmd, J).Get);
-      end loop;
+      if Command_Line = null or else Command_Line.all = "" then
+         raise Program_Error with "You must specify the command line in $ALS";
+      end if;
 
-      Self.Set_Program (Program_Name (GNATCOLL.JSON.Get (Cmd, 1).Get));
+      declare
+         Splits : constant Unbounded_String_Array :=
+           Split (Command_Line.all, ' ');
+      begin
+         Self.Set_Program (Program_Name (To_String (Splits (Splits'First))));
+
+         for J in Splits'First + 1 .. Splits'Last loop
+            Args.Append (To_String (Splits (J)));
+         end loop;
+      end;
+
       Self.Set_Arguments (Args);
       Self.Start;
 
@@ -442,7 +460,7 @@ package body Tester.Tests is
 
          case Kind is
             when Start =>
-               Self.Do_Start (Value);
+               Self.Do_Start;
             when Stop =>
                Self.Do_Stop (Value);
             when Send =>
@@ -461,11 +479,11 @@ package body Tester.Tests is
          select
             accept Cancel;
          or
-            delay 2.0;
+            delay 20.0 * Wait_Factor;
 
             Ada.Text_IO.Put_Line ("Timeout on command:");
             Ada.Text_IO.Put_Line (Command.Write);
-            GNAT.OS_Lib.OS_Exit (1);
+            OS_Exit (1);
          end select;
       end Watch_Dog;
 
@@ -493,5 +511,20 @@ package body Tester.Tests is
          end;
       end loop;
    end Run;
+
+   -----------------
+   -- Wait_Factor --
+   -----------------
+
+   function Wait_Factor return Integer is
+      Factor : constant GNAT.OS_Lib.String_Access
+        := Getenv ("ALS_WAIT_FACTOR");
+   begin
+      if Factor = null or else Factor.all = "" then
+         return 1;
+      else
+         return Integer'Value (Factor.all);
+      end if;
+   end Wait_Factor;
 
 end Tester.Tests;

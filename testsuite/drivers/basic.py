@@ -31,7 +31,8 @@ class JsonTestDriver(ALSTestDriver):
                 [self.env.tester_run, json],
                 cwd=wd,
                 timeout=120,
-                env={'ALS': self.env.als},
+                env={'ALS': self.env.als,
+                     'ALS_WAIT_FACTOR': str(self.env.wait_factor)},
                 ignore_environ=False)
             output += process.out
 
