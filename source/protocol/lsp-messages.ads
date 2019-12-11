@@ -3001,8 +3001,19 @@ package LSP.Messages is
    type Optional_Provider_Options is
      new Optional_Provider_Package.Optional_Type;
 
-   type CodeActionOptions is record
-      codeActionKinds: Optional_CodeActionKindSet;
+   --  The server provides code actions. The `CodeActionOptions` return type
+   --  is only valid if the client signals code action literal support via
+   --  the property `textDocument.codeAction.codeActionLiteralSupport`.
+   --
+   --  codeActionProvider?: boolean | CodeActionOptions;
+
+   type CodeActionOptions (Is_Boolean : Boolean := False) is record
+      case Is_Boolean is
+         when True =>
+            Bool : Boolean;
+         when False =>
+            codeActionKinds: Optional_CodeActionKindSet;
+      end case;
    end record;
 
    procedure Read_CodeActionOptions
@@ -3076,8 +3087,34 @@ package LSP.Messages is
    for RenameOptions'Write use Write_RenameOptions;
    for RenameOptions'Read use Read_RenameOptions;
 
-   package Optional_Rename_Package is new LSP.Generic_Optional (RenameOptions);
-   type Optional_RenameOptions is new Optional_Rename_Package.Optional_Type;
+   --  The server provides rename support. RenameOptions may only be
+   --  specified if the client states that it supports
+   --  `prepareSupport` in its initial `initialize` request.
+   --
+   --  renameProvider?: boolean | RenameOptions;
+
+   type RenameProviderOptions (Is_Boolean : Boolean := False) is record
+      case Is_Boolean is
+         when True =>
+            Bool : Boolean;
+         when False =>
+            Options : RenameOptions;
+      end case;
+   end record;
+
+   procedure Read_RenameProviderOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameProviderOptions);
+   procedure Write_RenameProviderOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameProviderOptions);
+   for RenameProviderOptions'Write use Write_RenameProviderOptions;
+   for RenameProviderOptions'Read use Read_RenameProviderOptions;
+
+   package Optional_RenameProviderOptions_Package is
+     new LSP.Generic_Optional (RenameProviderOptions);
+   type Optional_RenameProviderOptions is
+     new Optional_RenameProviderOptions_Package.Optional_Type;
 
    type DocumentLinkOptions is record
       resolveProvider: LSP.Types.Optional_Boolean;
@@ -3169,7 +3206,7 @@ package LSP.Messages is
       documentFormattingProvider: Optional_Boolean;
       documentRangeFormattingProvider: Optional_Boolean;
       documentOnTypeFormattingProvider: Optional_DocumentOnTypeFormattingOptions;
-      renameProvider: Optional_RenameOptions;
+      renameProvider: Optional_RenameProviderOptions;
       documentLinkProvider: DocumentLinkOptions;
       colorProvider: Optional_Provider_Options;
       foldingRangeProvider: Optional_Provider_Options;

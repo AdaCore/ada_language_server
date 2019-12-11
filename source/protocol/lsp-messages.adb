@@ -364,13 +364,25 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CodeActionOptions)
    is
+      use type GNATCOLL.JSON.JSON_Value_Type;
+
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      JS.Start_Object;
-      JS.Key ("codeActionKinds");
-      Optional_CodeActionKindSet'Read (S, V.codeActionKinds);
-      JS.End_Object;
+      if Look_Ahead.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
+         V := (Is_Boolean => True,
+               Bool       => Look_Ahead.Get);
+      elsif Look_Ahead.Kind = GNATCOLL.JSON.JSON_Object_Type
+        and then Look_Ahead.Has_Field ("codeActionKinds")
+      then
+         V := (Is_Boolean => False, codeActionKinds => <>);
+         Optional_CodeActionKindSet'Read (S, V.codeActionKinds);
+      else
+         V := (Is_Boolean      => False,
+               codeActionKinds => (Is_Set => False));
+      end if;
    end Read_CodeActionOptions;
 
    -------------------------
@@ -2026,6 +2038,30 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_RenameOptions;
 
+   --------------------------------
+   -- Read_RenameProviderOptions --
+   --------------------------------
+
+   procedure Read_RenameProviderOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameProviderOptions)
+   is
+      use type GNATCOLL.JSON.JSON_Value_Type;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Look_Ahead.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
+         V := (Is_Boolean => True,
+               Bool       => Look_Ahead.Get);
+      else
+         V := (Is_Boolean => False, Options => <>);
+         Read_RenameOptions (S, V.Options);
+      end if;
+   end Read_RenameProviderOptions;
+
    -----------------------
    -- Read_RenameParams --
    -----------------------
@@ -2163,7 +2199,7 @@ package body LSP.Messages is
       Optional_DocumentOnTypeFormattingOptions'Read
         (S, V.documentOnTypeFormattingProvider);
       JS.Key ("renameProvider");
-      Optional_RenameOptions'Read (S, V.renameProvider);
+      Optional_RenameProviderOptions'Read (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Read (S, V.documentLinkProvider);
       JS.Key ("colorProvider");
@@ -3151,10 +3187,13 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      JS.Key ("codeActionKinds");
-      Optional_CodeActionKindSet'Write (S, V.codeActionKinds);
-      JS.End_Object;
+      if V.Is_Boolean then
+         JS.Write (GNATCOLL.JSON.Create (V.Bool));
+      elsif V.codeActionKinds.Is_Set then
+         Optional_CodeActionKindSet'Write (S, V.codeActionKinds);
+      else
+         JS.Write (GNATCOLL.JSON.Create_Object);  --  Write {}
+      end if;
    end Write_CodeActionOptions;
 
    --------------------------
@@ -4791,6 +4830,24 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_RenameOptions;
 
+   ---------------------------------
+   -- Write_RenameProviderOptions --
+   ---------------------------------
+
+   procedure Write_RenameProviderOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameProviderOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V.Is_Boolean then
+         JS.Write (GNATCOLL.JSON.Create (V.Bool));
+      else
+         Write_RenameOptions (S, V.Options);
+      end if;
+   end Write_RenameProviderOptions;
+
    ------------------------
    -- Write_RenameParams --
    ------------------------
@@ -4956,7 +5013,7 @@ package body LSP.Messages is
       Optional_DocumentOnTypeFormattingOptions'Write
         (S, V.documentOnTypeFormattingProvider);
       JS.Key ("renameProvider");
-      Optional_RenameOptions'Write (S, V.renameProvider);
+      Optional_RenameProviderOptions'Write (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
       DocumentLinkOptions'Write (S, V.documentLinkProvider);
       JS.Key ("colorProvider");
