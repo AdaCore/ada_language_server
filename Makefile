@@ -26,9 +26,11 @@ else
    UNAME_S := $(shell uname -s)
    ifeq ($(UNAME_S),Linux)
       PLATFORM=linux
+      OS=unix
    endif
    ifeq ($(UNAME_S),Darwin)
       PLATFORM=darwin
+      OS=osx
    endif
 endif
 
@@ -36,9 +38,10 @@ ifeq ($(LIBRARY_TYPE), static)
     LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) \
 		  -XLIBRARY_TYPE=static \
 		  -XXMLADA_BUILD=static \
-		  -XGPR_BUILD=static
+		  -XGPR_BUILD=static \
+		  -XOS=$(OS)
 else
-    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)
+    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) -XOS=$(OS)
 endif
 
 all:
