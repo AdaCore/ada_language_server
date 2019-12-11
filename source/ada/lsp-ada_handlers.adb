@@ -1049,7 +1049,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Value      : LSP.Messages.ReferenceParams renames Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Response
@@ -1063,17 +1062,6 @@ package body LSP.Ada_Handlers is
       function Get_Reference_Kind
         (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set;
       --  Fetch reference kind for given node
-
-      function Is_End_Label (Node : Ada_Node) return Boolean
-      is
-        (not Node.Parent.Is_Null
-         and then
-           (Node.Parent.Kind in Ada_End_Name
-            or else (Node.Parent.Kind in Ada_Dotted_Name
-                     and then not Node.Parent.Parent.Is_Null
-                     and then Node.Parent.Parent.Kind in Ada_End_Name)));
-      --  Return True if the node belongs to an end label node.
-      --  Used to filter out end label references.
 
       ------------------------
       -- Get_Reference_Kind --
@@ -1132,14 +1120,12 @@ package body LSP.Ada_Handlers is
             Imprecise := Imprecise or This_Imprecise;
 
             for Node of References loop
-               if not Is_End_Label (Node.As_Ada_Node) then
-                  Count := Count - 1;
+               Count := Count - 1;
 
-                  Append_Location
-                    (Response.result,
-                     Node,
-                     Get_Reference_Kind (Node.As_Ada_Node));
-               end if;
+               Append_Location
+                 (Response.result,
+                  Node,
+                  Get_Reference_Kind (Node.As_Ada_Node));
 
                exit when Count = 0  and then Request.Canceled;
             end loop;

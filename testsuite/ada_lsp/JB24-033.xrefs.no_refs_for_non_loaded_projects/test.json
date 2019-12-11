@@ -141,6 +141,19 @@
                   {
                      "range": {
                         "start": {
+                           "line": 4,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 10
+                        }
+                     },
+                     "uri": "$URI{c/c.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
                            "line": 1,
                            "character": 13
                         },

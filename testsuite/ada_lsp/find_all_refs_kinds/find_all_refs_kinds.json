@@ -133,6 +133,18 @@
                         }
                     },
                     "alsKind": ["call"]
+                }, {
+                    "uri": "$URI{aaa.adb}",
+                    "range": {
+                        "start": {
+                            "line": 8,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 8,
+                            "character": 7
+                        }
+                    }
                 }]
             }]
         }
