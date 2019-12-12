@@ -436,9 +436,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentSymbolProvider := True;
       Response.result.capabilities.renameProvider :=
         (Is_Set => True,
-         Value  =>
-           (Is_Boolean => False,
-            Options    => (prepareProvider => (Is_Set => False))));
+         Value  => (Is_Boolean => True, Bool => True));
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True, Value => LSP.Messages.Full);
       Response.result.capabilities.completionProvider :=
