@@ -298,6 +298,8 @@ package body LSP.Servers is
          Request      : Request_Access;
          Notification : Notification_Access;
 
+         Is_Exit_Notification : Boolean;
+
          JS         : aliased LSP.JSON_Streams.JSON_Stream;
          JSON_Array : GNATCOLL.JSON.JSON_Array;
          Version    : LSP.Types.LSP_String;
@@ -393,13 +395,18 @@ package body LSP.Servers is
 
          Self.Logger.Visit (Message.all);
 
+         --  Check whether this was an exit notification. Note: this must be
+         --  done *before* the call to Enqueue, since we're not guaranteed
+         --  that the memory for Message is still allocated after this call.
+
+         Is_Exit_Notification :=  Message.all in
+           LSP.Messages.Server_Notifications.Exit_Notification;
+
          --  Now we have a message to process. Push it to the processing
          --  task
          Self.Input_Queue.Enqueue (Message);
 
-         if Message.all in
-           LSP.Messages.Server_Notifications.Exit_Notification
-         then
+         if Is_Exit_Notification then
             --  After "exit" notification don't read any further input.
             EOF := True;
          end if;
