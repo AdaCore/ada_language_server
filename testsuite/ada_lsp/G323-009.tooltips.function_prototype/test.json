@@ -40,7 +40,7 @@
                      ],
                      "hoverProvider": true,
                      "definitionProvider": true,
-                     "renameProvider": {},
+                     "renameProvider": true,
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
                      "textDocumentSync": 1,
