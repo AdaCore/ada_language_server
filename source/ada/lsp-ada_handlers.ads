@@ -22,6 +22,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
+with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
@@ -48,6 +49,9 @@ package LSP.Ada_Handlers is
    overriding procedure Handle_Error (Self : access Message_Handler);
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
+
+   procedure Cleanup (Self : access Message_Handler);
+   --  Free memory referenced by Self
 
 private
 
@@ -131,6 +135,12 @@ private
 
       Open_Documents : Document_Maps.Map;
       --  The documents that are currently open
+
+      Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
+      --  The currently loaded project tree
+
+      Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
+      --  The project environment for the currently loaded project
    end record;
 
    overriding procedure Before_Work

@@ -357,7 +357,6 @@ package body LSP.Servers is
                      To_String (Vector),
                      Request_Id,
                      LSP.Messages.InvalidParams);
-
                   return;
             end;
 
@@ -809,6 +808,14 @@ package body LSP.Servers is
             end if;
          end select;
       end loop;
+
+      --  Memory cleanup: remove everything from Destroy_Queue before
+      --  leaving this task.
+      while Natural (Server.Destroy_Queue.Current_Use) > 0 loop
+         Server.Destroy_Queue.Dequeue (Message);
+         Server.Request_Map.Delete (Request_Access (Message).id);
+         Free (Message);
+      end loop;
    end Input_Task_Type;
 
    ----------------------
@@ -989,7 +996,7 @@ package body LSP.Servers is
                Send_Exception_Response
                  (Server.all, E,
                   Ada.Tags.External_Tag (Message'Tag), Request.id);
-
+               Server.Destroy_Queue.Enqueue (Message);
          end;
 
       exception
@@ -1072,6 +1079,18 @@ package body LSP.Servers is
 
          end select;
       end loop;
+
+      while Natural (Input_Queue.Current_Use) > 0 loop
+         declare
+            X : Message_Access;
+         begin
+            Input_Queue.Dequeue (X);
+            Free (X);
+         end;
+      end loop;
+      if Server.Look_Ahead /= null then
+         Free (Server.Look_Ahead);
+      end if;
    end Processing_Task_Type;
 
    ------------------------

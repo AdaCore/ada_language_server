@@ -27,7 +27,7 @@ with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
 
-   Max_Wait : constant := 2_000;
+   Max_Wait : constant := 4_000;
    --  Max number of milliseconds to wait on a given snippet
 
    type Command_Kind is (Start, Stop, Send, Comment);
