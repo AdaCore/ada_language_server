@@ -23,7 +23,9 @@ function osx_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
     git clone https://github.com/AdaCore/gnat_community_install_script.git
-    wget -nv -O $GNAT_INSTALLER \
+
+    # Use --progress=dot:mega to ensure travis doesn't give up for lack of progress
+    wget --progress=dot:mega -O $GNAT_INSTALLER \
         http://mirrors.cdn.adacore.com/art/5ce0322c31e87a8f1d4253fa
     sh gnat_community_install_script/install_package.sh \
         $GNAT_INSTALLER $INSTALL_DIR
