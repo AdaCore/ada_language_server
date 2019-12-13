@@ -116,8 +116,12 @@ begin
    begin
       Getopt (Cmdline);
    exception
-      when GNAT.Command_Line.Exit_From_Command_Line => GNAT.OS_Lib.OS_Exit (0);
+      when GNAT.Command_Line.Exit_From_Command_Line =>
+         Free (Cmdline);
+         GNAT.OS_Lib.OS_Exit (0);
    end;
+
+   Free (Cmdline);
 
    --  Look for a traces file, in this order:
    --     - passed on the command line via --tracefile,
@@ -146,6 +150,10 @@ begin
            ".$T.$$.log:buffer_size=0");
    end if;
 
+   if Tracefile_Name /= null then
+      Free (Tracefile_Name);
+   end if;
+
    Server_Trace.Trace ("ALS version: " & $VERSION);
 
    Server_Trace.Trace ("Initializing server ...");
@@ -168,6 +176,6 @@ begin
          Server_Trace.Trace (Symbolic_Traceback (E));
    end;
    Server_Trace.Trace ("Shutting server down ...");
-
    Server.Finalize;
+   Handler.Cleanup;
 end LSP.Ada_Driver;

@@ -307,7 +307,7 @@ package body LSP.Ada_Contexts is
    procedure Load_Project
      (Self     : in out Context;
       Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
-      Root     : not null GNATCOLL.Projects.Project_Type_Access;
+      Root     : Project_Type;
       Charset  : String) is
    begin
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
@@ -315,7 +315,7 @@ package body LSP.Ada_Contexts is
       Self.Project_Tree := Tree;
       declare
          Provider : LSP.Ada_Unit_Providers.Unit_Provider
-             (Self.Project_Tree, Root);
+           (Self.Project_Tree, new Project_Type'(Root));
       begin
          Self.Unit_Provider.Set (Provider);
       end;
@@ -335,6 +335,15 @@ package body LSP.Ada_Contexts is
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
    end Reload;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (Self : in out Context) is
+   begin
+      Unchecked_Free (Self.Source_Files);
+   end Free;
 
    -------------------------
    -- Update_Source_Files --

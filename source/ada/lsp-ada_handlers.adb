@@ -24,7 +24,6 @@ with Ada.Directories;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with GNATCOLL.Projects;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
@@ -95,6 +94,9 @@ package body LSP.Ada_Handlers is
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Documents.Document, Internal_Document_Access);
+
+   procedure Release_Project_Info (Self : access Message_Handler);
+   --  Release the memory associated to project information in Self
 
    ---------------------
    -- Project loading --
@@ -303,17 +305,55 @@ package body LSP.Ada_Handlers is
       end if;
    end Imprecise_Resolve_Name;
 
+   --------------------------
+   -- Release_Project_Info --
+   --------------------------
+
+   procedure Release_Project_Info (Self : access Message_Handler) is
+      use GNATCOLL.Projects;
+   begin
+      if Self.Project_Tree /= null then
+         Self.Project_Tree.Unload;
+         Free (Self.Project_Tree);
+      end if;
+      if Self.Project_Environment /= null then
+         Free (Self.Project_Environment);
+      end if;
+   end Release_Project_Info;
+
+   -------------
+   -- Cleanup --
+   -------------
+
+   procedure Cleanup (Self : access Message_Handler) is
+   begin
+      --  Cleanup documents
+      for Document of Self.Open_Documents loop
+         Unchecked_Free (Document);
+      end loop;
+      Self.Open_Documents.Clear;
+
+      --  Cleanup contexts
+      while not Self.Contexts.Is_Empty loop
+         declare
+            C : Context_Access := Self.Contexts.First_Element;
+         begin
+            C.Free;
+            Unchecked_Free (C);
+         end;
+         Self.Contexts.Delete_First;
+      end loop;
+
+      --  Cleanup project and environment
+      Self.Release_Project_Info;
+   end Cleanup;
+
    -----------------------
    -- Exit_Notification --
    -----------------------
 
    overriding procedure On_Exit_Notification (Self : access Message_Handler) is
    begin
-      for Document of Self.Open_Documents loop
-         Unchecked_Free (Document);
-      end loop;
-      Self.Open_Documents.Clear;
-
       Self.Server.Stop;
    end On_Exit_Notification;
 
@@ -369,14 +409,16 @@ package body LSP.Ada_Handlers is
          declare
             C : constant Context_Access := new Context (Self.Trace);
             use GNATCOLL.Projects;
-            Tree         : Project_Tree_Access;
-            Root_Project : Project_Type_Access;
          begin
-            Tree := new Project_Tree;
+            Self.Release_Project_Info;
+            Initialize (Self.Project_Environment);
+            Self.Project_Tree := new Project_Tree;
             C.Initialize;
-            Load_Implicit_Project (Tree.all);
-            Root_Project := new Project_Type'(Tree.Root_Project);
-            C.Load_Project (Tree, Root_Project, "iso-8859-1");
+            Load_Implicit_Project (Self.Project_Tree.all,
+                                   Self.Project_Environment);
+            C.Load_Project (Self.Project_Tree,
+                            Self.Project_Tree.Root_Project,
+                            "iso-8859-1");
             Self.Contexts.Prepend (C);
          end;
       elsif GPRs_Found = 1 then
@@ -399,14 +441,14 @@ package body LSP.Ada_Handlers is
    --------------------------------
 
    procedure Create_Projectless_Context (Self : access Message_Handler) is
-      Projectless_Context : constant Context_Access :=
-        new Context (Self.Trace);
+      Projectless_Context : Context_Access;
    begin
       if not Self.Contexts.Is_Empty then
          --  We have already created the projectless context: we can return
          return;
       end if;
 
+      Projectless_Context := new Context (Self.Trace);
       Projectless_Context.Initialize;
       Self.Contexts.Append (Projectless_Context);
    end Create_Projectless_Context;
@@ -1626,8 +1668,6 @@ package body LSP.Ada_Handlers is
    is
       use GNATCOLL.Projects;
       use Ada.Containers;
-      Project_Env   : Project_Environment_Access;
-      Tree : Project_Tree_Access;
       Errors        : LSP.Messages.ShowMessageParams;
       Error_Text    : LSP.Types.LSP_String_Vector;
 
@@ -1645,7 +1685,7 @@ package body LSP.Ada_Handlers is
          use type GNATCOLL.JSON.JSON_Value_Type;
       begin
          if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-            Project_Env.Change_Environment (Name, Value.Get);
+            Self.Project_Environment.Change_Environment (Name, Value.Get);
          end if;
       end Add_Variable;
 
@@ -1664,12 +1704,10 @@ package body LSP.Ada_Handlers is
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
          C : constant Context_Access := new Context (Self.Trace);
-         Project_Access : Project_Type_Access;
       begin
          C.Initialize;
-         Project_Access := new Project_Type'(P);
-         C.Load_Project (Tree    => Tree,
-                         Root    => Project_Access,
+         C.Load_Project (Tree    => Self.Project_Tree,
+                         Root    => P,
                          Charset => Charset);
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
@@ -1680,35 +1718,44 @@ package body LSP.Ada_Handlers is
          declare
             C : Context_Access := Self.Contexts.First_Element;
          begin
+            C.Free;
             Unchecked_Free (C);
          end;
          Self.Contexts.Delete_First;
       end loop;
 
+      --  Unload the project tree and the project environment
+      Self.Release_Project_Info;
+
       --  Now load the new project
       Errors.the_type := LSP.Messages.Warning;
-      Initialize (Project_Env);
+      Initialize (Self.Project_Environment);
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
       end if;
 
       begin
-         Tree := new Project_Tree;
-         Tree.Load (GPR, Project_Env, Errors => On_Error'Unrestricted_Access);
-         if Tree.Root_Project.Is_Aggregate_Project then
+         Self.Project_Tree := new Project_Tree;
+         Self.Project_Tree.Load
+           (GPR,
+            Self.Project_Environment,
+            Errors => On_Error'Unrestricted_Access);
+         if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
             declare
-               Aggregated : constant Project_Array_Access :=
-                 Tree.Root_Project.Aggregated_Projects;
+               Aggregated : Project_Array_Access :=
+                 Self.Project_Tree.Root_Project.Aggregated_Projects;
             begin
                for X of Aggregated.all loop
                   Create_Context_For_Non_Aggregate (X);
                end loop;
+               Unchecked_Free (Aggregated);
             end;
          else
-            Create_Context_For_Non_Aggregate (Tree.Root_Project);
+            Create_Context_For_Non_Aggregate (Self.Project_Tree.Root_Project);
          end if;
       exception
          when E : Invalid_Project =>
+            Self.Release_Project_Info;
 
             Self.Trace.Trace (E);
             Errors.the_type := LSP.Messages.Error;

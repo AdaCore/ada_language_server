@@ -46,7 +46,7 @@ package LSP.Ada_Contexts is
    procedure Load_Project
      (Self     : in out Context;
       Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
-      Root     : not null GNATCOLL.Projects.Project_Type_Access;
+      Root     : GNATCOLL.Projects.Project_Type;
       Charset  : String);
    --  Use the given project tree, and root project within this project
    --  tree, as project for this context. Root must be a non-aggregate
@@ -55,6 +55,10 @@ package LSP.Ada_Contexts is
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.
+
+   procedure Free (Self : in out Context);
+   --  Release the memory associated to Self. You should not use the
+   --  context after calling this.
 
    function URI_To_File
      (URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
