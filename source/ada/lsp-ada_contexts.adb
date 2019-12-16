@@ -221,6 +221,47 @@ package body LSP.Ada_Contexts is
          return (1 .. 0 => <>);
    end Find_All_Overrides;
 
+   --------------------------------
+   -- Find_All_Base_Declarations --
+   --------------------------------
+
+   function Find_All_Base_Declarations
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Basic_Decl_Array
+   is
+      use Libadalang.Analysis;
+      Lal_Result : constant Basic_Decl_Array := Decl.P_Base_Subp_Declarations;
+      Our_Result : Basic_Decl_Array (1 .. Lal_Result'Length - 1);
+      Index : Positive := 1;
+   begin
+      Imprecise_Results := False;
+
+      --  Libadalang returns an empty array if this is not a subprogram
+      --  that's a primitive of a tagged type
+      if Lal_Result'Length = 0 then
+         return (1 .. 0 => <>);
+      end if;
+
+      --  The result returned by Libadalang includes self; we want to remove
+      --  this from the list.
+      for J of Lal_Result loop
+         if J /= Decl then
+            Our_Result (Index) := J;
+            Index := Index + 1;
+         end if;
+      end loop;
+
+      return Our_Result;
+
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Log (Self.Trace, E, "in Find_All_Base_Declarations");
+         Imprecise_Results := True;
+         return (1 .. 0 => <>);
+   end Find_All_Base_Declarations;
+
    --------------------
    -- Find_All_Calls --
    --------------------

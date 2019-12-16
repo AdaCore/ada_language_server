@@ -98,6 +98,16 @@ package LSP.Ada_Contexts is
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
 
+   function Find_All_Base_Declarations
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Basic_Decl_Array;
+   --  Given a subprogram declaration in Decl, find all the base subprograms
+   --  that it inherits, not including self.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
+
    function Find_All_Calls
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;

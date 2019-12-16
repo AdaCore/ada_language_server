@@ -1,0 +1,570 @@
+[
+   {
+      "comment": [
+         "check the listing of parents and children in 'definition' on methods"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     }, 
+                     "documentLink": {}, 
+                     "formatting": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "codeLens": {}, 
+                     "colorProvider": {}
+                  }, 
+                  "workspace": {
+                     "applyEdit": false, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     }, 
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call", 
+                        "parent", 
+                        "child"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "declarationProvider": true, 
+                     "textDocumentSync": 1, 
+                     "documentLinkProvider": {}, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package pack is\n\n   type Root is abstract tagged null record;\n   \n   procedure Method (X : Root) is abstract;\n   \n   type Child is new Root with null record;\n   \n   overriding procedure Method (X : Child);\n   \n   type Grandchild is new Child with null record;\n   \n   overriding procedure Method (X: Grandchild) is null;\n   \n   type Other_Grandchild is new Child with null record;\n   \n   overriding procedure Method (X : Other_Grandchild);\n\nend pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{pack.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body pack is\n   \n   overriding procedure Method (X : Child) is null;\n   \n   overriding procedure Method (X : Other_Grandchild) is\n      C : Child;\n   begin\n      C.Method;\n   end Method;\n   \nend pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{pack.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {"comment":   "--------------- check 'definition' on the root class, verify that child and 2 grandchildren are listed -------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/definition"
+         },
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 8, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 12, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 16, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment":   "--------------- check 'definition' on the child class, verify that parent and 2 grandchildren are listed -------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 8, 
+                  "character": 24
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 30
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 19
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 12, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 16, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment":   "--------------- check 'definition' on the grandchild class, verify that child and root are listed as parent -------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 12, 
+                  "character": 24
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 8, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 19
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment":   "--------------- check 'definition' on the other_grandchild class, verify that child and root are listed as parent -------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 16, 
+                  "character": 24
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 10, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 10, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 30
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 8, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 19
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment":   "--------------- check 'definition' on the call to Method in p.adb -------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 7, 
+                  "character": 8
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 13, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 13, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 8, 
+                           "character": 30
+                        }
+                     }, 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 19
+                        }
+                     }, 
+                     "alsKind": [
+                        "parent"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 12, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16, 
+                           "character": 24
+                        }, 
+                        "end": {
+                           "line": 16, 
+                           "character": 30
+                        }
+                     }, 
+                     "alsKind": [
+                        "child"
+                     ], 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 16, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 16, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

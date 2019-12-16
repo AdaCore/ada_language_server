@@ -4,7 +4,7 @@
 
 This feature allows the LSP server to provide reference kinds in
 results for the `textDocument/references` request. A reference can
-be 'write', 'static call', 'dispatching call', etc.
+be 'write', 'parent', 'dispatching call', etc.
 
 ## Change description
 
@@ -13,12 +13,14 @@ extra field to the `Location` type:
 
 ```typescript
 
-export type AlsReferenceKind = 'write' | 'call' | 'dispatching call';
+export type AlsReferenceKind = 'write' | 'call' | 'dispatching call' | 'parent' | 'child';
 
 export namespace AlsReferenceKind {
    export const Write            : AlsReferenceKind = 'write';
    export const Static_Call      : AlsReferenceKind = 'call';
    export const Dispatching_Call : AlsReferenceKind = 'dispatching call';
+   export const Parent           : AlsReferenceKind = 'parent';
+   export const Child            : AlsReferenceKind = 'child';
 }
 
 interface Location {

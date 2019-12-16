@@ -355,15 +355,18 @@ package LSP.Messages is
 
    --  reference_kinds ALS extension:
    --
-   --  export type AlsReferenceKind = 'w' | 'c' | 'd';
+   --  export type AlsReferenceKind = 'w' | 'c' | 'd' | 'p' | 'h';
    --
    --  export namespace AlsReferenceKind {
-   --     export const Write            : AlsReferenceKind = 'w';
-   --     export const Static_Call      : AlsReferenceKind = 'c';
-   --     export const Dispatching_Call : AlsReferenceKind = 'd';
+   --     export const Write            : AlsReferenceKind = 'write';
+   --     export const Static_Call      : AlsReferenceKind = 'call';
+   --     export const Dispatching_Call : AlsReferenceKind = 'dispatching call';
+   --     export const Parent           : AlsReferenceKind = 'parent';
+   --     export const Child            : AlsReferenceKind = 'child';
    --  }
 
-   type AlsReferenceKind is (Write, Static_Call, Dispatching_Call);
+   type AlsReferenceKind is
+     (Write, Static_Call, Dispatching_Call, Parent, Child);
    type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
    type AlsReferenceKind_Set (Is_Server_Side : Boolean := True) is record
       case Is_Server_Side is
