@@ -339,6 +339,21 @@ package body LSP.Lal_Utils is
       --  in a package P, we're going to look in the spec and body of P for
       --  any items named Foo, excluding Definition itself.
 
+      --  Eliminate some cases. The subprogram does not have an other part if
+      --  it is an expression function, or an abstract subprogram declaration,
+      --  or a null procedure.
+      declare
+         Parents : constant Ada_Node_Array := Definition.Parents;
+      begin
+         if Parents'Length >= 2 and then Parents (Parents'First + 2).Kind in
+           Libadalang.Common.Ada_Abstract_Subp_Decl
+             | Libadalang.Common.Ada_Null_Subp_Decl
+             | Libadalang.Common.Ada_Expr_Function
+         then
+            return No_Defining_Name;
+         end if;
+      end;
+
       --  First obtain the spec.
       --  Note: we could refine the number of calls to P_Semantic_Parent.
       --  Two calls to P_Semantic_Parents are needed in the case of a

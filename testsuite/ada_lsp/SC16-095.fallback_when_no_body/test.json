@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "test the fallback navigation to subprograms that don't have an exact profile"
+         "test that we're not using navigation fallback on specs that should have no body"
       ]
    }, 
    {
@@ -16,8 +16,26 @@
          "request": {
             "params": {
                "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     }, 
+                     "documentLink": {}, 
+                     "formatting": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "codeLens": {}, 
+                     "colorProvider": {}
+                  }, 
                   "workspace": {
-                     "applyEdit": false
+                     "applyEdit": false, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
                   }
                }, 
                "rootUri": "$URI{.}"
@@ -31,6 +49,9 @@
                "id": 1, 
                "result": {
                   "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     }, 
                      "typeDefinitionProvider": true, 
                      "alsReferenceKinds": [
                         "write", 
@@ -42,7 +63,9 @@
                      "renameProvider": true, 
                      "alsCalledByProvider": true, 
                      "referencesProvider": true, 
+                     "declarationProvider": true, 
                      "textDocumentSync": 1, 
+                     "documentLinkProvider": {}, 
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
@@ -88,9 +111,26 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package P is\n\n   procedure Foo (A : Integer; Other_Param : Boolean);\n\n   package Nested is\n      procedure Foo (A : Integer);\n\n      procedure Bla (A : Integer);\n   end Nested;\n\n   procedure Bla (A : Integer);\n\nend P;\n", 
+                  "text": "package pack is\n\n   procedure Foo is null;\n   function Bla return Integer is (42);\n   \n   type X is abstract tagged null record;\n   procedure Nobody (Arg : X) is abstract;\n\n   procedure Allow_A_Body;\nend pack;\n", 
                   "version": 0, 
-                  "uri": "$URI{p.ads}", 
+                  "uri": "$URI{pack.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body pack is\n\n   procedure Foo (Y : Integer);\n   \n   function Bla (Y : Integer) return Integer is\n   begin\n      return 2;\n   end Bla;\n   \n   type Y is null record;\n   \n   procedure Nobody (Arg : Y) is\n   begin\n      null;\n   end;\n   \n   procedure Allow_A_Body is null;\n\n   procedure Foo (Y : Integer) is\n   begin\n      null;\n   end;\n   \nend pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{pack.adb}", 
                   "languageId": "Ada"
                }
             }, 
@@ -109,7 +149,7 @@
                   "character": 13
                }, 
                "textDocument": {
-                  "uri": "$URI{p.ads}"
+                  "uri": "$URI{pack.ads}"
                }
             }, 
             "jsonrpc": "2.0", 
@@ -118,29 +158,8 @@
          }, 
          "wait": [
             {
-               "params": {
-                  "message": "The result of 'definition' is approximate.", 
-                  "type": 2
-               }, 
-               "method": "window/showMessage"
-            }, 
-            {
                "id": 2, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 6, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 6, 
-                           "character": 16
-                        }
-                     }, 
-                     "uri": "$URI{p.adb}"
-                  }
-               ]
+               "result": []
             }
          ]
       }
@@ -149,30 +168,12 @@
       "send": {
          "request": {
             "params": {
-               "textDocument": {
-                  "text": "package body P is\n\n   ---------\n   -- Foo --\n   ---------\n\n   procedure Foo (A : Integer) is\n   begin\n      null;\n   end Foo;\n\n   ------------\n   -- Nested --\n   ------------\n\n   package body Nested is\n\n      procedure Foo (A : Integer) is\n      begin\n         null;\n      end Foo;\n\n      procedure Bla (A : Integer; Other_Param : Boolean) is null;\n\n   end Nested;\n\n   procedure Bla is null;\n\nend P;\n", 
-                  "version": 0, 
-                  "uri": "$URI{p.adb}", 
-                  "languageId": "Ada"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "method": "textDocument/didOpen"
-         }, 
-         "wait": []
-      }
-   }, 
-   {"comment": "--------- expecting an empty result for the definition of a procedure which 'is null' -------"},
-   {
-      "send": {
-         "request": {
-            "params": {
                "position": {
-                  "line": 22, 
-                  "character": 16
+                  "line": 3, 
+                  "character": 12
                }, 
                "textDocument": {
-                  "uri": "$URI{p.adb}"
+                  "uri": "$URI{pack.ads}"
                }
             }, 
             "jsonrpc": "2.0", 
@@ -191,8 +192,70 @@
       "send": {
          "request": {
             "params": {
+               "position": {
+                  "line": 6, 
+                  "character": 13
+               }, 
                "textDocument": {
-                  "uri": "$URI{p.ads}"
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": []
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 8, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 16, 
+                           "character": 25
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
                }
             }, 
             "jsonrpc": "2.0", 
@@ -206,7 +269,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "uri": "$URI{p.adb}"
+                  "uri": "$URI{pack.adb}"
                }
             }, 
             "jsonrpc": "2.0", 
@@ -219,12 +282,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0", 
-            "id": 4, 
+            "id": 6, 
             "method": "shutdown"
          }, 
          "wait": [
             {
-               "id": 4, 
+               "id": 6, 
                "result": null
             }
          ]
