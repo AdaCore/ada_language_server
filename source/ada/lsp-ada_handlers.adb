@@ -695,17 +695,37 @@ package body LSP.Ada_Handlers is
             end if;
          end if;
 
-         declare
-            Is_Imprecise     : Boolean;
-            Overriding_Subps : constant Basic_Decl_Array :=
-              C.Find_All_Overrides
-                (Decl_For_Find_Overrides,
-                 Imprecise_Results => Is_Imprecise);
-         begin
-            for Subp of Overriding_Subps loop
-               Append_Location (Response.result, Subp.P_Defining_Name);
-            end loop;
-         end;
+         if Decl_For_Find_Overrides /= Libadalang.Analysis.No_Basic_Decl then
+            declare
+               Imprecise_Over       : Boolean;
+               Imprecise_Base       : Boolean;
+               Overriding_Subps     : constant Basic_Decl_Array :=
+                 C.Find_All_Overrides
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Imprecise_Over);
+               Base_Subps           : constant Basic_Decl_Array :=
+                 C.Find_All_Base_Declarations
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Imprecise_Base);
+
+               Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
+                 (Is_Server_Side => True,
+                  As_Flags => (LSP.Messages.Parent => True, others => False));
+               Is_Child  : constant LSP.Messages.AlsReferenceKind_Set :=
+                 (Is_Server_Side => True,
+                  As_Flags => (LSP.Messages.Child => True, others => False));
+            begin
+               for Subp of Base_Subps loop
+                  Append_Location
+                    (Response.result, Subp.P_Defining_Name, Is_Parent);
+               end loop;
+               for Subp of Overriding_Subps loop
+                  Append_Location
+                    (Response.result, Subp.P_Defining_Name, Is_Child);
+               end loop;
+               Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
+            end;
+         end if;
       end Resolve_In_Context;
 
    begin

@@ -121,6 +121,10 @@ package body LSP.Messages is
                                         "call";
    Dispatching_Call_Reference_Image : aliased constant Standard.String :=
                                         "dispatching call";
+   Parent_Reference_Image           : aliased constant Standard.String :=
+                                        "parent";
+   Child_Reference_Image            : aliased constant Standard.String :=
+                                        "child";
 
    type String_Constant_Access is access constant Standard.String;
 
@@ -128,7 +132,9 @@ package body LSP.Messages is
      (AlsReferenceKind) of not null String_Constant_Access :=
      (Write            => Write_Reference_Image'Access,
       Static_Call      => Static_Call_Reference_Image'Access,
-      Dispatching_Call => Dispatching_Call_Reference_Image'Access);
+      Dispatching_Call => Dispatching_Call_Reference_Image'Access,
+      Parent           => Parent_Reference_Image'Access,
+      Child            => Child_Reference_Image'Access);
 
    -------------------------------
    -- Read_AlsReferenceKind_Set --

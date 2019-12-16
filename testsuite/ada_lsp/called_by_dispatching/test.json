@@ -36,7 +36,7 @@
                      "alsReferenceKinds": [
                         "write", 
                         "call", 
-                        "dispatching call"
+                        "dispatching call", "parent", "child"
                      ], 
                      "hoverProvider": true, 
                      "definitionProvider": true, 
