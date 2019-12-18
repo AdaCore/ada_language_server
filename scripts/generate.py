@@ -277,6 +277,8 @@ REQUESTS = [
      'Location_Response'),
     ('textDocument/declaration', 'Declaration', 'TextDocumentPositionParams',
      'Location_Response'),
+    ('textDocument/implementation', 'Implementation',
+     'TextDocumentPositionParams', 'Location_Response'),
     ('textDocument/typeDefinition', 'Type_Definition',
      'TextDocumentPositionParams', 'Location_Response'),
     ('textDocument/highight', 'Highlight', 'TextDocumentPositionParams',

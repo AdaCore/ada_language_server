@@ -96,7 +96,7 @@ The `ada_language_server` doesn't require/understand any command line options.
 | `textDocument/definition`             | :white_check_mark: |
 | `textDocument/declaration`            | :white_check_mark: |
 | `textDocument/typeDefinition`         | :white_check_mark: |
-| `textDocument/implementation`         |                    |
+| `textDocument/implementation`         | :white_check_mark: |
 | `textDocument/references`             | :white_check_mark: |
 | `textDocument/documentHighlight`      |                    |
 | `textDocument/documentSymbol`         | :white_check_mark: |

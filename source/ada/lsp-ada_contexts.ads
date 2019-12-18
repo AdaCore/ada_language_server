@@ -17,7 +17,7 @@
 --
 --  This package provides a context of Ada Language server.
 
-with Ada.Containers.Hashed_Sets;
+with Ada.Containers.Ordered_Sets;
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -37,11 +37,13 @@ package LSP.Ada_Contexts is
    --  A context contains a non-aggregate project tree and its associated
    --  libadalang context.
 
+   package File_Sets is new Ada.Containers.Ordered_Sets
+     (Element_Type        => GNATCOLL.VFS.Virtual_File,
+      "<"                 => GNATCOLL.VFS."<",
+      "="                 => GNATCOLL.VFS."=");
+
    procedure Initialize (Self : in out Context);
    --  Initialize the context
-
-   function Has_Project (Self : Context) return Boolean;
-   --  Check if context has a project
 
    procedure Load_Project
      (Self     : in out Context;
@@ -50,7 +52,7 @@ package LSP.Ada_Contexts is
       Charset  : String);
    --  Use the given project tree, and root project within this project
    --  tree, as project for this context. Root must be a non-aggregate
-   --  projec tree representing the root of a hierarchy inside Tree.
+   --  project tree representing the root of a hierarchy inside Tree.
 
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
@@ -133,9 +135,8 @@ package LSP.Ada_Contexts is
       File : GNATCOLL.VFS.Virtual_File) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
-   function List_Files (Self : Context) return GNATCOLL.VFS.File_Array_Access;
-   --  Return the list of files known to this context. The result is
-   --  guaranteed not to be null. Caller must not free the result.
+   function List_Files (Self : Context) return File_Sets.Set;
+   --  Return the list of files known to this context.
 
    procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File);
    --  Index the given file. This translates to refreshing the Libadalang
@@ -166,43 +167,25 @@ package LSP.Ada_Contexts is
 
 private
 
-   use type GNATCOLL.Projects.Project_Tree_Access;
-
    type Project_Status is
      (User_Provided_Project,  --  Server uses user provides project
       Default_Project,        --  No project provided or found, use default
       Found_Unique_Project);  --  No project provided, but server found one
-
-   package File_Sets is new Ada.Containers.Hashed_Sets
-     (Element_Type        => GNATCOLL.VFS.Virtual_File,
-      Hash                => GNATCOLL.VFS.Full_Name_Hash,
-      Equivalent_Elements => GNATCOLL.VFS."=",
-      "="                 => GNATCOLL.VFS."=");
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
-      Source_Files   : GNATCOLL.VFS.File_Array_Access :=
-        new GNATCOLL.VFS.File_Array'(1 .. 0 => <>);
+      Source_Files   : File_Sets.Set;
       --  Cache for the list of Ada source files in the loaded project tree.
-      --  This should never be null.
-
-      Project_Tree   : GNATCOLL.Projects.Project_Tree_Access;
-      --  The currently loaded project tree, or null for contexts that
-      --  don't have a project.
    end record;
-
-   procedure Update_Source_Files (Self : in out Context);
-   --  Update Self.Source_Files value
-
-   function Has_Project (Self : Context) return Boolean
-   is
-     (Self.Project_Tree /= null);
 
    function LAL_Context
      (Self : Context) return Libadalang.Analysis.Analysis_Context is
      (Self.LAL_Context);
+
+   function List_Files (Self : Context) return File_Sets.Set
+   is (Self.Source_Files);
 
 end LSP.Ada_Contexts;

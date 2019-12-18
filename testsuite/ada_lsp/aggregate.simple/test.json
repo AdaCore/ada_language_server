@@ -139,19 +139,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 2, 
-                           "character": 18
-                        }, 
-                        "end": {
-                           "line": 2, 
-                           "character": 21
-                        }
-                     }, 
-                     "uri": "$URI{q/main.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
                            "line": 1, 
                            "character": 3
                         }, 
@@ -161,6 +148,19 @@
                         }
                      }, 
                      "uri": "$URI{common/common_pack.ads}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 18
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 21
+                        }
+                     }, 
+                     "uri": "$URI{q/main.adb}"
                   }
                ]
             }]

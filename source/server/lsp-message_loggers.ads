@@ -142,6 +142,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Declaration_Request);
 
+   overriding procedure On_Implementation_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Implementation_Request);
+
    overriding procedure On_Type_Definition_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Type_Definition_Request);

@@ -67,6 +67,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Declaration_Request)
       return LSP.Messages.Server_Responses.Location_Response;
 
+   overriding function On_Implementation_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Implementation_Request)
+      return LSP.Messages.Server_Responses.Location_Response;
+
    overriding function On_Type_Definition_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Type_Definition_Request)

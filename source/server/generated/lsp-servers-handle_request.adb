@@ -85,6 +85,18 @@ begin
          end;
       end if;
 
+      if Request in Implementation_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Implementation_Request
+                  (Implementation_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in Type_Definition_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

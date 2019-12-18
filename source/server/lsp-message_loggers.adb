@@ -328,6 +328,20 @@ package body LSP.Message_Loggers is
          & Image (Value.params));
    end On_Declaration_Request;
 
+   ----------------------------
+   -- On_Implementation_Request --
+   ----------------------------
+
+   overriding procedure On_Implementation_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Implementation_Request) is
+   begin
+      Self.Trace.Trace
+        ("Implementation_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Implementation_Request;
+
    ---------------------------
    -- On_Definition_Request --
    ---------------------------

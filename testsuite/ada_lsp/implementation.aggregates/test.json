@@ -1,0 +1,522 @@
+[
+   {
+      "comment": [
+         "extensive test of the 'implementation' with aggregate projects"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     }, 
+                     "documentLink": {}, 
+                     "formatting": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "codeLens": {}, 
+                     "colorProvider": {}
+                  }, 
+                  "workspace": {
+                     "applyEdit": false, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     }, 
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call", 
+                        "parent", 
+                        "child"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "declarationProvider": true, 
+                     "textDocumentSync": 1, 
+                     "documentLinkProvider": {}, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package common_pack is\n   Foo : Integer := 42;\n\n   function Common_Fun return Integer;\n\nend common_pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{common/common_pack.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body Common_Pack is\n   function Common_Fun return Integer is (2);\nend Common_Pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{p/common_pack.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body Common_Pack is\n   function Common_Fun return Integer is (1);\nend Common_Pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{q/common_pack.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {"comment": "------------  check that bodies are found in both projects ---------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{p/common_pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{q/common_pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------ query hovers on targets ---------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": {
+                  "contents": [
+                     {
+                        "value": "function Common_Fun return Integer", 
+                        "language": "ada"
+                     }, 
+                     "at common_pack.ads (4:4)"
+                  ]
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/hover"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": {
+                  "contents": [
+                     {
+                        "value": "function Common_Fun return Integer", 
+                        "language": "ada"
+                     }, 
+                     "at common_pack.ads (4:4)"
+                  ]
+               }
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------  check again that bodies are found in both projects ---------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{p/common_pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{q/common_pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------  check for 'definition' calls ---------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{q/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 9, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 9, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 3, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{common/common_pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{p/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 10, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 10, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 3, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{common/common_pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------  check again that bodies are found in both projects ---------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 11, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 11, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{p/common_pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 12
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 22
+                        }
+                     }, 
+                     "uri": "$URI{q/common_pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{q/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 14, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 14, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
