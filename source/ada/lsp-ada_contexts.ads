@@ -97,6 +97,7 @@ package LSP.Ada_Contexts is
    --  when textDocument/definition requests happen on dispatching calls.
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
+   --  Returns an empty array if Decl is null.
 
    function Find_All_Base_Declarations
      (Self              : Context;
@@ -107,6 +108,7 @@ package LSP.Ada_Contexts is
    --  that it inherits, not including self.
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
+   --  Returns an empty array if Decl is null.
 
    function Find_All_Calls
      (Self              : Context;
@@ -115,6 +117,16 @@ package LSP.Ada_Contexts is
       return Libadalang.Analysis.Base_Id_Array;
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.
+
+   function Get_References_For_Renaming
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array;
+   --  Get all the references to a given defining name in all units for
+   --  renaming purposes: for instance, when called on a tagged type primitive
+   --  definition, references to the base subprograms it inherits and to the
+   --  overriding ones are also returned.
 
    function Is_Part_Of_Project
      (Self : Context;

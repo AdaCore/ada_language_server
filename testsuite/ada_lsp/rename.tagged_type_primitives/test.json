@@ -1,0 +1,802 @@
+[
+   {
+      "comment": [
+          "This test checks that textDocument/rename on tagged type ",
+          "primitives renames also the suprograms it inherits and the ",
+          "overriding ones."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 26765,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     },
+                     "documentLink": {},
+                     "formatting": {},
+                     "documentHighlight": {},
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "codeLens": {},
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": false,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     },
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": true,
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "declarationProvider": true,
+                     "textDocumentSync": 1,
+                     "documentLinkProvider": {},
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "enableIndexing": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Children; use Children;\nwith Great_Children; use Great_Children;\n\nprocedure Main is\n   Obj : constant Child'Class := Great_Child'(others => <>);\nbegin\n   Obj.Primitive;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "renameInComments": true
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "newName": "New_Primitive",
+               "position": {
+                  "line": 6,
+                  "character": 7
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/rename"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "changes": {
+                     "$URI{great_children.ads}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 22
+                              }
+                           }
+                        }
+                     ],
+                     "$URI{children.ads}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 22
+                              }
+                           }
+                        }
+                     ],
+                     "$URI{parents.ads}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 22
+                              }
+                           }
+                        }
+                     ],
+                     "$URI{great_children.adb}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 22
+                              }
+                           }
+                        },
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 7
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 16
+                              }
+                           }
+                        }
+                     ],
+                     "$URI{children.adb}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 22
+                              }
+                           }
+                        },
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 7
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 16
+                              }
+                           }
+                        }
+                     ],
+                     "$URI{main.adb}": [
+                        {
+                           "newText": "New_Primitive",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 7
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 16
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Children; use Children;\npackage Great_Children is\n\n   type Great_Child is new Child with null Record;\n\n   procedure Primitive (Self : Great_Child);\n\nend Great_Children;\n",
+                  "version": 0,
+                  "uri": "$URI{great_children.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Children; use Children;\npackage Great_Children is\n\n   type Great_Child is new Child with null Record;\n\n   procedure  (Self : Great_Child);\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{great_children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Children; use Children;\npackage Great_Children is\n\n   type Great_Child is new Child with null Record;\n\n   procedure New_Primitive (Self : Great_Child);\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{great_children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{great_children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Children; use Children;\nwith Great_Children; use Great_Children;\n\nprocedure Main is\n   Obj : constant Child'Class := Great_Child'(others => <>);\nbegin\n   Obj.;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Children; use Children;\nwith Great_Children; use Great_Children;\n\nprocedure Main is\n   Obj : constant Child'Class := Great_Child'(others => <>);\nbegin\n   Obj.New_Primitive;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Text_IO;\n\npackage body Children is\n\n   procedure Primitive (Self : Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Child\");\n   end Primitive;\n\nend Children;\n",
+                  "version": 0,
+                  "uri": "$URI{children.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Children is\n\n   procedure Primitive (Self : Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Child\");\n   end ;\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Children is\n\n   procedure Primitive (Self : Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Child\");\n   end New_Primitive;\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Children is\n\n   procedure  (Self : Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Child\");\n   end New_Primitive;\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 3,
+                  "uri": "$URI{children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Children is\n\n   procedure New_Primitive (Self : Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Child\");\n   end New_Primitive;\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 4,
+                  "uri": "$URI{children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package Parents is\n\n   type Parent is abstract tagged record\n      A : Integer;\n   end record;\n\n   procedure Primitive (Self : Parent) is abstract;\n   --  Parent procedure\n\nend Parents;\n",
+                  "version": 0,
+                  "uri": "$URI{parents.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package Parents is\n\n   type Parent is abstract tagged record\n      A : Integer;\n   end record;\n\n   procedure  (Self : Parent) is abstract;\n   --  Parent procedure\n\nend Parents;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{parents.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package Parents is\n\n   type Parent is abstract tagged record\n      A : Integer;\n   end record;\n\n   procedure New_Primitive (Self : Parent) is abstract;\n   --  Parent procedure\n\nend Parents;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{parents.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{parents.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Parents; use Parents;\npackage Children is\n\n   type Child is new Parent with null Record;\n\n   procedure Primitive (Self : Child);\n\nend Children;\n",
+                  "version": 0,
+                  "uri": "$URI{children.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Parents; use Parents;\npackage Children is\n\n   type Child is new Parent with null Record;\n\n   procedure  (Self : Child);\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Parents; use Parents;\npackage Children is\n\n   type Child is new Parent with null Record;\n\n   procedure New_Primitive (Self : Child);\n\nend Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{children.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Text_IO;\n\npackage body Great_Children is\n\n   procedure Primitive (Self : Great_Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Great child\");\n   end Primitive;\n\nend Great_Children;\n",
+                  "version": 0,
+                  "uri": "$URI{great_children.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Great_Children is\n\n   procedure Primitive (Self : Great_Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Great child\");\n   end ;\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{great_children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Great_Children is\n\n   procedure Primitive (Self : Great_Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Great child\");\n   end New_Primitive;\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{great_children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Great_Children is\n\n   procedure  (Self : Great_Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Great child\");\n   end New_Primitive;\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 3,
+                  "uri": "$URI{great_children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Ada.Text_IO;\n\npackage body Great_Children is\n\n   procedure New_Primitive (Self : Great_Child) is\n   begin\n      Ada.Text_IO.Put_Line (\"Great child\");\n   end New_Primitive;\n\nend Great_Children;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 4,
+                  "uri": "$URI{great_children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{great_children.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

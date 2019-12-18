@@ -182,6 +182,24 @@ package body LSP.Lal_Utils is
       return Location;
    end Get_Node_Location;
 
+   ----------------------
+   -- To_Base_Id_Array --
+   ----------------------
+
+   function To_Base_Id_Array
+     (Basic_Decls : Basic_Decl_Array) return Base_Id_Array
+   is
+      Base_Ids : Base_Id_Array (Basic_Decls'Range);
+      Idx      : Positive := Base_Ids'First;
+   begin
+      for Decl of Basic_Decls loop
+         Base_Ids (Idx) := Decl.P_Defining_Name.F_Name.As_Base_Id;
+         Idx := Idx + 1;
+      end loop;
+
+      return Base_Ids;
+   end To_Base_Id_Array;
+
    ------------------
    -- Resolve_Name --
    ------------------
