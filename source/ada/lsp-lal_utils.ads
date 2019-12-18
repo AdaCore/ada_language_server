@@ -51,7 +51,7 @@ package LSP.Lal_Utils is
    function Find_Next_Part
      (Definition : Defining_Name;
       Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Wrapper around P_Next_Part that returns null if next part
+   --  Wrapper around P_Next_Part that returns No_Defining_Name if next part
    --  is name itself. It also catches Property_Error and reports it in traces.
 
    function Find_Canonical_Part

@@ -1,0 +1,518 @@
+[
+   {
+      "comment": [
+         "basic test for textdocument/implementation"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     }, 
+                     "documentLink": {}, 
+                     "formatting": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "codeLens": {}, 
+                     "colorProvider": {}
+                  }, 
+                  "workspace": {
+                     "applyEdit": false, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [
+            {
+               "id": 1, 
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": []
+                     }, 
+                     "typeDefinitionProvider": true, 
+                     "alsReferenceKinds": [
+                        "write", 
+                        "call", 
+                        "dispatching call", 
+                        "parent", 
+                        "child"
+                     ], 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
+                     "renameProvider": true, 
+                     "alsCalledByProvider": true, 
+                     "referencesProvider": true, 
+                     "declarationProvider": true, 
+                     "textDocumentSync": 1, 
+                     "documentLinkProvider": {}, 
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ], 
+                        "resolveProvider": false
+                     }, 
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package pack is\n\n   procedure Foo;\n\n   procedure Foo2;\n   \n   procedure Foo3;\n   \nprivate\n   \n   procedure Foo2 is null;\n   \n   type R;\n   \nend pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{pack.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {"comment": "------------- pack.ads  Foo -> return implementation in the body --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 16
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body pack is\n\n   type R is null record;\n   \n   procedure Foo is null;\n\n   procedure Foo3 is separate;\n   \nend pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{pack.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {"comment": "------------- Foo on the body -> stay on the body --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 4, 
+                           "character": 16
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- definition Foo on the body -> go back to the spec --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 16
+                        }
+                     }, 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- Foo2 on the spec -> find the private implementation --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 10, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 10, 
+                           "character": 17
+                        }
+                     }, 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- Foo2 on the private implementation ->  stay there --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 10, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 6, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 6, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 10, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 10, 
+                           "character": 17
+                        }
+                     }, 
+                     "uri": "$URI{pack.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- Foo3 on the spec ->  list body AND separate implementation --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 6, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6, 
+                           "character": 13
+                        }, 
+                        "end": {
+                           "line": 6, 
+                           "character": 17
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }, 
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0, 
+                           "character": 26
+                        }, 
+                        "end": {
+                           "line": 0, 
+                           "character": 30
+                        }
+                     }, 
+                     "uri": "$URI{pack-foo3.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- R on the spec ->  find completion in body --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 12, 
+                  "character": 8
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 9, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 9, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 8
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 9
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {"comment": "------------- R on the body ->  stay on the body --------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2, 
+                  "character": 8
+               }, 
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 10, 
+            "method": "textDocument/implementation"
+         }, 
+         "wait": [
+            {
+               "id": 10, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2, 
+                           "character": 8
+                        }, 
+                        "end": {
+                           "line": 2, 
+                           "character": 9
+                        }
+                     }, 
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 11, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 11, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

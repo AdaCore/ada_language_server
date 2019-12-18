@@ -158,12 +158,14 @@ package body LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array
    is
       Source_Units : Libadalang.Analysis.Analysis_Unit_Array
-        (Self.Source_Files'Range);
+        (1 .. Integer (Self.Source_Files.Length));
+      Index : Natural := Source_Units'First;
    begin
-      for N in Self.Source_Files'Range loop
-         Source_Units (N) := Self.LAL_Context.Get_From_File
-           (Self.Source_Files (N).Display_Full_Name,
+      for File of Self.Source_Files loop
+         Source_Units (Index) := Self.LAL_Context.Get_From_File
+           (File.Display_Full_Name,
             Charset => Self.Get_Charset);
+         Index := Index + 1;
       end loop;
       return Source_Units;
    end Analysis_Units;
@@ -448,19 +450,7 @@ package body LSP.Ada_Contexts is
      (Self : Context;
       File : Virtual_File) return Boolean is
    begin
-      --  If there is no project, it's easy to answer this question
-      if Self.Project_Tree = null then
-         return False;
-      end if;
-
-      declare
-         Set   : constant File_Info_Set :=
-           Self.Project_Tree.Info_Set (File);
-         First : constant File_Info'Class :=
-           File_Info'Class (Set.First_Element);
-      begin
-         return First.Project /= No_Project;
-      end;
+      return Self.Source_Files.Contains (File);
    end Is_Part_Of_Project;
 
    ------------------
@@ -471,11 +461,54 @@ package body LSP.Ada_Contexts is
      (Self     : in out Context;
       Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
       Root     : Project_Type;
-      Charset  : String) is
+      Charset  : String)
+   is
+      procedure Update_Source_Files;
+      --  Update the value of Self.Source_Files
+
+      -------------------------
+      -- Update_Source_Files --
+      -------------------------
+
+      procedure Update_Source_Files is
+         All_Sources : File_Array_Access :=
+           Root.Source_Files (Recursive => True);
+         All_Ada_Sources : File_Array (1 .. All_Sources'Length);
+         Free_Index      : Natural := All_Ada_Sources'First;
+         Set             : File_Info_Set;
+      begin
+         --  Iterate through all sources, returning only those that have Ada
+         --  as language.
+         for J in All_Sources'Range loop
+            Set := Tree.Info_Set (All_Sources (J));
+            if not Set.Is_Empty then
+               --  The file can be listed in several projects with different
+               --  Info_Sets, in the case of aggregate projects. However,
+               --  assume that the language is the same in all projects,
+               --  so look only at the first entry in the set.
+               declare
+                  Info : constant File_Info'Class :=
+                    File_Info'Class (Set.First_Element);
+               begin
+                  if To_Lower (Info.Language) = "ada" then
+                     All_Ada_Sources (Free_Index) := All_Sources (J);
+                     Free_Index := Free_Index + 1;
+                  end if;
+               end;
+            end if;
+         end loop;
+
+         Unchecked_Free (All_Sources);
+         Self.Source_Files.Clear;
+
+         for Index in 1 .. Free_Index - 1 loop
+            Self.Source_Files.Include (All_Ada_Sources (Index));
+         end loop;
+      end Update_Source_Files;
+
    begin
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
-      Self.Project_Tree := Tree;
       Self.Unit_Provider :=
         Libadalang.Project_Provider.Create_Project_Unit_Provider
           (Tree             => Tree,
@@ -484,7 +517,7 @@ package body LSP.Ada_Contexts is
            Is_Project_Owner => False);
 
       Self.Reload;
-      Self.Update_Source_Files;
+      Update_Source_Files;
    end Load_Project;
 
    ------------
@@ -505,54 +538,8 @@ package body LSP.Ada_Contexts is
 
    procedure Free (Self : in out Context) is
    begin
-      Unchecked_Free (Self.Source_Files);
+      Self.Source_Files.Clear;
    end Free;
-
-   -------------------------
-   -- Update_Source_Files --
-   -------------------------
-
-   procedure Update_Source_Files (Self : in out Context) is
-   begin
-      if Self.Project_Tree = null then
-         return;
-      end if;
-
-      declare
-         All_Sources : File_Array_Access :=
-           Self.Project_Tree.Root_Project.Source_Files (Recursive => True);
-         All_Ada_Sources : File_Array (1 .. All_Sources'Length);
-         Free_Index      : Natural := All_Ada_Sources'First;
-         Set             : File_Info_Set;
-      begin
-         --  Iterate through all sources, returning only those that have Ada as
-         --  language.
-         for J in All_Sources'Range loop
-            Set := Self.Project_Tree.Info_Set (All_Sources (J));
-            if not Set.Is_Empty then
-               --  The file can be listed in several projects with different
-               --  Info_Sets, in the case of aggregate project. However, assume
-               --  that the language is the same in all projects, so look only
-               --  at the first entry in the set.
-               declare
-                  Info : constant File_Info'Class :=
-                    File_Info'Class (Set.First_Element);
-               begin
-                  if To_Lower (Info.Language) = "ada" then
-                     All_Ada_Sources (Free_Index) := All_Sources (J);
-                     Free_Index := Free_Index + 1;
-                  end if;
-               end;
-            end if;
-         end loop;
-
-         Unchecked_Free (All_Sources);
-         Unchecked_Free (Self.Source_Files);
-
-         Self.Source_Files :=
-           new File_Array'(All_Ada_Sources (1 .. Free_Index - 1));
-      end;
-   end Update_Source_Files;
 
    -----------------
    -- URI_To_File --
@@ -620,16 +607,6 @@ package body LSP.Ada_Contexts is
          end if;
       end if;
    end Get_Node_At;
-
-   ----------------
-   -- List_Files --
-   ----------------
-
-   function List_Files
-     (Self : Context) return GNATCOLL.VFS.File_Array_Access is
-   begin
-      return Self.Source_Files;
-   end List_Files;
 
    ----------------
    -- Index_File --

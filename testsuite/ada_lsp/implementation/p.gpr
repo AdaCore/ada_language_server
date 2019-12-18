@@ -1,0 +1,6 @@
+project P is
+
+   for Main use ("foo3.adb") & project'Main;
+
+end P;
+

@@ -613,6 +613,90 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Declaration_Request;
 
+   -------------------------------
+   -- On_Implementation_Request --
+   -------------------------------
+
+   overriding function On_Implementation_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Implementation_Request)
+      return LSP.Messages.Server_Responses.Location_Response
+   is
+      use Libadalang.Analysis;
+
+      Position   : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+      Response   : LSP.Messages.Server_Responses.Location_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Position.textDocument.uri);
+
+      procedure Resolve_In_Context (C : Context_Access);
+      --  Utility function to gather results on one context
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : Context_Access) is
+         Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+             (C.Get_Node_At (Document, Position));
+         Definition     : Defining_Name;
+         Loop_Count     : Natural := 0;
+         This_Imprecise : Boolean;
+
+      begin
+         if Name_Node = No_Name then
+            return;
+         end if;
+
+         --  Find the definition
+         Definition := Resolve_Name (Name_Node, Self.Trace, This_Imprecise);
+         Imprecise := Imprecise or This_Imprecise;
+
+         --  If we didn't find a definition, give up for this context
+         if Definition = No_Defining_Name then
+            return;
+         end if;
+
+         --  Now that we have a definition, list all the implementations for
+         --  this definition. We do this by iterating on Find_Next_Part
+         loop
+            --  Safety net, don't rely on the results making sense, since
+            --  the code might be invalid.
+            Definition := Find_Next_Part (Definition, Self.Trace);
+
+            exit when Definition = No_Defining_Name;
+
+            Append_Location (Response.result, Definition);
+
+            Loop_Count := Loop_Count + 1;
+
+            if Loop_Count > 5 then
+               Imprecise := True;
+               exit;
+            end if;
+         end loop;
+      end Resolve_In_Context;
+
+   begin
+      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
+         Resolve_In_Context (C);
+
+         exit when Request.Canceled;
+      end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The result of 'implementation' is approximate.",
+            LSP.Messages.Warning);
+      end if;
+
+      return Response;
+   end On_Implementation_Request;
+
    ---------------------------
    -- On_Definition_Request --
    ---------------------------
@@ -1841,7 +1925,7 @@ package body LSP.Ada_Handlers is
    procedure Index_Files (Self : access Message_Handler) is
       type Context_And_Files is record
          Context : Context_Access;
-         Sources : File_Array_Access;
+         Sources : File_Sets.Set;
       end record;
       type Context_And_Files_Array is array
         (Natural range <>) of Context_And_Files;
@@ -1909,7 +1993,7 @@ package body LSP.Ada_Handlers is
       for Context of Self.Contexts loop
          Arr (Index).Context := Context;
          Arr (Index).Sources := Context.List_Files;
-         Total := Total + Arr (Index).Sources'Length;
+         Total := Total + Natural (Arr (Index).Sources.Length);
          Index := Index + 1;
       end loop;
 
@@ -1917,7 +2001,7 @@ package body LSP.Ada_Handlers is
 
       Index := 0;
       for E of Arr loop
-         for F of E.Sources.all loop
+         for F of E.Sources loop
             Current_Percent := (Index * 100) / Total;
             --  If the value of the indexing increased by at least one percent,
             --  emit one progress report.

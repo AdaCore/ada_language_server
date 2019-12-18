@@ -21,8 +21,9 @@ with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
 
 package LSP.Messages.Client_Requests is
 
-   type Client_Request is abstract new LSP.Messages.RequestMessage
-     with null record;
+   type Client_Request is abstract new LSP.Messages.RequestMessage with record
+      Canceled : Boolean := False with Atomic;
+   end record;
 
    procedure Visit
      (Self    : Client_Request;

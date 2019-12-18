@@ -90,6 +90,17 @@ begin
       end;
    end if;
 
+   if To_UTF_8_String (Method) = "textDocument/implementation" then
+      declare
+         R : Implementation_Request;
+      begin
+         Set_Common_Request_Fields (R, JS);
+         JS.Key ("params");
+         LSP.Messages.TextDocumentPositionParams'Read (JS'Access, R.params);
+         return R;
+      end;
+   end if;
+
    if To_UTF_8_String (Method) = "textDocument/typeDefinition" then
       declare
          R : Type_Definition_Request;
