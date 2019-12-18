@@ -22,11 +22,11 @@ with GNATCOLL.Projects; use GNATCOLL.Projects;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
 
 with URIs;
-with LSP.Ada_Unit_Providers;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 
 with Libadalang.Common;
+with Libadalang.Project_Provider;
 with Langkit_Support.Slocs;
 
 package body LSP.Ada_Contexts is
@@ -354,12 +354,12 @@ package body LSP.Ada_Contexts is
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Project_Tree := Tree;
-      declare
-         Provider : LSP.Ada_Unit_Providers.Unit_Provider
-           (Self.Project_Tree, new Project_Type'(Root));
-      begin
-         Self.Unit_Provider.Set (Provider);
-      end;
+      Self.Unit_Provider :=
+        Libadalang.Project_Provider.Create_Project_Unit_Provider
+          (Tree             => Tree,
+           Project          => Root,
+           Env              => Get_Environment (Root),
+           Is_Project_Owner => False);
 
       Self.Reload;
       Self.Update_Source_Files;
