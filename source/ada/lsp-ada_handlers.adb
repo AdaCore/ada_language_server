@@ -1442,12 +1442,12 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      Value      : LSP.Messages.RenameParams renames Request.params;
-      Response   : LSP.Messages.Server_Responses.Rename_Response
+      Value     : LSP.Messages.RenameParams renames Request.params;
+      Response  : LSP.Messages.Server_Responses.Rename_Response
         (Is_Error => False);
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+      Document  : constant LSP.Ada_Documents.Document_Access :=
+                   Get_Open_Document (Self, Value.textDocument.uri);
 
       procedure Process_Context (C : Context_Access);
       --  Process the rename request for the given context, and add
@@ -1459,13 +1459,14 @@ package body LSP.Ada_Handlers is
 
       procedure Process_Context (C : Context_Access) is
          Position : constant LSP.Messages.TextDocumentPositionParams :=
-           (Value.textDocument, Value.position);
+                      (Value.textDocument, Value.position);
 
-         Name_Node : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+         Name_Node  : constant Name := LSP.Lal_Utils.Get_Node_As_Name
            (C.Get_Node_At (Document, Position));
 
          Definition : Defining_Name;
          Imprecise  : Boolean;
+
          Empty      : LSP.Messages.TextEdit_Vector;
 
          procedure Process_Comments
@@ -1530,12 +1531,11 @@ package body LSP.Ada_Handlers is
          end if;
 
          declare
-            Count       : Cancel_Countdown := 0;
-            Imprecise   : Boolean;
-            References  : constant Base_Id_Array :=
-              C.Find_All_References (Definition, Imprecise)
-              --  Append Definition itself so that it is also renamed
-              & Definition.P_Relative_Name.As_Base_Id;
+            Count      : Cancel_Countdown := 0;
+            References : constant Base_Id_Array :=
+                           C.Get_References_For_Renaming
+                             (Definition,
+                              Imprecise_Results => Imprecise);
          begin
             if Imprecise then
                Self.Show_Message
@@ -1600,12 +1600,12 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
-      projectFile       : constant String := "projectFile";
-      scenarioVariables : constant String := "scenarioVariables";
-      defaultCharset    : constant String := "defaultCharset";
-      enableDiagnostics : constant String := "enableDiagnostics";
-      enableIndexing    : constant String := "enableIndexing";
-      renameInComments  : constant String := "renameInComments";
+      projectFile            : constant String := "projectFile";
+      scenarioVariables      : constant String := "scenarioVariables";
+      defaultCharset         : constant String := "defaultCharset";
+      enableDiagnostics      : constant String := "enableDiagnostics";
+      enableIndexing         : constant String := "enableIndexing";
+      renameInComments       : constant String := "renameInComments";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -1646,6 +1646,8 @@ package body LSP.Ada_Handlers is
          if Ada.Has_Field (enableIndexing) then
             Self.Indexing_Enabled := Ada.Get (enableIndexing);
          end if;
+
+         --  Retrieve the different textDocument/rename options if specified
 
          if Ada.Has_Field (renameInComments) then
             Self.Refactoring.Renaming.In_Comments :=

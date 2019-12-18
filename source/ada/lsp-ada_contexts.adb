@@ -38,6 +38,17 @@ package body LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
 
+   function Find_All_References_In_Hierarchy
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array;
+   --  When called on a tagged type primitive declaration, return all the
+   --  references to the base primitives it inherits and all the references to
+   --  the overriding ones.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
+
    -------------------------
    -- Append_Declarations --
    -------------------------
@@ -204,6 +215,10 @@ package body LSP.Ada_Contexts is
    begin
       Imprecise_Results := False;
 
+      if Decl.Is_Null then
+         return (1 .. 0 => <>);
+      end if;
+
       --  Make two attempts: first with precise results, then with the
       --  imprecise_fallback.
       begin
@@ -232,28 +247,37 @@ package body LSP.Ada_Contexts is
       return Libadalang.Analysis.Basic_Decl_Array
    is
       use Libadalang.Analysis;
-      Lal_Result : constant Basic_Decl_Array := Decl.P_Base_Subp_Declarations;
-      Our_Result : Basic_Decl_Array (1 .. Lal_Result'Length - 1);
-      Index : Positive := 1;
+
    begin
       Imprecise_Results := False;
 
-      --  Libadalang returns an empty array if this is not a subprogram
-      --  that's a primitive of a tagged type
-      if Lal_Result'Length = 0 then
+      if Decl.Is_Null then
          return (1 .. 0 => <>);
       end if;
 
-      --  The result returned by Libadalang includes self; we want to remove
-      --  this from the list.
-      for J of Lal_Result loop
-         if J /= Decl then
-            Our_Result (Index) := J;
-            Index := Index + 1;
+      declare
+         Lal_Result : constant Basic_Decl_Array :=
+                        Decl.P_Base_Subp_Declarations;
+         Our_Result : Basic_Decl_Array (1 .. Lal_Result'Length - 1);
+         Index      : Positive := 1;
+      begin
+         --  Libadalang returns an empty array if this is not a subprogram
+         --  that's a primitive of a tagged type
+         if Lal_Result'Length = 0 then
+            return (1 .. 0 => <>);
          end if;
-      end loop;
 
-      return Our_Result;
+         --  The result returned by Libadalang includes self; we want to remove
+         --  this from the list.
+         for J of Lal_Result loop
+            if J /= Decl then
+               Our_Result (Index) := J;
+               Index := Index + 1;
+            end if;
+         end loop;
+
+         return Our_Result;
+      end;
 
    exception
       when E : Libadalang.Common.Property_Error =>
@@ -261,6 +285,104 @@ package body LSP.Ada_Contexts is
          Imprecise_Results := True;
          return (1 .. 0 => <>);
    end Find_All_Base_Declarations;
+
+   --------------------------------------
+   -- Find_All_References_In_Hierarchy --
+   --------------------------------------
+
+   function Find_All_References_In_Hierarchy
+     (Self              : Context;
+      Decl              : Libadalang.Analysis.Basic_Decl;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array
+   is
+      use Libadalang.Analysis;
+
+   begin
+      Imprecise_Results := False;
+
+      if Decl.Is_Null then
+         return (1 .. 0 => <>);
+      end if;
+
+      declare
+         Overriding_Decls : constant Basic_Decl_Array :=
+                                   Self.Find_All_Overrides
+                                     (Decl,
+                                      Imprecise_Results => Imprecise_Results);
+         Base_Decls       : constant Basic_Decl_Array :=
+                                   Self.Find_All_Base_Declarations
+                                     (Decl,
+                                      Imprecise_Results => Imprecise_Results);
+         All_Decls        : constant Basic_Decl_Array :=
+                                   Overriding_Decls & Base_Decls;
+         References       : Base_Id_Array
+           (1 .. (Base_Decls'Length + Overriding_Decls'Length) * 3);
+         Subp_Body_Name   : Defining_Name;
+         Subp_Body_Node   : Subp_Body;
+         Last             : Positive := 1;
+      begin
+         for Decl of All_Decls loop
+            References (Last) := Decl.P_Defining_Name.F_Name.As_Base_Id;
+            Last := Last + 1;
+
+            --  Try to get the corresponding body
+            Subp_Body_Name := Lal_Utils.Find_Next_Part
+              (Decl.P_Defining_Name, Self.Trace);
+
+            --  If there is a body, append the body's begin and end labels
+            --  to the result.
+            if not Subp_Body_Name.Is_Null then
+               References (Last) := Subp_Body_Name.F_Name.As_Base_Id;
+
+               Subp_Body_Node := Subp_Body_Name.Parent.Parent.As_Subp_Body;
+               References (Last + 1) :=
+                 Subp_Body_Node.F_End_Name.F_Name.As_Base_Id;
+
+               Last := Last + 2;
+            end if;
+         end loop;
+
+         return References (References'First .. Last - 1);
+      end;
+   end Find_All_References_In_Hierarchy;
+
+   ---------------------------------
+   -- Get_References_For_Renaming --
+   ---------------------------------
+
+   function Get_References_For_Renaming
+     (Self              : Context;
+      Definition        : Libadalang.Analysis.Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Libadalang.Analysis.Base_Id_Array
+   is
+      use Libadalang.Analysis;
+
+      Imprecise_For_Refs       : Boolean;
+      Imprecise_For_Hierarchy  : Boolean;
+      Decl                     : constant Basic_Decl :=
+         Definition.P_Basic_Decl;
+      References               : constant Base_Id_Array :=
+         Self.Find_All_References (Definition, Imprecise_For_Refs)
+
+         --  Append Definition itself so that it is also renamed
+         & Definition.P_Relative_Name.As_Base_Id
+
+         --  Append the overriding and base declaractions in case we
+         --  are dealing with a subprogram
+         & Self.Find_All_References_In_Hierarchy
+            (Decl,
+             Imprecise_Results => Imprecise_For_Hierarchy);
+   begin
+      Imprecise_Results := Imprecise_For_Refs or Imprecise_For_Hierarchy;
+
+      if Imprecise_Results then
+         return (1 .. 0 => <>);
+      end if;
+
+      return References;
+   end Get_References_For_Renaming;
 
    --------------------
    -- Find_All_Calls --

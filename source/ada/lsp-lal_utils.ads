@@ -85,6 +85,11 @@ package LSP.Lal_Utils is
    --  Return the location of the given node. Populate alsKind field of the
    --  result with given Kind.
 
+   function To_Base_Id_Array
+     (Basic_Decls : Basic_Decl_Array) return Base_Id_Array;
+   --  Convert the given Basic_Decl_Array into a Base_Id_Array by retrieving
+   --  the defining names of all the given declarations.
+
    ---------------
    -- Called_By --
    ---------------
