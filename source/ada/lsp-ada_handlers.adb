@@ -839,40 +839,78 @@ package body LSP.Ada_Handlers is
    is
       use Libadalang.Analysis;
 
-      Value     : LSP.Messages.TextDocumentPositionParams renames
+      Position   : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Response  : LSP.Messages.Server_Responses.Location_Response
+      Response   : LSP.Messages.Server_Responses.Location_Response
         (Is_Error => False);
-      Document  : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-      Name_Node : constant Name :=
-        LSP.Lal_Utils.Get_Node_As_Name
-          (Document.Get_Node_At
-             (Self.Get_Best_Context (Value.textDocument.uri).all,
-              Value.position));
-      Type_Decl : Base_Type_Decl;
+      Imprecise  : Boolean := False;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Position.textDocument.uri);
+
+      procedure Resolve_In_Context (C : Context_Access);
+      --  Utility function to gather results on one context
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : Context_Access) is
+         Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+             (C.Get_Node_At (Document, Position));
+         Definition     : Defining_Name;
+         Type_Decl : Base_Type_Decl;
+      begin
+         if Name_Node = No_Name then
+            return;
+         end if;
+
+         if Name_Node.P_Is_Defining then
+            --  Special case if Name_Node is defining, for instance on the X in
+            --      X : My_Type;
+            --  In this case the parents will look like
+            --     4 Ada_Object_Decl
+            --     3   Ada_Defining_Name_List
+            --     2     Ada_Defining_Name
+            --     1       Ada_Identifier
+            declare
+               Pars : constant Libadalang.Analysis.Ada_Node_Array :=
+                 Name_Node.Parents;
+            begin
+               if Pars'Length > 3 and then
+                 Pars (Pars'First + 3).Kind in
+                 Libadalang.Common.Ada_Object_Decl
+               then
+                  Definition := Resolve_Name
+                    (Pars (Pars'First + 3).As_Object_Decl
+                     .P_Type_Expression.P_Type_Name,
+                     Self.Trace, Imprecise);
+               end if;
+            end;
+         else
+            --  Name_Node is not defining. In this case we can rely on
+            --  P_Expression_Type.
+            Type_Decl := Name_Node.P_Expression_Type;
+
+            --  P_Expression_Type returns the entire expression: narrow the
+            --  result down to the type declaration. Here we assume that the
+            --  first defining name in this expression is the name of the type.
+            if Type_Decl /= No_Type_Decl then
+               Definition := Type_Decl.P_Defining_Name;
+            end if;
+         end if;
+
+         if Definition /= No_Defining_Name then
+            Append_Location (Response.result, Definition);
+         end if;
+      end Resolve_In_Context;
+
    begin
-      if Name_Node = No_Name then
-         return Response;
-      end if;
+      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
+         Resolve_In_Context (C);
 
-      Type_Decl := Name_Node.P_Expression_Type;
-
-      if Type_Decl = No_Basic_Decl or else Request.Canceled then
-         return Response;
-      end if;
-
-      --  TODO: for anonymous access type declarations we should go to the
-      --  pointed type instead.
-      --  A private API already exists in LAL for that: waiting for it to be
-      --  public.
-
---        if Type_Decl.Kind in Ada_Anonymous_Type_Decl then
---           --  When LAL will be ready update this with
---           Type_Decl := Type_Decl.P_Pointed_Type or something
---        end if;
-
-      Append_Location (Response.result, Type_Decl);
+         exit when Request.Canceled;
+      end loop;
 
       return Response;
    end On_Type_Definition_Request;
