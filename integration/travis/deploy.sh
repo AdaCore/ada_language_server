@@ -8,7 +8,7 @@ TAG=${TRAVIS_TAG:-latest}
 
 function linux_deploy()
 {
-    LIB=/opt/gnat/lib
+    LIB=$PWD/../gnat/lib
 
     cp --dereference $LIB/lib{adalang,langkit_support}.so $DIR
     cp --dereference $LIB/libgnatcoll{_gmp,_iconv,}.so.0 $DIR
@@ -19,10 +19,11 @@ function linux_deploy()
 
     cp $LIB/gcc/x86_64-pc-linux-gnu/8.3.1/adalib/lib{gnat,gnarl}-2019.so $DIR
 
-    tar czvf /upload/$PLATFORM-$TAG-dbg.tar.gz -C integration/vscode/ada/ $PLATFORM
+    mkdir upload
+    tar czvf upload/$PLATFORM-$TAG-dbg.tar.gz -C integration/vscode/ada/ $PLATFORM
 
     strip $DIR/*
-    tar czvf /upload/$PLATFORM-$TAG.tar.gz -C integration/vscode/ada/ $PLATFORM
+    tar czvf upload/$PLATFORM-$TAG.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
 
 function drop_rpath ()

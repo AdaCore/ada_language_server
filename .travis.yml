@@ -2,9 +2,6 @@ os:
   - linux
   - osx
 
-services:
-  - docker
-
 language: generic
 
 before_install:
@@ -12,6 +9,10 @@ before_install:
 
 script:
   - integration/travis/travis.sh script
+
+cache:
+  directories:
+  - $HOME/cache
 
 deploy:
   on:

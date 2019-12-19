@@ -9,6 +9,8 @@ build_script:
 artifacts:
   - path: win32*.zip
 
+cache:
+  - C:\Users\appveyor\AppData\Local\Temp\1\chocolatey\gnat-gpl\2019.0 -> integration\appveyor\appveyor.sh
 deploy:
   - provider: BinTray
     on:
