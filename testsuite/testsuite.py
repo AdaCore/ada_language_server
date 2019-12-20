@@ -11,6 +11,14 @@ from drivers.basic import JsonTestDriver
 from drivers.codecs import CodecsTestDriver
 from drivers.gnatcov import GNATcov
 
+VALGRIND_OPTIONS = [
+        "--quiet",                   # only print errors
+        "--tool=memcheck",           # the standard tool
+        "--leak-check=full",         # report memory leaks
+        # "--gen-suppressions=all",  # use this to generate suppression entries
+        "--suppressions={base}/testsuite/leaks.supp", # the suppressions file
+        ]
+
 
 class ALSTestsuite(Testsuite):
     DRIVERS = {'default': JsonTestDriver,
@@ -71,8 +79,9 @@ class ALSTestsuite(Testsuite):
 
         # Absolute paths to programs that test drivers can use
         if self.env.options.valgrind_memcheck:
-            self.env.als = "{} --tool=memcheck --quiet {}".format(
+            self.env.als = "{} {} {}".format(
                 self.lookup_program("valgrind"),
+                " ".join(VALGRIND_OPTIONS).format(base=self.env.repo_base),
                 self.lookup_program('server', 'ada_language_server'))
             self.env.wait_factor = 20  # valgrind is slow
         else:

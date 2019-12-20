@@ -1,0 +1,46 @@
+{
+   Leaks when GPR initializes errors
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__gnat_malloc
+   fun:gpr__erroutc__output_msg_text
+   fun:gpr__err__finalize
+   fun:gnatcoll__projects__recompute_view
+   fun:gnatcoll__projects__internal_load
+   fun:gnatcoll__projects__load
+}
+
+{
+   GPR
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__gnat_malloc
+   fun:gpr__err__error_msg__2
+   fun:gpr__err__error_msg__2
+   fun:gpr__err__error_msg
+}
+
+### SC20-039 leaks when loading library aggregate projects
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__gnat_malloc
+   fun:gpr__env__copy
+   fun:gpr__proc__recursive_process
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__gnat_malloc
+   fun:gpr__env__projects_paths__tab__set
+   fun:gpr__env__find_project
+   fun:gpr__part__parse
+   fun:gpr__proc__recursive_process__process_aggregated_projects
+}
+
