@@ -48,6 +48,14 @@ package body LSP.Ada_Handlers is
    type Cancel_Countdown is mod 128;
    --  Counter to restrict frequency of Request.Canceled checks
 
+   Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
+     (Is_Server_Side => True,
+      As_Flags => (LSP.Messages.Parent => True, others => False));
+   Is_Child : constant LSP.Messages.AlsReferenceKind_Set :=
+     (Is_Server_Side => True,
+      As_Flags => (LSP.Messages.Child => True, others => False));
+   --  Convenient constants
+
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
                  return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
@@ -642,10 +650,63 @@ package body LSP.Ada_Handlers is
 
       procedure Resolve_In_Context (C : Context_Access) is
          Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
-             (C.Get_Node_At (Document, Position));
+           (C.Get_Node_At (Document, Position));
+
+         procedure List_Bodies_Of
+           (Definition : Defining_Name;
+            Kind       : LSP.Messages.AlsReferenceKind_Set);
+         --  List all the bodies of Definition, with the given kind as label
+
+         --------------------
+         -- List_Bodies_Of --
+         --------------------
+
+         procedure List_Bodies_Of
+           (Definition : Defining_Name;
+            Kind       : LSP.Messages.AlsReferenceKind_Set)
+         is
+            Next_Part  : Defining_Name;
+            Loop_Count : Natural := 0;
+         begin
+            --  If this happens to be the definition of a subprogram that
+            --  does not call for a body, let's consider that this *is* the
+            --  implementation, and return this.
+            if Is_Definition_Without_Separate_Implementation (Definition) then
+               Append_Location (Response.result, Definition, Kind);
+               return;
+            end if;
+
+            --  If the definition that we found is a body, add this to the list
+            if Definition.Parent.Parent.Kind in
+              Libadalang.Common.Ada_Subp_Body
+            then
+               Append_Location (Response.result, Definition, Kind);
+            end if;
+
+            Next_Part := Definition;
+
+            --  Now that we have a definition, list all the implementations for
+            --  this definition. We do this by iterating on Find_Next_Part
+            loop
+               --  Safety net, don't rely on the results making sense, since
+               --  the code might be invalid.
+               Next_Part := Find_Next_Part (Next_Part, Self.Trace);
+
+               exit when Next_Part = No_Defining_Name;
+
+               Append_Location (Response.result, Next_Part, Kind);
+
+               Loop_Count := Loop_Count + 1;
+               if Loop_Count > 5 then
+                  Imprecise := True;
+                  exit;
+               end if;
+            end loop;
+         end List_Bodies_Of;
+
          Definition     : Defining_Name;
-         Loop_Count     : Natural := 0;
          This_Imprecise : Boolean;
+         Decl           : Basic_Decl;
 
       begin
          if Name_Node = No_Name then
@@ -661,24 +722,21 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         --  Now that we have a definition, list all the implementations for
-         --  this definition. We do this by iterating on Find_Next_Part
-         loop
-            --  Safety net, don't rely on the results making sense, since
-            --  the code might be invalid.
-            Definition := Find_Next_Part (Definition, Self.Trace);
+         --  First list the bodies of this definition
+         List_Bodies_Of (Definition, LSP.Messages.Empty_Set);
 
-            exit when Definition = No_Defining_Name;
-
-            Append_Location (Response.result, Definition);
-
-            Loop_Count := Loop_Count + 1;
-
-            if Loop_Count > 5 then
-               Imprecise := True;
-               exit;
-            end if;
+         --  Then list the bodies of the parent implementations
+         Decl := Definition.P_Basic_Decl;
+         for Subp of C.Find_All_Base_Declarations (Decl, This_Imprecise) loop
+            List_Bodies_Of (Subp.P_Defining_Name, Is_Parent);
          end loop;
+         Imprecise := Imprecise or This_Imprecise;
+
+         --  And finally the bodies of child implementations
+         for Subp of C.Find_All_Overrides (Decl, This_Imprecise) loop
+            List_Bodies_Of (Subp.P_Defining_Name, Is_Child);
+         end loop;
+         Imprecise := Imprecise or This_Imprecise;
       end Resolve_In_Context;
 
    begin
@@ -791,13 +849,6 @@ package body LSP.Ada_Handlers is
                  C.Find_All_Base_Declarations
                    (Decl_For_Find_Overrides,
                     Imprecise_Results => Imprecise_Base);
-
-               Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
-                 (Is_Server_Side => True,
-                  As_Flags => (LSP.Messages.Parent => True, others => False));
-               Is_Child  : constant LSP.Messages.AlsReferenceKind_Set :=
-                 (Is_Server_Side => True,
-                  As_Flags => (LSP.Messages.Child => True, others => False));
             begin
                for Subp of Base_Subps loop
                   Append_Location
