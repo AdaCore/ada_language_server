@@ -82,7 +82,7 @@ package LSP.Messages.Server_Responses is
 
    package Symbol_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
-      T               => SymbolInformation_Vector);
+      T               => Symbol_Vector);
 
    type Symbol_Response is new Symbol_Responses.Response with null record;
 

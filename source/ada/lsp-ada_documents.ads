@@ -72,7 +72,7 @@ package LSP.Ada_Documents is
    procedure Get_Symbols
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.SymbolInformation_Vector);
+      Result  : out LSP.Messages.Symbol_Vector);
    --  Populate Result with symbols from the document.
 
    function Get_Node_At
