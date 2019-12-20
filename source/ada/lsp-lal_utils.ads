@@ -90,6 +90,12 @@ package LSP.Lal_Utils is
    --  Convert the given Basic_Decl_Array into a Base_Id_Array by retrieving
    --  the defining names of all the given declarations.
 
+   function Is_Definition_Without_Separate_Implementation
+     (Definition : Defining_Name) return Boolean;
+   --  Return True if the definition given is a subprogram that does not call
+   --  for a body, ie a "is null" procedure, an expression function, or an
+   --  abstract subprogram.
+
    ---------------
    -- Called_By --
    ---------------

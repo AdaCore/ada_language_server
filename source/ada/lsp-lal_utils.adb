@@ -296,6 +296,24 @@ package body LSP.Lal_Utils is
          return No_Defining_Name;
    end Find_Next_Part;
 
+   ---------------------------------------------------
+   -- Is_Definition_Without_Separate_Implementation --
+   ---------------------------------------------------
+
+   function Is_Definition_Without_Separate_Implementation
+     (Definition : Defining_Name) return Boolean
+   is
+      Parents : constant Ada_Node_Array := Definition.Parents;
+   begin
+      return Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
+        Libadalang.Common.Ada_Abstract_Subp_Decl
+      --  This is as abstract subprogram
+        | Libadalang.Common.Ada_Null_Subp_Decl
+      --  This is an "is null" procedure
+        | Libadalang.Common.Ada_Expr_Function;
+      --  This is an expression function
+   end Is_Definition_Without_Separate_Implementation;
+
    ---------------------------------
    -- Find_Defining_Name_Manually --
    ---------------------------------
@@ -360,17 +378,10 @@ package body LSP.Lal_Utils is
       --  Eliminate some cases. The subprogram does not have an other part if
       --  it is an expression function, or an abstract subprogram declaration,
       --  or a null procedure.
-      declare
-         Parents : constant Ada_Node_Array := Definition.Parents;
-      begin
-         if Parents'Length >= 2 and then Parents (Parents'First + 2).Kind in
-           Libadalang.Common.Ada_Abstract_Subp_Decl
-             | Libadalang.Common.Ada_Null_Subp_Decl
-             | Libadalang.Common.Ada_Expr_Function
-         then
-            return No_Defining_Name;
-         end if;
-      end;
+
+      if Is_Definition_Without_Separate_Implementation (Definition) then
+         return No_Defining_Name;
+      end if;
 
       --  First obtain the spec.
       --  Note: we could refine the number of calls to P_Semantic_Parent.
