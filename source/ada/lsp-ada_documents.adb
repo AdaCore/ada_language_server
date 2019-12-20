@@ -134,7 +134,7 @@ package body LSP.Ada_Documents is
    procedure Get_Symbols
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.SymbolInformation_Vector)
+      Result  : out LSP.Messages.Symbol_Vector)
    is
       Element : Libadalang.Analysis.Ada_Node;
       Item    : LSP.Messages.SymbolInformation;
@@ -148,7 +148,9 @@ package body LSP.Ada_Documents is
           (Self.Unit (Context).Root, Is_Defining_Name);
 
    begin
-      Result.Clear;
+      Result := LSP.Messages.Symbol_Vector'
+        (Is_Tree => False,
+         Vector  => <>);
 
       while Cursor.Next (Element) loop
          Item.name := To_LSP_String (Element.Text);
@@ -158,7 +160,7 @@ package body LSP.Ada_Documents is
             span    => To_Span (Element.Sloc_Range),
             alsKind => LSP.Messages.Empty_Set);
 
-         Result.Append (Item);
+         Result.Vector.Append (Item);
       end loop;
    end Get_Symbols;
 
