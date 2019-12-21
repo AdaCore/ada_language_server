@@ -165,19 +165,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "uri": "$URI{pack.ads}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
                            "line": 4, 
                            "character": 13
                         }, 
@@ -224,70 +211,6 @@
                      "uri": "$URI{pack.adb}"
                   }
                ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 3, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.ads}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 3, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 3, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Root)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (4:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 3, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.ads}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 4, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 4, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Root)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (4:4)"
-                  ]
-               }
             }
          ]
       }
@@ -328,22 +251,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.ads}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
                            "line": 13, 
                            "character": 13
                         }, 
@@ -374,70 +281,6 @@
                      "uri": "$URI{pack.adb}"
                   }
                ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 4, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 6, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 6, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Child)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (7:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 4, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 7, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 7, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Child)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (7:4)"
-                  ]
-               }
             }
          ]
       }
@@ -494,22 +337,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.ads}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
                            "line": 23, 
                            "character": 13
                         }, 
@@ -524,102 +351,6 @@
                      "uri": "$URI{pack.adb}"
                   }
                ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 9, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 9, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (10:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 10, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 10, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (10:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 11, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 11, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (10:4)"
-                  ]
-               }
             }
          ]
       }
@@ -688,92 +419,12 @@
                         "parent"
                      ], 
                      "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.ads}"
                   }
                ]
             }
          ]
       }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 23, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 13, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 13, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Great_Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (13:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 23, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 14, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 14, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Great_Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (13:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
+   },  
    {
       "send": {
          "request": {
@@ -826,22 +477,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.ads}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
                            "line": 23, 
                            "character": 13
                         }, 
@@ -856,70 +491,6 @@
                      "uri": "$URI{pack.adb}"
                   }
                ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 16, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 16, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (10:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 17, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 17, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Grandchild)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (10:4)"
-                  ]
-               }
             }
          ]
       }
@@ -956,23 +527,7 @@
                         }
                      }, 
                      "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 3, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 3, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.ads}"
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
@@ -1006,70 +561,6 @@
                      "uri": "$URI{pack.adb}"
                   }
                ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 4, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 19, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 19, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Child)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (7:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 4, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 20, 
-            "method": "textDocument/hover"
-         }, 
-         "wait": [
-            {
-               "id": 20, 
-               "result": {
-                  "contents": [
-                     {
-                        "value": "procedure Method (X : Child)", 
-                        "language": "ada"
-                     }, 
-                     "at pack.ads (7:4)"
-                  ]
-               }
             }
          ]
       }

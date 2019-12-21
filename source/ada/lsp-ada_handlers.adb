@@ -691,17 +691,22 @@ package body LSP.Ada_Handlers is
          is
             Next_Part  : Defining_Name;
             Loop_Count : Natural := 0;
+            Parents    : constant Ada_Node_Array := Definition.Parents;
          begin
             --  If this happens to be the definition of a subprogram that
             --  does not call for a body, let's consider that this *is* the
-            --  implementation, and return this.
-            if Is_Definition_Without_Separate_Implementation (Definition) then
+            --  implementation. Return this, and do not attempt to look
+            --  for secondary implementations in this case.
+            if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
+              Libadalang.Common.Ada_Null_Subp_Decl     --  "is null" procedure?
+                | Libadalang.Common.Ada_Expr_Function  --  expression function?
+            then
                Append_Location (Response.result, Definition, Kind);
                return;
             end if;
 
             --  If the definition that we found is a body, add this to the list
-            if Definition.Parent.Parent.Kind in
+            if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
               Libadalang.Common.Ada_Subp_Body
             then
                Append_Location (Response.result, Definition, Kind);
