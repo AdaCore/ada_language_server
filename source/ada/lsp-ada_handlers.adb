@@ -24,6 +24,7 @@ with Ada.Directories;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
@@ -415,15 +416,38 @@ package body LSP.Ada_Handlers is
 
          Self.Trace.Trace ("Loading the implicit project");
          declare
-            C : constant Context_Access := new Context (Self.Trace);
+            C    : constant Context_Access := new Context (Self.Trace);
+            Attr : GNAT.Strings.String_List (1 .. 1);
             use GNATCOLL.Projects;
          begin
             Self.Release_Project_Info;
             Initialize (Self.Project_Environment);
             Self.Project_Tree := new Project_Tree;
             C.Initialize;
-            Load_Implicit_Project (Self.Project_Tree.all,
-                                   Self.Project_Environment);
+
+            --  Note: we would call Load_Implicit_Project here, but this has
+            --  two problems:
+            --    - there is a bug under Windows where the files returned by
+            --      Source_Files have an extraneous directory separator
+            --    - the implicit project relies on the current working
+            --      of the ALS, which imposes a restriction on clients, and
+            --      is an extra pitfall for developers of this server
+            --  Instead, use Load_Empty_Project and set the source dir and
+            --  language manually: this does not have these inconvenients.
+
+            Load_Empty_Project
+              (Self.Project_Tree.all, Self.Project_Environment);
+            Attr := (1 => new String'("Ada"));
+            Set_Attribute
+              (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
+            GNAT.Strings.Free (Attr (1));
+            Attr := (1 => new String'(Self.Root.Display_Full_Name));
+            Set_Attribute
+              (Self.Project_Tree.Root_Project,
+               Source_Dirs_Attribute,
+               Attr);
+            GNAT.Strings.Free (Attr (1));
+            Self.Project_Tree.Recompute_View;
             C.Load_Project (Self.Project_Tree,
                             Self.Project_Tree.Root_Project,
                             "iso-8859-1");
