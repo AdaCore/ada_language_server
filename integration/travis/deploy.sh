@@ -70,6 +70,19 @@ function darwin_deploy()
     tar czvf upload/$PLATFORM-$TAG.tar.gz -C integration/vscode/ada/ $PLATFORM
 }
 
+function make_change_log()
+{
+    echo "# Release notes"
+    echo ""
+    for TAG_ID in `git tag --list '2*' | tac` ; do
+        DATE=`git show --no-patch --format=Date:%ad --date=short $TAG_ID |\
+ grep Date: | sed -e s/Date://`
+        echo "## $TAG_ID ($DATE)"
+
+        git show --no-patch --format=%n $TAG_ID | sed -e '1,/Release notes/d'
+    done
+}
+
 function vsix_deploy()
 {
     sed -e 's/:white_check_mark:/Yes               /g' README.md > \
@@ -94,6 +107,7 @@ function vsix_deploy()
 
     npm install
     npm install -g vsce
+    make_change_log > CHANGELOG.md
     [ -z "$TRAVIS_TAG" ] || vsce publish -p $VSCE_TOKEN
     vsce package || true
     popd

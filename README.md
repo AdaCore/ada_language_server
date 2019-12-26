@@ -142,6 +142,10 @@ files from disk by specifying an `"ada.defaultCharset"` key. The default is
 You can explicitly deactivate the emission of diagnostics, via the
 `"ada.enableDiagnostics"` key. By default, diagnostics are enabled.
 
+The language server is able to edit Ada comments while executing
+`textDocument/rename` request. To enable this just set
+`ada.renameInComments` setting to `true`.
+
 By default, the server indexes the source files after loading a project,
 to speed up subsequent requests. This behavior can be controlled
 via the `"ada.enableIndexing"` flag in this request.
@@ -157,6 +161,7 @@ Here is an example config file from the gnatcov project:
     },
    "ada.defaultCharset": "utf-8",
    "ada.enableDiagnostics": false,
+   "ada.renameInComments": false
 }
 ```
 
