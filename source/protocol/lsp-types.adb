@@ -124,6 +124,28 @@ package body LSP.Types is
       end if;
    end Read_Number_Or_String;
 
+   ---------------------------
+   -- Read_Optional_Boolean --
+   ---------------------------
+
+   procedure Read_Optional_Boolean
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_Boolean)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Is_Empty then
+         V := (Is_Set => False);
+      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
+         V := (Is_Set => True, Value => Value.Get);
+      else
+         V := (Is_Set => True, Value => True);
+      end if;
+   end Read_Optional_Boolean;
+
    --------------------------
    -- Read_Optional_String --
    --------------------------
@@ -309,6 +331,22 @@ package body LSP.Types is
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Write (GNATCOLL.JSON.Create (Item));
    end Write_Number;
+
+   ----------------------------
+   -- Write_Optional_Boolean --
+   ----------------------------
+
+   procedure Write_Optional_Boolean
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_Boolean)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      if V.Is_Set then
+         JS.Write (GNATCOLL.JSON.Create (V.Value));
+      end if;
+   end Write_Optional_Boolean;
 
    ------------------
    -- Write_String --

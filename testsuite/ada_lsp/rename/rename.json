@@ -19,7 +19,7 @@
                 "result":{
                     "capabilities":{
                         "textDocumentSync":1,
-                        "renameProvider":true
+                        "renameProvider":{}
                     }
                 }
             }]

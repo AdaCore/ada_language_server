@@ -146,8 +146,27 @@ package LSP.Types is
    -- Optional_Boolean --
    ----------------------
 
-   package Optional_Booleans is new LSP.Generic_Optional (Boolean);
-   type Optional_Boolean is new Optional_Booleans.Optional_Type;
+   type Optional_Boolean (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when True =>
+            Value : Boolean;
+         when False =>
+            null;
+      end case;
+   end record;
+
+   procedure Read_Optional_Boolean
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_Boolean);
+   --  Read a value from JSON stream
+
+   procedure Write_Optional_Boolean
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_Boolean);
+   --  Write a value to JSON stream
+
+   for Optional_Boolean'Read use Read_Optional_Boolean;
+   for Optional_Boolean'Write use Write_Optional_Boolean;
 
    function False return Optional_Boolean
      is ((Is_Set => Standard.True, Value => Standard.False));
