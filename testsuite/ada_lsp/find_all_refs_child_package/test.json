@@ -62,7 +62,7 @@
                      ],
                      "hoverProvider": true,
                      "definitionProvider": true,
-                     "renameProvider": true,
+                     "renameProvider": {},
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
                      "declarationProvider": true,

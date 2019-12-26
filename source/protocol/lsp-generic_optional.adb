@@ -35,6 +35,17 @@ package body LSP.Generic_Optional is
    begin
       if Value.Is_Empty then
          V := (Is_Set => False);
+      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
+         --  During protocol extension some boolean settings become objects.
+         --  To keep reading of optional settings compatible with earlier
+         --  implementations we read `true` (while we expect an optional
+         --  object) as a default value with Is_Set => True, but if we read
+         --  `false`, then we return an empty value.
+         if Value.Get then
+            V := (Is_Set => True, Value => <>);
+         else
+            V := (Is_Set => False);
+         end if;
       else
          V := (Is_Set => True, Value => <>);
          Element_Type'Read (S, V.Value);
