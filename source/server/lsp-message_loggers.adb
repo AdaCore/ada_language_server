@@ -942,7 +942,8 @@ package body LSP.Message_Loggers is
 
       Self.Trace.Trace
         ("Symbol_Response: "
-         & Image (Value)
+         & Image (Value) & " Is_Tree="
+         & Boolean'Image (Value.result.Is_Tree) & " "
          & (if not Value.result.Is_Tree then
               Ada.Containers.Count_Type'Image
                  (Value.result.Vector.Length)

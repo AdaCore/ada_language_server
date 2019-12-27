@@ -524,6 +524,15 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value  => (Is_Server_Side => True, As_Flags => (others => True)));
 
+      if Value.capabilities.textDocument.documentSymbol.Is_Set
+        and then Value.capabilities.textDocument.documentSymbol.Value
+          .hierarchicalDocumentSymbolSupport = (True, True)
+      then
+         Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
+      else
+         Self.Get_Symbols := LSP.Ada_Documents.Get_Symbols'Access;
+      end if;
+
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := URI_To_File (Value.rootUri);
       else
@@ -1625,12 +1634,16 @@ package body LSP.Ada_Handlers is
         Get_Open_Document (Self, Value.textDocument.uri);
       Context  : constant Context_Access :=
         Get_Best_Context (Self, Value.textDocument.uri);
-      Response : LSP.Messages.Server_Responses.Symbol_Response
-        (Is_Error => False);
 
    begin
-      Document.Get_Symbols (Context.all, Response.result);
-      return Response;
+      return Result : LSP.Messages.Server_Responses.Symbol_Response :=
+        (Is_Error => False,
+         result   => <>,
+         error    => (Is_Set => False),
+         others   => <>)
+      do
+         Self.Get_Symbols (Document.all, Context.all, Result.result);
+      end return;
    end On_Document_Symbols_Request;
 
    -----------------------

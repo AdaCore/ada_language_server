@@ -3932,7 +3932,7 @@ package body LSP.Messages is
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
                Write_Optional_Boolean (JS, +"deprecated", Item.deprecated);
-               JS.Key ("span");
+               JS.Key ("range");
                Span'Write (S, Item.span);
                JS.Key ("selectionRange");
                Span'Write (S, Item.selectionRange);

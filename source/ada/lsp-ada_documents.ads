@@ -75,6 +75,12 @@ package LSP.Ada_Documents is
       Result  : out LSP.Messages.Symbol_Vector);
    --  Populate Result with symbols from the document.
 
+   procedure Get_Symbol_Hierarchy
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Result  : out LSP.Messages.Symbol_Vector);
+   --  Populate Result with a symbol hierarchy from the document.
+
    function Get_Node_At
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
