@@ -79,6 +79,12 @@ private
       Hash            => LSP.Types.Hash,
       Equivalent_Keys => LSP.Types."=");
 
+   type Get_Symbol_Access is access procedure
+     (Self     : LSP.Ada_Documents.Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Result   : out LSP.Messages.Symbol_Vector);
+   --  textDocument/documentSymbol handler
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -141,6 +147,10 @@ private
 
       Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
       --  The project environment for the currently loaded project
+
+      Get_Symbols : Get_Symbol_Access;
+      --  textDocument/documentSymbol handler. Actual value depends on
+      --  client's capabilities.
    end record;
 
    overriding procedure Before_Work

@@ -127,6 +127,73 @@ package body LSP.Ada_Documents is
       end if;
    end Get_Errors;
 
+   --------------------------
+   -- Get_Symbol_Hierarchy --
+   --------------------------
+
+   procedure Get_Symbol_Hierarchy
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Result  : out LSP.Messages.Symbol_Vector)
+   is
+      procedure Walk
+        (Node   : Libadalang.Analysis.Ada_Node;
+         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Tree   : in out LSP.Messages.DocumentSymbol_Tree);
+      --  Traverse Node and all its children recursively. Find any defining
+      --  name and construct corresponding symbol node, then append it to
+      --  the Tree under a position pointed by the Cursor.
+
+      ----------
+      -- Walk --
+      ----------
+
+      procedure Walk
+        (Node   : Libadalang.Analysis.Ada_Node;
+         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Tree   : in out LSP.Messages.DocumentSymbol_Tree)
+      is
+         Next : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+      begin
+         if Node.Kind in Libadalang.Common.Ada_Basic_Decl then
+            declare
+               Decl : constant Libadalang.Analysis.Basic_Decl :=
+                 Node.As_Basic_Decl;
+
+               Name : constant Libadalang.Analysis.Defining_Name :=
+                 Decl.P_Defining_Name;
+
+               Item : constant LSP.Messages.DocumentSymbol :=
+                 (name           => To_LSP_String (Name.Text),
+                  detail         => (Is_Set => False),
+                  kind           => Get_Decl_Kind (Decl),
+                  deprecated     => (Is_Set => False),
+                  span           => To_Span (Node.Sloc_Range),
+                  selectionRange => To_Span (Node.Sloc_Range),
+                  children       => True);
+
+            begin
+               Tree.Insert_Child
+                 (Parent   => Cursor,
+                  Before   => LSP.Messages.DocumentSymbol_Trees.No_Element,
+                  New_Item => Item,
+                  Position => Next);
+            end;
+         end if;
+
+         for Child of Node.Children loop
+            if Child not in Libadalang.Analysis.No_Ada_Node then
+               Walk (Child, Next, Tree);
+            end if;
+         end loop;
+      end Walk;
+
+      Root : constant Libadalang.Analysis.Ada_Node := Self.Unit (Context).Root;
+   begin
+      Result := (Is_Tree => True, others => <>);
+      Walk (Root, Result.Tree.Root, Result.Tree);
+   end Get_Symbol_Hierarchy;
+
    -----------------
    -- Get_Symbols --
    -----------------
