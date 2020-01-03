@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,6 +17,8 @@
 
 with GNATCOLL.JSON;
 with LSP.Messages.Server_Requests;
+
+private
 function LSP.Servers.Decode_Request
   (Document : GNATCOLL.JSON.JSON_Value)
    return LSP.Messages.Server_Requests.Server_Request'Class;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,10 +15,24 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.JSON_Streams;
 with LSP.Messages.Common_Writers;
 
 package body LSP.Generic_Notifications is
+
+   ------------
+   -- Decode --
+   ------------
+
+   function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+        return Notification is
+   begin
+      return V : Notification do
+         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
+         JS.Key ("params");
+         T'Read (JS, V.params);
+      end return;
+   end Decode;
 
    ----------
    -- Read --
@@ -36,6 +50,17 @@ package body LSP.Generic_Notifications is
       T'Read (S, V.params);
       JS.End_Object;
    end Read;
+
+   -----------
+   -- Visit --
+   -----------
+
+   procedure Visit
+     (Self    : Notification;
+      Handler : access Visitor) is
+   begin
+      raise Program_Error;
+   end Visit;
 
    -----------
    -- Write --

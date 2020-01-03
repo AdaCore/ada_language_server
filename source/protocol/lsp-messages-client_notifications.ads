@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,7 +31,8 @@ package LSP.Messages.Client_Notifications is
 
    package LogMessages is new LSP.Generic_Notifications
      (Client_Notification,
-      LSP.Messages.LogMessageParams);
+      LSP.Messages.LogMessageParams,
+      Client_Notification_Receiver'Class);
 
    type LogMessage_Notification is
      new LogMessages.Notification with null record;
@@ -42,7 +43,8 @@ package LSP.Messages.Client_Notifications is
 
    package ShowMessages is new LSP.Generic_Notifications
      (Client_Notification,
-      LSP.Messages.ShowMessageParams);
+      LSP.Messages.ShowMessageParams,
+      Client_Notification_Receiver'Class);
 
    type ShowMessage_Notification is
      new ShowMessages.Notification with null record;
@@ -53,7 +55,8 @@ package LSP.Messages.Client_Notifications is
 
    package PublishDiagnostics is new LSP.Generic_Notifications
      (Client_Notification,
-      LSP.Messages.PublishDiagnosticsParams);
+      LSP.Messages.PublishDiagnosticsParams,
+      Client_Notification_Receiver'Class);
 
    type PublishDiagnostics_Notification is
      new PublishDiagnostics.Notification with null record;
@@ -64,7 +67,8 @@ package LSP.Messages.Client_Notifications is
 
    package Progress_Params is new LSP.Generic_Notifications
      (Client_Notification,
-      LSP.Messages.Progress_Params);
+      LSP.Messages.Progress_Params,
+      Client_Notification_Receiver'Class);
 
    type Progress_Notification is
      new Progress_Params.Notification with null record;

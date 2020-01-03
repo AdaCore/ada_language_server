@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -135,6 +135,23 @@ package body LSP.Messages is
       Dispatching_Call => Dispatching_Call_Reference_Image'Access,
       Parent           => Parent_Reference_Image'Access,
       Child            => Child_Reference_Image'Access);
+
+   -------------------
+   -- Method_To_Tag --
+   -------------------
+
+   function Method_To_Tag
+     (Map    : Maps.Map;
+      Method : LSP.Types.LSP_String) return Ada.Tags.Tag
+   is
+      Cursor : constant Maps.Cursor := Map.Find (Method);
+   begin
+      if Maps.Has_Element (Cursor) then
+         return Maps.Element (Cursor);
+      else
+         return Ada.Tags.No_Tag;
+      end if;
+   end Method_To_Tag;
 
    -------------------------------
    -- Read_AlsReferenceKind_Set --

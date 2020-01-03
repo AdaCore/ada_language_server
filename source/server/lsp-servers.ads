@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -230,4 +230,7 @@ private
      (Self   : access Server;
       Params : LSP.Messages.Progress_Params);
 
+   Unknown_Method : exception;
+   --  This exception is raised by message decoder when it's unable to decode
+   --  an unknown request
 end LSP.Servers;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -349,6 +349,14 @@ package body LSP.Servers is
                  new LSP.Messages.Server_Requests.Server_Request'Class'
                    (LSP.Servers.Decode_Request (Document));
             exception
+               when UR : Unknown_Method =>
+                  Send_Exception_Response
+                    (Self, UR,
+                     To_String (Vector),
+                     Request_Id,
+                     LSP.Messages.MethodNotFound);
+                  return;
+
                when E : others =>
                   --  If we reach this exception handler, this means the
                   --  request could not be decoded.
@@ -368,9 +376,17 @@ package body LSP.Servers is
            or else Method.Value = +"exit"
          then
             --  This is a notification
-            Notification :=
-              new Messages.Server_Notifications.Server_Notification'Class'
-                (LSP.Servers.Decode_Notification (Document));
+            begin
+               Notification :=
+                 new Messages.Server_Notifications.Server_Notification'Class'
+                   (LSP.Servers.Decode_Notification (Document));
+            exception
+               when E : Unknown_Method =>
+                  Self.Server_Trace.Trace
+                    ("Unable to decode notification: "
+                     & Symbolic_Traceback (E));
+                  return;
+            end;
 
             --  Process '$/cancelRequest' notification
             if Notification.all in

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,6 +20,7 @@
 
 with Ada.Streams;
 
+with LSP.JSON_Streams;
 with LSP.Messages;
 
 generic
@@ -29,10 +30,20 @@ generic
    type T is private;
    --  Type of notification parameter
 
+   type Visitor (<>) is limited private;
+
 package LSP.Generic_Notifications is
-   type Notification is abstract new Base_Message with record
+   type Notification is new Base_Message with record
       params : T;
    end record;
+
+   function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+        return Notification;
+
+   procedure Visit
+     (Self    : Notification;
+      Handler : access Visitor);
 
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;

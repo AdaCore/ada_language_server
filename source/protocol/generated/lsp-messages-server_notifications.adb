@@ -1,8 +1,28 @@
 --  Automatically generated, do not edit.
 
+with Ada.Strings.UTF_Encoding;
+with LSP.Messages.Common_Writers;
+
 package body LSP.Messages.Server_Notifications is
 
    --  These messages are sent from client to server.
+
+   Map : Maps.Map;
+
+   function Method_To_Tag
+     (Method : LSP.Types.LSP_String) return Ada.Tags.Tag is
+   begin
+      return Method_To_Tag (Map, Method);
+   end Method_To_Tag;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Initialized_Notification is
+   begin
+      return V : Initialized_Notification do
+         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
+      end return;
+   end Decode;
 
    overriding procedure Visit
      (Self    : Initialized_Notification;
@@ -12,6 +32,15 @@ package body LSP.Messages.Server_Notifications is
    begin
       Handler.On_Initialized_Notification;
    end Visit;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Exit_Notification is
+   begin
+      return V : Exit_Notification do
+         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
+      end return;
+   end Decode;
 
    overriding procedure Visit
      (Self    : Exit_Notification;
@@ -64,4 +93,41 @@ package body LSP.Messages.Server_Notifications is
       Handler.On_DidCloseTextDocument_Notification (Self.params);
    end Visit;
 
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+      return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
+
+begin
+
+   Map.Insert
+     (+"initialized",
+      Initialized_Notification'Tag);
+
+   Map.Insert
+     (+"exit",
+      Exit_Notification'Tag);
+
+   Map.Insert
+     (+"workspace/didChangeConfiguration",
+      DidChangeConfiguration_Notification'Tag);
+
+   Map.Insert
+     (+"$/cancelRequest",
+      Cancel_Notification'Tag);
+
+   Map.Insert
+     (+"textDocument/didOpen",
+      DidOpenTextDocument_Notification'Tag);
+
+   Map.Insert
+     (+"textDocument/didChange",
+      DidChangeTextDocument_Notification'Tag);
+
+   Map.Insert
+     (+"textDocument/didSave",
+      DidSaveTextDocument_Notification'Tag);
+
+   Map.Insert
+     (+"textDocument/didClose",
+      DidCloseTextDocument_Notification'Tag);
 end LSP.Messages.Server_Notifications;

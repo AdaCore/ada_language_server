@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,10 @@ package LSP.Messages.Client_Requests is
       Reciver : access Client_Request_Receiver'Class) is abstract;
 
    package ShowMessage_Requests is
-     new LSP.Generic_Requests (Client_Request, ShowMessageParams);
+     new LSP.Generic_Requests
+       (Client_Request,
+        ShowMessageParams,
+        Client_Request_Receiver'Class);
 
    type ShowMessage_Request is
      new ShowMessage_Requests.Request with null record;
@@ -40,7 +43,10 @@ package LSP.Messages.Client_Requests is
       Reciver : access Client_Request_Receiver'Class);
 
    package Workspace_Apply_Edit_Requests is
-     new LSP.Generic_Requests (Client_Request, ApplyWorkspaceEditParams);
+     new LSP.Generic_Requests
+       (Client_Request,
+        ApplyWorkspaceEditParams,
+        Client_Request_Receiver'Class);
 
    type Workspace_Apply_Edit_Request is
      new Workspace_Apply_Edit_Requests.Request with null record;

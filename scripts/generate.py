@@ -8,7 +8,9 @@ from os.path import join
 
 LSP_Messages_Generic_Header = """--  Automatically generated, do not edit.
 
+with Ada.Tags;
 with LSP.Generic_{kind}s;
+with LSP.JSON_Streams;
 with LSP.Server_{kind}_Receivers;
 use LSP.Server_{kind}_Receivers;
 
@@ -17,9 +19,16 @@ package LSP.Messages.Server_{kind}s is
    type Server_{kind} is abstract new LSP.Messages.{kind}Message
      with null record;
 
+   function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Server_{kind} is abstract;
+
    procedure Visit
      (Self    : Server_{kind};
       Handler : access Server_{kind}_Receiver'Class) is abstract;
+
+   function Method_To_Tag (Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+   --  For given LSP method return a corresponding message type tag
 """
 
 C_Method_Function_Snippet = """
@@ -49,9 +58,20 @@ C_Method_Request_Snippet = """
 
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
+with Ada.Strings.UTF_Encoding;
+with LSP.Messages.Common_Writers;
+
 package body LSP.Messages.Server_{kind}s is
 
    --  These messages are sent from client to server.
+
+   Map : Maps.Map;
+
+   function Method_To_Tag
+     (Method : LSP.Types.LSP_String) return Ada.Tags.Tag is
+   begin
+      return Method_To_Tag (Map, Method);
+   end Method_To_Tag;
 """
 
 C_Method_Visit_Body_Snippet = """
@@ -74,36 +94,15 @@ C_Method_Visit_Body_Snippet_Noparams = """
    end Visit;
 """
 
-LSP_Servers_Decode_Body = """--  Automatically generated, do not edit.
-
-with Ada.Strings.UTF_Encoding;
-with LSP.JSON_Streams;
-with LSP.Types; use LSP.Types;
-with LSP.Messages.Common_Writers; use LSP.Messages.Common_Writers;
-with LSP.Messages.Server_{kind}s; use LSP.Messages.Server_{kind}s;
-
-function LSP.Servers.Decode_{kind}
-   (Document : GNATCOLL.JSON.JSON_Value)
-    return LSP.Messages.Server_{kind}s.Server_{kind}'Class
-is
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
-   JS : aliased LSP.JSON_Streams.JSON_Stream;
-   JSON_Array : GNATCOLL.JSON.JSON_Array;
-
-   Method     : LSP.Types.LSP_String;
-
-begin
-   GNATCOLL.JSON.Append (JSON_Array, Document);
-   JS.Set_JSON_Document (JSON_Array);
-   JS.Start_Object;
-
-   LSP.Types.Read_String (JS, +"method", Method);
-{decode_snippets}
-   raise Program_Error; --  {kind} not found
-end LSP.Servers.Decode_{kind};
+C_Method_Decode_Body_Snippet = """
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return {request_name}_{kind} is
+   begin
+      return V : {request_name}_{kind} do
+         Messages.Common_Writers.Set_Common_{kind}_Fields (V, JS.all);
+      end return;
+   end Decode;
 """
 
 C_Handler_Procedure_Body = """--  Automatically generated, do not edit.
@@ -147,19 +146,6 @@ begin
 end LSP.Servers.Handle_{kind};
 """
 
-C_Decode_Snippet = """
-   if To_UTF_8_String (Method) = "{protocol_name}" then
-      declare
-         R : {request_name}_{kind};
-      begin
-         Set_Common_{kind}_Fields (R, JS);
-         JS.Key ("params");
-         LSP.Messages.{params_name}'Read (JS'Access, R.params);
-         return R;
-      end;
-   end if;
-"""
-
 C_Handler_Snippet_Function = """
       if {kind} in {request_name}_{kind}'Class then
          declare
@@ -189,16 +175,18 @@ C_Handler_Snippet_Procedure_Noparams = """
       end if;
 """
 
-C_Decode_Snippet_Noparams = """
-      if To_UTF_8_String (Method) = "{protocol_name}" then
-         declare
-            R : {request_name}_{kind};
-         begin
-            Set_Common_{kind}_Fields (R, JS);
-            return R;
-         end;
-      end if;
-"""
+LSP_Messages_Body_Begin = """
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+      return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
+
+begin"""
+
+LSP_Messages_Insert = """
+
+   Map.Insert
+     (+"{protocol_name}",
+      {request_name}_{kind}'Tag);"""
 
 LSP_Messages_Generic_Footer = """
 end LSP.Messages.Server_{kind}s;
@@ -208,7 +196,8 @@ LSP_Messages_Generic_Type_Snippet = """
    package {request_name}_{kind}s is
      new LSP.Generic_{kind}s
        (Server_{kind},
-        {params_name});
+        {params_name},
+        Server_{kind}_Receiver'Class);
 
    type {request_name}_{kind} is
      new {request_name}_{kind}s.{kind} with null record;
@@ -220,6 +209,10 @@ LSP_Messages_Generic_Type_Snippet = """
 
 LSP_Messages_Generic_Type_Snippet_Noparams = """
    type {request_name}_{kind} is new Server_{kind} with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return {request_name}_{kind};
 
    overriding procedure Visit
      (Self    : {request_name}_{kind};
@@ -356,13 +349,20 @@ def write_message_types():
     def write_body(data_array, kind, adb_name, handler_is_procedure):
         """Factorization function"""
 
-        # Write the .ads
+        # Write the .adb
         with open(adb_name, 'wb') as adb:
             adb.write(LSP_Messages_Generic_Body_Header.format(kind=kind))
 
             for l in data_array:
                 request_name = l[1]
                 params_name = l[2]
+
+                if not params_name:
+                    adb.write(
+                        C_Method_Decode_Body_Snippet.format(
+                            request_name=request_name,
+                            kind=kind))
+
                 if params_name or not handler_is_procedure:
                     adb.write(
                         C_Method_Visit_Body_Snippet.format(
@@ -374,6 +374,17 @@ def write_message_types():
                         C_Method_Visit_Body_Snippet_Noparams.format(
                             request_name=request_name,
                             kind=kind))
+
+            adb.write(LSP_Messages_Body_Begin.format(kind=kind))
+
+            for l in data_array:
+                protocol_name = l[0]
+                request_name = l[1]
+                params_name = l[2]
+                adb.write(LSP_Messages_Insert.format(
+                    protocol_name=protocol_name,
+                    request_name=request_name,
+                    kind=kind))
 
             adb.write(LSP_Messages_Generic_Footer.format(kind=kind))
 
@@ -429,49 +440,6 @@ def write_handle_request():
                   join(gen_dir, 'lsp-servers-handle_request.adb'),
                   False)
 
-
-def write_message_decoders():
-    """ Write source/server/lsp-servers-decode_*.adb """
-
-    def write_package(data_array, kind, adb_name,
-                      handler_is_procedure):
-        """Factorization function"""
-
-        # Write the .adb
-        with open(adb_name, 'wb') as adb:
-            decode_snippets = ""
-
-            # Generate the snippets
-            for l in data_array:
-                protocol_name = l[0]
-                request_name = l[1]
-                params_name = l[2]
-                if params_name:
-                    decode_snippets += \
-                        C_Decode_Snippet.format(
-                            protocol_name=protocol_name,
-                            request_name=request_name,
-                            params_name=params_name,
-                            kind=kind)
-
-                else:
-                    decode_snippets += \
-                        C_Decode_Snippet_Noparams.format(
-                            protocol_name=protocol_name,
-                            request_name=request_name,
-                            kind=kind)
-
-            adb.write(LSP_Servers_Decode_Body.format(
-                            decode_snippets=decode_snippets,
-                            kind=kind))
-
-    gen_dir = join(basedir, 'source', 'server', 'generated')
-    write_package(REQUESTS, 'Request',
-                  join(gen_dir, 'lsp-servers-decode_request.adb'),
-                  False)
-    write_package(NOTIFICATIONS, 'Notification',
-                  join(gen_dir, 'lsp-servers-decode_notification.adb'),
-                  True)
 
 
 def write_server_handlers():
@@ -568,6 +536,5 @@ def write_server_receivers():
 if __name__ == '__main__':
     write_message_types()
     write_handle_request()
-    write_message_decoders()
     write_server_handlers()
     write_server_receivers()
