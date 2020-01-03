@@ -14,47 +14,44 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  This package provides a template to create LSP Request based on
---  request parameter type.
---
 
-with Ada.Streams;
+with Ada.Strings.UTF_Encoding;
+with Ada.Tags.Generic_Dispatching_Constructor;
 
 with LSP.JSON_Streams;
-with LSP.Messages;
+with LSP.Types; use LSP.Types;
+with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
 
-generic
-   type Base_Message is abstract new LSP.Messages.RequestMessage
-     with private;
+function LSP.Servers.Decode_Request
+   (Document : GNATCOLL.JSON.JSON_Value)
+    return LSP.Messages.Server_Requests.Server_Request'Class
+is
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+      return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
 
-   type T is private;
-   --  Type of request parameter
+   function Constructor is new Ada.Tags.Generic_Dispatching_Constructor
+     (T           => LSP.Messages.Server_Requests.Server_Request,
+      Parameters  => LSP.JSON_Streams.JSON_Stream,
+      Constructor => LSP.Messages.Server_Requests.Decode);
 
-   type Visitor (<>) is limited private;
+   JS : aliased LSP.JSON_Streams.JSON_Stream;
+   JSON_Array : GNATCOLL.JSON.JSON_Array;
 
-package LSP.Generic_Requests is
-   type Request is new Base_Message with record
-      params : T;
-   end record;
+   Method     : LSP.Types.LSP_String;
+   Tag        : Ada.Tags.Tag;
 
-   function Decode
-     (JS : not null access LSP.JSON_Streams.JSON_Stream)
-        return Request;
+begin
+   GNATCOLL.JSON.Append (JSON_Array, Document);
+   JS.Set_JSON_Document (JSON_Array);
+   JS.Start_Object;
 
-   procedure Visit
-     (Self    : Request;
-      Handler : access Visitor);
+   LSP.Types.Read_String (JS, +"method", Method);
+   Tag := LSP.Messages.Server_Requests.Method_To_Tag (Method);
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Request);
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Request);
-
-   for Request'Read use Read;
-   for Request'Write use Write;
-
-end LSP.Generic_Requests;
+   if Tag in Ada.Tags.No_Tag then
+      raise Unknown_Method;
+   else
+      return Constructor (Tag, JS'Access);
+   end if;
+end LSP.Servers.Decode_Request;

@@ -1,6 +1,8 @@
 --  Automatically generated, do not edit.
 
+with Ada.Tags;
 with LSP.Generic_Notifications;
+with LSP.JSON_Streams;
 with LSP.Server_Notification_Receivers;
 use LSP.Server_Notification_Receivers;
 
@@ -9,17 +11,32 @@ package LSP.Messages.Server_Notifications is
    type Server_Notification is abstract new LSP.Messages.NotificationMessage
      with null record;
 
+   function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Server_Notification is abstract;
+
    procedure Visit
      (Self    : Server_Notification;
       Handler : access Server_Notification_Receiver'Class) is abstract;
 
+   function Method_To_Tag (Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+   --  For given LSP method return a corresponding message type tag
+
    type Initialized_Notification is new Server_Notification with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Initialized_Notification;
 
    overriding procedure Visit
      (Self    : Initialized_Notification;
       Handler : access Server_Notification_Receiver'Class);
 
    type Exit_Notification is new Server_Notification with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return Exit_Notification;
 
    overriding procedure Visit
      (Self    : Exit_Notification;
@@ -28,7 +45,8 @@ package LSP.Messages.Server_Notifications is
    package DidChangeConfiguration_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        DidChangeConfigurationParams);
+        DidChangeConfigurationParams,
+        Server_Notification_Receiver'Class);
 
    type DidChangeConfiguration_Notification is
      new DidChangeConfiguration_Notifications.Notification with null record;
@@ -40,7 +58,8 @@ package LSP.Messages.Server_Notifications is
    package Cancel_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        CancelParams);
+        CancelParams,
+        Server_Notification_Receiver'Class);
 
    type Cancel_Notification is
      new Cancel_Notifications.Notification with null record;
@@ -52,7 +71,8 @@ package LSP.Messages.Server_Notifications is
    package DidOpenTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        DidOpenTextDocumentParams);
+        DidOpenTextDocumentParams,
+        Server_Notification_Receiver'Class);
 
    type DidOpenTextDocument_Notification is
      new DidOpenTextDocument_Notifications.Notification with null record;
@@ -64,7 +84,8 @@ package LSP.Messages.Server_Notifications is
    package DidChangeTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        DidChangeTextDocumentParams);
+        DidChangeTextDocumentParams,
+        Server_Notification_Receiver'Class);
 
    type DidChangeTextDocument_Notification is
      new DidChangeTextDocument_Notifications.Notification with null record;
@@ -76,7 +97,8 @@ package LSP.Messages.Server_Notifications is
    package DidSaveTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        DidSaveTextDocumentParams);
+        DidSaveTextDocumentParams,
+        Server_Notification_Receiver'Class);
 
    type DidSaveTextDocument_Notification is
      new DidSaveTextDocument_Notifications.Notification with null record;
@@ -88,7 +110,8 @@ package LSP.Messages.Server_Notifications is
    package DidCloseTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
-        DidCloseTextDocumentParams);
+        DidCloseTextDocumentParams,
+        Server_Notification_Receiver'Class);
 
    type DidCloseTextDocument_Notification is
      new DidCloseTextDocument_Notifications.Notification with null record;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,6 +28,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
+with Ada.Tags;
 
 with LSP.Generic_Optional;
 with LSP.Generic_Sets;
@@ -6066,5 +6067,16 @@ private
 
    for ApplyWorkspaceEditParams'Read use Read_ApplyWorkspaceEditParams;
    for ShowMessageRequestParams'Read use Read_ShowMessageRequestParams;
+
+   package Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Types.LSP_String,
+      Element_Type    => Ada.Tags.Tag,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=",
+      "="             => Ada.Tags."=");
+
+   function Method_To_Tag
+     (Map    : Maps.Map;
+      Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
 
 end LSP.Messages;
