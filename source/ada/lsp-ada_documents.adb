@@ -157,27 +157,36 @@ package body LSP.Ada_Documents is
       begin
          if Node.Kind in Libadalang.Common.Ada_Basic_Decl then
             declare
+               use type Libadalang.Analysis.Defining_Name;
+
                Decl : constant Libadalang.Analysis.Basic_Decl :=
                  Node.As_Basic_Decl;
 
-               Name : constant Libadalang.Analysis.Defining_Name :=
-                 Decl.P_Defining_Name;
-
-               Item : constant LSP.Messages.DocumentSymbol :=
-                 (name           => To_LSP_String (Name.Text),
-                  detail         => (Is_Set => False),
-                  kind           => Get_Decl_Kind (Decl),
-                  deprecated     => (Is_Set => False),
-                  span           => To_Span (Node.Sloc_Range),
-                  selectionRange => To_Span (Node.Sloc_Range),
-                  children       => True);
+               Names : constant Libadalang.Analysis.Defining_Name_Array :=
+                 Decl.P_Defining_Names;
 
             begin
-               Tree.Insert_Child
-                 (Parent   => Cursor,
-                  Before   => LSP.Messages.DocumentSymbol_Trees.No_Element,
-                  New_Item => Item,
-                  Position => Next);
+               for Name of Names loop
+
+                  exit when Name = Libadalang.Analysis.No_Defining_Name;
+
+                  declare
+                     Item : constant LSP.Messages.DocumentSymbol :=
+                       (name           => To_LSP_String (Name.Text),
+                        detail         => (Is_Set => False),
+                        kind           => Get_Decl_Kind (Decl),
+                        deprecated     => (Is_Set => False),
+                        span           => To_Span (Node.Sloc_Range),
+                        selectionRange => To_Span (Node.Sloc_Range),
+                        children       => True);
+                  begin
+                     Tree.Insert_Child
+                       (Parent   => Cursor,
+                        Before   => Messages.DocumentSymbol_Trees.No_Element,
+                        New_Item => Item,
+                        Position => Next);
+                  end;
+               end loop;
             end;
          end if;
 
