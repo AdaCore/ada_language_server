@@ -299,38 +299,40 @@ package body LSP.Ada_Contexts is
       return Libadalang.Analysis.Base_Id_Array
    is
       use Libadalang.Analysis;
+      use Libadalang.Common;
 
-   begin
-      Imprecise_Results := False;
+      function Find_All_Subp_References_In_Hierarchy
+        (Hierarchy : Basic_Decl_Array) return Base_Id_Array;
+      --  Return all the references of Decl in the given hierarchy
 
-      if Decl.Is_Null then
-         return (1 .. 0 => <>);
-      end if;
+      function Find_All_Param_References_In_Hierarchy
+        (Param     : Param_Spec;
+         Hierarchy : Basic_Decl_Array;
+         Idx       : Positive) return Base_Id_Array;
+      --  Recursive function that returns all the references of the given
+      --  parameter's name in the hierarchy.
 
-      declare
-         Overriding_Decls : constant Basic_Decl_Array :=
-                                   Self.Find_All_Overrides
-                                     (Decl,
-                                      Imprecise_Results => Imprecise_Results);
-         Base_Decls       : constant Basic_Decl_Array :=
-                                   Self.Find_All_Base_Declarations
-                                     (Decl,
-                                      Imprecise_Results => Imprecise_Results);
-         All_Decls        : constant Basic_Decl_Array :=
-                                   Overriding_Decls & Base_Decls;
+      -------------------------------------------
+      -- Find_All_Subp_References_In_Hierarchy --
+      -------------------------------------------
+
+      function Find_All_Subp_References_In_Hierarchy
+        (Hierarchy : Basic_Decl_Array) return Base_Id_Array
+      is
          References       : Base_Id_Array
-           (1 .. (Base_Decls'Length + Overriding_Decls'Length) * 3);
+           (1 .. Hierarchy'Length * 2);
          Subp_Body_Name   : Defining_Name;
          Subp_Body_Node   : Subp_Body;
-         Last             : Positive := 1;
+         Last             : Positive := References'First;
       begin
-         for Decl of All_Decls loop
-            References (Last) := Decl.P_Defining_Name.F_Name.As_Base_Id;
+
+         for Subp_Decl of Hierarchy loop
+            References (Last) := Subp_Decl.P_Defining_Name.F_Name.As_Base_Id;
             Last := Last + 1;
 
             --  Try to get the corresponding body
             Subp_Body_Name := Lal_Utils.Find_Next_Part
-              (Decl.P_Defining_Name, Self.Trace);
+              (Subp_Decl.P_Defining_Name, Self.Trace);
 
             --  If there is a body, append the body's begin and end labels
             --  to the result.
@@ -346,6 +348,86 @@ package body LSP.Ada_Contexts is
          end loop;
 
          return References (References'First .. Last - 1);
+      end Find_All_Subp_References_In_Hierarchy;
+
+      --------------------------------------------
+      -- Find_All_Param_References_In_Hierarchy --
+      --------------------------------------------
+
+      function Find_All_Param_References_In_Hierarchy
+        (Param     : Param_Spec;
+         Hierarchy : Basic_Decl_Array;
+         Idx       : Positive) return Base_Id_Array
+      is
+         Param_Name_Id : constant Defining_Name :=
+                           Param.F_Ids.List_Child (1);
+         Subp_Decl     : Basic_Subp_Decl;
+      begin
+
+         if Idx > Hierarchy'Last then
+            return (1 .. 0 => No_Base_Id);
+         end if;
+
+         Subp_Decl := Hierarchy (Idx).As_Basic_Subp_Decl;
+
+         --  Iterate on all the parameters of the subprogram and find the
+         --  parameter with the same name
+         for Param of Subp_Decl.P_Subp_Decl_Spec.P_Params loop
+            if Param_Name_Id.Text = Param.F_Ids.List_Child (1).Text then
+
+               --  Return all the references to the parameter and call this
+               --  function recursively to do the same thing on the next
+               --  subprogram of the hierarchy.
+               return
+                 Param.F_Ids.List_Child (1).F_Name.As_Base_Id
+                 & Self.Find_All_References
+                      (Definition        => Param.F_Ids.List_Child (1),
+                       Imprecise_Results => Imprecise_Results)
+                 & Find_All_Param_References_In_Hierarchy
+                      (Param     => Param,
+                       Hierarchy => Hierarchy,
+                       Idx       => Idx + 1);
+            end if;
+         end loop;
+
+         return (1 .. 0 => No_Base_Id);
+      end Find_All_Param_References_In_Hierarchy;
+
+   begin
+      Imprecise_Results := False;
+
+      if Decl.Is_Null then
+         return (1 .. 0 => <>);
+      end if;
+
+      declare
+         Is_Param         : constant Boolean :=
+                              Decl.Kind in Ada_Param_Spec_Range;
+         Parents          : constant Ada_Node_Array := Decl.Parents;
+         Subp_Decl        : constant Basic_Decl :=
+                              (if Is_Param then
+                                  Parents (Parents'First + 4).As_Basic_Decl
+                               else
+                                  Decl);
+         Overriding_Decls : constant Basic_Decl_Array :=
+                                   Self.Find_All_Overrides
+                                     (Subp_Decl,
+                                      Imprecise_Results => Imprecise_Results);
+         Base_Decls       : constant Basic_Decl_Array :=
+                                   Self.Find_All_Base_Declarations
+                                     (Subp_Decl,
+                                      Imprecise_Results => Imprecise_Results);
+         Hierarchy        : constant Basic_Decl_Array :=
+                                   Overriding_Decls & Base_Decls;
+      begin
+         if Is_Param then
+            return Find_All_Param_References_In_Hierarchy
+              (Param     => Decl.As_Param_Spec,
+               Hierarchy => Hierarchy,
+               Idx       => Hierarchy'First);
+         else
+            return Find_All_Subp_References_In_Hierarchy (Hierarchy);
+         end if;
       end;
    end Find_All_References_In_Hierarchy;
 
@@ -371,8 +453,9 @@ package body LSP.Ada_Contexts is
          --  Append Definition itself so that it is also renamed
          & Definition.P_Relative_Name.As_Base_Id
 
-         --  Append the overriding and base declaractions in case we
-         --  are dealing with a subprogram
+         --  Append the references in overriding and base declaractions in case
+         --  we are dealing with tagged type primitives or a parameter of a
+         --  tagged type primitive.
          & Self.Find_All_References_In_Hierarchy
             (Decl,
              Imprecise_Results => Imprecise_For_Hierarchy);
