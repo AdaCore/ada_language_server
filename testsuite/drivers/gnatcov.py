@@ -12,7 +12,6 @@ class GNATcov(object):
 
     After initialization, the workflow for this helper is:
 
-    * call the `build()` method to build instrumented programs;
     * use the `decorate_run()` method to run a program that contributes to code
       coverage (i.e. that instrumented programs);
     * call the `report()` method to generate coverage reports.
@@ -23,83 +22,30 @@ class GNATcov(object):
     are generated in `.obj/gnatcov/report-$FORMAT`.
     """
 
-    class Project(object):
-        """Description of a project to cover."""
-        def __init__(self, gnatcov_dir, prj, obj_dir, deps=[],
-                     for_coverage=True, has_mains=False):
-            """
-            :param str gnatcov_dir: Absolute path to the directory to host
-                gnatcov artifacts.
-            :param str prj: Name of the project whose coverage needs to be
-                analyzed.
-            :param str obj_dir: Path (relative to the repo root directory) of
-                the project's object directory.
-            :param list[str] deps: Subset of `prj` dependencies for which we
-                want to get coverage.
-            :param bool for_coverage: Whether we want to compute code coverage
-                for the sources in this project.
-            :param bool has_mains: Whether this project file contains main
-                units.
-            """
-            self.prj = prj
-            self.prj_obj_dir = obj_dir
-            self.deps = deps
-            self.for_coverage = for_coverage
-            self.has_mains = has_mains
-
-            # Path to the project file to analyze, relative to the repository
-            # base directory.
-            self.prj_file = os.path.join('gnat', prj + '.gpr')
-
-            # Name and absolute file for `prj`'s project extension
-            self.ext_prj = 'ext_' + prj
-            self.ext_prj_file = os.path.join(gnatcov_dir,
-                                             self.ext_prj + '.gpr')
-            self.ext_prj_obj_dir = 'obj-{}'.format(prj)
-
-            # Compute the list of projects in self's closure (self included)
-            # that matter for coverage.
-            closure = [self]
-            for d in deps:
-                closure.extend(d.projects_in_closure)
-            self.projects_in_closure = [p for p in closure if p.for_coverage]
-
     def __init__(self, testsuite, covlevel='stmt'):
         """
         :param ALSTestsuite testsuite: Testsuite instance to work with.
         :param str covlevel: Coverage level to pass to GNATcoverage.
         """
         self.covlevel = covlevel
+        self.sid_dir = testsuite.env.options.gnatcov
 
-        self.repo_base = testsuite.env.repo_base
-        self.gnatcov_dir = os.path.abspath(os.path.join(
-            testsuite.env.repo_base, '.obj', 'gnatcov'))
-        self.traces_dir = os.path.join(self.gnatcov_dir, 'traces')
+        self.temp_dir = os.path.join(testsuite.env.working_dir, 'gnatcov')
+        self.traces_dir = os.path.join(self.temp_dir, 'traces')
+        self.output_dir = testsuite.output_dir
 
-        self.projects = []
-        def create_project(*args, **kwargs):
-            result = self.Project(self.gnatcov_dir, *args, **kwargs)
-            self.projects.append(result)
-            return result
+        self.ensure_clean_dir(self.temp_dir)
+        os.mkdir(self.traces_dir)
 
-        # Projects involved in code coverage
-        self.lsp = create_project('lsp', obj_dir='.obj/lsp')
-        self.lsp_server = create_project(
-            'lsp_server', obj_dir='.obj/server', deps=[self.lsp], has_mains=True)
-        self.lsp_client = create_project(
-            'lsp_client', obj_dir='.obj/client', deps=[self.lsp],
-            for_coverage=False)
-        self.codec_test = create_project(
-            'codec_test', obj_dir='.obj/codec_test', deps=[self.lsp_client],
-            for_coverage=False, has_mains=True)
-        self.main_projects = [p for p in self.projects if p.has_mains]
-
-        # We are going to instrument several programs, so make the rest of the
-        # testsuite use the instrumented version.
-        testsuite.env.als = os.path.join(
-            self.gnatcov_dir, 'obj-lsp_server', 'ada_language_server')
-        testsuite.env.codec_test = os.path.join(
-            self.gnatcov_dir, 'obj-codec_test', 'codec_test')
+    @staticmethod
+    def ensure_clean_dir(dirname):
+        """
+        If it exists, remove the ``dirname`` directory tree and create an empty
+        directory instead.
+        """
+        if os.path.exists(dirname):
+            shutil.rmtree(dirname)
+        os.mkdir(dirname)
 
     @staticmethod
     def checked_run(argv):
@@ -113,56 +59,6 @@ class GNATcov(object):
                           ' '.join(quote_arg(arg) for arg in argv))
             logging.error('Output:\n' + p.out)
             raise RuntimeError
-
-    def build(self, jobs=1):
-        """Build instrumented programs."""
-        logging.info('Building instrumented programs')
-
-        # Create output directories, if needed. Also remove trace files from
-        # previous runs.
-        if not os.path.exists(self.gnatcov_dir):
-            os.mkdir(self.gnatcov_dir)
-        if os.path.exists(self.traces_dir):
-            shutil.rmtree(self.traces_dir)
-        os.mkdir(self.traces_dir)
-
-        # Generate project extensions to make the "gnatcov_rts_full" project
-        # available everywhere.
-        for p in self.projects:
-            deps = ['gnatcov_rts_full'] + [d.ext_prj for d in p.deps]
-            with open(p.ext_prj_file, 'w') as f:
-                f.write(
-                    """
-                        {deps}
-
-                        project {p.ext_prj} extends "../../{p.prj_file}" is
-                            for Object_Dir use "{p.ext_prj_obj_dir}";
-                        end {p.ext_prj};
-                    """
-                    .format(deps='\n'.join('with "{}";'.format(d)
-                                           for d in deps),
-                            p=p))
-
-        # Instrument projects with mains: this will also instrument its
-        # dependencies (see --projects below).
-        for p in self.main_projects:
-            self.checked_run(
-                ['gnatcov', 'instrument', '--level', self.covlevel,
-                 '-P', os.path.join(self.repo_base, p.prj_file)] +
-                ['--projects={}'.format(pic.prj)
-                 for pic in p.projects_in_closure] +
-                ['--dump-method', 'atexit'])
-
-        # Finally build instrumented programs. Disable style checks, as it does
-        # not make sense for instrumented sources. Also disable warnings as
-        # errors, as it's expected for generated code to contain issues (unused
-        # WITHed packages, for instance).
-        for p in self.main_projects:
-            self.checked_run(
-                ['gprbuild', '-P', p.ext_prj_file,
-                 '-j{}'.format(jobs),
-                 '-p', '--src-subdirs=gnatcov-instr'] +
-                ['-XALS_WARN_ERRORS=false', '-cargs', '-gnatyN'])
 
     def decorate_run(self, driver, kwargs):
         """
@@ -193,22 +89,20 @@ class GNATcov(object):
         """Generate coverage reports for all given output formats."""
 
         # Get the list of all SID files
-        sid_list = os.path.join(self.gnatcov_dir, 'sid_files.txt')
+        sid_list = os.path.join(self.temp_dir, 'sid_files.txt')
         with open(sid_list, 'w') as f:
-            for p in self.projects:
-                for s in glob.glob(os.path.join(self.repo_base, p.prj_obj_dir,
-                                                '*.sid')):
-                    f.write(s + '\n')
+            for s in glob.glob(os.path.join(self.sid_dir, '*.sid')):
+                f.write(s + '\n')
 
         # Get the list of all trace files
-        traces_list = os.path.join(self.gnatcov_dir, 'traces.txt')
+        traces_list = os.path.join(self.temp_dir, 'traces.txt')
         with open(traces_list, 'w') as f:
             for t in glob.glob(os.path.join(self.traces_dir, '*.srctrace')):
                 f.write(t + '\n')
 
         # Load trace files only once, produce a checkpoint for them
         logging.info('Consolidating coverage results')
-        ckpt_file = os.path.join(self.gnatcov_dir, 'report.ckpt')
+        ckpt_file = os.path.join(self.temp_dir, 'report.ckpt')
         self.checked_run(['gnatcov', 'coverage', '--level', self.covlevel,
                           '--sid', '@' + sid_list,
                           '--save-checkpoint', ckpt_file,
@@ -218,13 +112,11 @@ class GNATcov(object):
         logging.info('Generating coverage reports ({})'
                      .format(', '.join(sorted(formats))))
         for fmt in formats:
-            output_dir = os.path.join(self.gnatcov_dir, 'report-' + fmt)
-            if os.path.exists(output_dir):
-                shutil.rmtree(output_dir)
-            os.mkdir(output_dir)
+            report_dir = os.path.join(self.output_dir, 'coverage-' + fmt)
+            self.ensure_clean_dir(report_dir)
             self.checked_run([
                 'gnatcov', 'coverage',
                 '--annotate', fmt,
                 '--level', self.covlevel,
-                '--output-dir', output_dir,
+                '--output-dir', report_dir,
                 '--checkpoint', ckpt_file])

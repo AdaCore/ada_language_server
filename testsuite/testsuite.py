@@ -29,10 +29,11 @@ class ALSTestsuite(Testsuite):
             action="store",
             help="Ignored, here for compatibility purposes")
         self.main.argument_parser.add_argument(
-            "--gnatcov", action="store_true",
-            help="Compute the source code coverage of testcases on ALS. This"
-                 " requires GNATcoverage working with instrumentation and will"
-                 " run a build of ALS before running tests.")
+            "--gnatcov",
+            help="If provided, compute the source code coverage of testcases"
+                 " on ALS. This requires GNATcoverage working with"
+                 " instrumentation. The argument passed must be a directory"
+                 " that contains all SID files.")
         self.main.argument_parser.add_argument(
             "--valgrind_memcheck", action="store_true",
             help="Runs the Ada Language Server under valgrind, in memory"
@@ -81,11 +82,9 @@ class ALSTestsuite(Testsuite):
 
         # If code coverage is requested, initialize our helper and build
         # instrumented programs.
-        if self.env.options.gnatcov:
-            self.env.gnatcov = GNATcov(self)
-            self.env.gnatcov.build(self.env.options.jobs)
-        else:
-            self.env.gnatcov = None
+        self.env.gnatcov = (GNATcov(self)
+                            if self.env.options.gnatcov else
+                            None)
 
         self.start_time = datetime.datetime.now()
 
@@ -94,10 +93,10 @@ class ALSTestsuite(Testsuite):
         elapsed = self.stop_time - self.start_time
         logging.info('Elapsed time: {}'.format(elapsed))
 
-        super(ALSTestsuite, self).tear_down()
-
         if self.env.gnatcov:
             self.env.gnatcov.report()
+
+        super(ALSTestsuite, self).tear_down()
 
     def get_test_list(self, sublist):
         results = []
