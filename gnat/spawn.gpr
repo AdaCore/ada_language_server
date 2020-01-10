@@ -20,6 +20,13 @@ project Spawn is
    type OS_API_Kind is ("unix", "osx", "Windows_NT");
    OS_API : OS_API_Kind := external ("OS", "unix");
 
+   --  By default, treat warnings as errors in dev mode, but not in prod
+   --  mode. Let users override this default using the SPAWN_WARN_ERRORS
+   --  environment variable.
+
+   type Any_Boolean is ("false", "true");
+   Warnings_As_Errors : Any_Boolean := external ("SPAWN_WARN_ERRORS", "true");
+
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
    for Languages use ("Ada", "c");
@@ -44,8 +51,14 @@ project Spawn is
             "spawn-processes-windows.adb");
    end case;
 
+   Ada_Switches := ("-g", "-gnatwa", "-gnatyyO");
+   case Warnings_As_Errors is
+      when "true"  => Ada_Switches := Ada_Switches & ("-gnatwe");
+      when "false" => null;
+   end case;
+
    package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyyO", "-gnatwe");
+      for Switches ("ada") use Ada_Switches;
    end Compiler;
 
    package Naming is

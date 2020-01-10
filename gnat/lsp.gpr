@@ -33,8 +33,8 @@ project LSP is
    type Any_Boolean is ("false", "true");
 
    --  By default, treat warnings as errors in dev mode, but not in prod
-   --  mode. Let users override this default using the WARN_ERRORS environment
-   --  variable.
+   --  mode. Let users override this default using the ALS_WARN_ERRORS
+   --  environment variable.
 
    Warnings_As_Errors : Any_Boolean := "true";
    case Build_Mode is
