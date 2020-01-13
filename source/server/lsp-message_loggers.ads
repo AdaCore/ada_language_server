@@ -166,6 +166,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Signature_Help_Request);
 
+   overriding procedure On_Document_Links_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Links_Request);
+
    overriding procedure On_Document_Symbols_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Document_Symbols_Request);
@@ -217,6 +221,10 @@ private
    overriding procedure On_Symbol_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Symbol_Response);
+
+   overriding procedure On_Links_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.Links_Response);
 
    overriding procedure On_Rename_Response
      (Self   : in out Message_Logger;

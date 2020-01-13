@@ -133,6 +133,18 @@ begin
          end;
       end if;
 
+      if Request in Document_Links_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Document_Links_Request
+                  (Document_Links_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in References_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

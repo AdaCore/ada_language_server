@@ -63,6 +63,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Hover_Request)
         is abstract;
 
+   procedure On_Document_Links_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Document_Links_Request)
+        is abstract;
+
    procedure On_References_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.References_Request)

@@ -150,6 +150,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Hover_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Document_Links_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DocumentLinkParams,
+        Server_Request_Receiver'Class);
+
+   type Document_Links_Request is
+     new Document_Links_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Document_Links_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package References_Requests is
      new LSP.Generic_Requests
        (Server_Request,

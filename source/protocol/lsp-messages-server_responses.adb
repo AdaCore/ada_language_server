@@ -118,6 +118,18 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : Links_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_Links_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Location_Response;
       Handler : access Server_Response_Sender'Class)
    is

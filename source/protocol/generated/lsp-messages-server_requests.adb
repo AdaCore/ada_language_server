@@ -95,6 +95,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Document_Links_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Document_Links_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : References_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -202,6 +209,10 @@ begin
    Map.Insert
      (+"textDocument/hover",
       Hover_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/documentLink",
+      Document_Links_Request'Tag);
 
    Map.Insert
      (+"textDocument/references",

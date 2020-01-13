@@ -221,6 +221,11 @@ private
       Request : LSP.Messages.Server_Requests.Signature_Help_Request)
       return LSP.Messages.Server_Responses.SignatureHelp_Response;
 
+   overriding function On_Document_Links_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Links_Request)
+      return LSP.Messages.Server_Responses.Links_Response;
+
    overriding function On_Document_Symbols_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)

@@ -80,6 +80,16 @@ package LSP.Messages.Server_Responses is
      (Self    : Highlight_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package Links_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => DocumentLink_Vector);
+
+   type Links_Response is new Links_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : Links_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package Symbol_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => Symbol_Vector);
