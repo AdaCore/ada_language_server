@@ -52,9 +52,6 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "executeCommandProvider": {
-                        "commands": []
-                     },
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "write",
@@ -70,7 +67,6 @@
                      "referencesProvider": true,
                      "declarationProvider": true,
                      "textDocumentSync": 1,
-                     "documentLinkProvider": {},
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
