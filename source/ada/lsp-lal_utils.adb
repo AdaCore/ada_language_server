@@ -364,6 +364,7 @@ package body LSP.Lal_Utils is
          return Libadalang.Common.Into;
       end Matches;
 
+      Parent_Node : Ada_Node;
       Parent_Spec : Defining_Name;
       Parent_Body : Defining_Name;
    begin
@@ -388,8 +389,16 @@ package body LSP.Lal_Utils is
       --  Two calls to P_Semantic_Parents are needed in the case of a
       --  subprogram: the first jumps to the SubpDecl, the second to the
       --  PackageDecl.
-      Parent_Spec := Definition.P_Semantic_Parent.
-        As_Basic_Decl.P_Semantic_Parent.As_Basic_Decl.
+
+      Parent_Node := Definition.P_Semantic_Parent.P_Semantic_Parent;
+
+      if Parent_Node.Is_Null
+        or else Parent_Node.Kind not in Ada_Basic_Decl
+      then
+         return No_Defining_Name;
+      end if;
+
+      Parent_Spec := Parent_Node.As_Basic_Decl.
           P_Canonical_Part.P_Defining_Name;
 
       --  Traverse the spec. The visiting function assigns the matching
