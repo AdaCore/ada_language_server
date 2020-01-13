@@ -461,6 +461,20 @@ package body LSP.Message_Loggers is
          & (+Value.textDocument.uri));
    end On_DidSaveTextDocument_Notification;
 
+   -------------------------------
+   -- On_Document_Links_Request --
+   -------------------------------
+
+   overriding procedure On_Document_Links_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Links_Request) is
+   begin
+      Self.Trace.Trace
+        ("Document_Links_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Document_Links_Request;
+
    ---------------------------------
    -- On_Document_Symbols_Request --
    ---------------------------------
@@ -923,6 +937,28 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Ada.Containers.Count_Type'Image (Value.result.signatures.Length));
    end On_SignatureHelp_Response;
+
+   -----------------------
+   -- On_Links_Response --
+   -----------------------
+
+   overriding procedure On_Links_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.Links_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("Links_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("Links_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_Links_Response;
 
    ------------------------
    -- On_Symbol_Response --

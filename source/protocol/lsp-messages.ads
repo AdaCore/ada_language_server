@@ -4990,6 +4990,10 @@ package LSP.Messages is
       --  data?: any
    end record;
 
+   package DocumentLink_Vectors is new LSP.Generic_Vectors (DocumentLink);
+
+   type DocumentLink_Vector is new DocumentLink_Vectors.Vector with null record;
+
    --```typescript
    --interface DocumentFormattingParams {
    --	/**

@@ -278,6 +278,8 @@ REQUESTS = [
      'Highlight_Response'),
     ('textDocument/hover', 'Hover', 'TextDocumentPositionParams',
      'Hover_Response'),
+    ('textDocument/documentLink', 'Document_Links',
+     'DocumentLinkParams', 'Links_Response'),
     ('textDocument/references', 'References', 'ReferenceParams',
      'Location_Response'),
     ('textDocument/signatureHelp', 'Signature_Help',

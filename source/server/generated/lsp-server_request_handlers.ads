@@ -64,6 +64,11 @@ package LSP.Server_Request_Handlers is
       Request : LSP.Messages.Server_Requests.Hover_Request)
       return LSP.Messages.Server_Responses.Hover_Response is abstract;
 
+   function On_Document_Links_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Links_Request)
+      return LSP.Messages.Server_Responses.Links_Response is abstract;
+
    function On_References_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.References_Request)

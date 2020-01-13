@@ -50,6 +50,10 @@ package LSP.Server_Response_Senders is
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Symbol_Response) is abstract;
 
+   procedure On_Links_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.Links_Response) is abstract;
+
    procedure On_Rename_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Rename_Response) is abstract;
