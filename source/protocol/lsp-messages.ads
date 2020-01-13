@@ -3098,6 +3098,11 @@ package LSP.Messages is
    for DocumentLinkOptions'Write use Write_DocumentLinkOptions;
    for DocumentLinkOptions'Read use Read_DocumentLinkOptions;
 
+   package Optional_DocumentLinkOptions_Package is
+     new LSP.Generic_Optional (DocumentLinkOptions);
+   type Optional_DocumentLinkOptions is
+     new Optional_DocumentLinkOptions_Package.Optional_Type;
+
    type ExecuteCommandOptions is record
       commands: LSP.Types.LSP_String_Vector;
    end record;
@@ -3110,6 +3115,11 @@ package LSP.Messages is
       V : ExecuteCommandOptions);
    for ExecuteCommandOptions'Write use Write_ExecuteCommandOptions;
    for ExecuteCommandOptions'Read use Read_ExecuteCommandOptions;
+
+   package Optional_ExecuteCommandOptions_Package is
+     new LSP.Generic_Optional (ExecuteCommandOptions);
+   type Optional_ExecuteCommandOptions is
+     new Optional_ExecuteCommandOptions_Package.Optional_Type;
 
    package Optional_Boolean_Or_String_Package is
      new LSP.Generic_Optional (LSP_Boolean_Or_String);
@@ -3174,11 +3184,11 @@ package LSP.Messages is
       documentRangeFormattingProvider: Optional_Boolean;
       documentOnTypeFormattingProvider: Optional_DocumentOnTypeFormattingOptions;
       renameProvider: Optional_RenameOptions;
-      documentLinkProvider: DocumentLinkOptions;
+      documentLinkProvider: Optional_DocumentLinkOptions;
       colorProvider: Optional_Provider_Options;
       foldingRangeProvider: Optional_Provider_Options;
       declarationProvider: Optional_Provider_Options;
-      executeCommandProvider: ExecuteCommandOptions;
+      executeCommandProvider: Optional_ExecuteCommandOptions;
       workspace: Optional_workspace_Options;
       --	experimental?: any;
 

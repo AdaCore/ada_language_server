@@ -50,9 +50,6 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "executeCommandProvider": {
-                        "commands": []
-                     },
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "write",
@@ -65,7 +62,6 @@
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
                      "textDocumentSync": 1,
-                     "documentLinkProvider": {},
                      "completionProvider": {
                         "triggerCharacters": [
                            "."

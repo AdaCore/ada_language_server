@@ -2188,7 +2188,7 @@ package body LSP.Messages is
       JS.Key ("renameProvider");
       Optional_RenameOptions'Read (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
-      DocumentLinkOptions'Read (S, V.documentLinkProvider);
+      Optional_DocumentLinkOptions'Read (S, V.documentLinkProvider);
       JS.Key ("colorProvider");
       Optional_Provider_Options'Read (S, V.colorProvider);
       JS.Key ("foldingRangeProvider");
@@ -2196,7 +2196,7 @@ package body LSP.Messages is
       JS.Key ("declarationProvider");
       Optional_Provider_Options'Read (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
-      ExecuteCommandOptions'Read (S, V.executeCommandProvider);
+      Optional_ExecuteCommandOptions'Read (S, V.executeCommandProvider);
       JS.Key ("workspace");
       Optional_workspace_Options'Read (S, V.workspace);
 
@@ -4981,7 +4981,7 @@ package body LSP.Messages is
       JS.Key ("renameProvider");
       Optional_RenameOptions'Write (S, V.renameProvider);
       JS.Key ("documentLinkProvider");
-      DocumentLinkOptions'Write (S, V.documentLinkProvider);
+      Optional_DocumentLinkOptions'Write (S, V.documentLinkProvider);
       JS.Key ("colorProvider");
       Optional_Provider_Options'Write (S, V.colorProvider);
       JS.Key ("foldingRangeProvider");
@@ -4989,7 +4989,7 @@ package body LSP.Messages is
       JS.Key ("declarationProvider");
       Optional_Provider_Options'Write (S, V.declarationProvider);
       JS.Key ("executeCommandProvider");
-      ExecuteCommandOptions'Write (S, V.executeCommandProvider);
+      Optional_ExecuteCommandOptions'Write (S, V.executeCommandProvider);
       JS.Key ("workspace");
       Optional_workspace_Options'Write (S, V.workspace);
 
