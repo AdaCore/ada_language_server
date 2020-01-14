@@ -651,6 +651,7 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      Sort_And_Remove_Duplicates (Response.result.Locations);
       return Response;
    end On_Declaration_Request;
 
@@ -790,6 +791,7 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      Sort_And_Remove_Duplicates (Response.result.Locations);
       return Response;
    end On_Implementation_Request;
 
@@ -914,6 +916,7 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      Sort_And_Remove_Duplicates (Response.result.Locations);
       return Response;
    end On_Definition_Request;
 
@@ -1444,6 +1447,7 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      Sort_And_Remove_Duplicates (Response.result);
       return Response;
    end On_References_Request;
 
@@ -1548,7 +1552,7 @@ package body LSP.Ada_Handlers is
                         return;
                      end if;
                   end loop;
-
+                  Sort_And_Remove_Duplicates (Subp_And_Refs.refs);
                   Response.result.Append (Subp_And_Refs);
                   Next (C);
                end;

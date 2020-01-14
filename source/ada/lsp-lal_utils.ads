@@ -75,7 +75,6 @@ package LSP.Lal_Utils is
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
-   --  Do not append if the location is already in Result.
    --  See description of Kind in Get_Node_Location comments.
 
    procedure Append_Location
@@ -83,6 +82,10 @@ package LSP.Lal_Utils is
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  The same for Location_Vector.
+
+   procedure Sort_And_Remove_Duplicates
+     (Result : in out LSP.Messages.Location_Vector);
+   --  Sort Result and remove duplicates from it.
 
    function Get_Node_Location
      (Node : Libadalang.Analysis.Ada_Node;

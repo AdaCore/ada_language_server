@@ -3,14 +3,14 @@
       "comment": [
          "test automatically generated"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -19,548 +19,548 @@
                   "textDocument": {
                      "completion": {
                         "completionItemKind": {}
-                     }, 
-                     "documentLink": {}, 
-                     "formatting": {}, 
-                     "documentHighlight": {}, 
-                     "synchronization": {}, 
-                     "references": {}, 
-                     "rangeFormatting": {}, 
-                     "onTypeFormatting": {}, 
-                     "codeLens": {}, 
+                     },
+                     "documentLink": {},
+                     "formatting": {},
+                     "documentHighlight": {},
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "codeLens": {},
                      "colorProvider": {}
-                  }, 
+                  },
                   "workspace": {
-                     "applyEdit": false, 
-                     "executeCommand": {}, 
-                     "didChangeWatchedFiles": {}, 
-                     "workspaceEdit": {}, 
+                     "applyEdit": false,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
                      "didChangeConfiguration": {}
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true, 
+                     "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
-                        "write", 
-                        "call", 
-                        "dispatching call", 
-                        "parent", 
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
                         "child"
-                     ], 
-                     "hoverProvider": true, 
-                     "definitionProvider": true, 
-                     "renameProvider": {}, 
-                     "alsCalledByProvider": true, 
-                     "referencesProvider": true, 
-                     "declarationProvider": true, 
-                     "textDocumentSync": 1, 
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "declarationProvider": true,
+                     "textDocumentSync": 1,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
-                        ], 
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "documentSymbolProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "scenarioVariables": {}, 
-                     "enableDiagnostics": false, 
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "pragma Ada_2012;\npackage body pack is\n\n\n   procedure Method (X : Child) is\n   begin\n      null;\n   end Method;\n\n   ------------\n   -- Method --\n   ------------\n\n   procedure Method (X : Grandchild) is\n      X : Child;\n   begin\n      X.Method;\n   end Method;\n\n   ------------\n   -- Method --\n   ------------\n\n   procedure Method (X : Great_Grandchild) is\n   begin\n      null;\n   end Method;\n\nend pack;\n", 
-                  "version": 0, 
-                  "uri": "$URI{pack.adb}", 
+                  "text": "pragma Ada_2012;\npackage body pack is\n\n\n   procedure Method (X : Child) is\n   begin\n      null;\n   end Method;\n\n   ------------\n   -- Method --\n   ------------\n\n   procedure Method (X : Grandchild) is\n      X : Child;\n   begin\n      X.Method;\n   end Method;\n\n   ------------\n   -- Method --\n   ------------\n\n   procedure Method (X : Great_Grandchild) is\n   begin\n      null;\n   end Method;\n\nend pack;\n",
+                  "version": 0,
+                  "uri": "$URI{pack.adb}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package pack is\n\n   type Root is tagged null record;\n   procedure Method (X : Root) is abstract;\n   \n   type Child is new Root with null record;\n   procedure Method (X : Child);\n   \n   type Grandchild is new Child with null record;\n   procedure Method (X : Grandchild);\n\n   type Great_Grandchild is new Grandchild with null record;\n   procedure Method (X : Great_Grandchild);\n   \nend pack;\n", 
-                  "version": 0, 
-                  "uri": "$URI{pack.ads}", 
+                  "text": "package pack is\n\n   type Root is tagged null record;\n   procedure Method (X : Root) is abstract;\n   \n   type Child is new Root with null record;\n   procedure Method (X : Child);\n   \n   type Grandchild is new Child with null record;\n   procedure Method (X : Grandchild);\n\n   type Great_Grandchild is new Grandchild with null record;\n   procedure Method (X : Great_Grandchild);\n   \nend pack;\n",
+                  "version": 0,
+                  "uri": "$URI{pack.ads}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 3, 
+                  "line": 3,
                   "character": 13
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{pack.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/implementation"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 4, 
+                           "line": 4,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 4, 
+                           "line": 4,
                            "character": 19
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 13, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 13, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 23, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }
-               ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 6, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.ads}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 5, 
-            "method": "textDocument/implementation"
-         }, 
-         "wait": [
-            {
-               "id": 5, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 4, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 4, 
-                           "character": 19
-                        }
-                     }, 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 13, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 13, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 23, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }
-               ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 9, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.ads}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 8, 
-            "method": "textDocument/implementation"
-         }, 
-         "wait": [
-            {
-               "id": 8, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 13, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 13, 
-                           "character": 19
-                        }
-                     }, 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 4, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 4, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 23, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }
-               ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 12, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.ads}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 12, 
-            "method": "textDocument/implementation"
-         }, 
-         "wait": [
-            {
-               "id": 12, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 23, 
-                           "character": 19
-                        }
-                     }, 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 13, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 13, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 4, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 4, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }
-               ]
-            }
-         ]
-      }
-   },  
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 13, 
-                  "character": 13
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 15, 
-            "method": "textDocument/implementation"
-         }, 
-         "wait": [
-            {
-               "id": 15, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 13, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 13, 
-                           "character": 19
-                        }
-                     }, 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 4, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 4, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "parent"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }, 
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 23, 
-                           "character": 19
-                        }
-                     }, 
-                     "alsKind": [
-                        "child"
-                     ], 
-                     "uri": "$URI{pack.adb}"
-                  }
-               ]
-            }
-         ]
-      }
-   }, 
-   {
-      "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 16, 
-                  "character": 8
-               }, 
-               "textDocument": {
-                  "uri": "$URI{pack.adb}"
-               }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 18, 
-            "method": "textDocument/implementation"
-         }, 
-         "wait": [
-            {
-               "id": 18, 
-               "result": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 4, 
-                           "character": 13
-                        }, 
-                        "end": {
-                           "line": 4, 
-                           "character": 19
-                        }
-                     }, 
+                     ],
                      "uri": "$URI{pack.adb}"
                   },
                   {
                      "range": {
                         "start": {
-                           "line": 13, 
+                           "line": 13,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 13, 
+                           "line": 13,
                            "character": 19
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "child"
-                     ], 
+                     ],
                      "uri": "$URI{pack.adb}"
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 23, 
+                           "line": 23,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 23, 
+                           "line": 23,
                            "character": 19
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "child"
-                     ], 
+                     ],
                      "uri": "$URI{pack.adb}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 6,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/implementation"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 9,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/implementation"
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "parent"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 12,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/implementation"
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "parent"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "parent"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 13,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "textDocument/implementation"
+         },
+         "wait": [
+            {
+               "id": 15,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "parent"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 16,
+                  "character": 8
+               },
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 18,
+            "method": "textDocument/implementation"
+         },
+         "wait": [
+            {
+               "id": 18,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 23,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 23,
+                           "character": 19
+                        }
+                     },
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
    {
       "send": {
          "request": {
@@ -568,13 +568,13 @@
                "textDocument": {
                   "uri": "$URI{pack.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -582,28 +582,28 @@
                "textDocument": {
                   "uri": "$URI{pack.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
-            "id": 21, 
+            "jsonrpc": "2.0",
+            "id": 21,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
-               "id": 21, 
+               "id": 21,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0

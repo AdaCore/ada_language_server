@@ -156,19 +156,6 @@
                   {
                      "range": {
                         "start": {
-                           "line": 1,
-                           "character": 11
-                        },
-                        "end": {
-                           "line": 1,
-                           "character": 15
-                        }
-                     },
-                     "uri": "$URI{g_g.adb}"
-                  },
-                  {
-                     "range": {
-                        "start": {
                            "line": 2,
                            "character": 12
                         },
@@ -178,6 +165,19 @@
                         }
                      },
                      "uri": "$URI{g_g.ads}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 11
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 15
+                        }
+                     },
+                     "uri": "$URI{g_g.adb}"
                   }
                ]
             }
