@@ -74,12 +74,145 @@ package body LSP.Lal_Utils is
         LSP.Lal_Utils.Get_Node_Location
           (Libadalang.Analysis.As_Ada_Node (Node), Kind);
    begin
-      if not Is_Synthetic
-        and then not Result.Contains (Location)
-      then
+      if not Is_Synthetic then
          Result.Append (Location);
       end if;
    end Append_Location;
+
+   --------------------------------
+   -- Sort_And_Remove_Duplicates --
+   --------------------------------
+
+   procedure Sort_And_Remove_Duplicates
+     (Result : in out LSP.Messages.Location_Vector)
+   is
+      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean;
+      --  Comparison function for URIs, return True if Left < Right
+
+      function "<" (Left, Right : LSP.Messages.Location) return Boolean is
+        (URI_Inf (Left.uri, Right.uri) or else
+           (Left.uri = Right.uri
+            and then (Left.span.first.line < Right.span.first.line
+                      or else (Left.span.first.line = Right.span.first.line
+                               and then Left.span.first.character <
+                                 Right.span.first.character))));
+
+      -------------
+      -- URI_Inf --
+      -------------
+
+      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean is
+
+         function URI_Dir (X : String) return String;
+         --  Return the dir in X
+
+         -------------
+         -- URI_Dir --
+         -------------
+
+         function URI_Dir (X : String) return String is
+         begin
+            for J in reverse X'First .. X'Last loop
+               --  In an URI the directory separator is '/'
+               if X (J) = '/' then
+                  return X (X'First .. J - 1);
+               end if;
+            end loop;
+            return X;
+         end URI_Dir;
+
+         L : constant String := To_UTF_8_String (Left);
+         R : constant String := To_UTF_8_String (Right);
+
+         L_Dir : constant String := URI_Dir (L);
+         R_Dir : constant String := URI_Dir (R);
+         Ind   : Natural;
+      begin
+         --  We're being a bit clever when comparing two URIs:
+         --    * for a same file, return ".ads" before ".adb"
+         --    * return "pack.adb" before "pack-child.adb"
+
+         if L_Dir'Length /= R_Dir'Length then
+            --  The directories are different: compare them
+            return L_Dir < R_Dir;
+         else
+            --  The directories have the same length: are they the same?
+            for Ind in 1 .. L_Dir'Length - 1 loop
+               if L_Dir (L_Dir'First + Ind) /= R_Dir (R_Dir'First + Ind) then
+                  return L_Dir (L_Dir'First + Ind) < R_Dir (R_Dir'First + Ind);
+               end if;
+            end loop;
+
+            --  The directories are the same: compare the filenames
+            Ind := L_Dir'Length + 1;
+            loop
+               if L'First + Ind > L'Last then
+                  if R'First + Ind > R'Last then
+                     return False;
+                  end if;
+                  return True;
+               end if;
+
+               if R'First + Ind > R'Last then
+                  return False;
+               end if;
+
+               if L (L'First + Ind) /= R (R'First + Ind) then
+                  --  Return "pack.adb" before "pack-child.adb"
+                  if L (L'First + Ind) = '-'
+                    and then R (R'First + Ind) = '.'
+                  then
+                     return False;
+                  elsif L (L'First + Ind) = '.'
+                    and then R (R'First + Ind) = '-'
+                  then
+                     return True;
+
+                     --   Return ".ads" before ".adb"
+                  elsif L'First + Ind = L'Last
+                    and then R'First + Ind = R'Last
+                  then
+                     if L (L'First + Ind) = 's'
+                       and then R (R'First + Ind) = 'b'
+                     then
+                        return True;
+                     elsif L (L'First + Ind) = 'b'
+                       and then R (R'First + Ind) = 's'
+                     then
+                        return False;
+                     else
+                        return L (L'First + Ind) < R (R'First + Ind);
+                     end if;
+
+                     --  Normal comparison
+                  else
+                     return L (L'First + Ind) < R (R'First + Ind);
+                  end if;
+               end if;
+
+               Ind := Ind + 1;
+            end loop;
+         end if;
+      end URI_Inf;
+
+      package Sort is new
+        LSP.Messages.Location_Vectors.Element_Vectors.Generic_Sorting;
+
+      R : LSP.Messages.Location_Vectors.Element_Vectors.Vector :=
+        LSP.Messages.Location_Vectors.Element_Vectors.Vector (Result);
+      New_Result : LSP.Messages.Location_Vector;
+      use type LSP.Messages.Location;
+   begin
+      Sort.Sort (R);
+      for Loc of R loop
+         if New_Result.Is_Empty
+           or else Loc /= New_Result.Last_Element
+         then
+            New_Result.Append (Loc);
+         end if;
+      end loop;
+      Result := New_Result;
+   end Sort_And_Remove_Duplicates;
 
    --------------
    -- Contains --
