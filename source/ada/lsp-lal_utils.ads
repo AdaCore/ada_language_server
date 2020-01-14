@@ -70,14 +70,20 @@ package LSP.Lal_Utils is
    --  have failed.
 
    procedure Append_Location
-     (Result : in out LSP.Messages.Location_Vector;
+     (Result : in out LSP.Messages.Location_Or_Link_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
    --  Do not append if the location is already in Result.
    --  See description of Kind in Get_Node_Location comments.
-   --
+
+   procedure Append_Location
+     (Result : in out LSP.Messages.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
+   --  The same for Location_Vector.
+
    function Get_Node_Location
      (Node : Libadalang.Analysis.Ada_Node;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)

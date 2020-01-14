@@ -131,6 +131,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Location_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package Location_Link_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => Location_Or_Link_Vector);
+
+   type Location_Link_Response is
+     new Location_Link_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : Location_Link_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Called_By_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Subprogram_And_References_Vector);

@@ -37,6 +37,19 @@ package body LSP.Lal_Utils is
    ---------------------
 
    procedure Append_Location
+     (Result : in out LSP.Messages.Location_Or_Link_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+   is
+   begin
+      Append_Location (Result.Locations, Node, Kind);
+   end Append_Location;
+
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
      (Result : in out LSP.Messages.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)

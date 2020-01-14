@@ -622,12 +622,12 @@ package body LSP.Ada_Handlers is
    overriding function On_Declaration_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Declaration_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
    is
 
       Position   : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Response
+      Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
@@ -661,13 +661,13 @@ package body LSP.Ada_Handlers is
    overriding function On_Implementation_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Implementation_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
    is
       use Libadalang.Analysis;
 
       Position   : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Response
+      Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
@@ -800,13 +800,13 @@ package body LSP.Ada_Handlers is
    overriding function On_Definition_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
    is
       use Libadalang.Analysis;
 
       Value      : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Response
+      Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
@@ -924,13 +924,13 @@ package body LSP.Ada_Handlers is
    overriding function On_Type_Definition_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Type_Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
    is
       use Libadalang.Analysis;
 
       Position   : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Response
+      Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 

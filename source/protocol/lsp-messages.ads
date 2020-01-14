@@ -482,7 +482,7 @@ package LSP.Messages is
       LocationLink_Vector_Kind);
 
    type Location_Or_Link_Vector
-     (Kind : Location_Or_Link_Kind := Empty_Vector_Kind) is
+     (Kind : Location_Or_Link_Kind := Location_Vector_Kind) is
    record
       case Kind is
          when Empty_Vector_Kind =>
