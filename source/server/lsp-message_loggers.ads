@@ -238,6 +238,10 @@ private
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Location_Response);
 
+   overriding procedure On_Location_Link_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.Location_Link_Response);
+
    overriding procedure On_ALS_Called_By_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.ALS_Called_By_Response);

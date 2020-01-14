@@ -67,6 +67,11 @@ package LSP.Server_Response_Senders is
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Location_Response) is abstract;
 
+   procedure On_Location_Link_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.Location_Link_Response)
+       is abstract;
+
    procedure On_ALS_Called_By_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.ALS_Called_By_Response)

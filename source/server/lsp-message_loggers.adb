@@ -680,6 +680,45 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_Location_Response;
 
+   -------------------------------
+   -- On_Location_Link_Response --
+   -------------------------------
+
+   overriding procedure On_Location_Link_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.Location_Link_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("Location_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      case Value.result.Kind is
+         when Empty_Vector_Kind =>
+            Self.Trace.Trace
+              ("Location_Response: "
+               & Image (Value)
+               & "empty");
+         when Location_Vector_Kind =>
+            Self.Trace.Trace
+              ("Location_Response: "
+               & Image (Value)
+               & " Locations"
+               & Ada.Containers.Count_Type'Image
+                   (Value.result.Locations.Length));
+         when LocationLink_Vector_Kind =>
+            Self.Trace.Trace
+              ("Location_Response: "
+               & Image (Value)
+               & " LocationLinks"
+               & Ada.Containers.Count_Type'Image
+                 (Value.result.LocationLinks.Length));
+      end case;
+   end On_Location_Link_Response;
+
    --------------------
    -- On_Log_Message --
    --------------------

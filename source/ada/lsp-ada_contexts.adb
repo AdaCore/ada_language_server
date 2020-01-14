@@ -57,7 +57,7 @@ package body LSP.Ada_Contexts is
      (Self      : Context;
       Document  : LSP.Ada_Documents.Document_Access;
       Position  : LSP.Messages.TextDocumentPositionParams;
-      Result    : in out LSP.Messages.Location_Vector;
+      Result    : in out LSP.Messages.Location_Or_Link_Vector;
       Imprecise : in out Boolean)
    is
       use type Libadalang.Analysis.Name;

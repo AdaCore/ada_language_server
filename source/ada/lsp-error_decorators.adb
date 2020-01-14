@@ -126,14 +126,14 @@ package body LSP.Error_Decorators is
 
    function Declaration_Request is new Generic_Request
      (Request    => LSP.Messages.Server_Requests.Declaration_Request,
-      Response   => LSP.Messages.Server_Responses.Location_Response,
+      Response   => LSP.Messages.Server_Responses.Location_Link_Response,
       Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
       On_Request => LSP.Server_Request_Handlers.On_Declaration_Request);
 
    overriding function On_Declaration_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Declaration_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
         renames Declaration_Request;
 
    -------------------------------
@@ -142,14 +142,14 @@ package body LSP.Error_Decorators is
 
    function Implementation_Request is new Generic_Request
      (Request    => LSP.Messages.Server_Requests.Implementation_Request,
-      Response   => LSP.Messages.Server_Responses.Location_Response,
+      Response   => LSP.Messages.Server_Responses.Location_Link_Response,
       Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
       On_Request => LSP.Server_Request_Handlers.On_Implementation_Request);
 
    overriding function On_Implementation_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Implementation_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
         renames Implementation_Request;
 
    ---------------------------
@@ -158,14 +158,14 @@ package body LSP.Error_Decorators is
 
    function Definition_Request is new Generic_Request
      (Request    => LSP.Messages.Server_Requests.Definition_Request,
-      Response   => LSP.Messages.Server_Responses.Location_Response,
+      Response   => LSP.Messages.Server_Responses.Location_Link_Response,
       Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
       On_Request => LSP.Server_Request_Handlers.On_Definition_Request);
 
    overriding function On_Definition_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
         renames Definition_Request;
 
    --------------------------------
@@ -174,14 +174,14 @@ package body LSP.Error_Decorators is
 
    function Type_Definition_Request is new Generic_Request
      (Request    => LSP.Messages.Server_Requests.Type_Definition_Request,
-      Response   => LSP.Messages.Server_Responses.Location_Response,
+      Response   => LSP.Messages.Server_Responses.Location_Link_Response,
       Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
       On_Request => LSP.Server_Request_Handlers.On_Type_Definition_Request);
 
    overriding function On_Type_Definition_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Type_Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Response
+      return LSP.Messages.Server_Responses.Location_Link_Response
         renames Type_Definition_Request;
 
    --------------------------
