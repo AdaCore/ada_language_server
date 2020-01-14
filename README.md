@@ -70,6 +70,7 @@ The `ada_language_server` doesn't require/understand any command line options.
 | :------------------------------------ | :----------------: |
 | `workspace/didChangeWorkspaceFolders` |                    |
 | `workspace/didChangeConfiguration`    | :white_check_mark: |
+| `workspace/didChangeWorkspaceFolders` |                    |
 | `workspace/didChangeWatchedFiles`     |                    |
 | `workspace/symbol`                    |                    |
 | `workspace/executeCommand`            |                    |

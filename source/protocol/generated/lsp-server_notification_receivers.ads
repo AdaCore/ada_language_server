@@ -23,6 +23,10 @@ package LSP.Server_Notification_Receivers is
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.DidChangeConfigurationParams) is abstract;
 
+   procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : access Server_Notification_Receiver;
+      Value : LSP.Messages.DidChangeWorkspaceFoldersParams) is abstract;
+
    procedure On_Cancel_Notification
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.CancelParams) is abstract;

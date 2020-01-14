@@ -1003,6 +1003,20 @@ package body LSP.Clients is
       Self.Send_Notification ("workspace/didChangeConfiguration", Message);
    end On_DidChangeConfiguration_Notification;
 
+   -----------------------------------------------
+   -- On_DidChangeWorkspaceFolders_Notification --
+   -----------------------------------------------
+
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeWorkspaceFoldersParams)
+   is
+      Message : DidChangeWorkspaceFolders_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("workspace/didChangeWorkspaceFolders", Message);
+   end On_DidChangeWorkspaceFolders_Notification;
+
    ---------------------------------------
    -- Workspace_Execute_Command_Request --
    ---------------------------------------

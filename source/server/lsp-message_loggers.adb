@@ -406,6 +406,21 @@ package body LSP.Message_Loggers is
          & (+Image));
    end On_DidChangeConfiguration_Notification;
 
+   -----------------------------------------------
+   -- On_DidChangeWorkspaceFolders_Notification --
+   -----------------------------------------------
+
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.DidChangeWorkspaceFoldersParams) is
+   begin
+      Self.Trace.Trace
+        ("DidChangeWorkspaceFolders_Notification: added"
+         & (Value.event.added.Length'Img)
+         & " removed"
+         & (Value.event.removed.Length'Img));
+   end On_DidChangeWorkspaceFolders_Notification;
+
    -------------------------------------------
    -- On_DidChangeTextDocument_Notification --
    -------------------------------------------
