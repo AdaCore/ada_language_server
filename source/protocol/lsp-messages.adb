@@ -1437,7 +1437,7 @@ package body LSP.Messages is
                JS.Key ("kind");
                SymbolKind'Read (S, Item.kind);
                Read_Optional_Boolean (JS, +"deprecated", Item.deprecated);
-               JS.Key ("span");
+               JS.Key ("range");
                Span'Read (S, Item.span);
                JS.Key ("selectionRange");
                Span'Read (S, Item.selectionRange);
@@ -2818,7 +2818,6 @@ package body LSP.Messages is
       Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Read (S, V.location);
-      JS.Key ("edits");
       Read_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Read_SymbolInformation;
@@ -5829,7 +5828,6 @@ package body LSP.Messages is
       Write_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Write (S, V.location);
-      JS.Key ("edits");
       Write_Optional_String (JS, +"containerName", V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
