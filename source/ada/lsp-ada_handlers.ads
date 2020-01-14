@@ -287,6 +287,10 @@ private
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeConfigurationParams);
 
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeWorkspaceFoldersParams) is null;
+
    overriding procedure On_Cancel_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.CancelParams) is null;

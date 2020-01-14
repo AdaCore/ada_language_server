@@ -55,6 +55,19 @@ package LSP.Messages.Server_Notifications is
      (Self    : DidChangeConfiguration_Notification;
       Handler : access Server_Notification_Receiver'Class);
 
+   package DidChangeWorkspaceFolders_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        DidChangeWorkspaceFoldersParams,
+        Server_Notification_Receiver'Class);
+
+   type DidChangeWorkspaceFolders_Notification is
+     new DidChangeWorkspaceFolders_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : DidChangeWorkspaceFolders_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
    package Cancel_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,

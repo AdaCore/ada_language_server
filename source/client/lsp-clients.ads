@@ -49,6 +49,10 @@ package LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.DidChangeConfigurationParams);
 
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DidChangeWorkspaceFoldersParams);
+
    overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Client;
       Value : LSP.Messages.DidOpenTextDocumentParams);
