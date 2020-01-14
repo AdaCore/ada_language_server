@@ -15,6 +15,7 @@ VALGRIND_OPTIONS = [
         "--quiet",                   # only print errors
         "--tool=memcheck",           # the standard tool
         "--leak-check=full",         # report memory leaks
+        # "--num-callers=100",       # more frames in call stacks
         # "--gen-suppressions=all",  # use this to generate suppression entries
         "--suppressions={base}/testsuite/leaks.supp", # the suppressions file
         ]
