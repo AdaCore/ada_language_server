@@ -112,7 +112,7 @@ package LSP.Messages.Server_Responses is
 
    package CodeAction_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
-      T               => Command_Vector);
+      T               => CodeAction_Vector);
 
    type CodeAction_Response is new CodeAction_Responses.Response with
      null record;
