@@ -55,4 +55,17 @@ package LSP.Messages.Client_Requests is
      (Self    : Workspace_Apply_Edit_Request;
       Reciver : access Client_Request_Receiver'Class);
 
+   package Workspace_Configuration_Requests is
+     new LSP.Generic_Requests
+       (Client_Request,
+        ConfigurationParams,
+        Client_Request_Receiver'Class);
+
+   type Workspace_Configuration_Request is
+     new Workspace_Configuration_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Configuration_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
 end LSP.Messages.Client_Requests;

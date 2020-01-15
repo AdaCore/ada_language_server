@@ -33,4 +33,9 @@ package LSP.Client_Request_Receivers is
       Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request)
         is abstract;
 
+   procedure On_Workspace_Configuration_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
+        is abstract;
+
 end LSP.Client_Request_Receivers;

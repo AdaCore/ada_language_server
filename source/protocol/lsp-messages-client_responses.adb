@@ -33,6 +33,17 @@ package body LSP.Messages.Client_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : Configuration_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_Configuration_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : ShowMessage_Response;
       Handler : access Client_Response_Sender'Class) is
    begin
