@@ -6011,6 +6011,11 @@ package LSP.Messages is
    for FoldingRange'Read use Read_FoldingRange;
    for FoldingRange'Write use Write_FoldingRange;
 
+   package FoldingRange_Vectors is
+     new LSP.Generic_Vectors (FoldingRange);
+   type FoldingRange_Vector is
+     new FoldingRange_Vectors.Vector with null record;
+
    subtype FoldingRangeKind is LSP_String;
 
    Comment : constant FoldingRangeKind := LSP.Types.To_LSP_String ("comment");

@@ -164,6 +164,17 @@ package LSP.Messages.Server_Responses is
      (Self    : ColorPresentation_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package FoldingRange_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => FoldingRange_Vector);
+
+   type FoldingRange_Response is
+     new FoldingRange_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : FoldingRange_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Called_By_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Subprogram_And_References_Vector);

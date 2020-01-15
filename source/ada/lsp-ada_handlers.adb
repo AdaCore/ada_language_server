@@ -1164,6 +1164,27 @@ package body LSP.Ada_Handlers is
       Self.Trace.Trace ("Finished Text_Document_Did_Open");
    end On_DidOpenTextDocument_Notification;
 
+   ------------------------------
+   -- On_Folding_Range_Request --
+   ------------------------------
+
+   overriding function On_Folding_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Folding_Range_Request)
+      return LSP.Messages.Server_Responses.FoldingRange_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.FoldingRange_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end On_Folding_Range_Request;
+
    --------------------------
    -- On_Highlight_Request --
    --------------------------
