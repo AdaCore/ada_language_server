@@ -1618,6 +1618,27 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Signature_Help_Request;
 
+   -----------------------------------
+   -- On_Color_Presentation_Request --
+   -----------------------------------
+
+   overriding function On_Color_Presentation_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
+      return LSP.Messages.Server_Responses.ColorPresentation_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.ColorPresentation_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Messages.InternalError,
+          message => To_LSP_String ("Not implemented"),
+          data => <>));
+      return Response;
+   end On_Color_Presentation_Request;
+
    -------------------------------
    -- On_Document_Color_Request --
    -------------------------------

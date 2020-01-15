@@ -241,6 +241,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Document_Color_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Color_Presentation_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        ColorPresentationParams,
+        Server_Request_Receiver'Class);
+
+   type Color_Presentation_Request is
+     new Color_Presentation_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Color_Presentation_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

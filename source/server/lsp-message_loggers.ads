@@ -194,6 +194,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request);
 
+   overriding procedure On_Color_Presentation_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Color_Presentation_Request);
+
    overriding procedure On_Document_Color_Request
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Document_Color_Request);
@@ -301,6 +305,10 @@ private
    overriding procedure On_Configuration_Response
      (Self  : in out Message_Logger;
       Value : LSP.Messages.Client_Responses.Configuration_Response);
+
+   overriding procedure On_ColorPresentation_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.ColorPresentation_Response);
 
    overriding procedure On_DocumentColor_Response
      (Self  : in out Message_Logger;

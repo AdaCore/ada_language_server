@@ -291,6 +291,8 @@ REQUESTS = [
      'ExecuteCommand_Response'),
     ('textDocument/documentColor', 'Document_Color', 'DocumentColorParams',
      'DocumentColor_Response'),
+    ('textDocument/colorPresentation', 'Color_Presentation',
+     'ColorPresentationParams', 'ColorPresentation_Response'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',

@@ -166,6 +166,17 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : ColorPresentation_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_ColorPresentation_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : DocumentColor_Response;
       Handler : access Server_Response_Sender'Class) is
    begin

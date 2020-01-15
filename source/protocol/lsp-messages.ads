@@ -5903,6 +5903,11 @@ package LSP.Messages is
    for ColorPresentation'Read use Read_ColorPresentation;
    for ColorPresentation'Write use Write_ColorPresentation;
 
+   package ColorPresentation_Vectors is
+     new LSP.Generic_Vectors (ColorPresentation);
+   type ColorPresentation_Vector is
+     new ColorPresentation_Vectors.Vector with null record;
+
    --```typescript
    --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions {
    --	/**

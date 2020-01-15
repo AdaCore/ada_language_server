@@ -97,6 +97,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Signature_Help_Request)
       return LSP.Messages.Server_Responses.SignatureHelp_Response;
 
+   overriding function On_Color_Presentation_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
+      return LSP.Messages.Server_Responses.ColorPresentation_Response;
+
    overriding function On_Document_Color_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Document_Color_Request)

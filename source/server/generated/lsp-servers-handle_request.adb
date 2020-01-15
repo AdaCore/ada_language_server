@@ -217,6 +217,18 @@ begin
          end;
       end if;
 
+      if Request in Color_Presentation_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Color_Presentation_Request
+                  (Color_Presentation_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in Workspace_Symbols_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
