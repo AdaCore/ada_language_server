@@ -254,6 +254,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Color_Presentation_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Folding_Range_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        FoldingRangeParams,
+        Server_Request_Receiver'Class);
+
+   type Folding_Range_Request is
+     new Folding_Range_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Folding_Range_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

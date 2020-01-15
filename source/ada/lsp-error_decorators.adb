@@ -184,6 +184,22 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.Location_Link_Response
         renames Type_Definition_Request;
 
+   ------------------------------
+   -- On_Folding_Range_Request --
+   ------------------------------
+
+   function Folding_Range_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Folding_Range_Request,
+      Response   => LSP.Messages.Server_Responses.FoldingRange_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_Folding_Range_Request);
+
+   overriding function On_Folding_Range_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Folding_Range_Request)
+      return LSP.Messages.Server_Responses.FoldingRange_Response
+        renames Folding_Range_Request;
+
    --------------------------
    -- On_Highlight_Request --
    --------------------------

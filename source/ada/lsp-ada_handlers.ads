@@ -231,6 +231,11 @@ private
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response;
 
+   overriding function On_Folding_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Folding_Range_Request)
+      return LSP.Messages.Server_Responses.FoldingRange_Response;
+
    overriding function On_Rename_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Rename_Request)

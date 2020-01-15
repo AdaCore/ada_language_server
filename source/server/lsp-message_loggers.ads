@@ -202,6 +202,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Document_Color_Request);
 
+   overriding procedure On_Folding_Range_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Folding_Range_Request);
+
    overriding procedure On_ALS_Called_By_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.ALS_Called_By_Request);
@@ -225,6 +229,10 @@ private
    overriding procedure On_SignatureHelp_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.SignatureHelp_Response);
+
+   overriding procedure On_FoldingRange_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.FoldingRange_Response);
 
    overriding procedure On_Highlight_Response
      (Self   : in out Message_Logger;

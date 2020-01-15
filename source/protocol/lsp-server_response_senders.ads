@@ -42,6 +42,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.SignatureHelp_Response)
        is abstract;
 
+   procedure On_FoldingRange_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.FoldingRange_Response)
+       is abstract;
+
    procedure On_Highlight_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Highlight_Response) is abstract;
