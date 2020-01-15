@@ -514,6 +514,20 @@ package body LSP.Message_Loggers is
    end On_DidSaveTextDocument_Notification;
 
    -------------------------------
+   -- On_Document_Color_Request --
+   -------------------------------
+
+   overriding procedure On_Document_Color_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Color_Request) is
+   begin
+      Self.Trace.Trace
+        ("Document_Color_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Document_Color_Request;
+
+   -------------------------------
    -- On_Document_Links_Request --
    -------------------------------
 
@@ -1078,6 +1092,28 @@ package body LSP.Message_Loggers is
               Ada.Containers.Count_Type'Image
                  (Value.result.Tree.Node_Count)));
    end On_Symbol_Response;
+
+   -------------------------------
+   -- On_DocumentColor_Response --
+   -------------------------------
+
+   overriding procedure On_DocumentColor_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.DocumentColor_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("DocumentColor: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("DocumentColor: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_DocumentColor_Response;
 
    --------------------------------
    -- On_Type_Definition_Request --

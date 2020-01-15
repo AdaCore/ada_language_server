@@ -228,6 +228,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Execute_Command_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Document_Color_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DocumentColorParams,
+        Server_Request_Receiver'Class);
+
+   type Document_Color_Request is
+     new Document_Color_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Document_Color_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

@@ -142,6 +142,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Location_Link_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package DocumentColor_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => ColorInformation_Vector);
+
+   type DocumentColor_Response is
+     new DocumentColor_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : DocumentColor_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Called_By_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Subprogram_And_References_Vector);

@@ -1283,6 +1283,23 @@ package body LSP.Messages is
    end Read_FoldingRangeParams;
 
    ------------------------------
+   -- Read_DocumentColorParams --
+   ------------------------------
+
+   procedure Read_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentColorParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.End_Object;
+   end Read_DocumentColorParams;
+
+   ------------------------------
    -- Read_FailureHandlingKind --
    ------------------------------
 
@@ -4038,6 +4055,23 @@ package body LSP.Messages is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.End_Object;
    end Write_FoldingRangeParams;
+
+   -------------------------------
+   -- Write_DocumentColorParams --
+   -------------------------------
+
+   procedure Write_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentColorParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_DocumentColorParams;
 
    ---------------------------------
    -- Write_ExecuteCommandOptions --

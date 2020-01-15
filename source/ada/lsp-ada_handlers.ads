@@ -251,6 +251,11 @@ private
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response;
 
+   overriding function On_Document_Color_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Color_Request)
+      return LSP.Messages.Server_Responses.DocumentColor_Response;
+
    overriding function On_ALS_Called_By_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)

@@ -93,6 +93,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Execute_Command_Request)
         is abstract;
 
+   procedure On_Document_Color_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Document_Color_Request)
+        is abstract;
+
    procedure On_Workspace_Symbols_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

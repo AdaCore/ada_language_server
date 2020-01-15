@@ -82,6 +82,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response)
         is abstract;
 
+   procedure On_DocumentColor_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.DocumentColor_Response)
+        is abstract;
+
    procedure On_Shutdown_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Shutdown_Response) is abstract;

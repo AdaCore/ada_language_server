@@ -205,6 +205,18 @@ begin
          end;
       end if;
 
+      if Request in Document_Color_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Document_Color_Request
+                  (Document_Color_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in Workspace_Symbols_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
