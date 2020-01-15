@@ -28,7 +28,27 @@ limited with LSP.JSON_Streams;
 
 package LSP.Types is
 
-   subtype LSP_Any is GNATCOLL.JSON.JSON_Value;
+   type LSP_Any is new GNATCOLL.JSON.JSON_Value with null record;
+   procedure Read_Any
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Any);
+   --  Read a value from JSON stream
+
+   procedure Write_Any
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Any);
+   --  Write a value to JSON stream
+
+   for LSP_Any'Read use Read_Any;
+   for LSP_Any'Write use Write_Any;
+
+   function No_Any return LSP_Any is
+     (GNATCOLL.JSON.JSON_Null with null record);
+   --  A null value of No_Any type
+   function Empty return LSP_Any is
+     (GNATCOLL.JSON.Create_Object with null record);
+   --  An empty object value of No_Any type
+
    subtype LSP_Number is Natural;
    type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 

@@ -640,6 +640,12 @@ package LSP.Messages is
    package Optional_Diagnostic_Vectors is new LSP.Generic_Optional (Diagnostic_Vector);
    type Optional_Diagnostic_Vector is new Optional_Diagnostic_Vectors.Optional_Type;
 
+   package Any_Vectors is new LSP.Generic_Vectors (LSP.Types.LSP_Any);
+   type Any_Vector is new Any_Vectors.Vector with null record;
+
+   package Optional_Any_Vectors is new LSP.Generic_Optional (Any_Vector);
+   type Optional_Any_Vector is new Optional_Any_Vectors.Optional_Type;
+
    --```typescript
    --interface Command {
    --	/**
@@ -660,7 +666,7 @@ package LSP.Messages is
    type Command is record
       title: LSP_String;
       command: LSP_String;
-      arguments: LSP_Any;
+      arguments: Optional_Any_Vector;
    end record;
 
    procedure Read_Command
@@ -5152,7 +5158,7 @@ package LSP.Messages is
    --```
    type ExecuteCommandParams is record
       command: LSP_String;
-      arguments: LSP_Any;
+      arguments: Optional_Any_Vector;
    end record;
 
    procedure Read_ExecuteCommandParams

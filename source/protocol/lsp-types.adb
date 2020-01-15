@@ -73,6 +73,20 @@ package body LSP.Types is
       V := To_LSP_String (Unbounded_String'(JS.Read.Get));
    end Read;
 
+   --------------
+   -- Read_Any --
+   --------------
+
+   procedure Read_Any
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Any)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := LSP_Any'(JS.Read with null record);
+   end Read_Any;
+
    --------------------------------
    -- Read_LSP_Boolean_Or_String --
    --------------------------------
@@ -318,6 +332,20 @@ package body LSP.Types is
    begin
       JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V)));
    end Write;
+
+   ---------------
+   -- Write_Any --
+   ---------------
+
+   procedure Write_Any
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Any)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write (GNATCOLL.JSON.JSON_Value (V));
+   end Write_Any;
 
    ------------------
    -- Write_Number --

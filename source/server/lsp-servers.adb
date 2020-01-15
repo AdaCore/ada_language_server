@@ -624,10 +624,9 @@ package body LSP.Servers is
            error    =>
              (Is_Set => True,
               Value =>
-                (code => Code,
-                 data => GNATCOLL.JSON.Create_Object,
-                 message => LSP.Types.To_LSP_String
-                   (Exception_Text))));
+                (code    => Code,
+                 data    => LSP.Types.Empty,
+                 message => LSP.Types.To_LSP_String (Exception_Text))));
    begin
       --  Send the response to the output stream
       Send_Response (Self, Response, Request_Id);

@@ -457,7 +457,7 @@ package body LSP.Ada_Handlers is
          --  We have not found exactly one .gpr file: load the default
          --  project.
          Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
-         Self.Load_Project (GPR, GNATCOLL.JSON.JSON_Null, "iso-8859-1");
+         Self.Load_Project (GPR, No_Any, "iso-8859-1");
       else
          --  We have found more than one project: warn the user!
 
