@@ -3,14 +3,14 @@
       "comment": [
          "testing 'called by' on a task entry"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -19,181 +19,182 @@
                   "workspace": {
                      "applyEdit": false
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true, 
+                     "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
-                        "write", 
-                        "call", 
+                        "reference",
+                        "write",
+                        "call",
                         "dispatching call", "parent", "child"
-                     ], 
-                     "hoverProvider": true, 
-                     "definitionProvider": true, 
-                     "renameProvider": {}, 
-                     "alsCalledByProvider": true, 
-                     "referencesProvider": true, 
-                     "textDocumentSync": 1, 
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
-                        ], 
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "documentSymbolProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "default.gpr", 
-                     "scenarioVariables": {}, 
-                     "enableDiagnostics": false, 
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
                      "defaultCharset": "UTF-8"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package phil is\n   task type philosopher is\n      entry Start_Eating (Chopstick1 : in Positive;\n                        Chopstick2 : in Positive);\n   end philosopher;\nend Phil;\n", 
-                  "version": 0, 
-                  "uri": "$URI{phil.ads}", 
+                  "text": "package phil is\n   task type philosopher is\n      entry Start_Eating (Chopstick1 : in Positive;\n                        Chopstick2 : in Positive);\n   end philosopher;\nend Phil;\n",
+                  "version": 0,
+                  "uri": "$URI{phil.ads}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 2, 
+                  "line": 2,
                   "character": 12
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{phil.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/alsCalledBy"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": [
                   {
                      "refs": [
                         {
                            "range": {
                               "start": {
-                                 "line": 8, 
+                                 "line": 8,
                                  "character": 5
-                              }, 
+                              },
                               "end": {
-                                 "line": 8, 
+                                 "line": 8,
                                  "character": 17
                               }
-                           }, 
+                           },
                            "uri": "$URI{room.adb}"
-                        }, 
+                        },
                         {
                            "range": {
                               "start": {
-                                 "line": 9, 
+                                 "line": 9,
                                  "character": 5
-                              }, 
+                              },
                               "end": {
-                                 "line": 9, 
+                                 "line": 9,
                                  "character": 17
                               }
-                           }, 
+                           },
                            "uri": "$URI{room.adb}"
                         }
-                     ], 
+                     ],
                      "location": {
                         "range": {
                            "start": {
-                              "line": 2, 
+                              "line": 2,
                               "character": 10
-                           }, 
+                           },
                            "end": {
-                              "line": 2, 
+                              "line": 2,
                               "character": 14
                            }
-                        }, 
+                        },
                         "uri": "$URI{room.adb}"
-                     }, 
+                     },
                      "name": "room"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 2, 
+                  "line": 2,
                   "character": 10
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{room.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 3, 
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
             "method": "textDocument/alsCalledBy"
-         }, 
+         },
          "wait": [
             {
-               "id": 3, 
+               "id": 3,
                "result": []
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -201,28 +202,28 @@
                "textDocument": {
                   "uri": "$URI{phil.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
-            "id": 4, 
+            "jsonrpc": "2.0",
+            "id": 4,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
-               "id": 4, 
+               "id": 4,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0

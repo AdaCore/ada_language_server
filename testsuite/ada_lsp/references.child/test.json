@@ -1,8 +1,8 @@
 [
    {
       "comment": [
-          "This test checks that textDocument/definition responses filter out",
-          "end labels"
+          "This test checks that we correctly flag type derivation ",
+          "references"
       ]
    },
    {
@@ -16,7 +16,7 @@
       "send": {
          "request": {
             "params": {
-               "processId": 15643,
+               "processId": 6284,
                "capabilities": {
                   "textDocument": {
                      "completion": {
@@ -56,15 +56,17 @@
                         "reference",
                         "write",
                         "call",
-                        "dispatching call", "parent", "child"
+                        "dispatching call",
+                        "parent",
+                        "child"
                      ],
                      "hoverProvider": true,
                      "definitionProvider": true,
                      "renameProvider": {},
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
-                     "declarationProvider": true,
                      "textDocumentSync": 1,
+                     "declarationProvider": true,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
@@ -112,9 +114,9 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package Parent.Child is\n\n   type Child_Type is new Parent_Type with null record;\n\nend Parent.Child;\n",
+                  "text": "package Parents is\n\n   type Parent is abstract tagged record\n      Id : Integer;\n   end record;\n\n   procedure Primitive (Self : in out Parent;\n                        Id   : Integer) is abstract;\n   --  Parent procedure\n\nend Parents;\n",
                   "version": 0,
-                  "uri": "$URI{parent-child.ads}",
+                  "uri": "$URI{src/parents.ads}",
                   "languageId": "Ada"
                }
             },
@@ -129,62 +131,79 @@
          "request": {
             "params": {
                "position": {
-                  "line": 4,
-                  "character": 14
+                  "line": 2,
+                  "character": 13
                },
                "textDocument": {
-                  "uri": "$URI{parent-child.ads}"
-               },
-               "context": {
-                  "includeDeclaration": true
+                  "uri": "$URI{src/parents.ads}"
                }
             },
             "jsonrpc": "2.0",
             "id": 2,
-            "method": "textDocument/references"
+            "method": "textDocument/definition"
          },
          "wait": [
             {
                "id": 2,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{src/parents.ads}"
+               },
+               "context": {
+                  "includeDeclaration": false
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/references"
+         },
+         "wait": [
+            {
+               "id": 3,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 0,
-                           "character": 12
+                           "line": 3,
+                           "character": 21
                         },
                         "end": {
-                           "line": 0,
-                           "character": 17
+                           "line": 3,
+                           "character": 27
                         }
                      },
-                     "uri": "$URI{main.adb}"
+                     "alsKind": [
+                        "child"
+                     ],
+                     "uri": "$URI{src/children.ads}"
                   },
                   {
                      "range": {
                         "start": {
-                           "line": 0,
-                           "character": 30
+                           "line": 6,
+                           "character": 38
                         },
                         "end": {
-                           "line": 0,
-                           "character": 35
+                           "line": 6,
+                           "character": 44
                         }
                      },
-                     "uri": "$URI{main.adb}"
-                  },
-                  {
-                     "range": {
-                        "start": {
-                           "line": 0,
-                           "character": 8
-                        },
-                        "end": {
-                           "line": 0,
-                           "character": 20
-                        }
-                     },
-                     "uri": "$URI{parent-child.ads}"
+                     "alsKind": [
+                        "reference"
+                     ],
+                     "uri": "$URI{src/parents.ads}"
                   }
                ]
             }
@@ -196,7 +215,38 @@
          "request": {
             "params": {
                "textDocument": {
-                  "uri": "$URI{parent-child.ads}"
+                  "text": "with Parents; use Parents;\npackage Children is\n\n   type Child is new Parent with null Record;\n\n   procedure Primitive (Self : in out Child;\n                        Id   : Integer);\n\nend Children;\n",
+                  "version": 0,
+                  "uri": "$URI{src/children.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/parents.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/children.ads}"
                }
             },
             "jsonrpc": "2.0",
@@ -209,12 +259,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 3,
+            "id": 4,
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": 3,
+               "id": 4,
                "result": null
             }
          ]

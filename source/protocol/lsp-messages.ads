@@ -367,7 +367,7 @@ package LSP.Messages is
    --  }
 
    type AlsReferenceKind is
-     (Write, Static_Call, Dispatching_Call, Parent, Child);
+     (Simple, Write, Static_Call, Dispatching_Call, Parent, Child);
    type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
    type AlsReferenceKind_Set (Is_Server_Side : Boolean := True) is record
       case Is_Server_Side is

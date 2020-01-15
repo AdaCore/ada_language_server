@@ -3,164 +3,165 @@
       "comment": [
          "test of the presence of the 'dispatching call' in alsReferenceKind"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
-               "processId": 10247, 
+               "processId": 10247,
                "capabilities": {
                   "workspace": {
                      "applyEdit": false
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true, 
-                     "alsReferenceKinds": [
-                        "write", 
-                        "call", 
+                     "typeDefinitionProvider": true,
+                      "alsReferenceKinds": [
+                        "reference",
+                        "write",
+                        "call",
                         "dispatching call", "parent", "child"
-                     ], 
-                     "hoverProvider": true, 
-                     "definitionProvider": true, 
-                     "renameProvider": {}, 
-                     "alsCalledByProvider": true, 
-                     "referencesProvider": true, 
-                     "textDocumentSync": 1, 
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
-                        ], 
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "documentSymbolProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "p.gpr", 
-                     "scenarioVariables": {}, 
-                     "enableDiagnostics": false, 
+                     "projectFile": "p.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "with root; use root;\n\nprocedure main is\n   x : root_t'class := create;\nbegin\n\n   foo (x);\n\n\nend main;\n", 
-                  "version": 0, 
-                  "uri": "$URI{main.adb}", 
+                  "text": "with root; use root;\n\nprocedure main is\n   x : root_t'class := create;\nbegin\n\n   foo (x);\n\n\nend main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 6, 
+                  "line": 6,
                   "character": 3
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/alsCalledBy"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": [
                   {
                      "refs": [
                         {
                            "range": {
                               "start": {
-                                 "line": 6, 
+                                 "line": 6,
                                  "character": 3
-                              }, 
+                              },
                               "end": {
-                                 "line": 6, 
+                                 "line": 6,
                                  "character": 6
                               }
-                           }, 
+                           },
                            "alsKind": [
                               "dispatching call"
-                           ], 
+                           ],
                            "uri": "$URI{main.adb}"
                         }
-                     ], 
+                     ],
                      "location": {
                         "range": {
                            "start": {
-                              "line": 2, 
+                              "line": 2,
                               "character": 10
-                           }, 
+                           },
                            "end": {
-                              "line": 2, 
+                              "line": 2,
                               "character": 14
                            }
-                        }, 
+                        },
                         "uri": "$URI{main.adb}"
-                     }, 
+                     },
                      "name": "main"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -168,13 +169,13 @@
                "textDocument": {
                   "uri": "$URI{child.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -182,28 +183,28 @@
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
-            "id": 3, 
+            "jsonrpc": "2.0",
+            "id": 3,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
-               "id": 3, 
+               "id": 3,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0
