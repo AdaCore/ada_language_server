@@ -345,7 +345,7 @@ package body LSP.Messages is
          Read_String (JS, +"title", V.command.Value.title);
          Read_String (JS, +"command", V.command.Value.command);
          JS.Key ("arguments");
-         V.command.Value.arguments := JS.Read;
+         Optional_Any_Vector'Read (S, V.command.Value.arguments);
       else
          Optional_Command'Read (S, V.command);
          Read_String (JS, +"title", V.title);
@@ -581,7 +581,7 @@ package body LSP.Messages is
       Read_String (JS, +"title", V.title);
       Read_String (JS, +"command", V.command);
       JS.Key ("arguments");
-      V.arguments := JS.Read;
+      Optional_Any_Vector'Read (S, V.arguments);
       JS.End_Object;
    end Read_Command;
 
@@ -876,7 +876,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       JS.Key ("settings");
-      V.settings := JS.Read;
+      LSP.Types.LSP_Any'Read (S, V.settings);
       JS.End_Object;
    end Read_DidChangeConfigurationParams;
 
@@ -1223,7 +1223,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_String (JS, +"command", V.command);
       JS.Key ("arguments");
-      V.arguments := JS.Read;
+      Optional_Any_Vector'Read (S, V.arguments);
       JS.End_Object;
    end Read_ExecuteCommandParams;
 
@@ -2136,7 +2136,7 @@ package body LSP.Messages is
 
       Read_String (JS, +"message", V.message);
       JS.Key ("data");
-      V.data := JS.Read;
+      LSP.Types.LSP_Any'Read (S, V.data);
 
       JS.End_Object;
    end Read_ResponseError;
@@ -3384,10 +3384,8 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_String (JS, +"title", V.title);
       Write_String (JS, +"command", V.command);
---      if not Is_Empty (V.arguments) then  FIXME!!!
-         JS.Key ("arguments");
-         JS.Write (V.arguments);
---      end if;
+      JS.Key ("arguments");
+      Optional_Any_Vector'Write (S, V.arguments);
       JS.End_Object;
    end Write_Command;
 
@@ -3681,7 +3679,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       JS.Key ("settings");
-      JS.Write (V.settings);
+      LSP.Types.LSP_Any'Write (S, V.settings);
       JS.End_Object;
    end Write_DidChangeConfigurationParams;
 
@@ -4071,7 +4069,7 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_String (JS, +"command", V.command);
       JS.Key ("arguments");
-      JS.Write (V.arguments);
+      Optional_Any_Vector'Write (S, V.arguments);
       JS.End_Object;
    end Write_ExecuteCommandParams;
 
@@ -4906,7 +4904,7 @@ package body LSP.Messages is
 
       if not V.data.Is_Empty then
          JS.Key ("data");
-         JS.Write (V.data);
+         LSP.Types.LSP_Any'Write (S, V.data);
       end if;
 
       JS.End_Object;
