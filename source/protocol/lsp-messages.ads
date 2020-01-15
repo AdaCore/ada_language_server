@@ -5829,6 +5829,11 @@ package LSP.Messages is
    for ColorInformation'Read use Read_ColorInformation;
    for ColorInformation'Write use Write_ColorInformation;
 
+   package ColorInformation_Vectors is
+     new LSP.Generic_Vectors (ColorInformation);
+   type ColorInformation_Vector is
+     new ColorInformation_Vectors.Vector with null record;
+
    --```typescript
    --interface ColorPresentationParams {
    --	/**
@@ -6006,6 +6011,27 @@ package LSP.Messages is
    Comment : constant FoldingRangeKind := LSP.Types.To_LSP_String ("comment");
    Imports : constant FoldingRangeKind := LSP.Types.To_LSP_String ("imports");
    Region  : constant FoldingRangeKind := LSP.Types.To_LSP_String ("region");
+
+   --  ```ts
+   --  interface DocumentColorParams {
+   --          /**
+   --           * The text document.
+   --           */
+   --          textDocument: TextDocumentIdentifier;
+   --  }
+   --  ```
+   type DocumentColorParams is record
+      textDocument: TextDocumentIdentifier;
+   end record;
+
+   procedure Read_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentColorParams);
+   procedure Write_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentColorParams);
+   for DocumentColorParams'Read use Read_DocumentColorParams;
+   for DocumentColorParams'Write use Write_DocumentColorParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --

@@ -94,6 +94,11 @@ package LSP.Server_Request_Handlers is
       Request : LSP.Messages.Server_Requests.Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response is abstract;
 
+   function On_Document_Color_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Color_Request)
+      return LSP.Messages.Server_Responses.DocumentColor_Response is abstract;
+
    function On_Workspace_Symbols_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

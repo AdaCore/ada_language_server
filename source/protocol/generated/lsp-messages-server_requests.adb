@@ -137,6 +137,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Document_Color_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Document_Color_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Workspace_Symbols_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -233,6 +240,10 @@ begin
    Map.Insert
      (+"textDocument/executeCommand",
       Execute_Command_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/documentColor",
+      Document_Color_Request'Tag);
 
    Map.Insert
      (+"workspace/symbol",

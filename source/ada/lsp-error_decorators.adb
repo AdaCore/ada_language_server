@@ -248,6 +248,22 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.SignatureHelp_Response
         renames Signature_Help_Request;
 
+   function Document_Color_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Document_Color_Request,
+      Response   => LSP.Messages.Server_Responses.DocumentColor_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_Document_Color_Request);
+
+   -------------------------------
+   -- On_Document_Color_Request --
+   -------------------------------
+
+   overriding function On_Document_Color_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Document_Color_Request)
+      return LSP.Messages.Server_Responses.DocumentColor_Response
+        renames Document_Color_Request;
+
    -------------------------------
    -- On_Document_Links_Request --
    -------------------------------

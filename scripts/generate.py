@@ -289,6 +289,8 @@ REQUESTS = [
     ('textDocument/rename', 'Rename', 'RenameParams', 'Rename_Response'),
     ('textDocument/executeCommand', 'Execute_Command', 'ExecuteCommandParams',
      'ExecuteCommand_Response'),
+    ('textDocument/documentColor', 'Document_Color', 'DocumentColorParams',
+     'DocumentColor_Response'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
