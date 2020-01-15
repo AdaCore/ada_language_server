@@ -3,14 +3,14 @@
       "comment": [
          "test automatically generated"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -19,440 +19,441 @@
                   "workspace": {
                      "applyEdit": false
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true, 
+                     "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
-                        "write", 
-                        "call", 
+                        "reference",
+                        "write",
+                        "call",
                         "dispatching call", "parent", "child"
-                     ], 
-                     "hoverProvider": true, 
-                     "definitionProvider": true, 
-                     "renameProvider": {}, 
-                     "alsCalledByProvider": true, 
-                     "referencesProvider": true, 
-                     "textDocumentSync": 1, 
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 1,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
-                        ], 
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "documentSymbolProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{default.gpr}", 
-                     "scenarioVariables": {}, 
-                     "enableDiagnostics": true, 
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": true,
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "procedure Foo\nis\n   type My_Record is tagged record\n      I : Integer := 1;\n   end record\n     with Alignment => (8);\n\n   type My_New_Record is new My_Record with\n     Record\n       J : Integer := 2;\n       K : Integer := 3;\n    end record with Alignment => (8);\n\n   My_Int : Integer := 42 with Atomic;\n   My_Var : My_Record := (I => My_Int);\n\n   procedure Bar (V : in out My_Record)\n     with\n       Pre  => V.I > 0,\n       Post => V.I > 0;\n\n   procedure FooBar (V : in out My_New_Record) with\n     Pre =>\n       V.I > 0\n       and then (V.J > V.K\n                 and then V.K > V.I),\n     Post => V.I = 0;\n\n   procedure Bar (V : in out My_Record) is null;\n   procedure FooBar (V : in out My_New_Record) is null;\n\nbegin\n   null;\nend Foo;\n", 
-                  "version": 0, 
-                  "uri": "$URI{foo.adb}", 
+                  "text": "procedure Foo\nis\n   type My_Record is tagged record\n      I : Integer := 1;\n   end record\n     with Alignment => (8);\n\n   type My_New_Record is new My_Record with\n     Record\n       J : Integer := 2;\n       K : Integer := 3;\n    end record with Alignment => (8);\n\n   My_Int : Integer := 42 with Atomic;\n   My_Var : My_Record := (I => My_Int);\n\n   procedure Bar (V : in out My_Record)\n     with\n       Pre  => V.I > 0,\n       Post => V.I > 0;\n\n   procedure FooBar (V : in out My_New_Record) with\n     Pre =>\n       V.I > 0\n       and then (V.J > V.K\n                 and then V.K > V.I),\n     Post => V.I = 0;\n\n   procedure Bar (V : in out My_Record) is null;\n   procedure FooBar (V : in out My_New_Record) is null;\n\nbegin\n   null;\nend Foo;\n",
+                  "version": 0,
+                  "uri": "$URI{foo.adb}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   },  
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 2, 
+                  "line": 2,
                   "character": 8
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": {
                   "contents": [
                      {
-                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);", 
+                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (3:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 7, 
+                  "line": 7,
                   "character": 8
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 3, 
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 3, 
+               "id": 3,
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);", 
+                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (8:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 13, 
+                  "line": 13,
                   "character": 12
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 4, 
+            },
+            "jsonrpc": "2.0",
+            "id": 4,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 4, 
+               "id": 4,
                "result": {
                   "contents": [
                      {
-                        "value": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);", 
+                        "value": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                         "language": "ada"
-                     }, 
+                     },
                      "at __standard (4:3)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 13, 
+                  "line": 13,
                   "character": 3
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 5, 
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 5, 
+               "id": 5,
                "result": {
                   "contents": [
                      {
-                        "value": "My_Int : Integer := 42 with Atomic;", 
+                        "value": "My_Int : Integer := 42 with Atomic;",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (14:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 14, 
+                  "line": 14,
                   "character": 3
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 6, 
+            },
+            "jsonrpc": "2.0",
+            "id": 6,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 6, 
+               "id": 6,
                "result": {
                   "contents": [
                      {
-                        "value": "My_Var : My_Record := (I => My_Int);", 
+                        "value": "My_Var : My_Record := (I => My_Int);",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (15:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 16, 
+                  "line": 16,
                   "character": 13
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 7, 
+            },
+            "jsonrpc": "2.0",
+            "id": 7,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 7, 
+               "id": 7,
                "result": {
                   "contents": [
                      {
-                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0", 
+                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (17:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 21, 
+                  "line": 21,
                   "character": 13
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 8, 
+            },
+            "jsonrpc": "2.0",
+            "id": 8,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 8, 
+               "id": 8,
                "result": {
                   "contents": [
                      {
-                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0", 
+                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (22:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 28, 
+                  "line": 28,
                   "character": 13
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 9, 
+            },
+            "jsonrpc": "2.0",
+            "id": 9,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 9, 
+               "id": 9,
                "result": {
                   "contents": [
                      {
-                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0", 
+                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (17:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 29, 
+                  "line": 29,
                   "character": 13
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 10, 
+            },
+            "jsonrpc": "2.0",
+            "id": 10,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 10, 
+               "id": 10,
                "result": {
                   "contents": [
                      {
-                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0", 
+                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (22:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 28, 
+                  "line": 28,
                   "character": 29
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 11, 
+            },
+            "jsonrpc": "2.0",
+            "id": 11,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 11, 
+               "id": 11,
                "result": {
                   "contents": [
                      {
-                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);", 
+                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (3:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 29, 
+                  "line": 29,
                   "character": 32
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 12, 
+            },
+            "jsonrpc": "2.0",
+            "id": 12,
             "method": "textDocument/hover"
-         }, 
+         },
          "wait": [
             {
-               "id": 12, 
+               "id": 12,
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);", 
+                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);",
                         "language": "ada"
-                     }, 
+                     },
                      "at foo.adb (8:4)"
                   ]
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -460,28 +461,28 @@
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
-            "id": 13, 
+            "jsonrpc": "2.0",
+            "id": 13,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
-               "id": 13, 
+               "id": 13,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0

@@ -50,7 +50,8 @@
                "result": {
                   "capabilities": {
                      "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
+                      "alsReferenceKinds": [
+                        "reference",
                         "write",
                         "call",
                         "dispatching call",

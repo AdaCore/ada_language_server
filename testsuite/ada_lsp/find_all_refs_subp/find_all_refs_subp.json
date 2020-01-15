@@ -1,6 +1,6 @@
 [
-   {"comment": ["find all refs including inside subprojects"]}, 
-   {"start": {"cmd": ["${ALS}"]}}, 
+   {"comment": ["find all refs including inside subprojects"]},
+   {"start": {"cmd": ["${ALS}"]}},
    {
       "send": {
          "request": {
@@ -10,208 +10,208 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "commitCharactersSupport": true, 
+                           "commitCharactersSupport": true,
                            "snippetSupport": true
-                        }, 
+                        },
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "definition": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "signatureHelp": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "hover": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "formatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "codeAction": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentHighlight": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentSymbol": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "rename": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "synchronization": {
-                        "didSave": true, 
-                        "willSave": true, 
-                        "willSaveWaitUntil": true, 
+                        "didSave": true,
+                        "willSave": true,
+                        "willSaveWaitUntil": true,
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "references": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "rangeFormatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "onTypeFormatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "codeLens": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentLink": {
                         "dynamicRegistration": true
                      }
-                  }, 
+                  },
                   "workspace": {
                      "executeCommand": {
                         "dynamicRegistration": true
-                     }, 
-                     "applyEdit": true, 
+                     },
+                     "applyEdit": true,
                      "symbol": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "didChangeWatchedFiles": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
                      }
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 0, 
+            },
+            "jsonrpc": "2.0",
+            "id": 0,
             "method": "initialize"
-         }, 
+         },
          "wait": [{
-               "id": 0, 
+               "id": 0,
                "result": {
                   "capabilities": {
-                     "documentSymbolProvider": true, 
-                     "definitionProvider": true, 
-                     "textDocumentSync": 1, 
+                     "documentSymbolProvider": true,
+                     "definitionProvider": true,
+                     "textDocumentSync": 1,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
-                        ], 
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "referencesProvider": true
                   }
                }
             }]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "params": {}, 
-            "jsonrpc": "2.0", 
+            "params": {},
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "p.gpr", 
-                     "scenarioVariables": {}, 
+                     "projectFile": "p.gpr",
+                     "scenarioVariables": {},
                      "trace": {
                         "server": "off"
                      }
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package P is\n   procedure Foo is null;\nend P;\n", 
-                  "version": 1, 
-                  "uri": "$URI{subsrc/p.ads}", 
+                  "text": "package P is\n   procedure Foo is null;\nend P;\n",
+                  "version": 1,
+                  "uri": "$URI{subsrc/p.ads}",
                   "languageId": "ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 1, 
+                  "line": 1,
                   "character": 14
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{subsrc/p.ads}"
-               }, 
+               },
                "context": {
                   "includeDeclaration": true
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "textDocument/references"
-         }, 
+         },
          "wait": [ {
-               "id": 1, 
+               "id": 1,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 4, 
+                           "line": 4,
                            "character": 3
-                        }, 
+                        },
                         "end": {
-                           "line": 4, 
+                           "line": 4,
                            "character": 6
                         }
-                     }, 
+                     },
                      "uri": "$URI{main.adb}",
                      "alsKind": ["call"]
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
+                           "line": 3,
                            "character": 3
-                        }, 
+                        },
                         "end": {
-                           "line": 3, 
+                           "line": 3,
                            "character": 6
                         }
-                     }, 
+                     },
                      "uri": "$URI{subsrc/other_main.adb}",
                      "alsKind": ["call"]
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 16
                         }
-                     }, 
+                     },
                      "uri": "$URI{subsrc/p.ads}",
-                     "alsKind": "<ABSENT>"
+                     "alsKind": ["reference"]
                   }
                ]
             }]
@@ -220,11 +220,11 @@
    {
       "send": {
          "request": {
-            "params": null, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            "params": null,
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
                "id": 2,

@@ -115,6 +115,8 @@ package body LSP.Messages is
       RequestCancelled     => -32800,
       ContentModified      => -32801);
 
+   Simple_Reference_Image           : aliased constant Standard.String :=
+                                        "reference";
    Write_Reference_Image            : aliased constant Standard.String :=
                                         "write";
    Static_Call_Reference_Image      : aliased constant Standard.String :=
@@ -130,7 +132,8 @@ package body LSP.Messages is
 
    AlsReferenceKind_Map : constant array
      (AlsReferenceKind) of not null String_Constant_Access :=
-     (Write            => Write_Reference_Image'Access,
+     (Simple           => Simple_Reference_Image'Access,
+      Write            => Write_Reference_Image'Access,
       Static_Call      => Static_Call_Reference_Image'Access,
       Dispatching_Call => Dispatching_Call_Reference_Image'Access,
       Parent           => Parent_Reference_Image'Access,

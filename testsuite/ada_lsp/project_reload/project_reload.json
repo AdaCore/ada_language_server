@@ -92,7 +92,7 @@
                             "character": 17
                         }
                     },
-                    "alsKind": "<ABSENT>"
+                    "alsKind": ["reference"]
                 }, {
                     "uri": "$URI{second.adb}",
                     "range": {
@@ -161,7 +161,7 @@
                             "character": 17
                         }
                     },
-                    "alsKind": "<ABSENT>"
+                    "alsKind": ["reference"]
                 }, {
                     "uri": "$URI{third.adb}",
                     "range": {

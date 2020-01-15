@@ -1356,6 +1356,15 @@ package body LSP.Ada_Handlers is
       --  Return True if the node belongs to an end label node.
       --  Used to filter out end label references.
 
+      function Is_Type_Derivation (Node : Ada_Node) return Boolean
+      is
+        (not Node.Parent.Is_Null
+         and then
+           (Node.Parent.Kind in Ada_Subtype_Indication_Range
+            and then not Node.Parent.Parent.Is_Null
+            and then Node.Parent.Parent.Kind in Ada_Derived_Type_Def_Range));
+      --  Return True if the node belongs to derived type declaration.
+
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
@@ -1363,6 +1372,8 @@ package body LSP.Ada_Handlers is
       function Get_Reference_Kind
         (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set
       is
+         use LSP.Messages;
+
          Id     : constant Name := LSP.Lal_Utils.Get_Node_As_Name (Node);
          Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
       begin
@@ -1387,6 +1398,20 @@ package body LSP.Ada_Handlers is
             when E : Libadalang.Common.Property_Error =>
                Log (Self.Trace, E);
          end;
+
+         begin
+            Result.As_Flags (LSP.Messages.Child) :=
+              Is_Type_Derivation (Id.As_Ada_Node);
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
+         end;
+
+         --  If the result has not any set flags at this point, flag it as a
+         --  simple reference.
+         if Result.As_Flags = AlsReferenceKind_Array'(others => False) then
+            Result.As_Flags (LSP.Messages.Simple) := True;
+         end if;
 
          return Result;
       end Get_Reference_Kind;

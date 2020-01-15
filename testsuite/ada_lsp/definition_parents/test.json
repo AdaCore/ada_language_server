@@ -51,6 +51,7 @@
                   "capabilities": {
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
+                        "reference",
                         "write",
                         "call",
                         "dispatching call",

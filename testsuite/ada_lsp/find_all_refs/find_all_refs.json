@@ -87,7 +87,7 @@
                             "character": 13
                         }
                     },
-                    "alsKind": "<ABSENT>"
+                    "alsKind": ["reference"]
                 }, {
                     "uri": "$URI{bbb.adb}",
                     "range": {
