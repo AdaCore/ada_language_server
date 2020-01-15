@@ -314,6 +314,43 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.items.Length));
    end On_Completion_Response;
 
+   ----------------------------------------
+   -- On_Workspace_Configuration_Request --
+   ----------------------------------------
+
+   overriding procedure On_Workspace_Configuration_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
+   is
+   begin
+      Self.Trace.Trace
+        ("Workspace_Configuration_Request: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.params.items.Length));
+   end On_Workspace_Configuration_Request;
+
+   -------------------------------
+   -- On_Configuration_Response --
+   -------------------------------
+
+   overriding procedure On_Configuration_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.Configuration_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("Configuration_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("Configuration_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_Configuration_Response;
+
    ----------------------------
    -- On_Declaration_Request --
    ----------------------------

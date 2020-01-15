@@ -39,4 +39,15 @@ package body LSP.Messages.Client_Requests is
       Reciver.On_Workspace_Apply_Edit_Request (Self);
    end Visit;
 
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : Workspace_Configuration_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_Workspace_Configuration_Request (Self);
+   end Visit;
+
 end LSP.Messages.Client_Requests;

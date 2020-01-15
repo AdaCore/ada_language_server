@@ -38,6 +38,17 @@ package LSP.Messages.Client_Responses is
      (Self    : ApplyWorkspaceEdit_Response;
       Handler : access Client_Response_Sender'Class);
 
+   package Configuration_Responses is new LSP.Generic_Responses
+     (Client_Response,
+      Any_Vector);
+
+   type Configuration_Response is
+     new Configuration_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : Configuration_Response;
+      Handler : access Client_Response_Sender'Class);
+
    type ShowMessage_Response is new Client_Response with null record;
 
    overriding procedure Visit

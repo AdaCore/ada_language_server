@@ -286,9 +286,17 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request);
 
+   overriding procedure On_Workspace_Configuration_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.Workspace_Configuration_Request);
+
    overriding procedure On_ApplyWorkspaceEdit_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response);
+
+   overriding procedure On_Configuration_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.Configuration_Response);
 
    overriding procedure On_ShowMessage_Response
      (Self   : in out Message_Logger;

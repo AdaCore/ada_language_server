@@ -29,6 +29,11 @@ package LSP.Client_Response_Senders is
       Response : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response)
    is abstract;
 
+   procedure On_Configuration_Response
+     (Self     : in out Client_Response_Sender;
+      Response : LSP.Messages.Client_Responses.Configuration_Response)
+   is abstract;
+
    procedure On_ShowMessage_Response
      (Self     : in out Client_Response_Sender;
       Response : LSP.Messages.Client_Responses.ShowMessage_Response)
