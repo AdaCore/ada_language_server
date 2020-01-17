@@ -33,7 +33,7 @@ package body LSP.Generic_Optional is
 
       Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Is_Empty then
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
          V := (Is_Set => False);
       elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
          --  During protocol extension some boolean settings become objects.
