@@ -39,15 +39,6 @@ else
    endif
 endif
 
-ifneq ($(COVERAGE),)
-	COVERAGE_BUILD_FLAGS=\
-		--implicit-with=gnatcov_rts_full \
-		--src-subdirs=gnatcov-instr \
-		-XALS_WARN_ERRORS=false \
-		-XSPAWN_WARN_ERRORS=false \
-		-gnatyN
-endif
-
 ifeq ($(LIBRARY_TYPE), static)
     LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) \
 		  -XLIBRARY_TYPE=static \
@@ -58,15 +49,23 @@ else
     LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) -XOS=$(OS)
 endif
 
-BUILD_FLAGS=$(LIBRARY_FLAGS) $(COVERAGE_BUILD_FLAGS)
+BUILD_FLAGS=$(LIBRARY_FLAGS)
+
+ifneq ($(COVERAGE),)
+	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS) \
+		--implicit-with=gnatcov_rts_full \
+		--src-subdirs=gnatcov-instr \
+		-XALS_WARN_ERRORS=false \
+		-XSPAWN_WARN_ERRORS=false \
+		-gnatyN
+endif
 
 all: coverage-instrument
-	$(GPRBUILD) -P gnat/lsp.gpr -p $(BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) -XVERSION=$(TRAVIS_TAG)
-	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/codec_test.gpr -p $(BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
+		-XVERSION=$(TRAVIS_TAG)
+	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
@@ -80,10 +79,8 @@ ifneq ($(COVERAGE),)
 	# Remove artifacts from previous instrumentations, so that stale units that
 	# are not overriden by new ones don't get in our way.
 	rm -rf .obj/*/gnatcov-instr
-	$(COVERAGE_INSTR) -Pgnat/lsp.gpr
 	$(COVERAGE_INSTR) -XVERSION=$(TRAVIS_TAG) \
 		-Pgnat/lsp_server.gpr --projects lsp_server --projects lsp
-	$(COVERAGE_INSTR) -Pgnat/lsp_client.gpr --projects lsp
 	$(COVERAGE_INSTR) -Pgnat/tester.gpr --projects lsp
 	$(COVERAGE_INSTR) -Pgnat/codec_test.gpr --projects lsp
 endif
