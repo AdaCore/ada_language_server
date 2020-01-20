@@ -23,7 +23,8 @@ function linux_before_install()
     echo INSTALL_DIR=$INSTALL_DIR
     GNAT_INSTALLER=$HOME/cache/gnat-install
 
-    download_gnat http://mirrors.cdn.adacore.com/art/5cdffc5409dcd015aaf82626
+    download_gnat https://community.download.adacore.com/v1/0cd3e2a668332613b522d9612ffa27ef3eb0815b\
+?filename=gnat-community-2019-20190517-x86_64-linux-bin
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
         | tar xzf - -C $INSTALL_DIR
@@ -45,7 +46,8 @@ function osx_before_install()
     echo INSTALL_DIR=$INSTALL_DIR
     GNAT_INSTALLER=$HOME/cache/gnat-community-2019-20190517-x86_64-darwin-bin.dmg
 
-    download_gnat http://mirrors.cdn.adacore.com/art/5ce0322c31e87a8f1d4253fa
+    download_gnat https://community.download.adacore.com/v1/5a7801fc686e86de838cfaf7071170152d81254d\
+?filename=gnat-community-2019-20190517-x86_64-darwin-bin.dmg
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-osx.tar.gz \
         | tar xzf - -C $INSTALL_DIR
