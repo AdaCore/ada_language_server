@@ -960,6 +960,21 @@ package body LSP.Servers is
       ---------------------
 
       procedure Process_Message (Message : in out Message_Access) is
+
+         function Has_Pending_Work return Boolean;
+         --  Return True if the server has work in the queue, other than the
+         --  notification/request it's currently processing.
+
+         ----------------------
+         -- Has_Pending_Work --
+         ----------------------
+
+         function Has_Pending_Work return Boolean is
+         begin
+            return Server.Look_Ahead = null
+              and then Server.Input_Queue_Length > 0;
+         end Has_Pending_Work;
+
       begin
          if Message.all in
            LSP.Messages.Server_Notifications.Server_Notification'Class
@@ -969,7 +984,7 @@ package body LSP.Servers is
             Server_Backend.Before_Work (Message.all);
             LSP.Messages.Server_Notifications.Server_Notification'Class
               (Message.all).Visit (Notif_Handler);
-            Server_Backend.After_Work (Message.all);
+            Server_Backend.After_Work (Message.all, Has_Pending_Work);
 
             Free (Message);
 
@@ -1001,7 +1016,7 @@ package body LSP.Servers is
                Server.Destroy_Queue.Enqueue (Message);
                --  Request will be deleted by Input_Task
             end;
-            Server_Backend.After_Work (Message.all);
+            Server_Backend.After_Work (Message.all, Has_Pending_Work);
 
          exception
             --  If we reach this exception handler, this means an exception
@@ -1120,18 +1135,5 @@ package body LSP.Servers is
 
       return Self.Look_Ahead;
    end Look_Ahead_Message;
-
-   ----------------------
-   -- Has_Pending_Work --
-   ----------------------
-
-   function Has_Pending_Work (Self : Server) return Boolean is
-      use type Ada.Task_Identification.Task_Id;
-   begin
-      pragma Assert
-        (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
-
-      return Self.Input_Queue_Length > 0;
-   end Has_Pending_Work;
 
 end LSP.Servers;
