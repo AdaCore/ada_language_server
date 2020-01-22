@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -95,8 +95,10 @@ package body LSP.Ada_Handlers is
       Operation : String := "") return LSP_Number_Or_String;
    --  Return an unique token for indicating progress
 
-   procedure Index_Files (Self : access Message_Handler);
-   --  Index all loaded files in each context. Emit progresormation.
+   procedure Index_Files
+     (Self             : access Message_Handler;
+      Has_Pending_Work : Boolean);
+   --  Index all loaded files in each context. Emit progress information.
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Contexts.Context, Context_Access);
@@ -2166,7 +2168,10 @@ package body LSP.Ada_Handlers is
    -- Index_Files --
    -----------------
 
-   procedure Index_Files (Self : access Message_Handler) is
+   procedure Index_Files
+     (Self             : access Message_Handler;
+      Has_Pending_Work : Boolean)
+   is
       type Context_And_Files is record
          Context : Context_Access;
          Sources : File_Sets.Set;
@@ -2260,7 +2265,7 @@ package body LSP.Ada_Handlers is
             --  Check whether another request is pending. If so, pause the
             --  indexing; it will be resumed later as part of After_Request.
             --  if Self.Server.Input_Queue_Length > 0 then
-            if Self.Server.Has_Pending_Work then
+            if Has_Pending_Work then
                Emit_Progress_End;
                return;
             end if;
@@ -2378,15 +2383,16 @@ package body LSP.Ada_Handlers is
    ----------------
 
    overriding procedure After_Work
-     (Self    : access Message_Handler;
-      Message : LSP.Messages.Message'Class)
+     (Self             : access Message_Handler;
+      Message          : LSP.Messages.Message'Class;
+      Has_Pending_Work : Boolean)
    is
       pragma Unreferenced (Message);
    begin
      --  We have finished processing a request or notification:
      --  if it happens that indexing is required, do it now.
       if Self.Indexing_Required then
-         Self.Index_Files;
+         Self.Index_Files (Has_Pending_Work);
       end if;
    end After_Work;
 

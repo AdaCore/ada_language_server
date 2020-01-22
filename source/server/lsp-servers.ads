@@ -89,11 +89,6 @@ package LSP.Servers is
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
 
-   function Has_Pending_Work (Self : Server) return Boolean;
-   --  Return True if the server has work in the queue, other than the
-   --  notification/request it's currently processing. This should only be
-   --  called from the processing task.
-
 private
 
    -------------------------
