@@ -962,23 +962,15 @@ package body LSP.Ada_Handlers is
          if Name_Node.P_Is_Defining then
             --  Special case if Name_Node is defining, for instance on the X in
             --      X : My_Type;
-            --  In this case the parents will look like
-            --     4 Ada_Object_Decl
-            --     3   Ada_Defining_Name_List
-            --     2     Ada_Defining_Name
-            --     1       Ada_Identifier
             declare
-               Pars : constant Libadalang.Analysis.Ada_Node_Array :=
-                 Name_Node.Parents;
+               Def_Name : constant Defining_Name :=
+                 Name_Node.P_Enclosing_Defining_Name;
+               Type_Expr : constant Libadalang.Analysis.Type_Expr :=
+                 Def_Name.P_Basic_Decl.P_Type_Expression;
             begin
-               if Pars'Length > 3 and then
-                 Pars (Pars'First + 3).Kind in
-                 Libadalang.Common.Ada_Object_Decl
-               then
+               if not Type_Expr.Is_Null then
                   Definition := Resolve_Name
-                    (Pars (Pars'First + 3).As_Object_Decl
-                     .P_Type_Expression.P_Type_Name,
-                     Self.Trace, Imprecise);
+                    (Type_Expr.P_Type_Name, Self.Trace, Imprecise);
                end if;
             end;
          else
