@@ -133,12 +133,8 @@ package body LSP.Ada_Handlers is
    --      => These cases are handled by Ensure_Project_Loaded
    --
    --  At any point where requests are made, Self.Contexts should
-   --  contain, in this order:
-   --   - one or more contexts, each one containing a non-aggregate project
-   --       hierarchy.
-   --   - a "projectless" context
-   --  The creation of the "projectless" context is handled by
-   --  Create_Projectless_Context
+   --  contain one or more contexts, each one containing a non-aggregate
+   --  project hierarchy.
    --
    --  The attempt to load a project should be done in reaction to
    --  On_DidChangeConfiguration_Notification. However, the IDEs that
@@ -162,9 +158,6 @@ package body LSP.Ada_Handlers is
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
-   procedure Create_Projectless_Context (Self : access Message_Handler);
-   --  This creates the context for "no project" if it's not created already
-
    ---------------------------
    -- Multi-context support --
    ---------------------------
@@ -183,7 +176,7 @@ package body LSP.Ada_Handlers is
    --  Return a list of contexts that are suitable for the given URI:
    --  a list of all contexts where the file is known to be part of the
    --  project tree. If the file is not known to any project, return
-   --  a singleton containing the projectless context.
+   --  an empty list.
    --  The result should not be freed.
 
    function Get_Open_Document
@@ -223,16 +216,18 @@ package body LSP.Ada_Handlers is
       File   : constant Virtual_File := To_File (URI);
       Result : Context_Lists.List;
    begin
+      --  If the file does not exist on disk, assume this is a file
+      --  being created and, as a special convenience in this case,
+      --  assume it could belong to any project.
+      if not File.Is_Regular_File then
+         return Self.Contexts;
+      end if;
+
       for Context of Self.Contexts loop
          if Context.Is_Part_Of_Project (File) then
             Result.Append (Context);
          end if;
       end loop;
-
-      --  If no project matched, return the projectless context
-      if Result.Is_Empty then
-         Result.Append (Self.Contexts.Last_Element);
-      end if;
 
       return Result;
    end Contexts_For_URI;
@@ -380,8 +375,8 @@ package body LSP.Ada_Handlers is
       Files      : File_Array_Access;
       GPR        : Virtual_File;
    begin
-      if Integer (Self.Contexts.Length) >= 2 then
-         --  Rely on the fact that there are at least two contexts initialized
+      if Integer (Self.Contexts.Length) >= 1 then
+         --  Rely on the fact that there is at least one context initialized
          --  as a guarantee that the initialization has been done.
          return;
       end if;
@@ -434,6 +429,7 @@ package body LSP.Ada_Handlers is
             --    - the implicit project relies on the current working
             --      of the ALS, which imposes a restriction on clients, and
             --      is an extra pitfall for developers of this server
+            --
             --  Instead, use Load_Empty_Project and set the source dir and
             --  language manually: this does not have these inconvenients.
 
@@ -443,7 +439,11 @@ package body LSP.Ada_Handlers is
             Set_Attribute
               (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
             GNAT.Strings.Free (Attr (1));
-            Attr := (1 => new String'(Self.Root.Display_Full_Name));
+
+            --  When there is no .gpr, create a project which loads all
+            --  Ada sources in the current directory and subdirectories,
+            --  recursively. Use the "**" syntax for this.
+            Attr := (1 => new String'(Self.Root.Display_Full_Name & "**"));
             Set_Attribute
               (Self.Project_Tree.Root_Project,
                Source_Dirs_Attribute,
@@ -469,23 +469,6 @@ package body LSP.Ada_Handlers is
               " through the ada.projectFile setting.");
       end if;
    end Ensure_Project_Loaded;
-
-   --------------------------------
-   -- Create_Projectless_Context --
-   --------------------------------
-
-   procedure Create_Projectless_Context (Self : access Message_Handler) is
-      Projectless_Context : Context_Access;
-   begin
-      if not Self.Contexts.Is_Empty then
-         --  We have already created the projectless context: we can return
-         return;
-      end if;
-
-      Projectless_Context := new Context (Self.Trace);
-      Projectless_Context.Initialize;
-      Self.Contexts.Append (Projectless_Context);
-   end Create_Projectless_Context;
 
    ------------------------
    -- Initialize_Request --
@@ -554,8 +537,6 @@ package body LSP.Ada_Handlers is
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
-
-      Self.Create_Projectless_Context;
 
       return Response;
    end On_Initialize_Request;
@@ -1123,7 +1104,6 @@ package body LSP.Ada_Handlers is
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
       --  project in this directory, if needed.
-      Self.Create_Projectless_Context;
       Ensure_Project_Loaded
         (Self,
          To_LSP_String (Ada.Directories.Containing_Directory
@@ -1934,7 +1914,6 @@ package body LSP.Ada_Handlers is
       Charset   : Unbounded_String;
       Variables : LSP.Types.LSP_Any;
    begin
-      Self.Create_Projectless_Context;
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (projectFile) then
             File := +Ada.Get (projectFile).Get;
@@ -2011,7 +1990,6 @@ package body LSP.Ada_Handlers is
       Charset  : String)
    is
       use GNATCOLL.Projects;
-      use Ada.Containers;
       Errors        : LSP.Messages.ShowMessageParams;
       Error_Text    : LSP.Types.LSP_String_Vector;
 
@@ -2057,8 +2035,8 @@ package body LSP.Ada_Handlers is
       end Create_Context_For_Non_Aggregate;
 
    begin
-      --  Unload all the contexts except the projectless context
-      while Self.Contexts.Length > 1 loop
+      --  Unload all the contexts
+      while not Self.Contexts.Is_Empty loop
          declare
             C : Context_Access := Self.Contexts.First_Element;
          begin

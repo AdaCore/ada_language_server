@@ -94,10 +94,9 @@ private
    record
       Contexts : Context_Lists.List;
       --  There is one context in this list per loaded project.
-      --  Note: the last context in this list is a special case, not associated
-      --  to a given project.
-      --  There should always be at least one "project" context, and exactly
-      --  one "projectless" context.
+      --  There should always be at least one "project" context - if no .gpr
+      --  is known to the server, this context should map to the implicit
+      --  project.
 
       Root : Virtual_File;
       --  The directory passed under rootURI/rootPath during the initialize

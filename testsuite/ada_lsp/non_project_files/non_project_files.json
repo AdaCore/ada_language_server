@@ -95,7 +95,7 @@
                         "uri": "$URI{non_prj/p2.adb}",
                         "languageId": "ada",
                         "version": 1,
-                        "text": "package body P is\n   procedure Proc is\n   begin\n      return;\n   end Proc;\nend P;"
+                        "text": "package body P2 is\n   procedure Proc is\n   begin\n      return;\n   end Proc;\nend P;"
                     }
                 }
             },
@@ -117,22 +117,7 @@
                     }
                 }
             },
-            "wait":[{
-                "id": "defname-2",
-                "result":[{
-                    "uri": "$URI{p.ads}",
-                    "range": {
-                        "start": {
-                            "line": 0,
-                            "character": 8
-                        },
-                        "end": {
-                            "line": 0,
-                            "character": 9
-                        }
-                    }
-                }]
-            }]
+            "wait":[]
         }
     },  {
         "send": {
