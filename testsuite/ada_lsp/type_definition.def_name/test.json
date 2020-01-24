@@ -1,0 +1,196 @@
+[
+    {
+        "comment":[
+            "This test checks that the textDocument/typeDefinition handler",
+            "works with defining names."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync":1,
+                        "typeDefinitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Test is\n   type T is mod 2;\n   type Rec (Ds : T) is record\n      Cm : T;\n   end record;\n   procedure P (Pr : T) is null;\nbegin\n   null;\nexception\n  when Ex : Constraint_Error;\nend;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"typedefname-1",
+                "method":"textDocument/typeDefinition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "position": {
+                        "line": 2,
+                        "character": 14
+                    }
+                }
+            },
+            "wait":[{
+                "id": "typedefname-1",
+                "result":[{
+                    "uri": "$URI{test.adb}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"typedefname-2",
+                "method":"textDocument/typeDefinition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 7
+                    }
+                }
+            },
+            "wait":[{
+                "id": "typedefname-2",
+                "result":[{
+                    "uri": "$URI{test.adb}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"typedefname-3",
+                "method":"textDocument/typeDefinition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "position": {
+                        "line": 5,
+                        "character": 17
+                    }
+                }
+            },
+            "wait":[{
+                "id": "typedefname-3",
+                "result":[{
+                    "uri": "$URI{test.adb}",
+                    "range": {
+                        "start": {
+                            "line": 1,
+                            "character": 8
+                        },
+                        "end": {
+                            "line": 1,
+                            "character": 9
+                        }
+                    }
+                }]
+            }]
+        }
+        },  {
+            "send": {
+                "request": {
+                    "jsonrpc":"2.0",
+                    "id":"typedefname-4",
+                    "method":"textDocument/typeDefinition",
+                    "params":{
+                        "textDocument": {
+                            "uri": "$URI{test.adb}"
+                        },
+                        "position": {
+                            "line": 9,
+                            "character": 8
+                        }
+                    }
+                },
+                "wait":[{
+                    "id": "typedefname-4",
+                    "result":[]
+                }]
+            }
+        },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
