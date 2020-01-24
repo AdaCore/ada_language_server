@@ -90,3 +90,6 @@ ENV/
 
 # Object directory
 .obj
+
+# Expected testsuite output
+testsuite/.als/inout.txt

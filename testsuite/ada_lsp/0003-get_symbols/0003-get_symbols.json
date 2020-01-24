@@ -13,7 +13,7 @@
             "wait":[{ "id": 0,
                       "result":{
                           "capabilities":{
-                              "textDocumentSync":1,
+                              "textDocumentSync": 2,
                               "documentSymbolProvider":true
                           }
                       }

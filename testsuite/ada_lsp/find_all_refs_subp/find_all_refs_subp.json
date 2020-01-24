@@ -89,7 +89,7 @@
                   "capabilities": {
                      "documentSymbolProvider": true,
                      "definitionProvider": true,
-                     "textDocumentSync": 1,
+                     "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."

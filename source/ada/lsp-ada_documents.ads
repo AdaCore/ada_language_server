@@ -17,6 +17,8 @@
 --
 --  This package provides an Ada document abstraction.
 
+with Ada.Containers.Vectors;
+
 with LSP.Messages;
 with LSP.Types;
 with Libadalang.Analysis;
@@ -97,10 +99,25 @@ package LSP.Ada_Documents is
 
 private
 
+   package Line_To_Index_Vectors is new Ada.Containers.Vectors
+     (Index_Type   => Natural,
+      Element_Type => Positive,
+      "="          => "=");
+   use Line_To_Index_Vectors;
+
    type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record
       URI  : LSP.Messages.DocumentUri;
+
       Text : LSP.Types.LSP_String;
+      --  The text of the document
+
+      Line_To_Index : Vector;
+      --  Within text, an array associating a line number (starting at 0) to
+      --  the offset of the first character of that line in Text.
+      --  This serves as cache to be able to modify text ranges in Text
+      --  given in line/column coordinates without having to scan the whole
+      --  text from the beginning.
    end record;
 
    function URI (Self : Document) return LSP.Messages.DocumentUri is

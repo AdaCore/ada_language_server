@@ -21,9 +21,22 @@
         "type": "git",
         "url": "https://github.com/AdaCore/ada_language_server.git"
     },
-    "os": [ "linux", "win32", "darwin" ],
-    "cpu": [ "x64" ],
-    "keywords": [ "Ada", "ada", "adb", "adc", "ads", "gpr" ],
+    "os": [
+        "linux",
+        "win32",
+        "darwin"
+    ],
+    "cpu": [
+        "x64"
+    ],
+    "keywords": [
+        "Ada",
+        "ada",
+        "adb",
+        "adc",
+        "ads",
+        "gpr"
+    ],
     "contributes": {
         "languages": [
             {
@@ -127,7 +140,10 @@
             {
                 "name": "ada",
                 "label": "Gnat Ada Problem Matcher",
-                "fileLocation": ["relative", "${workspaceRoot}"],
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
                 "pattern": [
                     {
                         "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(warning|)(?:[:]\\s+)?(.*)$",

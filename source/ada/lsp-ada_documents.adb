@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
 
@@ -66,6 +67,38 @@ package body LSP.Ada_Documents is
    --  TODO: It might be better to have a unified kind, and then convert to
    --  specific kind types, but for the moment this is good enough.
 
+   procedure Recompute_Indexes (Self : in out Document);
+   --  Recompute the line-to-offset indexes in Self
+
+   -----------------------
+   -- Recompute_Indexes --
+   -----------------------
+
+   procedure Recompute_Indexes (Self : in out Document) is
+      use LSP.Types;
+   begin
+      Self.Line_To_Index.Clear;
+
+      --  To avoid too many reallocations during the initial filling
+      --  of the index vector, pre-allocate it. Give a generous
+      --  pre-allocation assuming that there is a line break every
+      --  20 characters on average (this file has one line break
+      --  every 33 characters).
+      Self.Line_To_Index.Reserve_Capacity
+        (Ada.Containers.Count_Type (Length (Self.Text) / 20));
+
+      --  The first line (index 0) starts at offset 1
+      Self.Line_To_Index.Append (1);
+
+      for Ind in 1 .. Length (Self.Text) loop
+         if Element (Self.Text, Ind) = Ada.Characters.Wide_Latin_1.LF then
+            --  The contents of Line_To_Index is the first character
+            --  in each line, so index Ind + 1 for the start of line.
+            Self.Line_To_Index.Append (Ind + 1);
+         end if;
+      end loop;
+   end Recompute_Indexes;
+
    -------------------
    -- Apply_Changes --
    -------------------
@@ -77,16 +110,78 @@ package body LSP.Ada_Documents is
       File : constant String :=
         Types.To_UTF_8_String (URI_To_File (Self.URI));
       Dummy : Libadalang.Analysis.Analysis_Unit;
+      use LSP.Types;
    begin
       Self.Trace.Trace ("Applying changes for document " & File);
-      for Change of reverse Vector loop
-         --  If whole document then store it as the new text
+
+      if Vector.Is_Empty then
+         return;
+      end if;
+
+      for Change of Vector loop
          if Change.span.Is_Set then
-            --  TODO: add support for changes given by span here. Until
-            --  this is done, raise an error.
-            raise Program_Error with "change ranges are not yet supported";
+            --  We're replacing a range
+
+            declare
+               Low_Index : constant Natural :=
+                 Self.Line_To_Index.Element
+                   (Natural (Change.span.Value.first.line))
+                 + Natural (Change.span.Value.first.character);
+               High_Index : constant Natural :=
+                 Self.Line_To_Index.Element
+                   (Natural (Change.span.Value.last.line))
+                 + Natural (Change.span.Value.last.character);
+               Chars_Delta : Integer := 0;
+
+               Orig : constant Line_To_Index_Vectors.Vector :=
+                 Self.Line_To_Index;
+            begin
+               --  Do the actual replacement.
+
+               --  Note: do this rather than Self.Text.Slice, to avoid
+               --  allocating a potentially big string on the stack in the
+               --  parameter to Slice.
+               Self.Text := Unbounded_Slice (Self.Text, 1, Low_Index - 1)
+                 & Change.text
+                 & Unbounded_Slice (Self.Text, High_Index,
+                                    Length (Self.Text));
+
+               --  Recompute the indexes
+               Self.Line_To_Index.Delete
+                 (Index => Natural (Change.span.Value.first.line) + 1,
+                  Count => Ada.Containers.Count_Type
+                    (Self.Line_To_Index.Last_Index
+                     - Natural (Change.span.Value.first.line)));
+
+               --  This recomputes the line indexes for the characters that
+               --  we've just added.
+               for Ind in
+                 Low_Index .. Low_Index + Length (Change.text) - 1
+               loop
+                  if Element (Self.Text, Ind) =
+                    Ada.Characters.Wide_Latin_1.LF
+                  then
+                     Self.Line_To_Index.Append (Ind + 1);
+                  end if;
+               end loop;
+
+               --  The delta in characters is the number of characters added
+               --  minus the number of characters removed
+               Chars_Delta := Length (Change.text) - (High_Index - Low_Index);
+
+               --  All the lines after the change are still there, at an
+               --  index modified by Chars_Delta.
+               for J in
+                 Natural (Change.span.Value.last.line) + 1 .. Orig.Last_Index
+               loop
+                  Self.Line_To_Index.Append (Orig.Element (J) + Chars_Delta);
+               end loop;
+            end;
          else
             Self.Text := Change.text;
+
+            --  We're setting the whole text: compute the indexes now.
+            Self.Recompute_Indexes;
          end if;
       end loop;
       Self.Trace.Trace ("Done applying changes for document " & File);
@@ -370,6 +465,7 @@ package body LSP.Ada_Documents is
    begin
       Self.URI  := URI;
       Self.Text := Text;
+      Recompute_Indexes (Self);
    end Initialize;
 
    -------------------

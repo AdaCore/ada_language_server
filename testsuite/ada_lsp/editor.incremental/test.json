@@ -1,0 +1,1290 @@
+[
+   {
+      "comment": [
+         "test corner cases of incremental editor changes"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 4928,
+               "workspaceFolders": [
+                  {
+                     "uri": ".",
+                     "name": "ada_language_server"
+                  }
+               ],
+               "trace": "off",
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "commitCharactersSupport": true,
+                           "preselectSupport": true,
+                           "deprecatedSupport": true,
+                           "snippetSupport": true
+                        },
+                        "completionItemKind": {
+                           "valueSet": [
+                              1,
+                              2,
+                              3,
+                              4,
+                              5,
+                              6,
+                              7,
+                              8,
+                              9,
+                              10,
+                              11,
+                              12,
+                              13,
+                              14,
+                              15,
+                              16,
+                              17,
+                              18,
+                              19,
+                              20,
+                              21,
+                              22,
+                              23,
+                              24,
+                              25
+                           ]
+                        },
+                        "contextSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "definition": {
+                        "linkSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "signatureHelp": {
+                        "signatureInformation": {
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "parameterInformation": {
+                              "labelOffsetSupport": true
+                           }
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "hover": {
+                        "contentFormat": [
+                           "markdown",
+                           "plaintext"
+                        ],
+                        "dynamicRegistration": true
+                     },
+                     "declaration": {
+                        "linkSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {
+                        "linkSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "typeDefinition": {
+                        "linkSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "codeAction": {
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "",
+                                 "quickfix",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite",
+                                 "source",
+                                 "source.organizeImports"
+                              ]
+                           }
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "documentHighlight": {
+                        "dynamicRegistration": true
+                     },
+                     "documentSymbol": {
+                        "symbolKind": {
+                           "valueSet": [
+                              1,
+                              2,
+                              3,
+                              4,
+                              5,
+                              6,
+                              7,
+                              8,
+                              9,
+                              10,
+                              11,
+                              12,
+                              13,
+                              14,
+                              15,
+                              16,
+                              17,
+                              18,
+                              19,
+                              20,
+                              21,
+                              22,
+                              23,
+                              24,
+                              25,
+                              26
+                           ]
+                        },
+                        "hierarchicalDocumentSymbolSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "rename": {
+                        "prepareSupport": true,
+                        "dynamicRegistration": true
+                     },
+                     "synchronization": {
+                        "didSave": true,
+                        "willSave": true,
+                        "willSaveWaitUntil": true,
+                        "dynamicRegistration": true
+                     },
+                     "references": {
+                        "dynamicRegistration": true
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": true
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": true
+                     },
+                     "codeLens": {
+                        "dynamicRegistration": true
+                     },
+                     "publishDiagnostics": {
+                        "relatedInformation": true
+                     },
+                     "documentLink": {
+                        "dynamicRegistration": true
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true,
+                        "rangeLimit": 5000,
+                        "dynamicRegistration": true
+                     },
+                     "colorProvider": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "workspace": {
+                     "workspaceFolders": true,
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeWatchedFiles": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "applyEdit": true,
+                     "configuration": true,
+                     "symbol": {
+                        "symbolKind": {
+                           "valueSet": [
+                              1,
+                              2,
+                              3,
+                              4,
+                              5,
+                              6,
+                              7,
+                              8,
+                              9,
+                              10,
+                              11,
+                              12,
+                              13,
+                              14,
+                              15,
+                              16,
+                              17,
+                              18,
+                              19,
+                              20,
+                              21,
+                              22,
+                              23,
+                              24,
+                              25,
+                              26
+                           ]
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "workspaceEdit": {
+                        "failureHandling": "textOnlyTransactional",
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ],
+                        "documentChanges": true
+                     }
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "declarationProvider": true,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {},
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "renameInComments": false,
+                     "trace": {
+                        "server": "off"
+                     },
+                     "projectFile": "",
+                     "enableDiagnostics": true,
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {"comment": "-------------------------------- send initial text ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package hello is\n\n   procedure foo is null;\n   --  documentation for foo\n\nend hello;\n",
+                  "version": 1,
+                  "uri": "$URI{hello.ads}",
+                  "languageId": "ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- remove the first character and verify that the diagnostics reflect this ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 1
+                        }
+                     },
+                     "rangeLength": 1
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 6
+                           }
+                        },
+                        "message": "Skipped token ackage"
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 7
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 12
+                           }
+                        },
+                        "message": "Skipped token hello"
+                     }
+                  ]
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- undo this and verify that diagnostics are happy  ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "p",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 3,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- remove the last character ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 9
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 10
+                        }
+                     },
+                     "rangeLength": 1
+                  }
+               ],
+               "textDocument": {
+                  "version": 4,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 6,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 6,
+                              "character": 0
+                           }
+                        },
+                        "message": "Missing ';'"
+                     }
+                  ]
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- re-add the last character and verify that diagnostics are happy ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": ";",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 9
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 9
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 5,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- removal of a text range ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 17
+                  }
+               ],
+               "textDocument": {
+                  "version": 6,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 4,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 3
+                           }
+                        },
+                        "message": "Skipped token end"
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 4,
+                              "character": 4
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 9
+                           }
+                        },
+                        "message": "Skipped token hello"
+                     }
+                  ]
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- re-addition of one line ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package hello is\n",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 7,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "--------------------------------  removal of the last line ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 11
+                  }
+               ],
+               "textDocument": {
+                  "version": 8,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 7
+                           }
+                        },
+                        "message": "Skipped token package"
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 8
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 13
+                           }
+                        },
+                        "message": "Skipped token hello"
+                     }
+                  ]
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- re-addition of the last line  ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "end hello;\n",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 9,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- text replacement containing line breaks ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "\nend hello;\n",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 17
+                  }
+               ],
+               "textDocument": {
+                  "version": 10,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 1,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 3
+                           }
+                        },
+                        "message": "Skipped token end"
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 1,
+                              "character": 4
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 9
+                           }
+                        },
+                        "message": "Skipped token hello"
+                     }
+                  ]
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- undo text replacement containing line breaks ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package hello is\n",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 12
+                  }
+               ],
+               "textDocument": {
+                  "version": 11,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- deleting multiple lines ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 56
+                  }
+               ],
+               "textDocument": {
+                  "version": 12,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- re-adding multiple lines ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "\n   procedure foo is null;\n   --  documentation for foo\n",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 13,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "\n   procedure foo is null;\n   --  documentation for foo\n",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 14,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "-------------------------------- multiple copies in succession ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "\n   procedure foo is null;\n   --  documentation for foo\n",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 10
+                        }
+                     },
+                     "rangeLength": 140
+                  }
+               ],
+               "textDocument": {
+                  "version": 15,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 14
+               },
+               "textDocument": {
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 20,
+            "method": "textDocument/hover"
+         },
+         "wait": [
+            {
+               "id": 20,
+               "result": {
+                  "contents": [
+                     {
+                        "value": "procedure foo",
+                        "language": "ada"
+                     },
+                     "at hello.ads (2:4)",
+                     "documentation for foo"
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "package hello is\n\n   procedure foo is null;\n   --  documentation for foo\n\n   procedure foo is null;\n   --  documentation for foo\n\nend hello;",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 56
+                  }
+               ],
+               "textDocument": {
+                  "version": 16,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 56
+                  }
+               ],
+               "textDocument": {
+                  "version": 17,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 56
+                  }
+               ],
+               "textDocument": {
+                  "version": 18,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "\n   procedure foo is null;\n   --  documentation for foo\n",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 0
+                        }
+                     },
+                     "rangeLength": 0
+                  }
+               ],
+               "textDocument": {
+                  "version": 19,
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{hello.ads}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }
+         ]
+      }
+   },
+   {"comment": "--------------------------------after undo, verify that a hover works ------------------------"},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2,
+                  "character": 14
+               },
+               "textDocument": {
+                  "uri": "$URI{hello.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "textDocument/hover"
+         },
+         "wait": [
+            {
+               "id": 24,
+               "result": {
+                  "contents": [
+                     {
+                        "value": "procedure foo",
+                        "language": "ada"
+                     },
+                     "at hello.ads (3:4)",
+                     "documentation for foo"
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": null,
+            "jsonrpc": "2.0",
+            "id": 25,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 25,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": null,
+            "jsonrpc": "2.0",
+            "method": "exit"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
