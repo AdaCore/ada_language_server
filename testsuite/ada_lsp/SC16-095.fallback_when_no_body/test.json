@@ -62,7 +62,7 @@
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
                      "declarationProvider": true,
-                     "textDocumentSync": 1,
+                     "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."

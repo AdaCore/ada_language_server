@@ -1,8 +1,14 @@
 # Server executable file:
-export ALS=$(shell pwd)/.obj/server/ada_language_server
+ROOTDIR=$(shell pwd)
+
+# Location of home dir for tests
+export ALS_HOME=$(ROOTDIR)/testsuite
+
+# Command to run for tests
+export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 
 # Tester files
-TESTER=$(shell pwd)/.obj/tester/tester-run
+TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
 
 # Testsuite directory

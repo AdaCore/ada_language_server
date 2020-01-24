@@ -87,6 +87,8 @@ class ALSTestsuite(Testsuite):
             self.env.wait_factor = 20  # valgrind is slow
         else:
             self.env.als = self.lookup_program('server', 'ada_language_server')
+
+        self.env.als_home = os.path.join(self.env.repo_base, 'testsuite')
         self.env.tester_run = self.lookup_program('tester', 'tester-run')
         self.env.codec_test = self.lookup_program('codec_test', 'codec_test')
 

@@ -62,7 +62,7 @@
                      "renameProvider": {},
                      "alsCalledByProvider": true,
                      "referencesProvider": true,
-                     "textDocumentSync": 1,
+                     "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
                            "."
