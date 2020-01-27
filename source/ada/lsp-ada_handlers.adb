@@ -29,6 +29,7 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
+with LSP.Commands;
 with LSP.Errors;
 with LSP.Types;        use LSP.Types;
 with LSP.Common;       use LSP.Common;
@@ -438,6 +439,8 @@ package body LSP.Ada_Handlers is
          (resolveProvider => (True, False),
           triggerCharacters => Empty_Vector & To_LSP_String (".")));
       Response.result.capabilities.hoverProvider := True;
+      Response.result.capabilities.executeCommandProvider :=
+        (True, (commands => LSP.Commands.All_Commands));
 
       Response.result.capabilities.alsCalledByProvider := True;
       Response.result.capabilities.alsReferenceKinds :=
@@ -521,16 +524,35 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response
    is
-      pragma Unreferenced (Self, Request);
+      Error    : LSP.Errors.Optional_ResponseError;
+      Params   : LSP.Messages.ExecuteCommandParams renames
+        Request.params;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
         (Is_Error => True);
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
-          data => <>));
-      return Response;
+      if Params.Is_Unknown or else Params.Custom.Is_Null then
+         Response.error :=
+           (True,
+            (code => LSP.Errors.InternalError,
+             message => To_LSP_String ("Not implemented"),
+             data    => <>));
+         return Response;
+      end if;
+
+      Params.Custom.Unchecked_Get.Execute
+        (Handler => Self,
+         Client  => Self.Server,
+         Error   => Error);
+
+      if Error.Is_Set then
+         Response.error := Error;
+         return Response;
+      end if;
+
+      --  No particular response in case of success.
+      return (Is_Error => False,
+              Error    => (Is_Set => False),
+              others   => <>);
    end On_Execute_Command_Request;
 
    ----------------------------
@@ -2168,16 +2190,35 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response
    is
-      pragma Unreferenced (Self, Request);
+      Error    : LSP.Errors.Optional_ResponseError;
+      Params   : LSP.Messages.ExecuteCommandParams renames
+        Request.params;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
         (Is_Error => True);
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
-          data => <>));
-      return Response;
+      if Params.Is_Unknown or else Params.Custom.Is_Null then
+         Response.error :=
+           (True,
+            (code => LSP.Errors.InternalError,
+             message => +"Not implemented",
+             data    => <>));
+         return Response;
+      end if;
+
+      Params.Custom.Unchecked_Get.Execute
+        (Handler => Self,
+         Client  => Self.Server,
+         Error   => Error);
+
+      if Error.Is_Set then
+         Response.error := Error;
+         return Response;
+      end if;
+
+      --  No particular response in case of success.
+      return (Is_Error => False,
+              Error    => (Is_Set => False),
+              others   => <>);
    end On_Workspace_Execute_Command_Request;
 
    ----------------------------------
