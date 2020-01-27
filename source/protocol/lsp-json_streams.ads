@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,7 +26,8 @@ with GNATCOLL.JSON;
 
 package LSP.JSON_Streams is
 
-   type JSON_Stream is new Ada.Streams.Root_Stream_Type with private;
+   type JSON_Stream (Is_Server_Side : Boolean := False) is
+     new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
    --  To support JSON serialization user provides Read/Write streaming
@@ -39,6 +40,9 @@ package LSP.JSON_Streams is
    --  To provide property name compound type uses Key procedure before
    --  calling Read/Write. Each item shoud have Read/Write aspect overriden
    --  in the same way.
+   --
+   --  The Is_Server_Side discriminant can be used to create distinct
+   --  representations on client and server sides.
 
    procedure Start_Object (Self : not null access JSON_Stream'Class);
    --  Start new JSON object during read/write of some compound type
@@ -104,7 +108,9 @@ private
 
    package State_Vectors is new Ada.Containers.Vectors (Positive, State);
 
-   type JSON_Stream is new Ada.Streams.Root_Stream_Type with record
+   type JSON_Stream (Is_Server_Side : Boolean := False) is
+     new Ada.Streams.Root_Stream_Type with
+   record
       Writable : Boolean := True;  --  True means stream to write
       Current  : State;
       Stack    : State_Vectors.Vector;

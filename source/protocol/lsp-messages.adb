@@ -168,10 +168,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
    begin
-      --  ??? It is assumed that read is used on client side only, thus
-      --  change discriminant of the object.
-
-      V := (Is_Server_Side => False, others => <>);
+      if JS.Is_Server_Side then
+         V := (Is_Server_Side => True, others => <>);
+      else
+         V := (Is_Server_Side => False, others => <>);
+      end if;
 
       JS.Start_Array;
 

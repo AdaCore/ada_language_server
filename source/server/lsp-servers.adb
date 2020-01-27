@@ -300,7 +300,7 @@ package body LSP.Servers is
 
          Is_Exit_Notification : Boolean;
 
-         JS         : aliased LSP.JSON_Streams.JSON_Stream;
+         JS         : aliased LSP.JSON_Streams.JSON_Stream (True);
          JSON_Array : GNATCOLL.JSON.JSON_Array;
          Version    : LSP.Types.LSP_String;
          Method     : LSP.Types.Optional_String;
@@ -877,7 +877,7 @@ package body LSP.Servers is
             Server.Logger.Visit (Message.all);
 
             declare
-               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True);
                Output     : Ada.Strings.Unbounded.Unbounded_String;
             begin
                LSP.Messages.Message'Class'Write

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -536,7 +536,7 @@ package body LSP.Clients is
         (JSON   : GNATCOLL.JSON.JSON_Array)
           return LSP.Types.LSP_Number_Or_String
       is
-         Stream : aliased LSP.JSON_Streams.JSON_Stream;
+         Stream : aliased LSP.JSON_Streams.JSON_Stream (False);
          Result : LSP.Types.LSP_Number_Or_String;
       begin
          Stream.Set_JSON_Document (JSON);
@@ -548,7 +548,7 @@ package body LSP.Clients is
 
       Value  : constant GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.Read (Data);
       JSON   : GNATCOLL.JSON.JSON_Array;
-      Stream : aliased LSP.JSON_Streams.JSON_Stream;
+      Stream : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
       Id     : LSP.Types.LSP_Number_Or_String;
 
       Is_Error : constant Boolean := Value.Has_Field ("error");
@@ -624,7 +624,7 @@ package body LSP.Clients is
       Method : Ada.Strings.UTF_Encoding.UTF_8_String;
       Value  : in out LSP.Messages.NotificationMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream;
+      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
       JSON : GNATCOLL.JSON.JSON_Value;
    begin
       Value.jsonrpc := +"2.0";
@@ -645,7 +645,7 @@ package body LSP.Clients is
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream;
+      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
       JSON : GNATCOLL.JSON.JSON_Value;
    begin
       Request := Self.Allocate_Request_Id.Number;
@@ -719,7 +719,7 @@ package body LSP.Clients is
       Request : LSP.Types.LSP_Number_Or_String;
       Value   : in out LSP.Messages.ResponseMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream;
+      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
       JSON : GNATCOLL.JSON.JSON_Value;
    begin
       Value.jsonrpc := +"2.0";

@@ -35,7 +35,7 @@ is
       Parameters  => LSP.JSON_Streams.JSON_Stream,
       Constructor => LSP.Messages.Server_Requests.Decode);
 
-   JS : aliased LSP.JSON_Streams.JSON_Stream;
+   JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => True);
    JSON_Array : GNATCOLL.JSON.JSON_Array;
 
    Method     : LSP.Types.LSP_String;
