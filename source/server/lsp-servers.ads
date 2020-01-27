@@ -22,12 +22,13 @@
 
 with Ada.Streams;
 
-with LSP.Client_Notification_Receivers;
+with LSP.Client_Message_Receivers;
 with LSP.Message_Loggers;
+with LSP.Messages.Client_Requests;
 with LSP.Messages;
-with LSP.Server_Request_Handlers;
-with LSP.Server_Notification_Receivers;
 with LSP.Server_Backends;
+with LSP.Server_Notification_Receivers;
+with LSP.Server_Request_Handlers;
 with LSP.Types;
 
 with GNATCOLL.Traces;
@@ -44,11 +45,11 @@ private with LSP.Messages.Server_Requests;
 package LSP.Servers is
 
    type Server is limited
-     new LSP.Client_Notification_Receivers.Client_Notification_Receiver
+     new LSP.Client_Message_Receivers.Client_Message_Receiver
        with private;
    --  The representation of LSP server.
-   --  Use methods of Client_Notification_Receiver to send notifications to
-   --  LSP client.
+   --  Use methods of Client_Message_Receiver to send notifications and
+   --  requests to the LSP client.
 
    procedure Initialize
      (Self   : in out Server;
@@ -88,6 +89,34 @@ package LSP.Servers is
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
+
+   overriding procedure On_Show_Message
+     (Self   : access Server;
+      Params : LSP.Messages.ShowMessageParams);
+
+   overriding procedure On_Log_Message
+     (Self   : access Server;
+      Params : LSP.Messages.LogMessageParams);
+
+   overriding procedure On_Publish_Diagnostics
+     (Self   : access Server;
+      Params : LSP.Messages.PublishDiagnosticsParams);
+
+   overriding procedure On_Progress
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_Params);
+
+   overriding procedure On_ShowMessage_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.ShowMessage_Request);
+
+   overriding procedure On_Workspace_Apply_Edit_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request);
+
+   overriding procedure On_Workspace_Configuration_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request);
 
 private
 
@@ -180,7 +209,7 @@ private
    end Input_Task_Type;
 
    type Server is limited
-     new LSP.Client_Notification_Receivers.Client_Notification_Receiver with
+     new LSP.Client_Message_Receivers.Client_Message_Receiver with
    record
       Stop          : GNAT.Semaphores.Binary_Semaphore
                           (Initially_Available => False,
@@ -208,22 +237,6 @@ private
       Logger          : aliased LSP.Message_Loggers.Message_Logger;
       On_Error        : Uncaught_Exception_Handler;
    end record;
-
-   overriding procedure On_Show_Message
-     (Self   : access Server;
-      Params : LSP.Messages.ShowMessageParams);
-
-   overriding procedure On_Log_Message
-     (Self   : access Server;
-      Params : LSP.Messages.LogMessageParams);
-
-   overriding procedure On_Publish_Diagnostics
-     (Self   : access Server;
-      Params : LSP.Messages.PublishDiagnosticsParams);
-
-   overriding procedure On_Progress
-     (Self   : access Server;
-      Params : LSP.Messages.Progress_Params);
 
    Unknown_Method : exception;
    --  This exception is raised by message decoder when it's unable to decode

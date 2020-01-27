@@ -88,6 +88,15 @@ package body LSP.Servers is
    --  Send given notification to client. The Notification will be deleted by
    --  Output_Task
 
+   type Client_Request_Access is
+     access all LSP.Messages.Client_Requests.Client_Request'Class;
+
+   procedure Send_Request
+     (Self   : in out Server'Class;
+      Method : String;
+      Value  : LSP.Messages.Client_Requests.Client_Request'Class);
+   --  Assign Method to the request and send it to the client.
+
    procedure Send_Exception_Response
      (Self       : in out Server'Class;
       E          : Exception_Occurrence;
@@ -571,6 +580,40 @@ package body LSP.Servers is
       Self.Send_Notification (Message);
    end On_Progress;
 
+   ----------------------------
+   -- On_ShowMessage_Request --
+   ----------------------------
+
+   overriding procedure On_ShowMessage_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.ShowMessage_Request) is
+   begin
+      Self.Send_Request ("window/showMessageRequest", Message);
+   end On_ShowMessage_Request;
+
+   -------------------------------------
+   -- On_Workspace_Apply_Edit_Request --
+   -------------------------------------
+
+   overriding procedure On_Workspace_Apply_Edit_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request) is
+   begin
+      Self.Send_Request ("workspace/applyEdit", Message);
+   end On_Workspace_Apply_Edit_Request;
+
+   ----------------------------------------
+   -- On_Workspace_Configuration_Request --
+   ----------------------------------------
+
+   overriding procedure On_Workspace_Configuration_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
+   is
+   begin
+      Self.Send_Request ("workspace/configuration", Message);
+   end On_Workspace_Configuration_Request;
+
    ---------
    -- Run --
    ---------
@@ -689,6 +732,26 @@ package body LSP.Servers is
       Self.Output_Queue.Enqueue (Value);
       Value := null;
    end Send_Notification;
+
+   ------------------
+   -- Send_Request --
+   ------------------
+
+   procedure Send_Request
+     (Self   : in out Server'Class;
+      Method : String;
+      Value  : LSP.Messages.Client_Requests.Client_Request'Class)
+   is
+      Message : constant Client_Request_Access :=
+        new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
+      --  The Message will be deleted by Output_Task
+   begin
+      Message.jsonrpc := +"2.0";
+      Self.Last_Request := Self.Last_Request + 1;
+      Message.id := (Is_Number => True, Number => Self.Last_Request);
+      Message.method := LSP.Types.To_LSP_String (Method);
+      Self.Output_Queue.Enqueue (Message_Access (Message));
+   end Send_Request;
 
    -------------------
    -- Send_Response --
