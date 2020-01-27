@@ -101,20 +101,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_String_Vector);
 
-   Error_Map : constant array (ErrorCodes) of Long_Integer
-     :=
-     (ParseError           => -32700,
-      InvalidRequest       => -32600,
-      MethodNotFound       => -32601,
-      InvalidParams        => -32602,
-      InternalError        => -32603,
-      serverErrorStart     => -32099,
-      serverErrorEnd       => -32000,
-      ServerNotInitialized => -32002,
-      UnknownErrorCode     => -32001,
-      RequestCancelled     => -32800,
-      ContentModified      => -32801);
-
    Simple_Reference_Image           : aliased constant Standard.String :=
                                         "reference";
    Write_Reference_Image            : aliased constant Standard.String :=
@@ -2131,36 +2117,6 @@ package body LSP.Messages is
          V := create;
       end if;
    end Read_ResourceOperationKind;
-
-   ------------------------
-   -- Read_ResponseError --
-   ------------------------
-
-   procedure Read_ResponseError
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResponseError)
-   is
-      Code : Long_Integer;
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("code");
-      Code := JS.Read.Get;
-
-      for J in Error_Map'Range loop
-         if Error_Map (J) = Code then
-            V.code := J;
-            exit;
-         end if;
-      end loop;
-
-      Read_String (JS, +"message", V.message);
-      JS.Key ("data");
-      LSP.Types.LSP_Any'Read (S, V.data);
-
-      JS.End_Object;
-   end Read_ResponseError;
 
    -----------------------------
    -- Read_ServerCapabilities --
@@ -4923,30 +4879,6 @@ package body LSP.Messages is
    begin
       JS.Write (GNATCOLL.JSON.Create (To_String (V)));
    end Write_ResourceOperationKind;
-
-   -------------------------
-   -- Write_ResponseError --
-   -------------------------
-
-   procedure Write_ResponseError
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResponseError)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("code");
-      JS.Write (GNATCOLL.JSON.Create (Error_Map (V.code)));
-      Write_String (JS, +"message", V.message);
-
-      if not V.data.Is_Empty then
-         JS.Key ("data");
-         LSP.Types.LSP_Any'Write (S, V.data);
-      end if;
-
-      JS.End_Object;
-   end Write_ResponseError;
 
    ---------------------------
    -- Write_ResponseMessage --
