@@ -29,8 +29,8 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
-with LSP.Types; use LSP.Types;
-
+with LSP.Errors;
+with LSP.Types;        use LSP.Types;
 with LSP.Common;       use LSP.Common;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
@@ -506,7 +506,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -527,7 +527,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1090,7 +1090,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1111,7 +1111,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1573,7 +1573,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1594,7 +1594,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1615,7 +1615,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -1636,7 +1636,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -2174,7 +2174,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;
@@ -2195,7 +2195,7 @@ package body LSP.Ada_Handlers is
    begin
       Response.error :=
         (True,
-         (code => LSP.Messages.InternalError,
+         (code => LSP.Errors.InternalError,
           message => To_LSP_String ("Not implemented"),
           data => <>));
       return Response;

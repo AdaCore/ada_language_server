@@ -30,6 +30,7 @@ with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
 with Ada.Tags;
 
+with LSP.Errors;
 with LSP.Generic_Optional;
 with LSP.Generic_Sets;
 with LSP.Generic_Vectors;
@@ -137,37 +138,12 @@ package LSP.Messages is
    --	export const ContentModified: number = -32801;
    --}
    --```
-   type ErrorCodes is
-     (ParseError,
-      InvalidRequest,
-      MethodNotFound,
-      InvalidParams,
-      InternalError,
-      serverErrorStart,
-      serverErrorEnd,
-      ServerNotInitialized,
-      UnknownErrorCode,
-      RequestCancelled,
-      ContentModified);
+   subtype ErrorCodes is LSP.Errors.ErrorCodes;
+   MethodNotFound : constant ErrorCodes := LSP.Errors.MethodNotFound;
 
-   type ResponseError is record
-      code: ErrorCodes;
-      message: LSP_String;
-      data: LSP_Any;
-   end record;
+   subtype ResponseError is LSP.Errors.ResponseError;
 
-   procedure Read_ResponseError
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResponseError);
-   for ResponseError'Read use Read_ResponseError;
-
-   procedure Write_ResponseError
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResponseError);
-   for ResponseError'Write use Write_ResponseError;
-
-   package Optional_ResponseErrors is new LSP.Generic_Optional (ResponseError);
-   type Optional_ResponseError is new Optional_ResponseErrors.Optional_Type;
+   subtype Optional_ResponseError is LSP.Errors.Optional_ResponseError;
 
    type ResponseMessage (Is_Error : Boolean) is new Message with record
       id: LSP_Number_Or_String;  --  or null?

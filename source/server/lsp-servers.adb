@@ -25,6 +25,7 @@ with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
+with LSP.Errors;
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
 with LSP.Servers.Decode_Notification;
@@ -102,7 +103,7 @@ package body LSP.Servers is
       E          : Exception_Occurrence;
       Trace_Text : String;
       Request_Id : LSP.Types.LSP_Number_Or_String;
-      Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError);
+      Code       : LSP.Messages.ErrorCodes := LSP.Errors.InternalError);
    --  Send a response to the stream representing the exception. This
    --  should be called whenever an exception occurred while processing
    --  a request.
@@ -363,7 +364,7 @@ package body LSP.Servers is
                     (Self, UR,
                      To_String (Vector),
                      Request_Id,
-                     LSP.Messages.MethodNotFound);
+                     LSP.Errors.MethodNotFound);
                   return;
 
                when E : others =>
@@ -373,7 +374,7 @@ package body LSP.Servers is
                     (Self, E,
                      To_String (Vector),
                      Request_Id,
-                     LSP.Messages.InvalidParams);
+                     LSP.Errors.InvalidParams);
                   return;
             end;
 
@@ -655,7 +656,7 @@ package body LSP.Servers is
       E          : Exception_Occurrence;
       Trace_Text : String;
       Request_Id : LSP.Types.LSP_Number_Or_String;
-      Code       : LSP.Messages.ErrorCodes := LSP.Messages.InternalError)
+      Code       : LSP.Messages.ErrorCodes := LSP.Errors.InternalError)
    is
       Exception_Text : constant String :=
         Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
@@ -695,7 +696,7 @@ package body LSP.Servers is
          id       => <>,  --  we will set this latter
          error    =>
            (Is_Set => True,
-            Value  => (code    => LSP.Messages.ServerNotInitialized,
+            Value  => (code    => LSP.Errors.ServerNotInitialized,
                        message => +"No initialize request was received",
                        others  => <>)));
    begin
@@ -712,7 +713,7 @@ package body LSP.Servers is
          id       => <>,  --  we will set this latter
          error    =>
            (Is_Set => True,
-            Value  => (code    => LSP.Messages.RequestCancelled,
+            Value  => (code    => LSP.Errors.RequestCancelled,
                        message => +"Request was canceled",
                        others  => <>)));
    begin
