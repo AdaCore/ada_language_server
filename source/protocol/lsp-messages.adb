@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
@@ -124,6 +125,11 @@ package body LSP.Messages is
       Dispatching_Call => Dispatching_Call_Reference_Image'Access,
       Parent           => Parent_Reference_Image'Access,
       Child            => Child_Reference_Image'Access);
+
+   function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
+     (T           => LSP.Commands.Command,
+      Parameters  => LSP.JSON_Streams.JSON_Stream'Class,
+      Constructor => LSP.Commands.Create);
 
    -------------------
    -- Method_To_Tag --
@@ -564,14 +570,29 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Command)
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+      Tag : Ada.Tags.Tag;
+      JS  : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
       Read_String (JS, +"title", V.title);
       Read_String (JS, +"command", V.command);
+      Tag := Ada.Tags.Internal_Tag (LSP.Types.To_UTF_8_String (V.command));
       JS.Key ("arguments");
-      Optional_Any_Vector'Read (S, V.arguments);
+
+      if Tag in Ada.Tags.No_Tag then
+         Optional_Any_Vector'Read (S, V.arguments);
+      else
+         V :=
+           (Is_Unknown => False,
+            title      => V.title,
+            Custom     => <>);
+
+         JS.Start_Array;
+         V.Custom.Set (Create_Command (Tag, JS'Access));
+         JS.End_Array;
+      end if;
+
       JS.End_Object;
    end Read_Command;
 
@@ -1207,13 +1228,29 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ExecuteCommandParams)
    is
+      Tag : Ada.Tags.Tag;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
       Read_String (JS, +"command", V.command);
+      Tag := Ada.Tags.Internal_Tag (LSP.Types.To_UTF_8_String (V.command));
       JS.Key ("arguments");
-      Optional_Any_Vector'Read (S, V.arguments);
+
+      if Tag in Ada.Tags.No_Tag then
+         Optional_Any_Vector'Read (S, V.arguments);
+      else
+         --  Overwrite discriminant with Is_Unknown => False
+         V :=
+           (Is_Unknown => False,
+            command    => V.command,
+            Custom     => <>);
+
+         JS.Start_Array;
+         V.Custom.Set (Create_Command (Tag, JS'Access));
+         JS.End_Array;
+      end if;
+
       JS.End_Object;
    end Read_ExecuteCommandParams;
 
@@ -3353,16 +3390,32 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Temp : LSP.Commands.Command_Access;
    begin
-      if Is_Empty (V.command) then
+      if V.Is_Unknown and then Is_Empty (V.command) then
          return;
       end if;
 
       JS.Start_Object;
       Write_String (JS, +"title", V.title);
-      Write_String (JS, +"command", V.command);
-      JS.Key ("arguments");
-      Optional_Any_Vector'Write (S, V.arguments);
+
+      if V.Is_Unknown then
+         Write_String (JS, +"command", V.command);
+         JS.Key ("arguments");
+         Optional_Any_Vector'Write (S, V.arguments);
+      else
+         Write_String
+           (JS,
+            +"command",
+            +Ada.Tags.External_Tag (V.Custom.Unchecked_Get'Tag));
+         JS.Key ("arguments");
+         JS.Start_Array;
+         Temp := LSP.Commands.Command_Access (V.Custom.Unchecked_Get);
+         --  This Temp variable prevents compiler from a crash.
+         LSP.Commands.Command'Class'Write (S, Temp.all);
+         JS.End_Array;
+      end if;
+
       JS.End_Object;
    end Write_Command;
 
@@ -4057,13 +4110,25 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommandParams)
    is
+      Temp : LSP.Commands.Command_Access;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_String (JS, +"command", V.command);
       JS.Key ("arguments");
-      Optional_Any_Vector'Write (S, V.arguments);
+
+      if V.Is_Unknown then
+         Optional_Any_Vector'Write (S, V.arguments);
+         Write_String (JS, +"command", V.command);
+      else
+         JS.Start_Array;
+         Temp := LSP.Commands.Command_Access (V.Custom.Unchecked_Get);
+         --  This Temp variable prevents compiler from a crash.
+         LSP.Commands.Command'Class'Write (S, Temp.all);
+         JS.End_Array;
+         Write_String (JS, +"command", V.command);
+      end if;
+
       JS.End_Object;
    end Write_ExecuteCommandParams;
 

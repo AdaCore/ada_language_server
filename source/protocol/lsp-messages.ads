@@ -30,6 +30,7 @@ with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
 with Ada.Tags;
 
+with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
 with LSP.Generic_Sets;
@@ -639,10 +640,19 @@ package LSP.Messages is
    --	arguments?: any[];
    --}
    --```
-   type Command is record
-      title: LSP_String;
-      command: LSP_String;
-      arguments: Optional_Any_Vector;
+   type Command (Is_Unknown : Boolean := True) is record
+      title   : LSP_String;
+
+      case Is_Unknown is
+         when True =>
+            command   : LSP_String;
+            arguments : Optional_Any_Vector;
+            --  Unknown commands are represented as Any_Vector. The client has
+            --  only unknown commands.
+         when False =>
+            Custom    : LSP.Commands.Command_Pointer;
+            --  The server has a predefined set of known commands.
+      end case;
    end record;
 
    procedure Read_Command
@@ -5132,10 +5142,17 @@ package LSP.Messages is
    --	arguments?: any[];
    --}
    --```
-   type ExecuteCommandParams is record
-      command: LSP_String;
-      arguments: Optional_Any_Vector;
+   type ExecuteCommandParams (Is_Unknown : Boolean := True) is record
+      command : LSP_String;
+
+      case Is_Unknown is
+         when True =>
+            arguments : Optional_Any_Vector;
+         when False =>
+            Custom    : LSP.Commands.Command_Pointer;
+      end case;
    end record;
+   --  See Command for Is_Unknown documentation
 
    procedure Read_ExecuteCommandParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
