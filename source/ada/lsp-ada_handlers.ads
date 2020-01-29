@@ -18,13 +18,13 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with LSP.Ada_Contexts;
+with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 
 with LSP.Messages.Server_Requests;
@@ -54,11 +54,6 @@ package LSP.Ada_Handlers is
    --  Free memory referenced by Self
 
 private
-
-   type Context_Access is access LSP.Ada_Contexts.Context;
-
-   package Context_Lists is new Ada.Containers.Doubly_Linked_Lists
-     (Context_Access);
 
    --  Options for refactoring/renaming
    type Renaming_Options is record
@@ -92,7 +87,7 @@ private
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.Server_Backends.Server_Backend with
    record
-      Contexts : Context_Lists.List;
+      Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
       --  There should always be at least one "project" context - if no .gpr
       --  is known to the server, this context should map to the implicit

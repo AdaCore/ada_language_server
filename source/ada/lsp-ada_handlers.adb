@@ -70,6 +70,8 @@ package body LSP.Ada_Handlers is
    --  of a possible imprecise result while computing xrefs on the given
    --  node.
 
+   subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
+
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
       In_Context : Context_Access;
@@ -99,9 +101,6 @@ package body LSP.Ada_Handlers is
      (Self             : access Message_Handler;
       Has_Pending_Work : Boolean);
    --  Index all loaded files in each context. Emit progress information.
-
-   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-     (LSP.Ada_Contexts.Context, Context_Access);
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Documents.Document, Internal_Document_Access);
@@ -158,79 +157,12 @@ package body LSP.Ada_Handlers is
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
-   ---------------------------
-   -- Multi-context support --
-   ---------------------------
-
-   --  A set of utilities for dealing with multiple contexts
-
-   function Get_Best_Context
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri) return Context_Access;
-   --  Return the first context in Contexts which contains a project
-   --  which knows about file. Fallback on the "no project" context.
-
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri) return Context_Lists.List;
-   --  Return a list of contexts that are suitable for the given URI:
-   --  a list of all contexts where the file is known to be part of the
-   --  project tree. If the file is not known to any project, return
-   --  an empty list.
-   --  The result should not be freed.
-
    function Get_Open_Document
      (Self : access Message_Handler;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
    --  Return the document for the given URI, assuming this document
    --  is open. Return null if this document is not open.
-
-   ----------------------
-   -- Get_Best_Context --
-   ----------------------
-
-   function Get_Best_Context
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri) return Context_Access
-   is
-      File : constant Virtual_File := To_File (URI);
-   begin
-      for Context of Self.Contexts loop
-         if Context.Is_Part_Of_Project (File) then
-            return Context;
-         end if;
-      end loop;
-
-      return Self.Contexts.Last_Element;
-   end Get_Best_Context;
-
-   ----------------------
-   -- Contexts_For_URI --
-   ----------------------
-
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri) return Context_Lists.List
-   is
-      File   : constant Virtual_File := To_File (URI);
-      Result : Context_Lists.List;
-   begin
-      --  If the file does not exist on disk, assume this is a file
-      --  being created and, as a special convenience in this case,
-      --  assume it could belong to any project.
-      if not File.Is_Regular_File then
-         return Self.Contexts;
-      end if;
-
-      for Context of Self.Contexts loop
-         if Context.Is_Part_Of_Project (File) then
-            Result.Append (Context);
-         end if;
-      end loop;
-
-      return Result;
-   end Contexts_For_URI;
 
    -----------------------
    -- Get_Open_Document --
@@ -340,15 +272,7 @@ package body LSP.Ada_Handlers is
       Self.Open_Documents.Clear;
 
       --  Cleanup contexts
-      while not Self.Contexts.Is_Empty loop
-         declare
-            C : Context_Access := Self.Contexts.First_Element;
-         begin
-            C.Free;
-            Unchecked_Free (C);
-         end;
-         Self.Contexts.Delete_First;
-      end loop;
+      Self.Contexts.Cleanup;
 
       --  Cleanup project and environment
       Self.Release_Project_Info;
@@ -375,7 +299,7 @@ package body LSP.Ada_Handlers is
       Files      : File_Array_Access;
       GPR        : Virtual_File;
    begin
-      if Integer (Self.Contexts.Length) >= 1 then
+      if not Self.Contexts.Is_Empty then
          --  Rely on the fact that there is at least one context initialized
          --  as a guarantee that the initialization has been done.
          return;
@@ -618,7 +542,7 @@ package body LSP.Ada_Handlers is
         Get_Open_Document (Self, Position.textDocument.uri);
 
    begin
-      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
          C.Append_Declarations
            (Document,
             Position,
@@ -762,7 +686,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -887,7 +811,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -973,7 +897,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Contexts_For_URI (Self, Position.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -1040,7 +964,9 @@ package body LSP.Ada_Handlers is
 
       --  Reindex the document in each of the contexts where it is relevant
 
-      for Context of Contexts_For_URI (Self, Value.textDocument.uri) loop
+      for Context
+        of Self.Contexts.Contexts_For_URI (Value.textDocument.uri)
+      loop
          Context.Index_Document (Document.all);
 
          --  Emit diagnostics - do this for only one context
@@ -1118,7 +1044,7 @@ package body LSP.Ada_Handlers is
          Diag : LSP.Messages.PublishDiagnosticsParams;
          Diags_Already_Published : Boolean := False;
       begin
-         for Context of Contexts_For_URI (Self, URI) loop
+         for Context of Self.Contexts.Contexts_For_URI (URI) loop
             Context.Index_Document (Object.all);
 
             if Self.Diagnostics_Enabled
@@ -1206,7 +1132,7 @@ package body LSP.Ada_Handlers is
       Decl_Unit_File     : Virtual_File;
 
       C : constant Context_Access :=
-        Get_Best_Context (Self, Value.textDocument.uri);
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
@@ -1455,7 +1381,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1582,7 +1508,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Find the references in all contexts
-      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1720,7 +1646,7 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
       Context  : constant Context_Access :=
-        Get_Best_Context (Self, Value.textDocument.uri);
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
    begin
       return Result : LSP.Messages.Server_Responses.Symbol_Response :=
@@ -1884,7 +1810,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Contexts_For_URI (Self, Value.textDocument.uri) loop
+      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -2036,15 +1962,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Unload all the contexts
-      while not Self.Contexts.Is_Empty loop
-         declare
-            C : Context_Access := Self.Contexts.First_Element;
-         begin
-            C.Free;
-            Unchecked_Free (C);
-         end;
-         Self.Contexts.Delete_First;
-      end loop;
+      Self.Contexts.Cleanup;
 
       --  Unload the project tree and the project environment
       Self.Release_Project_Info;
@@ -2100,7 +2018,7 @@ package body LSP.Ada_Handlers is
       --  Reindex all open documents immediately after project reload, so
       --  that navigation from editors is accurate.
       for Document of Self.Open_Documents loop
-         for Context of Contexts_For_URI (Self, Document.URI) loop
+         for Context of Self.Contexts.Contexts_For_URI (Document.URI) loop
             Context.Index_Document (Document.all);
          end loop;
       end loop;
@@ -2142,14 +2060,6 @@ package body LSP.Ada_Handlers is
      (Self             : access Message_Handler;
       Has_Pending_Work : Boolean)
    is
-      type Context_And_Files is record
-         Context : Context_Access;
-         Sources : File_Sets.Set;
-      end record;
-      type Context_And_Files_Array is array
-        (Natural range <>) of Context_And_Files;
-
-      Arr   : Context_And_Files_Array (1 .. Natural (Self.Contexts.Length));
 
       token : constant LSP.Types.LSP_Number_Or_String
         := Self.Get_Unique_Progress_Token ("indexing");
@@ -2197,30 +2107,22 @@ package body LSP.Ada_Handlers is
       end Emit_Progress_End;
 
       Index           : Natural := 1;
-      Total           : Natural := 0;
+      Total           : constant Natural := Self.Contexts.Total_Source_Files;
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
+      Context         : Context_Access;
    begin
       --  Prevent work if the indexing has been explicitly disabled
       if not Self.Indexing_Enabled then
          return;
       end if;
 
-      --  Collect the contexts and their sources: we do this so that we are
-      --  able to produce a progress bar covering the total number of files.
-
-      for Context of Self.Contexts loop
-         Arr (Index).Context := Context;
-         Arr (Index).Sources := Context.List_Files;
-         Total := Total + Natural (Arr (Index).Sources.Length);
-         Index := Index + 1;
-      end loop;
-
       Emit_Progress_Begin;
 
-      Index := 0;
-      for E of Arr loop
-         for F of E.Sources loop
+      for E in Self.Contexts.Each_Context loop
+         Context := LSP.Ada_Context_Sets.Context_Lists.Element (E);
+
+         for F of Context.List_Files loop
             Current_Percent := (Index * 100) / Total;
             --  If the value of the indexing increased by at least one percent,
             --  emit one progress report.
@@ -2229,7 +2131,7 @@ package body LSP.Ada_Handlers is
                Last_Percent := Current_Percent;
             end if;
 
-            E.Context.Index_File (F);
+            Context.Index_File (F);
             Index := Index + 1;
 
             --  Check whether another request is pending. If so, pause the
@@ -2306,7 +2208,7 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
       Context  : constant Context_Access :=
-        Get_Best_Context (Self, Value.textDocument.uri);
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
@@ -2323,9 +2225,7 @@ package body LSP.Ada_Handlers is
      (Self : access Message_Handler) is
    begin
       --  Reload the contexts in case of unexpected errors.
-      for C of Self.Contexts loop
-         C.Reload;
-      end loop;
+      Self.Contexts.Reload_All_Contexts;
    end Handle_Error;
 
    ------------------
