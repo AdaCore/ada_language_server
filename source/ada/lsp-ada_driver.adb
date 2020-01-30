@@ -31,6 +31,7 @@ with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Error_Decorators;
+with LSP.Fuzz_Decorators;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -48,6 +49,10 @@ procedure LSP.Ada_Driver is
 
    procedure Register_Commands;
    --  Register all known commands
+
+   procedure Die_On_Uncaught;
+   --  Quit the process when an uncaught exception reaches this. Used for
+   --  fuzzing.
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
@@ -98,7 +103,19 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
    end Register_Commands;
 
+   ---------------------
+   -- Die_On_Uncaught --
+   ---------------------
+
+   procedure Die_On_Uncaught is
+   begin
+      GNAT.OS_Lib.OS_Exit (42);
+   end Die_On_Uncaught;
+
    Cmdline   : Command_Line_Configuration;
+
+   Fuzzing_Activated : constant Boolean := Getenv ("ALS_FUZZING") /= "";
+
    ALS_Home  : constant String := Getenv ("ALS_HOME");
    Home_Dir  : constant Virtual_File :=
                  (if ALS_Home /= "" then Create (+ALS_Home)
@@ -176,14 +193,36 @@ begin
    Server.Initialize (Stream'Unchecked_Access);
    begin
       Register_Commands;
-      Server.Run
-        (Error_Decorator'Unchecked_Access,
-         Handler'Unchecked_Access,
-         Server       => Handler'Unchecked_Access,
-         On_Error     => On_Uncaught_Exception'Unrestricted_Access,
-         Server_Trace => Server_Trace,
-         In_Trace     => In_Trace,
-         Out_Trace    => Out_Trace);
+      if Fuzzing_Activated then
+         --  Fuzzing mode means registering the fuzzing decorators and
+         --  registering Die_On_Uncaught as error handler.
+         declare
+            Fuzz_Requests : aliased LSP.Fuzz_Decorators.Fuzz_Request_Decorator
+              (Server_Trace, Error_Decorator'Unchecked_Access,
+               Die_On_Uncaught'Access);
+            Fuzz_Notifications : aliased
+              LSP.Fuzz_Decorators.Fuzz_Notification_Decorator
+                (Server_Trace, Handler'Unchecked_Access);
+         begin
+            Server.Run
+              (Fuzz_Requests'Unchecked_Access,
+               Fuzz_Notifications'Unchecked_Access,
+               Server       => Handler'Unchecked_Access,
+               On_Error     => Die_On_Uncaught'Unrestricted_Access,
+               Server_Trace => Server_Trace,
+               In_Trace     => In_Trace,
+               Out_Trace    => Out_Trace);
+         end;
+      else
+         Server.Run
+           (Error_Decorator'Unchecked_Access,
+            Handler'Unchecked_Access,
+            Server       => Handler'Unchecked_Access,
+            On_Error     => On_Uncaught_Exception'Unrestricted_Access,
+            Server_Trace => Server_Trace,
+            In_Trace     => In_Trace,
+            Out_Trace    => Out_Trace);
+      end if;
    exception
       when E : others =>
          Server_Trace.Trace
