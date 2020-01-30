@@ -126,6 +126,10 @@ package body LSP.Ada_Handlers is
    --  is not known to any project, return an empty list.
    --  The result should not be freed.
 
+   procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler);
+   --  Reload as project source dirs the directories in
+   --  Self.Project_Dirs_Loaded.
+
    ---------------------
    -- Project loading --
    ---------------------
@@ -300,6 +304,7 @@ package body LSP.Ada_Handlers is
          Free (Self.Project_Environment);
       end if;
       Self.Project_Predefined_Sources.Clear;
+      Self.Project_Dirs_Loaded.Clear;
    end Release_Project_Info;
 
    -------------
@@ -329,6 +334,32 @@ package body LSP.Ada_Handlers is
    begin
       Self.Server.Stop;
    end On_Exit_Notification;
+
+   ----------------------------------
+   -- Reload_Implicit_Project_Dirs --
+   ----------------------------------
+
+   procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler) is
+      Attr  : GNAT.Strings.String_List
+        (1 .. Natural (Self.Project_Dirs_Loaded.Length));
+      Index : Natural := 1;
+      use GNATCOLL.Projects;
+   begin
+      for Dir of Self.Project_Dirs_Loaded loop
+         Attr (Index) := new String'(Dir.Display_Full_Name);
+         Index := Index + 1;
+      end loop;
+
+      Set_Attribute
+        (Self.Project_Tree.Root_Project,
+         Source_Dirs_Attribute,
+         Attr);
+      Self.Project_Tree.Recompute_View;
+
+      for J in Attr'Range loop
+         GNAT.Strings.Free (Attr (J));
+      end loop;
+   end Reload_Implicit_Project_Dirs;
 
    ---------------------------
    -- Ensure_Project_Loaded --
@@ -384,6 +415,7 @@ package body LSP.Ada_Handlers is
             Attr : GNAT.Strings.String_List (1 .. 1);
             use GNATCOLL.Projects;
          begin
+            Self.Implicit_Project_Loaded := True;
             Self.Release_Project_Info;
             Initialize (Self.Project_Environment);
             Self.Project_Tree := new Project_Tree;
@@ -407,16 +439,11 @@ package body LSP.Ada_Handlers is
               (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
             GNAT.Strings.Free (Attr (1));
 
-            --  When there is no .gpr, create a project which loads all
-            --  Ada sources in the current directory and subdirectories,
-            --  recursively. Use the "**" syntax for this.
-            Attr := (1 => new String'(Self.Root.Display_Full_Name & "**"));
-            Set_Attribute
-              (Self.Project_Tree.Root_Project,
-               Source_Dirs_Attribute,
-               Attr);
-            GNAT.Strings.Free (Attr (1));
-            Self.Project_Tree.Recompute_View;
+            --  When there is no .gpr, create a project which loads the
+            --  root directory in the workspace.
+
+            Self.Project_Dirs_Loaded.Include (Self.Root);
+            Self.Reload_Implicit_Project_Dirs;
             C.Load_Project (Self.Project_Tree,
                             Self.Project_Tree.Root_Project,
                             "iso-8859-1");
@@ -1342,6 +1369,21 @@ package body LSP.Ada_Handlers is
       --  We have received a document: add it to the documents container
       Object.Initialize (URI, Value.textDocument.text);
       Self.Open_Documents.Insert (URI, Object);
+
+      --  Handle the case where we're loading the implicit project: do
+      --  we need to add the directory in which the document is open?
+
+      if Self.Implicit_Project_Loaded then
+         declare
+            Dir : constant Virtual_File := To_File (URI).Dir;
+         begin
+            if not Self.Project_Dirs_Loaded.Contains (Dir) then
+               --  We do need to add this directory
+               Self.Project_Dirs_Loaded.Insert (Dir);
+               Self.Reload_Implicit_Project_Dirs;
+            end if;
+         end;
+      end if;
 
       --  Index the document in all the contexts where it is relevant
       declare
@@ -2270,6 +2312,9 @@ package body LSP.Ada_Handlers is
 
       --  Unload the project tree and the project environment
       Self.Release_Project_Info;
+
+      --  We're loading an actual project
+      Self.Implicit_Project_Loaded := False;
 
       --  Now load the new project
       Errors.the_type := LSP.Messages.Warning;

@@ -146,6 +146,14 @@ private
       Open_Documents : Document_Maps.Map;
       --  The documents that are currently open
 
+      Get_Symbols : Get_Symbol_Access;
+      --  textDocument/documentSymbol handler. Actual value depends on
+      --  client's capabilities.
+
+      ----------------------
+      -- Project handling --
+      ----------------------
+
       Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
       --  The currently loaded project tree
 
@@ -156,9 +164,11 @@ private
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
 
-      Get_Symbols : Get_Symbol_Access;
-      --  textDocument/documentSymbol handler. Actual value depends on
-      --  client's capabilities.
+      Implicit_Project_Loaded : Boolean := False;
+      --  Whether we are loading the implicit project
+
+      Project_Dirs_Loaded : LSP.Ada_Contexts.File_Sets.Set;
+      --  The directories to load in the "implicit project"
    end record;
 
    overriding procedure Before_Work
