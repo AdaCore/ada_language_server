@@ -986,7 +986,9 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Document.Apply_Changes (Value.contentChanges);
+      Document.Apply_Changes
+        (Value.textDocument.version,
+         Value.contentChanges);
 
       --  Reindex the document in each of the contexts where it is relevant
 
