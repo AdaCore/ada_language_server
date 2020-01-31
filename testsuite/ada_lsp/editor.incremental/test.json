@@ -1055,7 +1055,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure foo",
+                        "value": "procedure foo is null",
                         "language": "ada"
                      },
                      "at hello.ads (2:4)",
@@ -1245,7 +1245,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure foo",
+                        "value": "procedure foo is null",
                         "language": "ada"
                      },
                      "at hello.ads (3:4)",

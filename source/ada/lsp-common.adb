@@ -220,6 +220,15 @@ package body LSP.Common is
            and then Node.Parent.Kind in Ada_Abstract_Subp_Decl_Range
          then
             Result := Result & To_LSP_String (" is abstract");
+            return;
+         end if;
+
+         --  Append "is null" to the resulting hover text if the subprogram
+         --  specificiation node belongs to an null subprogram declaration.
+         if not Node.Parent.Is_Null
+           and then Node.Parent.Kind in Ada_Null_Subp_Decl_Range
+         then
+            Result := Result & To_LSP_String (" is null");
          end if;
       end Get_Subp_Spec_Hover_Text;
 
