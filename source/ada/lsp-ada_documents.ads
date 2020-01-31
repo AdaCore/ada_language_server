@@ -56,8 +56,12 @@ package LSP.Ada_Documents is
 
    procedure Apply_Changes
      (Self    : aliased in out Document;
+      Version : LSP.Types.Optional_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
+
+   function Versioned_Identifier
+     (Self : Document) return LSP.Messages.VersionedTextDocumentIdentifier;
 
    --------------
    -- Requests --
@@ -108,6 +112,9 @@ private
    type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record
       URI  : LSP.Messages.DocumentUri;
+
+      Version : LSP.Types.LSP_Number := 1;
+      --  Document version
 
       Text : LSP.Types.LSP_String;
       --  The text of the document
