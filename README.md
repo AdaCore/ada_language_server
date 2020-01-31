@@ -73,7 +73,7 @@ The `ada_language_server` doesn't require/understand any command line options.
 | `workspace/didChangeWorkspaceFolders` |                    |
 | `workspace/didChangeWatchedFiles`     |                    |
 | `workspace/symbol`                    |                    |
-| `workspace/executeCommand`            |                    |
+| `workspace/executeCommand`            | :white_check_mark: |
 
 ### Synchronization Requests
 
@@ -101,7 +101,7 @@ The `ada_language_server` doesn't require/understand any command line options.
 | `textDocument/references`             | :white_check_mark: |
 | `textDocument/documentHighlight`      |                    |
 | `textDocument/documentSymbol`         | :white_check_mark: |
-| `textDocument/codeAction`             |                    |
+| `textDocument/codeAction`             | :white_check_mark: |
 | `textDocument/codeLens`               |                    |
 | `codeLens/resolve`                    |                    |
 | `textDocument/documentLink`           |                    |
