@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Tags.Generic_Dispatching_Constructor;
-with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 
@@ -24,10 +23,6 @@ with GNATCOLL.JSON;
 with LSP.JSON_Streams;
 
 package body LSP.Messages is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    procedure Read_If_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;

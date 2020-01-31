@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -83,6 +83,8 @@ package LSP.Types is
    function To_LSP_String (Text : GNATCOLL.JSON.UTF8_Unbounded_String)
      return LSP_String;
    --  Convert given UTF-8 string into LSP_String
+   function To_LSP_String (Text : Wide_Wide_String)
+     return LSP_String;
 
    function To_UTF_8_String (Value : LSP_String)
      return Ada.Strings.UTF_Encoding.UTF_8_String;

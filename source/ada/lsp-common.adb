@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -219,7 +219,7 @@ package body LSP.Common is
          if not Node.Parent.Is_Null
            and then Node.Parent.Kind in Ada_Abstract_Subp_Decl_Range
          then
-            Result := Result & To_LSP_String (" is abstract");
+            Append (Result, " is abstract");
             return;
          end if;
 
@@ -228,7 +228,7 @@ package body LSP.Common is
          if not Node.Parent.Is_Null
            and then Node.Parent.Kind in Ada_Null_Subp_Decl_Range
          then
-            Result := Result & To_LSP_String (" is null");
+            Append (Result, " is null");
          end if;
       end Get_Subp_Spec_Hover_Text;
 
