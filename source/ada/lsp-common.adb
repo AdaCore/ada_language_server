@@ -213,6 +213,14 @@ package body LSP.Common is
                   & Lines (J).all (Idx .. Lines (J).all'Last));
             end loop;
          end if;
+
+         --  Append "is abstract" to the resulting hover text if the subprogram
+         --  specificiation node belongs to an abstract subprogram declaration.
+         if not Node.Parent.Is_Null
+           and then Node.Parent.Kind in Ada_Abstract_Subp_Decl_Range
+         then
+            Result := Result & To_LSP_String (" is abstract");
+         end if;
       end Get_Subp_Spec_Hover_Text;
 
       ---------------------------------
