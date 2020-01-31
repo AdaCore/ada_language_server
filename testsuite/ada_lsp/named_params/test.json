@@ -1,0 +1,385 @@
+[
+    {
+        "comment":[
+            "Check 'named parameters' refactoring"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{
+                    "workspace":{
+                        "workspaceEdit":{
+                            "documentChanges":true
+                        }
+                    },
+                    "textDocument":{
+                        "codeAction":{
+                            "dynamicRegistration":true,
+                            "codeActionLiteralSupport":{
+                                "codeActionKind":{
+                                    "valueSet":[
+                                        "",
+                                        "quickfix",
+                                        "refactor",
+                                        "refactor.extract",
+                                        "refactor.inline",
+                                        "refactor.rewrite",
+                                        "source",
+                                        "source.organizeImports"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }},
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync": 2,
+                        "codeActionProvider":{
+                            "codeActionKinds":["refactor.rewrite"]
+                        },
+                        "executeCommandProvider":{
+                            "commands":["als-named-parameters"]
+                        }
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Test is\n   type T is mod 2;\n   procedure P (Pr : T);\n   procedure B (Br : T) is null;\nbegin\n   P (1);\n   B (2);\nend;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"codeAction-1",
+                "method":"textDocument/codeAction",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "range":{
+                        "start":{
+                            "line":5,
+                            "character":6
+                        },
+                        "end":{
+                            "line":5,
+                            "character":6
+                        }
+                    },
+                    "context":{
+                        "diagnostics":[]
+                    }
+                }
+            },
+            "wait":[{
+                "id": "codeAction-1",
+                "result":[{
+                    "title":"Name parameters in the call",
+                    "kind":"refactor.rewrite",
+                    "command":{
+                        "title":"",
+                        "command":"als-named-parameters",
+                        "arguments":[{
+                            "context":"empty",
+                            "where":{
+                                "textDocument":{
+                                    "uri": "$URI{test.adb}"
+                                },
+                                "position":{
+                                    "line":5,
+                                    "character":6
+                                }
+                            }
+                        }]
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"exec-1",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command":"als-named-parameters",
+                    "arguments":[{
+                        "context":"empty",
+                        "where":{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}"
+                            },"position":{
+                                "line":5,
+                                "character":6
+                            }
+                        }
+                    }]
+                }
+            },
+            "wait":[{
+                "id":2,
+                "method":"workspace/applyEdit",
+                "params":{
+                    "edit":{
+                        "documentChanges":[{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}",
+                                "version":1
+                            },
+                            "edits":[{
+                                "range":{
+                                    "start":{
+                                        "line":5,
+                                        "character":6
+                                    },
+                                    "end":{
+                                        "line":5,
+                                        "character":6
+                                    }
+                                },
+                                "newText":"Pr => "
+                            }]
+                        }]
+                    }
+                }
+            }, {
+                "id": "exec-1",
+                "result": null
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":2,
+                "result":{
+                    "applied":true
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didChange",
+                "params":{
+                    "textDocument":{
+                        "uri": "$URI{test.adb}",
+                        "version":2
+                    },
+                    "contentChanges":[{
+                        "range":{
+                            "start":{
+                                "line":5,
+                                "character":6
+                            },
+                            "end":{
+                                "line":5,
+                                "character":6
+                            }
+                        },
+                        "rangeLength":0,
+                        "text":"Pr => "
+                    }]
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"codeAction-2",
+                "method":"textDocument/codeAction",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "range":{
+                        "start":{
+                            "line":6,
+                            "character":6
+                        },
+                        "end":{
+                            "line":6,
+                            "character":6
+                        }
+                    },
+                    "context":{
+                        "diagnostics":[]
+                    }
+                }
+            },
+            "wait":[{
+                "id": "codeAction-2",
+                "result":[{
+                    "title":"Name parameters in the call",
+                    "kind":"refactor.rewrite",
+                    "command":{
+                        "title":"",
+                        "command":"als-named-parameters",
+                        "arguments":[{
+                            "context":"empty",
+                            "where":{
+                                "textDocument":{
+                                    "uri": "$URI{test.adb}"
+                                },
+                                "position":{
+                                    "line":6,
+                                    "character":6
+                                }
+                            }
+                        }]
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"exec-2",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command":"als-named-parameters",
+                    "arguments":[{
+                        "context":"empty",
+                        "where":{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}"
+                            },"position":{
+                                "line":6,
+                                "character":6
+                            }
+                        }
+                    }]
+                }
+            },
+            "wait":[{
+                "id":3,
+                "method":"workspace/applyEdit",
+                "params":{
+                    "edit":{
+                        "documentChanges":[{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}",
+                                "version":2
+                            },
+                            "edits":[{
+                                "range":{
+                                    "start":{
+                                        "line":6,
+                                        "character":6
+                                    },
+                                    "end":{
+                                        "line":6,
+                                        "character":6
+                                    }
+                                },
+                                "newText":"Br => "
+                            }]
+                        }]
+                    }
+                }
+            }, {
+                "id": "exec-2",
+                "result": null
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":3,
+                "result":{
+                    "applied":true
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didChange",
+                "params":{
+                    "textDocument":{
+                        "uri": "$URI{test.adb}",
+                        "version":3
+                    },
+                    "contentChanges":[{
+                        "range":{
+                            "start":{
+                                "line":6,
+                                "character":6
+                            },
+                            "end":{
+                                "line":6,
+                                "character":6
+                            }
+                        },
+                        "rangeLength":0,
+                        "text":"Br => "
+                    }]
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
