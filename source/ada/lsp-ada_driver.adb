@@ -28,6 +28,8 @@ with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with LSP.Ada_Handlers;
+with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Servers;
 with LSP.Stdio_Streams;
@@ -43,6 +45,9 @@ procedure LSP.Ada_Driver is
 
    procedure On_Uncaught_Exception;
    --  Reset LAL contexts in Message_Handler after catching some exception.
+
+   procedure Register_Commands;
+   --  Register all known commands
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
@@ -82,6 +87,16 @@ procedure LSP.Ada_Driver is
    begin
       Handler.Handle_Error;
    end On_Uncaught_Exception;
+
+   -----------------------
+   -- Register_Commands --
+   -----------------------
+
+   procedure Register_Commands is
+   begin
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
+   end Register_Commands;
 
    Cmdline   : Command_Line_Configuration;
    ALS_Home  : constant String := Getenv ("ALS_HOME");
@@ -160,6 +175,7 @@ begin
 
    Server.Initialize (Stream'Unchecked_Access);
    begin
+      Register_Commands;
       Server.Run
         (Error_Decorator'Unchecked_Access,
          Handler'Unchecked_Access,
