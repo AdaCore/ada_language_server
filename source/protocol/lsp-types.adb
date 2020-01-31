@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,6 +17,7 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 with LSP.JSON_Streams;
 
@@ -263,6 +264,19 @@ package body LSP.Types is
          end;
       end loop;
       return Res;
+   end To_LSP_String;
+
+   -------------------
+   -- To_LSP_String --
+   -------------------
+
+   function To_LSP_String
+     (Text : Wide_Wide_String) return LSP_String
+   is
+      UTF_16 : constant Wide_String :=
+        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Text);
+   begin
+      return To_Unbounded_Wide_String (UTF_16);
    end To_LSP_String;
 
    ---------------------

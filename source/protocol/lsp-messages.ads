@@ -28,6 +28,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
+with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
 with LSP.Commands;
@@ -38,6 +39,10 @@ with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
+
+   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
+      return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
 
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
@@ -5283,7 +5288,7 @@ package LSP.Messages is
    --	percentage?: number;
    --}
    type WorkDoneProgressBegin is record
-      kind        : LSP_String := LSP.Types.To_LSP_String ("begin");
+      kind        : LSP_String := +"begin";
       title       : LSP_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
@@ -5325,7 +5330,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressReport is record
-      kind        : LSP_String := LSP.Types.To_LSP_String ("report");
+      kind        : LSP_String := +"report";
       cancellable : Optional_Boolean;
       message     : Optional_String;
       percentage  : Optional_Number;
@@ -5342,7 +5347,7 @@ package LSP.Messages is
    --	message?: string;
    --}
    type WorkDoneProgressEnd is record
-      kind    : LSP_String := LSP.Types.To_LSP_String ("end");
+      kind    : LSP_String := +"end";
       message : Optional_String;
    end record;
 
@@ -6011,9 +6016,9 @@ package LSP.Messages is
 
    subtype FoldingRangeKind is LSP_String;
 
-   Comment : constant FoldingRangeKind := LSP.Types.To_LSP_String ("comment");
-   Imports : constant FoldingRangeKind := LSP.Types.To_LSP_String ("imports");
-   Region  : constant FoldingRangeKind := LSP.Types.To_LSP_String ("region");
+   Comment : constant FoldingRangeKind := +"comment";
+   Imports : constant FoldingRangeKind := +"imports";
+   Region  : constant FoldingRangeKind := +"region";
 
    --  ```ts
    --  interface DocumentColorParams {

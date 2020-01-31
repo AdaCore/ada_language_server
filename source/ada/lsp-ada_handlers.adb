@@ -65,8 +65,8 @@ package body LSP.Ada_Handlers is
    --  Convenient constants
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-                 return LSP.Types.LSP_String renames
-     LSP.Types.To_LSP_String;
+     return LSP.Types.LSP_String renames
+       LSP.Types.To_LSP_String;
 
    procedure Send_Imprecise_Xref_Message
      (Self     : access Message_Handler;
@@ -163,13 +163,6 @@ package body LSP.Ada_Handlers is
       Charset  : String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
-
-   function Get_Open_Document
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
-      return LSP.Ada_Documents.Document_Access;
-   --  Return the document for the given URI, assuming this document
-   --  is open. Return null if this document is not open.
 
    -----------------------
    -- Get_Open_Document --
@@ -437,7 +430,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.completionProvider :=
         (True,
          (resolveProvider => (True, False),
-          triggerCharacters => Empty_Vector & To_LSP_String (".")));
+          triggerCharacters => Empty_Vector & (+".")));
       Response.result.capabilities.hoverProvider := True;
       Response.result.capabilities.executeCommandProvider :=
         (True, (commands => LSP.Commands.All_Commands));
@@ -468,7 +461,7 @@ package body LSP.Ada_Handlers is
       --  use the current directory as root.
 
       if LSP.Types.Is_Empty (Root) then
-         Root := To_LSP_String (".");
+         Root := +".";
       end if;
 
       Self.Root := Create (+To_UTF_8_String (Root));
@@ -510,7 +503,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_CodeAction_Request;
@@ -534,7 +527,7 @@ package body LSP.Ada_Handlers is
          Response.error :=
            (True,
             (code => LSP.Errors.InternalError,
-             message => To_LSP_String ("Not implemented"),
+             message => +"Not implemented",
              data    => <>));
          return Response;
       end if;
@@ -1113,7 +1106,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Folding_Range_Request;
@@ -1134,7 +1127,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Highlight_Request;
@@ -1207,7 +1200,7 @@ package body LSP.Ada_Handlers is
                   for Aspect of Aspects.F_Aspect_Assocs loop
                      if Aspects_Text /= Empty_LSP_String then
                         --  need to add "," for the highlighting
-                        Append (Aspects_Text, To_LSP_String (","));
+                        Append (Aspects_Text, +",");
                      end if;
 
                      Append (Aspects_Text, Get_Hover_Text (Aspect));
@@ -1236,7 +1229,7 @@ package body LSP.Ada_Handlers is
         (LSP.Messages.MarkedString'
            (Is_String => False,
             value     => Decl_Text,
-            language  => To_LSP_String ("ada")));
+            language  => +"ada"));
 
       --  Append the declaration's location
 
@@ -1596,7 +1589,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Signature_Help_Request;
@@ -1617,7 +1610,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Color_Presentation_Request;
@@ -1638,7 +1631,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Document_Color_Request;
@@ -1659,7 +1652,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Document_Links_Request;
@@ -2111,7 +2104,7 @@ package body LSP.Ada_Handlers is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Begin);
       begin
          P.Begin_Param.token := token;
-         P.Begin_Param.value.title := LSP.Types.To_LSP_String ("Indexing");
+         P.Begin_Param.value.title := +"Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
          Self.Server.On_Progress (P);
       end Emit_Progress_Begin;
@@ -2237,7 +2230,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => To_LSP_String ("Not implemented"),
+          message => +"Not implemented",
           data => <>));
       return Response;
    end On_Workspace_Symbols_Request;

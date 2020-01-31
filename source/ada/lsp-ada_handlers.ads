@@ -55,6 +55,13 @@ package LSP.Ada_Handlers is
 
 private
 
+   function Get_Open_Document
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Documents.Document_Access;
+   --  Return the document for the given URI, assuming this document
+   --  is open. Return null if this document is not open.
+
    --  Options for refactoring/renaming
    type Renaming_Options is record
       In_Comments : Boolean := False;
