@@ -21,8 +21,6 @@ with GNATCOLL.VFS;    use GNATCOLL.VFS;
 
 with URIs;
 
-with LSP.Types;
-
 package body LSP.Ada_Context_Sets is
 
    function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
@@ -48,6 +46,7 @@ package body LSP.Ada_Context_Sets is
          Self.Contexts.Delete_First;
       end loop;
 
+      Self.Map.Clear;
       Self.Total := 0;
    end Cleanup;
 
@@ -107,6 +106,17 @@ package body LSP.Ada_Context_Sets is
       return Self.Contexts.Last_Element;
    end Get_Best_Context;
 
+   ---------
+   -- Get --
+   ---------
+
+   function Get
+     (Self : Context_Set;
+      Id   : LSP.Types.LSP_String) return Context_Access is
+   begin
+      return Self.Map (Id);
+   end Get;
+
    --------------
    -- Is_Empty --
    --------------
@@ -125,6 +135,7 @@ package body LSP.Ada_Context_Sets is
       Item : Context_Access) is
    begin
       Self.Contexts.Prepend (Item);
+      Self.Map.Insert (Item.Id, Item);
       Self.Total := Self.Total + Natural (Item.List_Files.Length);
    end Prepend;
 

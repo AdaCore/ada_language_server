@@ -18,9 +18,11 @@
 --  This package provides a set of contexts for Ada Language server.
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Hashed_Maps;
 
-with LSP.Messages;
 with LSP.Ada_Contexts;
+with LSP.Messages;
+with LSP.Types;
 
 package LSP.Ada_Context_Sets is
 
@@ -67,9 +69,23 @@ package LSP.Ada_Context_Sets is
      return Context_Lists.List_Iterator_Interfaces.Forward_Iterator'Class;
    --  Iterate over contexts of the set
 
+   function Get
+     (Self : Context_Set;
+      Id   : LSP.Types.LSP_String) return Context_Access;
+   --  Return context by its Id
+
 private
+
+   package Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Types.LSP_String,
+      Element_Type    => Context_Access,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=",
+      "="             => "=");
+
    type Context_Set is tagged limited record
       Contexts : Context_Lists.List;
+      Map      : Maps.Map;  --  A map from Context.Id to Context access
       Total    : Natural := 0;
    end record;
 
