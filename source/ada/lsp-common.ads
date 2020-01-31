@@ -19,10 +19,19 @@
 
 with Ada.Exceptions;
 with GNATCOLL.Traces;
+with LSP.Messages;
 with LSP.Types;           use LSP.Types;
 with Libadalang.Analysis; use Libadalang.Analysis;
 
 package LSP.Common is
+
+   Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
+     (Is_Server_Side => True,
+      As_Flags => (LSP.Messages.Parent => True, others => False));
+   Is_Child : constant LSP.Messages.AlsReferenceKind_Set :=
+     (Is_Server_Side => True,
+      As_Flags => (LSP.Messages.Child => True, others => False));
+   --  Convenient constants
 
    procedure Log
      (Trace   : GNATCOLL.Traces.Trace_Handle;

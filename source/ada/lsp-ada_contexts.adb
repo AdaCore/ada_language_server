@@ -15,15 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;  use Ada.Characters.Handling;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
 
 with GNATCOLL.JSON;
-with GNATCOLL.Projects; use GNATCOLL.Projects;
-with GNATCOLL.VFS;      use GNATCOLL.VFS;
+with GNATCOLL.Projects;       use GNATCOLL.Projects;
+with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with URIs;
-with LSP.Common; use LSP.Common;
-with LSP.Lal_Utils;
+with LSP.Common;              use LSP.Common;
+with LSP.Lal_Utils;           use LSP.Lal_Utils;
 
 with Libadalang.Common;
 with Libadalang.Project_Provider;
@@ -60,8 +60,7 @@ package body LSP.Ada_Contexts is
       Result    : in out LSP.Messages.Location_Or_Link_Vector;
       Imprecise : in out Boolean)
    is
-      use type Libadalang.Analysis.Name;
-      use type Libadalang.Analysis.Defining_Name;
+      use Libadalang.Analysis;
 
       Name_Node : constant Libadalang.Analysis.Name :=
         LSP.Lal_Utils.Get_Node_As_Name
@@ -123,17 +122,26 @@ package body LSP.Ada_Contexts is
       end if;
 
       declare
-         Is_Imprecise     : Boolean;
-         Overriding_Subps : constant Libadalang.Analysis.Basic_Decl_Array :=
-           Self.Find_All_Overrides
-             (Decl_For_Find_Overrides,
-              Imprecise_Results => Is_Imprecise);
+         Imprecise_Over       : Boolean;
+         Imprecise_Base       : Boolean;
+         Overriding_Subps     : constant Basic_Decl_Array :=
+                                  Self.Find_All_Overrides
+                                    (Decl_For_Find_Overrides,
+                                     Imprecise_Results => Imprecise_Over);
+         Base_Subps           : constant Basic_Decl_Array :=
+                                  Self.Find_All_Base_Declarations
+                                    (Decl_For_Find_Overrides,
+                                     Imprecise_Results => Imprecise_Base);
       begin
-         for Subp of Overriding_Subps loop
-            LSP.Lal_Utils.Append_Location (Result, Subp.P_Defining_Name);
+         for Subp of Base_Subps loop
+            Append_Location
+              (Result, Subp.P_Defining_Name, LSP.Common.Is_Parent);
          end loop;
-
-         Imprecise := Imprecise or Is_Imprecise;
+         for Subp of Overriding_Subps loop
+            Append_Location
+              (Result, Subp.P_Defining_Name, LSP.Common.Is_Child);
+         end loop;
+         Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
       end;
    end Append_Declarations;
 
