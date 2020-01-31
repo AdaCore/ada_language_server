@@ -29,13 +29,14 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
-with LSP.Commands;
-with LSP.Errors;
-with LSP.Types;        use LSP.Types;
-with LSP.Common;       use LSP.Common;
-with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Commands;
+with LSP.Common;       use LSP.Common;
+with LSP.Errors;
+with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Server_Notifications;
+with LSP.Types;        use LSP.Types;
 
 with Langkit_Support.Text;
 
@@ -404,6 +405,8 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Initialize_Response
    is
       Value    : LSP.Messages.InitializeParams renames Request.params;
+      Code_Action : LSP.Messages.Optional_codeAction_Capability renames
+        Value.capabilities.textDocument.codeAction;
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
@@ -434,6 +437,22 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.hoverProvider := True;
       Response.result.capabilities.executeCommandProvider :=
         (True, (commands => LSP.Commands.All_Commands));
+
+      if Code_Action.Is_Set and then
+        Code_Action.Value.codeActionLiteralSupport.Is_Set
+      then
+         Response.result.capabilities.codeActionProvider :=
+           (Is_Set => True,
+            Value  =>
+              (codeActionKinds =>
+                   (Is_Set => True,
+                    Value  => LSP.Messages.To_Set
+                      (From => LSP.Messages.RefactorRewrite,
+                       To   => LSP.Messages.RefactorRewrite))));
+      else
+         Response.result.capabilities.codeActionProvider :=
+           (Is_Set => True, Value => <>);
+      end if;
 
       Response.result.capabilities.alsCalledByProvider := True;
       Response.result.capabilities.alsReferenceKinds :=
@@ -496,15 +515,176 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.CodeAction_Request)
       return LSP.Messages.Server_Responses.CodeAction_Response
    is
-      pragma Unreferenced (Self, Request);
+      Params   : LSP.Messages.CodeActionParams renames Request.params;
+
+      procedure Analyse_In_Context
+        (Context  : Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Result   : out LSP.Messages.CodeAction_Vector;
+         Found    : in out Boolean);
+      --  Perform refactoring ananlysis given Document in the Context.
+      --  Return Found = True if some refactoring is possible. Populate
+      --  Result with Code_Actions in this case.
+
+      function Has_Assoc_Without_Designator
+        (Node : Libadalang.Analysis.Basic_Assoc_List) return Boolean;
+      --  Check if Node is Basic_Assoc_List that contains at least one
+      --  ParamAssoc without a designator.
+
+      procedure Analyse_Node
+        (Context : Context_Access;
+         Node    : Libadalang.Analysis.Ada_Node;
+         Result  : out LSP.Messages.CodeAction_Vector;
+         Found   : in out Boolean;
+         Done    : in out Boolean);
+      --  Look for a possible refactoring in given Node.
+      --  Return Found = True if some refactoring is possible. Populate
+      --  Result with Code_Actions in this case. Return Done = True if futher
+      --  analysis has no sense.
+
+      ----------------------------------
+      -- Has_Assoc_Without_Designator --
+      ----------------------------------
+
+      function Has_Assoc_Without_Designator
+        (Node : Libadalang.Analysis.Basic_Assoc_List) return Boolean
+      is
+         Found : Boolean := False;
+      begin
+         for J of Node loop
+            if J.Kind in Libadalang.Common.Ada_Param_Assoc and then
+              J.As_Param_Assoc.F_Designator.Is_Null
+            then
+               Found := True;
+               exit;
+            end if;
+         end loop;
+
+         if not Found then
+            return False;
+         end if;
+
+         declare
+            Expr : constant Libadalang.Analysis.Ada_Node := Node.Parent;
+            Name : Libadalang.Analysis.Name;
+            Decl : Libadalang.Analysis.Basic_Decl;
+         begin
+            case Expr.Kind is
+               when Libadalang.Common.Ada_Call_Expr =>
+                  Name := Expr.As_Call_Expr.F_Name;
+               when others =>
+                  return False;
+            end case;
+
+            Decl := Name.P_Referenced_Decl;
+
+            case Decl.Kind is
+               when Libadalang.Common.Ada_Base_Subp_Spec =>
+                  return True;
+               when Libadalang.Common.Ada_Base_Subp_Body =>
+                  return True;
+               when Libadalang.Common.Ada_Basic_Subp_Decl =>
+                  return True;
+               when others =>
+                  return False;
+            end case;
+         end;
+      end Has_Assoc_Without_Designator;
+
+      ------------------
+      -- Analyse_Node --
+      ------------------
+
+      procedure Analyse_Node
+        (Context : Context_Access;
+         Node    : Libadalang.Analysis.Ada_Node;
+         Result  : out LSP.Messages.CodeAction_Vector;
+         Found   : in out Boolean;
+         Done    : in out Boolean)
+      is
+         Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
+      begin
+         case Kind is
+            when Libadalang.Common.Ada_Stmt
+               | Libadalang.Common.Ada_Basic_Decl =>
+
+               Done := True;
+            when Libadalang.Common.Ada_Basic_Assoc_List =>
+               if Has_Assoc_Without_Designator (Node.As_Basic_Assoc_List) then
+                  declare
+                     Command : LSP.Ada_Handlers.Named_Parameters_Commands
+                       .Command;
+                     Pointer : LSP.Commands.Command_Pointer;
+                     Item    : LSP.Messages.CodeAction;
+                     Where   : constant LSP.Messages.Location :=
+                       LSP.Lal_Utils.Get_Node_Location (Node);
+                  begin
+                     Command.Initialize
+                       (Context => Context.all,
+                        Where   => ((uri => Where.uri), Where.span.first));
+
+                     Pointer.Set (Command);
+
+                     Item :=
+                       (title => +"Name parameters in the call",
+                        kind  => (Is_Set => True,
+                                  Value  => LSP.Messages.RefactorRewrite),
+                        diagnostics => (Is_Set => False),
+                        edit        => (Is_Set => False),
+                        command     => (Is_Set => True,
+                                        Value  =>
+                                          (Is_Unknown => False,
+                                           title      => +"",
+                                           Custom     => Pointer)));
+
+                     Result.Append (Item);
+                     Found := True;
+                  end;
+               end if;
+            when others =>
+               null;
+         end case;
+      end Analyse_Node;
+
+      ------------------------
+      -- Analyse_In_Context --
+      ------------------------
+
+      procedure Analyse_In_Context
+        (Context  : Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Result   : out LSP.Messages.CodeAction_Vector;
+         Found    : in out Boolean)
+      is
+         Done : Boolean := False;  --  True when futher analysis has no sense
+         Node : Libadalang.Analysis.Ada_Node :=
+           Document.Get_Node_At (Context.all, Params.span.first);
+      begin
+         while not Done and then not Node.Is_Null loop
+            Analyse_Node (Context, Node, Result, Found, Done);
+            Node := Node.Parent;
+         end loop;
+      end Analyse_In_Context;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Params.textDocument.uri);
+
       Response : LSP.Messages.Server_Responses.CodeAction_Response
-        (Is_Error => True);
+        (Is_Error => False);
+
+      Found : Boolean := False;
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      if Document in null then
+         return Response;
+      end if;
+
+      --  Find any context where we can do some refactoring
+      for C of Self.Contexts.Contexts_For_URI (Params.textDocument.uri) loop
+         Analyse_In_Context (C, Document, Response.result, Found);
+
+         exit when Request.Canceled or else Found;
+      end loop;
+
       return Response;
    end On_CodeAction_Request;
 
