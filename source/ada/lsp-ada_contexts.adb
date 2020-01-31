@@ -590,6 +590,8 @@ package body LSP.Ada_Contexts is
       end Update_Source_Files;
 
    begin
+      Self.Id := LSP.Types.To_LSP_String (Root.Name);
+
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
@@ -690,6 +692,15 @@ package body LSP.Ada_Contexts is
          end if;
       end if;
    end Get_Node_At;
+
+   --------
+   -- Id --
+   --------
+
+   function Id (Self : Context) return LSP.Types.LSP_String is
+   begin
+      return Self.Id;
+   end Id;
 
    ----------------
    -- Index_File --
