@@ -43,6 +43,7 @@ package LSP.Ada_Handlers is
    limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.Server_Backends.Server_Backend
+     and LSP.Ada_Documents.Document_Provider
    with private;
    --  A handler of LSP notifications and requests from Ada language
 
@@ -54,13 +55,6 @@ package LSP.Ada_Handlers is
    --  Free memory referenced by Self
 
 private
-
-   function Get_Open_Document
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
-      return LSP.Ada_Documents.Document_Access;
-   --  Return the document for the given URI, assuming this document
-   --  is open. Return null if this document is not open.
 
    --  Options for refactoring/renaming
    type Renaming_Options is record
@@ -92,7 +86,8 @@ private
       Trace   : GNATCOLL.Traces.Trace_Handle)
    is limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
-     and LSP.Server_Backends.Server_Backend with
+     and LSP.Server_Backends.Server_Backend
+     and LSP.Ada_Documents.Document_Provider with
    record
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
@@ -313,5 +308,12 @@ private
       Value : LSP.Messages.CancelParams) is null;
    --  This is intentionally null procedure, because cancel is implemented by
    --  LSP server itself.
+
+   overriding function Get_Open_Document
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Documents.Document_Access;
+   --  Return the document for the given URI, assuming this document
+   --  is open. Return null if this document is not open.
 
 end LSP.Ada_Handlers;

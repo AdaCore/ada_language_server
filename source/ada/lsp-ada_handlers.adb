@@ -169,7 +169,7 @@ package body LSP.Ada_Handlers is
    -- Get_Open_Document --
    -----------------------
 
-   function Get_Open_Document
+   overriding function Get_Open_Document
      (Self : access Message_Handler;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Documents.Document_Access is

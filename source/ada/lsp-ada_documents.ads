@@ -101,6 +101,21 @@ package LSP.Ada_Documents is
       Result   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
+   -----------------------
+   -- Document_Provider --
+   -----------------------
+
+   type Document_Provider is limited interface;
+   --  A Document_Provider is an object that contains documents and
+   --  is able to retrieve a document from its given URI.
+
+   function Get_Open_Document
+     (Self : access Document_Provider;
+      URI  : LSP.Messages.DocumentUri)
+      return Document_Access is abstract;
+   --  Return the open document for the given URI, null if this document
+   --  is not open.
+
 private
 
    package Line_To_Index_Vectors is new Ada.Containers.Vectors
