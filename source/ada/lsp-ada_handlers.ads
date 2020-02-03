@@ -19,6 +19,7 @@
 --  language.
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Hashed_Sets;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
@@ -80,6 +81,13 @@ private
       Element_Type    => Internal_Document_Access,
       Hash            => LSP.Types.Hash,
       Equivalent_Keys => LSP.Types."=");
+
+   --  Container for the predefined source files
+   package File_Sets is new Ada.Containers.Hashed_Sets
+     (Element_Type        => GNATCOLL.VFS.Virtual_File,
+      Hash                => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Elements => GNATCOLL.VFS."=",
+      "="                 => GNATCOLL.VFS."=");
 
    type Get_Symbol_Access is access procedure
      (Self     : LSP.Ada_Documents.Document;
@@ -148,6 +156,10 @@ private
 
       Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
       --  The project environment for the currently loaded project
+
+      Project_Predefined_Sources : File_Sets.Set;
+      --  A cache for the predefined sources in the loaded project (typically,
+      --  runtime files).
 
       Get_Symbols : Get_Symbol_Access;
       --  textDocument/documentSymbol handler. Actual value depends on

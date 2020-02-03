@@ -116,6 +116,16 @@ package body LSP.Ada_Handlers is
    procedure Release_Project_Info (Self : access Message_Handler);
    --  Release the memory associated to project information in Self
 
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
+   --  Return a list of contexts that are suitable for the given URI:
+   --  a list of all contexts where the file is known to be part of the
+   --  project tree, or is a runtime file for this project. If the file
+   --  is not known to any project, return an empty list.
+   --  The result should not be freed.
+
    ---------------------
    -- Project loading --
    ---------------------
@@ -164,6 +174,37 @@ package body LSP.Ada_Handlers is
       Charset  : String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
+
+   ----------------------
+   -- Contexts_For_URI --
+   ----------------------
+
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      File : constant Virtual_File := To_File (URI);
+
+      function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
+        (Self.Is_Part_Of_Project (File));
+      --  Return True if File is a source of the project held by Context
+
+   begin
+      --  If the file does not exist on disk, assume this is a file
+      --  being created and, as a special convenience in this case,
+      --  assume it could belong to any project.
+      if not File.Is_Regular_File
+      --  If the file is a runtime file for the loaded project environment,
+      --  all projects can see it.
+        or else Self.Project_Predefined_Sources.Contains (File)
+      then
+         return Self.Contexts.Each_Context;
+      end if;
+
+      --  List contexts where File is a source of the project hierarchy
+      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
+   end Contexts_For_URI;
 
    -----------------------
    -- Get_Open_Document --
@@ -258,6 +299,7 @@ package body LSP.Ada_Handlers is
       if Self.Project_Environment /= null then
          Free (Self.Project_Environment);
       end if;
+      Self.Project_Predefined_Sources.Clear;
    end Release_Project_Info;
 
    -------------
@@ -378,6 +420,11 @@ package body LSP.Ada_Handlers is
             C.Load_Project (Self.Project_Tree,
                             Self.Project_Tree.Root_Project,
                             "iso-8859-1");
+
+            for File of Self.Project_Environment.Predefined_Source_Files loop
+               Self.Project_Predefined_Sources.Include (File);
+            end loop;
+
             Self.Contexts.Prepend (C);
          end;
       elsif GPRs_Found = 1 then
@@ -679,7 +726,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Find any context where we can do some refactoring
-      for C of Self.Contexts.Contexts_For_URI (Params.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Params.textDocument.uri) loop
          Analyse_In_Context (C, Document, Response.result, Found);
 
          exit when Request.Canceled or else Found;
@@ -748,7 +795,7 @@ package body LSP.Ada_Handlers is
         Get_Open_Document (Self, Position.textDocument.uri);
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          C.Append_Declarations
            (Document,
             Position,
@@ -892,7 +939,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -1017,7 +1064,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -1103,7 +1150,7 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Position.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -1186,9 +1233,7 @@ package body LSP.Ada_Handlers is
 
       --  Reindex the document in each of the contexts where it is relevant
 
-      for Context
-        of Self.Contexts.Contexts_For_URI (Value.textDocument.uri)
-      loop
+      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Context.Index_Document (Document.all);
 
          --  Emit diagnostics - do this for only one context
@@ -1266,7 +1311,7 @@ package body LSP.Ada_Handlers is
          Diag : LSP.Messages.PublishDiagnosticsParams;
          Diags_Already_Published : Boolean := False;
       begin
-         for Context of Self.Contexts.Contexts_For_URI (URI) loop
+         for Context of Self.Contexts_For_URI (URI) loop
             Context.Index_Document (Object.all);
 
             if Self.Diagnostics_Enabled
@@ -1603,7 +1648,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -1730,7 +1775,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Find the references in all contexts
-      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -2032,7 +2077,7 @@ package body LSP.Ada_Handlers is
       end Process_Context;
 
    begin
-      for C of Self.Contexts.Contexts_For_URI (Value.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
          exit when Request.Canceled;
@@ -2202,6 +2247,9 @@ package body LSP.Ada_Handlers is
            (GPR,
             Self.Project_Environment,
             Errors => On_Error'Unrestricted_Access);
+         for File of Self.Project_Environment.Predefined_Source_Files loop
+            Self.Project_Predefined_Sources.Include (File);
+         end loop;
          if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
             declare
                Aggregated : Project_Array_Access :=
@@ -2240,7 +2288,7 @@ package body LSP.Ada_Handlers is
       --  Reindex all open documents immediately after project reload, so
       --  that navigation from editors is accurate.
       for Document of Self.Open_Documents loop
-         for Context of Self.Contexts.Contexts_For_URI (Document.URI) loop
+         for Context of Self.Contexts_For_URI (Document.URI) loop
             Context.Index_Document (Document.all);
          end loop;
       end loop;
@@ -2332,7 +2380,6 @@ package body LSP.Ada_Handlers is
       Total           : constant Natural := Self.Contexts.Total_Source_Files;
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
-      Context         : Context_Access;
    begin
       --  Prevent work if the indexing has been explicitly disabled
       if not Self.Indexing_Enabled then
@@ -2341,9 +2388,7 @@ package body LSP.Ada_Handlers is
 
       Emit_Progress_Begin;
 
-      for E in Self.Contexts.Each_Context loop
-         Context := LSP.Ada_Context_Sets.Context_Lists.Element (E);
-
+      for Context of Self.Contexts.Each_Context loop
          for F of Context.List_Files loop
             Current_Percent := (Index * 100) / Total;
             --  If the value of the indexing increased by at least one percent,

@@ -50,41 +50,23 @@ package body LSP.Ada_Context_Sets is
       Self.Total := 0;
    end Cleanup;
 
-   ----------------------
-   -- Contexts_For_URI --
-   ----------------------
-
-   function Contexts_For_URI
-     (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Lists.List
-   is
-      File   : constant Virtual_File := To_File (URI);
-      Result : Context_Lists.List;
-   begin
-      --  If the file does not exist on disk, assume this is a file
-      --  being created and, as a special convenience in this case,
-      --  assume it could belong to any project.
-      if not File.Is_Regular_File then
-         return Self.Contexts;
-      end if;
-
-      for Context of Self.Contexts loop
-         if Context.Is_Part_Of_Project (File) then
-            Result.Append (Context);
-         end if;
-      end loop;
-
-      return Result;
-   end Contexts_For_URI;
-
    ------------------
    -- Each_Context --
    ------------------
 
-   function Each_Context (Self : Context_Set)
-     return Context_Lists.List_Iterator_Interfaces.Forward_Iterator'Class is
+   function Each_Context
+     (Self      : Context_Set;
+      Predicate : Context_Predicate := All_Contexts'Access)
+      return Context_Lists.List
+   is
+      Result : Context_Lists.List;
    begin
-      return Self.Contexts.Iterate;
+      for C of Self.Contexts loop
+         if Predicate (C.all) then
+            Result.Append (C);
+         end if;
+      end loop;
+      return Result;
    end Each_Context;
 
    ----------------------
@@ -161,5 +143,15 @@ package body LSP.Ada_Context_Sets is
    begin
       return Self.Total;
    end Total_Source_Files;
+
+   ------------------
+   -- All_Contexts --
+   ------------------
+
+   function All_Contexts (Context : LSP.Ada_Contexts.Context) return Boolean is
+      pragma Unreferenced (Context);
+   begin
+      return True;
+   end All_Contexts;
 
 end LSP.Ada_Context_Sets;
