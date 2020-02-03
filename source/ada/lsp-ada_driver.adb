@@ -44,13 +44,13 @@ procedure LSP.Ada_Driver is
    function Getenv (Var : String) return String;
    --  Return the value set for the given environment variable
 
-   procedure On_Uncaught_Exception;
+   procedure On_Uncaught_Exception (E : Exception_Occurrence);
    --  Reset LAL contexts in Message_Handler after catching some exception.
 
    procedure Register_Commands;
    --  Register all known commands
 
-   procedure Die_On_Uncaught;
+   procedure Die_On_Uncaught (E : Exception_Occurrence);
    --  Quit the process when an uncaught exception reaches this. Used for
    --  fuzzing.
 
@@ -67,7 +67,9 @@ procedure LSP.Ada_Driver is
      (Server'Access, Server_Trace);
 
    Error_Decorator : aliased LSP.Error_Decorators.Error_Decorator
-       (Server_Trace, Handler'Unchecked_Access, On_Uncaught_Exception'Access);
+     (Server_Trace,
+      Handler'Unchecked_Access,
+      On_Uncaught_Exception'Unrestricted_Access);
    --  This decorator catches all Property_Error exceptions and provides
    --  default responses for each request. It also reset Libadalang Context
    --  on any other exception.
@@ -88,10 +90,26 @@ procedure LSP.Ada_Driver is
    -- On_Uncaught_Exception --
    ---------------------------
 
-   procedure On_Uncaught_Exception is
+   procedure On_Uncaught_Exception (E : Exception_Occurrence) is
    begin
+      Trace (Server_Trace,
+             "EXCEPTION: " & Exception_Name (E) & ASCII.LF &
+               Symbolic_Traceback (E));
       Handler.Handle_Error;
    end On_Uncaught_Exception;
+
+   ---------------------
+   -- Die_On_Uncaught --
+   ---------------------
+
+   procedure Die_On_Uncaught (E : Exception_Occurrence) is
+   begin
+      Trace (Server_Trace,
+             "EXCEPTION: " & Exception_Name (E) & ASCII.LF &
+               Symbolic_Traceback (E));
+      --  An exception occurred while fuzzing: make it fatal.
+      GNAT.OS_Lib.OS_Exit (42);
+   end Die_On_Uncaught;
 
    -----------------------
    -- Register_Commands --
@@ -102,15 +120,6 @@ procedure LSP.Ada_Driver is
       LSP.Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
    end Register_Commands;
-
-   ---------------------
-   -- Die_On_Uncaught --
-   ---------------------
-
-   procedure Die_On_Uncaught is
-   begin
-      GNAT.OS_Lib.OS_Exit (42);
-   end Die_On_Uncaught;
 
    Cmdline   : Command_Line_Configuration;
 
@@ -198,11 +207,14 @@ begin
          --  registering Die_On_Uncaught as error handler.
          declare
             Fuzz_Requests : aliased LSP.Fuzz_Decorators.Fuzz_Request_Decorator
-              (Server_Trace, Error_Decorator'Unchecked_Access,
-               Die_On_Uncaught'Access);
+              (Server_Trace,
+               Error_Decorator'Unchecked_Access,
+               Die_On_Uncaught'Unrestricted_Access);
             Fuzz_Notifications : aliased
               LSP.Fuzz_Decorators.Fuzz_Notification_Decorator
-                (Server_Trace, Handler'Unchecked_Access);
+                (Server_Trace,
+                 Handler'Unchecked_Access,
+                 Handler'Unchecked_Access);
          begin
             Server.Run
               (Fuzz_Requests'Unchecked_Access,
