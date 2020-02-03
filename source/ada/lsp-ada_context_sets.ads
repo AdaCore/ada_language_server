@@ -50,29 +50,28 @@ package LSP.Ada_Context_Sets is
    --  Return the first context in Contexts which contains a project
    --  which knows about file. Fallback on the "no project" context.
 
-   function Contexts_For_URI
-     (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Lists.List;
-   --  Return a list of contexts that are suitable for the given URI:
-   --  a list of all contexts where the file is known to be part of the
-   --  project tree. If the file is not known to any project, return
-   --  an empty list.
-   --  The result should not be freed.
-
    function Total_Source_Files (Self : Context_Set'Class) return Natural;
    --  Number of files in all contexts
 
    procedure Cleanup (Self : in out Context_Set'Class);
    --  Free memory referenced by Self
 
-   function Each_Context (Self : Context_Set)
-     return Context_Lists.List_Iterator_Interfaces.Forward_Iterator'Class;
-   --  Iterate over contexts of the set
-
    function Get
      (Self : Context_Set;
       Id   : LSP.Types.LSP_String) return Context_Access;
    --  Return context by its Id
+
+   type Context_Predicate is access function
+     (Context : LSP.Ada_Contexts.Context) return Boolean;
+
+   function All_Contexts (Context : LSP.Ada_Contexts.Context) return Boolean;
+   --  A Context_Predicate which matches all contexts
+
+   function Each_Context
+     (Self      : Context_Set;
+      Predicate : Context_Predicate := All_Contexts'Access)
+     return Context_Lists.List;
+   --  Return a list of the contexts in the set that match Predicate
 
 private
 
