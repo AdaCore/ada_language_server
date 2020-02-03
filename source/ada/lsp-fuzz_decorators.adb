@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Wide_Latin_1; use Ada.Characters.Wide_Latin_1;
 with Ada.Containers.Hashed_Maps;
 with LSP.Types; use LSP.Types;
 
@@ -111,8 +112,61 @@ package body LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
+      Doc_Content : LSP_String;
    begin
+      Doc_Content := Open_Docs.Element (Value.textDocument.uri);
+
+      for Change of Value.contentChanges loop
+         if Change.span.Is_Set then
+            --  Basic implementation of applying a text change. This is slow
+            --  but the goal is to compare results with the "smarter"
+            --  actual implementation.
+            declare
+               Line               : Integer := -1;
+               Start_Ind, End_Ind : UTF_16_Index;
+            begin
+               for Ind in 0 .. UTF_16_Index (Length (Doc_Content)) loop
+                  if Ind = 0
+                    or else Element (Doc_Content, Natural (Ind)) = LF
+                  then
+                     Line := Line + 1;
+                     if Line = Integer (Change.span.Value.first.line) then
+                        Start_Ind := Ind + Change.span.Value.first.character;
+                     end if;
+                     if Line = Integer (Change.span.Value.last.line) then
+                        End_Ind := Ind + Change.span.Value.last.character;
+                        exit;
+                     end if;
+                  end if;
+               end loop;
+               Doc_Content := Unbounded_Slice
+                 (Doc_Content, 1, Natural (Start_Ind))
+                 & Change.text
+                 & Unbounded_Slice
+                 (Doc_Content, Natural (End_Ind + 1), Length (Doc_Content));
+            end;
+         else
+            Doc_Content := Change.text;
+         end if;
+      end loop;
+
+      Open_Docs.Replace (Value.textDocument.uri, Doc_Content);
+
+      --  Let the real handler update the document
       Self.Handler.On_DidChangeTextDocument_Notification (Value);
+
+      --  Compare the results of the basic implementation and the real one
+      if Self.Doc_Provider.Get_Open_Document (Value.textDocument.uri).Text
+        /= Doc_Content
+      then
+         Self.Trace.Trace
+           (To_UTF_8_String
+              (Self.Doc_Provider.Get_Open_Document
+                   (Value.textDocument.uri).Text) &
+              ASCII.LF & " /= " & ASCII.LF &
+              To_UTF_8_String (Doc_Content));
+         raise Program_Error with "document content inconsistency";
+      end if;
    end On_DidChangeTextDocument_Notification;
 
    -----------------------------------------
