@@ -167,20 +167,6 @@
          "request": {
             "params": {
                "textDocument": {
-                  "uri": "$URI{child.ads}"
-               }
-            },
-            "jsonrpc": "2.0",
-            "method": "textDocument/didClose"
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "params": {
-               "textDocument": {
                   "uri": "$URI{main.adb}"
                }
             },

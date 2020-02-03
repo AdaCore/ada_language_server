@@ -21,10 +21,12 @@
 
 with GNATCOLL.Traces;
 with LSP.Messages;
+with LSP.Servers;
 
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
 with LSP.Error_Decorators;
+with LSP.Ada_Documents;
 
 package LSP.Fuzz_Decorators is
 
@@ -32,14 +34,15 @@ package LSP.Fuzz_Decorators is
      (Trace   : GNATCOLL.Traces.Trace_Handle;
       Handler : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
-      On_Error : not null access procedure) is new
+      On_Error : not null LSP.Servers.Uncaught_Exception_Handler) is new
      LSP.Error_Decorators.Error_Decorator (Trace, Handler, On_Error)
    with null record;
 
    type Fuzz_Notification_Decorator
      (Trace   : GNATCOLL.Traces.Trace_Handle;
       Handler : not null
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access)
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
+      Doc_Provider : not null LSP.Ada_Documents.Document_Provider_Access)
    is new LSP.Server_Notification_Receivers.Server_Notification_Receiver with
      null record;
 

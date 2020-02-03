@@ -1109,13 +1109,12 @@ package body LSP.Servers is
                  Symbolic_Traceback (E));
 
          when E : others =>
-            Server.On_Error.all;
             --  ... and log this in the traces
             Server.Server_Trace.Trace
-              ("Exception when processing notification:" & ASCII.LF
-               & Ada.Tags.External_Tag (Message'Tag) & ASCII.LF
-               & Exception_Name (E) & ASCII.LF &
-                 Symbolic_Traceback (E));
+              ("Exception when processing notification" & ASCII.LF
+               & Ada.Tags.External_Tag (Message'Tag));
+            --  The symbolic traceback will be printed by On_Error
+            Server.On_Error (E);
       end Process_Message;
 
       Request : Message_Access;

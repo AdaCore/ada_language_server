@@ -22,6 +22,7 @@ with GNATCOLL.Traces;
 
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
+with LSP.Servers;
 with LSP.Server_Request_Handlers;
 
 package LSP.Error_Decorators is
@@ -30,7 +31,7 @@ package LSP.Error_Decorators is
      (Trace   : GNATCOLL.Traces.Trace_Handle;
       Handler : not null
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
-     On_Error : not null access procedure) is new
+     On_Error : not null LSP.Servers.Uncaught_Exception_Handler) is new
         LSP.Server_Request_Handlers.Server_Request_Handler with null record;
    --  The decorator redirect all request to corresponding function of Handler.
    --  If the Property_Error exception is raised then the wrapper log in in the

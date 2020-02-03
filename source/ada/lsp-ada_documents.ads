@@ -106,6 +106,7 @@ package LSP.Ada_Documents is
    -----------------------
 
    type Document_Provider is limited interface;
+   type Document_Provider_Access is access all Document_Provider'Class;
    --  A Document_Provider is an object that contains documents and
    --  is able to retrieve a document from its given URI.
 

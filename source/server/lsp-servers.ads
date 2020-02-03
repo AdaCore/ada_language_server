@@ -21,6 +21,7 @@
 --  that actually implements message processing.
 
 with Ada.Streams;
+with Ada.Exceptions;
 
 with LSP.Client_Message_Receivers;
 with LSP.Message_Loggers;
@@ -59,7 +60,8 @@ package LSP.Servers is
    procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
 
-   type Uncaught_Exception_Handler is access procedure;
+   type Uncaught_Exception_Handler is access
+     procedure (E : Ada.Exceptions.Exception_Occurrence);
 
    procedure Run
      (Self         : in out Server;

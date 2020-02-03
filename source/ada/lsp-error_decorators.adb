@@ -50,11 +50,11 @@ package body LSP.Error_Decorators is
          pragma Warnings (Off, "is read but never assigned");
          return Result : Response (Is_Error => False);
          pragma Warnings (On, "is read but never assigned");
-      when others =>
+      when E : others =>
          --  Property errors are expected to happen in the normal flow
          --  of events in LAL. However, for any other error than a
          --  property error, we want to reload the context.
-         Self.On_Error.all;
+         Self.On_Error (E);
          raise;
    end Generic_Request;
 
