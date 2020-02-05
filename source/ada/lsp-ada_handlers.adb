@@ -589,6 +589,14 @@ package body LSP.Ada_Handlers is
       --  Result with Code_Actions in this case. Return Done = True if futher
       --  analysis has no sense.
 
+      Found_Named_Parameters : Boolean := False;
+      --  We propose only one choice of Named_Parameters refactoring per
+      --  request. So, if a user clicks on `1` in `A (B (1))` we propose the
+      --  refactoring for B (1), but not for A (...) call. We consider this
+      --  as better user experience.
+      --
+      --  This boolean filter to detect such refactoring duplication.
+
       ----------------------------------
       -- Has_Assoc_Without_Designator --
       ----------------------------------
@@ -649,6 +657,47 @@ package body LSP.Ada_Handlers is
          Found   : in out Boolean;
          Done    : in out Boolean)
       is
+         procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
+         --  Contruct a command and append it to Result
+
+         --------------------
+         -- Append_Command --
+         --------------------
+
+         procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
+            Command : LSP.Ada_Handlers.Named_Parameters_Commands.Command;
+            Pointer : LSP.Commands.Command_Pointer;
+            Item    : LSP.Messages.CodeAction;
+            Where   : constant LSP.Messages.Location :=
+              LSP.Lal_Utils.Get_Node_Location (Node);
+         begin
+            if Found_Named_Parameters then
+               return;
+            end if;
+
+            Command.Initialize
+              (Context => Context.all,
+               Where   => ((uri => Where.uri), Where.span.first));
+
+            Pointer.Set (Command);
+
+            Item :=
+              (title       => +"Name parameters in the call",
+               kind        => (Is_Set => True,
+                               Value  => LSP.Messages.RefactorRewrite),
+               diagnostics => (Is_Set => False),
+               edit        => (Is_Set => False),
+               command     => (Is_Set => True,
+                               Value  =>
+                                 (Is_Unknown => False,
+                                  title      => +"",
+                                  Custom     => Pointer)));
+
+            Result.Append (Item);
+            Found := True;
+            Found_Named_Parameters := True;
+         end Append_Command;
+
          Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
       begin
          case Kind is
@@ -656,40 +705,28 @@ package body LSP.Ada_Handlers is
                | Libadalang.Common.Ada_Basic_Decl =>
 
                Done := True;
+
             when Libadalang.Common.Ada_Basic_Assoc_List =>
                if Has_Assoc_Without_Designator (Node.As_Basic_Assoc_List) then
-                  declare
-                     Command : LSP.Ada_Handlers.Named_Parameters_Commands
-                       .Command;
-                     Pointer : LSP.Commands.Command_Pointer;
-                     Item    : LSP.Messages.CodeAction;
-                     Where   : constant LSP.Messages.Location :=
-                       LSP.Lal_Utils.Get_Node_Location (Node);
-                  begin
-                     Command.Initialize
-                       (Context => Context.all,
-                        Where   => ((uri => Where.uri), Where.span.first));
-
-                     Pointer.Set (Command);
-
-                     Item :=
-                       (title => +"Name parameters in the call",
-                        kind  => (Is_Set => True,
-                                  Value  => LSP.Messages.RefactorRewrite),
-                        diagnostics => (Is_Set => False),
-                        edit        => (Is_Set => False),
-                        command     => (Is_Set => True,
-                                        Value  =>
-                                          (Is_Unknown => False,
-                                           title      => +"",
-                                           Custom     => Pointer)));
-
-                     Result.Append (Item);
-                     Found := True;
-                  end;
+                  Append_Command (Node);
                end if;
+
+            when Libadalang.Common.Ada_Call_Expr =>
+               declare
+                  List : constant Libadalang.Analysis.Ada_Node :=
+                    Node.As_Call_Expr.F_Suffix;
+               begin
+                  if List.Kind in Libadalang.Common.Ada_Basic_Assoc_List
+                    and then Has_Assoc_Without_Designator
+                      (List.As_Basic_Assoc_List)
+                  then
+                     Append_Command (List);
+                  end if;
+               end;
+
             when others =>
                null;
+
          end case;
       end Analyse_Node;
 
