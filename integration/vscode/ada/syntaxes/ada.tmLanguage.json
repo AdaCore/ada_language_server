@@ -21,9 +21,6 @@
         "name": "constant.lanuage.ada",
         "match": "\\b(?i:(null|true|false))\\b"
     }, {
-        "name": "entity.name.function.ada",
-        "match": "\\b(?i:(aaa))\\b"
-    }, {
         "name": "keyword.control.ada",
         "match": "\\b(?i:(abort|case|delay|else|elsif|exit|for|goto|if|loop|pragma|raise|requeue|return|terminate|then|until|while))\\b"
     }, {
@@ -44,6 +41,9 @@
     }, {
         "name": "storage.type.ada",
         "match": "\\b(?i:(Boolean|Integer|Natural|Positive|Character|String))\\b"
+    }, {
+        "name": "entity.name.ada",
+        "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
     }],
     "repository": {
         "decimal_literal": {
