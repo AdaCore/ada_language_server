@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Characters.Latin_1;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -64,6 +65,8 @@ package body LSP.Ada_Handlers is
      (Is_Server_Side => True,
       As_Flags => (LSP.Messages.Child => True, others => False));
    --  Convenient constants
+
+   Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP.Types.LSP_String renames
@@ -239,11 +242,11 @@ package body LSP.Ada_Handlers is
         ((Msg_Type,
          "Imprecise fallback used to compute cross-references on entity at:"
          & To_LSP_String
-           (ASCII.LF & "   " & File.Display_Base_Name)
+           (Line_Feed & "   " & File.Display_Base_Name)
          & To_LSP_String
-           (ASCII.LF & "   line:" & Position.line'Img)
+           (Line_Feed & "   line:" & Position.line'Img)
          & To_LSP_String
-           (ASCII.LF & "   column:" & Position.character'Img)));
+           (Line_Feed & "   column:" & Position.character'Img)));
    end Send_Imprecise_Xref_Message;
 
    ----------------------------
@@ -436,7 +439,7 @@ package body LSP.Ada_Handlers is
          --  We have found more than one project: warn the user!
 
          Self.Show_Message
-           ("More than one .gpr found." & ASCII.LF &
+           ("More than one .gpr found." & Line_Feed &
               "Note: you can configure a project " &
               " through the ada.projectFile setting.");
       end if;
@@ -1486,7 +1489,7 @@ package body LSP.Ada_Handlers is
 
                   if Aspects_Text /= Empty_LSP_String then
                      Decl_Text := Decl_Text
-                       & To_LSP_String (ASCII.LF & "with")
+                       & To_LSP_String (Line_Feed & "with")
                        & Aspects_Text;
                   end if;
                end if;
@@ -2311,7 +2314,7 @@ package body LSP.Ada_Handlers is
               (Errors.message,
                LSP.Types.To_LSP_String
                  ("Unable to load project file: " &
-                  (+GPR.Full_Name.all)));
+                  (+GPR.Full_Name.all) & Line_Feed));
       end;
 
       --  Report the errors, if any
