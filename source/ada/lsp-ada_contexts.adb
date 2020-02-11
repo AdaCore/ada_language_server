@@ -328,7 +328,7 @@ package body LSP.Ada_Contexts is
         (Hierarchy : Basic_Decl_Array) return Base_Id_Array
       is
          References       : Base_Id_Array
-           (1 .. Hierarchy'Length * 2);
+           (1 .. Hierarchy'Length * 3);
          Subp_Body_Name   : Defining_Name;
          Subp_Body_Node   : Subp_Body;
          Last             : Positive := References'First;
