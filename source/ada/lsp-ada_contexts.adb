@@ -319,7 +319,7 @@ package body LSP.Ada_Contexts is
          All_Decls        : constant Basic_Decl_Array :=
                                    Overriding_Decls & Base_Decls;
          References       : Base_Id_Array
-           (1 .. (Base_Decls'Length + Overriding_Decls'Length) * 3);
+           (1 .. (All_Decls'Length) * 3);
          Subp_Body_Name   : Defining_Name;
          Subp_Body_Node   : Subp_Body;
          Last             : Positive := 1;
