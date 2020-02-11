@@ -84,7 +84,7 @@ class ALSTestsuite(Testsuite):
                 self.lookup_program("valgrind"),
                 " ".join(VALGRIND_OPTIONS).format(base=self.env.repo_base),
                 self.lookup_program('server', 'ada_language_server'))
-            self.env.wait_factor = 20  # valgrind is slow
+            self.env.wait_factor = 40  # valgrind is slow
         else:
             self.env.als = self.lookup_program('server', 'ada_language_server')
 

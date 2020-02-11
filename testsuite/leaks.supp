@@ -44,3 +44,19 @@
    fun:gpr__proc__recursive_process__process_aggregated_projects
 }
 
+### T114-020 leaks with extending project and custom renaming
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:__gnat_malloc
+   fun:system__pool_global__allocate
+   fun:gpr__nmsc__add_source
+   fun:gpr__nmsc__check_file
+   fun:gpr__nmsc__search_directories__2
+   fun:gpr__nmsc__find_sources
+   fun:gpr__nmsc__look_for_sources
+   fun:gpr__nmsc__process_naming_scheme__check
+}
+
