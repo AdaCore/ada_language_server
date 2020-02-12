@@ -72,7 +72,7 @@ package LSP.Messages is
    --	/**
    --	 * The method's params.
    --	 */
-   --	params?: Array<any> | object;
+   --	params?: array | object;
    --}
    --```
    type RequestMessage is new Message with record
@@ -106,10 +106,10 @@ package LSP.Messages is
    --	/**
    --	 * The error object in case a request fails.
    --	 */
-   --	error?: ResponseError<any>;
+   --	error?: ResponseError;
    --}
    --
-   --interface ResponseError<D> {
+   --interface ResponseError {
    --	/**
    --	 * A number indicating the error type that occurred.
    --	 */
@@ -121,10 +121,10 @@ package LSP.Messages is
    --	message: string;
    --
    --	/**
-   --	 * A Primitive or Structured value that contains additional
+   --	 * A primitive or structured value that contains additional
    --	 * information about the error. Can be omitted.
    --	 */
-   --	data?: D;
+   --	data?: string | number | boolean | array | object | null;
    --}
    --
    --export namespace ErrorCodes {
@@ -185,7 +185,7 @@ package LSP.Messages is
    --	/**
    --	 * The notification's params.
    --	 */
-   --	params?: Array<any> | object;
+   --	params?: array | object;
    --}
    --```
    type NotificationMessage is new Message with record
@@ -276,6 +276,10 @@ package LSP.Messages is
       V : Position);
    for Position'Write use Write_Position;
 
+   package Position_Vectors is new LSP.Generic_Vectors (Position);
+
+   type Position_Vector is new Position_Vectors.Vector with null record;
+
    --```typescript
    --interface Range {
    --	/**
@@ -293,6 +297,7 @@ package LSP.Messages is
       first: Position;
       last: Position;  --  end: is reserved work
    end record;
+   --  `Range` is a reserved word in Ada, so let's name it Span
 
    procedure Read_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -487,24 +492,49 @@ package LSP.Messages is
 
    --
    --```typescript
-   --namespace DiagnosticSeverity {
+   --export namespace DiagnosticSeverity {
    --	/**
    --	 * Reports an error.
    --	 */
-   --	export const Error = 1;
+   --	export const Error: 1 = 1;
    --	/**
    --	 * Reports a warning.
    --	 */
-   --	export const Warning = 2;
+   --	export const Warning: 2 = 2;
    --	/**
    --	 * Reports an information.
    --	 */
-   --	export const Information = 3;
+   --	export const Information: 3 = 3;
    --	/**
    --	 * Reports a hint.
    --	 */
-   --	export const Hint = 4;
+   --	export const Hint: 4 = 4;
    --}
+   --
+   --export type DiagnosticSeverity = 1 | 2 | 3 | 4;
+   --
+   --/**
+   -- * The diagnostic tags.
+   -- *
+   -- * @since 3.15.0
+   -- */
+   --export namespace DiagnosticTag {
+   --    /**
+   --     * Unused or unnecessary code.
+   --     *
+   --     * Clients are allowed to render diagnostics with this tag faded out instead of having
+   --     * an error squiggle.
+   --     */
+   --    export const Unnecessary: 1 = 1;
+   --    /**
+   --     * Deprecated or obsolete code.
+   --     *
+   --     * Clients are allowed to rendered diagnostics with this tag strike through.
+   --     */
+   --    export const Deprecated: 2 = 2;
+   --}
+   --
+   --export type DiagnosticTag = 1 | 2;
    --```
    type DiagnosticSeverity is (Error, Warning, Information, Hint);
 
@@ -520,10 +550,31 @@ package LSP.Messages is
    package Optional_DiagnosticSeveritys is new LSP.Generic_Optional (DiagnosticSeverity);
    type Optional_DiagnosticSeverity is new Optional_DiagnosticSeveritys.Optional_Type;
 
+   type DiagnosticTag is (Unnecessary, Deprecated);
+
+   procedure Read_DiagnosticTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DiagnosticTag);
+   procedure Write_DiagnosticTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DiagnosticTag);
+   for DiagnosticTag'Read use Read_DiagnosticTag;
+   for DiagnosticTag'Write use Write_DiagnosticTag;
+
+   package DiagnosticTagSets is new LSP.Generic_Sets (DiagnosticTag);
+
+   type DiagnosticTagSet is new DiagnosticTagSets.Set;
+
+   package Optional_DiagnosticTagSets is
+     new LSP.Generic_Optional (DiagnosticTagSet);
+
+   type Optional_DiagnosticTagSet is
+     new Optional_DiagnosticTagSets.Optional_Type;
+
    --```typescript
    --/**
    -- * Represents a related message and source code location for a diagnostic. This should be
-   -- * used to point to code locations that cause or related to a diagnostics, e.g when duplicating
+   -- * used to point to code locations that cause or are related to a diagnostics, e.g when duplicating
    -- * a symbol in a scope.
    -- */
    --export interface DiagnosticRelatedInformation {
@@ -561,7 +612,7 @@ package LSP.Messages is
      new DiagnosticRelatedInformation_Vectors.Vector with null record;
 
    --```typescript
-   --interface Diagnostic {
+   --export interface Diagnostic {
    --	/**
    --	 * The range at which the message applies.
    --	 */
@@ -571,7 +622,7 @@ package LSP.Messages is
    --	 * The diagnostic's severity. Can be omitted. If omitted it is up to the
    --	 * client to interpret diagnostics as error, warning, info or hint.
    --	 */
-   --	severity?: number;
+   --	severity?: DiagnosticSeverity;
    --
    --	/**
    --	 * The diagnostic's code, which might appear in the user interface.
@@ -590,6 +641,13 @@ package LSP.Messages is
    --	message: string;
    --
    --	/**
+   --	 * Additional metadata about the diagnostic.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	tags?: DiagnosticTag[];
+   --
+   --	/**
    --	 * An array of related diagnostic information, e.g. when symbol-names within
    --	 * a scope collide all definitions can be marked via this property.
    --	 */
@@ -602,6 +660,7 @@ package LSP.Messages is
       code: LSP_Number_Or_String;
       source: Optional_String;
       message: LSP_String;
+      tags: Optional_DiagnosticTagSet;
       relatedInformation: DiagnosticRelatedInformation_Vector;
    end record;
 
@@ -739,7 +798,7 @@ package LSP.Messages is
    --	 * is sent from the server to the client and the file is not open in the editor
    --	 * (the server has not received an open notification before) the server can send
    --	 * `null` to indicate that the version is known and the content on disk is the
-   --	 * truth (as speced with document content ownership).
+   --	 * master (as speced with document content ownership).
    --	 *
    --	 * The version number of a document will increase after each change, including
    --	 * undo/redo. The number doesn't need to be consecutive.
@@ -1131,6 +1190,28 @@ package LSP.Messages is
 
    --
    --```typescript
+   --export interface WorkspaceEditClientCapabilities {
+   --	/**
+   --	 * The client supports versioned document changes in `WorkspaceEdit`s
+   --	 */
+   --	documentChanges?: boolean;
+   --
+   --	/**
+   --	 * The resource operations the client supports. Clients should at least
+   --	 * support 'create', 'rename' and 'delete' files and folders.
+   --	 *
+   --	 * @since 3.13.0
+   --	 */
+   --	resourceOperations?: ResourceOperationKind[];
+   --
+   --	/**
+   --	 * The failure handling strategy of a client if applying the workspace edit
+   --	 * fails.
+   --	 *
+   --	 * @since 3.13.0
+   --	 */
+   --	failureHandling?: FailureHandlingKind;
+   --}
    --
    --/**
    -- * The kind of resource operations supported by the client.
@@ -1166,14 +1247,14 @@ package LSP.Messages is
    --	export const Abort: FailureHandlingKind = 'abort';
    --
    --	/**
-   --	 * All operations are executed transactionally. That means they either all
+   --	 * All operations are executed transactional. That means they either all
    --	 * succeed or no changes at all are applied to the workspace.
    --	 */
    --	export const Transactional: FailureHandlingKind = 'transactional';
    --
    --
    --	/**
-   --	 * If the workspace edit contains only textual file changes they are executed transactionally.
+   --	 * If the workspace edit contains only textual file changes they are executed transactional.
    --	 * If resource changes (create, rename or delete file) are part of the change the failure
    --	 * handling strategy is abort.
    --	 */
@@ -1181,115 +1262,9 @@ package LSP.Messages is
    --
    --	/**
    --	 * The client tries to undo the operations already executed. But there is no
-   --	 * guarantee that this succeeds.
+   --	 * guarantee that this is succeeding.
    --	 */
    --	export const Undo: FailureHandlingKind = 'undo';
-   --}
-   --
-   --/**
-   -- * Workspace specific client capabilities.
-   -- */
-   --export interface WorkspaceClientCapabilities {
-   --	/**
-   --	 * The client supports applying batch edits to the workspace by supporting
-   --	 * the request 'workspace/applyEdit'
-   --	 */
-   --	applyEdit?: boolean;
-   --
-   --	/**
-   --	 * Capabilities specific to `WorkspaceEdit`s
-   --	 */
-   --	workspaceEdit?: {
-   --		/**
-   --		 * The client supports versioned document changes in `WorkspaceEdit`s
-   --		 */
-   --		documentChanges?: boolean;
-   --
-   --		/**
-   --		 * The resource operations the client supports. Clients should at least
-   --		 * support 'create', 'rename' and 'delete' files and folders.
-   --		 */
-   --		resourceOperations?: ResourceOperationKind[];
-   --
-   --		/**
-   --		 * The failure handling strategy of a client if applying the workspace edit
-   --		 * fails.
-   --		 */
-   --		failureHandling?: FailureHandlingKind;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `workspace/didChangeConfiguration` notification.
-   --	 */
-   --	didChangeConfiguration?: {
-   --		/**
-   --		 * Did change configuration notification supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
-   --	 */
-   --	didChangeWatchedFiles?: {
-   --		/**
-   --		 * Did change watched files notification supports dynamic registration. Please note
-   --		 * that the current protocol doesn't support static configuration for file changes
-   --		 * from the server side.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `workspace/symbol` request.
-   --	 */
-   --	symbol?: {
-   --		/**
-   --		 * Symbol request supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
-   --		 */
-   --		symbolKind?: {
-   --			/**
-   --			 * The symbol kind values the client supports. When this
-   --			 * property exists the client also guarantees that it will
-   --			 * handle values outside its set gracefully and falls back
-   --			 * to a default value when unknown.
-   --			 *
-   --			 * If this property is not present the client only supports
-   --			 * the symbol kinds from `File` to `Array` as defined in
-   --			 * the initial version of the protocol.
-   --			 */
-   --			valueSet?: SymbolKind[];
-   --		}
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `workspace/executeCommand` request.
-   --	 */
-   --	executeCommand?: {
-   --		/**
-   --		 * Execute command supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * The client has support for workspace folders.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	workspaceFolders?: boolean;
-   --
-   --	/**
-   --	 * The client supports `workspace/configuration` requests.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	configuration?: boolean;
    --}
    --```
 
@@ -1338,22 +1313,73 @@ package LSP.Messages is
    type Optional_FailureHandlingKind is
      new Optional_FailureHandlingKinds.Optional_Type;
 
-   type documentChanges is record
+   type WorkspaceEditClientCapabilities is record
       documentChanges : Optional_Boolean;
       resourceOperations : Optional_ResourceOperationKindSet;
       failureHandling : Optional_FailureHandlingKind;
    end record;
 
-   procedure Read_documentChanges
+   procedure Read_WorkspaceEditClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out documentChanges);
+      V : out WorkspaceEditClientCapabilities);
 
-   procedure Write_documentChanges
+   procedure Write_WorkspaceEditClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : documentChanges);
+      V : WorkspaceEditClientCapabilities);
 
-   for documentChanges'Read use Read_documentChanges;
-   for documentChanges'Write use Write_documentChanges;
+   for WorkspaceEditClientCapabilities'Read use
+     Read_WorkspaceEditClientCapabilities;
+
+   for WorkspaceEditClientCapabilities'Write use
+     Write_WorkspaceEditClientCapabilities;
+
+   --```typescript
+   --export interface DidChangeConfigurationClientCapabilities {
+   --	/**
+   --	 * Did change configuration notification supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DidChangeConfigurationClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DidChangeWatchedFilesClientCapabilities {
+   --	/**
+   --	 * Did change watched files notification supports dynamic registration. Please note
+   --	 * that the current protocol doesn't support static configuration for file changes
+   --	 * from the server side.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DidChangeWatchedFilesClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --interface WorkspaceSymbolClientCapabilities {
+   --	/**
+   --	 * Symbol request supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
+   --	 */
+   --	symbolKind?: {
+   --		/**
+   --		 * The symbol kind values the client supports. When this
+   --		 * property exists the client also guarantees that it will
+   --		 * handle values outside its set gracefully and falls back
+   --		 * to a default value when unknown.
+   --		 *
+   --		 * If this property is not present the client only supports
+   --		 * the symbol kinds from `File` to `Array` as defined in
+   --		 * the initial version of the protocol.
+   --		 */
+   --		valueSet?: SymbolKind[];
+   --	}
+   --}
+   --```
 
    type SymbolKind is
      (File,
@@ -1407,35 +1433,48 @@ package LSP.Messages is
    type Optional_SymbolKindSet is
      new Optional_SymbolKindSets.Optional_Type;
 
-   type Workspace_Symbol_Capability is record
+   type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
    end record;
 
-   procedure Read_Workspace_Symbol_Capability
+   procedure Read_WorkspaceSymbolClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Workspace_Symbol_Capability);
+      V : out WorkspaceSymbolClientCapabilities);
 
-   procedure Write_Workspace_Symbol_Capability
+   procedure Write_WorkspaceSymbolClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Workspace_Symbol_Capability);
+      V : WorkspaceSymbolClientCapabilities);
 
-   for Workspace_Symbol_Capability'Read use Read_Workspace_Symbol_Capability;
-   for Workspace_Symbol_Capability'Write use Write_Workspace_Symbol_Capability;
+   for WorkspaceSymbolClientCapabilities'Read use
+     Read_WorkspaceSymbolClientCapabilities;
 
-   package Optional_Workspace_Symbol_Capabilities is
-     new LSP.Generic_Optional (Workspace_Symbol_Capability);
+   for WorkspaceSymbolClientCapabilities'Write use
+     Write_WorkspaceSymbolClientCapabilities;
 
-   type Optional_Workspace_Symbol_Capability is
-     new Optional_Workspace_Symbol_Capabilities.Optional_Type;
+   package Optional_WorkspaceSymbolClientCapabilities_Package is
+     new LSP.Generic_Optional (WorkspaceSymbolClientCapabilities);
+
+   type Optional_WorkspaceSymbolClientCapabilities is
+     new Optional_WorkspaceSymbolClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --export interface ExecuteCommandClientCapabilities {
+   --	/**
+   --	 * Execute command supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype ExecuteCommandClientCapabilities is dynamicRegistration;
 
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
-      workspaceEdit: documentChanges;
-      didChangeConfiguration: dynamicRegistration;
-      didChangeWatchedFiles: dynamicRegistration;
-      symbol: Optional_Workspace_Symbol_Capability;
-      executeCommand: dynamicRegistration;
+      workspaceEdit: WorkspaceEditClientCapabilities;
+      didChangeConfiguration: DidChangeConfigurationClientCapabilities;
+      didChangeWatchedFiles: DidChangeWatchedFilesClientCapabilities;
+      symbol: Optional_WorkspaceSymbolClientCapabilities;
+      executeCommand: ExecuteCommandClientCapabilities;
       workspaceFolders: Optional_Boolean;
       configuration: Optional_Boolean;
    end record;
@@ -1570,446 +1609,253 @@ package LSP.Messages is
      new Optional_String_Or_MarkupContent_Package.Optional_Type;
 
    --```typescript
-   --/**
-   -- * Text document specific client capabilities.
-   -- */
-   --export interface TextDocumentClientCapabilities {
-   --
-   --	synchronization?: {
-   --		/**
-   --		 * Whether text document synchronization supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports sending will save notifications.
-   --		 */
-   --		willSave?: boolean;
-   --
-   --		/**
-   --		 * The client supports sending a will save request and
-   --		 * waits for a response providing text edits which will
-   --		 * be applied to the document before it is saved.
-   --		 */
-   --		willSaveWaitUntil?: boolean;
-   --
-   --		/**
-   --		 * The client supports did save notifications.
-   --		 */
-   --		didSave?: boolean;
-   --	}
-   --
+   --export interface SaveOptions {
    --	/**
-   --	 * Capabilities specific to the `textDocument/completion`
+   --	 * The client is supposed to include the content on save.
    --	 */
-   --	completion?: {
-   --		/**
-   --		 * Whether completion supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports the following `CompletionItem` specific
-   --		 * capabilities.
-   --		 */
-   --		completionItem?: {
-   --			/**
-   --			 * The client supports snippets as insert text.
-   --			 *
-   --			 * A snippet can define tab stops and placeholders with `$1`, `$2`
-   --			 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
-   --			 * the end of the snippet. Placeholders with equal identifiers are linked,
-   --			 * that is typing in one will update others too.
-   --			 */
-   --			snippetSupport?: boolean;
-   --
-   --			/**
-   --			 * The client supports commit characters on a completion item.
-   --			 */
-   --			commitCharactersSupport?: boolean
-   --
-   --			/**
-   --			 * The client supports the following content formats for the documentation
-   --			 * property. The order describes the preferred format of the client.
-   --			 */
-   --			documentationFormat?: MarkupKind[];
-   --
-   --			/**
-   --			 * The client supports the deprecated property on a completion item.
-   --			 */
-   --			deprecatedSupport?: boolean;
-   --
-   --			/**
-   --			 * The client supports the preselect property on a completion item.
-   --			 */
-   --			preselectSupport?: boolean;
-   --		}
-   --
-   --		completionItemKind?: {
-   --			/**
-   --			 * The completion item kind values the client supports. When this
-   --			 * property exists the client also guarantees that it will
-   --			 * handle values outside its set gracefully and falls back
-   --			 * to a default value when unknown.
-   --			 *
-   --			 * If this property is not present the client only supports
-   --			 * the completion items kinds from `Text` to `Reference` as defined in
-   --			 * the initial version of the protocol.
-   --			 */
-   --			valueSet?: CompletionItemKind[];
-   --		},
-   --
-   --		/**
-   --		 * The client supports to send additional context information for a
-   --		 * `textDocument/completion` request.
-   --		 */
-   --		contextSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/hover`
-   --	 */
-   --	hover?: {
-   --		/**
-   --		 * Whether hover supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports the follow content formats for the content
-   --		 * property. The order describes the preferred format of the client.
-   --		 */
-   --		contentFormat?: MarkupKind[];
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/signatureHelp`
-   --	 */
-   --	signatureHelp?: {
-   --		/**
-   --		 * Whether signature help supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports the following `SignatureInformation`
-   --		 * specific properties.
-   --		 */
-   --		signatureInformation?: {
-   --			/**
-   --			 * The client supports the follow content formats for the documentation
-   --			 * property. The order describes the preferred format of the client.
-   --			 */
-   --			documentationFormat?: MarkupKind[];
-   --
-   --			/**
-   --			 * Client capabilities specific to parameter information.
-   --			 */
-   --			parameterInformation?: {
-   --				/**
-   --				 * The client supports processing label offsets instead of a
-   --				 * simple label string.
-   --				 *
-   --				 * Since 3.14.0
-   --				 */
-   --				labelOffsetSupport?: boolean;
-   --			}
-   --		};
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/references`
-   --	 */
-   --	references?: {
-   --		/**
-   --		 * Whether references supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/documentHighlight`
-   --	 */
-   --	documentHighlight?: {
-   --		/**
-   --		 * Whether document highlight supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/documentSymbol`
-   --	 */
-   --	documentSymbol?: {
-   --		/**
-   --		 * Whether document symbol supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * Specific capabilities for the `SymbolKind`.
-   --		 */
-   --		symbolKind?: {
-   --			/**
-   --			 * The symbol kind values the client supports. When this
-   --			 * property exists the client also guarantees that it will
-   --			 * handle values outside its set gracefully and falls back
-   --			 * to a default value when unknown.
-   --			 *
-   --			 * If this property is not present the client only supports
-   --			 * the symbol kinds from `File` to `Array` as defined in
-   --			 * the initial version of the protocol.
-   --			 */
-   --			valueSet?: SymbolKind[];
-   --		}
-   --
-   --		/**
-   --		 * The client supports hierarchical document symbols.
-   --		 */
-   --		hierarchicalDocumentSymbolSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/formatting`
-   --	 */
-   --	formatting?: {
-   --		/**
-   --		 * Whether formatting supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/rangeFormatting`
-   --	 */
-   --	rangeFormatting?: {
-   --		/**
-   --		 * Whether range formatting supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/onTypeFormatting`
-   --	 */
-   --	onTypeFormatting?: {
-   --		/**
-   --		 * Whether on type formatting supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --		* Capabilities specific to the `textDocument/declaration`
-   --		*/
-   --	declaration?: {
-   --		/**
-   --		 * Whether declaration supports dynamic registration. If this is set to `true`
-   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
-   --		 * return value for the corresponding server capability as well.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports additional metadata in the form of declaration links.
-   --		 *
-   --		 * Since 3.14.0
-   --		 */
-   --		linkSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/definition`.
-   --	 *
-   --	 * Since 3.14.0
-   --	 */
-   --	definition?: {
-   --		/**
-   --		 * Whether definition supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports additional metadata in the form of definition links.
-   --		 */
-   --		linkSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/typeDefinition`
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	typeDefinition?: {
-   --		/**
-   --		 * Whether typeDefinition supports dynamic registration. If this is set to `true`
-   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
-   --		 * return value for the corresponding server capability as well.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports additional metadata in the form of definition links.
-   --		 *
-   --		 * Since 3.14.0
-   --		 */
-   --		linkSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/implementation`.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	implementation?: {
-   --		/**
-   --		 * Whether implementation supports dynamic registration. If this is set to `true`
-   --		 * the client supports the new `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
-   --		 * return value for the corresponding server capability as well.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --
-   --		/**
-   --		 * The client supports additional metadata in the form of definition links.
-   --		 *
-   --		 * Since 3.14.0
-   --		 */
-   --		linkSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/codeAction`
-   --	 */
-   --	codeAction?: {
-   --		/**
-   --		 * Whether code action supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --		/**
-   --		 * The client support code action literals as a valid
-   --		 * response of the `textDocument/codeAction` request.
-   --		 *
-   --		 * Since 3.8.0
-   --		 */
-   --		codeActionLiteralSupport?: {
-   --			/**
-   --			 * The code action kind is support with the following value
-   --			 * set.
-   --			 */
-   --			codeActionKind: {
-   --
-   --				/**
-   --				 * The code action kind values the client supports. When this
-   --				 * property exists the client also guarantees that it will
-   --				 * handle values outside its set gracefully and falls back
-   --				 * to a default value when unknown.
-   --				 */
-   --				valueSet: CodeActionKind[];
-   --			};
-   --		};
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/codeLens`
-   --	 */
-   --	codeLens?: {
-   --		/**
-   --		 * Whether code lens supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/documentLink`
-   --	 */
-   --	documentLink?: {
-   --		/**
-   --		 * Whether document link supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/documentColor` and the
-   --	 * `textDocument/colorPresentation` request.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	colorProvider?: {
-   --		/**
-   --		 * Whether colorProvider supports dynamic registration. If this is set to `true`
-   --		 * the client supports the new `(ColorProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions)`
-   --		 * return value for the corresponding server capability as well.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --	}
-   --
-   --	/**
-   --	 * Capabilities specific to the `textDocument/rename`
-   --	 */
-   --	rename?: {
-   --		/**
-   --		 * Whether rename supports dynamic registration.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --		/**
-   --		 * The client supports testing for validity of rename operations
-   --		 * before execution.
-   --		 */
-   --		prepareSupport?: boolean;
-   --	};
-   --
-   --	/**
-   --	 * Capabilities specific to `textDocument/publishDiagnostics`.
-   --	 */
-   --	publishDiagnostics?: {
-   --		/**
-   --		 * Whether the clients accepts diagnostics with related information.
-   --		 */
-   --		relatedInformation?: boolean;
-   --	};
-   --	/**
-   --	 * Capabilities specific to `textDocument/foldingRange` requests.
-   --	 *
-   --	 * Since 3.10.0
-   --	 */
-   --	foldingRange?: {
-   --		/**
-   --		 * Whether implementation supports dynamic registration for folding range providers. If this is set to `true`
-   --		 * the client supports the new `(FoldingRangeProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions)`
-   --		 * return value for the corresponding server capability as well.
-   --		 */
-   --		dynamicRegistration?: boolean;
-   --		/**
-   --		 * The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
-   --		 * hint, servers are free to follow the limit.
-   --		 */
-   --		rangeLimit?: number;
-   --		/**
-   --		 * If set, the client signals that it only supports folding complete lines. If set, client will
-   --		 * ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
-   --		 */
-   --		lineFoldingOnly?: boolean;
-   --	};
+   --	includeText?: boolean;
    --}
    --```
-   type synchronization is record
+   type SaveOptions is record
+      includeText: Optional_Boolean;
+   end record;
+
+   procedure Read_SaveOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SaveOptions);
+   procedure Write_SaveOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SaveOptions);
+   for SaveOptions'Read use Read_SaveOptions;
+   for SaveOptions'Write use Write_SaveOptions;
+
+   package Optional_SaveOptions_Package is
+     new LSP.Generic_Optional (SaveOptions);
+
+   type Optional_SaveOptions is
+     new Optional_SaveOptions_Package.Optional_Type;
+
+   --```typescript
+   --export interface TextDocumentSyncClientCapabilities {
+   --	/**
+   --	 * Whether text document synchronization supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports sending will save notifications.
+   --	 */
+   --	willSave?: boolean;
+   --
+   --	/**
+   --	 * The client supports sending a will save request and
+   --	 * waits for a response providing text edits which will
+   --	 * be applied to the document before it is saved.
+   --	 */
+   --	willSaveWaitUntil?: boolean;
+   --
+   --	/**
+   --	 * The client supports did save notifications.
+   --	 */
+   --	didSave?: boolean;
+   --}
+   --
+   --/**
+   -- * Defines how the host (editor) should sync document changes to the language server.
+   -- */
+   --export namespace TextDocumentSyncKind {
+   --	/**
+   --	 * Documents should not be synced at all.
+   --	 */
+   --	export const None = 0;
+   --
+   --	/**
+   --	 * Documents are synced by always sending the full content
+   --	 * of the document.
+   --	 */
+   --	export const Full = 1;
+   --
+   --	/**
+   --	 * Documents are synced by sending the full content on open.
+   --	 * After that only incremental updates to the document are
+   --	 * send.
+   --	 */
+   --	export const Incremental = 2;
+   --}
+   --
+   --export interface TextDocumentSyncOptions {
+   --	/**
+   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
+   --	 * be sent.
+   --	 */
+   --	openClose?: boolean;
+   --	/**
+   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
+   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
+   --	 */
+   --	change?: number;
+   --	/**
+   --	 * If present will save notifications are sent to the server. If omitted the notification should not be
+   --	 * sent.
+   --	 */
+   --	willSave?: boolean;
+   --	/**
+   --	 * If present will save wait until requests are sent to the server. If omitted the request should not be
+   --	 * sent.
+   --	 */
+   --	willSaveWaitUntil?: boolean;
+   --	/**
+   --	 * If present save notifications are sent to the server. If omitted the notification should not be
+   --	 * sent.
+   --	 */
+   --	save?: SaveOptions;
+   --}
+   --```
+   type TextDocumentSyncClientCapabilities is record
       dynamicRegistration : Optional_Boolean;
       willSave : Optional_Boolean;
       willSaveWaitUntil : Optional_Boolean;
       didSave : Optional_Boolean;
    end record;
 
-   procedure Read_synchronization
+   procedure Read_TextDocumentSyncClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out synchronization);
+      V : out TextDocumentSyncClientCapabilities);
 
-   procedure Write_synchronization
+   procedure Write_TextDocumentSyncClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : synchronization);
+      V : TextDocumentSyncClientCapabilities);
 
-   for synchronization'Read use Read_synchronization;
-   for synchronization'Write use Write_synchronization;
+   for TextDocumentSyncClientCapabilities'Read use
+     Read_TextDocumentSyncClientCapabilities;
+
+   for TextDocumentSyncClientCapabilities'Write use
+     Write_TextDocumentSyncClientCapabilities;
+
+   --```typescript
+   --export interface CompletionClientCapabilities {
+   --	/**
+   --	 * Whether completion supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports the following `CompletionItem` specific
+   --	 * capabilities.
+   --	 */
+   --	completionItem?: {
+   --		/**
+   --		 * Client supports snippets as insert text.
+   --		 *
+   --		 * A snippet can define tab stops and placeholders with `$1`, `$2`
+   --		 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
+   --		 * the end of the snippet. Placeholders with equal identifiers are linked,
+   --		 * that is typing in one will update others too.
+   --		 */
+   --		snippetSupport?: boolean;
+   --
+   --		/**
+   --		 * Client supports commit characters on a completion item.
+   --		 */
+   --		commitCharactersSupport?: boolean
+   --
+   --		/**
+   --		 * Client supports the follow content formats for the documentation
+   --		 * property. The order describes the preferred format of the client.
+   --		 */
+   --		documentationFormat?: MarkupKind[];
+   --
+   --		/**
+   --		 * Client supports the deprecated property on a completion item.
+   --		 */
+   --		deprecatedSupport?: boolean;
+   --
+   --		/**
+   --		 * Client supports the preselect property on a completion item.
+   --		 */
+   --		preselectSupport?: boolean;
+   --
+   --		/**
+   --		 * Client supports the tag property on a completion item. Clients supporting
+   --		 * tags have to handle unknown tags gracefully. Clients especially need to
+   --		 * preserve unknown tags when sending a completion item back to the server in
+   --		 * a resolve call.
+   --		 *
+   --		 * @since 3.15.0
+   --		 */
+   --		tagSupport?: {
+   --			/**
+   --			 * The tags supported by the client.
+   --			 */
+   --			valueSet: CompletionItemTag[]
+   --		}
+   --	};
+   --
+   --	completionItemKind?: {
+   --		/**
+   --		 * The completion item kind values the client supports. When this
+   --		 * property exists the client also guarantees that it will
+   --		 * handle values outside its set gracefully and falls back
+   --		 * to a default value when unknown.
+   --		 *
+   --		 * If this property is not present the client only supports
+   --		 * the completion items kinds from `Text` to `Reference` as defined in
+   --		 * the initial version of the protocol.
+   --		 */
+   --		valueSet?: CompletionItemKind[];
+   --	};
+   --
+   --	/**
+   --	 * The client supports to send additional context information for a
+   --	 * `textDocument/completion` request.
+   --	 */
+   --	contextSupport?: boolean;
+   --}
+   --```
+
+   type CompletionItemTag is (Deprecated);
+
+   procedure Read_CompletionItemTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItemTag);
+
+   procedure Write_CompletionItemTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemTag);
+
+   for CompletionItemTag'Read use Read_CompletionItemTag;
+   for CompletionItemTag'Write use Write_CompletionItemTag;
+
+   package CompletionItemTagSets is new LSP.Generic_Sets (CompletionItemTag);
+
+   type CompletionItemTagSet is new CompletionItemTagSets.Set;
+
+   package Optional_CompletionItemTagSets is
+     new LSP.Generic_Optional (CompletionItemTagSet);
+
+   type Optional_CompletionItemTagSet is
+     new Optional_CompletionItemTagSets.Optional_Type;
+
+   type CompletionItemTagSupport is record
+      valueSet : CompletionItemTagSet;
+   end record;
+
+   procedure Read_CompletionItemTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItemTagSupport);
+
+   procedure Write_CompletionItemTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemTagSupport);
+
+   for CompletionItemTagSupport'Read use Read_CompletionItemTagSupport;
+   for CompletionItemTagSupport'Write use Write_CompletionItemTagSupport;
+
+   package Optional_CompletionItemTagSupport_Package is
+     new LSP.Generic_Optional (CompletionItemTagSupport);
+
+   type Optional_CompletionItemTagSupport is
+     new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
    type completionItemCapability is record
       snippetSupport : Optional_Boolean;
@@ -2017,6 +1863,7 @@ package LSP.Messages is
       documentationFormat : MarkupKind_Vector;
       deprecatedSupport : Optional_Boolean;
       preselectSupport : Optional_Boolean;
+      tagSupport : Optional_CompletionItemTagSupport;
    end record;
 
    procedure Read_completionItemCapability
@@ -2085,46 +1932,103 @@ package LSP.Messages is
    type Optional_CompletionItemKindSet is
      new Optional_CompletionItemKindSets.Optional_Type;
 
-   type completion is record
+   type CompletionClientCapabilities is record
       dynamicRegistration : Optional_Boolean;
       completionItem : Optional_completionItemCapability;
       completionItemKind : Optional_CompletionItemKindSet;
       contextSupport : Optional_Boolean;
    end record;
 
-   procedure Read_completion
+   procedure Read_CompletionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out completion);
+      V : out CompletionClientCapabilities);
 
-   procedure Write_completion
+   procedure Write_CompletionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : completion);
+      V : CompletionClientCapabilities);
 
-   for completion'Read use Read_completion;
-   for completion'Write use Write_completion;
+   for CompletionClientCapabilities'Read use Read_CompletionClientCapabilities;
+   for CompletionClientCapabilities'Write use Write_CompletionClientCapabilities;
 
-   type Hover_Capability is record
+   --```typescript
+   --export interface HoverClientCapabilities {
+   --	/**
+   --	 * Whether hover supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Client supports the follow content formats for the content
+   --	 * property. The order describes the preferred format of the client.
+   --	 */
+   --	contentFormat?: MarkupKind[];
+   --}
+   --```
+   type HoverClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       contentFormat: Optional_MarkupKind_Vector;
    end record;
 
-   procedure Read_Hover_Capability
+   procedure Read_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Hover_Capability);
+      V : out HoverClientCapabilities);
 
-   procedure Write_Hover_Capability
+   procedure Write_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover_Capability);
+      V : HoverClientCapabilities);
 
-   for Hover_Capability'Read use Read_Hover_Capability;
-   for Hover_Capability'Write use Write_Hover_Capability;
+   for HoverClientCapabilities'Read use Read_HoverClientCapabilities;
+   for HoverClientCapabilities'Write use Write_HoverClientCapabilities;
 
-   package Optional_Hover_Capabilities is
-     new LSP.Generic_Optional (Hover_Capability);
+   package Optional_HoverClientCapabilities_Package is
+     new LSP.Generic_Optional (HoverClientCapabilities);
 
-   type Optional_Hover_Capability is
-     new Optional_Hover_Capabilities.Optional_Type;
+   type Optional_HoverClientCapabilities is
+     new Optional_HoverClientCapabilities_Package.Optional_Type;
 
+   --```typescript
+   --export interface SignatureHelpClientCapabilities {
+   --	/**
+   --	 * Whether signature help supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports the following `SignatureInformation`
+   --	 * specific properties.
+   --	 */
+   --	signatureInformation?: {
+   --		/**
+   --		 * Client supports the follow content formats for the documentation
+   --		 * property. The order describes the preferred format of the client.
+   --		 */
+   --		documentationFormat?: MarkupKind[];
+   --
+   --		/**
+   --		 * Client capabilities specific to parameter information.
+   --		 */
+   --		parameterInformation?: {
+   --			/**
+   --			 * The client supports processing label offsets instead of a
+   --			 * simple label string.
+   --			 *
+   --			 * @since 3.14.0
+   --			 */
+   --			labelOffsetSupport?: boolean;
+   --		};
+   --	};
+   --
+   --	/**
+   --	 * The client supports to send additional context information for a
+   --	 * `textDocument/signatureHelp` request. A client that opts into
+   --	 * contextSupport will also support the `retriggerCharacters` on
+   --	 * `SignatureHelpOptions`.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	contextSupport?: boolean;
+   --}
+   --```
    type parameterInformation_Capability is record
       labelOffsetSupport: Optional_Boolean;
    end record;
@@ -2172,79 +2076,233 @@ package LSP.Messages is
    type Optional_signatureInformation_Capability is
      new Optional_signatureInformation_Capabilities.Optional_Type;
 
-   type signatureHelp_Capability is record
+   type SignatureHelpClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
-      signatureInformation: Optional_signatureInformation_Capability;
+      signatureInformation : Optional_signatureInformation_Capability;
+      contextSupport: Optional_Boolean;
    end record;
 
-   procedure Read_signatureHelp_Capability
+   procedure Read_SignatureHelpClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out signatureHelp_Capability);
+      V : out SignatureHelpClientCapabilities);
 
-   procedure Write_signatureHelp_Capability
+   procedure Write_SignatureHelpClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : signatureHelp_Capability);
+      V : SignatureHelpClientCapabilities);
 
-   for signatureHelp_Capability'Read use Read_signatureHelp_Capability;
-   for signatureHelp_Capability'Write use Write_signatureHelp_Capability;
+   for SignatureHelpClientCapabilities'Read use Read_SignatureHelpClientCapabilities;
+   for SignatureHelpClientCapabilities'Write use Write_SignatureHelpClientCapabilities;
 
-   package Optional_signatureHelp_Capabilities is
-     new LSP.Generic_Optional (signatureHelp_Capability);
+   package Optional_SignatureHelpClientCapabilities_Package is
+     new LSP.Generic_Optional (SignatureHelpClientCapabilities);
 
-   type Optional_signatureHelp_Capability is
-     new Optional_signatureHelp_Capabilities.Optional_Type;
+   type Optional_SignatureHelpClientCapabilities is
+     new Optional_SignatureHelpClientCapabilities_Package.Optional_Type;
 
-   type Document_Symbol_Capability is record
+   --```typescript
+   --export interface DocumentSymbolClientCapabilities {
+   --	/**
+   --	 * Whether document symbol supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Specific capabilities for the `SymbolKind` in the `textDocument/documentSymbol` request.
+   --	 */
+   --	symbolKind?: {
+   --		/**
+   --		 * The symbol kind values the client supports. When this
+   --		 * property exists the client also guarantees that it will
+   --		 * handle values outside its set gracefully and falls back
+   --		 * to a default value when unknown.
+   --		 *
+   --		 * If this property is not present the client only supports
+   --		 * the symbol kinds from `File` to `Array` as defined in
+   --		 * the initial version of the protocol.
+   --		 */
+   --		valueSet?: SymbolKind[];
+   --	}
+   --
+   --	/**
+   --	 * The client supports hierarchical document symbols.
+   --	 */
+   --	hierarchicalDocumentSymbolSupport?: boolean;
+   --}
+   --```
+   type DocumentSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
       hierarchicalDocumentSymbolSupport: Optional_Boolean;
    end record;
 
-   procedure Read_Document_Symbol_Capability
+   procedure Read_DocumentSymbolClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Document_Symbol_Capability);
+      V : out DocumentSymbolClientCapabilities);
 
-   procedure Write_Document_Symbol_Capability
+   procedure Write_DocumentSymbolClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Document_Symbol_Capability);
+      V : DocumentSymbolClientCapabilities);
 
-   for Document_Symbol_Capability'Read use Read_Document_Symbol_Capability;
-   for Document_Symbol_Capability'Write use Write_Document_Symbol_Capability;
+   for DocumentSymbolClientCapabilities'Read use Read_DocumentSymbolClientCapabilities;
+   for DocumentSymbolClientCapabilities'Write use Write_DocumentSymbolClientCapabilities;
 
-   package Optional_Document_Symbol_Capabilities is
-     new LSP.Generic_Optional (Document_Symbol_Capability);
+   package Optional_DocumentSymbolClientCapabilities_Package is
+     new LSP.Generic_Optional (DocumentSymbolClientCapabilities);
 
-   type Optional_Document_Symbol_Capability is
-     new Optional_Document_Symbol_Capabilities.Optional_Type;
+   type Optional_DocumentSymbolClientCapabilities is
+     new Optional_DocumentSymbolClientCapabilities_Package.Optional_Type;
 
-   type declaration_Capability is record
+   --```typescript
+   --export interface DeclarationClientCapabilities {
+   --	/**
+   --	 * Whether declaration supports dynamic registration. If this is set to `true`
+   --	 * the client supports the new `DeclarationRegistrationOptions` return value
+   --	 * for the corresponding server capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports additional metadata in the form of declaration links.
+   --	 */
+   --	linkSupport?: boolean;
+   --}
+   --```
+   type DeclarationClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       linkSupport: Optional_Boolean;
    end record;
 
-   procedure Read_declaration_Capability
+   procedure Read_DeclarationClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out declaration_Capability);
+      V : out DeclarationClientCapabilities);
 
-   procedure Write_declaration_Capability
+   procedure Write_DeclarationClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : declaration_Capability);
+      V : DeclarationClientCapabilities);
 
-   for declaration_Capability'Read use Read_declaration_Capability;
-   for declaration_Capability'Write use Write_declaration_Capability;
+   for DeclarationClientCapabilities'Read use Read_DeclarationClientCapabilities;
+   for DeclarationClientCapabilities'Write use Write_DeclarationClientCapabilities;
 
-   package Optional_declaration_Capabilities is
-     new LSP.Generic_Optional (declaration_Capability);
+   package Optional_DeclarationClientCapabilities_Package is
+     new LSP.Generic_Optional (DeclarationClientCapabilities);
 
-   type Optional_declaration_Capability is
-     new Optional_declaration_Capabilities.Optional_Type;
+   type Optional_DeclarationClientCapabilities is
+     new Optional_DeclarationClientCapabilities_Package.Optional_Type;
 
-   subtype Optional_definition_Capability is Optional_declaration_Capability;
-   subtype Optional_typeDefinition_Capability is
-     Optional_declaration_Capability;
-   subtype Optional_implementation_Capability is
-     Optional_declaration_Capability;
+   --```typescript
+   --export interface DefinitionClientCapabilities {
+   --	/**
+   --	 * Whether definition supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports additional metadata in the form of definition links.
+   --	 *
+   --	 * @since 3.14.0
+   --	 */
+   --	linkSupport?: boolean;
+   --}
+   --```
+   subtype Optional_DefinitionClientCapabilities is Optional_DeclarationClientCapabilities;
 
+   --```typescript
+   --export interface TypeDefinitionClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to `true`
+   --	 * the client supports the new `TypeDefinitionRegistrationOptions` return value
+   --	 * for the corresponding server capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports additional metadata in the form of definition links.
+   --	 *
+   --	 * @since 3.14.0
+   --	 */
+   --	linkSupport?: boolean;
+   --}
+   --```
+   subtype Optional_TypeDefinitionClientCapabilities is
+     Optional_DeclarationClientCapabilities;
+
+   --```typescript
+   --export interface ImplementationClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to `true`
+   --	 * the client supports the new `ImplementationRegistrationOptions` return value
+   --	 * for the corresponding server capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports additional metadata in the form of definition links.
+   --	 *
+   --	 * @since 3.14.0
+   --	 */
+   --	linkSupport?: boolean;
+   --}
+   --```
+   subtype Optional_ImplementationClientCapabilities is
+     Optional_DeclarationClientCapabilities;
+
+   --```typescript
+   --export interface ReferenceClientCapabilities {
+   --	/**
+   --	 * Whether references supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype ReferenceClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DocumentHighlightClientCapabilities {
+   --	/**
+   --	 * Whether document highlight supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DocumentHighlightClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface CodeActionClientCapabilities {
+   --	/**
+   --	 * Whether code action supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * The client supports code action literals as a valid
+   --	 * response of the `textDocument/codeAction` request.
+   --	 *
+   --	 * @since 3.8.0
+   --	 */
+   --	codeActionLiteralSupport?: {
+   --		/**
+   --		 * The code action kind is supported with the following value
+   --		 * set.
+   --		 */
+   --		codeActionKind: {
+   --
+   --			/**
+   --			 * The code action kind values the client supports. When this
+   --			 * property exists the client also guarantees that it will
+   --			 * handle values outside its set gracefully and falls back
+   --			 * to a default value when unknown.
+   --			 */
+   --			valueSet: CodeActionKind[];
+   --		};
+   --	};
+   --
+   --	/**
+   --	 * Whether code action supports the `isPreferred` property.
+   --	 * @since 3.15.0
+   --	 */
+   --	isPreferredSupport?: boolean;
+   --}
+   --```
    type codeActionLiteralSupport_Capability is record
       codeActionKind: CodeActionKindSet;
    end record;
@@ -2266,116 +2324,432 @@ package LSP.Messages is
    type Optional_codeActionLiteralSupport_Capability is
      new Optional_codeActionLiteralSupport_Capabilities.Optional_Type;
 
-   type codeAction_Capability is record
+   type CodeActionClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
+      isPreferredSupport: Optional_Boolean;
    end record;
 
-   procedure Read_codeAction_Capability
+   procedure Read_CodeActionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out codeAction_Capability);
+      V : out CodeActionClientCapabilities);
 
-   procedure Write_codeAction_Capability
+   procedure Write_CodeActionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : codeAction_Capability);
+      V : CodeActionClientCapabilities);
 
-   for codeAction_Capability'Read use Read_codeAction_Capability;
-   for codeAction_Capability'Write use Write_codeAction_Capability;
+   for CodeActionClientCapabilities'Read use Read_CodeActionClientCapabilities;
+   for CodeActionClientCapabilities'Write use Write_CodeActionClientCapabilities;
 
-   package Optional_codeAction_Capabilities is
-     new LSP.Generic_Optional (codeAction_Capability);
+   package Optional_CodeActionClientCapabilities_Package is
+     new LSP.Generic_Optional (CodeActionClientCapabilities);
 
-   type Optional_codeAction_Capability is
-     new Optional_codeAction_Capabilities.Optional_Type;
+   type Optional_CodeActionClientCapabilities is
+     new Optional_CodeActionClientCapabilities_Package.Optional_Type;
 
-   type rename_Capability is record
+   --```typescript
+   --export interface CodeLensClientCapabilities {
+   --	/**
+   --	 * Whether code lens supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype CodeLensClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DocumentLinkClientCapabilities {
+   --	/**
+   --	 * Whether document link supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Whether the client supports the `tooltip` property on `DocumentLink`.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	tooltipSupport?: boolean;
+   --}
+   --```
+   type DocumentLinkClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      tooltipSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_DocumentLinkClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentLinkClientCapabilities);
+
+   procedure Write_DocumentLinkClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentLinkClientCapabilities);
+
+   for DocumentLinkClientCapabilities'Read use Read_DocumentLinkClientCapabilities;
+   for DocumentLinkClientCapabilities'Write use Write_DocumentLinkClientCapabilities;
+
+   package Optional_DocumentLinkClientCapabilities_Package is
+     new LSP.Generic_Optional (DocumentLinkClientCapabilities);
+
+   type Optional_DocumentLinkClientCapabilities is
+     new Optional_DocumentLinkClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --export interface DocumentColorClientCapabilities {
+   --	/**
+   --	 * Whether document color supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DocumentColorClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DocumentFormattingClientCapabilities {
+   --	/**
+   --	 * Whether formatting supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DocumentFormattingClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DocumentRangeFormattingClientCapabilities {
+   --	/**
+   --	 * Whether formatting supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DocumentRangeFormattingClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface DocumentOnTypeFormattingClientCapabilities {
+   --	/**
+   --	 * Whether on type formatting supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype DocumentOnTypeFormattingClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export interface RenameClientCapabilities {
+   --	/**
+   --	 * Whether rename supports dynamic registration.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Client supports testing for validity of rename operations
+   --	 * before execution.
+   --	 *
+   --	 * @since version 3.12.0
+   --	 */
+   --	prepareSupport?: boolean;
+   --}
+   --```
+   type RenameClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       prepareSupport: Optional_Boolean;
    end record;
 
-   procedure Read_rename_Capability
+   procedure Read_RenameClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out rename_Capability);
+      V : out RenameClientCapabilities);
 
-   procedure Write_rename_Capability
+   procedure Write_RenameClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : rename_Capability);
+      V : RenameClientCapabilities);
 
-   for rename_Capability'Read use Read_rename_Capability;
-   for rename_Capability'Write use Write_rename_Capability;
+   for RenameClientCapabilities'Read use Read_RenameClientCapabilities;
+   for RenameClientCapabilities'Write use Write_RenameClientCapabilities;
 
-   package Optional_rename_Capabilities is
-     new LSP.Generic_Optional (rename_Capability);
+   package Optional_RenameClientCapabilities_Package is
+     new LSP.Generic_Optional (RenameClientCapabilities);
 
-   type Optional_rename_Capability is
-     new Optional_rename_Capabilities.Optional_Type;
+   type Optional_RenameClientCapabilities is
+     new Optional_RenameClientCapabilities_Package.Optional_Type;
 
-   type publishDiagnostics_Capability is record
-      relatedInformation: Optional_Boolean;
+   --```typescript
+   --export interface PublishDiagnosticsClientCapabilities {
+   --	/**
+   --	 * Whether the clients accepts diagnostics with related information.
+   --	 */
+   --	relatedInformation?: boolean;
+   --
+   --	/**
+   --	 * Client supports the tag property to provide meta data about a diagnostic.
+   --	 * Clients supporting tags have to handle unknown tags gracefully.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	tagSupport?: {
+   --		/**
+   --		 * The tags supported by the client.
+   --		 */
+   --		valueSet: DiagnosticTag[];
+   --	};
+   --
+   --	/**
+   --	 * Whether the client interprets the version property of the
+   --	 * `textDocument/publishDiagnostics` notification's parameter.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	versionSupport?: boolean;
+   --}
+   --```
+   type DiagnosticTagSupport is record
+      valueSet : DiagnosticTagSet;
    end record;
 
-   procedure Read_publishDiagnostics_Capability
+   procedure Read_DiagnosticTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out publishDiagnostics_Capability);
+      V : out DiagnosticTagSupport);
 
-   procedure Write_publishDiagnostics_Capability
+   procedure Write_DiagnosticTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : publishDiagnostics_Capability);
+      V : DiagnosticTagSupport);
 
-   for publishDiagnostics_Capability'Read use Read_publishDiagnostics_Capability;
-   for publishDiagnostics_Capability'Write use Write_publishDiagnostics_Capability;
+   for DiagnosticTagSupport'Read use Read_DiagnosticTagSupport;
+   for DiagnosticTagSupport'Write use Write_DiagnosticTagSupport;
 
-   package Optional_publishDiagnostics_Capabilities is
-     new LSP.Generic_Optional (publishDiagnostics_Capability);
+   package Optional_DiagnosticTagSupport_Package is
+     new LSP.Generic_Optional (DiagnosticTagSupport);
 
-   type Optional_publishDiagnostics_Capability is
-     new Optional_publishDiagnostics_Capabilities.Optional_Type;
+   type Optional_DiagnosticTagSupport is
+     new Optional_DiagnosticTagSupport_Package.Optional_Type;
 
-   type foldingRange_Capability is record
+   type PublishDiagnosticsClientCapabilities is record
+      relatedInformation : Optional_Boolean;
+      tagSupport: Optional_DiagnosticTagSupport;
+      versionSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_PublishDiagnosticsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PublishDiagnosticsClientCapabilities);
+
+   procedure Write_PublishDiagnosticsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PublishDiagnosticsClientCapabilities);
+
+   for PublishDiagnosticsClientCapabilities'Read use Read_PublishDiagnosticsClientCapabilities;
+   for PublishDiagnosticsClientCapabilities'Write use Write_PublishDiagnosticsClientCapabilities;
+
+   package Optional_PublishDiagnosticsClientCapabilities_Package is
+     new LSP.Generic_Optional (PublishDiagnosticsClientCapabilities);
+
+   type Optional_PublishDiagnosticsClientCapabilities is
+     new Optional_PublishDiagnosticsClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --export interface FoldingRangeClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration for folding range providers. If this is set to `true`
+   --	 * the client supports the new `FoldingRangeRegistrationOptions` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --	/**
+   --	 * The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
+   --	 * hint, servers are free to follow the limit.
+   --	 */
+   --	rangeLimit?: number;
+   --	/**
+   --	 * If set, the client signals that it only supports folding complete lines. If set, client will
+   --	 * ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
+   --	 */
+   --	lineFoldingOnly?: boolean;
+   --}
+   --```
+   type FoldingRangeClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       rangeLimit: Optional_Number;
       lineFoldingOnly: Optional_Boolean;
    end record;
 
-   procedure Read_foldingRange_Capability
+   procedure Read_FoldingRangeClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out foldingRange_Capability);
+      V : out FoldingRangeClientCapabilities);
 
-   procedure Write_foldingRange_Capability
+   procedure Write_FoldingRangeClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : foldingRange_Capability);
+      V : FoldingRangeClientCapabilities);
 
-   for foldingRange_Capability'Read use Read_foldingRange_Capability;
-   for foldingRange_Capability'Write use Write_foldingRange_Capability;
+   for FoldingRangeClientCapabilities'Read use Read_FoldingRangeClientCapabilities;
+   for FoldingRangeClientCapabilities'Write use Write_FoldingRangeClientCapabilities;
 
-   package Optional_foldingRange_Capabilities is
-     new LSP.Generic_Optional (foldingRange_Capability);
+   package Optional_FoldingRangeClientCapabilities_Package is
+     new LSP.Generic_Optional (FoldingRangeClientCapabilities);
 
-   type Optional_foldingRange_Capability is
-     new Optional_foldingRange_Capabilities.Optional_Type;
+   type Optional_FoldingRangeClientCapabilities is
+     new Optional_FoldingRangeClientCapabilities_Package.Optional_Type;
 
+   --```typescript
+   --export interface SelectionRangeClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration for selection range providers. If this is set to `true`
+   --	 * the client supports the new `SelectionRangeRegistrationOptions` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype SelectionRangeClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --/**
+   -- * Text document specific client capabilities.
+   -- */
+   --export interface TextDocumentClientCapabilities {
+   --
+   --	synchronization?: TextDocumentSyncClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/completion` request.
+   --	 */
+   --	completion?: CompletionClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/hover` request.
+   --	 */
+   --	hover?: HoverClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/signatureHelp` request.
+   --	 */
+   --	signatureHelp?: SignatureHelpClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/declaration` request.
+   --	 *
+   --	 * @since 3.14.0
+   --	 */
+   --	declaration?: DeclarationClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/definition` request.
+   --	 */
+   --	definition?: DefinitionClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/typeDefinition` request.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	typeDefinition?: TypeDefinitionClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/implementation` request.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	implementation?: ImplementationClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/references` request.
+   --	 */
+   --	references?: ReferenceClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/documentHighlight` request.
+   --	 */
+   --	documentHighlight?: DocumentHighlightClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/documentSymbol` request.
+   --	 */
+   --	documentSymbol?: DocumentSymbolClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/codeAction` request.
+   --	 */
+   --	codeAction?: CodeActionClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/codeLens` request.
+   --	 */
+   --	codeLens?: CodeLensClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/documentLink` request.
+   --	 */
+   --	documentLink?: DocumentLinkClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/documentColor` and the
+   --	 * `textDocument/colorPresentation` request.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	colorProvider?: DocumentColorClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/formatting` request.
+   --	 */
+   --	formatting?: DocumentFormattingClientCapabilities
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/rangeFormatting` request.
+   --	 */
+   --	rangeFormatting?: DocumentRangeFormattingClientCapabilities;
+   --
+   --	/** request.
+   --	 * Capabilities specific to the `textDocument/onTypeFormatting` request.
+   --	 */
+   --	onTypeFormatting?: DocumentOnTypeFormattingClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/rename` request.
+   --	 */
+   --	rename?: RenameClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/publishDiagnostics` notification.
+   --	 */
+   --	publishDiagnostics?: PublishDiagnosticsClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/foldingRange` request.
+   --	 *
+   --	 * @since 3.10.0
+   --	 */
+   --	foldingRange?: FoldingRangeClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/selectionRange` request.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	selectionRange?: SelectionRangeClientCapabilities;
+   --}
+   --```
    type TextDocumentClientCapabilities is record
-      synchronization    : LSP.Messages.synchronization;
-      completion         : LSP.Messages.completion;
-      hover              : Optional_Hover_Capability;
-      signatureHelp      : Optional_signatureHelp_Capability;
-      references         : dynamicRegistration;
-      documentHighlight  : dynamicRegistration;
-      documentSymbol     : Optional_Document_Symbol_Capability;
-      formatting         : dynamicRegistration;
-      rangeFormatting    : dynamicRegistration;
-      onTypeFormatting   : dynamicRegistration;
-      declaration        : Optional_declaration_Capability;
-      definition         : Optional_definition_Capability;
-      typeDefinition     : Optional_typeDefinition_Capability;
-      implementation     : Optional_implementation_Capability;
-      codeAction         : Optional_codeAction_Capability;
-      codeLens           : dynamicRegistration;
-      documentLink       : dynamicRegistration;
-      colorProvider      : dynamicRegistration;
-      rename             : Optional_rename_Capability;
-      publishDiagnostics : Optional_publishDiagnostics_Capability;
-      foldingRange       : Optional_foldingRange_Capability;
+      synchronization    : TextDocumentSyncClientCapabilities;
+      completion         : CompletionClientCapabilities;
+      hover              : Optional_HoverClientCapabilities;
+      signatureHelp      : Optional_SignatureHelpClientCapabilities;
+      declaration        : Optional_DeclarationClientCapabilities;
+      definition         : Optional_DefinitionClientCapabilities;
+      typeDefinition     : Optional_TypeDefinitionClientCapabilities;
+      implementation     : Optional_ImplementationClientCapabilities;
+      references         : ReferenceClientCapabilities;
+      documentHighlight  : DocumentHighlightClientCapabilities;
+      documentSymbol     : Optional_DocumentSymbolClientCapabilities;
+      codeAction         : Optional_CodeActionClientCapabilities;
+      codeLens           : CodeLensClientCapabilities;
+      documentLink       : Optional_DocumentLinkClientCapabilities;
+      colorProvider      : DocumentColorClientCapabilities;
+      formatting         : DocumentFormattingClientCapabilities;
+      rangeFormatting    : DocumentRangeFormattingClientCapabilities;
+      onTypeFormatting   : DocumentOnTypeFormattingClientCapabilities;
+      rename             : Optional_RenameClientCapabilities;
+      publishDiagnostics : Optional_PublishDiagnosticsClientCapabilities;
+      foldingRange       : Optional_FoldingRangeClientCapabilities;
+      selectionRange     : SelectionRangeClientCapabilities;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -2390,16 +2764,107 @@ package LSP.Messages is
    for TextDocumentClientCapabilities'Write use Write_TextDocumentClientCapabilities;
 
    --```typescript
+   --	/**
+   --	 * Window specific client capabilities.
+   --	 */
+   --	window?: {
+   --		/**
+   --		 * Whether client supports handling progress notifications.
+   --		 */
+   --		workDoneProgress?: boolean;
+   --	}
+   --```
+   type WindowClientCapabilities is record
+      workDoneProgress: Optional_Boolean;
+   end record;
+
+   procedure Read_WindowClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WindowClientCapabilities);
+
+   procedure Write_WindowClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WindowClientCapabilities);
+
+   for WindowClientCapabilities'Read use Read_WindowClientCapabilities;
+   for WindowClientCapabilities'Write use Write_WindowClientCapabilities;
+
+   package Optional_WindowClientCapabilities_Package is
+     new LSP.Generic_Optional (WindowClientCapabilities);
+
+   type Optional_WindowClientCapabilities is
+     new Optional_WindowClientCapabilities_Package.Optional_Type;
+
+   --```typescript
    --interface ClientCapabilities {
    --	/**
    --	 * Workspace specific client capabilities.
    --	 */
-   --	workspace?: WorkspaceClientCapabilities;
+   --	workspace?: {
+   --		/**
+   --		* The client supports applying batch edits
+   --		* to the workspace by supporting the request
+   --		* 'workspace/applyEdit'
+   --		*/
+   --		applyEdit?: boolean;
+   --
+   --		/**
+   --		* Capabilities specific to `WorkspaceEdit`s
+   --		*/
+   --		workspaceEdit?: WorkspaceEditClientCapabilities;
+   --
+   --		/**
+   --		* Capabilities specific to the `workspace/didChangeConfiguration` notification.
+   --		*/
+   --		didChangeConfiguration?: DidChangeConfigurationClientCapabilities;
+   --
+   --		/**
+   --		* Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
+   --		*/
+   --		didChangeWatchedFiles?: DidChangeWatchedFilesClientCapabilities;
+   --
+   --		/**
+   --		* Capabilities specific to the `workspace/symbol` request.
+   --		*/
+   --		symbol?: WorkspaceSymbolClientCapabilities;
+   --
+   --		/**
+   --		* Capabilities specific to the `workspace/executeCommand` request.
+   --		*/
+   --		executeCommand?: ExecuteCommandClientCapabilities;
+   --
+   --		/**
+   --		* The client has support for workspace folders.
+   --		*
+   --		* Since 3.6.0
+   --		*/
+   --		workspaceFolders?: boolean;
+   --
+   --		/**
+   --		* The client supports `workspace/configuration` requests.
+   --		*
+   --		* Since 3.6.0
+   --		*/
+   --		configuration?: boolean;
+   --	};
    --
    --	/**
    --	 * Text document specific client capabilities.
    --	 */
    --	textDocument?: TextDocumentClientCapabilities;
+   --
+   --	/**
+   --	 * Window specific client capabilities.
+   --	 */
+   --	window?: {
+   --		/**
+   --		 * Whether client supports handling progress notifications. If set servers are allowed to
+   --		 * report in `workDoneProgress` property in the request specific server capabilities.
+   --		 *
+   --		 * Since 3.15.0
+   --		 */
+   --		workDoneProgress?: boolean;
+   --	}
    --
    --	/**
    --	 * Experimental client capabilities.
@@ -2410,6 +2875,7 @@ package LSP.Messages is
    type ClientCapabilities is record
       workspace: WorkspaceClientCapabilities;
       textDocument: TextDocumentClientCapabilities;
+      window: Optional_WindowClientCapabilities;
       --  experimental?: any;
    end record;
 
@@ -2461,13 +2927,187 @@ package LSP.Messages is
    type Optional_WorkspaceFolder_Vector is new Optional_WorkspaceFolder_Vectors.Optional_Type;
 
    --```typescript
-   --interface InitializeParams {
+   --type ProgressToken = number | string;
+   --interface ProgressParams<T> {
+   --	/**
+   --	 * The progress token provided by the client or server.
+   --	 */
+   --	token: ProgressToken;
+   --
+   --	/**
+   --	 * The progress data.
+   --	 */
+   --	value: T;
+   --}
+   --```
+   package Optional_ProgressToken_Package is
+     new LSP.Generic_Optional (ProgressToken);
+
+   type Optional_ProgressToken is
+     new Optional_ProgressToken_Package.Optional_Type;
+
+   generic
+      type T is private;
+   package Generic_ProgressParam is
+      type ProgressParam is record
+         token: ProgressToken;
+         value: T;
+      end record;
+   end Generic_ProgressParam;
+
+   --```typescript
+   --export interface WorkDoneProgressCreateParams {
+   --	/**
+   --	 * The token to be used to report progress.
+   --	 */
+   --	token: ProgressToken;
+   --}
+   --```
+
+   --```typescript
+   --export interface WorkDoneProgressParams {
+   --	/**
+   --	 * An optional token that a server can use to report work done progress.
+   --	 */
+   --	workDoneToken?: ProgressToken;
+   --}
+   --```
+   type WorkDoneProgressParams is tagged record
+      workDoneToken: Optional_ProgressToken;
+   end record;
+
+   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
+   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
+   procedure Get_WorkDoneProgressParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressParams'Class);
+   --  Get attributes of WorkDoneProgressParams from a stream.
+   procedure Put_WorkDoneProgressParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressParams'Class);
+   --  Put attributes of WorkDoneProgressParams to a stream.
+
+   --```typescript
+   --export interface PartialResultParams {
+   --	/**
+   --	 * An optional token that a server can use to report partial results (e.g. streaming) to
+   --	 * the client.
+   --	 */
+   --	partialResultToken?: ProgressToken;
+   --}
+   --```
+   type PartialResultParams is abstract tagged record
+      partialResultToken: Optional_ProgressToken;
+   end record;
+
+   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
+   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
+   procedure Get_PartialResultParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PartialResultParams'Class);
+   --  Get attributes of PartialResultParams from a stream.
+   procedure Put_PartialResultParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PartialResultParams'Class);
+   --  Put attributes of PartialResultParams to a stream.
+
+   --  Common type for `extends WorkDoneProgressParams, PartialResultParams`
+   type Progress_Partial_Params is abstract tagged record
+      workDoneToken: Optional_ProgressToken;
+      partialResultToken: Optional_ProgressToken;
+   end record;
+
+   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
+   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
+   procedure Get_Progress_Partial_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_Partial_Params'Class);
+   --  Get attributes of Progress_Partial_Params from a stream.
+   procedure Put_Progress_Partial_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_Partial_Params'Class);
+   --  Put attributes of Progress_Partial_Params to a stream.
+
+   --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams`
+   type Text_Progress_Partial_Params is abstract new TextDocumentPositionParams with record
+      workDoneToken: Optional_ProgressToken;
+      partialResultToken: Optional_ProgressToken;
+   end record;
+
+   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
+   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
+   procedure Get_Text_Progress_Partial_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Text_Progress_Partial_Params'Class);
+   --  Get attributes of Text_Progress_Partial_Params from a stream.
+   procedure Put_Text_Progress_Partial_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Text_Progress_Partial_Params'Class);
+   --  Put attributes of Text_Progress_Partial_Params to a stream.
+
+   --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams`
+   type Text_Progress_Params is abstract new TextDocumentPositionParams with record
+      workDoneToken: Optional_ProgressToken;
+   end record;
+
+   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
+   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
+   procedure Get_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Text_Progress_Params'Class);
+   --  Get attributes of Text_Progress_Params from a stream.
+   procedure Put_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Text_Progress_Params'Class);
+   --  Put attributes of Text_Progress_Params to a stream.
+
+   type ProgramInfo is record
+      name : LSP_String;
+      version : Optional_String;
+   end record;
+
+   procedure Read_ProgramInfo
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ProgramInfo);
+
+   procedure Write_ProgramInfo
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ProgramInfo);
+
+   for ProgramInfo'Read use Read_ProgramInfo;
+   for ProgramInfo'Write use Write_ProgramInfo;
+
+   package Optional_ProgramInfo_Package is
+     new LSP.Generic_Optional (ProgramInfo);
+
+   type Optional_ProgramInfo is
+     new Optional_ProgramInfo_Package.Optional_Type;
+
+   --```typescript
+   --interface InitializeParams extends WorkDoneProgressParams {
    --	/**
    --	 * The process Id of the parent process that started
    --	 * the server. Is null if the process has not been started by another process.
    --	 * If the parent process is not alive then the server should exit (see exit notification) its process.
    --	 */
    --	processId: number | null;
+   --
+   --	/**
+   --	 * Information about the client
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	clientInfo?: {
+   --		/**
+   --		 * The name of the client as defined by the client.
+   --		 */
+   --		name: string;
+   --
+   --		/**
+   --		 * The client's version as defined by the client.
+   --		 */
+   --		version?: string;
+   --	};
    --
    --	/**
    --	 * The rootPath of the workspace. Is null
@@ -2505,13 +3145,14 @@ package LSP.Messages is
    --	 * It can be `null` if the client supports workspace folders but none are
    --	 * configured.
    --	 *
-   --	 * Since 3.6.0
+   --	 * @since 3.6.0
    --	 */
    --	workspaceFolders?: WorkspaceFolder[] | null;
    --}
    --```
-   type InitializeParams is record
+   type InitializeParams is new WorkDoneProgressParams with record
       processId: Optional_Number;
+      clientInfo: Optional_ProgramInfo;
       rootPath: LSP_String;
       rootUri: DocumentUri;  --  or null???
       --  initializationOptions?: any;
@@ -2530,6 +3171,32 @@ package LSP.Messages is
 
    for InitializeParams'Read use Read_InitializeParams;
    for InitializeParams'Write use Write_InitializeParams;
+
+   --```typescript
+   --export interface WorkDoneProgressOptions {
+   --	workDoneProgress?: boolean;
+   --}
+   --```
+   type WorkDoneProgressOptions is tagged record
+      workDoneProgress: Optional_Boolean;
+   end record;
+
+   procedure Read_WorkDoneProgressOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressOptions);
+
+   procedure Write_WorkDoneProgressOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressOptions);
+
+   for WorkDoneProgressOptions'Read use Read_WorkDoneProgressOptions;
+   for WorkDoneProgressOptions'Write use Write_WorkDoneProgressOptions;
+
+   package Optional_WorkDoneProgressOptions_Package is
+     new LSP.Generic_Optional (WorkDoneProgressOptions);
+
+   type Optional_WorkDoneProgressOptions is
+     new Optional_WorkDoneProgressOptions_Package.Optional_Type;
 
    --
    --```typescript
@@ -2556,297 +3223,22 @@ package LSP.Messages is
    --	export const Incremental = 2;
    --}
    --
-   --/**
-   -- * Completion options.
-   -- */
-   --export interface CompletionOptions {
-   --	/**
-   --	 * The server provides support to resolve additional
-   --	 * information for a completion item.
-   --	 */
-   --	resolveProvider?: boolean;
-   --
-   --	/**
-   --	 * The characters that trigger completion automatically.
-   --	 */
-   --	triggerCharacters?: string[];
-   --}
-   --/**
-   -- * Signature help options.
-   -- */
-   --export interface SignatureHelpOptions {
-   --	/**
-   --	 * The characters that trigger signature help
-   --	 * automatically.
-   --	 */
-   --	triggerCharacters?: string[];
-   --}
-   --
-   --/**
-   -- * Code Action options.
-   -- */
-   --export interface CodeActionOptions {
-   --	/**
-   --	 * CodeActionKinds that this server may return.
-   --	 *
-   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
-   --	 * may list out every specific kind they provide.
-   --	 */
-   --	codeActionKinds?: CodeActionKind[];
-   --}
-   --
-   --/**
-   -- * Code Lens options.
-   -- */
-   --export interface CodeLensOptions {
-   --	/**
-   --	 * Code lens has a resolve provider as well.
-   --	 */
-   --	resolveProvider?: boolean;
-   --}
-   --
-   --/**
-   -- * Format document on type options.
-   -- */
-   --export interface DocumentOnTypeFormattingOptions {
-   --	/**
-   --	 * A character on which formatting should be triggered, like `}`.
-   --	 */
-   --	firstTriggerCharacter: string;
-   --
-   --	/**
-   --	 * More trigger characters.
-   --	 */
-   --	moreTriggerCharacter?: string[];
-   --}
-   --
-   --/**
-   -- * Rename options
-   -- */
-   --export interface RenameOptions {
-   --	/**
-   --	 * Renames should be checked and tested before being executed.
-   --	 */
-   --	prepareProvider?: boolean;
-   --}
-   --
-   --/**
-   -- * Document link options.
-   -- */
-   --export interface DocumentLinkOptions {
-   --	/**
-   --	 * Document links have a resolve provider as well.
-   --	 */
-   --	resolveProvider?: boolean;
-   --}
-   --
-   --/**
-   -- * Execute command options.
-   -- */
-   --export interface ExecuteCommandOptions {
-   --	/**
-   --	 * The commands to be executed on the server
-   --	 */
-   --	commands: string[]
-   --}
-   --
-   --/**
-   -- * Save options.
-   -- */
-   --export interface SaveOptions {
-   --	/**
-   --	 * The client is supposed to include the content on save.
-   --	 */
-   --	includeText?: boolean;
-   --}
-   --
-   --/**
-   -- * Color provider options.
-   -- */
-   --export interface ColorProviderOptions {
-   --}
-   --
-   --/**
-   -- * Folding range provider options.
-   -- */
-   --export interface FoldingRangeProviderOptions {
-   --}
-   --
    --export interface TextDocumentSyncOptions {
    --	/**
    --	 * Open and close notifications are sent to the server. If omitted open close notification should not
    --	 * be sent.
    --	 */
    --	openClose?: boolean;
+   --
    --	/**
    --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
    --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
    --	 */
-   --	change?: number;
-   --	/**
-   --	 * If present will save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
-   --	 */
-   --	willSave?: boolean;
-   --	/**
-   --	 * If present will save wait until requests are sent to the server. If omitted the request should not be
-   --	 * sent.
-   --	 */
-   --	willSaveWaitUntil?: boolean;
-   --	/**
-   --	 * If present save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
-   --	 */
-   --	save?: SaveOptions;
-   --}
-   --
-   --/**
-   -- * Static registration options to be returned in the initialize request.
-   -- */
-   --interface StaticRegistrationOptions {
-   --	/**
-   --	 * The id used to register the request. The id can be used to deregister
-   --	 * the request again. See also Registration#id.
-   --	 */
-   --	id?: string;
-   --}
-   --
-   --interface ServerCapabilities {
-   --	/**
-   --	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
-   --	 * for backwards compatibility the TextDocumentSyncKind number. If omitted it defaults to `TextDocumentSyncKind.None`.
-   --	 */
-   --	textDocumentSync?: TextDocumentSyncOptions | number;
-   --	/**
-   --	 * The server provides hover support.
-   --	 */
-   --	hoverProvider?: boolean;
-   --	/**
-   --	 * The server provides completion support.
-   --	 */
-   --	completionProvider?: CompletionOptions;
-   --	/**
-   --	 * The server provides signature help support.
-   --	 */
-   --	signatureHelpProvider?: SignatureHelpOptions;
-   --	/**
-   --	 * The server provides goto definition support.
-   --	 */
-   --	definitionProvider?: boolean;
-   --	/**
-   --	 * The server provides Goto Type Definition support.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	typeDefinitionProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
-   --	/**
-   --	 * The server provides Goto Implementation support.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	implementationProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
-   --	/**
-   --	 * The server provides find references support.
-   --	 */
-   --	referencesProvider?: boolean;
-   --	/**
-   --	 * The server provides document highlight support.
-   --	 */
-   --	documentHighlightProvider?: boolean;
-   --	/**
-   --	 * The server provides document symbol support.
-   --	 */
-   --	documentSymbolProvider?: boolean;
-   --	/**
-   --	 * The server provides workspace symbol support.
-   --	 */
-   --	workspaceSymbolProvider?: boolean;
-   --	/**
-   --	 * The server provides code actions. The `CodeActionOptions` return type is only
-   --	 * valid if the client signals code action literal support via the property
-   --	 * `textDocument.codeAction.codeActionLiteralSupport`.
-   --	 */
-   --	codeActionProvider?: boolean | CodeActionOptions;
-   --	/**
-   --	 * The server provides code lens.
-   --	 */
-   --	codeLensProvider?: CodeLensOptions;
-   --	/**
-   --	 * The server provides document formatting.
-   --	 */
-   --	documentFormattingProvider?: boolean;
-   --	/**
-   --	 * The server provides document range formatting.
-   --	 */
-   --	documentRangeFormattingProvider?: boolean;
-   --	/**
-   --	 * The server provides document formatting on typing.
-   --	 */
-   --	documentOnTypeFormattingProvider?: DocumentOnTypeFormattingOptions;
-   --	/**
-   --	 * The server provides rename support. RenameOptions may only be
-   --	 * specified if the client states that it supports
-   --	 * `prepareSupport` in its initial `initialize` request.
-   --	 */
-   --	renameProvider?: boolean | RenameOptions;
-   --	/**
-   --	 * The server provides document link support.
-   --	 */
-   --	documentLinkProvider?: DocumentLinkOptions;
-   --	/**
-   --	 * The server provides color provider support.
-   --	 *
-   --	 * Since 3.6.0
-   --	 */
-   --	colorProvider?: boolean | ColorProviderOptions | (ColorProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions);
-   --	/**
-   --	 * The server provides folding provider support.
-   --	 *
-   --	 * Since 3.10.0
-   --	 */
-   --	foldingRangeProvider?: boolean | FoldingRangeProviderOptions | (FoldingRangeProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions);
-   --	/**
-   --	 * The server provides go to declaration support.
-   --	 *
-   --	 * Since 3.14.0
-   --	 */
-   --	declarationProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
-   --	/**
-   --	 * The server provides execute command support.
-   --	 */
-   --	executeCommandProvider?: ExecuteCommandOptions;
-   --	/**
-   --	 * Workspace specific server capabilities
-   --	 */
-   --	workspace?: {
-   --		/**
-   --		 * The server supports workspace folder.
-   --		 *
-   --		 * Since 3.6.0
-   --		 */
-   --		workspaceFolders?: {
-   --			/**
-   --			* The server has support for workspace folders
-   --			*/
-   --			supported?: boolean;
-   --			/**
-   --			* Whether the server wants to receive workspace folder
-   --			* change notifications.
-   --			*
-   --			* If a strings is provided the string is treated as a ID
-   --			* under which the notification is registered on the client
-   --			* side. The ID can be used to unregister for these events
-   --			* using the `client/unregisterCapability` request.
-   --			*/
-   --			changeNotifications?: string | boolean;
-   --		}
-   --	}
-   --	/**
-   --	 * Experimental server capabilities.
-   --	 */
-   --	experimental?: any;
+   --	change?: TextDocumentSyncKind;
    --}
    --```
+   --  LSP 3.15 has two definitions for TextDocumentSyncKind and TextDocumentSyncOptions
+   --  This TextDocumentSyncOptions definition is incomplete.
    type TextDocumentSyncKind is (None, Full, Incremental);
 
    procedure Read_TextDocumentSyncKind
@@ -2867,7 +3259,7 @@ package LSP.Messages is
       change: Optional_TextDocumentSyncKind;
       willSave: Optional_Boolean;
       willSaveWaitUntil: Optional_Boolean;
-      save: Optional_Boolean;
+      save: Optional_SaveOptions;
    end record;
 
    procedure Read_TextDocumentSyncOptions
@@ -2904,9 +3296,46 @@ package LSP.Messages is
    for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
    for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
 
-   type CompletionOptions is record
-      resolveProvider: LSP.Types.Optional_Boolean;
+   --```typescript
+   --/**
+   -- * Completion options.
+   -- */
+   --export interface CompletionOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * Most tools trigger completion request automatically without explicitly requesting
+   --	 * it using a keyboard shortcut (e.g. Ctrl+Space). Typically they do so when the user
+   --	 * starts to type an identifier. For example if the user types `c` in a JavaScript file
+   --	 * code complete will automatically pop up present `console` besides others as a
+   --	 * completion item. Characters that make up identifiers don't need to be listed here.
+   --	 *
+   --	 * If code complete should automatically be trigger on characters not being valid inside
+   --	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
+   --	 */
+   --	triggerCharacters?: string[];
+   --
+   --	/**
+   --	 * The list of all possible characters that commit a completion. This field can be used
+   --	 * if clients don't support individual commit characters per completion item. See
+   --	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+   --	 *
+   --	 * If a server provides both `allCommitCharacters` and commit characters on an individual
+   --	 * completion item the ones on the completion item win.
+   --	 *
+   --	 * @since 3.2.0
+   --	 */
+   --	allCommitCharacters?: string[];
+   --
+   --	/**
+   --	 * The server provides support to resolve additional
+   --	 * information for a completion item.
+   --	 */
+   --	resolveProvider?: boolean;
+   --}
+   --```
+   type CompletionOptions is new WorkDoneProgressOptions with record
       triggerCharacters: LSP.Types.LSP_String_Vector;
+      allCommitCharacters: LSP.Types.LSP_String_Vector;
+      resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
    procedure Read_CompletionOptions
@@ -2925,8 +3354,34 @@ package LSP.Messages is
    type Optional_CompletionOptions is
      new Optional_Completion_Package.Optional_Type;
 
-   type SignatureHelpOptions is record
+   --```typescript
+   --export interface HoverOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype HoverOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface SignatureHelpOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * The characters that trigger signature help
+   --	 * automatically.
+   --	 */
+   --	triggerCharacters?: string[];
+   --
+   --	/**
+   --	 * List of characters that re-trigger signature help.
+   --	 *
+   --	 * These trigger characters are only active when signature help is already showing. All trigger characters
+   --	 * are also counted as re-trigger characters.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	retriggerCharacters?: string[];
+   --}
+   --```
+   type SignatureHelpOptions is new WorkDoneProgressOptions with record
       triggerCharacters: LSP.Types.LSP_String_Vector;
+      retriggerCharacters: LSP.Types.LSP_String_Vector;
    end record;
 
    procedure Read_SignatureHelpOptions
@@ -2947,41 +3402,70 @@ package LSP.Messages is
    type Optional_SignatureHelpOptions is
      new Optional_SignatureHelp_Package.Optional_Type;
 
-   --  Here we define Ada type StaticRegistrationOptions that corresponds to
-   --  (TextDocumentRegistrationOptions & StaticRegistrationOptions)
+   --```typescript
+   --/**
+   -- * General text document registration options.
+   -- */
+   --export interface TextDocumentRegistrationOptions {
+   --	/**
+   --	 * A document selector to identify the scope of the registration. If set to null
+   --	 * the document selector provided on the client side will be used.
+   --	 */
+   --	documentSelector: DocumentSelector | null;
+   --}
+   --```
+   type TextDocumentRegistrationOptions is tagged record
+      documentSelector:  LSP.Messages.DocumentSelector;
+   end record;
+
+   --```typescript
+   --/**
+   -- * Static registration options to be returned in the initialize request.
+   -- */
+   --export interface StaticRegistrationOptions {
+   --	/**
+   --	 * The id used to register the request. The id can be used to deregister
+   --	 * the request again. See also Registration#id.
+   --	 */
+   --	id?: string;
+   --}
+   --```
+
+   --  Here we define Ada type TSW_RegistrationOptions that corresponds to
+   --  (TextDocumentRegistrationOptions, StaticRegistrationOptions, WorkDoneProgressOptions)
    --  typescript type, because it is always used with
-   --  TextDocumentRegistrationOptions and we don't have '&' operator (or
+   --  TextDocumentRegistrationOptions and we don't have multiple inheritance (or
    --  something similar) for Ada types.
-   type StaticRegistrationOptions is record
+   type TSW_RegistrationOptions is new WorkDoneProgressOptions with record
       id: Optional_String;
       documentSelector:  LSP.Messages.DocumentSelector;
    end record;
 
-   procedure Read_StaticRegistrationOptions
+   procedure Read_TSW_RegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out StaticRegistrationOptions);
+      V : out TSW_RegistrationOptions);
 
-   procedure Write_StaticRegistrationOptions
+   procedure Write_TSW_RegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : StaticRegistrationOptions);
+      V : TSW_RegistrationOptions);
 
-   for StaticRegistrationOptions'Read use Read_StaticRegistrationOptions;
-   for StaticRegistrationOptions'Write use Write_StaticRegistrationOptions;
+   for TSW_RegistrationOptions'Read use Read_TSW_RegistrationOptions;
+   for TSW_RegistrationOptions'Write use Write_TSW_RegistrationOptions;
 
-   package Optional_StaticRegistration_Package is
-     new LSP.Generic_Optional (StaticRegistrationOptions);
+   package Optional_TSW_RegistrationOptions_Package is
+     new LSP.Generic_Optional (TSW_RegistrationOptions);
 
-   type Optional_StaticRegistrationOptions is
-     new Optional_StaticRegistration_Package.Optional_Type;
+   type Optional_TSW_RegistrationOptions is
+     new Optional_TSW_RegistrationOptions_Package.Optional_Type;
 
    --  Ada type Provider_Options correspond to this typescript type:
-   --  boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions) | {}
+   --  boolean | (TextDocumentRegistrationOptions, StaticRegistrationOptions, WorkDoneProgressOptions)
    type Provider_Options (Is_Boolean : Boolean := False) is record
       case Is_Boolean is
          when True =>
             Bool : Boolean;
          when False =>
-            Options : Optional_StaticRegistrationOptions;
+            Options : Optional_TSW_RegistrationOptions;
       end case;
    end record;
 
@@ -3002,7 +3486,95 @@ package LSP.Messages is
    type Optional_Provider_Options is
      new Optional_Provider_Package.Optional_Type;
 
-   type CodeActionOptions is record
+   --```typescript
+   --export interface DeclarationOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DeclarationOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface DeclarationRegistrationOptions extends DeclarationOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions  {
+   --}
+   --```
+
+   --```typescript
+   --export interface DefinitionOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DefinitionOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface DefinitionRegistrationOptions extends TextDocumentRegistrationOptions, DefinitionOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface TypeDefinitionOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype TypeDefinitionOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface TypeDefinitionRegistrationOptions extends TextDocumentRegistrationOptions, TypeDefinitionOptions, StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface ImplementationOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype ImplementationOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface ImplementationRegistrationOptions extends TextDocumentRegistrationOptions, ImplementationOptions, StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface ReferenceOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype ReferenceOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface ReferenceRegistrationOptions extends TextDocumentRegistrationOptions, ReferenceOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface DocumentHighlightOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DocumentHighlightOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface DocumentHighlightRegistrationOptions extends TextDocumentRegistrationOptions, DocumentHighlightOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface DocumentSymbolOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DocumentSymbolOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface DocumentSymbolRegistrationOptions extends TextDocumentRegistrationOptions, DocumentSymbolOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface CodeActionOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * CodeActionKinds that this server may return.
+   --	 *
+   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
+   --	 * may list out every specific kind they provide.
+   --	 */
+   --	codeActionKinds?: CodeActionKind[];
+   --}
+   --```
+   type CodeActionOptions is new WorkDoneProgressOptions with record
       codeActionKinds: Optional_CodeActionKindSet;
    end record;
 
@@ -3020,7 +3592,15 @@ package LSP.Messages is
    type Optional_CodeActionOptions is
      new Optional_CodeActionOptions_Package.Optional_Type;
 
-   type CodeLensOptions is record
+   --```typescript
+   --export interface CodeLensOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * Code lens has a resolve provider as well.
+   --	 */
+   --	resolveProvider?: boolean;
+   --}
+   --```
+   type CodeLensOptions is new WorkDoneProgressOptions with record
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
@@ -3039,7 +3619,53 @@ package LSP.Messages is
    type Optional_CodeLensOptions is
      new Optional_CodeLens_Package.Optional_Type;
 
-   type DocumentOnTypeFormattingOptions is record
+   --```typescript
+   --export interface DocumentColorOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DocumentColorOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface DocumentColorRegistrationOptions extends TextDocumentRegistrationOptions, StaticRegistrationOptions, DocumentColorOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface DocumentFormattingOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DocumentFormattingOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface DocumentFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentFormattingOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface DocumentRangeFormattingOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype DocumentRangeFormattingOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface DocumentRangeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentRangeFormattingOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface DocumentOnTypeFormattingOptions {
+   --	/**
+   --	 * A character on which formatting should be triggered, like `}`.
+   --	 */
+   --	firstTriggerCharacter: string;
+   --
+   --	/**
+   --	 * More trigger characters.
+   --	 */
+   --	moreTriggerCharacter?: string[];
+   --}
+   --```
+   type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
       firstTriggerCharacter: LSP.Types.LSP_String;
       moreTriggerCharacter: LSP.Types.LSP_String_Vector;
    end record;
@@ -3062,7 +3688,15 @@ package LSP.Messages is
    type Optional_DocumentOnTypeFormattingOptions is
      new Optional_DocumentOnTypeFormatting_Package.Optional_Type;
 
-   type RenameOptions is record
+   --```typescript
+   --export interface RenameOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * Renames should be checked and tested before being executed.
+   --	 */
+   --	prepareProvider?: boolean;
+   --}
+   --```
+   type RenameOptions is new WorkDoneProgressOptions with record
       prepareProvider: LSP.Types.Optional_Boolean;
    end record;
 
@@ -3080,7 +3714,15 @@ package LSP.Messages is
    package Optional_Rename_Package is new LSP.Generic_Optional (RenameOptions);
    type Optional_RenameOptions is new Optional_Rename_Package.Optional_Type;
 
-   type DocumentLinkOptions is record
+   --```typescript
+   --export interface DocumentLinkOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * Document links have a resolve provider as well.
+   --	 */
+   --	resolveProvider?: boolean;
+   --}
+   --```
+   type DocumentLinkOptions is new WorkDoneProgressOptions with record
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
@@ -3100,7 +3742,26 @@ package LSP.Messages is
    type Optional_DocumentLinkOptions is
      new Optional_DocumentLinkOptions_Package.Optional_Type;
 
-   type ExecuteCommandOptions is record
+   --```typescript
+   --export interface FoldingRangeOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype FoldingRangeOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface FoldingRangeRegistrationOptions extends TextDocumentRegistrationOptions, FoldingRangeOptions, StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface ExecuteCommandOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * The commands to be executed on the server
+   --	 */
+   --	commands: string[]
+   --}
+   --```
+   type ExecuteCommandOptions is new WorkDoneProgressOptions with record
       commands: LSP.Types.LSP_String_Vector;
    end record;
 
@@ -3118,34 +3779,67 @@ package LSP.Messages is
    type Optional_ExecuteCommandOptions is
      new Optional_ExecuteCommandOptions_Package.Optional_Type;
 
+   --```typescript
+   --export interface WorkspaceSymbolOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype WorkspaceSymbolOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface WorkspaceSymbolRegistrationOptions extends WorkspaceSymbolOptions {
+   --}
+   --```
+
    package Optional_Boolean_Or_String_Package is
      new LSP.Generic_Optional (LSP_Boolean_Or_String);
 
    type Optional_Boolean_Or_String is
      new Optional_Boolean_Or_String_Package.Optional_Type;
 
-   type workspaceFolders is record
+   --```typescript
+   --export interface WorkspaceFoldersServerCapabilities {
+   --	/**
+   --	 * The server has support for workspace folders
+   --	 */
+   --	supported?: boolean;
+   --
+   --	/**
+   --	 * Whether the server wants to receive workspace folder
+   --	 * change notifications.
+   --	 *
+   --	 * If a string is provided, the string is treated as an ID
+   --	 * under which the notification is registered on the client
+   --	 * side. The ID can be used to unregister for these events
+   --	 * using the `client/unregisterCapability` request.
+   --	 */
+   --	changeNotifications?: string | boolean;
+   --}
+   --```
+   type WorkspaceFoldersServerCapabilities is record
       supported: Optional_Boolean;
       changeNotifications: Optional_Boolean_Or_String;
    end record;
 
-   procedure Read_workspaceFolders
+   procedure Read_WorkspaceFoldersServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out workspaceFolders);
-   procedure Write_workspaceFolders
+      V : out WorkspaceFoldersServerCapabilities);
+   procedure Write_WorkspaceFoldersServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : workspaceFolders);
-   for workspaceFolders'Write use Write_workspaceFolders;
-   for workspaceFolders'Read use Read_workspaceFolders;
+      V : WorkspaceFoldersServerCapabilities);
 
-   package Optional_workspaceFolders_Package is
-     new LSP.Generic_Optional (workspaceFolders);
+   for WorkspaceFoldersServerCapabilities'Write use
+     Write_WorkspaceFoldersServerCapabilities;
+   for WorkspaceFoldersServerCapabilities'Read use
+     Read_WorkspaceFoldersServerCapabilities;
 
-   type Optional_workspaceFolders is
-     new Optional_workspaceFolders_Package.Optional_Type;
+   package Optional_WorkspaceFoldersServerCapabilities_Package is
+     new LSP.Generic_Optional (WorkspaceFoldersServerCapabilities);
+
+   type Optional_WorkspaceFoldersServerCapabilities is
+     new Optional_WorkspaceFoldersServerCapabilities_Package.Optional_Type;
 
    type workspace_Options is record
-      workspaceFolders: Optional_workspaceFolders;
+      workspaceFolders: Optional_WorkspaceFoldersServerCapabilities;
    end record;
 
    procedure Read_workspace_Options
@@ -3163,29 +3857,194 @@ package LSP.Messages is
    type Optional_workspace_Options is
      new Optional_workspace_Options_Package.Optional_Type;
 
+   --```typescript
+   --export interface SelectionRangeOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype SelectionRangeOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface SelectionRangeRegistrationOptions extends SelectionRangeOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions {
+   --}
+   --```
+
+   --
+   --```typescript
+   --interface ServerCapabilities {
+   --	/**
+   --	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
+   --	 * for backwards compatibility the TextDocumentSyncKind number. If omitted it defaults to `TextDocumentSyncKind.None`.
+   --	 */
+   --	textDocumentSync?: TextDocumentSyncOptions | number;
+   --
+   --	/**
+   --	 * The server provides completion support.
+   --	 */
+   --	completionProvider?: CompletionOptions;
+   --
+   --	/**
+   --	 * The server provides hover support.
+   --	 */
+   --	hoverProvider?: boolean | HoverOptions;
+   --
+   --	/**
+   --	 * The server provides signature help support.
+   --	 */
+   --	signatureHelpProvider?: SignatureHelpOptions;
+   --
+   --	/**
+   --	 * The server provides go to declaration support.
+   --	 *
+   --	 * @since 3.14.0
+   --	 */
+   --	declarationProvider?: boolean | DeclarationOptions | DeclarationRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides goto definition support.
+   --	 */
+   --	definitionProvider?: boolean | DefinitionOptions;
+   --
+   --	/**
+   --	 * The server provides goto type definition support.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	typeDefinitionProvider?: boolean | TypeDefinitionOptions | TypeDefinitionRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides goto implementation support.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	implementationProvider?: boolean | ImplementationOptions | ImplementationRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides find references support.
+   --	 */
+   --	referencesProvider?: boolean | ReferenceOptions;
+   --
+   --	/**
+   --	 * The server provides document highlight support.
+   --	 */
+   --	documentHighlightProvider?: boolean | DocumentHighlightOptions;
+   --
+   --	/**
+   --	 * The server provides document symbol support.
+   --	 */
+   --	documentSymbolProvider?: boolean | DocumentSymbolOptions;
+   --
+   --	/**
+   --	 * The server provides code actions. The `CodeActionOptions` return type is only
+   --	 * valid if the client signals code action literal support via the property
+   --	 * `textDocument.codeAction.codeActionLiteralSupport`.
+   --	 */
+   --	codeActionProvider?: boolean | CodeActionOptions;
+   --
+   --	/**
+   --	 * The server provides code lens.
+   --	 */
+   --	codeLensProvider?: CodeLensOptions;
+   --
+   --	/**
+   --	 * The server provides document link support.
+   --	 */
+   --	documentLinkProvider?: DocumentLinkOptions;
+   --
+   --	/**
+   --	 * The server provides color provider support.
+   --	 *
+   --	 * @since 3.6.0
+   --	 */
+   --	colorProvider?: boolean | DocumentColorOptions | DocumentColorRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides document formatting.
+   --	 */
+   --	documentFormattingProvider?: boolean | DocumentFormattingOptions;
+   --
+   --	/**
+   --	 * The server provides document range formatting.
+   --	 */
+   --	documentRangeFormattingProvider?: boolean | DocumentRangeFormattingOptions;
+   --
+   --	/**
+   --	 * The server provides document formatting on typing.
+   --	 */
+   --	documentOnTypeFormattingProvider?: DocumentOnTypeFormattingOptions;
+   --
+   --	/**
+   --	 * The server provides rename support. RenameOptions may only be
+   --	 * specified if the client states that it supports
+   --	 * `prepareSupport` in its initial `initialize` request.
+   --	 */
+   --	renameProvider?: boolean | RenameOptions;
+   --
+   --	/**
+   --	 * The server provides folding provider support.
+   --	 *
+   --	 * @since 3.10.0
+   --	 */
+   --	foldingRangeProvider?: boolean | FoldingRangeOptions | FoldingRangeRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides execute command support.
+   --	 */
+   --	executeCommandProvider?: ExecuteCommandOptions;
+   --
+   --	/**
+   --	 * The server provides selection range support.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	selectionRangeProvider?: boolean | SelectionRangeOptions | SelectionRangeRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides workspace symbol support.
+   --	 */
+   --	workspaceSymbolProvider?: boolean;
+   --
+   --	/**
+   --	 * Workspace specific server capabilities
+   --	 */
+   --	workspace?: {
+   --		/**
+   --		 * The server supports workspace folder.
+   --		 *
+   --		 * @since 3.6.0
+   --		 */
+   --		workspaceFolders?: WorkspaceFoldersServerCapabilities;
+   --	}
+   --
+   --	/**
+   --	 * Experimental server capabilities.
+   --	 */
+   --	experimental?: any;
+   --}
+   --```
    type ServerCapabilities is record
       textDocumentSync: Optional_TextDocumentSyncOptions;
-      hoverProvider: Optional_Boolean;
       completionProvider: Optional_CompletionOptions;
+      hoverProvider: HoverOptions;
       signatureHelpProvider: Optional_SignatureHelpOptions;
-      definitionProvider: Optional_Boolean;
-      typeDefinitionProvider: Optional_Provider_Options;
-      implementationProvider: Optional_Provider_Options;
-      referencesProvider: Optional_Boolean;
-      documentHighlightProvider: Optional_Boolean;
-      documentSymbolProvider: Optional_Boolean;
-      workspaceSymbolProvider: Optional_Boolean;
+      declarationProvider: DeclarationOptions;
+      definitionProvider: DefinitionOptions;
+      typeDefinitionProvider: TypeDefinitionOptions;
+      implementationProvider: ImplementationOptions;
+      referencesProvider: ReferenceOptions;
+      documentHighlightProvider: DocumentHighlightOptions;
+      documentSymbolProvider: DocumentSymbolOptions;
       codeActionProvider: Optional_CodeActionOptions;
       codeLensProvider: Optional_CodeLensOptions;
-      documentFormattingProvider: Optional_Boolean;
-      documentRangeFormattingProvider: Optional_Boolean;
+      documentLinkProvider: Optional_DocumentLinkOptions;
+      colorProvider: DocumentColorOptions;
+      documentFormattingProvider: DocumentFormattingOptions;
+      documentRangeFormattingProvider: DocumentRangeFormattingOptions;
       documentOnTypeFormattingProvider: Optional_DocumentOnTypeFormattingOptions;
       renameProvider: Optional_RenameOptions;
-      documentLinkProvider: Optional_DocumentLinkOptions;
-      colorProvider: Optional_Provider_Options;
-      foldingRangeProvider: Optional_Provider_Options;
-      declarationProvider: Optional_Provider_Options;
+      foldingRangeProvider: FoldingRangeOptions;
       executeCommandProvider: Optional_ExecuteCommandOptions;
+      selectionRangeProvider: SelectionRangeOptions;
+      workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
       --	experimental?: any;
 
@@ -3209,10 +4068,28 @@ package LSP.Messages is
    --	 * The capabilities the language server provides.
    --	 */
    --	capabilities: ServerCapabilities;
+   --
+   --	/**
+   --	 * Information about the server.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	serverInfo?: {
+   --		/**
+   --		 * The name of the server as defined by the server.
+   --		 */
+   --		name: string;
+   --
+   --		/**
+   --		 * The server's version as defined by the server.
+   --		 */
+   --		version?: string;
+   --	};
    --}
    --```
    type InitializeResult is record
       capabilities: ServerCapabilities;
+      serverInfo: Optional_ProgramInfo;
    end record;
 
    procedure Read_InitializeResult
@@ -3383,19 +4260,6 @@ package LSP.Messages is
    for LogMessageParams'Write use Write_LogMessageParams;
 
    --```typescript
-   --export interface TextDocumentRegistrationOptions {
-   --	/**
-   --	 * A document selector to identify the scope of the registration. If set to null
-   --	 * the document selector provided on the client side will be used.
-   --	 */
-   --	documentSelector: DocumentSelector | null;
-   --}
-   --```
-   type TextDocumentRegistrationOptions is tagged record
-      documentSelector:  LSP.Messages.DocumentSelector;
-   end record;
-
-   --```typescript
    --/**
    -- * Describe options to be used when registering for text document change events.
    -- */
@@ -3404,7 +4268,7 @@ package LSP.Messages is
    --	 * How documents are synced to the server. See TextDocumentSyncKind.Full
    --	 * and TextDocumentSyncKind.Incremental.
    --	 */
-   --	syncKind: number;
+   --	syncKind: TextDocumentSyncKind;
    --}
    --```
    type TextDocumentChangeRegistrationOptions is
@@ -3427,36 +4291,7 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * Most tools trigger completion request automatically without explicitly requesting
-   --	 * it using a keyboard shortcut (e.g. Ctrl+Space). Typically they do so when the user
-   --	 * starts to type an identifier. For example if the user types `c` in a JavaScript file
-   --	 * code complete will automatically pop up present `console` besides others as a
-   --	 * completion item. Characters that make up identifiers don't need to be listed here.
-   --	 *
-   --	 * If code complete should automatically be trigger on characters not being valid inside
-   --	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
-   --	 */
-   --	triggerCharacters?: string[];
-   --
-   --	/**
-   --	 * The list of all possible characters that commit a completion. This field can be used
-   --	 * if clients don't support individual commmit characters per completion item. See
-   --	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
-   --	 *
-   --	 * If a server provides both `allCommitCharacters` and commit characters on an individual
-   --	 * completion item the ones on the completion item win.
-   --	 *
-   --     * Since 3.2.0
-   --	 */
-   --	allCommitCharacters?: string[];
-   --
-   --	/**
-   --	 * The server provides support to resolve additional
-   --	 * information for a completion item.
-   --	 */
-   --	resolveProvider?: boolean;
+   --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions, CompletionOptions {
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -3466,12 +4301,7 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * The characters that trigger signature help
-   --	 * automatically.
-   --	 */
-   --	triggerCharacters?: string[];
+   --export interface SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions, SignatureHelpOptions {
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -3479,11 +4309,7 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface CodeLensRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * Code lens has a resolve provider as well.
-   --	 */
-   --	resolveProvider?: boolean;
+   --export interface CodeLensRegistrationOptions extends TextDocumentRegistrationOptions, CodeLensOptions {
    --}
    --```
    type CodeLensRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -3491,11 +4317,7 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * Document links have a resolve provider as well.
-   --	 */
-   --	resolveProvider?: boolean;
+   --export interface DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions, DocumentLinkOptions {
    --}
    --```
    type DocumentLinkRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -3503,15 +4325,7 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface DocumentOnTypeFormattingRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * A character on which formatting should be triggered, like `}`.
-   --	 */
-   --	firstTriggerCharacter: string;
-   --	/**
-   --	 * More trigger characters.
-   --	 */
-   --	moreTriggerCharacter?: string[]
+   --export interface DocumentOnTypeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
    --}
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -3523,11 +4337,7 @@ package LSP.Messages is
    --/**
    -- * Execute command registration options.
    -- */
-   --export interface ExecuteCommandRegistrationOptions {
-   --	/**
-   --	 * The commands to be executed on the server
-   --	 */
-   --	commands: string[]
+   --export interface ExecuteCommandRegistrationOptions extends ExecuteCommandOptions {
    --}
    --```
    type ExecuteCommandRegistrationOptions is record
@@ -3615,6 +4425,9 @@ package LSP.Messages is
    --}
    --
    --export interface UnregistrationParams {
+   --	// This should correctly be named `unregistrations`. However changing this
+   --	// is a breaking change and needs to wait until we deliver a 4.x version
+   --	// of the specification.
    --	unregisterations: Unregistration[];
    --}
    --```
@@ -3683,8 +4496,16 @@ package LSP.Messages is
    --
    --	/**
    --	 * The actual content changes. The content changes describe single state changes
-   --	 * to the document. So if there are two content changes c1 and c2 for a document
-   --	 * in state S then c1 move the document to S' and c2 to S''.
+   --	 * to the document. So if there are two content changes c1 (at array index 0) and
+   --	 * c2 (at array index 1) for a document in state S then c1 moves the document from
+   --	 * S to S' and c2 from S' to S''. So c1 is computed on the state S and c2 is computed
+   --	 * on the state S'.
+   --	 *
+   --	 * To mirror the content of a document using change events use the following approach:
+   --	 * - start with the same initial content
+   --	 * - apply the 'textDocument/didChange' notifications in the order you recevie them.
+   --	 * - apply the `TextDocumentContentChangeEvent`s in a single notification in the order
+   --	 *   you receive them.
    --	 */
    --	contentChanges: TextDocumentContentChangeEvent[];
    --}
@@ -3693,19 +4514,26 @@ package LSP.Messages is
    -- * An event describing a change to a text document. If range and rangeLength are omitted
    -- * the new text is considered to be the full content of the document.
    -- */
-   --interface TextDocumentContentChangeEvent {
+   --export type TextDocumentContentChangeEvent = {
    --	/**
    --	 * The range of the document that changed.
    --	 */
-   --	range?: Range;
+   --	range: Range;
    --
    --	/**
-   --	 * The length of the range that got replaced.
+   --	 * The optional length of the range that got replaced.
+   --	 *
+   --	 * @deprecated use range instead.
    --	 */
    --	rangeLength?: number;
    --
    --	/**
-   --	 * The new text of the range/document.
+   --	 * The new text for the provided range.
+   --	 */
+   --	text: string;
+   --} | {
+   --	/**
+   --	 * The new text of the whole document.
    --	 */
    --	text: string;
    --}
@@ -3902,6 +4730,13 @@ package LSP.Messages is
    --	uri: DocumentUri;
    --
    --	/**
+   --	 * Optional the version number of the document the diagnostics are published for.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	version?: number;
+   --
+   --	/**
    --	 * An array of diagnostic information items.
    --	 */
    --	diagnostics: Diagnostic[];
@@ -3909,6 +4744,7 @@ package LSP.Messages is
    --```
    type PublishDiagnosticsParams is record
       uri: DocumentUri;
+      version: Optional_Number;
       diagnostics: Diagnostic_Vector;
    end record;
 
@@ -3926,7 +4762,7 @@ package LSP.Messages is
    -- * Represents a collection of [completion items](#CompletionItem) to be presented
    -- * in the editor.
    -- */
-   --interface CompletionList {
+   --export interface CompletionList {
    --	/**
    --	 * This list it not complete. Further typing should result in recomputing
    --	 * this list.
@@ -3943,7 +4779,7 @@ package LSP.Messages is
    -- * Defines whether the insert text in a completion item should be interpreted as
    -- * plain text or a snippet.
    -- */
-   --namespace InsertTextFormat {
+   --export namespace InsertTextFormat {
    --	/**
    --	 * The primary text to be inserted is treated as a plain string.
    --	 */
@@ -3960,9 +4796,24 @@ package LSP.Messages is
    --	export const Snippet = 2;
    --}
    --
-   --type InsertTextFormat = 1 | 2;
+   --export type InsertTextFormat = 1 | 2;
    --
-   --interface CompletionItem {
+   --/**
+   -- * Completion item tags are extra annotations that tweak the rendering of a completion
+   -- * item.
+   -- *
+   -- * @since 3.15.0
+   -- */
+   --export namespace CompletionItemTag {
+   --	/**
+   --	 * Render a completion as obsolete, usually using a strike-out.
+   --	 */
+   --	export const Deprecated = 1;
+   --}
+   --
+   --export type CompletionItemTag = 1;
+   --
+   --export interface CompletionItem {
    --	/**
    --	 * The label of this completion item. By default
    --	 * also the text that is inserted when selecting
@@ -3978,6 +4829,13 @@ package LSP.Messages is
    --	kind?: number;
    --
    --	/**
+   --	 * Tags for this completion item.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	tags?: CompletionItemTag[];
+   --
+   --	/**
    --	 * A human-readable string with additional information
    --	 * about this item, like type or symbol information.
    --	 */
@@ -3990,6 +4848,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * Indicates if this item is deprecated.
+   --	 *
+   --	 * @deprecated Use `tags` instead if supported.
    --	 */
    --	deprecated?: boolean;
    --
@@ -4029,7 +4889,7 @@ package LSP.Messages is
    --
    --	/**
    --	 * The format of the insert text. The format applies to both the `insertText` property
-   --	 * and the `newText` property of a provided `textEdit`. If ommitted defaults to
+   --	 * and the `newText` property of a provided `textEdit`. If omitted defaults to
    --	 * `InsertTextFormat.PlainText`.
    --	 */
    --	insertTextFormat?: InsertTextFormat;
@@ -4078,7 +4938,7 @@ package LSP.Messages is
    --/**
    -- * The kind of a completion entry.
    -- */
-   --namespace CompletionItemKind {
+   --export namespace CompletionItemKind {
    --	export const Text = 1;
    --	export const Method = 2;
    --	export const Function = 3;
@@ -4128,7 +4988,8 @@ package LSP.Messages is
 
    type CompletionItem is record
       label: LSP_String;
-      kind: Optional_CompletionItemKind;
+      kind : Optional_CompletionItemKind;
+      tags: Optional_CompletionItemTagSet;
       detail: Optional_String;
       documentation: Optional_String_Or_MarkupContent;
       deprecated: Optional_Boolean;
@@ -4233,7 +5094,7 @@ package LSP.Messages is
    --/**
    -- * The result of a hover request.
    -- */
-   --interface Hover {
+   --export interface Hover {
    --	/**
    --	 * The hover's content
    --	 */
@@ -4266,7 +5127,7 @@ package LSP.Messages is
    -- * callable. There can be multiple signature but only one
    -- * active and only one active parameter.
    -- */
-   --interface SignatureHelp {
+   --export interface SignatureHelp {
    --	/**
    --	 * One or more signatures.
    --	 */
@@ -4300,7 +5161,7 @@ package LSP.Messages is
    -- * can have a label, like a function-name, a doc-comment, and
    -- * a set of parameters.
    -- */
-   --interface SignatureInformation {
+   --export interface SignatureInformation {
    --	/**
    --	 * The label of this signature. Will be shown in
    --	 * the UI.
@@ -4323,7 +5184,7 @@ package LSP.Messages is
    -- * Represents a parameter of a callable-signature. A parameter can
    -- * have a label and a doc-comment.
    -- */
-   --interface ParameterInformation {
+   --export interface ParameterInformation {
    --
    --	/**
    --	 * The label of this parameter information.
@@ -4402,9 +5263,9 @@ package LSP.Messages is
      new SignatureInformation_Vectors.Vector with null record;
 
    type SignatureHelp is record
-	signatures: SignatureInformation_Vector;
-	activeSignature: Optional_Number;
-	activeParameter: Optional_Number;
+      signatures: SignatureInformation_Vector;
+      activeSignature: Optional_Number;
+      activeParameter: Optional_Number;
    end record;
 
    procedure Read_SignatureHelp
@@ -4417,11 +5278,11 @@ package LSP.Messages is
    for SignatureHelp'Read use Read_SignatureHelp;
 
    --```typescript
-   --interface ReferenceParams extends TextDocumentPositionParams {
+   --export interface ReferenceParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --	context: ReferenceContext
    --}
    --
-   --interface ReferenceContext {
+   --export interface ReferenceContext {
    --	/**
    --	 * Include the declaration of the current symbol.
    --	 */
@@ -4441,7 +5302,7 @@ package LSP.Messages is
    for ReferenceContext'Read use Read_ReferenceContext;
    for ReferenceContext'Write use Write_ReferenceContext;
 
-   type ReferenceParams is new TextDocumentPositionParams with record
+   type ReferenceParams is new Text_Progress_Partial_Params with record
       context: ReferenceContext;
    end record;
 
@@ -4461,7 +5322,7 @@ package LSP.Messages is
    -- * the background color of its range.
    -- *
    -- */
-   --interface DocumentHighlight {
+   --export interface DocumentHighlight {
    --	/**
    --	 * The range this highlight applies to.
    --	 */
@@ -4511,7 +5372,7 @@ package LSP.Messages is
 
    type DocumentHighlight is record
       span: LSP.Messages.Span;
-      kind: DocumentHighlightKind;
+      kind: Optional_DocumentHighlightKind;
    end record;
 
    procedure Read_DocumentHighlight
@@ -4530,14 +5391,14 @@ package LSP.Messages is
      new DocumentHighlight_Vectors.Vector with null record;
 
    --```typescript
-   --interface DocumentSymbolParams {
+   --export interface DocumentSymbolParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
    --	textDocument: TextDocumentIdentifier;
    --}
    --```
-   type DocumentSymbolParams is record
+   type DocumentSymbolParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
    end record;
 
@@ -4588,7 +5449,7 @@ package LSP.Messages is
    -- * hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
    -- * e.g. the range of an identifier.
    -- */
-   --export class DocumentSymbol {
+   --export interface DocumentSymbol {
    --
    --	/**
    --	 * The name of this symbol. Will be displayed in the user interface and therefore must not be
@@ -4634,7 +5495,7 @@ package LSP.Messages is
    -- * Represents information about programming constructs like variables, classes,
    -- * interfaces etc.
    -- */
-   --interface SymbolInformation {
+   --export interface SymbolInformation {
    --	/**
    --	 * The name of this symbol.
    --	 */
@@ -4643,7 +5504,7 @@ package LSP.Messages is
    --	/**
    --	 * The kind of this symbol.
    --	 */
-   --	kind: number;
+   --	kind: SymbolKind;
    --
    --	/**
    --	 * Indicates if this symbol is deprecated.
@@ -4671,7 +5532,6 @@ package LSP.Messages is
    --	 */
    --	containerName?: string;
    --}
-   --
    --```
    type DocumentSymbol is record
       name: LSP_String;
@@ -4743,14 +5603,15 @@ package LSP.Messages is
    --/**
    -- * The parameters of a Workspace Symbol Request.
    -- */
-   --interface WorkspaceSymbolParams {
+   --interface WorkspaceSymbolParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
-   --	 * A non-empty query string
+   --	 * A query string to filter symbols by. Clients may send an empty
+   --	 * string here to request all symbols.
    --	 */
    --	query: string;
    --}
    --```
-   type WorkspaceSymbolParams is record
+   type WorkspaceSymbolParams is new Progress_Partial_Params with record
       query: LSP_String;
    end record;
 
@@ -4767,7 +5628,7 @@ package LSP.Messages is
    --/**
    -- * Params for the CodeActionRequest
    -- */
-   --interface CodeActionParams {
+   --export interface CodeActionParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The document in which the command was invoked.
    --	 */
@@ -4795,7 +5656,7 @@ package LSP.Messages is
    --export type CodeActionKind = string;
    --
    --/**
-   -- * A set of predefined code action kinds
+   -- * A set of predefined code action kinds.
    -- */
    --export namespace CodeActionKind {
    --
@@ -4805,17 +5666,17 @@ package LSP.Messages is
    --	export const Empty: CodeActionKind = '';
    --
    --	/**
-   --	 * Base kind for quickfix actions: 'quickfix'
+   --	 * Base kind for quickfix actions: 'quickfix'.
    --	 */
    --	export const QuickFix: CodeActionKind = 'quickfix';
    --
    --	/**
-   --	 * Base kind for refactoring actions: 'refactor'
+   --	 * Base kind for refactoring actions: 'refactor'.
    --	 */
    --	export const Refactor: CodeActionKind = 'refactor';
    --
    --	/**
-   --	 * Base kind for refactoring extraction actions: 'refactor.extract'
+   --	 * Base kind for refactoring extraction actions: 'refactor.extract'.
    --	 *
    --	 * Example extract actions:
    --	 *
@@ -4828,7 +5689,7 @@ package LSP.Messages is
    --	export const RefactorExtract: CodeActionKind = 'refactor.extract';
    --
    --	/**
-   --	 * Base kind for refactoring inline actions: 'refactor.inline'
+   --	 * Base kind for refactoring inline actions: 'refactor.inline'.
    --	 *
    --	 * Example inline actions:
    --	 *
@@ -4840,7 +5701,7 @@ package LSP.Messages is
    --	export const RefactorInline: CodeActionKind = 'refactor.inline';
    --
    --	/**
-   --	 * Base kind for refactoring rewrite actions: 'refactor.rewrite'
+   --	 * Base kind for refactoring rewrite actions: 'refactor.rewrite'.
    --	 *
    --	 * Example rewrite actions:
    --	 *
@@ -4854,14 +5715,14 @@ package LSP.Messages is
    --	export const RefactorRewrite: CodeActionKind = 'refactor.rewrite';
    --
    --	/**
-   --	 * Base kind for source actions: `source`
+   --	 * Base kind for source actions: `source`.
    --	 *
    --	 * Source code actions apply to the entire file.
    --	 */
    --	export const Source: CodeActionKind = 'source';
    --
    --	/**
-   --	 * Base kind for an organize imports source action: `source.organizeImports`
+   --	 * Base kind for an organize imports source action: `source.organizeImports`.
    --	 */
    --	export const SourceOrganizeImports: CodeActionKind = 'source.organizeImports';
    --}
@@ -4870,9 +5731,13 @@ package LSP.Messages is
    -- * Contains additional diagnostic information about the context in which
    -- * a code action is run.
    -- */
-   --interface CodeActionContext {
+   --export interface CodeActionContext {
    --	/**
-   --	 * An array of diagnostics.
+   --	 * An array of diagnostics known on the client side overlapping the range provided to the
+   --	 * `textDocument/codeAction` request. They are provided so that the server knows which
+   --	 * errors are currently presented to the user for the given range. There is no guarantee
+   --	 * that these accurately reflect the error state of the resource. The primary parameter
+   --	 * to compute code actions is the provided range.
    --	 */
    --	diagnostics: Diagnostic[];
    --
@@ -4899,7 +5764,7 @@ package LSP.Messages is
    for CodeActionContext'Read use Read_CodeActionContext;
    for CodeActionContext'Write use Write_CodeActionContext;
 
-   type CodeActionParams is record
+   type CodeActionParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
       span: LSP.Messages.Span;
       context: CodeActionContext;
@@ -4915,14 +5780,14 @@ package LSP.Messages is
    for CodeActionParams'Write use Write_CodeActionParams;
 
    --```typescript
-   --interface CodeLensParams {
+   --interface CodeLensParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The document to request code lens for.
    --	 */
    --	textDocument: TextDocumentIdentifier;
    --}
    --```
-   type CodeLensParams is record
+   type CodeLensParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
    end record;
 
@@ -4954,19 +5819,19 @@ package LSP.Messages is
    --```
    type CodeLens is record
       span: LSP.Messages.Span;
-      command: LSP.Messages.Command;  --  Optional ???
+      command: Optional_Command;
       --  data?: any
    end record;
 
    --```typescript
-   --interface DocumentLinkParams {
+   --interface DocumentLinkParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The document to provide document links for.
    --	 */
    --	textDocument: TextDocumentIdentifier;
    --}
    --```
-   type DocumentLinkParams is record
+   type DocumentLinkParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
    end record;
 
@@ -4980,10 +5845,23 @@ package LSP.Messages is
    --	 * The range this link applies to.
    --	 */
    --	range: Range;
+   --
    --	/**
    --	 * The uri this link points to. If missing a resolve request is sent later.
    --	 */
    --	target?: DocumentUri;
+   --
+   --	/**
+   --	 * The tooltip text when you hover over this link.
+   --	 *
+   --	 * If a tooltip is provided, is will be displayed in a string that includes instructions on how to
+   --	 * trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
+   --	 * user settings, and localization.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	tooltip?: string;
+   --
    --	/**
    --	 * A data entry field that is preserved on a document link between a
    --	 * DocumentLinkRequest and a DocumentLinkResolveRequest.
@@ -4993,7 +5871,8 @@ package LSP.Messages is
    --```
    type DocumentLink is record
       span: LSP.Messages.Span;
-      target: DocumentUri;  --  Optional ???
+      target: Optional_String;
+      tooltip: Optional_String;
       --  data?: any
    end record;
 
@@ -5002,7 +5881,7 @@ package LSP.Messages is
    type DocumentLink_Vector is new DocumentLink_Vectors.Vector with null record;
 
    --```typescript
-   --interface DocumentFormattingParams {
+   --interface DocumentFormattingParams extends WorkDoneProgressParams {
    --	/**
    --	 * The document to format.
    --	 */
@@ -5029,6 +5908,27 @@ package LSP.Messages is
    --	insertSpaces: boolean;
    --
    --	/**
+   --	 * Trim trailing whitespace on a line.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	trimTrailingWhitespace?: boolean;
+   --
+   --	/**
+   --	 * Insert a newline character at the end of the file if one does not exist.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	insertFinalNewline?: boolean;
+   --
+   --	/**
+   --	 * Trim all newlines after the final newline at the end of the file.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	trimFinalNewlines?: boolean;
+   --
+   --	/**
    --	 * Signature for further properties.
    --	 */
    --	[key: string]: boolean | number | string;
@@ -5037,16 +5937,19 @@ package LSP.Messages is
    type FormattingOptions is record
       tabSize: LSP_Number;
       insertSpaces: Boolean;
+      trimTrailingWhitespace: Optional_Boolean;
+      insertFinalNewline: Optional_Boolean;
+      trimFinalNewlines: Optional_Boolean;
       --  [key: string]: boolean | number | string; ???
    end record;
 
-   type DocumentFormattingParams is record
+   type DocumentFormattingParams is new WorkDoneProgressParams with record
       textDocument: TextDocumentIdentifier;
       options: FormattingOptions;
    end record;
 
    --```typescript
-   --interface DocumentRangeFormattingParams {
+   --interface DocumentRangeFormattingParams extends WorkDoneProgressParams {
    --	/**
    --	 * The document to format.
    --	 */
@@ -5063,24 +5966,14 @@ package LSP.Messages is
    --	options: FormattingOptions;
    --}
    --```
-   type DocumentRangeFormattingParams is record
+   type DocumentRangeFormattingParams is new WorkDoneProgressParams with record
       textDocument: TextDocumentIdentifier;
       span: LSP.Messages.Span;
       options: FormattingOptions;
    end record;
 
    --```typescript
-   --interface DocumentOnTypeFormattingParams {
-   --	/**
-   --	 * The document to format.
-   --	 */
-   --	textDocument: TextDocumentIdentifier;
-   --
-   --	/**
-   --	 * The position at which this request was sent.
-   --	 */
-   --	position: Position;
-   --
+   --interface DocumentOnTypeFormattingParams extends TextDocumentPositionParams {
    --	/**
    --	 * The character that has been typed.
    --	 */
@@ -5092,25 +5985,13 @@ package LSP.Messages is
    --	options: FormattingOptions;
    --}
    --```
-   type DocumentOnTypeFormattingParams is record
-      textDocument: TextDocumentIdentifier;
-      position: LSP.Messages.Position;
+   type DocumentOnTypeFormattingParams is new TextDocumentPositionParams with record
       ch: LSP_String;
       options: FormattingOptions;
    end record;
 
    --```typescript
-   --interface RenameParams {
-   --	/**
-   --	 * The document to rename.
-   --	 */
-   --	textDocument: TextDocumentIdentifier;
-   --
-   --	/**
-   --	 * The position at which this request was sent.
-   --	 */
-   --	position: Position;
-   --
+   --interface RenameParams extends TextDocumentPositionParams, WorkDoneProgressParams {
    --	/**
    --	 * The new name of the symbol. If the given name is not valid the
    --	 * request must return a [ResponseError](#ResponseError) with an
@@ -5119,9 +6000,7 @@ package LSP.Messages is
    --	newName: string;
    --}
    --```
-   type RenameParams is record
-      textDocument: TextDocumentIdentifier;
-      position: LSP.Messages.Position;
+   type RenameParams is new Text_Progress_Params with record
       newName: LSP_String;
    end record;
 
@@ -5135,7 +6014,7 @@ package LSP.Messages is
    for RenameParams'Write use Write_RenameParams;
 
    --```typescript
-   --export interface ExecuteCommandParams {
+   --export interface ExecuteCommandParams extends WorkDoneProgressParams {
    --
    --	/**
    --	 * The identifier of the actual command handler.
@@ -5148,7 +6027,8 @@ package LSP.Messages is
    --}
    --```
    type ExecuteCommandParams (Is_Unknown : Boolean := True) is record
-      command : LSP_String;
+      Base: WorkDoneProgressParams;
+      command: LSP_String;
 
       case Is_Unknown is
          when True =>
@@ -5218,40 +6098,10 @@ package LSP.Messages is
    for ApplyWorkspaceEditResult'Read use Read_ApplyWorkspaceEditResult;
    for ApplyWorkspaceEditResult'Write use Write_ApplyWorkspaceEditResult;
 
-   ----------------------
-   -- Present in v3.15 --
-   ----------------------
-
-   --  Here are protocol elements defined in the v3.15 working version, which
-   --  is not yet published: these might change when the spec is finalized.
-
    --```typescript
-   --type ProgressToken = number | string;
-   --interface ProgressParams<T> {
-   --	/**
-   --	 * The progress token provided by the client or server.
-   --	 */
-   --	token: ProgressToken;
-   --
-   --	/**
-   --	 * The progress data.
-   --	 */
-   --	value: T;
-   --}
-   --```
-
-   generic
-      type T is private;
-   package Generic_ProgressParam is
-      type ProgressParam is record
-         token: ProgressToken;
-         value: T;
-      end record;
-   end Generic_ProgressParam;
-
    --export interface WorkDoneProgressBegin {
    --
-   --  kind: 'begin';
+   --	kind: 'begin';
    --
    --	/**
    --	 * Mandatory title of the progress operation. Used to briefly inform about
@@ -5287,6 +6137,7 @@ package LSP.Messages is
    --	 */
    --	percentage?: number;
    --}
+   --```
    type WorkDoneProgressBegin is record
       kind        : LSP_String := +"begin";
       title       : LSP_String;
@@ -5299,7 +6150,7 @@ package LSP.Messages is
    --export interface WorkDoneProgressReport {
    --
    --	kind: 'report';
-
+   --
    --	/**
    --	 * Controls enablement state of a cancel button. This property is only valid if a cancel
    --	 * button got requested in the `WorkDoneProgressStart` payload.
@@ -5308,7 +6159,7 @@ package LSP.Messages is
    --	 * enablement state are allowed to ignore the setting.
    --	 */
    --	cancellable?: boolean;
-
+   --
    --	/**
    --	 * Optional, more detailed associated progress message. Contains
    --	 * complementary information to the `title`.
@@ -5317,7 +6168,7 @@ package LSP.Messages is
    --	 * If unset, the previous progress message (if any) is still valid.
    --	 */
    --	message?: string;
-
+   --
    --	/**
    --	 * Optional progress percentage to display (value 100 is considered 100%).
    --	 * If not provided infinite progress is assumed and clients are allowed
@@ -5336,6 +6187,7 @@ package LSP.Messages is
       percentage  : Optional_Number;
    end record;
 
+   --```typescript
    --export interface WorkDoneProgressEnd {
    --
    --	kind: 'end';
@@ -5346,6 +6198,7 @@ package LSP.Messages is
    --	 */
    --	message?: string;
    --}
+   --```
    type WorkDoneProgressEnd is record
       kind    : LSP_String := +"end";
       message : Optional_String;
@@ -5558,7 +6411,6 @@ package LSP.Messages is
    --	export const Delete = 4;
    --}
    --```
-
    type WatchKind is (Create, Change, Delete);
    type WatchKind_Set is array (WatchKind) of Boolean;
 
@@ -5604,8 +6456,7 @@ package LSP.Messages is
    for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
 
    --```typescript
-   --export interface CompletionParams extends TextDocumentPositionParams {
-   --
+   --export interface CompletionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The completion context. This is only available if the client specifies
    --	 * to send this using `ClientCapabilities.textDocument.completion.contextSupport === true`
@@ -5674,7 +6525,7 @@ package LSP.Messages is
    package Optional_CompletionContexts is new LSP.Generic_Optional (CompletionContext);
    type Optional_CompletionContext is new Optional_CompletionContexts.Optional_Type;
 
-   type CompletionParams is new TextDocumentPositionParams with record
+   type CompletionParams is new Text_Progress_Partial_Params with record
       context: Optional_CompletionContext;
    end record;
 
@@ -5714,6 +6565,17 @@ package LSP.Messages is
    --	diagnostics?: Diagnostic[];
    --
    --	/**
+   --	 * Marks this as a preferred action. Preferred actions are used by the `auto fix` command and can be targeted
+   --	 * by keybindings.
+   --	 *
+   --	 * A quick fix should be marked preferred if it properly addresses the underlying error.
+   --	 * A refactoring should be marked preferred if it is the most reasonable choice of actions to take.
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	isPreferred?: boolean;
+   --
+   --	/**
    --	 * The workspace edit this code action performs.
    --	 */
    --	edit?: WorkspaceEdit;
@@ -5730,6 +6592,7 @@ package LSP.Messages is
       title: LSP_String;
       kind: Optional_CodeActionKind;
       diagnostics: Optional_Diagnostic_Vector;
+      isPreferred: Optional_Boolean;
       edit: Optional_WorkspaceEdit;
       command: Optional_Command;
    end record;
@@ -5833,7 +6696,7 @@ package LSP.Messages is
      new ColorInformation_Vectors.Vector with null record;
 
    --```typescript
-   --interface ColorPresentationParams {
+   --interface ColorPresentationParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -5850,7 +6713,7 @@ package LSP.Messages is
    --	range: Range;
    --}
    --```
-   type ColorPresentationParams is record
+   type ColorPresentationParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
       color: RGBA_Color;
       span: LSP.Messages.Span;  --  Range is reservet keyword
@@ -5907,11 +6770,7 @@ package LSP.Messages is
      new ColorPresentation_Vectors.Vector with null record;
 
    --```typescript
-   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions {
-   --	/**
-   --	 * Renames should be checked and tested for validity before being executed.
-   --	 */
-   --	prepareProvider?: boolean;
+   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions, RenameOptions {
    --}
    --```
    type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -5919,15 +6778,14 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --export interface FoldingRangeParams {
+   --export interface FoldingRangeParams extends WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
    --	textDocument: TextDocumentIdentifier;
    --}
-   --
    --```
-   type FoldingRangeParams is record
+   type FoldingRangeParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
    end record;
 
@@ -5985,7 +6843,7 @@ package LSP.Messages is
    --	endCharacter?: number;
    --
    --	/**
-   --	 * Describes the kind of the folding range such as `comment' or 'region'. The kind
+   --	 * Describes the kind of the folding range such as `comment` or `region`. The kind
    --	 * is used to categorize folding ranges and used by commands like 'Fold all comments'. See
    --	 * [FoldingRangeKind](#FoldingRangeKind) for an enumeration of standardized kinds.
    --	 */
@@ -6020,15 +6878,15 @@ package LSP.Messages is
    Imports : constant FoldingRangeKind := +"imports";
    Region  : constant FoldingRangeKind := +"region";
 
-   --  ```ts
-   --  interface DocumentColorParams {
-   --          /**
-   --           * The text document.
-   --           */
-   --          textDocument: TextDocumentIdentifier;
-   --  }
-   --  ```
-   type DocumentColorParams is record
+   --```typescript
+   --interface DocumentColorParams extends WorkDoneProgressParams, PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --}
+   --```
+   type DocumentColorParams is new Progress_Partial_Params with record
       textDocument: TextDocumentIdentifier;
    end record;
 
@@ -6040,6 +6898,170 @@ package LSP.Messages is
       V : DocumentColorParams);
    for DocumentColorParams'Read use Read_DocumentColorParams;
    for DocumentColorParams'Write use Write_DocumentColorParams;
+
+   --```typescript
+   --export interface HoverRegistrationOptions extends TextDocumentRegistrationOptions, HoverOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface HoverParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --}
+   --```
+   type HoverParams is new Text_Progress_Params with null record;
+
+   --```typescript
+   --export interface SignatureHelpParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --	/**
+   --	 * The signature help context. This is only available if the client specifies
+   --	 * to send this using the client capability  `textDocument.signatureHelp.contextSupport === true`
+   --	 *
+   --	 * @since 3.15.0
+   --	 */
+   --	context?: SignatureHelpContext;
+   --}
+   --
+   --/**
+   -- * How a signature help was triggered.
+   -- *
+   -- * @since 3.15.0
+   -- */
+   --export namespace SignatureHelpTriggerKind {
+   --	/**
+   --	 * Signature help was invoked manually by the user or by a command.
+   --	 */
+   --	export const Invoked: 1 = 1;
+   --	/**
+   --	 * Signature help was triggered by a trigger character.
+   --	 */
+   --	export const TriggerCharacter: 2 = 2;
+   --	/**
+   --	 * Signature help was triggered by the cursor moving or by the document content changing.
+   --	 */
+   --	export const ContentChange: 3 = 3;
+   --}
+   --export type SignatureHelpTriggerKind = 1 | 2 | 3;
+   --
+   --/**
+   -- * Additional information about the context in which a signature help request was triggered.
+   -- *
+   -- * @since 3.15.0
+   -- */
+   --export interface SignatureHelpContext {
+   --	/**
+   --	 * Action that caused signature help to be triggered.
+   --	 */
+   --	triggerKind: SignatureHelpTriggerKind;
+   --
+   --	/**
+   --	 * Character that caused signature help to be triggered.
+   --	 *
+   --	 * This is undefined when `triggerKind !== SignatureHelpTriggerKind.TriggerCharacter`
+   --	 */
+   --	triggerCharacter?: string;
+   --
+   --	/**
+   --	 * `true` if signature help was already showing when it was triggered.
+   --	 *
+   --	 * Retriggers occur when the signature help is already active and can be caused by actions such as
+   --	 * typing a trigger character, a cursor move, or document content changes.
+   --	 */
+   --	isRetrigger: boolean;
+   --
+   --	/**
+   --	 * The currently active `SignatureHelp`.
+   --	 *
+   --	 * The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field updated based on
+   --	 * the user navigating through available signatures.
+   --	 */
+   --	activeSignatureHelp?: SignatureHelp;
+   --}
+   --```
+   type SignatureHelpParams is new Text_Progress_Params with null record;
+
+   --```typescript
+   --export interface DeclarationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type DeclarationParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --export interface DefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type DefinitionParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --export interface TypeDefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type TypeDefinitionParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --export interface ImplementationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type ImplementationParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --export interface DocumentHighlightParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type DocumentHighlightParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --export interface SelectionRangeParams extends WorkDoneProgressParams, PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The positions inside the text document.
+   --	 */
+   --	positions: Position[];
+   --}
+   --```
+   type SelectionRangeParams is new Progress_Partial_Params with record
+      textDocument: TextDocumentIdentifier;
+      positions: Position_Vector;
+   end record;
+
+   procedure Read_SelectionRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SelectionRangeParams);
+   procedure Write_SelectionRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SelectionRangeParams);
+   for SelectionRangeParams'Read use Read_SelectionRangeParams;
+   for SelectionRangeParams'Write use Write_SelectionRangeParams;
+
+   --```typescript
+   --export interface SelectionRange {
+   --    /**
+   --     * The [range](#Range) of this selection range.
+   --     */
+   --    range: Range;
+   --    /**
+   --     * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
+   --     */
+   --    parent?: SelectionRange;
+   --}
+   --```
+
+   --```typescript
+   --export interface WorkDoneProgressCancelParams {
+   --	/**
+   --	 * The token to be used to report progress.
+   --	 */
+   --	token: ProgressToken;
+   --}
+   --```
+
+   --```typescript
+   --export interface PrepareRenameParams extends TextDocumentPositionParams {
+   --}
+   --```
 
    -----------------------------------------
    -- ALS-specific messages and responses --
