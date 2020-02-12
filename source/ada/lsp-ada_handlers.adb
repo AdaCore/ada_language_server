@@ -479,7 +479,7 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Initialize_Response
    is
       Value    : LSP.Messages.InitializeParams renames Request.params;
-      Code_Action : LSP.Messages.Optional_codeAction_Capability renames
+      Code_Action : LSP.Messages.Optional_CodeActionClientCapabilities renames
         Value.capabilities.textDocument.codeAction;
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
@@ -488,15 +488,22 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
-      Response.result.capabilities.definitionProvider := True;
+      Response.result.capabilities.definitionProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.typeDefinitionProvider :=
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
-      Response.result.capabilities.referencesProvider := True;
-      Response.result.capabilities.documentSymbolProvider := True;
+      Response.result.capabilities.referencesProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
+      Response.result.capabilities.documentSymbolProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.renameProvider :=
         (Is_Set => True,
-         Value  => (prepareProvider => (Is_Set => False)));
+         Value  => (prepareProvider  => (Is_Set => False),
+                    workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True,
          Value  =>
@@ -506,11 +513,17 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Full));
       Response.result.capabilities.completionProvider :=
         (True,
-         (resolveProvider => (True, False),
-          triggerCharacters => Empty_Vector & (+".")));
-      Response.result.capabilities.hoverProvider := True;
+         (resolveProvider   => (True, False),
+          triggerCharacters => Empty_Vector & (+"."),
+          allCommitCharacters => Empty_Vector & (+"."),
+          workDoneProgress  => (Is_Set => False)));
+      Response.result.capabilities.hoverProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.executeCommandProvider :=
-        (True, (commands => LSP.Commands.All_Commands));
+        (Is_Set => True,
+         Value  => (commands => LSP.Commands.All_Commands,
+                    workDoneProgress  => (Is_Set => False)));
 
       if Code_Action.Is_Set and then
         Code_Action.Value.codeActionLiteralSupport.Is_Set
@@ -522,7 +535,8 @@ package body LSP.Ada_Handlers is
                    (Is_Set => True,
                     Value  => LSP.Messages.To_Set
                       (From => LSP.Messages.RefactorRewrite,
-                       To   => LSP.Messages.RefactorRewrite))));
+                       To   => LSP.Messages.RefactorRewrite)),
+               workDoneProgress => (Is_Set => False)));
       else
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True, Value => <>);
@@ -714,6 +728,7 @@ package body LSP.Ada_Handlers is
                                Value  => LSP.Messages.RefactorRewrite),
                diagnostics => (Is_Set => False),
                edit        => (Is_Set => False),
+               isPreferred => (Is_Set => False),
                command     => (Is_Set => True,
                                Value  =>
                                  (Is_Unknown => False,
