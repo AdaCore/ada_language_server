@@ -22,7 +22,6 @@ with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 with Ada.Task_Identification;
-with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.Errors;
@@ -74,23 +73,17 @@ package body LSP.Servers is
      (Vector : Ada.Strings.Unbounded.Unbounded_String)
       return Ada.Streams.Stream_Element_Array;
 
-   type Response_Access is access all LSP.Messages.ResponseMessage'Class;
-
    procedure Send_Response
      (Self       : in out Server'Class;
-      Response   : in out Response_Access;
+      Response   : in out LSP.Messages.ResponseMessage'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String);
    --  Complete Response and send it to the output queue. Response will be
    --  deleted by Output_Task
 
    procedure Send_Notification
      (Self  : in out Server'Class;
-      Value : in out Message_Access);
-   --  Send given notification to client. The Notification will be deleted by
-   --  Output_Task
-
-   type Client_Request_Access is
-     access all LSP.Messages.Client_Requests.Client_Request'Class;
+      Value : in out LSP.Messages.Message'Class);
+   --  Send given notification to client.
 
    procedure Send_Request
      (Self   : in out Server'Class;
@@ -120,10 +113,6 @@ package body LSP.Servers is
      (Self       : in out Server'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String);
    --  Send RequestCancelled response
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object => LSP.Messages.Message'Class,
-      Name   => Message_Access);
 
    ------------
    -- Append --
@@ -188,8 +177,8 @@ package body LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.LogMessageParams)
    is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.LogMessage_Notification'
+      Message : LSP.Messages.Message'Class :=
+        LSP.Messages.Client_Notifications.LogMessage_Notification'
            (method  => +"window/logMessage",
             params  => Params,
             jsonrpc => <>);
@@ -304,9 +293,36 @@ package body LSP.Servers is
       is
          use type LSP.Types.LSP_String;
 
-         Message      : Message_Access;
-         Request      : Request_Access;
-         Notification : Notification_Access;
+         function Process_Message
+           (Message : LSP.Messages.Message'Class) return Boolean;
+         --  Process the message that we've just generated: log it, and enqueue
+         --  it in the input queue. Return True if this message was an exit
+         --  notification
+
+         ---------------------
+         -- Process_Message --
+         ---------------------
+
+         function Process_Message
+           (Message : LSP.Messages.Message'Class) return Boolean
+         is
+            H : Message_Holders.Holder;
+         begin
+            Self.Logger.Visit (Message);
+
+            --  Check whether this was an exit notification. Note: this must be
+            --  done *before* the call to Enqueue, since we're not guaranteed
+            --  that the memory for Message is still allocated after this call.
+
+            --  Now we have a message to process. Push it to the processing
+            --  task
+
+            H.Replace_Element (Message);
+            Self.Input_Queue.Enqueue (H);
+
+            return Message in
+              LSP.Messages.Server_Notifications.Exit_Notification;
+         end Process_Message;
 
          Is_Exit_Notification : Boolean;
 
@@ -355,9 +371,22 @@ package body LSP.Servers is
             end if;
 
             begin
-               Request :=
-                 new LSP.Messages.Server_Requests.Server_Request'Class'
-                   (LSP.Servers.Decode_Request (Document));
+               declare
+                  Request : constant
+                    LSP.Messages.Server_Requests.Server_Request'Class :=
+                      LSP.Messages.Server_Requests.Server_Request'Class'
+                      (LSP.Servers.Decode_Request (Document));
+               begin
+                  Is_Exit_Notification := Process_Message
+                    (LSP.Messages.Message'Class (Request));
+
+                  --  If the request was cancelled, then, well, it's too late,
+                  --  we just finished processing it... so, clean it up from
+                  --  the set of cancelled requests.
+                  if Self.Cancelled_Requests.Contains (Request.id) then
+                     Self.Cancelled_Requests.Delete (Request.id);
+                  end if;
+               end;
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
@@ -378,18 +407,32 @@ package body LSP.Servers is
                   return;
             end;
 
-            Self.Request_Map.Include (Request_Id, Request);
-
-            Message := Message_Access (Request);
-
          elsif Initialized
            or else Method.Value = +"exit"
          then
             --  This is a notification
             begin
-               Notification :=
-                 new Messages.Server_Notifications.Server_Notification'Class'
-                   (LSP.Servers.Decode_Notification (Document));
+               declare
+                  Notification : constant
+                    Messages.Server_Notifications.Server_Notification'Class :=
+                      Messages.Server_Notifications.Server_Notification'Class'
+                        (LSP.Servers.Decode_Notification (Document));
+               begin
+
+                  --  Process '$/cancelRequest' notification
+                  if Notification in
+                    LSP.Messages.Server_Notifications.Cancel_Notification
+                  then
+                     Request_Id :=
+                       LSP.Messages.Server_Notifications.Cancel_Notification
+                         (Notification).params.id;
+
+                     Self.Cancelled_Requests.Include (Request_Id);
+                  end if;
+
+                  Is_Exit_Notification := Process_Message
+                    (LSP.Messages.Message'Class (Notification));
+               end;
             exception
                when E : Unknown_Method =>
                   Self.Server_Trace.Trace
@@ -397,39 +440,11 @@ package body LSP.Servers is
                      & Symbolic_Traceback (E));
                   return;
             end;
-
-            --  Process '$/cancelRequest' notification
-            if Notification.all in
-              LSP.Messages.Server_Notifications.Cancel_Notification
-            then
-               Request_Id :=
-                 LSP.Messages.Server_Notifications.Cancel_Notification
-                   (Notification.all).params.id;
-
-               if Self.Request_Map.Contains (Request_Id) then
-                  Self.Request_Map (Request_Id).Canceled := True;
-               end if;
-            end if;
-
-            Message := Message_Access (Notification);
          else
             --  Ignore any notification (except 'exit') until initialization
             return;
 
          end if;
-
-         Self.Logger.Visit (Message.all);
-
-         --  Check whether this was an exit notification. Note: this must be
-         --  done *before* the call to Enqueue, since we're not guaranteed
-         --  that the memory for Message is still allocated after this call.
-
-         Is_Exit_Notification :=  Message.all in
-           LSP.Messages.Server_Notifications.Exit_Notification;
-
-         --  Now we have a message to process. Push it to the processing
-         --  task
-         Self.Input_Queue.Enqueue (Message);
 
          if Is_Exit_Notification then
             --  After "exit" notification don't read any further input.
@@ -555,8 +570,8 @@ package body LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.PublishDiagnosticsParams)
    is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
+      Message : LSP.Messages.Message'Class :=
+        LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
           (jsonrpc => <>,
            method  => +"textDocument/publishDiagnostics",
            params  => Params);
@@ -572,8 +587,8 @@ package body LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.Progress_Params)
    is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.Progress_Notification'
+      Message : LSP.Messages.Message'Class :=
+        LSP.Messages.Client_Notifications.Progress_Notification'
           (jsonrpc => <>,
            method  => +"$/progress",
            params  => Params);
@@ -660,8 +675,8 @@ package body LSP.Servers is
    is
       Exception_Text : constant String :=
         Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
-      Response       : Response_Access :=
-        new LSP.Messages.ResponseMessage'
+      Response       : LSP.Messages.ResponseMessage :=
+        LSP.Messages.ResponseMessage'
           (Is_Error => True,
            jsonrpc  => <>,  --  we will set this latter
            id       => <>,  --  we will set this latter
@@ -690,7 +705,7 @@ package body LSP.Servers is
      (Self       : in out Server'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String)
    is
-      Response : Response_Access := new LSP.Messages.ResponseMessage'
+      Response : LSP.Messages.ResponseMessage := LSP.Messages.ResponseMessage'
         (Is_Error => True,
          jsonrpc  => <>,  --  we will set this latter
          id       => <>,  --  we will set this latter
@@ -707,7 +722,7 @@ package body LSP.Servers is
      (Self       : in out Server'Class;
       Request_Id : LSP.Types.LSP_Number_Or_String)
    is
-      Response : Response_Access := new LSP.Messages.ResponseMessage'
+      Response : LSP.Messages.ResponseMessage := LSP.Messages.ResponseMessage'
         (Is_Error => True,
          jsonrpc  => <>,  --  we will set this latter
          id       => <>,  --  we will set this latter
@@ -726,12 +741,13 @@ package body LSP.Servers is
 
    procedure Send_Notification
      (Self  : in out Server'Class;
-      Value : in out Message_Access)
+      Value : in out LSP.Messages.Message'Class)
    is
+      H : Message_Holders.Holder;
    begin
       Value.jsonrpc := +"2.0";
-      Self.Output_Queue.Enqueue (Value);
-      Value := null;
+      H.Replace_Element (Value);
+      Self.Output_Queue.Enqueue (H);
    end Send_Notification;
 
    ------------------
@@ -743,15 +759,18 @@ package body LSP.Servers is
       Method : String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class)
    is
-      Message : constant Client_Request_Access :=
-        new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
+      Message : LSP.Messages.Client_Requests.Client_Request'Class :=
+        LSP.Messages.Client_Requests.Client_Request'Class'(Value);
       --  The Message will be deleted by Output_Task
+
+      H : Message_Holders.Holder;
    begin
       Message.jsonrpc := +"2.0";
       Self.Last_Request := Self.Last_Request + 1;
       Message.id := (Is_Number => True, Number => Self.Last_Request);
       Message.method := LSP.Types.To_LSP_String (Method);
-      Self.Output_Queue.Enqueue (Message_Access (Message));
+      H.Replace_Element (LSP.Messages.Message'Class (Message));
+      Self.Output_Queue.Enqueue (H);
    end Send_Request;
 
    -------------------
@@ -760,13 +779,15 @@ package body LSP.Servers is
 
    procedure Send_Response
      (Self       : in out Server'Class;
-      Response   : in out Response_Access;
-      Request_Id : LSP.Types.LSP_Number_Or_String) is
+      Response   : in out LSP.Messages.ResponseMessage'Class;
+      Request_Id : LSP.Types.LSP_Number_Or_String)
+   is
+      H : Message_Holders.Holder;
    begin
       Response.jsonrpc := +"2.0";
       Response.id := Request_Id;
-      Self.Output_Queue.Enqueue (Message_Access (Response));
-      Response := null;
+      H.Replace_Element (LSP.Messages.Message'Class (Response));
+      Self.Output_Queue.Enqueue (H);
    end Send_Response;
 
    ------------------
@@ -777,8 +798,8 @@ package body LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.ShowMessageParams)
    is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.ShowMessage_Notification'
+      Message : LSP.Messages.Message'Class :=
+        LSP.Messages.Client_Notifications.ShowMessage_Notification'
           (jsonrpc => <>,
            method  => +"window/showMessage",
            params  => Params);
@@ -839,7 +860,7 @@ package body LSP.Servers is
    function Input_Queue_Length (Self : Server) return Natural is
       Result : Natural := Natural (Self.Input_Queue.Current_Use);
    begin
-      if Self.Look_Ahead /= null then
+      if not Self.Look_Ahead.Is_Empty then
          Result := Result + 1;  --  One extra message in the look ahead buffer
       end if;
 
@@ -853,7 +874,7 @@ package body LSP.Servers is
    task body Input_Task_Type is
       Initialized : Boolean := False;
       EOF         : Boolean := False;
-      Message     : Message_Access;
+      H           : Message_Holders.Holder;
    begin
       accept Start;
 
@@ -862,9 +883,7 @@ package body LSP.Servers is
             --  Destroy any processed request
             select
                --  Process all available outputs before acceptiong Stop
-               Server.Destroy_Queue.Dequeue (Message);
-               Server.Request_Map.Delete (Request_Access (Message).id);
-               Free (Message);
+               Server.Destroy_Queue.Dequeue (H);
 
             else
                exit;
@@ -891,9 +910,8 @@ package body LSP.Servers is
       --  Memory cleanup: remove everything from Destroy_Queue before
       --  leaving this task.
       while Natural (Server.Destroy_Queue.Current_Use) > 0 loop
-         Server.Destroy_Queue.Dequeue (Message);
-         Server.Request_Map.Delete (Request_Access (Message).id);
-         Free (Message);
+         Server.Destroy_Queue.Dequeue (H);
+         H.Clear;
       end loop;
    end Input_Task_Type;
 
@@ -902,7 +920,7 @@ package body LSP.Servers is
    ----------------------
 
    task body Output_Task_Type is
-      Message : Message_Access;
+      H       : Message_Holders.Holder;
       Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
 
       Output_Queue : Message_Queues.Queue renames Server.Output_Queue;
@@ -937,16 +955,16 @@ package body LSP.Servers is
       loop
          select
             --  Process all available outputs before acceptiong Stop
-            Output_Queue.Dequeue (Message);
-            Server.Logger.Visit (Message.all);
+            Output_Queue.Dequeue (H);
+            Server.Logger.Visit (H.Element);
 
             declare
                Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True);
                Output     : Ada.Strings.Unbounded.Unbounded_String;
             begin
                LSP.Messages.Message'Class'Write
-                 (Out_Stream'Access, Message.all);
-               Free (Message);
+                 (Out_Stream'Access, H.Element);
+               H.Clear;
 
                Output := To_Unbounded_String (Out_Stream);
                --  Send the output to the stream
@@ -1000,7 +1018,7 @@ package body LSP.Servers is
          Server       : not null LSP.Server_Backends.Server_Backend_Access);
       --  Initializes internal data structures
 
-      procedure Process_Message (Message : in out Message_Access);
+      procedure Process_Message (Message : in out LSP.Messages.Message'Class);
 
       ----------------
       -- Initialize --
@@ -1023,19 +1041,18 @@ package body LSP.Servers is
       -- Process_Message --
       ---------------------
 
-      procedure Process_Message (Message : in out Message_Access) is
+      procedure Process_Message
+        (Message : in out LSP.Messages.Message'Class) is
       begin
-         if Message.all in
+         if Message in
            LSP.Messages.Server_Notifications.Server_Notification'Class
          then
             --  This is a notification
 
-            Server_Backend.Before_Work (Message.all);
+            Server_Backend.Before_Work (Message);
             LSP.Messages.Server_Notifications.Server_Notification'Class
-              (Message.all).Visit (Notif_Handler);
-            Server_Backend.After_Work (Message.all);
-
-            Free (Message);
+              (Message).Visit (Notif_Handler);
+            Server_Backend.After_Work (Message);
 
             return;
          end if;
@@ -1043,29 +1060,35 @@ package body LSP.Servers is
          declare
             --  This is a request
             Request : LSP.Messages.Server_Requests.Server_Request'Class renames
-              LSP.Messages.Server_Requests.Server_Request'Class (Message.all);
+              LSP.Messages.Server_Requests.Server_Request'Class (Message);
+            H       : Message_Holders.Holder;
          begin
 
-            if Request.Canceled then
+            if Server.Request_Cancelled (Request) then
                --  The request has been canceled
                Server.Send_Canceled_Request (Request.id);
-               Server.Destroy_Queue.Enqueue (Message);
+               H.Replace_Element (Message);
+               Server.Destroy_Queue.Enqueue (H);
                --  Request will be deleted by Input_Task
                return;
             end if;
 
-            Server_Backend.Before_Work (Message.all);
+            Server_Backend.Before_Work (Message);
             declare
-               Response : constant Message_Access :=
-                 new LSP.Messages.ResponseMessage'Class'
+               Response : constant LSP.Messages.Message'Class :=
+                 LSP.Messages.ResponseMessage'Class'
                    (LSP.Servers.Handle_Request (Req_Handler, Request));
+               H_Message  : Message_Holders.Holder;
+               H_Response : Message_Holders.Holder;
             begin
-               Output_Queue.Enqueue (Response);
+               H_Response.Replace_Element (Response);
+               Output_Queue.Enqueue (H_Response);
                --  Response will be deleted by Output_Task
-               Server.Destroy_Queue.Enqueue (Message);
+               H_Message.Replace_Element (Message);
+               Server.Destroy_Queue.Enqueue (H_Message);
                --  Request will be deleted by Input_Task
             end;
-            Server_Backend.After_Work (Message.all);
+            Server_Backend.After_Work (Message);
 
          exception
             --  If we reach this exception handler, this means an exception
@@ -1075,7 +1098,12 @@ package body LSP.Servers is
                Send_Exception_Response
                  (Server.all, E,
                   Ada.Tags.External_Tag (Message'Tag), Request.id);
-               Server.Destroy_Queue.Enqueue (Message);
+               declare
+                  H : Message_Holders.Holder;
+               begin
+                  H.Replace_Element (Message);
+                  Server.Destroy_Queue.Enqueue (H);
+               end;
          end;
 
       exception
@@ -1102,7 +1130,7 @@ package body LSP.Servers is
             Server.On_Error (E);
       end Process_Message;
 
-      Request : Message_Access;
+      Previous : Message_Holders.Holder;
    begin
       --  Perform initialization
       accept Start
@@ -1121,20 +1149,25 @@ package body LSP.Servers is
             Continue : Boolean := True;
          begin
             while Continue loop
-               Request := Server.Look_Ahead;
+               Previous := Server.Look_Ahead;
 
                select
                   Input_Queue.Dequeue (Server.Look_Ahead);
 
                else
                   --  No more message in the queue
-                  Server.Look_Ahead := null;
+                  Server.Look_Ahead.Clear;
 
                   Continue := False;
                end select;
 
-               if Request /= null then
-                  Process_Message (Request);
+               if not Previous.Is_Empty then
+                  declare
+                     Message : LSP.Messages.Message'Class := Previous.Element;
+                  begin
+                     Process_Message (Message);
+                  end;
+                  Previous.Clear;
                end if;
             end loop;
          end;
@@ -1160,14 +1193,14 @@ package body LSP.Servers is
 
       while Natural (Input_Queue.Current_Use) > 0 loop
          declare
-            X : Message_Access;
+            X : Message_Holders.Holder;
          begin
             Input_Queue.Dequeue (X);
-            Free (X);
+            X.Clear;
          end;
       end loop;
-      if Server.Look_Ahead /= null then
-         Free (Server.Look_Ahead);
+      if not Server.Look_Ahead.Is_Empty then
+         Server.Look_Ahead.Clear;
       end if;
    end Processing_Task_Type;
 
@@ -1175,13 +1208,14 @@ package body LSP.Servers is
    -- Look_Ahead_Message --
    ------------------------
 
-   function Look_Ahead_Message (Self : Server) return Message_Access is
+   function Look_Ahead_Message (Self : Server)
+                             return LSP.Messages.Message'Class is
       use type Ada.Task_Identification.Task_Id;
    begin
       pragma Assert
         (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
 
-      return Self.Look_Ahead;
+      return Self.Look_Ahead.Element;
    end Look_Ahead_Message;
 
    ----------------------

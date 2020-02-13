@@ -792,7 +792,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Params.textDocument.uri) loop
          Analyse_In_Context (C, Document, Response.result, Found);
 
-         exit when Request.Canceled or else Found;
+         exit when Self.Server.Request_Cancelled (Request) or else Found;
       end loop;
 
       return Response;
@@ -865,7 +865,7 @@ package body LSP.Ada_Handlers is
             Response.result,
             Imprecise);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       if Imprecise then
@@ -1005,7 +1005,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       if Imprecise then
@@ -1130,7 +1130,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       if Imprecise then
@@ -1216,7 +1216,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       return Response;
@@ -1239,28 +1239,32 @@ package body LSP.Ada_Handlers is
       ---------------------
 
       function Skip_Did_Change return Boolean is
-         use type LSP.Servers.Message_Access;
-
          subtype DidChangeTextDocument_Notification is LSP.Messages
            .Server_Notifications.DidChangeTextDocument_Notification;
 
-         Next : constant LSP.Servers.Message_Access :=
-           Self.Server.Look_Ahead_Message;
       begin
-         if Next = null
-           or else Next.all not in
-             DidChangeTextDocument_Notification'Class
-         then
+         if not Self.Server.Has_Look_Ahead_Message then
             return False;
          end if;
 
          declare
-            Object : DidChangeTextDocument_Notification'Class renames
-              DidChangeTextDocument_Notification'Class (Next.all);
+            Next : constant LSP.Messages.Message'Class :=
+              Self.Server.Look_Ahead_Message;
          begin
-            if Object.params.textDocument.uri /= Value.textDocument.uri then
+            if Next not in
+              DidChangeTextDocument_Notification'Class
+            then
                return False;
             end if;
+
+            declare
+               Object : DidChangeTextDocument_Notification'Class renames
+                 DidChangeTextDocument_Notification'Class (Next);
+            begin
+               if Object.params.textDocument.uri /= Value.textDocument.uri then
+                  return False;
+               end if;
+            end;
          end;
 
          return True;
@@ -1491,7 +1495,9 @@ package body LSP.Ada_Handlers is
       --  Get the associated basic declaration
       Decl := Defining_Name_Node.P_Basic_Decl;
 
-      if Decl = No_Basic_Decl or else Request.Canceled then
+      if Decl = No_Basic_Decl or else
+        Self.Server.Request_Cancelled (Request)
+      then
          return Response;
       end if;
 
@@ -1691,7 +1697,9 @@ package body LSP.Ada_Handlers is
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
-         if Definition = No_Defining_Name or else Request.Canceled then
+         if Definition = No_Defining_Name
+           or else Self.Server.Request_Cancelled (Request)
+         then
             return;
          end if;
 
@@ -1713,7 +1721,9 @@ package body LSP.Ada_Handlers is
                      Get_Reference_Kind (Node.As_Ada_Node));
                end if;
 
-               exit when Count = 0  and then Request.Canceled;
+               exit when Count = 0
+                 and then Self.Server.Request_Cancelled (Request);
+               --  ??? Should the test say "or else"?
             end loop;
 
             if Value.context.includeDeclaration then
@@ -1729,7 +1739,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       if Imprecise then
@@ -1805,7 +1815,7 @@ package body LSP.Ada_Handlers is
 
          if Definition = No_Defining_Name
            or else not Definition.P_Basic_Decl.P_Is_Subprogram
-           or else Request.Canceled
+           or else Self.Server.Request_Cancelled (Request)
          then
             return;
          end if;
@@ -1839,7 +1849,10 @@ package body LSP.Ada_Handlers is
                                       Get_Reference_Kind (Ref.As_Name));
                      Count := Count - 1;
 
-                     if Count = 0 and then Request.Canceled then
+                     if Count = 0
+                       and then Self.Server.Request_Cancelled (Request)
+                       --  ??? should the test say "or else"?
+                     then
                         return;
                      end if;
                   end loop;
@@ -1856,7 +1869,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
 
       if Imprecise then
@@ -2099,7 +2112,9 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         if Definition = No_Defining_Name or Request.Canceled then
+         if Definition = No_Defining_Name
+           or else Self.Server.Request_Cancelled (Request)
+         then
             return;
          end if;
 
@@ -2146,7 +2161,8 @@ package body LSP.Ada_Handlers is
                      Response.result.changes (Location.uri).Append (Item);
                   end if;
 
-                  exit when Count = 0 and then Request.Canceled;
+                  exit when Count = 0
+                    and then Self.Server.Request_Cancelled (Request);
 
                   Count := Count - 1;
                end;
@@ -2158,7 +2174,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Request_Cancelled (Request);
       end loop;
       return Response;
    end On_Rename_Request;

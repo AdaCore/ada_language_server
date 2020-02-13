@@ -20,12 +20,14 @@
 --  The Server object is initializad with Request and Notification handlers,
 --  that actually implements message processing.
 
+with Ada.Containers.Indefinite_Holders;
 with Ada.Streams;
 with Ada.Exceptions;
 
 with LSP.Client_Message_Receivers;
 with LSP.Message_Loggers;
 with LSP.Messages.Client_Requests;
+with LSP.Messages.Server_Requests;
 with LSP.Messages;
 with LSP.Server_Backends;
 with LSP.Server_Notification_Receivers;
@@ -35,13 +37,12 @@ with LSP.Types;
 with GNATCOLL.Traces;
 
 private with Ada.Strings.Unbounded;
-private with Ada.Containers.Hashed_Maps;
+private with Ada.Containers.Hashed_Sets;
 private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
 private with LSP.Messages.Server_Notifications;
-private with LSP.Messages.Server_Requests;
 
 package LSP.Servers is
 
@@ -82,15 +83,25 @@ package LSP.Servers is
    procedure Stop (Self : in out Server);
    --  Ask server to stop
 
-   type Message_Access is access all LSP.Messages.Message'Class;
+   function Has_Look_Ahead_Message (Self : Server) return Boolean;
+   --  Return True if there's a message in the look-ahead queue.
 
-   function Look_Ahead_Message (Self : Server) return Message_Access;
+   function Look_Ahead_Message (Self : Server)
+                                return LSP.Messages.Message'Class;
    --  Get next nessage in the queue if any. Only request/notification
    --  handlers are allowed to call this function.
+   --  This call is valid only if Has_Look_Ahead_Message.
 
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
+
+   function Request_Cancelled
+     (Self    : Server;
+      Request : LSP.Messages.Server_Requests.Server_Request'Class)
+      return Boolean;
+   --  Return True if the server has received the information that Request
+   --  should be cancelled.
 
    overriding procedure On_Show_Message
      (Self   : access Server;
@@ -161,16 +172,19 @@ private
    type Notification_Access is
      access all LSP.Messages.Server_Notifications.Server_Notification'Class;
 
-   package Request_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_Number_Or_String,  --  Request id
-      Element_Type    => Request_Access,
-      Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
-      "="             => "=");
+   use type LSP.Types.LSP_Number_Or_String;
+   package Request_Id_Sets is new Ada.Containers.Hashed_Sets
+     (Element_Type        => LSP.Types.LSP_Number_Or_String,  --  Request id
+      Hash                => LSP.Types.Hash,
+      Equivalent_Elements => "=");
+
+   package Message_Holders is new Ada.Containers.Indefinite_Holders
+     (LSP.Messages.Message'Class,
+      "=" => LSP.Messages."=");
 
    package Message_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
-       (Message_Access);
+       (Message_Holders.Holder);
 
    package Message_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
@@ -229,13 +243,16 @@ private
 
       --  Queues and tasks used for asynchronous processing, see doc above
       Input_Queue     : Message_Queues.Queue;
-      Look_Ahead      : Message_Access;
+      Look_Ahead      : Message_Holders.Holder;
       --  One message look-ahead buffer for Input_Queue
       Output_Queue    : Message_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
-      Request_Map     : Request_Maps.Map;
+
+      Cancelled_Requests : Request_Id_Sets.Set;
+      --  The IDs for the requests that have been cancelled
+
       Destroy_Queue   : Message_Queues.Queue;
 
       Server_Trace    : GNATCOLL.Traces.Trace_Handle;
@@ -248,4 +265,14 @@ private
    Unknown_Method : exception;
    --  This exception is raised by message decoder when it's unable to decode
    --  an unknown request
+
+   function Has_Look_Ahead_Message (Self : Server) return Boolean is
+     (not Self.Look_Ahead.Is_Empty);
+
+   function Request_Cancelled
+     (Self    : Server;
+      Request : LSP.Messages.Server_Requests.Server_Request'Class)
+      return Boolean is
+     (Self.Cancelled_Requests.Contains (Request.id));
+
 end LSP.Servers;
