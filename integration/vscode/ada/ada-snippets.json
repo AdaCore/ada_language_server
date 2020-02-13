@@ -128,17 +128,18 @@
     "Function Declaration": {
         "prefix": "function",
         "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6${7|;, is abstract;, is ($8);, renames |}"
+            "${1|function,overriding function,not overriding function|} ${2:Name} ($3) return ${4:Return_Type}${5|;, is abstract;, is ();, renames |}"
         ],
         "description": "Function Declaration"
     },
     "Function Body": {
         "prefix": "function",
         "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6 is",
+            "${1|function,overriding function,not overriding function|} ${2:Name} ($3) return ${4:Return_Type} is",
+            "   $5",
             "begin",
             "   $0",
-            "end ${3:Name};"
+            "end ${2:Name};"
         ],
         "description": "Function Body"
     },
