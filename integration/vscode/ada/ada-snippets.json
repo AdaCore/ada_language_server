@@ -68,7 +68,7 @@
 		"scope": "ada",
 		"body": [
 			"elsif ${1:Condition} then",
-			"\t$0"
+			"   $0"
 		],
 		"description": "Elsif Statement"
     },
@@ -85,9 +85,9 @@
 		"scope": "ada",
 		"body": [
 			"entry ${1:Name} when ${2:Guard_Condition} is",
-			"\t$3",
+			"   $3",
 			"begin",
-			"\t$0",
+			"   $0",
 			"end ${1:Name};"
 		],
 		"description": "Entry Body"
@@ -143,37 +143,196 @@
         ],
         "description": "Function Body"
     },
+    "Generic Formal Part": {
+		"prefix": "generic",
+		"scope": "ada",
+		"body": [
+			"generic",
+			"   $1",
+			"$0"
+		],
+		"description": "Generic Formal Part"
+    },
+    "If Statement": {
+		"prefix": "if",
+		"scope": "ada",
+		"body": [
+			"if ${1:Condition} then",
+			"   $0",
+			"end if;"
+		],
+		"description": "If Statement"
+    },
+    "Interface Type Definition": {
+		"prefix": "interface",
+		"scope": "ada",
+		"body": [
+			"type ${1:Name} is ${2|interface,limited interface,synchronized interface,task interface,protected interface|};"
+		],
+		"description": "Interface Type Definition"
+    },
+    "Loop Statement": {
+		"prefix": "loop",
+		"scope": "ada",
+		"body": [
+			"loop",
+			"   $0",
+			"end loop;"
+		],
+		"description": "Loop Statement"
+    },
+    "Operator Declaration": {
+		"prefix": "operator",
+		"scope": "ada",
+		"body": [
+			"function \"${1|and,or,xor,=,<,<=,>,>=,+,-,&,*,/,mod,rem,**,not,abs|}\"($2) return ${3:Return_Type};"
+		],
+		"description": "Operator Declaration"
+	},
+    "Operator Body": {
+		"prefix": "operator",
+		"scope": "ada",
+		"body": [
+			"function \"${1|and,or,xor,=,<,<=,>,>=,+,-,&,*,/,mod,rem,**,not,abs|}\"($2) return ${3:Return_Type} is",
+			"   $2",
+			"begin",
+			"   $0",
+			"end ${1:Name};"
+		],
+		"description": "Operator Body"
+	},
     "Package Declaration or Body": {
         "prefix": "package",
         "body": [
-            "package ${1:body }${2:Name} is",
+            "${1|package,package body|} ${2:Name} is",
             "   ${3|pragma Preelaborate;,pragma Pure;|}$0",
             "private",
             "end ${2:Name};"
         ],
         "description": "Package Declaration or Body"
     },
+    "Pragma Directive": {
+		"prefix": "pragma",
+		"scope": "ada",
+		"body": [
+			"pragma ${1|Abort_Defer,Ada_83,Ada_95,Ada_2005,Ada_2012,All_Calls_Remote,Annotate,Assert,Assertion_Policy,Assume_No_Invalid_Values,Ast_Entry,Canonical_Streams,Check,Check_Name,Check_Policy,Comment,Common_Object,Compile_Time_Error,Compile_Time_Warning,Complete_Representation,Complex_Representation,Component_Alignment,Convention_Identifier,CPP_Class,CPP_Constructor,CPP_Virtual,CPP_VTable,CPU,C_Pass_By_Copy,Debug,Debug_Policy,Default_Storage_Pool,Detect_Blocking,Discard_Names,Dispatching_Domain,Elaborate,Elaborate_All,Elaborate_Body,Elaboration_Checks,Eliminate,Export_Exception,Export_Function,Export_Object,Export_PRocedure,Export_Value,Export_Valued_Procedure,Extend_System,Extensions_Allowed,External,External_Name_Casing,Fast_Math,Favor_Top_Level,Finalize_Storage_Only,Float_Representation,Ident,Implemented,Implicit_Packing,Import_Exception,Import_Function,Import_Object,Import_Procedure,Import_Valued_Procedure,Independent,Independent_Component,Initialize_Scalars,Inline_Always,Inline_Generic,Inspection_Point,Interface_Name,Interrupt_State,Invariant,Keep_Names,License,Linker_Alias,Linker_Constructor,Linker_Destructor,Linker_Options,Linker_Section,Link_With,List,Locking_Policy,Long_Float,Machine_Attribute,Main,Main_Storage,Normalize_Scalars,No_Body,No_StricT_Aliasing,Obsolescent,Optimize,Optimize_Alignment,Ordered,Page,Partition_Elaboration_Policy,Passive,Persistent_BSS,Polling,Postcondition,Precondition,Preelaborate,Priority_Specific_Dispatching,Profile,Profile_Warnings,Propagate_Exceptions,Psect_Object,Pure,Pure_Function,Queueing_Policy,Relative_Deadline,Remote_Call_Interface,Remote_Types,Restrictions,Restriction_Warnings,Reviewable,Shared_Passive,Share_Generic,Short_Circuit_And_Or,Short_Descriptors,Simple_Storage_Pool_Type,Source_File_Name,Source_File_Name_Project,Source_Reference,Static_Elaboration_Desired,Storage_Size,Stream_Convert,Style_Checks,Subtitle,Suppress,Suppress_All,Suppress_Exception_Locations,Suppress_Initialization,Task_Dispatching_Policy,Task_Info,Task_Name,Task_Storage,Test_Case,Thread_Body,Thread_Local_Storage,Time_Slice,Title,Unchecked_Union,Unimplemented_Unit,Universal_Aliasing,Universal_Data,Unmodified,Unreferenced,Unreferenced_Objects,Unreserve_All_Interrupts,Unsuppress,Use_VADS_Size,Validity_Checks,Volatile,Volatile_Components,Warnings,Weak_External,Wide_Character_Encoding|}$0;"
+		],
+		"description": "Pragma Directive"
+	},
     "Procedure Declaration": {
         "prefix": "procedure",
         "body": [
-            "${1:${2:not }overriding }procedure ${3:Name} (${4:Self} : $5)${6|;, is abstract;, is null;, renames |}"
+            "${1|procedure,overriding procedure,not overriding procedure|} ${2:Name} (${3})${4|;, is abstract;, is null;, renames |}"
         ],
         "description": "Procedure Declaration"
     },
     "Procedure Body": {
         "prefix": "procedure",
         "body": [
-            "${1:${2:not }overriding }procedure ${3:Name} (${4:Self} : $5) is",
+            "${1|procedure,overriding procedure,not overriding procedure|} ${2:Name} ($3) is",
+            "   $4",
             "begin",
             "   $0",
-            "end ${3:Name};"
+            "end ${2:Name};"
         ],
         "description": "Procedure Body"
     },
+    "Protected Type Declaration": {
+		"prefix": "protected",
+		"scope": "ada",
+		"body": [
+			"protected ${1:Name} is",
+			"   $0",
+			"private",
+			"   ",
+			"end ${1:Name};"
+		],
+		"description": "Protected Declaration"
+    },
+    "Protected Type Body": {
+		"prefix": "protected-body",
+		"scope": "ada",
+		"body": [
+			"protected body ${1:Name} is",
+			"   $0",
+			"end ${1:Name};"
+		],
+		"description": "Protected Body"
+    },
+    "Record Type Definition": {
+		"prefix": "record",
+		"scope": "ada",
+		"body": [
+			"type ${1:Name} is ${2|record,tagged record,abstract tagged record,limited record,tagged limited record,abstract tagged limited record|}",
+			"   $0",
+			"end record;"
+		],
+		"description": "Record Type Definition"
+    },
+    "Select Statement": {
+		"prefix": "select",
+		"scope": "ada",
+		"body": [
+			"select",
+			"   $0",
+			"${1|or,else|}",
+			"   ",
+			"end select;"
+		],
+		"description": "Select Statement"
+    },
+    "Select Statement - Asynchronous": {
+		"prefix": "select",
+		"scope": "ada",
+		"body": [
+			"select",
+			"   $0",
+			"then abort",
+			"   ",
+			"end select;"
+		],
+		"description": "Asynchronous Select Statement"
+    },
+    "Select Statement - Timed": {
+		"prefix": "select",
+		"scope": "ada",
+		"body": [
+			"select",
+			"   $0",
+			"or",
+			"   delay ${1:Delay_Amount};",
+			"end select;"
+		],
+		"description": "Timed Select Statement"
+    },
+    "Task Definition": {
+		"prefix": "task",
+		"scope": "ada",
+		"body": [
+			"${1|task,task type|} ${2:Name} is",
+			"   $0",
+			"private",
+			"   ",
+			"end ${2:Name};"
+		],
+		"description": "Task Definition"
+    },
+    "Task Body": {
+		"prefix": "task-body",
+		"scope": "ada",
+		"body": [
+			"task body ${1:Name} is",
+			"   $2",
+			"begin",
+			"   $0",
+			"end ${1:Name};"
+		],
+		"description": "Task body"
+	},
     "While Loop Statement": {
         "prefix": "while",
         "body": [
-            "while ${1} loop",
+            "while ${1:Condition} loop",
             "   $0",
             "end loop;"
         ],
