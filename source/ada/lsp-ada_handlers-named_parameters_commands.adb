@@ -99,8 +99,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
 
-      Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context).all;
+      Context   : LSP.Ada_Contexts.Context renames
+        Message_Handler.Contexts.Get (Self.Context);
 
       Document  : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
