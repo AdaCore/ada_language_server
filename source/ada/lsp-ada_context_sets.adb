@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 
 with URIs;
@@ -27,9 +25,6 @@ package body LSP.Ada_Context_Sets is
      (Create (+(URIs.Conversions.To_File (LSP.Types.To_UTF_8_String (URI)))));
    --  Utility conversion function
 
-   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-     (LSP.Ada_Contexts.Context, Context_Access);
-
    -------------
    -- Cleanup --
    -------------
@@ -38,10 +33,9 @@ package body LSP.Ada_Context_Sets is
    begin
       while not Self.Contexts.Is_Empty loop
          declare
-            C : Context_Access := Self.Contexts.First_Element;
+            C : LSP.Ada_Contexts.Context := Self.Contexts.First_Element;
          begin
             C.Free;
-            Unchecked_Free (C);
          end;
          Self.Contexts.Delete_First;
       end loop;
@@ -62,7 +56,7 @@ package body LSP.Ada_Context_Sets is
       Result : Context_Lists.List;
    begin
       for C of Self.Contexts loop
-         if Predicate (C.all) then
+         if Predicate (C) then
             Result.Append (C);
          end if;
       end loop;
@@ -75,7 +69,7 @@ package body LSP.Ada_Context_Sets is
 
    function Get_Best_Context
      (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Access
+      URI  : LSP.Messages.DocumentUri) return LSP.Ada_Contexts.Context
    is
       File : constant Virtual_File := To_File (URI);
    begin
@@ -94,7 +88,7 @@ package body LSP.Ada_Context_Sets is
 
    function Get
      (Self : Context_Set;
-      Id   : LSP.Types.LSP_String) return Context_Access is
+      Id   : LSP.Types.LSP_String) return LSP.Ada_Contexts.Context is
    begin
       return Self.Map (Id);
    end Get;
@@ -114,7 +108,7 @@ package body LSP.Ada_Context_Sets is
 
    procedure Prepend
      (Self : in out Context_Set'Class;
-      Item : Context_Access) is
+      Item : LSP.Ada_Contexts.Context) is
    begin
       Self.Contexts.Prepend (Item);
       Self.Map.Insert (Item.Id, Item);

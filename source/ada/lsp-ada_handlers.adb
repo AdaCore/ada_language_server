@@ -81,11 +81,9 @@ package body LSP.Ada_Handlers is
    --  of a possible imprecise result while computing xrefs on the given
    --  node.
 
-   subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
-
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
-      In_Context : Context_Access;
+      In_Context : LSP.Ada_Contexts.Context;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
       Definition : out Libadalang.Analysis.Defining_Name;
       Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log);
@@ -257,7 +255,7 @@ package body LSP.Ada_Handlers is
 
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
-      In_Context : Context_Access;
+      In_Context : LSP.Ada_Contexts.Context;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
       Definition : out Libadalang.Analysis.Defining_Name;
       Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log)
@@ -412,7 +410,7 @@ package body LSP.Ada_Handlers is
 
          Self.Trace.Trace ("Loading the implicit project");
          declare
-            C    : constant Context_Access := new Context (Self.Trace);
+            C    : LSP.Ada_Contexts.Context (Self.Trace);
             Attr : GNAT.Strings.String_List (1 .. 1);
             use GNATCOLL.Projects;
          begin
@@ -593,7 +591,7 @@ package body LSP.Ada_Handlers is
       Params   : LSP.Messages.CodeActionParams renames Request.params;
 
       procedure Analyse_In_Context
-        (Context  : Context_Access;
+        (Context  : LSP.Ada_Contexts.Context;
          Document : LSP.Ada_Documents.Document_Access;
          Result   : out LSP.Messages.CodeAction_Vector;
          Found    : in out Boolean);
@@ -607,7 +605,7 @@ package body LSP.Ada_Handlers is
       --  ParamAssoc without a designator.
 
       procedure Analyse_Node
-        (Context : Context_Access;
+        (Context : LSP.Ada_Contexts.Context;
          Node    : Libadalang.Analysis.Ada_Node;
          Result  : out LSP.Messages.CodeAction_Vector;
          Found   : in out Boolean;
@@ -679,7 +677,7 @@ package body LSP.Ada_Handlers is
       ------------------
 
       procedure Analyse_Node
-        (Context : Context_Access;
+        (Context : LSP.Ada_Contexts.Context;
          Node    : Libadalang.Analysis.Ada_Node;
          Result  : out LSP.Messages.CodeAction_Vector;
          Found   : in out Boolean;
@@ -704,7 +702,7 @@ package body LSP.Ada_Handlers is
             end if;
 
             Command.Initialize
-              (Context => Context.all,
+              (Context => Context,
                Where   => ((uri => Where.uri), Where.span.first));
 
             Pointer.Set (Command);
@@ -763,14 +761,14 @@ package body LSP.Ada_Handlers is
       ------------------------
 
       procedure Analyse_In_Context
-        (Context  : Context_Access;
+        (Context  : LSP.Ada_Contexts.Context;
          Document : LSP.Ada_Documents.Document_Access;
          Result   : out LSP.Messages.CodeAction_Vector;
          Found    : in out Boolean)
       is
          Done : Boolean := False;  --  True when futher analysis has no sense
          Node : Libadalang.Analysis.Ada_Node :=
-           Document.Get_Node_At (Context.all, Params.span.first);
+           Document.Get_Node_At (Context, Params.span.first);
       begin
          while not Done and then not Node.Is_Null loop
             Analyse_Node (Context, Node, Result, Found, Done);
@@ -900,14 +898,14 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Position.textDocument.uri);
 
-      procedure Resolve_In_Context (C : Context_Access);
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : Context_Access) is
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context) is
          Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
            (C.Get_Node_At (Document, Position));
 
@@ -1040,7 +1038,7 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      procedure Resolve_In_Context (C : Context_Access);
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context);
       --  Utility function, appends to Resonse.result all results of the
       --  definition requests found in context C.
 
@@ -1048,7 +1046,7 @@ package body LSP.Ada_Handlers is
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : Context_Access) is
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context) is
          Name_Node               : constant Name :=
                                      LSP.Lal_Utils.Get_Node_As_Name
                                        (C.Get_Node_At (Document, Value));
@@ -1165,14 +1163,14 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Position.textDocument.uri);
 
-      procedure Resolve_In_Context (C : Context_Access);
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context);
       --  Utility function to gather results on one context
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : Context_Access) is
+      procedure Resolve_In_Context (C : LSP.Ada_Contexts.Context) is
          Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
              (C.Get_Node_At (Document, Position));
          Definition     : Defining_Name;
@@ -1305,7 +1303,7 @@ package body LSP.Ada_Handlers is
          if Self.Diagnostics_Enabled
            and then not Diags_Already_Published
          then
-            Document.Get_Errors (Context.all, Diag.diagnostics);
+            Document.Get_Errors (Context, Diag.diagnostics);
             Diag.uri := Value.textDocument.uri;
             Self.Server.On_Publish_Diagnostics (Diag);
             Diags_Already_Published := True;
@@ -1397,7 +1395,7 @@ package body LSP.Ada_Handlers is
             if Self.Diagnostics_Enabled
               and then not Diags_Already_Published
             then
-               Object.Get_Errors (Context.all, Diag.diagnostics);
+               Object.Get_Errors (Context, Diag.diagnostics);
                Diag.uri := Value.textDocument.uri;
                Self.Server.On_Publish_Diagnostics (Diag);
 
@@ -1478,7 +1476,7 @@ package body LSP.Ada_Handlers is
       Location_Text      : LSP_String;
       Decl_Unit_File     : Virtual_File;
 
-      C : constant Context_Access :=
+      C : constant LSP.Ada_Contexts.Context :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
@@ -1605,7 +1603,7 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
-      procedure Process_Context (C : Context_Access);
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
       --  Process the references found in one context and append
       --  them to Response.results.
 
@@ -1688,7 +1686,7 @@ package body LSP.Ada_Handlers is
       -- Process_Context --
       ---------------------
 
-      procedure Process_Context (C : Context_Access) is
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
          Definition : Defining_Name;
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
@@ -1788,7 +1786,7 @@ package body LSP.Ada_Handlers is
          return Result;
       end Get_Reference_Kind;
 
-      procedure Process_Context (C : Context_Access);
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
       --  Process the calls found in one context and append
       --  them to Response.results.
 
@@ -1796,7 +1794,7 @@ package body LSP.Ada_Handlers is
       -- Process_Context --
       ---------------------
 
-      procedure Process_Context (C : Context_Access) is
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
          Definition : Defining_Name;
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
@@ -1815,7 +1813,7 @@ package body LSP.Ada_Handlers is
          declare
             This_Imprecise : Boolean;
             Called  : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Find_All_Calls (C.all, Definition, This_Imprecise);
+              LSP.Lal_Utils.Find_All_Calls (C, Definition, This_Imprecise);
 
             use LSP.Lal_Utils.References_By_Subprogram;
             C     : Cursor := Called.First;
@@ -1992,7 +1990,7 @@ package body LSP.Ada_Handlers is
       Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
-      Context  : constant Context_Access :=
+      Context  : constant LSP.Ada_Contexts.Context :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
    begin
@@ -2002,7 +2000,7 @@ package body LSP.Ada_Handlers is
          error    => (Is_Set => False),
          others   => <>)
       do
-         Self.Get_Symbols (Document.all, Context.all, Result.result);
+         Self.Get_Symbols (Document.all, Context, Result.result);
       end return;
    end On_Document_Symbols_Request;
 
@@ -2024,7 +2022,7 @@ package body LSP.Ada_Handlers is
       Document  : constant LSP.Ada_Documents.Document_Access :=
                    Get_Open_Document (Self, Value.textDocument.uri);
 
-      procedure Process_Context (C : Context_Access);
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
       --  Process the rename request for the given context, and add
       --  the results to response.
 
@@ -2032,7 +2030,7 @@ package body LSP.Ada_Handlers is
       -- Process_Context --
       ---------------------
 
-      procedure Process_Context (C : Context_Access) is
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
          Position : constant LSP.Messages.TextDocumentPositionParams :=
                       (Value.textDocument, Value.position);
 
@@ -2298,7 +2296,7 @@ package body LSP.Ada_Handlers is
       --------------------------------------
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
-         C : constant Context_Access := new Context (Self.Trace);
+         C : LSP.Ada_Contexts.Context (Self.Trace);
       begin
          C.Initialize;
          C.Load_Project (Tree    => Self.Project_Tree,
@@ -2572,13 +2570,12 @@ package body LSP.Ada_Handlers is
         Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
-      Context  : constant Context_Access :=
+      Context  : constant LSP.Ada_Contexts.Context :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
-      Document.Get_Completions_At
-        (Context.all, Value.position, Response.result);
+      Document.Get_Completions_At (Context, Value.position, Response.result);
       return Response;
    end On_Completion_Request;
 

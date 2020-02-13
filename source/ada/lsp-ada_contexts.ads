@@ -32,8 +32,7 @@ with LSP.Types;
 
 package LSP.Ada_Contexts is
 
-   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is
-     tagged limited private;
+   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged private;
    --  A context contains a non-aggregate project tree and its associated
    --  libadalang context.
 
@@ -175,7 +174,7 @@ private
       Default_Project,        --  No project provided or found, use default
       Found_Unique_Project);  --  No project provided, but server found one
 
-   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
+   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged record
       Id             : LSP.Types.LSP_String;
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
