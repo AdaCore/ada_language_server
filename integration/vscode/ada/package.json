@@ -54,6 +54,18 @@
                 "configuration": "./language-configuration.json"
             },
             {
+                "id": "ali",
+                "aliases": [
+                    "ALI",
+                    "Ali",
+                    "ali",
+                    "Ada Library Information"
+                ],
+                "extensions": [
+                    ".ali"
+                ]
+            },
+            {
                 "id": "gpr",
                 "aliases": [
                     "GNAT Project",
@@ -70,6 +82,11 @@
                 "language": "ada",
                 "scopeName": "source.ada",
                 "path": "./syntaxes/ada.tmLanguage.json"
+            },
+            {
+                "language": "ali",
+                "scopeName": "source.ali",
+                "path": "./syntaxes/ali.tmLanguage.json"
             },
             {
                 "language": "gpr",
