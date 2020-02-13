@@ -125,14 +125,22 @@
         ],
         "description": "For Loop Statement"
     },
-    "While Loop Statement": {
-        "prefix": "while",
+    "Function Declaration": {
+        "prefix": "function",
         "body": [
-            "while ${1} loop",
-            "   $0",
-            "end loop;"
+            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6${7|;, is abstract;, is ($8);, renames |}"
         ],
-        "description": "While Loop Statement"
+        "description": "Function Declaration"
+    },
+    "Function Body": {
+        "prefix": "function",
+        "body": [
+            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6 is",
+            "begin",
+            "   $0",
+            "end ${3:Name};"
+        ],
+        "description": "Function Body"
     },
     "Package Declaration or Body": {
         "prefix": "package",
@@ -161,21 +169,13 @@
         ],
         "description": "Procedure Body"
     },
-    "Function Declaration": {
-        "prefix": "function",
+    "While Loop Statement": {
+        "prefix": "while",
         "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6${7|;, is abstract;, is ($8);, renames |}"
-        ],
-        "description": "Function Declaration"
-    },
-    "Function Body": {
-        "prefix": "function",
-        "body": [
-            "${1:${2:not }overriding }function ${3:Name} (${4:Self} : $5) return $6 is",
-            "begin",
+            "while ${1} loop",
             "   $0",
-            "end ${3:Name};"
+            "end loop;"
         ],
-        "description": "Function Body"
+        "description": "While Loop Statement"
     }
 }
