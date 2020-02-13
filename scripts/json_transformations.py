@@ -34,7 +34,7 @@ def traces_to_test(inout_file, project_root=None, input_only=False):
     # request to send, and "waits" containing a list of things to await
     # corresponding to that request
     with open(inout_file, 'rb') as f:
-        in_re = re.compile('([^{]*) ({.*})')
+        in_re = re.compile(' *([^{]*) ({.*})')
         for line in f.readlines():
             m = in_re.match(line)
             if m:
