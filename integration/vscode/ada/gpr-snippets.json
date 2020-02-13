@@ -1,19 +1,44 @@
 {
-    "Project Declaration": {
-        "prefix": "project",
-        "body": [
-            "${1:aggregate} ${2:library} project ${3:Name} ${4:extends $5} is",
-            "   $0",
-            "end ${3:Name};"
-        ],
-        "description": "Project Declaration"
+    "Case Statement": {
+		"prefix": "case",
+		"scope": "gpr",
+		"body": [
+			"case ${1:Variable} is",
+			"   when \"${3:Condition}\" =>",
+			"      $0",
+			"   when others =>",
+			"      $2",
+			"end case;"
+		],
+		"description": "Case Statement"
     },
     "Package Declaration": {
-        "prefix": "package",
+		"prefix": "package",
+		"scope": "gpr",
+		"body": [
+			"package ${1|Binder,Builder,Check,Clean,Compiler,Cross_Reference,Documentation,Eliminate,Finder,Gnatls,Gnatstub,IDE,Install,Linker,Metrics,Naming,Pretty_Printer,Remote,Stack,Synchronize|} is",
+			"   $0",
+			"end $1;"
+		],
+		"description": "Package Declaration"
+	},
+    "Package Extension": {
+		"prefix": "package",
+		"scope": "gpr",
+		"body": [
+			"package ${1:Name} extends ${2} is",
+			"   $0",
+			"end $1;"	
+		],
+		"description": "Package Extension"
+	},
+    "Project Declaration": {
+        "prefix": "project",
+        "scope": "gpr",
         "body": [
-            "package ${1:Name} ${2:extends $3} is",
+            "${1|project,abstract project,aggregate project,library project|} ${2:Name} ${3|is,extends \"\" is|}",
             "   $0",
-            "end ${1:Name};"
+            "end ${2:Name};"
         ],
         "description": "Project Declaration"
     }
