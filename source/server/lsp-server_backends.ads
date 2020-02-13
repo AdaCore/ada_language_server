@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2019-2020, AdaCore                     --
+--                        Copyright (C) 2019, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,11 +30,8 @@ package LSP.Server_Backends is
    --  Called before working on Message
 
    procedure After_Work
-     (Self             : access Server_Backend;
-      Message          : LSP.Messages.Message'Class;
-      Has_Pending_Work : Boolean) is abstract;
-   --  Called after working on Message. Has_Pending_Work is True if the server
-   --  has work in the queue, other than the notification/request it's
-   --  currently processing.
+     (Self    : access Server_Backend;
+      Message : LSP.Messages.Message'Class) is abstract;
+   --  Called after working on Message
 
 end LSP.Server_Backends;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2019, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -176,9 +176,8 @@ private
       Message : LSP.Messages.Message'Class);
 
    overriding procedure After_Work
-     (Self             : access Message_Handler;
-      Message          : LSP.Messages.Message'Class;
-      Has_Pending_Work : Boolean);
+     (Self    : access Message_Handler;
+      Message : LSP.Messages.Message'Class);
 
    overriding function On_Initialize_Request
      (Self    : access Message_Handler;
