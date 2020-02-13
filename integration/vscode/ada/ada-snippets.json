@@ -1,4 +1,48 @@
 {
+    "Accept Statement": {
+        "prefix": "accept",
+        "scope": "ada",
+        "body": [
+            "accept ${1:Name} do",
+            "   $0",
+            "end ${1:Name};"
+        ],
+        "description": "Accept Statement"
+    },
+    "Access Type Definition": {
+        "prefix": "access",
+        "scope": "ada",
+        "body": [
+            "type ${1:Name} is ${2|access,access all,access constant|} of ${3:Some_Type};"
+        ],
+        "description": "Access Type Definition"
+    },
+    "Array Type Definition": {
+        "prefix": "array",
+        "scope": "ada",
+        "body": [
+            "type ${1:Name} is array($2) of ${3:Element_Type};"
+        ],
+        "description": "Array Type Definition"
+    },
+    "Aspect Specification": {
+        "prefix": "aspect",
+        "scope": "ada",
+        "body": [
+            "with ${1|Ada_2005,Ada_2012,Address,Alignment,All_Calls_Remote,Asynchronous,Atomic,Atomic_Components,Attach_Handler,Bit_Order,Component_Size,Constant_Indexing,Convention,CPU,Default_Component_Value,Default_Iterator,Default_Storage_Pool,Default_Value,Dispatching_Domain,Dynamic_Predicate,Elaborate_Body,Export,External_Name,External_Tag,Favor_Top_Level,Implicit_Dereference,Import,Independent,Independent_Components,Inline,Inline_Always,Input,Interrupt_Handler,Interrupt_Priority,Iterator_Element,Link_Name,Machine_Radix,No_Return,Object_Size,Output,Pack,Persistent_BSS,Post,Pre,Preelaborate,Priority,Pure,Pure_Function,Read,Relative_Deadline,Remote_Access_Type,Remote_Call_Interface,Remote_Types,Shared,Shared_Passive,Size,Small,Static_Predicate,Storage_Pool,Storage_Size,Stream_Size,Suppress_Debug_Info,Synchronization,Test_Case,Type_Invariant,Unchecked_Union,Universal_Aliasing,Unmodified,Unreferenced,Unreferenced_Objects,Value_Size,Variable_Indexing,Volatile,Volatile_Components,Warnings,Write|}"
+        ],
+        "description": "Aspect Specification"
+    },
+    "Case Statement": {
+		"prefix": "case",
+		"scope": "ada",
+		"body": [
+			"case ${1:Variable} is",
+			"   $0",
+			"end case;"
+		],
+		"description": "Case Statement"
+	},
     "Extended Return Statement": {
         "prefix": "return",
         "body": [
@@ -19,10 +63,63 @@
         ],
         "description": "Declare Statement"
     },
+    "Elsif Statement": {
+		"prefix": "elsif",
+		"scope": "ada",
+		"body": [
+			"elsif ${1:Condition} then",
+			"\t$0"
+		],
+		"description": "Elsif Statement"
+    },
+    "Entry Spec": {
+		"prefix": "entry-spec",
+		"scope": "ada",
+		"body": [
+			"entry ${1:Name};"
+		],
+		"description": "Entry Specification"
+	},
+	"Entry Body": {
+		"prefix": "entry-body",
+		"scope": "ada",
+		"body": [
+			"entry ${1:Name} when ${2:Guard_Condition} is",
+			"\t$3",
+			"begin",
+			"\t$0",
+			"end ${1:Name};"
+		],
+		"description": "Entry Body"
+    },
+    "Enumeration Type Definition": {
+		"prefix": "enumeration",
+		"scope": "ada",
+		"body": [
+			"type ${1:Name} is ($0);"
+		],
+		"description": "Enumeration Type Definition"
+    },
+    "Exit": {
+		"prefix": "exit",
+		"scope":"ada",
+		"body": [
+			"exit ${1:Loop Name};"	
+		],
+		"description": "Exit statement"
+	},
+	"Exit When": {
+		"prefix": "exit-when",
+		"scope": "ada",
+		"body": [
+			"exit ${1:Loop Name} when ${2:Condition};"
+		],
+		"description": "Exit when statement"
+	},
     "For Loop Statement": {
         "prefix": "for",
         "body": [
-            "for ${1:J} ${2|in ,of |} loop",
+            "for ${1:J} ${2|in,in reverse,of,of reverse|} loop",
             "   $0",
             "end loop;"
         ],
