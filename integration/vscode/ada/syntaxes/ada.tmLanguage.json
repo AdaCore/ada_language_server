@@ -395,41 +395,23 @@
 			]
 		},
 		"attribute": {
-			"patterns": [
-				{
-					"name": "entity.other.attribute-name.ada",
-					"match": "(?i)'(access|address|adjacent|aft|alignment|base|bit_order|body_version|callable|caller|ceiling|class|component_size|compose|constrained|copy_sign|count|definite|delta|denorm|digits|exponent|external_tag|first|first_bit|floor|fore|fraction|identity|image|input|last|last_bit|leading_part|length|machine|machine_emax|machine_emin|machine_mantissa|machine_overflows|machine_radix|machine_rounding|machine_rounds|max|max_alignment_for_allocation|max_size_in_storage_elements|min|mod|model|model_emin|model_epsilon|model_mantissa|model_small|modulus|old|output|overlaps_storage|partition_id|pos|position|pred|priority|range|read|remainder|result|round|rounding|safe_first|safe_last|scale|scaling|signed_zeros|size|small|storage_pool|storage_size|stream_size|succ|tag|terminated|truncation|unbiased_rounding|unchecked_access|val|valid|value|version|wide_image|wide_value|wide_wide_image|wide_wide_value|wide_wide_width|wide_width|width|write)\\b",
-					"captures": {
-						"0": {
-							"patterns": [
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "entity.other.attribute-name.ada",
-					"match": "(?i)'(abort_signal|address_size|asm_input|asm_output|ast_entry|bit|bit_position|code_address|default_bit_order|elaborated|elab_body|elab_spec|emax|enabled|enum_rep|enum_val|epsilon|fixed_value|has_access_values|has_discriminants|img|integer_value|invalid_value|machine_size|max_interrupt_priority|max_priority|maximum_alignment|machanism_code|null_parameter|object_size|old|passed_by_reference|pool_address|range_length|storage_unit|stub_type|target_name|tick|to_address|type_class|uet_address|unconstrained_array|universal_literal_string|unrestricted_access|vads_size|value_size|wchar_t_size|word_size)\\b",
-					"captures": {
-						"0": {
-							"patterns": [
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "invalid.deprecated.ada",
-					"match": "(?i)'(emax|epsilon|large|mantissa|safe_emax|safe_large|safe_small)\\b",
-					"captures": {
-						"0": {
-							"patterns": [
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				}
-			]
+         "name": "meta.attribute.ada",
+         "match": "(')((?:\\w|\\d|_)+)\\b",
+         "captures": {
+            "1": { "name": "punctuation.ada" },
+            "2": {
+               "patterns": [
+                  {
+                     "name": "invalid.deprecated.ada",
+                     "match": "(?i)(?:emax|epsilon|large|mantissa|safe_emax|safe_large|safe_small)"
+                  },
+                  {
+                     "name": "entity.other.attribute-name.ada",
+                     "match": "\\b(\\w|\\d|_)+\\b"
+                  }
+               ]
+            }
+         }
 		},
 		"case": {
          "name": "meta.control.case.ada",
