@@ -650,20 +650,11 @@
 		},
 		"label": {
          "name": "meta.label.ada",
-         "match": "<<(\\w|_)+>>",
+         "match": "(<<)((?:\\w|\\d|_)+)(>>)",
          "captures": {
-            "0": {
-               "patterns": [
-                  {
-                     "name": "punctuation.label.ada",
-                     "match": "(<<|>>)"
-                  },
-                  {
-                     "name": "entity.name.label.ada",
-                     "match": "\\b(\\w|_)+\\b"
-                  }
-               ]
-            }
+            "1": { "name": "punctuation.label.ada" },
+            "2": { "name": "entity.name.label.ada" },
+            "3": { "name": "punctuation.label.ada" }
          }
 		},
 		"pragma": {
