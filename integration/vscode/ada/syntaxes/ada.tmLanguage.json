@@ -572,22 +572,12 @@
 			]
 		},
 		"goto": {
-         "name": "meta.goto.ada",
-         "match": "(?i)\\bgoto\\s+(\\w|_)+;",
+         "name": "meta.statement.goto.ada",
+         "match": "(?i)\\b(goto)\\s+((?:\\w|\\d|_)+)\\s*(;)",
          "captures": {
-            "0": {
-               "patterns": [
-                  { "include": "#punctuation" },
-                  {
-                     "name": "keyword.control.goto.ada",
-                     "match": "(?i)\\bgoto\\b"
-                  },
-                  {
-                     "name": "entity.name.label.ada",
-                     "match": "\\b(\\w|_)+\\b"
-                  }
-               ]
-            }
+            "1": { "name": "keyword.control.goto.ada" },
+            "2": { "name": "entity.name.label.ada" },
+            "3": { "name": "punctuation.ada" }
          }
 		},
 		"import": {
