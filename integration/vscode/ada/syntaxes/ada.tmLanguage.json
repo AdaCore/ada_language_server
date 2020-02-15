@@ -466,56 +466,32 @@
 		},
 		"comment": {
 			"patterns": [
-				{
-					"name": "comment.line.double-dash.ada",
-					"match": "--[^-]+--\\s*$",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "entity.name.section",
-									"match": "[^-]+"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "comment.line.double-dash.ada",
-					"match": "--.*$",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "comment.block.documentation.gnatdoc",
-									"match": "@.*$",
-									"captures": {
-										"0": {
-											"patterns": [
-												{
-													"name": "entity.name.tag.gnatdoc",
-													"match": "@\\w+",
-													"captures": {
-														"0": {
-															"patterns": [
-																{
-																	"name": "punctuation.definition.tag.gnatdoc",
-																	"match": "@"
-																}
-															]
-														}
-													}
-												}
-											]
-										}
-									}
-								}
-							]
-						}
-					}
-				}
+            { "include": "#comment-section" },
+            { "include": "#comment-doc" },
+            { "include": "#comment-line" }
 			]
-		},
+      },
+      "comment-doc": {
+         "name": "comment.block.documentation.gnatdoc",
+         "match": "(--)(@)(\\w+)\\s+(.*)$",
+         "captures": {
+            "1": { "name": "comment.line.double-dash.ada" },
+            "2": { "name": "punctuation.definition.tag.gnatdoc" },
+            "3": { "name": "entity.name.tag.gnatdoc" },
+            "4": { "name": "comment.line.double-dash.ada" }
+         }
+      },
+      "comment-line": {
+         "name": "comment.line.double-dash.ada",
+         "match": "--.*$"
+      },
+      "comment-section": {
+         "name": "comment.line.double-dash.ada",
+         "match": "--\\s*((?:\\w|\\d|\\.|_)+)\\s*--$",
+         "captures": {
+            "1": { "name": "entity.name.section.ada" }
+         }
+      },
 		"discriminant": {
 			"patterns": [
 				{
