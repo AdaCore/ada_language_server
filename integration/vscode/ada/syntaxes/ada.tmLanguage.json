@@ -399,18 +399,7 @@
          "match": "(')((?:\\w|\\d|_)+)\\b",
          "captures": {
             "1": { "name": "punctuation.ada" },
-            "2": {
-               "patterns": [
-                  {
-                     "name": "invalid.deprecated.ada",
-                     "match": "(?i)(?:emax|epsilon|large|mantissa|safe_emax|safe_large|safe_small)"
-                  },
-                  {
-                     "name": "entity.other.attribute-name.ada",
-                     "match": "\\b(\\w|\\d|_)+\\b"
-                  }
-               ]
-            }
+            "2": { "name": "entity.other.attribute-name.ada" }
          }
 		},
 		"case": {
