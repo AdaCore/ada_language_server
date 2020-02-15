@@ -267,14 +267,14 @@
 		},
 		"aspect": {
          "name": "meta.aspect.ada",
-         "begin": "\\bwith(?!\\s+(procedure|function))\\b",
-         "end": "(\\bis\\b|;)",
-         "captures": {
-            "0": {
-               "patterns": [
-                  { "include": "#keyword" }
-               ]
-            }
+         "begin": "(?i)\\b(with)(?!\\s+(procedure|function))\\b",
+         "end": "(?i)(?:\\b(is)\\b|(;))",
+         "beginCaptures": {
+            "1": { "name": "keyword.ada" }
+         },
+         "endCaptures": {
+            "1": { "name": "keyword.ada" },
+            "2": { "name": "punctuation.ada" }
          },
          "patterns": [
             { "include": "#comment" },
