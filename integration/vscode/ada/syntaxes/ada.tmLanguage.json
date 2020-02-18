@@ -144,10 +144,7 @@
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
 												{ "include": "#punctuation" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -195,10 +192,7 @@
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
 												{ "include": "#punctuation" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -308,10 +302,7 @@
 											"patterns": [
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -357,10 +348,7 @@
 											"patterns": [
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -723,14 +711,10 @@
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
 												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+(\\s*\\((\\\\.|[^)])*\\))?",
+													"match": "\\b((?:\\w|\\.|_)+)(\\s*\\((\\\\.|[^)])*\\))?",
 													"captures": {
-														"0": {
-															"patterns": [
-																{ "include": "#discriminant" }
-															]
-														}
+                                          "1": { "patterns": [ { "include": "#subtype_mark" } ] },
+														"2": { "patterns": [ { "include": "#discriminant" } ] }
 													}
 												}
 											]
@@ -772,14 +756,10 @@
 												{ "include": "#attribute" },
 												{ "include": "#keyword" },
 												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+(\\s*\\((\\\\.|[^)])*\\))?",
+													"match": "\\b((?:\\w|\\.|_)+)(\\s*\\((\\\\.|[^)])*\\))?",
 													"captures": {
-														"0": {
-															"patterns": [
-																{ "include": "#discriminant" }
-															]
-														}
+                                          "1": { "patterns": [ { "include": "#subtype_mark" } ] },
+														"2": { "patterns": [ { "include": "#discriminant" } ] }
 													}
 												}
 											]
@@ -901,10 +881,7 @@
 													"name": "keyword.ada",
 													"match": "(?i)\\breturn\\b"
 												},
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -953,10 +930,7 @@
 													"name": "keyword.ada",
 													"match": "(?i)\\breturn\\b"
 												},
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+                                    { "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -1006,10 +980,7 @@
 													"name": "keyword.ada",
 													"match": "(?i)\\breturn\\b"
 												},
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -1071,10 +1042,7 @@
 													"name": "keyword.ada",
 													"match": "(?i)\\breturn\\b"
 												},
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -1121,6 +1089,10 @@
 					}
 				}
 			]
+      },
+      "subtype_mark": {
+			"name": "entity.name.type.ada",
+         "match": "\\b(?:\\w|\\d|\\.|_)+\\b"
 		},
 		"type": {
 			"patterns": [
@@ -1133,10 +1105,7 @@
 							"patterns": [
 								{ "include": "#discriminant" },
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|_)+\\b"
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					},
@@ -1154,10 +1123,7 @@
 							"patterns": [
 								{ "include": "#discriminant" },
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|\\.|_)+\\b"
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
@@ -1171,10 +1137,7 @@
 							"patterns": [
 								{ "include": "#discriminant" },
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|\\.|_)+\\b"
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					},
@@ -1196,10 +1159,7 @@
 										"0": {
 											"patterns": [
 												{ "include": "#keyword" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
@@ -1211,19 +1171,13 @@
 										"0": {
 											"patterns": [
 												{ "include": "#keyword" },
-												{
-													"name": "storage.type.ada",
-													"match": "\\b(\\w|\\.|_)+\\b"
-												}
+												{ "include": "#subtype_mark" }
 											]
 										}
 									}
 								},
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|_)+\\b"
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
@@ -1239,17 +1193,7 @@
 									"match": "\\baccess(\\s+all)?\\b"
 								},
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|\\.|_)+\\b",
-									"captures": {
-										"0": {
-											"patterns": [
-												{ "include": "#punctuation" }
-											]
-										}
-									}
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
@@ -1262,17 +1206,7 @@
 							"patterns": [
 								{ "include": "#discriminant" },
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|_)+\\b",
-									"captures": {
-										"0": {
-											"patterns": [
-												{ "include": "#punctuation" }
-											]
-										}
-									}
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
@@ -1285,17 +1219,7 @@
 							"patterns": [
 								{ "include": "#aspect" },
 								{ "include": "#keyword" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|\\.|_)+\\b",
-									"captures": {
-										"0": {
-											"patterns": [
-												{ "include": "#punctuation" }
-											]
-										}
-									}
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
@@ -1307,17 +1231,7 @@
 						"0": {
 							"patterns": [
 								{ "include": "#aggregate" },
-								{
-									"name": "storage.type.ada",
-									"match": "\\b(\\w|\\.|_)+'",
-									"captures": {
-										"0": {
-											"patterns": [
-												{ "include": "#punctuation" }
-											]
-										}
-									}
-								}
+								{ "include": "#subtype_mark" }
 							]
 						}
 					}
