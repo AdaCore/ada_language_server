@@ -401,7 +401,20 @@
             "1": { "name": "punctuation.ada" },
             "2": { "name": "entity.other.attribute-name.ada" }
          }
-		},
+      },
+      "based_literal": {
+         "name": "constant.numeric.ada",
+         "match": "(?i)(\\d(?:(_)?\\d)*#)[0-9a-f](?:(_)?[0-9a-f])*(?:(\\.)[0-9a-f](?:(_)?[0-9a-f])*)?(#)([eE](?:\\+|\\-)?\\d(?:_?\\d)*)?",
+         "captures": {
+            "1": { "name": "constant.numeric.base.ada" },
+            "2": { "name": "punctuation.ada" },
+            "3": { "name": "punctuation.ada" },
+            "4": { "name": "punctuation.radix-point.ada" },
+            "5": { "name": "punctuation.ada" },
+            "6": { "name": "constant.numeric.base.ada" },
+            "7": { "patterns": [ { "include": "#exponent_part" } ] }
+         }
+      },
 		"case": {
          "name": "meta.control.case.ada",
          "begin": "(?i)\\bcase\\s+(\\w|\\.|_)+\\s+is\\b",
@@ -434,6 +447,20 @@
             { "include": "#property" },
             { "include": "#punctuation" }
          ]
+      },
+      "character_literal": {
+			"name": "string.quoted.single.ada",
+			"match": "'.'",
+			"captures": {
+				"0": {
+					"patterns": [
+						{
+							"name": "punctuation.definition.string.ada",
+							"match": "'"
+						}
+					]
+				}
+			}
 		},
 		"comment": {
 			"patterns": [
@@ -463,6 +490,16 @@
             "1": { "name": "entity.name.section.ada" }
          }
       },
+      "decimal_literal": {
+			"name": "constant.numeric.ada",
+			"match": "\\d(?:(_)?\\d)*(?:(\\.)\\d(?:(_)?\\d)*)?([eE](?:\\+|\\-)?\\d(?:_?\\d)*)?",
+			"captures": {
+            "1": { "name": "punctuation.ada" },
+            "2": { "name": "punctuation.radix-point.ada"},
+            "3": { "name": "punctuation.ada" },
+				"4": { "patterns": [ { "include": "#exponent_part" } ] }
+			}
+		},
 		"discriminant": {
 			"patterns": [
 				{
@@ -559,7 +596,15 @@
 					}
 				}
 			]
-		},
+      },
+      "exponent_part": {
+         "match": "([eE])(\\+|\\-)?\\d(?:(_)?\\d)*",
+         "captures": {
+            "1": { "name": "punctuation.exponent-mark.ada" },
+            "2": { "name": "keyword.operator.unary.ada" },
+            "3": { "name": "punctuation.ada" }
+         }
+      },
 		"goto": {
          "name": "meta.statement.goto.ada",
          "match": "(?i)\\b(goto)\\s+((?:\\w|\\d|_)+)\\s*(;)",
@@ -793,6 +838,18 @@
          "patterns": [
             { "include": "#keyword" }
          ]
+      },
+      "string_literal": {
+			"name": "string.quoted.double.ada",
+			"match": "(\").*?(\")",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.string.ada"
+				},
+				"2": {
+					"name": "punctuation.definition.string.ada"
+				}
+			}
 		},
 		"subroutine": {
 			"patterns": [
@@ -1269,103 +1326,10 @@
 		},
 		"value": {
 			"patterns": [
-				{
-					"name": "constant.numeric.ada",
-					"match": "(?<!\\w)2#[01]([01_]*[01])?#",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "constant.numeric.base.ada",
-									"match": "2?#"
-								},
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "constant.numeric.ada",
-					"match": "(?<!\\w)8#[0-7]([0-7_]*[0-7])?#",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "constant.numeric.base.ada",
-									"match": "8?#"
-								},
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "constant.numeric.ada",
-					"match": "(?<!\\w)10#[0-9]([0-9_]*[0-9])?#",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "constant.numeric.base.ada",
-									"match": "(10)?#"
-								},
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "constant.numeric.ada",
-					"match": "(?<!\\w)(?i)16#[0-9A-F]([0-9A-F_]*[0-9A-F])?#",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "constant.numeric.base.ada",
-									"match": "(16)?#"
-								},
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "constant.numeric.ada",
-					"match": "(?<!\\w)[0-9]([0-9_]*[0-9])?(\\.[0-9]([0-9_]*[0-9])?([eE][0-9]+)?)?",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "punctuation.radix-point.ada",
-									"match": "\\."
-								},
-								{
-									"name": "meta.exponent.ada",
-									"match": "[eE][0-9]+",
-									"captures": {
-										"0": {
-											"patterns": [
-												{
-													"name": "punctuation.exponent-mark.ada",
-													"match": "[eE]"
-												}
-											]
-										}
-									}
-								},
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "string.quoted.single.ada",
-					"match": "'.'"
-				},
-				{
-					"name": "string.quoted.double.ada",
-					"match": "\"(\\\\.|[^\"])*\""
-				}
+				{ "include": "#based_literal" },
+				{ "include": "#decimal_literal" },
+				{ "include": "#character_literal" },
+				{ "include": "#string_literal" }
 			]
 		}
 	},
