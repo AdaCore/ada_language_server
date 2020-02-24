@@ -792,7 +792,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Params.textDocument.uri) loop
          Analyse_In_Context (C, Document, Response.result, Found);
 
-         exit when Request.Canceled or else Found;
+         exit when Self.Server.Cancel_Current or else Found;
       end loop;
 
       return Response;
@@ -865,7 +865,7 @@ package body LSP.Ada_Handlers is
             Response.result,
             Imprecise);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       if Imprecise then
@@ -1005,7 +1005,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       if Imprecise then
@@ -1130,7 +1130,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       if Imprecise then
@@ -1216,7 +1216,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       return Response;
@@ -1491,7 +1491,7 @@ package body LSP.Ada_Handlers is
       --  Get the associated basic declaration
       Decl := Defining_Name_Node.P_Basic_Decl;
 
-      if Decl = No_Basic_Decl or else Request.Canceled then
+      if Decl = No_Basic_Decl or else Self.Server.Cancel_Current then
          return Response;
       end if;
 
@@ -1691,7 +1691,9 @@ package body LSP.Ada_Handlers is
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
-         if Definition = No_Defining_Name or else Request.Canceled then
+         if Definition = No_Defining_Name
+           or else Self.Server.Cancel_Current
+         then
             return;
          end if;
 
@@ -1713,7 +1715,7 @@ package body LSP.Ada_Handlers is
                      Get_Reference_Kind (Node.As_Ada_Node));
                end if;
 
-               exit when Count = 0  and then Request.Canceled;
+               exit when Count = 0  and then Self.Server.Cancel_Current;
             end loop;
 
             if Value.context.includeDeclaration then
@@ -1729,7 +1731,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       if Imprecise then
@@ -1805,7 +1807,7 @@ package body LSP.Ada_Handlers is
 
          if Definition = No_Defining_Name
            or else not Definition.P_Basic_Decl.P_Is_Subprogram
-           or else Request.Canceled
+           or else Self.Server.Cancel_Current
          then
             return;
          end if;
@@ -1839,7 +1841,7 @@ package body LSP.Ada_Handlers is
                                       Get_Reference_Kind (Ref.As_Name));
                      Count := Count - 1;
 
-                     if Count = 0 and then Request.Canceled then
+                     if Count = 0 and then Self.Server.Cancel_Current then
                         return;
                      end if;
                   end loop;
@@ -1856,7 +1858,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
 
       if Imprecise then
@@ -2099,7 +2101,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         if Definition = No_Defining_Name or Request.Canceled then
+         if Definition = No_Defining_Name or Self.Server.Cancel_Current then
             return;
          end if;
 
@@ -2146,7 +2148,7 @@ package body LSP.Ada_Handlers is
                      Response.result.changes (Location.uri).Append (Item);
                   end if;
 
-                  exit when Count = 0 and then Request.Canceled;
+                  exit when Count = 0 and then Self.Server.Cancel_Current;
 
                   Count := Count - 1;
                end;
@@ -2158,7 +2160,7 @@ package body LSP.Ada_Handlers is
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Process_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Server.Cancel_Current;
       end loop;
       return Response;
    end On_Rename_Request;

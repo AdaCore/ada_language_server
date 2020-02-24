@@ -35,7 +35,7 @@ with LSP.Types;
 with GNATCOLL.Traces;
 
 private with Ada.Strings.Unbounded;
-private with Ada.Containers.Hashed_Maps;
+private with Ada.Containers.Hashed_Sets;
 private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
@@ -125,6 +125,14 @@ package LSP.Servers is
    --  notification/request it's currently processing. This should only be
    --  called from the processing task.
 
+   --------------------------
+   -- Cancellation support --
+   --------------------------
+
+   function Cancel_Current (Self : Server) return Boolean;
+   --  Return True if the current request should be cancelled as soon as
+   --  possible.
+
 private
 
    -------------------------
@@ -160,13 +168,6 @@ private
 
    type Notification_Access is
      access all LSP.Messages.Server_Notifications.Server_Notification'Class;
-
-   package Request_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_Number_Or_String,  --  Request id
-      Element_Type    => Request_Access,
-      Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
-      "="             => "=");
 
    package Message_Queue_Interface is new
      Ada.Containers.Synchronized_Queue_Interfaces
@@ -215,6 +216,51 @@ private
       --  Clean shutdown of the task. Can only be called after Start.
    end Input_Task_Type;
 
+   --------------------------
+   -- Cancellation support --
+   --------------------------
+
+   package Id_Set is new Ada.Containers.Hashed_Sets
+     (Element_Type        => LSP.Types.LSP_Number_Or_String,
+      Hash                => LSP.Types.Hash,
+      Equivalent_Elements => LSP.Types."=",
+      "="                 => LSP.Types."=");
+
+   No_Request : constant LSP.Types.LSP_Number_Or_String :=
+     (Is_Number => True, Number => Natural'Last);
+   --  An identifier to represent "no request"
+
+   protected type Cancellation_Support is
+      function Cancel_Current return Boolean;
+      --  Return True if the current request should be cancelled as soon as
+      --  possible.
+
+      procedure Mark_For_Cancellation (Id : LSP.Types.LSP_Number_Or_String);
+      --  Cancel the request with the given Id
+
+      procedure Set_Current_Request (Id : LSP.Types.LSP_Number_Or_String);
+      --  Set the request currently being executed
+
+      procedure Is_Marked_For_Cancellation
+        (Id     : LSP.Types.LSP_Number_Or_String;
+         Marked : out Boolean);
+      --  Set Marked to True if Id was marked for cancellation, and remove
+      --  it from the list of cancelled future
+   private
+      Current_Request        : LSP.Types.LSP_Number_Or_String := No_Request;
+      --  The Id of the request currently being executed
+
+      Cancel_Current_Request : Boolean := False;
+      --  Whether the current request should be cancelled
+
+      Cancel_Future : Id_Set.Set;
+      --  The set of requests that we should cancel as soon as we see them
+   end Cancellation_Support;
+
+   ------------
+   -- Server --
+   ------------
+
    type Server is limited
      new LSP.Client_Message_Receivers.Client_Message_Receiver with
    record
@@ -235,7 +281,6 @@ private
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
-      Request_Map     : Request_Maps.Map;
       Destroy_Queue   : Message_Queues.Queue;
 
       Server_Trace    : GNATCOLL.Traces.Trace_Handle;
@@ -243,6 +288,8 @@ private
       Out_Trace       : GNATCOLL.Traces.Trace_Handle;
       Logger          : aliased LSP.Message_Loggers.Message_Logger;
       On_Error        : Uncaught_Exception_Handler;
+
+      Cancel          : Cancellation_Support;
    end record;
 
    Unknown_Method : exception;

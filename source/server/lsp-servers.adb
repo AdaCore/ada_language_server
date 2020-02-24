@@ -378,8 +378,6 @@ package body LSP.Servers is
                   return;
             end;
 
-            Self.Request_Map.Include (Request_Id, Request);
-
             Message := Message_Access (Request);
 
          elsif Initialized
@@ -406,9 +404,7 @@ package body LSP.Servers is
                  LSP.Messages.Server_Notifications.Cancel_Notification
                    (Notification.all).params.id;
 
-               if Self.Request_Map.Contains (Request_Id) then
-                  Self.Request_Map (Request_Id).Canceled := True;
-               end if;
+               Self.Cancel.Mark_For_Cancellation (Request_Id);
             end if;
 
             Message := Message_Access (Notification);
@@ -863,7 +859,6 @@ package body LSP.Servers is
             select
                --  Process all available outputs before acceptiong Stop
                Server.Destroy_Queue.Dequeue (Message);
-               Server.Request_Map.Delete (Request_Access (Message).id);
                Free (Message);
 
             else
@@ -892,7 +887,6 @@ package body LSP.Servers is
       --  leaving this task.
       while Natural (Server.Destroy_Queue.Current_Use) > 0 loop
          Server.Destroy_Queue.Dequeue (Message);
-         Server.Request_Map.Delete (Request_Access (Message).id);
          Free (Message);
       end loop;
    end Input_Task_Type;
@@ -1044,15 +1038,21 @@ package body LSP.Servers is
             --  This is a request
             Request : LSP.Messages.Server_Requests.Server_Request'Class renames
               LSP.Messages.Server_Requests.Server_Request'Class (Message.all);
+            Marked_For_Cancellation : Boolean;
          begin
+            Server.Cancel.Is_Marked_For_Cancellation
+              (Request.id,
+               Marked_For_Cancellation);
 
-            if Request.Canceled then
+            if Marked_For_Cancellation then
                --  The request has been canceled
                Server.Send_Canceled_Request (Request.id);
                Server.Destroy_Queue.Enqueue (Message);
                --  Request will be deleted by Input_Task
                return;
             end if;
+
+            Server.Cancel.Set_Current_Request (Request.id);
 
             Server_Backend.Before_Work (Message.all);
             declare
@@ -1066,6 +1066,8 @@ package body LSP.Servers is
                --  Request will be deleted by Input_Task
             end;
             Server_Backend.After_Work (Message.all);
+
+            Server.Cancel.Set_Current_Request (No_Request);
 
          exception
             --  If we reach this exception handler, this means an exception
@@ -1196,5 +1198,73 @@ package body LSP.Servers is
 
       return Self.Input_Queue_Length > 0;
    end Has_Pending_Work;
+
+   --------------------
+   -- Cancel_Current --
+   --------------------
+
+   function Cancel_Current (Self : Server) return Boolean is
+   begin
+      return Self.Cancel.Cancel_Current;
+   end Cancel_Current;
+
+   --------------------------
+   -- Cancellation_Support --
+   --------------------------
+
+   protected body Cancellation_Support is
+
+      --------------------
+      -- Cancel_Current --
+      --------------------
+
+      function Cancel_Current return Boolean is
+      begin
+         return Cancel_Current_Request;
+      end Cancel_Current;
+
+      ---------------------------
+      -- Mark_For_Cancellation --
+      ---------------------------
+
+      procedure Mark_For_Cancellation (Id : LSP.Types.LSP_Number_Or_String) is
+         use type LSP.Types.LSP_Number_Or_String;
+      begin
+         if Current_Request = Id then
+            Cancel_Current_Request := True;
+         else
+            Cancel_Future.Include (Id);
+         end if;
+      end Mark_For_Cancellation;
+
+      -------------------------
+      -- Set_Current_Request --
+      -------------------------
+
+      procedure Set_Current_Request (Id : LSP.Types.LSP_Number_Or_String) is
+      begin
+         --  If we're changing the current request, lower the flag that says
+         --  to cancel the current request, as it's no longer relevant.
+         Cancel_Current_Request := False;
+         Current_Request := Id;
+      end Set_Current_Request;
+
+      --------------------------------
+      -- Is_Marked_For_Cancellation --
+      --------------------------------
+
+      procedure Is_Marked_For_Cancellation
+        (Id     : LSP.Types.LSP_Number_Or_String;
+         Marked : out Boolean) is
+      begin
+         if Cancel_Future.Contains (Id) then
+            Marked := True;
+            Cancel_Future.Delete (Id);
+         else
+            Marked := False;
+         end if;
+      end Is_Marked_For_Cancellation;
+
+   end Cancellation_Support;
 
 end LSP.Servers;
