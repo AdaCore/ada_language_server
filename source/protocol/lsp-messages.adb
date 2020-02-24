@@ -4017,8 +4017,13 @@ package body LSP.Messages is
       JS.Start_Object;
       Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
       Write_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      Write_String_Vector (JS, +"allCommitCharacters", V.allCommitCharacters);
       Write_String_Vector (JS, +"triggerCharacters", V.triggerCharacters);
+
+      if not V.allCommitCharacters.Is_Empty then
+         Write_String_Vector
+           (JS, +"allCommitCharacters", V.allCommitCharacters);
+      end if;
+
       JS.End_Object;
    end Write_CompletionOptions;
 

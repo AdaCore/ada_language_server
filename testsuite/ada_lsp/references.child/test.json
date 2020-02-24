@@ -60,11 +60,11 @@
                         "parent",
                         "child"
                      ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
+                     "hoverProvider": {},
+                     "definitionProvider": {},
                      "renameProvider": {},
                      "alsCalledByProvider": true,
-                     "referencesProvider": true,
+                     "referencesProvider": {},
                      "textDocumentSync": 2,
                      "declarationProvider": true,
                      "completionProvider": {
@@ -73,7 +73,7 @@
                         ],
                         "resolveProvider": false
                      },
-                     "documentSymbolProvider": true
+                     "documentSymbolProvider": {}
                   }
                }
             }
