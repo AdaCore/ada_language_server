@@ -39,11 +39,11 @@
                         "call",
                         "dispatching call", "parent", "child"
                      ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
+                     "hoverProvider": {},
+                     "definitionProvider": {},
                      "renameProvider": {},
                      "alsCalledByProvider": true,
-                     "referencesProvider": true,
+                     "referencesProvider": {},
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
@@ -51,7 +51,7 @@
                         ],
                         "resolveProvider": false
                      },
-                     "documentSymbolProvider": true
+                     "documentSymbolProvider": {}
                   }
                }
             }

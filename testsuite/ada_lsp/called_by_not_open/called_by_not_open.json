@@ -31,9 +31,9 @@
                "id": 1, 
                "result": {
                   "capabilities": {
-                     "hoverProvider": true, 
-                     "documentSymbolProvider": true, 
-                     "referencesProvider": true, 
+                     "hoverProvider": {}, 
+                     "documentSymbolProvider": {}, 
+                     "referencesProvider": {}, 
                      "textDocumentSync": 2, 
                      "completionProvider": {
                         "triggerCharacters": [
@@ -41,7 +41,7 @@
                         ], 
                         "resolveProvider": false
                      }, 
-                     "definitionProvider": true,
+                     "definitionProvider": {},
                      "alsCalledByProvider": true
                   }
                }

@@ -87,8 +87,8 @@
                "id": 0,
                "result": {
                   "capabilities": {
-                     "documentSymbolProvider": true,
-                     "definitionProvider": true,
+                     "documentSymbolProvider": {},
+                     "definitionProvider": {},
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
@@ -96,7 +96,7 @@
                         ],
                         "resolveProvider": false
                      },
-                     "referencesProvider": true
+                     "referencesProvider": {}
                   }
                }
             }]

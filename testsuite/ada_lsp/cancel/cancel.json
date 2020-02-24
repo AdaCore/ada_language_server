@@ -17,7 +17,7 @@
                 "result":{
                     "capabilities":{
                         "textDocumentSync": 2,
-                        "definitionProvider":true
+                        "definitionProvider":{}
                     }
                 }
             }]

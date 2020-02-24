@@ -7,7 +7,7 @@
              "change": 2,
              "willSave": true,
              "willSaveWaitUntil": true,
-             "save": true
+             "save": {}
          }
      }
  }
