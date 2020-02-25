@@ -2928,7 +2928,7 @@ package body LSP.Messages is
          JS.End_Object;
       else
          JS.Key ("documentChanges");
-         Document_Change_Vector'Write (S, V.documentChanges);
+         Document_Change_Vector'Read (S, V.documentChanges);
       end if;
 
       JS.End_Object;
