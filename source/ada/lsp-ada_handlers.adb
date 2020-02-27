@@ -495,6 +495,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.typeDefinitionProvider :=
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
+      Response.result.capabilities.implementationProvider :=
+        (Is_Set => True,
+         Value => (Is_Boolean => True, Bool => True));
       Response.result.capabilities.referencesProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
