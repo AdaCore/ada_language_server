@@ -60,6 +60,7 @@
                      ],
                      "hoverProvider": {},
                      "definitionProvider": {},
+                     "implementationProvider": true,
                      "renameProvider": {},
                      "alsCalledByProvider": true,
                      "referencesProvider": {},
