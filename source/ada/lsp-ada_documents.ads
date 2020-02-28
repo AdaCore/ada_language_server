@@ -21,6 +21,7 @@ with Ada.Containers.Vectors;
 
 with LSP.Messages;
 with LSP.Types;
+with Libadalang.Common;
 with Libadalang.Analysis;
 limited with LSP.Ada_Contexts;
 
@@ -93,6 +94,18 @@ package LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
+
+   function Get_Root_Node
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Ada_Node;
+   --  Get Libadalang Root node for the given document.
+
+   function Get_First_Token
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Common.Token_Reference;
+   --  Get Libadalang first token for the given document.
 
    procedure Get_Completions_At
      (Self     : Document;

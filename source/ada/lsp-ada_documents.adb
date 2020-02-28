@@ -20,7 +20,6 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
 
 with Langkit_Support.Slocs;
-with Libadalang.Common;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
@@ -360,6 +359,30 @@ package body LSP.Ada_Documents is
         ((Line   => Line_Number (Position.line) + 1,
           Column => Column_Number (Position.character) + 1));
    end Get_Node_At;
+
+   -------------------
+   -- Get_Root_Node --
+   -------------------
+
+   function Get_Root_Node
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Ada_Node is
+   begin
+      return Self.Unit (Context).Root;
+   end Get_Root_Node;
+
+   ---------------------
+   -- Get_First_Token --
+   ---------------------
+
+   function Get_First_Token
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Common.Token_Reference is
+   begin
+      return Self.Unit (Context).First_Token;
+   end Get_First_Token;
 
    -------------------
    -- Get_Decl_Kind --

@@ -39,6 +39,7 @@ with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Server_Notifications;
 with LSP.Types;        use LSP.Types;
 
+with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
@@ -551,6 +552,10 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value  => (Is_Server_Side => True, As_Flags => (others => True)));
 
+      Response.result.capabilities.foldingRangeProvider :=
+        (Is_Set => True,
+         Value => (Is_Boolean => True, Bool => True));
+
       if Value.capabilities.textDocument.documentSymbol.Is_Set
         and then Value.capabilities.textDocument.documentSymbol.Value
           .hierarchicalDocumentSymbolSupport = (True, True)
@@ -558,6 +563,15 @@ package body LSP.Ada_Handlers is
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
       else
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbols'Access;
+      end if;
+
+      if Value.capabilities.textDocument.foldingRange.Is_Set then
+         if Value.capabilities.textDocument.foldingRange.Value.
+           lineFoldingOnly.Is_Set
+         then
+            Self.Line_Folding_Only := Value.capabilities.textDocument.
+              foldingRange.Value.lineFoldingOnly.Value;
+         end if;
       end if;
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
@@ -1438,16 +1452,259 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.FoldingRange_Response
-        (Is_Error => True);
+      use Libadalang.Common;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type LSP.Ada_Documents.Document_Access;
+
+      Value : LSP.Messages.FoldingRangeParams renames
+        Request.params;
+      C     : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Doc   : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Sloc  : Langkit_Support.Slocs.Source_Location_Range;
+
+      foldingRange : LSP.Messages.FoldingRange;
+      Response     : LSP.Messages.Server_Responses.FoldingRange_Response
+        (Is_Error => False);
+
+      Have_With : Boolean := False;
+
+      procedure Parse (Node : Libadalang.Analysis.Ada_Node);
+      --  Check the Node and all its children recursively
+
+      procedure Parse (Token : Libadalang.Common.Token_Reference);
+      --  Check Trivia token which can represen t comments
+
+      procedure Store_With;
+      --  Store folding for with/use clauses
+
+      -----------
+      -- Parse --
+      -----------
+
+      procedure Parse (Node : Libadalang.Analysis.Ada_Node) is
+         use Libadalang.Analysis;
+      begin
+         if Node = No_Ada_Node then
+            return;
+         end if;
+--        Cat_Namespace,
+--        Cat_Constructor,
+--        Cat_Destructor,
+--        Cat_Structure,
+--        Cat_Case_Inside_Record,
+--        Cat_Union,
+--        Cat_Custom);            --  Custom construct
+
+         case Node.Kind is
+            when Ada_Package_Decl |
+                 Ada_Generic_Formal_Package |
+                 Ada_Package_Body |
+                 --  Cat_Package
+
+                 Ada_Type_Decl |
+
+                 Ada_Classwide_Type_Decl |
+--        Cat_Class
+
+                 Ada_Protected_Type_Decl |
+--        Cat_Protected
+
+                 Ada_Task_Type_Decl |
+                 Ada_Single_Task_Type_Decl |
+--        Cat_Task
+
+                 Ada_Subp_Decl |
+                 Ada_Subp_Body |
+                 Ada_Subp_Spec |
+                 Ada_Generic_Formal_Subp_Decl |
+                 Ada_Abstract_Subp_Decl |
+                 Ada_Abstract_Formal_Subp_Decl |
+                 Ada_Concrete_Formal_Subp_Decl |
+                 Ada_Generic_Subp_Internal |
+                 Ada_Null_Subp_Decl |
+                 Ada_Subp_Renaming_Decl |
+                 Ada_Subp_Body_Stub |
+                 Ada_Generic_Subp_Decl |
+                 Ada_Generic_Subp_Instantiation |
+                 Ada_Generic_Subp_Renaming_Decl |
+                 Ada_Subp_Kind_Function |
+                 Ada_Subp_Kind_Procedure |
+                 Ada_Access_To_Subp_Def |
+--        Cat_Procedure
+--        Cat_Function
+--        Cat_Method
+
+                 Ada_Case_Stmt |
+--        Cat_Case_Statement
+
+                 Ada_If_Stmt |
+--        Cat_If_Statement
+
+                 Ada_For_Loop_Stmt |
+                 Ada_While_Loop_Stmt |
+--        Cat_Loop_Statement
+
+                 Ada_Begin_Block |
+                 Ada_Decl_Block |
+--        Cat_Declare_Block
+--        Cat_Simple_Block
+
+--                 Ada_Return_Stmt |
+--                 Ada_Extended_Return_Stmt |
+                 Ada_Extended_Return_Stmt_Object_Decl |
+--        Cat_Return_Block
+
+                 Ada_Select_Stmt |
+--        Cat_Select_Statement
+
+                 Ada_Entry_Body |
+--        Cat_Entry
+
+                 Ada_Exception_Handler |
+--        Cat_Exception_Handler
+
+                 Ada_Pragma_Node_List |
+                 Ada_Pragma_Argument_Assoc |
+                 Ada_Pragma_Node |
+--        Cat_Pragma
+
+                 Ada_Aspect_Assoc_List |
+                 Ada_Aspect_Assoc |
+                 Ada_Aspect_Spec =>
+--        Cat_Aspect
+
+               Store_With;
+               foldingRange.kind :=
+                 (Is_Set => True, Value => LSP.Messages.Region);
+
+               Sloc := Sloc_Range (Data (Node.Token_Start));
+               foldingRange.startLine := LSP_Number (Sloc.Start_Line) - 1;
+               if not Self.Line_Folding_Only then
+                  foldingRange.startCharacter :=
+                    (Is_Set => True,
+                     Value  => LSP_Number (Sloc.Start_Column) - 1);
+               end if;
+
+               Sloc := Sloc_Range (Data (Node.Token_End));
+               foldingRange.endLine := LSP_Number (Sloc.End_Line) - 1;
+               if not Self.Line_Folding_Only then
+                  foldingRange.endCharacter :=
+                    (Is_Set => True,
+                     Value  => LSP_Number (Sloc.End_Column) - 1);
+               end if;
+
+               if not Self.Line_Folding_Only
+                 or else foldingRange.startLine /= foldingRange.endLine
+               then
+                  Response.result.Append (foldingRange);
+               end if;
+
+            when Ada_With_Clause |
+                 Ada_Use_Package_Clause |
+                 Ada_Use_Type_Clause =>
+
+               Sloc := Sloc_Range (Data (Node.Token_Start));
+               if not Have_With then
+                  foldingRange.kind :=
+                    (Is_Set => True, Value => LSP.Messages.Imports);
+
+                  foldingRange.startLine := LSP_Number (Sloc.Start_Line) - 1;
+               end if;
+
+               foldingRange.endLine := LSP_Number (Sloc.End_Line) - 1;
+               Have_With := True;
+
+            when others =>
+               Store_With;
+         end case;
+
+         declare
+            Children : constant Children_Array := Node.Children_With_Trivia;
+         begin
+            for Index in Children'Range loop
+               case Children (Index).Kind is
+                  when Child =>
+                     Parse (Children (Index).Node);
+                  when Trivia =>
+                     Parse (Children (Index).Trivia);
+               end case;
+            end loop;
+         end;
+      end Parse;
+
+      -----------
+      -- Parse --
+      -----------
+
+      procedure Parse (Token : Libadalang.Common.Token_Reference) is
+      begin
+         if Kind (Data (Token)) /= Ada_Comment then
+            return;
+         end if;
+
+         Sloc := Sloc_Range (Data (Token));
+
+         if not Self.Line_Folding_Only
+           or else Sloc.Start_Line /= Sloc.End_Line
+         then
+            foldingRange.kind :=
+              (Is_Set => True, Value => LSP.Messages.Comment);
+
+            foldingRange.startLine := LSP_Number (Sloc.Start_Line) - 1;
+            foldingRange.endLine   := LSP_Number (Sloc.End_Line) - 1;
+
+            if not Self.Line_Folding_Only then
+               foldingRange.startCharacter :=
+                 (Is_Set => True,
+                  Value  => LSP_Number (Sloc.Start_Column) - 1);
+               foldingRange.endCharacter :=
+                 (Is_Set => True,
+                  Value  => LSP_Number (Sloc.End_Column) - 1);
+            end if;
+
+            Response.result.Append (foldingRange);
+         end if;
+      end Parse;
+
+      ----------------
+      -- Store_With --
+      ----------------
+
+      procedure Store_With is
+      begin
+         if not Have_With then
+            return;
+         end if;
+
+         if foldingRange.startLine /= foldingRange.endLine then
+            Response.result.Append (foldingRange);
+         end if;
+
+         Have_With := False;
+      end Store_With;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
-      return Response;
+      if Doc /= null then
+--           Doc.Get_Root_Node (C.all).Unit.Print;
+
+         Parse (Doc.Get_Root_Node (C.all));
+         return Response;
+
+      else
+         declare
+            Not_Opened : LSP.Messages.Server_Responses.FoldingRange_Response
+              (Is_Error => True);
+         begin
+            Not_Opened.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Document is not opened",
+                data => <>));
+            return Not_Opened;
+         end;
+      end if;
    end On_Folding_Range_Request;
 
    --------------------------
