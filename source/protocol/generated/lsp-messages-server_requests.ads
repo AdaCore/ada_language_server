@@ -8,9 +8,8 @@ use LSP.Server_Request_Receivers;
 
 package LSP.Messages.Server_Requests is
 
-   type Server_Request is abstract new LSP.Messages.RequestMessage with record
-      Canceled : Boolean := False with Atomic;
-   end record;
+   type Server_Request is abstract new LSP.Messages.RequestMessage
+     with null record;
 
    function Decode
      (JS : not null access LSP.JSON_Streams.JSON_Stream)

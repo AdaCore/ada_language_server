@@ -102,8 +102,7 @@ package LSP.Server_Request_Handlers is
    function On_Color_Presentation_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
-      return LSP.Messages.Server_Responses.ColorPresentation_Response
-        is abstract;
+      return LSP.Messages.Server_Responses.ColorPresentation_Response is abstract;
 
    function On_Folding_Range_Request
      (Self    : access Server_Request_Handler;
