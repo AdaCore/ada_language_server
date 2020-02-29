@@ -6,14 +6,15 @@
 	"patterns": [
 		{ "include": "#comment" },
 		{ "include": "#import" },
-		{ "include": "#aspect" },
-		{ "include": "#exception" },
+      { "include": "#aspect" },
+      { "include": "#exception_declaration" },
+      { "include": "#raise_statement" },
 		{ "include": "#assignment" },
 		{ "include": "#attribute" },
 		{ "include": "#goto" },
 		{ "include": "#label" },
 		{ "include": "#pragma" },
-		{ "include": "#punctuation" },
+      { "include": "#punctuation" },
 		{ "include": "#return" },
 		{ "include": "#subroutine" },
 		{ "include": "#type" },
@@ -534,56 +535,14 @@
 				}
 			]
 		},
-		"exception": {
-			"patterns": [
-				{
-					"name": "meta.exception.ada",
-					"match": "\\braise\\s+(\\w|\\.|_)+\\b",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "keyword.control.ada",
-									"match": "(?i)\\braise\\b"
-								},
-								{
-									"name": "entity.name.exception.ada",
-									"match": "\\b(\\w|\\.|_)+\\b"
-								}
-							]
-						}
-					}
-				},
-				{
-					"name": "meta.exception.declaration.ada",
-					"match": "(?i)\\b(\\w|_)+\\s*:\\s*exception\\b",
-					"captures": {
-						"0": {
-							"patterns": [
-								{
-									"name": "meta.exception.annotation.ada",
-									"match": "(?i):\\s*exception\\b",
-									"captures": {
-										"0": {
-											"patterns": [
-												{ "include": "#punctuation" },
-												{
-													"name": "storage.type.ada",
-													"match": "(?i)\\bexception\\b"
-												}
-											]
-										}
-									}
-								},
-								{
-									"name": "entity.name.exception.ada",
-									"match": "\\b(\\w|_)+\\b"
-								}
-							]
-						}
-					}
-				}
-			]
+		"exception_declaration": {
+         "name": "meta.declaration.exception.ada",
+         "match": "(?i)\\b((?:\\w|\\d|_)+)\\s*(:)\\s*(exception)\\b",
+         "captures": {
+            "1": { "name": "entity.name.exception.ada" },
+            "2": { "name": "punctuation.ada" },
+            "3": { "name": "entity.name.type.ada" }
+         }
       },
       "exponent_part": {
          "match": "([eE])(\\+|\\-)?\\d(?:(_)?\\d)*",
@@ -592,6 +551,9 @@
             "2": { "name": "keyword.operator.unary.ada" },
             "3": { "name": "punctuation.ada" }
          }
+      },
+      "expression": {
+         "name": "meta.expression.ada"
       },
 		"goto": {
          "name": "meta.statement.goto.ada",
@@ -787,22 +749,84 @@
 				}
 			]
 		},
-        "punctuation": {
-            "patterns": [
-               {
-                  "name": "punctuation.delimiter.ada",
-                  "match": "(=>|\\||'|[()]|\\.|,)"
-               },
-               {
-                  "name": "punctuation.underline.ada",
-                  "match": "_"
-               },
-               {
-                  "name": "punctuation.terminator.ada",
-                  "match": ";"
+      "punctuation": {
+         "patterns": [
+            {
+               "name": "punctuation.delimiter.ada",
+               "match": "(=>|\\||'|[()]|\\.|,)"
+            },
+            {
+               "name": "punctuation.underline.ada",
+               "match": "_"
+            },
+            {
+               "name": "punctuation.terminator.ada",
+               "match": ";"
+            }
+         ]
+      },
+      "raise_statement": {
+         "name": "meta.statement.raise.ada",
+         "patterns": [
+            {
+               "match": "(?i)\\b(raise)\\s*(;)",
+               "captures": {
+                  "1": { "name": "keyword.control.ada" },
+                  "2": { "name": "punctuation.ada" }
                }
-            ]
-		},
+            },
+            {
+               "begin": "(?i)\\braise\\b",
+               "end": ";",
+               "beginCaptures": {
+                  "0": { "name": "keyword.control.ada" }
+               },
+               "endCaptures": {
+                  "0": { "name": "punctuation.ada" }
+               },
+               "patterns": [
+                  {
+                     "begin": "(?i)\\bwith\\b",
+                     "end": "(?=;)",
+                     "beginCaptures": {
+                        "0": { "name": "keyword.ada" }
+                     },
+                     "patterns": [
+                        { "include": "#expression" }
+                     ]
+                  },
+                  {
+                     "name": "entity.name.exception.ada",
+                     "match": "\\b(\\w|\\d|_)+\\b"
+                  }
+               ]
+            }
+         ]
+      },
+      "raise_expression": {
+         "name": "meta.expression.raise.ada",
+         "begin": "(?i)\\braise\\b",
+         "end": "(?=;)",
+         "beginCaptures": {
+            "0": { "name": "keyword.control.ada" }
+         },
+         "patterns": [
+            {
+               "begin": "(?i)\\bwith\\b",
+               "end": "(?=(;|\\))",
+               "beginCaptures": {
+                  "0": { "name": "keyword.ada" }
+               },
+               "patterns": [
+                  { "include": "#expression" }
+               ]
+            },
+            {
+               "name": "entity.name.exception.ada",
+               "match": "\\b(\\w|\\d|_)+\\b"
+            }
+         ]
+      },
 		"return": {
          "name": "meta.return-block.ada",
          "begin": "(?i)\\breturn\\s+(\\w|\\.|_)+\\s*:\\s*(\\w|\\.|_)+\\s+do\\b",
