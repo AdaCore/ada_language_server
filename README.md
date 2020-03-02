@@ -12,6 +12,7 @@ Current features:
  * Go to definition
  * Find corresponding references
  * Document symbol search
+ * Code folding
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
 [extension as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-20.0.999.vsix).
@@ -113,7 +114,7 @@ The `ada_language_server` doesn't require/understand any command line options.
 | `textDocument/onTypeFormatting`       |                    |
 | `textDocument/rename`                 | :white_check_mark: |
 | `textDocument/prepareRename`          |                    |
-| `textDocument/foldingRange`           |                    |
+| `textDocument/foldingRange`           | :white_check_mark: |
 
 ### Protocol extensions
 
@@ -207,7 +208,7 @@ path of the project file (so no need to prefix with `..`). When vim is opened
 in the folder containing this `.vim` directory, it will use those settings for
 the language server *even for files which might have nothing to do with that
 specific project*, so this needs to be taken into account. Ultimately what this
-means is that the configuration is determined by where you open vim.  
+means is that the configuration is determined by where you open vim.
 
 # Integration with emacs lsp-mode
 
