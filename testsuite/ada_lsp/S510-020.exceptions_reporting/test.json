@@ -16,7 +16,7 @@
                 "result":{
                     "capabilities":{
                         "textDocumentSync": 2,
-                        "referencesProvider":{}
+                        "referencesProvider":true
                     }
                 }
             }]

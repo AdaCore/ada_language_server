@@ -14,7 +14,7 @@
                       "result":{
                           "capabilities":{
                               "textDocumentSync": 2,
-                              "documentSymbolProvider":{}
+                              "documentSymbolProvider":true
                           }
                       }
             }]
