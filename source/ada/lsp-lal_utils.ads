@@ -28,7 +28,9 @@ with LSP.Messages;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
+
 with Langkit_Support.Text;
+with Langkit_Support.Slocs;
 
 package LSP.Lal_Utils is
 
@@ -98,6 +100,11 @@ package LSP.Lal_Utils is
      (Token : Libadalang.Common.Token_Reference)
       return LSP.Messages.Span;
    --  Return the span of the given token.
+
+   function To_Span
+     (Value : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Messages.Span;
+   --  Convert Source_Location_Range to Span
 
    function To_Base_Id_Array
      (Basic_Decls : Basic_Decl_Array) return Base_Id_Array;

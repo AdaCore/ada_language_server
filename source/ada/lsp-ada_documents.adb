@@ -28,10 +28,6 @@ with LSP.Lal_Utils;
 
 package body LSP.Ada_Documents is
 
-   function To_Span
-     (Value : Langkit_Support.Slocs.Source_Location_Range)
-      return LSP.Messages.Span;
-
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
@@ -207,7 +203,7 @@ package body LSP.Ada_Documents is
 
       if Unit.Has_Diagnostics then
          for Error of Unit.Diagnostics loop
-            Item.span := To_Span (Error.Sloc_Range);
+            Item.span := LSP.Lal_Utils.To_Span (Error.Sloc_Range);
 
             Item.message := To_LSP_String
               (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
@@ -273,8 +269,10 @@ package body LSP.Ada_Documents is
                         detail         => (Is_Set => False),
                         kind           => Get_Decl_Kind (Decl),
                         deprecated     => (Is_Set => False),
-                        span           => To_Span (Node.Sloc_Range),
-                        selectionRange => To_Span (Node.Sloc_Range),
+                        span           => LSP.Lal_Utils.To_Span
+                          (Node.Sloc_Range),
+                        selectionRange => LSP.Lal_Utils.To_Span
+                          (Node.Sloc_Range),
                         children       => True);
                   begin
                      Tree.Insert_Child
@@ -330,7 +328,7 @@ package body LSP.Ada_Documents is
          Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
          Item.location :=
            (uri     => Self.URI,
-            span    => To_Span (Element.Sloc_Range),
+            span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
             alsKind => LSP.Messages.Empty_Set);
 
          Result.Vector.Append (Item);
@@ -560,18 +558,35 @@ package body LSP.Ada_Documents is
       end Store_Span;
 
       Token : Token_Reference;
+      Span  : LSP.Messages.Span;
 
    begin
       Traverse (Self.Unit (Context).Root, Parse'Access);
 
       --  Looking for comments
-      Token := First_Token (Self.Unit (Context));
+      foldingRange.kind := (Is_Set => False);
+      Token             := First_Token (Self.Unit (Context));
+
       while Token /= No_Token loop
-         if Is_Trivia (Token)
-           and then Kind (Data (Token)) = Ada_Comment
-         then
-            Store_Span (LSP.Lal_Utils.Get_Token_Span (Token));
-         end if;
+         case Kind (Data (Token)) is
+            when Ada_Comment =>
+               if not foldingRange.kind.Is_Set then
+                  foldingRange.kind :=
+                    (Is_Set => True, Value => LSP.Messages.Comment);
+                  Span := LSP.Lal_Utils.Get_Token_Span (Token);
+               else
+                  Span.last := LSP.Lal_Utils.Get_Token_Span (Token).last;
+               end if;
+
+            when Ada_Whitespace =>
+               null;
+
+            when others =>
+               if foldingRange.kind.Is_Set then
+                  Store_Span (Span);
+                  foldingRange.kind := (Is_Set => False);
+               end if;
+         end case;
 
          Token := Next (Token);
       end loop;
@@ -696,30 +711,6 @@ package body LSP.Ada_Documents is
       return LSP.Types.To_LSP_String
         (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Value));
    end To_LSP_String;
-
-   -------------
-   -- To_Span --
-   -------------
-
-   function To_Span
-     (Value : Langkit_Support.Slocs.Source_Location_Range)
-      return LSP.Messages.Span
-   is
-      use type LSP.Types.Line_Number;
-      use type LSP.Types.UTF_16_Index;
-
-      Result : constant LSP.Messages.Span :=
-        (first =>
-           (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
-            character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
-              (Value.Start_Column) - 1),
-         last =>
-           (line => LSP.Types.Line_Number (Value.End_Line) - 1,
-            character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!
-              (Value.End_Column) - 1));
-   begin
-      return Result;
-   end To_Span;
 
    --------------------
    -- Compute_Detail --

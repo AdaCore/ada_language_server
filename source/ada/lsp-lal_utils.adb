@@ -24,7 +24,6 @@ with LSP.Types;         use LSP.Types;
 with Libadalang.Common; use Libadalang.Common;
 
 with Langkit_Support;
-with Langkit_Support.Slocs;
 
 package body LSP.Lal_Utils is
 
@@ -334,24 +333,31 @@ package body LSP.Lal_Utils is
 
    function Get_Token_Span
      (Token : Libadalang.Common.Token_Reference)
+      return LSP.Messages.Span is
+   begin
+      return To_Span (Sloc_Range (Data (Token)));
+   end Get_Token_Span;
+
+   -------------
+   -- To_Span --
+   -------------
+
+   function To_Span
+     (Value : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Messages.Span
    is
-      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
-        Sloc_Range (Data (Token));
-
-      First_Position : constant LSP.Messages.Position :=
-        (Line_Number (Sloc.Start_Line) - 1,
-         UTF_16_Index (Sloc.Start_Column) - 1);
-      Last_Position  : constant LSP.Messages.Position :=
-        (Line_Number (Sloc.End_Line) - 1,
-         UTF_16_Index (Sloc.End_Column) - 1);
-
-      Span : constant LSP.Messages.Span :=
-        LSP.Messages.Span'(First_Position, Last_Position);
-
+      Result : constant LSP.Messages.Span :=
+        (first =>
+           (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
+            character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
+              (Value.Start_Column) - 1),
+         last =>
+           (line => LSP.Types.Line_Number (Value.End_Line) - 1,
+            character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!
+              (Value.End_Column) - 1));
    begin
-      return Span;
-   end Get_Token_Span;
+      return Result;
+   end To_Span;
 
    ----------------------
    -- To_Base_Id_Array --
