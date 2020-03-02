@@ -273,11 +273,11 @@
                         "parent", 
                         "child"
                      ], 
-                     "hoverProvider": {}, 
-                     "definitionProvider": {}, 
+                     "hoverProvider": true, 
+                     "definitionProvider": true, 
                      "renameProvider": {}, 
                      "alsCalledByProvider": true, 
-                     "referencesProvider": {}, 
+                     "referencesProvider": true, 
                      "textDocumentSync": 2, 
                      "declarationProvider": true, 
                      "completionProvider": {
@@ -286,7 +286,7 @@
                         ], 
                         "resolveProvider": false
                      }, 
-                     "documentSymbolProvider": {}
+                     "documentSymbolProvider": true
                   }
                }
             }

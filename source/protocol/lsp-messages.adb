@@ -6447,9 +6447,17 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.End_Object;
+      --  In case we don't have workDoneProgress property let's write a boolean
+      --  value instead of an empty object to be compatible with older protocol
+      --  readers.
+
+      if not V.workDoneProgress.Is_Set then
+         JS.Write (GNATCOLL.JSON.Create (True));
+      else
+         JS.Start_Object;
+         Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
+         JS.End_Object;
+      end if;
    end Write_WorkDoneProgressOptions;
 
    ----------------------------------
