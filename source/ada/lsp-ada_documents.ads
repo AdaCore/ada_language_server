@@ -101,6 +101,14 @@ package LSP.Ada_Documents is
       Result   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
+   procedure Get_Folding_Blocks
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Lines_Only : Boolean;
+      Result     : out LSP.Messages.FoldingRange_Vector);
+   --  Populate Result with code folding blocks in the document. If Lines_Only
+   --  is True does not return characters positions in lines.
+
    -----------------------
    -- Document_Provider --
    -----------------------

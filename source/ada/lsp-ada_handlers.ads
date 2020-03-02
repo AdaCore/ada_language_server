@@ -150,6 +150,9 @@ private
       --  textDocument/documentSymbol handler. Actual value depends on
       --  client's capabilities.
 
+      Line_Folding_Only : Boolean := False;
+      --  Client capabilities, folding only per lines
+
       ----------------------
       -- Project handling --
       ----------------------

@@ -551,6 +551,10 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value  => (Is_Server_Side => True, As_Flags => (others => True)));
 
+      Response.result.capabilities.foldingRangeProvider :=
+        (Is_Set => True,
+         Value => (Is_Boolean => True, Bool => True));
+
       if Value.capabilities.textDocument.documentSymbol.Is_Set
         and then Value.capabilities.textDocument.documentSymbol.Value
           .hierarchicalDocumentSymbolSupport = (True, True)
@@ -558,6 +562,15 @@ package body LSP.Ada_Handlers is
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
       else
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbols'Access;
+      end if;
+
+      if Value.capabilities.textDocument.foldingRange.Is_Set
+        and then Value.capabilities.textDocument.foldingRange.Value.
+          lineFoldingOnly.Is_Set
+      then
+         --  Client capability to fold only entire lines
+         Self.Line_Folding_Only := Value.capabilities.textDocument.
+           foldingRange.Value.lineFoldingOnly.Value;
       end if;
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
@@ -1438,16 +1451,39 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.FoldingRange_Response
-        (Is_Error => True);
+      use type LSP.Ada_Documents.Document_Access;
+
+      Value : LSP.Messages.FoldingRangeParams renames
+        Request.params;
+
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Result   : LSP.Messages.FoldingRange_Vector;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
-      return Response;
+      if Document /= null then
+         Document.Get_Folding_Blocks
+           (Context.all, Self.Line_Folding_Only, Result);
+
+         return Response : LSP.Messages.Server_Responses.FoldingRange_Response
+           (Is_Error => False)
+         do
+            Response.result := Result;
+         end return;
+
+      else
+         return Response : LSP.Messages.Server_Responses.FoldingRange_Response
+           (Is_Error => True)
+         do
+            Response.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Document is not opened",
+                data => <>));
+         end return;
+      end if;
    end On_Folding_Range_Request;
 
    --------------------------
