@@ -2,7 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Ada",
 	"patterns": [
-      { "include": "#package_specification" },
+      { "include": "#library_unit" },
 		{ "include": "#comment" },
       { "include": "#import" },
       { "include": "#pragma" }
@@ -399,6 +399,24 @@
             "7": { "patterns": [ { "include": "#exponent_part" } ] }
          }
       },
+      "basic_declaration": {
+         "patterns": [
+            { "include": "#aspect_specification" },
+            { "include": "#exception_declaration" },
+            { "include": "#raise_statement" },
+            { "include": "#assignment" },
+            { "include": "#attribute" },
+            { "include": "#goto" },
+            { "include": "#label" },
+            { "include": "#pragma" },
+            { "include": "#punctuation" },
+            { "include": "#return" },
+            { "include": "#subroutine" },
+            { "include": "#type" },
+            { "include": "#keyword" },
+            { "include": "#value" }
+         ]
+      },
 		"case": {
          "name": "meta.control.case.ada",
          "begin": "(?i)\\bcase\\s+(\\w|\\.|_)+\\s+is\\b",
@@ -483,7 +501,7 @@
             "3": { "name": "punctuation.ada" },
 				"4": { "patterns": [ { "include": "#exponent_part" } ] }
 			}
-		},
+      },
 		"discriminant": {
 			"patterns": [
 				{
@@ -636,6 +654,32 @@
             "3": { "name": "punctuation.label.ada" }
          }
       },
+      "library_unit": {
+         "name": "meta.library.unit.ada",
+         "patterns": [
+            { "include": "#package_body" },
+            { "include": "#package_specification" }
+         ]
+      },
+      "package_body": {
+         "name": "meta.declaration.package.body.ada",
+         "begin": "(?i)\\b(package)\\s+(body)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+         "end": "(?i)\\b(end)\\s(\\2)(;)",
+         "beginCaptures": {
+            "1": { "name": "keyword.ada" },
+            "2": { "name": "keyword.ada" },
+            "3": { "patterns": [ { "include": "#package_mark" } ] }
+         },
+         "endCaptures": {
+            "1": { "name": "keyword.ada" },
+            "2": { "patterns": [ { "include": "#package_mark" } ] },
+            "3": { "name": "punctuation.ada" }
+         },
+         "patterns": [
+            { "include": "#comment" },
+            { "include": "#basic_declaration" }
+         ]
+      },
       "package_declaration": {
          "patterns": [
             { "include": "#package_specification" }
@@ -660,21 +704,7 @@
          },
          "patterns": [
             { "include": "#comment" },
-            { "include": "#aspect_specification" },
-            { "include": "#aspect_specification" },
-            { "include": "#exception_declaration" },
-            { "include": "#raise_statement" },
-            { "include": "#assignment" },
-            { "include": "#attribute" },
-            { "include": "#goto" },
-            { "include": "#label" },
-            { "include": "#pragma" },
-            { "include": "#punctuation" },
-            { "include": "#return" },
-            { "include": "#subroutine" },
-            { "include": "#type" },
-            { "include": "#keyword" },
-            { "include": "#value" }
+            { "include": "#basic_declaration" }
          ]
       },
 		"pragma": {
