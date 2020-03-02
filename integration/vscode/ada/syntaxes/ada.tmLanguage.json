@@ -1,8 +1,6 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Ada",
-	"foldingStartMarker": "\\bbegin\\b",
-	"foldingStopMarker": "\\bend\\b",
 	"patterns": [
 		{ "include": "#comment" },
 		{ "include": "#import" },
