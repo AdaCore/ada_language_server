@@ -1,7 +1,8 @@
 [
    {
       "comment": [
-         "test automatically generated"
+         "Check code folding for:",
+         "   * comments"
       ]
    },
    {
@@ -21,9 +22,6 @@
                      "foldingRange": {
                         "lineFoldingOnly": true
                      }
-                  },
-                  "workspace": {
-                     "applyEdit": true
                   }
                },
                "rootUri": "$URI{.}"
@@ -36,10 +34,32 @@
             {
                "id": 1,
                "result": {
-                  "capabilities": {
-                     "implementationProvider": true,
-                     "foldingRangeProvider": true,
+                     "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "resolveProvider": false,
+                        "triggerCharacters": [
+                           "."
+                        ]
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
                      "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {
+                     },
+                     "renameProvider": {
+                     },
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-named-parameters"
+                        ]
+                     },
+                     "alsCalledByProvider": true,
                      "alsReferenceKinds": [
                         "reference",
                         "write",
@@ -47,29 +67,9 @@
                         "dispatching call",
                         "parent",
                         "child"
-                     ],
-                     "hoverProvider": {},
-                     "definitionProvider": {},
-                     "renameProvider": {},
-                     "alsCalledByProvider": true,
-                     "referencesProvider": {},
-                     "codeActionProvider": {},
-                     "textDocumentSync": 2,
-                     "declarationProvider": true,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           "."
-                        ],
-                        "resolveProvider": false
-                     },
-                     "documentSymbolProvider": {},
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-named-parameters"
-                        ]
+                     ]
                      }
                   }
-               }
             }
          ]
       }
