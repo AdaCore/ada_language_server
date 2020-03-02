@@ -4,7 +4,8 @@
 	"patterns": [
       { "include": "#library_unit" },
 		{ "include": "#comment" },
-      { "include": "#import" },
+      { "include": "#use_clause" },
+      { "include": "#with_clause" },
       { "include": "#pragma" }
 	],
 	"repository": {
@@ -576,34 +577,6 @@
             "2": { "name": "entity.name.label.ada" },
             "3": { "name": "punctuation.ada" }
          }
-		},
-		"import": {
-			"patterns": [
-				{
-					"name": "meta.import.package.ada",
-					"match": "(?i)\\bwith\\s+(\\w|\\.|_)+(\\s*,\\s*(\\w|\\.|_)+)?\\s*;",
-					"captures": {
-						"0": {
-							"patterns": [
-								{ "include": "#keyword" },
-								{ "include": "#punctuation" }
-							]
-						}
-					}
-				},
-				{
-					"name": "meta.import.subroutine.ada",
-					"match": "(?i)\\bwith(\\\\.|[^;])*;",
-					"captures": {
-						"0": {
-							"patterns": [
-								{ "include": "#subroutine" },
-								{ "include": "#keyword" }
-							]
-						}
-					}
-				}
-			]
 		},
 		"keyword": {
 			"patterns": [
@@ -1327,6 +1300,51 @@
 					}
 				}
 			]
+      },
+      "use_clause": {
+			"name": "meta.context.use.ada",
+			"patterns": [
+				{ "include": "#use_type_clause" },
+				{ "include": "#use_package_clause" }
+			]
+		},
+		"use_package_clause": {
+			"name": "meta.context.use.package.ada",
+			"begin": "(?i)\\buse\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.other.using.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{ "include": "#package_mark" }
+			]
+		},
+		"use_type_clause": {
+			"name": "meta.context.use.type.ada",
+			"begin": "(?i)\\b(use)\\s+(?:(all)\\s+)?(type)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.other.using.ada" },
+				"2": { "name": "keyword.modifier.ada" },
+				"3": { "name": "keyword.modifier.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{ "include": "#subtype_mark" }
+			]
 		},
 		"value": {
 			"patterns": [
@@ -1334,6 +1352,26 @@
 				{ "include": "#decimal_literal" },
 				{ "include": "#character_literal" },
 				{ "include": "#string_literal" }
+			]
+      },
+      "with_clause": {
+			"name": "meta.context.with.ada",
+			"begin": "(?i)\\b(?:(limited)\\s+)?(?:(private)\\s+)?(with)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.modifier.ada" },
+				"2": { "name": "storage.visibility.ada" },
+				"3": { "name": "keyword.other.using.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{ "include": "#package_mark" }
 			]
 		}
 	},
