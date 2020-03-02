@@ -248,9 +248,11 @@ for the `ada_language_server` and defines default customizable configuration
 values in the `lsp-ada` group that can be edited similarly to
 `lsp-ada-project-file` in the example above.
 
-## Maintainer
+## Authors & Contributors
 
-[@MaximReznik](https://github.com/reznikmm).
+ * Maintained by [AdaCore](https://www.adacore.com).
+ * Original author [@MaximReznik](https://github.com/reznikmm).
+ * Support for the Visual Studio Code classifier and syntax highlighter contributed by [@Entomy](https://github.com/Entomy).
 
 ## Contribute
 
