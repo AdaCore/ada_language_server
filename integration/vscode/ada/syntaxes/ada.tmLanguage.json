@@ -6,7 +6,7 @@
 	"patterns": [
 		{ "include": "#comment" },
 		{ "include": "#import" },
-      { "include": "#aspect" },
+      { "include": "#aspect_specification" },
       { "include": "#exception_declaration" },
       { "include": "#raise_statement" },
 		{ "include": "#assignment" },
@@ -260,32 +260,41 @@
 				}
 			]
 		},
-		"aspect": {
-         "name": "meta.aspect.ada",
-         "begin": "(?i)\\b(with)(?!\\s+(procedure|function))\\b",
-         "end": "(?i)(?:\\b(is)\\b|(;))",
-         "beginCaptures": {
-            "1": { "name": "keyword.ada" }
-         },
-         "endCaptures": {
-            "1": { "name": "keyword.ada" },
-            "2": { "name": "punctuation.ada" }
-         },
-         "patterns": [
-            { "include": "#comment" },
-            {
-               "name": "keyword.control.directive.ada",
-               "match": "(?i)\\b(address|alignment|all_calls_remote|asynchronous|atomic|atomic_components|attach_handler|bit_order|component_size|convention|constant_indexing|cpu|default_component_value|default_iterator|default_storage_pool|default_value|dispatching_domain|dynamic_predicate|elaborate_body|export|external_name|external_tag|implicit_dereference|import|independent|independent_components|inline|input|iterator_element|interrupt_handler|interrupt_priority|link_name|machine_radix|no_return|output|pack|post|pre|preelaborate|priority|pure|read|relative_deadline|remote_call_interface|remote_types|size|shared_passive|small|static_predicate|storage_size|storage_pool|stream_size|synchronization|type_invariant|unchecked_union|variable_indexing|volatile|volatile_components|write)\\b"
-            },
-            {
-               "name": "keyword.control.directive.ada",
-               "match": "(?i)\\b(ada_2005|ada_2012|favor_top_level|inline_always|object_size|persistent_bss|pure_function|remote_access_type|shared|suppress_debug_info|test_case|universal_aliasing|unmodified|unreferenced|unreferenced_objects|value_size|warnings)\\b"
-            },
-            { "include": "#attribute" },
-            { "include": "#keyword" },
-            { "include": "#value" },
-            { "include": "#punctuation" }
-         ]
+		"aspect_definition": {
+			"name": "meta.aspect.definition.ada",
+			"begin": "=>",
+			"end": "(?i)\\b(?=(,|;|is))\\b",
+			"beginCaptures": {
+				"0": { "name": "keyword.other.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
+			]
+		},
+		"aspect_mark": {
+			"name": "meta.aspect.mark.ada",
+			"match": "(?i)\\b((?:\\w|\\d|\\.|_)+)(?:(')(class))?\\b",
+			"captures": {
+				"1": { "name": "keyword.control.directive.ada" },
+				"2": { "name": "punctuation.ada" },
+				"3": { "name": "entity.other.attribute-name.ada" }
+			}
+		},
+		"aspect_specification": {
+			"name": "meta.aspect.specification.ada",
+			"begin": "(?i)\\bwith\\b",
+			"end": "(?i)\\b(?=(;|is))\\b",
+			"beginCaptures": {
+				"0": { "name": "keyword.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{ "include": "#aspect_definition" },
+				{ "include": "#aspect_mark" }
+			]
 		},
 		"assignment": {
 			"patterns": [
@@ -878,7 +887,7 @@
 										}
 									}
 								},
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#keyword" },
 								{ "include": "#arguments" },
 								{
@@ -927,7 +936,7 @@
 									}
 								},
 								{ "include": "#attribute" },
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#keyword" },
 								{ "include": "#arguments" },
 								{
@@ -960,7 +969,7 @@
 									}
 								},
 								{ "include": "#attribute" },
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#keyword" },
 								{ "include": "#arguments" },
 								{
@@ -977,7 +986,7 @@
 					"captures": {
 						"0": {
 							"patterns": [
-									{ "include": "#aspect" },
+									{ "include": "#aspect_specification" },
 									{ "include": "#keyword" },
 									{ "include": "#arguments" },
 									{
@@ -1025,7 +1034,7 @@
 									}
 								},
 								{ "include": "#attribute" },
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#arguments" },
 								{ "include": "#keyword" },
 								{
@@ -1072,7 +1081,7 @@
 									}
 								},
 								{ "include": "#attribute" },
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#keyword" },
 								{ "include": "#arguments" },
 								{
@@ -1101,7 +1110,7 @@
 										}
 									}
 								},
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#arguments" },
 								{ "include": "#keyword" },
 								{
@@ -1241,7 +1250,7 @@
 					"captures": {
 						"0": {
 							"patterns": [
-								{ "include": "#aspect" },
+								{ "include": "#aspect_specification" },
 								{ "include": "#keyword" },
 								{ "include": "#subtype_mark" }
 							]
