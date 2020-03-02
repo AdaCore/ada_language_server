@@ -2,22 +2,10 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "Ada",
 	"patterns": [
+      { "include": "#package_specification" },
 		{ "include": "#comment" },
-		{ "include": "#import" },
-      { "include": "#aspect_specification" },
-      { "include": "#exception_declaration" },
-      { "include": "#raise_statement" },
-		{ "include": "#assignment" },
-		{ "include": "#attribute" },
-		{ "include": "#goto" },
-		{ "include": "#label" },
-		{ "include": "#pragma" },
-      { "include": "#punctuation" },
-		{ "include": "#return" },
-		{ "include": "#subroutine" },
-		{ "include": "#type" },
-		{ "include": "#keyword" },
-		{ "include": "#value" }
+      { "include": "#import" },
+      { "include": "#pragma" }
 	],
 	"repository": {
 		"aggregate": {
@@ -647,7 +635,48 @@
             "2": { "name": "entity.name.label.ada" },
             "3": { "name": "punctuation.label.ada" }
          }
-		},
+      },
+      "package_declaration": {
+         "patterns": [
+            { "include": "#package_specification" }
+         ]
+      },
+      "package_mark": {
+         "name": "entity.name.package.ada",
+         "match": "\\b(\\w|\\d|\\.|_)+\\b"
+      },
+      "package_specification": {
+         "name": "meta.declaration.package.specification.ada",
+         "begin": "(?i)\\b(package)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+         "end": "(?i)\\b(end)\\s(\\2)(;)",
+         "beginCaptures": {
+            "1": { "name": "keyword.ada" },
+            "2": { "patterns": [ { "include": "#package_mark" } ] }
+         },
+         "endCaptures": {
+            "1": { "name": "keyword.ada" },
+            "2": { "patterns": [ { "include": "#package_mark" } ] },
+            "3": { "name": "punctuation.ada" }
+         },
+         "patterns": [
+            { "include": "#comment" },
+            { "include": "#aspect_specification" },
+            { "include": "#aspect_specification" },
+            { "include": "#exception_declaration" },
+            { "include": "#raise_statement" },
+            { "include": "#assignment" },
+            { "include": "#attribute" },
+            { "include": "#goto" },
+            { "include": "#label" },
+            { "include": "#pragma" },
+            { "include": "#punctuation" },
+            { "include": "#return" },
+            { "include": "#subroutine" },
+            { "include": "#type" },
+            { "include": "#keyword" },
+            { "include": "#value" }
+         ]
+      },
 		"pragma": {
 			"name": "meta.pragma.ada",
 			"begin": "(?i)\\b(pragma)\\s+((?:\\w|\\d|_)+)\\b",
