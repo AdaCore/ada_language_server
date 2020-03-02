@@ -125,6 +125,11 @@ package LSP.Clients is
       Request  : out LSP.Types.LSP_Number;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
+   procedure Text_Document_Folding_Range_Request
+     (Self    : in out Client'Class;
+      Request : out LSP.Types.LSP_Number;
+      Value   : LSP.Messages.FoldingRangeParams);
+
    procedure Text_Document_Highlight_Request
      (Self     : in out Client'Class;
       Request  : out LSP.Types.LSP_Number;

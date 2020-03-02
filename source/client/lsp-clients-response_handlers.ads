@@ -57,6 +57,11 @@ package LSP.Clients.Response_Handlers is
      Request  : LSP.Types.LSP_Number;
      Response : LSP.Messages.Server_Responses.Hover_Response) is null;
 
+   procedure Text_Document_Folding_Range_Response
+    (Self     : not null access Response_Handler;
+     Request  : LSP.Types.LSP_Number;
+     Response : LSP.Messages.Server_Responses.FoldingRange_Response) is null;
+
    procedure Text_Document_Highlight_Response
     (Self     : not null access Response_Handler;
      Request  : LSP.Types.LSP_Number;

@@ -87,6 +87,13 @@ package body LSP.Clients is
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
+      procedure Text_Document_Folding_Range_Response
+        (Stream   : access Ada.Streams.Root_Stream_Type'Class;
+         Request  : LSP.Types.LSP_Number;
+         Is_Error : Boolean;
+         Handler  : access
+           LSP.Clients.Response_Handlers.Response_Handler'Class);
+
       procedure Text_Document_Highlight_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
          Request  : LSP.Types.LSP_Number;
@@ -294,6 +301,25 @@ package body LSP.Clients is
          LSP.Messages.Server_Responses.Hover_Response'Read (Stream, Response);
          Handler.Text_Document_Hover_Response (Request, Response);
       end Text_Document_Hover_Response;
+
+      ------------------------------------------
+      -- Text_Document_Folding_Range_Response --
+      ------------------------------------------
+
+      procedure Text_Document_Folding_Range_Response
+        (Stream   : access Ada.Streams.Root_Stream_Type'Class;
+         Request  : LSP.Types.LSP_Number;
+         Is_Error : Boolean;
+         Handler  : access
+           LSP.Clients.Response_Handlers.Response_Handler'Class)
+      is
+         Response : LSP.Messages.Server_Responses.FoldingRange_Response
+           (Is_Error);
+      begin
+         LSP.Messages.Server_Responses.FoldingRange_Response'Read
+           (Stream, Response);
+         Handler.Text_Document_Folding_Range_Response (Request, Response);
+      end Text_Document_Folding_Range_Response;
 
       --------------------------------------
       -- Text_Document_Highlight_Response --
@@ -906,6 +932,24 @@ package body LSP.Clients is
          Decoders.Text_Document_Hover_Response'Access,
          Message);
    end Text_Document_Hover_Request;
+
+   -----------------------------------------
+   -- Text_Document_Folding_Range_Request --
+   -----------------------------------------
+
+   procedure Text_Document_Folding_Range_Request
+     (Self    : in out Client'Class;
+      Request : out LSP.Types.LSP_Number;
+      Value   : LSP.Messages.FoldingRangeParams)
+   is
+      Message : Folding_Range_Request := (params => Value, others => <>);
+   begin
+      Self.Send_Request
+        (Request,
+         "textDocument/foldingRange",
+         Decoders.Text_Document_Folding_Range_Response'Access,
+         Message);
+   end Text_Document_Folding_Range_Request;
 
    --------------------------------------
    -- Text_Document_References_Request --

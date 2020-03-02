@@ -328,6 +328,31 @@ package body LSP.Lal_Utils is
       return Location;
    end Get_Node_Location;
 
+   ------------------------
+   -- Get_Token_Location --
+   ------------------------
+
+   function Get_Token_Span
+     (Token : Libadalang.Common.Token_Reference)
+      return LSP.Messages.Span
+   is
+      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
+        Sloc_Range (Data (Token));
+
+      First_Position : constant LSP.Messages.Position :=
+        (Line_Number (Sloc.Start_Line) - 1,
+         UTF_16_Index (Sloc.Start_Column) - 1);
+      Last_Position  : constant LSP.Messages.Position :=
+        (Line_Number (Sloc.End_Line) - 1,
+         UTF_16_Index (Sloc.End_Column) - 1);
+
+      Span : constant LSP.Messages.Span :=
+        LSP.Messages.Span'(First_Position, Last_Position);
+
+   begin
+      return Span;
+   end Get_Token_Span;
+
    ----------------------
    -- To_Base_Id_Array --
    ----------------------

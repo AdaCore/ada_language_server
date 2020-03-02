@@ -24,6 +24,7 @@ with Libadalang.Common;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Lal_Utils;
 
 package body LSP.Ada_Documents is
 
@@ -360,6 +361,221 @@ package body LSP.Ada_Documents is
         ((Line   => Line_Number (Position.line) + 1,
           Column => Column_Number (Position.character) + 1));
    end Get_Node_At;
+
+   ------------------------
+   -- Get_Folding_Blocks --
+   ------------------------
+
+   procedure Get_Folding_Blocks
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Lines_Only : Boolean;
+      Result     : out LSP.Messages.FoldingRange_Vector)
+   is
+      use Libadalang.Common;
+      use Libadalang.Analysis;
+
+      Location     : LSP.Messages.Location;
+      foldingRange : LSP.Messages.FoldingRange;
+      Have_With    : Boolean := False;
+
+      function Parse (Node : Ada_Node'Class) return Visit_Status;
+      --  Includes Node location to the result if the node has "proper" kind
+
+      procedure Store_Span (Span : LSP.Messages.Span);
+      --  Include Span to the result .
+
+      -----------
+      -- Parse --
+      -----------
+
+      function Parse (Node : Ada_Node'Class) return Visit_Status
+      is
+
+         procedure Store_With_Block;
+         --  Store folding for with/use clauses as one folding block
+
+         ----------------------
+         -- Store_With_Block --
+         ----------------------
+
+         procedure Store_With_Block is
+         begin
+            if not Have_With then
+               return;
+            end if;
+
+            if foldingRange.startLine /= foldingRange.endLine then
+               Result.Append (foldingRange);
+            end if;
+
+            Have_With := False;
+         end Store_With_Block;
+
+      begin
+--        Cat_Namespace,
+--        Cat_Constructor,
+--        Cat_Destructor,
+--        Cat_Structure,
+--        Cat_Case_Inside_Record,
+--        Cat_Union,
+--        Cat_Custom
+
+         case Node.Kind is
+            when Ada_Package_Decl |
+                 Ada_Generic_Formal_Package |
+                 Ada_Package_Body |
+                 --  Cat_Package
+
+                 Ada_Type_Decl |
+                 Ada_Record_Def |
+
+                 Ada_Classwide_Type_Decl |
+--        Cat_Class
+
+                 Ada_Protected_Type_Decl |
+--        Cat_Protected
+
+                 Ada_Task_Type_Decl |
+                 Ada_Single_Task_Type_Decl |
+--        Cat_Task
+
+                 Ada_Subp_Decl |
+                 Ada_Subp_Body |
+                 Ada_Subp_Spec |
+                 Ada_Generic_Formal_Subp_Decl |
+                 Ada_Abstract_Subp_Decl |
+                 Ada_Abstract_Formal_Subp_Decl |
+                 Ada_Concrete_Formal_Subp_Decl |
+                 Ada_Generic_Subp_Internal |
+                 Ada_Null_Subp_Decl |
+                 Ada_Subp_Renaming_Decl |
+                 Ada_Subp_Body_Stub |
+                 Ada_Generic_Subp_Decl |
+                 Ada_Generic_Subp_Instantiation |
+                 Ada_Generic_Subp_Renaming_Decl |
+                 Ada_Subp_Kind_Function |
+                 Ada_Subp_Kind_Procedure |
+                 Ada_Access_To_Subp_Def |
+--        Cat_Procedure
+--        Cat_Function
+--        Cat_Method
+
+                 Ada_Case_Stmt |
+--        Cat_Case_Statement
+
+                 Ada_If_Stmt |
+--        Cat_If_Statement
+
+                 Ada_For_Loop_Stmt |
+                 Ada_While_Loop_Stmt |
+--        Cat_Loop_Statement
+
+                 Ada_Begin_Block |
+                 Ada_Decl_Block |
+--        Cat_Declare_Block
+--        Cat_Simple_Block
+
+--                 Ada_Return_Stmt |
+--                 Ada_Extended_Return_Stmt |
+                 Ada_Extended_Return_Stmt_Object_Decl |
+--        Cat_Return_Block
+
+                 Ada_Select_Stmt |
+--        Cat_Select_Statement
+
+                 Ada_Entry_Body |
+--        Cat_Entry
+
+                 Ada_Exception_Handler |
+--        Cat_Exception_Handler
+
+                 Ada_Pragma_Node_List |
+                 Ada_Pragma_Argument_Assoc |
+                 Ada_Pragma_Node |
+--        Cat_Pragma
+
+                 Ada_Aspect_Assoc_List |
+                 Ada_Aspect_Assoc |
+                 Ada_Aspect_Spec =>
+--        Cat_Aspect
+
+               Store_With_Block;
+
+               foldingRange.kind :=
+                 (Is_Set => True, Value => LSP.Messages.Region);
+
+               Location := LSP.Lal_Utils.Get_Node_Location (Ada_Node (Node));
+               Store_Span (Location.span);
+
+            when Ada_With_Clause |
+                 Ada_Use_Package_Clause |
+                 Ada_Use_Type_Clause =>
+
+               Location := LSP.Lal_Utils.Get_Node_Location (Ada_Node (Node));
+
+               if not Have_With then
+                  Have_With := True;
+
+                  foldingRange.kind :=
+                    (Is_Set => True, Value => LSP.Messages.Imports);
+
+                  foldingRange.startLine := Integer (Location.span.first.line);
+               end if;
+
+               foldingRange.endLine := Integer (Location.span.last.line);
+
+            when others =>
+               Store_With_Block;
+         end case;
+
+         return Into;
+      end Parse;
+
+      ----------------
+      -- Store_Span --
+      ----------------
+
+      procedure Store_Span (Span : LSP.Messages.Span) is
+         use type LSP.Types.Line_Number;
+      begin
+         if not Lines_Only
+           or else Span.first.line /= Span.last.line
+         then
+            foldingRange.startLine := Integer (Span.first.line);
+            foldingRange.endLine   := Integer (Span.last.line);
+
+            if not Lines_Only then
+               foldingRange.startCharacter :=
+                 (Is_Set => True,
+                  Value  => Integer (Span.first.character));
+
+               foldingRange.startCharacter :=
+                 (Is_Set => True,
+                  Value  => Integer (Span.last.character));
+            end if;
+
+            Result.Append (foldingRange);
+         end if;
+      end Store_Span;
+
+      Token : Token_Reference;
+
+   begin
+      Traverse (Self.Unit (Context).Root, Parse'Access);
+
+      --  Looking for comments
+      Token := First_Token (Self.Unit (Context));
+      while Token /= No_Token loop
+         if Is_Trivia (Token)
+           and then Kind (Data (Token)) = Ada_Comment
+         then
+            Store_Span (LSP.Lal_Utils.Get_Token_Span (Token));
+         end if;
+
+         Token := Next (Token);
+      end loop;
+   end Get_Folding_Blocks;
 
    -------------------
    -- Get_Decl_Kind --
