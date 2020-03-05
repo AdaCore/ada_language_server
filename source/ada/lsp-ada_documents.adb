@@ -410,6 +410,7 @@ package body LSP.Ada_Documents is
             Have_With := False;
          end Store_With_Block;
 
+         Result : Visit_Status := Into;
       begin
 --        Cat_Namespace,
 --        Cat_Constructor,
@@ -523,11 +524,14 @@ package body LSP.Ada_Documents is
 
                foldingRange.endLine := Integer (Location.span.last.line);
 
+               --  Do not step into with/use clause
+               Result := Over;
+
             when others =>
                Store_With_Block;
          end case;
 
-         return Into;
+         return Result;
       end Parse;
 
       ----------------

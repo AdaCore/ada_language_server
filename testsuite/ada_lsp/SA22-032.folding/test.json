@@ -2,7 +2,8 @@
    {
       "comment": [
          "Check code folding for:",
-         "   * comments"
+         "   * comments",
+         "   * with/use blocks"
       ]
    },
    {
@@ -136,9 +137,19 @@
                "id": 2,
                "result": [
                   {
+                  "startLine": 1,
+                  "endLine": 2,
+                  "kind": "imports"
+                  },
+                  {
                      "endLine": 15,
                      "startLine": 4,
                      "kind": "region"
+                  },
+                  {
+                  "startLine": 5,
+                  "endLine": 6,
+                  "kind": "imports"
                   },
                   {
                      "endLine": 12,
