@@ -58,7 +58,7 @@ private
    procedure Do_Abort (Self : Test);
 
    procedure Do_Fail
-     (Self : Test;
+     (Self : in out Test;
       Text : Spawn.String_Vectors.UTF_8_String_Vector);
    --  Mark test as failed with given Text
 

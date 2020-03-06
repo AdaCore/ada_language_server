@@ -64,7 +64,7 @@ package body Tester.Tests is
    -------------
 
    procedure Do_Fail
-     (Self : Test;
+     (Self : in out Test;
       Text : Spawn.String_Vectors.UTF_8_String_Vector)
    is
       pragma Unreferenced (Self);
@@ -76,6 +76,8 @@ package body Tester.Tests is
       end loop;
 
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+      --  Prevent execution any other commands in the script:
+      Self.Index := Integer'Last;
    end Do_Fail;
 
    -------------
