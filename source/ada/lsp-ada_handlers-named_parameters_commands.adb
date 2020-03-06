@@ -110,7 +110,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       Args   : Libadalang.Analysis.Basic_Assoc_List;
       Params : LSP.Types.LSP_String_Vector;
-      Index  : Positive := 1;
+      Index  : Natural := 0;
    begin
       if Client_Supports_documentChanges then
          Edits.documentChanges.Append
@@ -135,9 +135,10 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       Args := Node.As_Basic_Assoc_List;
       Params := Get_Parameters (Args);
+      Index := Params.Last_Index;
 
       for Arg of reverse Args.Children loop
-         exit when Index > Params.Last_Index;
+         exit when Index < Params.First_Index;
 
          case Arg.Kind is
             when Libadalang.Common.Ada_Param_Assoc =>
@@ -149,7 +150,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
                null;
          end case;
 
-         Index := Index + 1;
+         Index := Index - 1;
       end loop;
 
       Client.On_Workspace_Apply_Edit_Request (Apply);
