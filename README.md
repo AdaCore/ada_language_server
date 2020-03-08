@@ -253,7 +253,7 @@ values in the `lsp-ada` group that can be edited similarly to
 
  * Maintained by [AdaCore](https://www.adacore.com).
  * Original author [@MaximReznik](https://github.com/reznikmm).
- * Support for the Visual Studio Code classifier and syntax highlighter contributed by [@Entomy](https://github.com/Entomy).
+ * Support for the Visual Studio Code classifier and snippets contributed by [@Entomy](https://github.com/Entomy).
 
 ## Contribute
 
