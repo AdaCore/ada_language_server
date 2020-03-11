@@ -20,6 +20,7 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Text;
 with Libadalang.Common;
 with Libadalang.Iterators;
 
@@ -826,16 +827,31 @@ package body LSP.Ada_Documents is
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
                   declare
-                     R : CompletionItem;
+                     R      : CompletionItem;
+                     Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                              Langkit_Support.Text.To_UTF8 (Node.Text);
                   begin
-                     R.label := To_LSP_String (DN.P_Relative_Name.Text);
-                     R.kind := (True, To_Completion_Kind (Get_Decl_Kind (BD)));
-                     R.detail := (True, Compute_Completion_Detail (BD));
-                     Result.items.Append (R);
+
+                     --  If we are not completing a dotted name, filter the
+                     --  raw completion results by the node's prefix.
+                     if Node.Kind in Ada_Dotted_Name_Range
+                       or else Starts_With
+                         (To_LSP_String (DN.P_Relative_Name.Text),
+                          Prefix => Prefix)
+                     then
+                        R.label := To_LSP_String (DN.P_Relative_Name.Text);
+                        R.kind := (True, To_Completion_Kind
+                                   (Get_Decl_Kind (BD)));
+                        R.detail := (True, Compute_Completion_Detail (BD));
+                        Result.items.Append (R);
+                     end if;
                   end;
                end loop;
             end if;
          end loop;
+
+         Context.Trace.Trace
+           ("Number of filtered completions : " & Result.items.Length'Image);
       end;
    end Get_Completions_At;
 
