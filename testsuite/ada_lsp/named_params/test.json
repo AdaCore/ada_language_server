@@ -76,7 +76,7 @@
                         "uri": "$URI{test.adb}",
                         "languageId": "ada",
                         "version": 1,
-                        "text": "procedure Test is\n   type T is mod 2;\n   procedure P (Pr : T);\n   procedure B (Br : T; X : Natural) is null;\nbegin\n   P (1);\n   B (2, 0);\n   P (3);\nend;\n"
+                        "text": "procedure Test is\n   type T is mod 2;\n   procedure P (Pr : T);\n   procedure B (Br : T; X : Natural := 1) is null;\nbegin\n   P (1);\n   B (2, 0);\n   P (3);\n   B (2);\nend;\n"
                     }
                 }
             },
@@ -520,6 +520,148 @@
                         },
                         "rangeLength":0,
                         "text":"Pr => "
+                    }]
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "comment": "Check with absent optional argument:"
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"codeAction-4",
+                "method":"textDocument/codeAction",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{test.adb}"
+                    },
+                    "range":{
+                        "start":{
+                            "line":8,
+                            "character":3
+                        },
+                        "end":{
+                            "line":8,
+                            "character":3
+                        }
+                    },
+                    "context":{
+                        "diagnostics":[]
+                    }
+                }
+            },
+            "wait":[{
+                "id": "codeAction-4",
+                "result":[{
+                    "title":"Name parameters in the call",
+                    "kind":"refactor.rewrite",
+                    "command":{
+                        "title":"",
+                        "command":"als-named-parameters",
+                        "arguments":[{
+                            "context":"empty",
+                            "where":{
+                                "textDocument":{
+                                    "uri": "$URI{test.adb}"
+                                },
+                                "position":{
+                                    "line":8,
+                                    "character":6
+                                }
+                            }
+                        }]
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"exec-4",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command":"als-named-parameters",
+                    "arguments":[{
+                        "context":"empty",
+                        "where":{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}"
+                            },"position":{
+                                "line":8,
+                                "character":6
+                            }
+                        }
+                    }]
+                }
+            },
+            "wait":[{
+                "id":5,
+                "method":"workspace/applyEdit",
+                "params":{
+                    "edit":{
+                        "documentChanges":[{
+                            "textDocument":{
+                                "uri": "$URI{test.adb}",
+                                "version":4
+                            },
+                            "edits":[{
+                                "range":{
+                                    "start":{
+                                        "line":8,
+                                        "character":6
+                                    },
+                                    "end":{
+                                        "line":8,
+                                        "character":6
+                                    }
+                                },
+                                "newText":"Br => "
+                            }]
+                        }]
+                    }
+                }
+            }, {
+                "id": "exec-4",
+                "result": null
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":5,
+                "result":{
+                    "applied":true
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didChange",
+                "params":{
+                    "textDocument":{
+                        "uri": "$URI{test.adb}",
+                        "version":5
+                    },
+                    "contentChanges":[{
+                        "range":{
+                            "start":{
+                                "line":8,
+                                "character":6
+                            },
+                            "end":{
+                                "line":8,
+                                "character":6
+                            }
+                        },
+                        "rangeLength":0,
+                        "text":"Br => "
                     }]
                 }
             },
