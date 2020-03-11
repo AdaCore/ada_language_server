@@ -135,7 +135,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       Args := Node.As_Basic_Assoc_List;
       Params := Get_Parameters (Args);
-      Index := Params.Last_Index;
+      Index := Args.Children_Count;
 
       for Arg of reverse Args.Children loop
          exit when Index < Params.First_Index;
