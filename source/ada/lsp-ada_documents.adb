@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Conversions;
 with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
@@ -35,9 +36,16 @@ package body LSP.Ada_Documents is
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
    function Get_Decl_Kind
-     (Node : Libadalang.Analysis.Basic_Decl)
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
       return LSP.Messages.SymbolKind;
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+   --  When Ignore_Local it will return Is_Null for all local objects like
+   --  variables.
+
+   function Get_Profile
+     (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+   --  Return the profile of Node.
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
@@ -232,6 +240,8 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
+
       procedure Walk
         (Node   : Libadalang.Analysis.Ada_Node;
          Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
@@ -258,33 +268,42 @@ package body LSP.Ada_Documents is
                Decl : constant Libadalang.Analysis.Basic_Decl :=
                  Node.As_Basic_Decl;
 
-               Names : constant Libadalang.Analysis.Defining_Name_Array :=
-                 Decl.P_Defining_Names;
+               Kind : constant LSP.Messages.SymbolKind :=
+                 Get_Decl_Kind (Decl, Ignore_Local => True);
 
             begin
-               for Name of Names loop
-
-                  exit when Name = Libadalang.Analysis.No_Defining_Name;
-
+               if Kind /= LSP.Messages.A_Null then
                   declare
-                     Item : constant LSP.Messages.DocumentSymbol :=
-                       (name           => To_LSP_String (Name.Text),
-                        detail         => (Is_Set => False),
-                        kind           => Get_Decl_Kind (Decl),
-                        deprecated     => (Is_Set => False),
-                        span           => LSP.Lal_Utils.To_Span
-                          (Node.Sloc_Range),
-                        selectionRange => LSP.Lal_Utils.To_Span
-                          (Node.Sloc_Range),
-                        children       => True);
+                     Names : constant Libadalang.Analysis.Defining_Name_Array
+                       := Decl.P_Defining_Names;
                   begin
-                     Tree.Insert_Child
-                       (Parent   => Cursor,
-                        Before   => Messages.DocumentSymbol_Trees.No_Element,
-                        New_Item => Item,
-                        Position => Next);
+
+                     for Name of Names loop
+                        exit when Name = Libadalang.Analysis.No_Defining_Name;
+
+                        declare
+                           Item : constant LSP.Messages.DocumentSymbol :=
+                             (name           => To_LSP_String (Name.Text),
+                              detail         =>
+                                (Is_Set => True, Value => Get_Profile (Decl)),
+                              kind           => Kind,
+                              deprecated     => (Is_Set => False),
+                              span           => LSP.Lal_Utils.To_Span
+                                (Node.Sloc_Range),
+                              selectionRange => LSP.Lal_Utils.To_Span
+                                (Name.Sloc_Range),
+                              children       => True);
+                        begin
+                           Tree.Insert_Child
+                             (Parent   => Cursor,
+                              Before   =>
+                                Messages.DocumentSymbol_Trees.No_Element,
+                              New_Item => Item,
+                              Position => Next);
+                        end;
+                     end loop;
                   end;
-               end loop;
+               end if;
             end;
          end if;
 
@@ -310,6 +329,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
       Item    : LSP.Messages.SymbolInformation;
 
@@ -327,14 +347,22 @@ package body LSP.Ada_Documents is
          Vector  => <>);
 
       while Cursor.Next (Element) loop
-         Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
-         Item.location :=
-           (uri     => Self.URI,
-            span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
-            alsKind => LSP.Messages.Empty_Set);
+         declare
+            Kind : constant LSP.Messages.SymbolKind :=
+              Get_Decl_Kind
+                (Element.As_Defining_Name.P_Basic_Decl, Ignore_Local => True);
+         begin
+            if Kind /= LSP.Messages.A_Null then
+               Item.name := To_LSP_String (Element.Text);
+               Item.kind := Kind;
+               Item.location :=
+                 (uri     => Self.URI,
+                  span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
+                  alsKind => LSP.Messages.Empty_Set);
 
-         Result.Vector.Append (Item);
+               Result.Vector.Append (Item);
+            end if;
+         end;
       end loop;
    end Get_Symbols;
 
@@ -600,7 +628,8 @@ package body LSP.Ada_Documents is
    -------------------
 
    function Get_Decl_Kind
-     (Node : Libadalang.Analysis.Basic_Decl)
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
       return LSP.Messages.SymbolKind
    is
       use Libadalang.Common;
@@ -635,7 +664,9 @@ package body LSP.Ada_Documents is
               Ada_Extended_Return_Stmt_Object_Decl |
               Ada_Single_Protected_Decl |
               Ada_Single_Task_Decl =>
-            return LSP.Messages.Variable;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.Variable);
 
          when Ada_Generic_Formal_Package |
               Ada_Package_Decl |
@@ -679,14 +710,142 @@ package body LSP.Ada_Documents is
          when Ada_For_Loop_Var_Decl |
               Ada_Label_Decl |
               Ada_Named_Stmt_Decl =>
-            return LSP.Messages.A_Constant;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.A_Constant);
 
          when others
             => null;
       end case;
 
-      return LSP.Messages.A_Function;
+      return LSP.Messages.A_Null;
    end Get_Decl_Kind;
+
+   -----------------
+   -- Get_Profile --
+   -----------------
+
+   function Get_Profile
+     (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+   is
+      use Ada.Strings.Wide_Wide_Unbounded;
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+
+      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
+      --  Retrieve the node text and format it
+
+      function To_Profile
+        (Node : Libadalang.Analysis.Subp_Spec'Class)
+         return LSP.Types.LSP_String;
+
+      -------------
+      -- To_Text --
+      -------------
+
+      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String
+      is
+         Node_Text : constant String :=
+           Langkit_Support.Text.To_UTF8 (Node.Text);
+         Result    : String  := Node_Text;
+         Was_Space : Boolean := False;
+         Cur       : Integer := Node_Text'First;
+      begin
+         for I in Node_Text'Range loop
+            if Node_Text (I) = ' ' then
+               --  Trim multiple whitespace to only keep one
+               if not Was_Space then
+                  Result (Cur) := Node_Text (I);
+                  Cur := Cur + 1;
+               end if;
+               Was_Space := True;
+               --  Remove the new line character
+            elsif Node_Text (I) /= ASCII.LF then
+               Was_Space := False;
+               Result (Cur) := Node_Text (I);
+               Cur := Cur + 1;
+            end if;
+         end loop;
+         return Ada.Characters.Conversions.To_Wide_Wide_String
+           (Result (Result'First .. Cur - 1));
+      end To_Text;
+
+      ----------------
+      -- To_Profile --
+      ----------------
+
+      function To_Profile
+        (Node : Libadalang.Analysis.Subp_Spec'Class)
+         return LSP.Types.LSP_String
+      is
+         Result  : Unbounded_Wide_Wide_String;
+         Params  : constant Param_Spec_Array := Node.P_Params;
+         Returns : constant Type_Expr := Node.F_Subp_Returns;
+      begin
+         if Params'Length > 0 then
+            Append (Result, "(");
+         end if;
+
+         for Param of Params loop
+            declare
+               Names : constant Defining_Name_List := Param.F_Ids;
+               Init  : constant Expr := Param.F_Default_Expr;
+               Item  : Unbounded_Wide_Wide_String;
+            begin
+               Append (Item, " :");
+
+               case Param.F_Mode is
+                  when Ada_Mode_Default | Ada_Mode_In =>
+                     Append (Item, " in ");
+                  when Ada_Mode_In_Out =>
+                     Append (Item, " in out ");
+                  when Ada_Mode_Out =>
+                     Append (Item, " out ");
+               end case;
+
+               Append (Item, To_Text (Param.F_Type_Expr));
+
+               if not Init.Is_Null then
+                  Append (Item, " := ");
+                  Append (Item, To_Text (Init));
+               end if;
+
+               for J in Names.First_Child_Index .. Names.Last_Child_Index loop
+                  if Length (Result) /= 1 then
+                     Append (Result, "; ");
+                  end if;
+
+                  Append (Result, To_Text (Names.Child (J)));
+                  Append (Result, Item);
+               end loop;
+
+            end;
+         end loop;
+
+         if Params'Length > 0 then
+            Append (Result, ")");
+         end if;
+
+         if not Returns.Is_Null then
+            Append (Result, " return ");
+            Append (Result, To_Text (Returns));
+         end if;
+
+         return To_LSP_String (To_Wide_Wide_String (Result));
+      end To_Profile;
+   begin
+      case Node.Kind is
+         when Ada_Classic_Subp_Decl =>
+            return To_Profile (Node.As_Classic_Subp_Decl.F_Subp_Spec);
+         when Ada_Base_Subp_Body    =>
+            return To_Profile (Node.As_Base_Subp_Body.F_Subp_Spec);
+         when Ada_Generic_Subp_Decl =>
+            return To_Profile
+              (Node.As_Generic_Subp_Decl.F_Subp_Decl.F_Subp_Spec);
+         when others =>
+            return LSP.Types.Empty_LSP_String;
+      end case;
+   end Get_Profile;
 
    ----------------
    -- Initialize --
