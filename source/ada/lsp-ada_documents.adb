@@ -442,7 +442,6 @@ package body LSP.Ada_Documents is
 
                  Ada_Subp_Decl |
                  Ada_Subp_Body |
-                 Ada_Subp_Spec |
                  Ada_Generic_Formal_Subp_Decl |
                  Ada_Abstract_Subp_Decl |
                  Ada_Abstract_Formal_Subp_Decl |
@@ -495,8 +494,6 @@ package body LSP.Ada_Documents is
                  Ada_Pragma_Node |
 --        Cat_Pragma
 
-                 Ada_Aspect_Assoc_List |
-                 Ada_Aspect_Assoc |
                  Ada_Aspect_Spec =>
 --        Cat_Aspect
 

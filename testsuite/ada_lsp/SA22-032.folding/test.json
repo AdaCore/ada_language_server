@@ -108,7 +108,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "\nwith Ada.Text_IO;\nwith Ada.Strings.Unbounded;\n\nprocedure Main is\n   use Ada.Text_IO;\n   use Ada.Strings.Unbounded;\n\n   S : Unbounded_String := To_Unbounded_String (\"Hello\");\nbegin\n\n   -- simple comment\n   -- for test\n\n   Put_Line (To_String (S));\nend Main;\n",
+                  "text": "\nwith Ada.Text_IO;\nwith Ada.Strings.Unbounded;\n\nprocedure Main is\n   use Ada.Text_IO;\n   use Ada.Strings.Unbounded;\n\n   S : Unbounded_String := To_String (\"Hello\");\n   \n   --  Block for the procedure should also include conditions [12:0-16:0]\n   procedure A\n     (X : Integer;\n      Y : Integer)\n     with Pre => X > -2\n     and then Y > -2;\n\n   procedure A is\n   begin\n      null;\n   end A;\n   \nbegin\n\n   -- simple comment\n   -- for test\n\n   Put_Line (To_String (S));\nend Main;\n",
                   "version": 0,
                   "uri": "$URI{main.adb}",
                   "languageId": "Ada"
@@ -137,23 +137,38 @@
                "id": 2,
                "result": [
                   {
-                  "startLine": 1,
-                  "endLine": 2,
-                  "kind": "imports"
+                     "startLine": 1,
+                     "endLine": 2,
+                     "kind": "imports"
                   },
                   {
-                     "endLine": 15,
+                     "endLine": 28,
                      "startLine": 4,
                      "kind": "region"
                   },
                   {
-                  "startLine": 5,
-                  "endLine": 6,
-                  "kind": "imports"
+                     "startLine": 5,
+                     "endLine": 6,
+                     "kind": "imports"
                   },
                   {
-                     "endLine": 12,
                      "startLine": 11,
+                     "endLine": 15,
+                     "kind": "region"
+                  },
+                  {
+                     "startLine": 14,
+                     "endLine": 15,
+                     "kind": "region"
+                  },
+                  {
+                     "startLine": 17,
+                     "endLine": 20,
+                     "kind": "region"
+                  },
+                  {
+                     "endLine": 25,
+                     "startLine": 24,
                      "kind": "comment"
                   }
                ]
