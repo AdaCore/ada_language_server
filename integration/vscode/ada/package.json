@@ -1,6 +1,6 @@
 {
     "name": "ada",
-    "displayName": "Language Support for Ada",
+    "displayName": "Language Support for Ada (deprecated)",
     "description": "A Language Server providing Ada and SPARK support in Visual Studio Code",
     "version": "21.0.999",
     "publisher": "MaximReznik",

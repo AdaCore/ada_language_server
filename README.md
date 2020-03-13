@@ -3,6 +3,18 @@
 [![Build Status](https://travis-ci.org/AdaCore/ada_language_server.svg?branch=master)](https://travis-ci.org/AdaCore/ada_language_server)
 [ ![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
 
+## ATTENTION: The extension is moving to the new Marketplace account.
+
+We are going to move ALS extension to our new [corporative Marketplace account](https://marketplace.visualstudio.com/publishers/AdaCore).
+
+Please, uninstall the extension and then launch VS Code Quick Open (Ctrl+P), paste the following command, and press enter.
+
+```
+ext install AdaCore.ada
+```
+
+## About
+
 This repository contains a prototype implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
 for Ada/SPARK.
 
