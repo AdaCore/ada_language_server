@@ -1441,6 +1441,10 @@ package body LSP.Messages is
                Span'Read (S, Item.span);
                JS.Key ("selectionRange");
                Span'Read (S, Item.selectionRange);
+               Read_Optional_Boolean
+                 (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
+               JS.Key ("alsVisibility");
+               Optional_Als_Visibility'Read (S, Item.alsVisibility);
                JS.Key ("children");
 
                if JS.Read.Kind in GNATCOLL.JSON.JSON_Array_Type then
@@ -2835,6 +2839,20 @@ package body LSP.Messages is
    begin
       V := SymbolKind'Val (JS.Read.Get - 1);
    end Read_SymbolKind;
+
+   -------------------------
+   -- Read_Als_Visibility --
+   -------------------------
+
+   procedure Read_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Als_Visibility)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := Als_Visibility'Val (JS.Read.Get - 1);
+   end Read_Als_Visibility;
 
    ---------------------------------------------
    -- Read_TextDocumentSyncClientCapabilities --
@@ -4513,6 +4531,10 @@ package body LSP.Messages is
                Span'Write (S, Item.span);
                JS.Key ("selectionRange");
                Span'Write (S, Item.selectionRange);
+               Write_Optional_Boolean
+                 (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
+               JS.Key ("alsVisibility");
+               Optional_Als_Visibility'Write (S, Item.alsVisibility);
 
                if Item.children then
                   JS.Key ("children");
@@ -5863,6 +5885,22 @@ package body LSP.Messages is
         (GNATCOLL.JSON.Create
            (Integer'(SymbolKind'Pos (V)) + 1));
    end Write_SymbolKind;
+
+   --------------------------
+   -- Write_Als_Visibility --
+   --------------------------
+
+   procedure Write_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Als_Visibility)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(Als_Visibility'Pos (V)) + 1));
+   end Write_Als_Visibility;
 
    -------------------------
    -- Write_Symbol_Vector --

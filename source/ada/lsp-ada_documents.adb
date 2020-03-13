@@ -47,6 +47,13 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
    --  Return the profile of Node.
 
+   function Is_Declaration
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.Als_Visibility;
+
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
 
@@ -283,16 +290,22 @@ package body LSP.Ada_Documents is
 
                         declare
                            Item : constant LSP.Messages.DocumentSymbol :=
-                             (name           => To_LSP_String (Name.Text),
-                              detail         =>
+                             (name             => To_LSP_String (Name.Text),
+                              detail           =>
                                 (Is_Set => True, Value => Get_Profile (Decl)),
-                              kind           => Kind,
-                              deprecated     => (Is_Set => False),
-                              span           => LSP.Lal_Utils.To_Span
+                              kind             => Kind,
+                              deprecated       => (Is_Set => False),
+                              span             => LSP.Lal_Utils.To_Span
                                 (Node.Sloc_Range),
-                              selectionRange => LSP.Lal_Utils.To_Span
+                              selectionRange   => LSP.Lal_Utils.To_Span
                                 (Name.Sloc_Range),
-                              children       => True);
+                              alsIsDeclaration =>
+                                (Is_Set => True,
+                                 Value  => Is_Declaration (Decl)),
+                              alsVisibility    =>
+                                (Is_Set => True,
+                                 Value  => Get_Visibility (Decl)),
+                              children         => True);
                         begin
                            Tree.Insert_Child
                              (Parent   => Cursor,
@@ -846,6 +859,62 @@ package body LSP.Ada_Documents is
             return LSP.Types.Empty_LSP_String;
       end case;
    end Get_Profile;
+
+   --------------------
+   -- Is_Declaration --
+   --------------------
+
+   function Is_Declaration
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+      use Libadalang.Common;
+   begin
+      case Node.Kind is
+         when Ada_Generic_Package_Decl |
+              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Renaming_Decl |
+              Ada_Package_Decl |
+              Ada_Package_Renaming_Decl |
+              Ada_Abstract_Subp_Decl |
+              Ada_Formal_Subp_Decl |
+              Ada_Subp_Decl |
+              Ada_Subp_Renaming_Decl |
+              Ada_Generic_Subp_Instantiation |
+              Ada_Generic_Subp_Renaming_Decl |
+              Ada_Generic_Subp_Decl |
+              Ada_Null_Subp_Decl |
+              Ada_Expr_Function |
+              Ada_Protected_Type_Decl |
+              Ada_Single_Protected_Decl |
+              Ada_Entry_Decl |
+              Ada_Type_Decl |
+              Ada_Single_Task_Decl |
+              Ada_Task_Type_Decl =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Declaration;
+
+   --------------------
+   -- Get_Visibility --
+   --------------------
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.Als_Visibility
+   is
+      use Libadalang.Common;
+   begin
+      for Parent of Node.Parents loop
+         if Parent.Kind = Ada_Private_Part then
+            return LSP.Messages.Als_Private;
+         elsif Parent.Kind in Ada_Protected_Body | Ada_Protected_Def then
+            return LSP.Messages.Als_Protected;
+         end if;
+      end loop;
+      return LSP.Messages.Als_Public;
+   end Get_Visibility;
 
    ----------------
    -- Initialize --

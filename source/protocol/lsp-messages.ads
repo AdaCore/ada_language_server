@@ -1433,6 +1433,28 @@ package LSP.Messages is
    type Optional_SymbolKindSet is
      new Optional_SymbolKindSets.Optional_Type;
 
+   type Als_Visibility is
+     (Als_Public,
+      Als_Protected,
+      Als_Private);
+
+   procedure Read_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Als_Visibility);
+
+   procedure Write_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Als_Visibility);
+
+   for Als_Visibility'Read use Read_Als_Visibility;
+   for Als_Visibility'Write use Write_Als_Visibility;
+
+   package Optional_Als_Visibilities is
+     new LSP.Generic_Optional (Als_Visibility);
+
+   type Optional_Als_Visibility is
+     new Optional_Als_Visibilities.Optional_Type;
+
    type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
@@ -5554,6 +5576,8 @@ package LSP.Messages is
       deprecated: Optional_Boolean;
       span: LSP.Messages.Span;
       selectionRange: LSP.Messages.Span;
+      alsIsDeclaration : Optional_Boolean;
+      alsVisibility : Optional_Als_Visibility;
       children: Boolean;  --  True if emit children in JSON
    end record;
 
