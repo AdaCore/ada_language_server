@@ -53,10 +53,53 @@ function osx_before_install()
         | tar xzf - -C $INSTALL_DIR
 }
 
+function drop_rpath ()
+{
+    for R in `otool -l $1 |grep -A2 LC_RPATH |awk '/ path /{ print $2 }'`; do
+        install_name_tool -delete_rpath $R $1
+    done
+}
+
+function osx_copy_dylibs()
+{
+    DIR=$1
+    LIB=../gnat/lib
+
+    for J in \
+        $LIB/libadalang.relocatable/libadalang \
+        $LIB/gnatcoll_gmp.relocatable/libgnatcoll_gmp \
+        $LIB/langkit_support.relocatable/liblangkit_support \
+        $LIB/gnatcoll_iconv.relocatable/libgnatcoll_iconv \
+        $LIB/gnatcoll.relocatable/libgnatcoll \
+        $LIB/gpr/relocatable/gpr/libgpr \
+        $LIB/xmlada/xmlada_schema.relocatable/libxmlada_schema \
+        $LIB/xmlada/xmlada_dom.relocatable/libxmlada_dom \
+        $LIB/xmlada/xmlada_sax.relocatable/libxmlada_sax \
+        $LIB/xmlada/xmlada_input.relocatable/libxmlada_input_sources \
+        $LIB/xmlada/xmlada_unicode.relocatable/libxmlada_unicode \
+        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnat-2019 \
+        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnarl-2019 \
+        /usr/local/opt/gmp/lib/libgmp.10
+    do
+        cp -v $J.dylib $DIR
+        drop_rpath $DIR/`basename $J.dylib`
+    done
+
+    for J in $DIR/libgnatcoll_gmp.dylib $DIR/ada_language_server; do
+        install_name_tool -change /usr/local/opt/gmp/lib/libgmp.10.dylib @rpath/libgmp.10.dylib $J
+    done
+
+    drop_rpath $DIR/ada_language_server
+    install_name_tool -add_rpath @executable_path $DIR/ada_language_server
+}
+
 function osx_script()
 {
     export LIBRARY_PATH=/usr/local/lib        # To find GMP
     make OS=osx LIBRARY_TYPE=relocatable all
+    osx_copy_dylibs .obj/server/
+    .obj/server/ada_language_server < /dev/null
+    make OS=osx LIBRARY_TYPE=relocatable check
     integration/travis/deploy.sh darwin
 }
 
