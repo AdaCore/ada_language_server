@@ -220,18 +220,50 @@ package body LSP.Lal_Utils is
    function Contains
      (Token   : Token_Reference;
       Pattern : Wide_Wide_String;
+      As_Word : Boolean;
       Span    : out LSP.Messages.Span)
       return Boolean
    is
       use Langkit_Support.Text;
       use Langkit_Support.Slocs;
 
-      T   : constant Text_Type := Ada.Wide_Wide_Characters.Handling.To_Lower
+      T    : constant Text_Type := Ada.Wide_Wide_Characters.Handling.To_Lower
         (Text (Token));
-      Idx : constant Integer := Ada.Strings.Wide_Wide_Fixed.Index (T, Pattern);
+      Idx  : constant Integer := Ada.Strings.Wide_Wide_Fixed.Index
+        (T, Pattern);
+      Last : Integer;
+
+      function Is_Word_Delimiter (C : Wide_Wide_Character) return Boolean;
+
+      -----------------------
+      -- Is_Word_Delimiter --
+      -----------------------
+
+      function Is_Word_Delimiter (C : Wide_Wide_Character) return Boolean is
+      begin
+         return not Ada.Wide_Wide_Characters.Handling.Is_Alphanumeric (C)
+           and then C /= '_';
+      end Is_Word_Delimiter;
+
    begin
       if Idx < T'First then
          return False;
+      end if;
+
+      --  Treat the Pattern as a word
+      if As_Word then
+         if Idx > T'First
+           and then not Is_Word_Delimiter (T (Idx - 1))
+         then
+            return False;
+         end if;
+
+         Last := Idx + Pattern'Length;
+         if Last <= T'Last
+           and then not Is_Word_Delimiter (T (Last))
+         then
+            return False;
+         end if;
       end if;
 
       declare
