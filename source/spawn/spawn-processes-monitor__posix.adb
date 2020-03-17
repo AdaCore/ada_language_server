@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -192,7 +192,7 @@ package body Spawn.Processes.Monitor is
             declare
                Old : pollfd_array_access := fds;
             begin
-               fds := new Posix.pollfd_array (1 .. fds'Last * 2 / 3);
+               fds := new Posix.pollfd_array (1 .. fds'Last * 3 / 2);
                fds (Old'Range) := Old.all;
                Free (Old);
             end;
@@ -472,18 +472,22 @@ package body Spawn.Processes.Monitor is
          when Launch =>
             declare
                use type Ada.Streams.Stream_Element_Offset;
+               use type Interfaces.C.size_t;
 
-               Ignore     : Interfaces.C.size_t;
-               errno      : Integer;
+               Count      : Interfaces.C.size_t;
+               errno      : Integer := 0;
                Error_Dump : Ada.Streams.Stream_Element_Array
                  (1 .. errno'Size / 8)
                  with Import, Convention => Ada, Address => errno'Address;
             begin
-               Ignore := Posix.read
+               Count := Posix.read
                  (Process.pipe (Kind),
                   Error_Dump,
                   Error_Dump'Length);
-               Process.Exit_Code := errno;
+
+               if Count = Error_Dump'Length then
+                  Process.Exit_Code := errno;
+               end if;
             end;
       end case;
    end My_IO_Callback;
@@ -645,4 +649,14 @@ package body Spawn.Processes.Monitor is
       end loop;
    end Start_Process;
 
+   procedure Initialize;
+   --  Do low level initialization if needed
+
+   procedure Dummy is null;
+   --  This is to be used in Initialize procedure
+
+   procedure Initialize is separate;
+
+begin
+   Initialize;
 end Spawn.Processes.Monitor;
