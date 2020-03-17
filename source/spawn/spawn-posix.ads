@@ -46,14 +46,15 @@ package Spawn.Posix is
      return Interfaces.C.int
         with Import, Convention => C, External_Name => "pipe2";
 
-   O_CLOEXEC  : constant := 16#80000#;
-   O_NONBLOCK : constant := 16#800#;
-   POLLIN     : constant := 16#0001#;
-   POLLOUT    : constant := 16#0004#;
-   POLLERR    : constant := 16#0008#;
-   POLLHUP    : constant := 16#0010#;
-   POLLNVAL   : constant := 16#0020#;
-
+   O_CLOEXEC  : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_O_CLOEXEC";
+   O_NONBLOCK : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_O_NONBLOCK";
+   POLLIN     : constant Interfaces.C.unsigned_short
+     with Import, Convention => C, External_Name => "SPAWN_POLLIN";
+   POLLOUT    : constant Interfaces.C.unsigned_short
+     with Import, Convention => C, External_Name => "SPAWN_POLLOUT";
+   --
    function fork  return Interfaces.C.int
      with Import, Convention => C, External_Name => "fork";
 
@@ -97,7 +98,8 @@ package Spawn.Posix is
       options : Interfaces.C.int) return Interfaces.C.int
         with Import, Convention => C, External_Name => "waitpid";
 
-   WNOHANG : constant := 1;
+   WNOHANG : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_WNOHANG";
 
    function fcntl
      (fd    : Interfaces.C.int;
@@ -109,7 +111,8 @@ package Spawn.Posix is
    --  An extra float argument is used to make this binding compatible
    --  with amd64 ABI for C functions with ellipsis (...).
 
-   F_SETFL : constant := 4;
+   F_SETFL : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_F_SETFL";
 
    subtype constrained_chars_ptr_array is
      Interfaces.C.Strings.chars_ptr_array (1 .. Interfaces.C.size_t'Last);
@@ -118,7 +121,9 @@ package Spawn.Posix is
      with Import, Convention => C, External_Name => "environ";
 
    --  Errno values
-   EINTR  : constant := 4;
-   EAGAIN : constant := 11;
+   EINTR  : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_EINTR";
+   EAGAIN : constant Interfaces.C.int
+     with Import, Convention => C, External_Name => "SPAWN_EAGAIN";
 
 end Spawn.Posix;

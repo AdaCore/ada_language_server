@@ -23,6 +23,9 @@ with Interfaces.C;
 
 package body Spawn.Processes is
 
+   function Errno return Interfaces.C.int;
+   --  return errno, number of last error
+
    ---------------
    -- Arguments --
    ---------------
@@ -70,6 +73,15 @@ package body Spawn.Processes is
    begin
       return Self.Environment;
    end Environment;
+
+   -----------
+   -- Errno --
+   -----------
+
+   function Errno return Interfaces.C.int is
+   begin
+      return Interfaces.C.int (GNAT.OS_Lib.Errno);
+   end Errno;
 
    ---------------
    -- Exit_Code --
@@ -124,18 +136,14 @@ package body Spawn.Processes is
         Posix.read (Self.pipe (Stderr), Data, Data'Length);
    begin
       if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno in Posix.EAGAIN | Posix.EINTR then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
-            else
-               raise Program_Error with
-                 "read error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
+         if Errno in Posix.EAGAIN | Posix.EINTR then
+            Last := Data'First - 1;
+            Monitor.Enqueue
+              ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
+         else
+            raise Program_Error with
+              "read error: " & GNAT.OS_Lib.Errno_Message;
+         end if;
       else
          Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
       end if;
@@ -156,18 +164,14 @@ package body Spawn.Processes is
         Posix.read (Self.pipe (Stdout), Data, Data'Length);
    begin
       if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno in Posix.EAGAIN | Posix.EINTR then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
-            else
-               raise Program_Error with
-                 "read error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
+         if Errno in Posix.EAGAIN | Posix.EINTR then
+            Last := Data'First - 1;
+            Monitor.Enqueue
+              ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
+         else
+            raise Program_Error with
+              "read error: " & GNAT.OS_Lib.Errno_Message;
+         end if;
       else
          Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
       end if;
@@ -273,18 +277,14 @@ package body Spawn.Processes is
         Posix.write (Self.pipe (Stdin), Data, Data'Length);
    begin
       if Count = Interfaces.C.size_t'Last then
-         declare
-            Errno : constant Integer := GNAT.OS_Lib.Errno;
-         begin
-            if Errno in Posix.EAGAIN | Posix.EINTR then
-               Last := Data'First - 1;
-               Monitor.Enqueue
-                 ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
-            else
-               raise Program_Error with
-                 "write error: " & GNAT.OS_Lib.Errno_Message (Err => Errno);
-            end if;
-         end;
+         if Errno in Posix.EAGAIN | Posix.EINTR then
+            Last := Data'First - 1;
+            Monitor.Enqueue
+              ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
+         else
+            raise Program_Error with
+              "write error: " & GNAT.OS_Lib.Errno_Message;
+         end if;
 
       else
          Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;

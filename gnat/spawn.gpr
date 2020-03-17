@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,7 +42,9 @@ project Spawn is
             "spawn-processes-windows.adb");
 
       when "Windows_NT" =>
-         for Excluded_Source_Files use Common_Excluded & ("pipe2.c");
+         for Excluded_Source_Files use Common_Excluded &
+           ("pipe2.c",
+            "posix_const.c");
 
       when "osx" =>
          for Excluded_Source_Files use Common_Excluded &
@@ -80,6 +82,8 @@ project Spawn is
                use "spawn-environments-search_in_path__posix.adb";
             for Body ("Spawn.Processes.Monitor")
                use "spawn-processes-monitor__posix.adb";
+            for Body ("Spawn.Processes.Monitor.Initialize")
+               use "spawn-processes-monitor-" & OS_API & "_initialize.adb";
          when "Windows_NT" =>
             for Spec ("Spawn.Internal")
                use "spawn-internal__windows.ads";
@@ -101,4 +105,3 @@ project Spawn is
    end Naming;
 
 end Spawn;
-
