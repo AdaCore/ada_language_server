@@ -1,0 +1,290 @@
+[
+   {
+      "comment": [
+         "test 'is_called_by' on an aggregate project"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "params": {
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "write",
+                        "call",
+                        "dispatching call", "parent", "child"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           "."
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "agg.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            },
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package body Common_Pack is\n\n   ---------\n   -- Foo --\n   ---------\n\n   procedure Foo is\n   begin\n      Bar;\n   end Foo;\n\n   ---------\n   -- Bar --\n   ---------\n\n   procedure Bar is\n   begin\n      null;\n   end Bar;\n\nend Common_Pack;\n", 
+                  "version": 0, 
+                  "uri": "$URI{common/common_pack.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 8, 
+                  "character": 6
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/alsCalledBy"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 8, 
+                                 "character": 6
+                              }, 
+                              "end": {
+                                 "line": 8, 
+                                 "character": 9
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{common/common_pack.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 1, 
+                              "character": 13
+                           }, 
+                           "end": {
+                              "line": 1, 
+                              "character": 16
+                           }
+                        }, 
+                        "uri": "$URI{common/common_pack.ads}"
+                     }, 
+                     "name": "Foo"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1, 
+                  "character": 13
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/alsCalledBy"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": [
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 3, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 3, 
+                                 "character": 6
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{p/main.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 1, 
+                              "character": 10
+                           }, 
+                           "end": {
+                              "line": 1, 
+                              "character": 14
+                           }
+                        }, 
+                        "uri": "$URI{p/main.adb}"
+                     }, 
+                     "name": "Main"
+                  }, 
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 3, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 3, 
+                                 "character": 6
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{q/main.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 1, 
+                              "character": 10
+                           }, 
+                           "end": {
+                              "line": 1, 
+                              "character": 14
+                           }
+                        }, 
+                        "uri": "$URI{q/main.adb}"
+                     }, 
+                     "name": "Main"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{common/common_pack.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
