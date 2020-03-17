@@ -1820,6 +1820,14 @@ package body LSP.Ada_Handlers is
       --  Query whether Node is a static or a dispatching call, and format
       --  this into an AlsReferenceKind_Set.
 
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
+
+      procedure Add_Subprogram
+        (Subp : LSP.Messages.ALS_Subprogram_And_References);
+      --  Add a subprogram in results, it prevents having duplicates
+
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
@@ -1841,10 +1849,6 @@ package body LSP.Ada_Handlers is
 
          return Result;
       end Get_Reference_Kind;
-
-      procedure Process_Context (C : Context_Access);
-      --  Process the calls found in one context and append
-      --  them to Response.results.
 
       ---------------------
       -- Process_Context --
@@ -1873,7 +1877,6 @@ package body LSP.Ada_Handlers is
 
             use LSP.Lal_Utils.References_By_Subprogram;
             C     : Cursor := Called.First;
-            Count : Cancel_Countdown := 0;
          begin
             Imprecise := Imprecise or This_Imprecise;
 
@@ -1893,19 +1896,35 @@ package body LSP.Ada_Handlers is
                   for Ref of Refs loop
                      Append_Location (Subp_And_Refs.refs, Ref,
                                       Get_Reference_Kind (Ref.As_Name));
-                     Count := Count - 1;
 
-                     if Count = 0 and then Request.Canceled then
+                     if Request.Canceled then
                         return;
                      end if;
                   end loop;
-                  Sort_And_Remove_Duplicates (Subp_And_Refs.refs);
-                  Response.result.Append (Subp_And_Refs);
+                  Add_Subprogram (Subp_And_Refs);
                   Next (C);
                end;
             end loop;
          end;
       end Process_Context;
+
+      --------------------
+      -- Add_Subprogram --
+      --------------------
+
+      procedure Add_Subprogram
+        (Subp : LSP.Messages.ALS_Subprogram_And_References)
+      is
+         use LSP.Messages;
+      begin
+         for Cur of Response.result loop
+            if Cur.loc = Subp.loc and then Cur.name = Subp.name then
+               Cur.refs.Append (Subp.refs);
+               return;
+            end if;
+         end loop;
+         Response.result.Append (Subp);
+      end Add_Subprogram;
 
    begin
       --  Find the references in all contexts
@@ -1921,6 +1940,9 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      for Loc of Response.result loop
+         Sort_And_Remove_Duplicates (Loc.refs);
+      end loop;
       return Response;
    end On_ALS_Called_By_Request;
 
