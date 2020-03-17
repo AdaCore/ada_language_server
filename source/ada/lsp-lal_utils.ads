@@ -148,8 +148,11 @@ package LSP.Lal_Utils is
    function Contains
      (Token   : Libadalang.Common.Token_Reference;
       Pattern : Wide_Wide_String;
+      As_Word : Boolean;
       Span    : out LSP.Messages.Span)
       return Boolean;
-   --  Return True if the Token text contains Pattern and set position in Span
+   --  Return True if the Token text contains Pattern and set position in Span.
+   --  Checks whether the Token's Pattern is delimited by word delimiters
+   --  if As_Word is True.
 
 end LSP.Lal_Utils;

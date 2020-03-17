@@ -2123,7 +2123,7 @@ package body LSP.Ada_Handlers is
          begin
             while Token /= No_Token loop
                if Kind (Data (Token)) = Ada_Comment
-                 and then Contains (Token, Name, Span)
+                 and then Contains (Token, Name, True, Span)
                then
                   declare
                      C : constant LSP.Messages.TextEdit :=

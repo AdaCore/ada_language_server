@@ -156,7 +156,7 @@
                         "uri": "$URI{main.adb}",
                         "languageId": "ada",
                         "version": 1,
-                        "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 10;\nbegin\n   Ada.Text_IO.Put_Line (Integer'Image (A));\nend Main;\n"
+                        "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer := 10;\nbegin\n   --  Check that A_letter is not renamed\n   Ada.Text_IO.Put_Line (Integer'Image (A));\nend Main;\n"
                     }
                 }
             },
@@ -185,8 +185,8 @@
                     "changes":{
                         "$URI{main.adb}":[{
                             "range":{
-                                "start":{"line":5,"character":40},
-                                "end":{"line":5,"character":41}
+                                "start":{"line":6,"character":40},
+                                "end":{"line":6,"character":41}
                             },
                             "newText":"BB"
                         },{
