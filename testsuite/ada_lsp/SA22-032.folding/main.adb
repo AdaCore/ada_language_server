@@ -20,6 +20,11 @@ procedure Main is
       null;
    end A;
 
+   type My_Record is
+      record
+         Var : Integer;
+      end record;
+
 begin
 
    -- simple comment
