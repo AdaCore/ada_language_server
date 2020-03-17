@@ -425,10 +425,9 @@ package body LSP.Ada_Documents is
             when Ada_Package_Decl |
                  Ada_Generic_Formal_Package |
                  Ada_Package_Body |
-                 --  Cat_Package
+--        Cat_Package
 
                  Ada_Type_Decl |
-                 Ada_Record_Def |
 
                  Ada_Classwide_Type_Decl |
 --        Cat_Class
