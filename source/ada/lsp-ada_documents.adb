@@ -22,9 +22,11 @@ with Ada.Strings.Wide_Wide_Unbounded;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Common;
+with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Common;
 with LSP.Lal_Utils;
 
 package body LSP.Ada_Documents is
@@ -825,7 +827,7 @@ package body LSP.Ada_Documents is
                   declare
                      R      : CompletionItem;
                      Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                              Langkit_Support.Text.To_UTF8 (Node.Text);
+                                Langkit_Support.Text.To_UTF8 (Node.Text);
                   begin
 
                      --  If we are not completing a dotted name, filter the
@@ -835,10 +837,35 @@ package body LSP.Ada_Documents is
                          (To_LSP_String (DN.P_Relative_Name.Text),
                           Prefix => Prefix)
                      then
+                        Context.Trace.Trace
+                          ("Calling Get_Documentation on Node = "
+                           & Image (BD));
+
                         R.label := To_LSP_String (DN.P_Relative_Name.Text);
                         R.kind := (True, To_Completion_Kind
                                    (Get_Decl_Kind (BD)));
                         R.detail := (True, Compute_Completion_Detail (BD));
+
+                        --  Property_Errors can occur when calling
+                        --  Get_Documentation on unsupported docstrings, so
+                        --  add an exception handler to catch them and recover.
+
+                        begin
+                           R.documentation :=
+                             (Is_Set => True,
+                              Value  => String_Or_MarkupContent'
+                                (Is_String => True,
+                                 String    => To_LSP_String
+                                   (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
+                                        Encode
+                                      (Libadalang.Doc_Utils.Get_Documentation
+                                           (BD).Doc.To_String))));
+                        exception
+                           when E : Libadalang.Common.Property_Error =>
+                              LSP.Common.Log (Context.Trace, E);
+                              R.documentation := (others => <>);
+                        end;
+
                         Result.items.Append (R);
                      end if;
                   end;
