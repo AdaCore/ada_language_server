@@ -101,8 +101,9 @@ package LSP.Types is
    --  Check if given Text is an empty string
 
    function Starts_With
-     (Text   : LSP_String;
-      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String) return Boolean;
+     (Text           : LSP_String;
+      Prefix         : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Case_Sensitive : Boolean := True) return Boolean;
    --  Check if Text starts with given prefix
 
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
