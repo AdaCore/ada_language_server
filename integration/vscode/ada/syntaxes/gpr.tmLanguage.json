@@ -1,11 +1,29 @@
 {
-	 "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	 "name": "gpr",
-	 "patterns": [
-		  { "include": "#project" },
-		  { "include": "#comment" }
-	 ],
-	 "repository": {
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "gpr",
+	"patterns": [
+		{ "include": "#project" },
+		{ "include": "#comment" }
+	],
+	"repository": {
+		"assignment": {
+			"begin": ":=",
+			"end": "(?=;)",
+			"beginCaptures": {
+				"0": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{
+					"name": "keyword.control.directive.gpr",
+					"match": "(?i)\\bexternal\\b"
+				},
+				{
+					"name": "punctuation.gpr",
+					"match": "[(),]"
+				},
+				{ "include": "#string" }
+			]
+		},
 		"attribute": {
 			"name": "meta.attribute.gpr",
 			"begin": "(?i)\\b(for)\\s+((?:\\w|_)+)(?:\\s*\\((.*)\\))?\\s+(use)\\b",
@@ -117,7 +135,8 @@
 				{ "include": "#package" },
 				{ "include": "#comment" },
 				{ "include": "#attribute" },
-				{ "include": "#type" }
+				{ "include": "#type" },
+				{ "include": "#typed_variable" }
 			]
 		},
 		"string": {
@@ -153,6 +172,26 @@
 					"name": "keyword.gpr",
 					"match": "(?i)\\bis\\b"
 				}
+			]
+		},
+		"type_annotation": {
+			"name": "entity.name.type.gpr",
+			"match": "\\b(\\w|\\d|_)+\\b"
+		},
+		"typed_variable": {
+			"name": "meta.declaration.variable.gpr",
+			"begin": "\\b((?:\\w|\\d|_)+)\\s*(:)",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "variable.name.gpr" },
+				"2": { "name": "punctuation.gpr" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{ "include": "#assignment" },
+				{ "include": "#type_annotation" }
 			]
 		}
 	 },
