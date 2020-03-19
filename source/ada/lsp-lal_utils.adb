@@ -272,10 +272,13 @@ package body LSP.Lal_Utils is
          Line  : constant LSP.Types.Line_Number :=
            LSP.Types.Line_Number (Sloc.Start_Line) - 1;
          Start : constant UTF_16_Index := UTF_16_Index
-           (Sloc.Start_Column + Column_Number (Idx - T'First)) - 1;
+           (Sloc.Start_Column - 1 + Column_Number (Idx - T'First));
+         Last : constant UTF_16_Index := Start +
+           UTF_16_Index (Pattern'Length);
+
       begin
          Span := (first => (Line, Start),
-                  last  => (Line, Start + T'Length - 1));
+                  last  => (Line, Last));
          return True;
       end;
    end Contains;

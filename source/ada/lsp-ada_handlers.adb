@@ -40,6 +40,7 @@ with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
 with LSP.Types;        use LSP.Types;
 
+with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
@@ -2190,26 +2191,136 @@ package body LSP.Ada_Handlers is
          is
             use Libadalang.Common;
 
-            Token : Token_Reference := First_Token (Node.Unit);
-            Name  : constant Wide_Wide_String :=
+            Token     : Token_Reference := First_Token (Node.Unit);
+            Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
                 (Get_Last_Name (Name_Node));
-            Span  : LSP.Messages.Span;
+            Text_Edit : LSP.Messages.TextEdit;
+            Span      : LSP.Messages.Span;
+            Current   : Token_Reference;
+            Diff      : Integer;
+
+            Box_Line : constant Wide_String (1 .. 80) := (others => '-');
+
+            function Process_Box return Boolean;
+            --  Check whether Current is box header/footer and modify it.
+            --  Return False when the searching cycle should be stopped.
+
+            -----------------
+            -- Process_Box --
+            -----------------
+
+            function Process_Box return Boolean is
+               use Langkit_Support.Text;
+               use Langkit_Support.Slocs;
+
+            begin
+               if Current = No_Token then
+                  return False;
+               end if;
+
+               case Kind (Data (Current)) is
+                  when Ada_Whitespace =>
+                     return True;
+
+                  when Ada_Comment =>
+                     declare
+                        Value : constant Text_Type := Text (Current);
+                     begin
+                        for Idx in Value'Range loop
+                           if Value (Idx) /= '-' then
+                              return False;
+                           end if;
+                        end loop;
+
+                        if Diff > 0 then
+                           --  Increase '-', Diff is positive
+                           declare
+                              Sloc : constant Source_Location_Range :=
+                                Sloc_Range (Data (Current));
+
+                              Line  : constant LSP.Types.Line_Number :=
+                                LSP.Types.Line_Number (Sloc.Start_Line) - 1;
+                              Start : constant UTF_16_Index := UTF_16_Index
+                                (Sloc.End_Column - 1);
+                           begin
+                              Response.result.changes (Uri).Append
+                                (LSP.Messages.TextEdit'
+                                   (span =>
+                                        (first => (Line, Start),
+                                         last  => (Line, Start)),
+                                    newText =>
+                                      LSP.Types.To_Unbounded_Wide_String
+                                        (Box_Line (1 .. Diff))));
+                           end;
+
+                        else
+                           --  Decrease '-', Diff is negative
+                           declare
+                              Sloc : constant Source_Location_Range :=
+                                Sloc_Range (Data (Current));
+
+                              Line  : constant LSP.Types.Line_Number :=
+                                LSP.Types.Line_Number (Sloc.Start_Line) - 1;
+                              Last : constant UTF_16_Index := UTF_16_Index
+                                (Sloc.End_Column - 1);
+                           begin
+                              Response.result.changes (Uri).Append
+                                (LSP.Messages.TextEdit'
+                                   (span =>
+                                        (first =>
+                                             (Line, Last - UTF_16_Index
+                                                (abs Diff)),
+                                         last  =>
+                                           (Line, Last)),
+                                    newText =>
+                                      LSP.Types.To_Unbounded_Wide_String
+                                        ("")));
+                           end;
+                        end if;
+
+                        return False;
+                     end;
+
+                  when others =>
+                     return False;
+               end case;
+            end Process_Box;
 
          begin
+            Diff := Length (Value.newName) - Name'Length;
+
             while Token /= No_Token loop
                if Kind (Data (Token)) = Ada_Comment
-                 and then Contains (Token, Name, True, Span)
+                 and then Contains (Token, Name, True, Text_Edit.span)
                then
-                  declare
-                     C : constant LSP.Messages.TextEdit :=
-                       (span    => Span,
-                        newText => Value.newName);
-                  begin
-                     if not Response.result.changes (Uri).Contains (C) then
-                        Response.result.changes (Uri).Append (C);
-                     end if;
-                  end;
+                  Text_Edit.newText := Value.newName;
+
+                  if Diff /= 0
+                    and then Contains
+                      (Token, "-- " & Name & " --", False, Span)
+                  then
+                     --  Can be a comment box
+                     Current := Previous (Token);
+                     loop
+                        --  Looking for the box header
+                        exit when not Process_Box;
+                        Current := Previous (Current);
+                     end loop;
+
+                     --  Include corrected comment itself
+                     Response.result.changes (Uri).Append (Text_Edit);
+
+                     Current := Next (Token);
+                     loop
+                        --  Looking for the box footer
+                        exit when not Process_Box;
+                        Current := Next (Current);
+                     end loop;
+
+                  else
+                     Response.result.changes (Uri).Append (Text_Edit);
+                  end if;
                end if;
 
                Token := Next (Token);
