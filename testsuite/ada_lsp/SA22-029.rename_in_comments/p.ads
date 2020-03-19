@@ -3,14 +3,14 @@ package P is
 
    type T is tagged null record;
 
-   ------------
-   --  Print --
-   ------------
+   -----------
+   -- Print --
+   -----------
 
    procedure Print (S : T);
 
-   ------------
-   --  Print --
-   ------------
+   -----------
+   -- Print --
+   -----------
 
 end P;
