@@ -833,7 +833,8 @@ package body LSP.Ada_Documents is
                      if Node.Kind in Ada_Dotted_Name_Range
                        or else Starts_With
                          (To_LSP_String (DN.P_Relative_Name.Text),
-                          Prefix => Prefix)
+                          Prefix         => Prefix,
+                          Case_Sensitive => False)
                      then
                         R.label := To_LSP_String (DN.P_Relative_Name.Text);
                         R.kind := (True, To_Completion_Kind

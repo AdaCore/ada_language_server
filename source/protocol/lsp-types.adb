@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -201,13 +202,23 @@ package body LSP.Types is
    -----------------
 
    function Starts_With
-     (Text   : LSP_String;
-      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String) return Boolean
+     (Text           : LSP_String;
+      Prefix         : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Case_Sensitive : Boolean := True) return Boolean
    is
+      use Ada.Characters.Handling;
+
       Value : constant String := To_UTF_8_String (Text);
    begin
-      return Value'Length >= Prefix'Length
-        and then Value (1 .. Prefix'Length) = Prefix;
+      if Value'Length < Prefix'Length then
+         return False;
+      end if;
+
+      if Case_Sensitive then
+         return Value (1 .. Prefix'Length) = Prefix;
+      else
+         return To_Lower (Value (1 .. Prefix'Length)) = To_Lower (Prefix);
+      end if;
    end Starts_With;
 
    -------------------
