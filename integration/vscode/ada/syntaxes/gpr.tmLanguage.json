@@ -116,7 +116,8 @@
 			"patterns": [
 				{ "include": "#package" },
 				{ "include": "#comment" },
-				{ "include": "#attribute" }
+				{ "include": "#attribute" },
+				{ "include": "#type" }
 			]
 		},
 		"string": {
@@ -130,6 +131,29 @@
 					"name": "punctuation.definition.string.ada"
 				}
 			}
+		},
+		"type": {
+			"name": "meta.declaration.type.gpr",
+			"begin": "(?i)\\b(type)\\s+((?:\\w|\\d|_)+)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "entity.name.type.gpr" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{ "include": "#string" },
+				{
+					"name": "punctuation.gpr",
+					"match": "[(),]"
+				},
+				{
+					"name": "keyword.gpr",
+					"match": "(?i)\\bis\\b"
+				}
+			]
 		}
 	 },
 	 "scopeName": "source.gpr"
