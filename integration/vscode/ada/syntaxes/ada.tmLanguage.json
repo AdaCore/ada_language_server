@@ -501,6 +501,58 @@
 				}
 			]
 		},
+		"if_statement": {
+			"name": "meta.statement.if.ada",
+			"begin": "(?i)\\bif\\b",
+			"end": "(?i)\\b(end)\\s+(if)\\s*(;)",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.control.ada" },
+				"2": { "name": "keyword.control.ada" },
+				"3": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)\\belsif\\b",
+					"end": "(?i)(?=then)",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					}
+				},
+				{
+					"begin": "(?i)\\belse\\b",
+					"end": "(?i)(?=end)",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#statement" }
+					]
+				},
+				{
+					"begin": "(?i)(?<=if)\\b",
+					"end": "(?i)(?=then)",
+					"endCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				},
+				{
+					"begin": "(?i)\\bthen\\b",
+					"end": "(?i)(?=(elsif|else))",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#statement" }
+					]
+				}
+			]
+		},
 		"integer_type_definition": {
 			"name": "meta.declaration.type.definition.integer.ada",
 			"patterns": [
@@ -898,7 +950,8 @@
 				{ "include": "#requeue_statement" },
 				{ "include": "#delay_statement" },
 				{ "include": "#abort_statement" },
-				{ "include": "#raise_statement" }
+				{ "include": "#raise_statement" },
+				{ "include": "#if_statement" }
 			]
 		},
 		"string_literal": {
