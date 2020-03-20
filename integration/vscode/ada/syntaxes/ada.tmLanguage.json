@@ -19,6 +19,27 @@
 				"4": { "name": "entity.name.type.ada" }
 			}
 		},
+		"access_type_definition": {
+			"name": "meta.declaration.type.definition.access.ada",
+			"begin": "(?i)\\b(is)\\s+(not\\s+null\\s+)?(access)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.visibility.ada" },
+				"3": { "name": "storage.visibility.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.visibility.ada",
+					"match": "(?i)\\ball\\b"
+				},
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\bconstant\\b"
+				},
+				{ "include": "#subtype_mark" }
+			]
+		},
 		"array_dimensions": {
 			"name": "meta.declaration.type.definition.array.dimensions.ada",
 			"begin": "\\(",
@@ -574,7 +595,8 @@
 				{ "include": "#integer_type_definition" },
 				{ "include": "#real_type_definition" },
 				{ "include": "#array_type_definition" },
-				{ "include": "#record_type_definition" }
+				{ "include": "#record_type_definition" },
+				{ "include": "#access_type_definition" }
 			]
 		},
 		"use_clause": {
