@@ -726,39 +726,28 @@
 		},
 		"raise_statement": {
 			"name": "meta.statement.raise.ada",
+			"begin": "(?i)\\braise\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
 			"patterns": [
 				{
-					"match": "(?i)\\b(raise)\\s*(;)",
-					"captures": {
-						"1": { "name": "keyword.control.ada" },
-						"2": { "name": "punctuation.ada" }
-					}
-				},
-				{
-					"begin": "(?i)\\braise\\b",
-					"end": ";",
+					"begin": "(?i)\\bwith\\b",
+					"end": "(?=;)",
 					"beginCaptures": {
 						"0": { "name": "keyword.control.ada" }
 					},
-					"endCaptures": {
-						"0": { "name": "punctuation.ada" }
-					},
 					"patterns": [
-						{
-							"begin": "(?i)\\bwith\\b",
-							"end": "(?=;)",
-							"beginCaptures": {
-								"0": { "name": "keyword.ada" }
-							},
-							"patterns": [
-								{ "include": "#expression" }
-							]
-						},
-						{
-							"name": "entity.name.exception.ada",
-							"match": "\\b(\\w|\\d|_)+\\b"
-						}
+						{ "include": "#expression" }
 					]
+				},
+				{
+					"name": "entity.name.exception.ada",
+					"match": "\\b(\\w|\\d|\\.|_)+\\b"
 				}
 			]
 		},
@@ -908,7 +897,8 @@
 				{ "include": "#simple_return_statement" },
 				{ "include": "#requeue_statement" },
 				{ "include": "#delay_statement" },
-				{ "include": "#abort_statement" }
+				{ "include": "#abort_statement" },
+				{ "include": "#raise_statement" }
 			]
 		},
 		"string_literal": {
