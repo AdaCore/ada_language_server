@@ -85,7 +85,7 @@
 		},
 		"basic_declaration": {
 			"patterns": [
-				{ "include": "#exception_declaration" }
+				{ "include": "#type_declaration" }
 			]
 		},
 		"character_literal": {
@@ -140,14 +140,27 @@
 				"4": { "patterns": [ { "include": "#exponent_part" } ] }
 			}
 		},
-		"exception_declaration": {
-			"name": "meta.declaration.exception.ada",
-			"match": "(?i)\\b((?:\\w|\\d|_)+)\\s*(:)\\s*(exception)\\b",
-			"captures": {
-				"1": { "name": "entity.name.exception.ada" },
-				"2": { "name": "punctuation.ada" },
-				"3": { "name": "entity.name.type.ada" }
-			}
+		"enumeration_type_definition": {
+			"name": "meta.declaration.type.definition.enumeration.ada",
+			"begin": "(?i)\\b(is)\\s+(\\()",
+			"end": "\\)",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "punctuation.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{
+					"name": "variable.name.ada",
+					"match": "\\b(\\w|\\d|_)+\\b"
+				}
+			]
 		},
 		"exponent_part": {
 			"match": "([eE])(\\+|\\-)?\\d(?:(_)?\\d)*",
@@ -159,6 +172,11 @@
 		},
 		"expression": {
 			"name": "meta.expression.ada"
+		},
+		"full_type_declaration": {
+			"patterns": [
+				{ "include": "#regular_type_declaration" }
+			]
 		},
 		"function_body": {
 			"begin": "(?i)\\b(function)\\s+((\\w|\\d|\\.|_)+)\\b",
@@ -341,6 +359,20 @@
 				}
 			]
 		},
+		"regular_type_declaration": {
+			"begin": "(?i)\\b(type)\\s+((?:\\w|\\d|_)+)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "patterns": [ { "include": "#subtype_mark" } ] }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#type_definition" }
+			]
+		},
 		"string_literal": {
 			"name": "string.quoted.double.ada",
 			"match": "(\").*?(\")",
@@ -363,6 +395,18 @@
 		"subtype_mark": {
 			"name": "entity.name.type.ada",
 			"match": "\\b(?:\\w|\\d|\\.|_)+\\b"
+		},
+		"type_declaration": {
+			"name": "meta.declaration.type.ada",
+			"patterns": [
+				{ "include": "#full_type_declaration" }
+			]
+		},
+		"type_definition": {
+			"name": "meta.declaration.type.definition.ada",
+			"patterns": [
+				{ "include": "#enumeration_type_definition" }
+			]
 		},
 		"use_clause": {
 			"name": "meta.context.use.ada",
