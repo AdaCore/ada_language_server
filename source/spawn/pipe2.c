@@ -2,6 +2,7 @@
 #include <unistd.h>
 
 #ifndef O_CLOEXEC
+/* There is no such constant on RHES 5 and earlier */
 #define O_CLOEXEC 0x80000
 #endif
 

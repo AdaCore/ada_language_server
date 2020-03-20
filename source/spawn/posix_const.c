@@ -3,6 +3,11 @@
 #include <errno.h>
 #include <sys/wait.h>
 
+#ifndef O_CLOEXEC
+/* There is no such constant on RHES 5 and earlier */
+#define O_CLOEXEC 0x80000
+#endif
+
 int SPAWN_O_NONBLOCK = O_NONBLOCK;
 int SPAWN_O_CLOEXEC = O_CLOEXEC;
 int SPAWN_WNOHANG = WNOHANG;
