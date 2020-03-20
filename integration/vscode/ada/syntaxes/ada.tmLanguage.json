@@ -317,6 +317,23 @@
 				{ "include": "#modular_type_definition" }
 			]
 		},
+		"interface_type_definition": {
+			"name": "meta.declaration.type.definition.interface.ada",
+			"begin": "(?i)\\b(is)\\s+(?:(limited|task|protected|synchronized)\\s+)?(interface)",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" },
+				"3": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\band\\b"
+				},
+				{ "include": "#subtype_mark" }
+			]
+		},
 		"label": {
 			"name": "meta.label.ada",
 			"match": "(<<)((?:\\w|\\d|_)+)(>>)",
@@ -596,7 +613,8 @@
 				{ "include": "#real_type_definition" },
 				{ "include": "#array_type_definition" },
 				{ "include": "#record_type_definition" },
-				{ "include": "#access_type_definition" }
+				{ "include": "#access_type_definition" },
+				{ "include": "#interface_type_definition" }
 			]
 		},
 		"use_clause": {
