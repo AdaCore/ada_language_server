@@ -9,21 +9,49 @@
 		{ "include": "#pragma" }
 	],
 	"repository": {
-		"aggregate": {
-			"name": "meta.aggregate.ada",
+		"array_dimensions": {
+			"name": "meta.declaration.type.definition.array.dimensions.ada",
 			"begin": "\\(",
 			"end": "\\)",
 			"captures": {
-				"0": {
-					"patterns": [
-						{ "include": "#punctuation" }
-					]
-				}
+				"0": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#argument" },
-				{ "include": "#attribute" },
-				{ "include": "#punctuation" }
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\brange\\b"
+				},
+				{
+					"name": "keyword.modifier.unknown.ada",
+					"match": "<>"
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" },
+				{ "patterns": [ { "include": "#subtype_mark" } ] }
+			]
+		},
+		"array_type_definition": {
+			"name": "meta.declaration.type.definition.array.ada",
+			"begin": "(?i)\\b(is)\\s+(array)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{ "include": "#array_dimensions" },
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\bof\\b"
+				},
+				{ "include": "#subtype_mark" }
 			]
 		},
 		"aspect_definition": {
@@ -466,7 +494,8 @@
 				"0": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#type_definition" }
+				{ "include": "#type_definition" },
+				{ "include": "#aspect_specification" }
 			]
 		},
 		"signed_integer_type_definition": {
@@ -529,6 +558,7 @@
 				{ "include": "#enumeration_type_definition" },
 				{ "include": "#integer_type_definition" },
 				{ "include": "#real_type_definition" },
+				{ "include": "#array_type_definition" },
 				{ "include": "#record_type_definition" }
 			]
 		},
