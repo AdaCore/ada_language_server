@@ -220,6 +220,40 @@
 				"4": { "patterns": [ { "include": "#exponent_part" } ] }
 			}
 		},
+		"delay_statement": {
+			"patterns": [
+				{ "include": "#delay_until_statement" },
+				{ "include": "#delay_relative_statement" }
+			]
+		},
+		"delay_until_statement": {
+			"name": "meta.statement.delay.until.ada",
+			"begin": "(?i)\\b(delay)\\s+(until)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.control.ada" },
+				"2": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
+			]
+		},
+		"delay_relative_statement": {
+			"begin": "(?i)\\b(delay)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
+			]
+		},
 		"derived_type_definition": {
 			"name": "meta.declaration.type.definition.derived.ada",
 			"begin": "(?i)\\b(is)\\b",
@@ -851,7 +885,8 @@
 				{ "include": "#exit_statement" },
 				{ "include": "#goto_statement" },
 				{ "include": "#simple_return_statement" },
-				{ "include": "#requeue_statement" }
+				{ "include": "#requeue_statement" },
+				{ "include": "#delay_statement" }
 			]
 		},
 		"string_literal": {
