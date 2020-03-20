@@ -171,7 +171,10 @@
 			}
 		},
 		"expression": {
-			"name": "meta.expression.ada"
+			"name": "meta.expression.ada",
+			"patterns": [
+				{ "include": "#value" }
+			]
 		},
 		"full_type_declaration": {
 			"patterns": [
@@ -203,6 +206,13 @@
 				"3": { "name": "punctuation.ada" }
 			}
 		},
+		"integer_type_definition": {
+			"name": "meta.declaration.type.definition.integer.ada",
+			"patterns": [
+				{ "include": "#signed_integer_type_definition" },
+				{ "include": "#modular_type_definition" }
+			]
+		},
 		"label": {
 			"name": "meta.label.ada",
 			"match": "(<<)((?:\\w|\\d|_)+)(>>)",
@@ -218,6 +228,17 @@
 				{ "include": "#package_body" },
 				{ "include": "#package_specification" },
 				{ "include": "#subprogram_body" }
+			]
+		},
+		"modular_type_definition": {
+			"begin": "(?i)\\b(is)\\s+(mod)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
 			]
 		},
 		"package_body": {
@@ -405,6 +426,21 @@
 				{ "include": "#type_definition" }
 			]
 		},
+		"signed_integer_type_definition": {
+			"begin": "(?i)\\b(is)\\s+(range)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" }
+			]
+		},
 		"string_literal": {
 			"name": "string.quoted.double.ada",
 			"match": "(\").*?(\")",
@@ -438,6 +474,7 @@
 			"name": "meta.declaration.type.definition.ada",
 			"patterns": [
 				{ "include": "#enumeration_type_definition" },
+				{ "include": "#integer_type_definition" },
 				{ "include": "#record_type_definition" }
 			]
 		},
