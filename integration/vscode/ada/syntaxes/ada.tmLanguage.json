@@ -241,7 +241,7 @@
 				},
 				{
 					"name": "storage.modifier.ada",
-					"match": "(?i)\\b(abstract|and|limited)\\b"
+					"match": "(?i)\\b(abstract|and|limited|tagged)\\b"
 				},
 				{ "include": "#subtype_mark" }
 			]
