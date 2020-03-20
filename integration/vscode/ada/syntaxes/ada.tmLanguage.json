@@ -291,6 +291,33 @@
 				}
 			]
 		},
+		"exit_statement": {
+			"name": "meta.statement.exit.ada",
+			"begin": "(?i)\\bexit\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)\\bwhen\\b",
+					"end": "(?=;)",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				},
+				{
+					"name": "entity.name.label.ada",
+					"match": "\\b(\\w|\\d|_)+\\b"
+				}
+			]
+		},
 		"exponent_part": {
 			"match": "([eE])(\\+|\\-)?\\d(?:(_)?\\d)*",
 			"captures": {
@@ -777,7 +804,8 @@
 		"statement": {
 			"patterns": [
 				{ "include": "#null_statement" },
-				{ "include": "#assignment_statement" }
+				{ "include": "#assignment_statement" },
+				{ "include": "#exit_statement" }
 			]
 		},
 		"string_literal": {
