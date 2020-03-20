@@ -348,7 +348,26 @@
 				"3": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#basic_declaration" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"end": "(?i)\\bbegin\\b",
+					"captures": {
+						"0": { "name": "keyword.ada" }
+					},
+					"patterns": [
+						{ "include": "#basic_declaration" }
+					]
+				},
+				{
+					"begin": "(?i)(?<=begin)",
+					"end": "(?i)(?=end)",
+					"patterns": [
+						{ "include": "#label" },
+						{ "include": "#statement" }
+					]
+				},
+				{ "include": "#result_profile" },
+				{ "include": "#parameter_profile" }
 			]
 		},
 		"function_specification": {
@@ -364,7 +383,8 @@
 			},
 			"patterns": [
 				{ "include": "#aspect_specification" },
-				{ "include": "#result_profile" }
+				{ "include": "#result_profile" },
+				{ "include": "#parameter_profile" }
 			]
 		},
 		"goto": {
@@ -474,6 +494,61 @@
 				{ "include": "#basic_declaration" }
 			]
 		},
+		"parameter_profile": {
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ";"
+				},
+				{ "include": "#parameter_specification" }
+			]
+		},
+		"parameter_specification": {
+			"patterns": [
+				{
+					"name": "meta.type.annotation.ada",
+					"begin": ":(?!=)",
+					"end": "(?=[:;)])",
+					"beginCaptures": {
+						"0": { "name": "punctuation.ada" }
+					},
+					"patterns": [
+						{
+							"name": "storage.visibility.ada",
+							"match": "(?i)\\b(access|aliased|not\\s+null)"
+						},
+						{
+							"name": "keyword.ada",
+							"match": "(?i)\\b(in|out)\\b"
+						},
+						{ "include": "#subtype_mark" }
+					]
+				},
+				{
+					"begin": ":=",
+					"end": "(?=[:;)])",
+					"beginCaptures": {
+						"0": { "name": "punctuation.ada" }
+					},
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				},
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{
+					"name": "variable.parameter.ada",
+					"match": "\\b(?:\\w|\\d|\\.|_)+\\b"
+				}
+			]
+		},
 		"pragma": {
 			"name": "meta.pragma.ada",
 			"begin": "(?i)\\b(pragma)\\s+((?:\\w|\\d|_)+)\\b",
@@ -499,7 +574,25 @@
 				"3": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#basic_declaration" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"end": "(?i)\\bbegin\\b",
+					"captures": {
+						"0": { "name": "keyword.ada" }
+					},
+					"patterns": [
+						{ "include": "#basic_declaration" }
+					]
+				},
+				{
+					"begin": "(?i)(?<=begin)",
+					"end": "(?i)(?=end)",
+					"patterns": [
+						{ "include": "#label" },
+						{ "include": "#statement" }
+					]
+				},
+				{ "include": "#parameter_profile" }
 			]
 		},
 		"procedure_specification": {
@@ -514,7 +607,8 @@
 				"0": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#aspect_specification" }
+				{ "include": "#aspect_specification" },
+				{ "include": "#parameter_profile" }
 			]
 		},
 		"raise_statement": {
@@ -634,7 +728,7 @@
 		},
 		"result_profile": {
 			"begin": "(?i)\\breturn\\b",
-			"end": "(?=(with|;))",
+			"end": "(?=(is|with|;))",
 			"beginCaptures": {
 				"0": { "name": "keyword.ada" }
 			},
