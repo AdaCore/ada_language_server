@@ -650,6 +650,42 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_FoldingRange_Response;
 
+   --------------------------------
+   -- On_Selection_Range_Request --
+   --------------------------------
+
+   overriding procedure On_Selection_Range_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Selection_Range_Request) is
+   begin
+      Self.Trace.Trace
+        ("Selection_Range_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Selection_Range_Request;
+
+   --------------------------------
+   -- On_SelectionRange_Response --
+   --------------------------------
+
+   overriding procedure On_SelectionRange_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.SelectionRange_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("SelectionRange_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("SelectionRange_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_SelectionRange_Response;
+
    --------------------------
    -- On_Highlight_Request --
    --------------------------

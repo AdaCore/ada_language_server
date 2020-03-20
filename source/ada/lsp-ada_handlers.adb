@@ -1486,6 +1486,27 @@ package body LSP.Ada_Handlers is
       end if;
    end On_Folding_Range_Request;
 
+   --------------------------------
+   -- On_Selection_Range_Request --
+   --------------------------------
+
+   overriding function On_Selection_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
+      return LSP.Messages.Server_Responses.SelectionRange_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.SelectionRange_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Selection_Range_Request;
+
    --------------------------
    -- On_Highlight_Request --
    --------------------------

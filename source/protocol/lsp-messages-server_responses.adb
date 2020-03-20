@@ -81,6 +81,17 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : SelectionRange_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_SelectionRange_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Highlight_Response;
       Handler : access Server_Response_Sender'Class)
    is

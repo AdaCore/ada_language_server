@@ -175,6 +175,17 @@ package LSP.Messages.Server_Responses is
      (Self    : FoldingRange_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package SelectionRange_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => SelectionRange_Vector);
+
+   type SelectionRange_Response is
+     new SelectionRange_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : SelectionRange_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Called_By_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Subprogram_And_References_Vector);

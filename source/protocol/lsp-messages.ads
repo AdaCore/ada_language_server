@@ -7048,6 +7048,23 @@ package LSP.Messages is
    --    parent?: SelectionRange;
    --}
    --```
+   type SelectionRange is record
+      span    : LSP.Messages.Span;  --  range: is reserved word
+      --  parent : FIXME: TBD
+   end record;
+
+   procedure Read_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SelectionRange);
+   procedure Write_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SelectionRange);
+   for SelectionRange'Read use Read_SelectionRange;
+   for SelectionRange'Write use Write_SelectionRange;
+
+   package SelectionRange_Vectors is new LSP.Generic_Vectors (SelectionRange);
+   type SelectionRange_Vector is new SelectionRange_Vectors.Vector
+     with null record;
 
    --```typescript
    --export interface WorkDoneProgressCancelParams {

@@ -2471,6 +2471,23 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_SaveOptions;
 
+   -------------------------
+   -- Read_SelectionRange --
+   -------------------------
+
+   procedure Read_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SelectionRange)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("range");
+      Span'Read (S, V.span);
+      JS.End_Object;
+   end Read_SelectionRange;
+
    -------------------------------
    -- Read_SelectionRangeParams --
    -------------------------------
@@ -5499,6 +5516,23 @@ package body LSP.Messages is
       Write_Optional_Boolean (JS, +"includeText", V.includeText);
       JS.End_Object;
    end Write_SaveOptions;
+
+   --------------------------
+   -- Write_SelectionRange --
+   --------------------------
+
+   procedure Write_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SelectionRange)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("range");
+      Span'Write (S, V.span);
+      JS.End_Object;
+   end Write_SelectionRange;
 
    --------------------------------
    -- Write_SelectionRangeParams --

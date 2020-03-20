@@ -158,6 +158,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Selection_Range_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Selection_Range_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Workspace_Symbols_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -266,6 +273,10 @@ begin
    Map.Insert
      (+"textDocument/foldingRange",
       Folding_Range_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/selectionRange",
+      Selection_Range_Request'Tag);
 
    Map.Insert
      (+"workspace/symbol",
