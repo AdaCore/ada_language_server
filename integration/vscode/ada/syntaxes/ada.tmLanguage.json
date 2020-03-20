@@ -359,8 +359,12 @@
 				"2": { "name": "keyword.ada" },
 				"3": { "name": "entity.name.function.ada" }
 			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
 			"patterns": [
-				{ "include": "#aspect_specification" }
+				{ "include": "#aspect_specification" },
+				{ "include": "#result_profile" }
 			]
 		},
 		"goto": {
@@ -506,6 +510,9 @@
 				"2": { "name": "keyword.ada" },
 				"3": { "name": "entity.name.function.ada" }
 			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
 			"patterns": [
 				{ "include": "#aspect_specification" }
 			]
@@ -623,6 +630,16 @@
 			"patterns": [
 				{ "include": "#type_definition" },
 				{ "include": "#aspect_specification" }
+			]
+		},
+		"result_profile": {
+			"begin": "(?i)\\breturn\\b",
+			"end": "(?=(with|;))",
+			"beginCaptures": {
+				"0": { "name": "keyword.ada" }
+			},
+			"patterns": [
+				{ "include": "#subtype_mark" }
 			]
 		},
 		"signed_integer_type_definition": {
