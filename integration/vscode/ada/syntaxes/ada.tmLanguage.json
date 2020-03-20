@@ -207,7 +207,7 @@
 		"derived_type_definition": {
 			"name": "meta.declaration.type.definition.derived.ada",
 			"begin": "(?i)\\b(is)\\b",
-			"end": "(?i)(?=;)",
+			"end": "(?i)(?=(with(?!\\s+private)|;))",
 			"beginCaptures": {
 				"1": { "name": "keyword.ada" }
 			},
@@ -242,6 +242,13 @@
 				{
 					"name": "storage.modifier.ada",
 					"match": "(?i)\\b(abstract|and|limited|tagged)\\b"
+				},
+				{
+					"match": "(?i)\\b(with)\\s+(private)\\b",
+					"captures": {
+						"1": { "name": "storage.modifier.ada" },
+						"2": { "name": "storage.visibility.ada" }
+					}
 				},
 				{ "include": "#subtype_mark" }
 			]
