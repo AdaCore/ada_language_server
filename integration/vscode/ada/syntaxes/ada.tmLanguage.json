@@ -809,12 +809,27 @@
 				{ "include": "#expression" }
 			]
 		},
+		"simple_return_statement": {
+			"name": "meta.statement.return.simple.ada",
+			"begin": "(?i)\\breturn\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
+			]
+		},
 		"statement": {
 			"patterns": [
 				{ "include": "#null_statement" },
 				{ "include": "#assignment_statement" },
 				{ "include": "#exit_statement" },
-				{ "include": "#goto_statement" }
+				{ "include": "#goto_statement" },
+				{ "include": "#simple_return_statement" }
 			]
 		},
 		"string_literal": {
