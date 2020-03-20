@@ -9,6 +9,16 @@
 		{ "include": "#pragma" }
 	],
 	"repository": {
+		"access_definition": {
+			"name": "meta.declaration.access.definition.ada",
+			"match": "(?i)(not\\s+null\\s+)?(access)\\s+(constant\\s+)?((?:\\w|\\d|\\.|_)+)\\b",
+			"captures": {
+				"1": { "name": "storage.visibility.ada" },
+				"2": { "name": "storage.visibility.ada" },
+				"3": { "name": "storage.modifier.ada" },
+				"4": { "name": "entity.name.type.ada" }
+			}
+		},
 		"array_dimensions": {
 			"name": "meta.declaration.type.definition.array.dimensions.ada",
 			"begin": "\\(",
@@ -51,6 +61,11 @@
 					"name": "storage.modifier.ada",
 					"match": "(?i)\\bof\\b"
 				},
+				{
+					"name": "storage.visibility.ada",
+					"match": "(?i)\\baliased\\b"
+				},
+				{ "include": "#access_definition" },
 				{ "include": "#subtype_mark" }
 			]
 		},
