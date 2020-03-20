@@ -9,6 +9,27 @@
 		{ "include": "#pragma" }
 	],
 	"repository": {
+		"abort_statement": {
+			"name": "meta.statement.abort.ada",
+			"begin": "(?i)\\babort\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{
+					"name": "entity.name.task.ada",
+					"match": "\\b(\\w|\\d|\\.|_)+\\b"
+				}
+			]
+		},
 		"access_definition": {
 			"name": "meta.declaration.access.definition.ada",
 			"match": "(?i)(not\\s+null\\s+)?(access)\\s+(constant\\s+)?((?:\\w|\\d|\\.|_)+)\\b",
@@ -886,7 +907,8 @@
 				{ "include": "#goto_statement" },
 				{ "include": "#simple_return_statement" },
 				{ "include": "#requeue_statement" },
-				{ "include": "#delay_statement" }
+				{ "include": "#delay_statement" },
+				{ "include": "#abort_statement" }
 			]
 		},
 		"string_literal": {
