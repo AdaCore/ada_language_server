@@ -463,6 +463,14 @@
 				{ "include": "#expression" }
 			]
 		},
+		"null_statement": {
+			"name": "meta.statement.null.ada",
+			"match": "(?i)\\b(null)\\s*(;)",
+			"captures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "punctuation.ada" }
+			}
+		},
 		"package_body": {
 			"name": "meta.declaration.package.body.ada",
 			"begin": "(?i)\\b(package)\\s+(body)\\s+((?:\\w|\\d|\\.|_)+)\\b",
@@ -768,6 +776,7 @@
 		},
 		"statement": {
 			"patterns": [
+				{ "include": "#null_statement" },
 				{ "include": "#assignment_statement" }
 			]
 		},
