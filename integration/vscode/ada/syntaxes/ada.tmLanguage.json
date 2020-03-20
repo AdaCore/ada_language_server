@@ -176,6 +176,46 @@
 				{ "include": "#value" }
 			]
 		},
+		"fixed_point_definition": {
+			"name": "meta.declaration.type.definition.fixed-point.ada",
+			"begin": "(?i)\\b(is)\\s+(delta)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\b(digits|range)\\b"
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" }
+			]
+		},
+		"floating_point_definition": {
+			"name": "meta.declaration.type.definition.floating-point.ada",
+			"begin": "(?i)\\b(is)\\s+(digits)\\b",
+			"end": "(?i)(?=(with|;))",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\brange\\b"
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" }
+			]
+		},
 		"full_type_declaration": {
 			"patterns": [
 				{ "include": "#regular_type_declaration" }
@@ -297,10 +337,7 @@
 			},
 			"endCaptures": {
 				"1": { "name": "punctuation.ada" }
-			},
-			"patterns": [
-				{ "include": "#arguments" }
-			]
+			}
 		},
 		"procedure_body": {
 			"begin": "(?i)\\b(procedure)\\s+((\\w|\\d|\\.|_)+)\\b",
@@ -378,6 +415,12 @@
 					"name": "entity.name.exception.ada",
 					"match": "\\b(\\w|\\d|_)+\\b"
 				}
+			]
+		},
+		"real_type_definition": {
+			"patterns": [
+				{ "include": "#floating_point_definition" },
+				{ "include": "#fixed_point_definition" }
 			]
 		},
 		"record_type_definition": {
@@ -462,7 +505,17 @@
 		},
 		"subtype_mark": {
 			"name": "entity.name.type.ada",
-			"match": "\\b(?:\\w|\\d|\\.|_)+\\b"
+			"match": "\\b(?:\\w|\\d|\\.|_)+\\b",
+			"captures": {
+				"0": {
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": "[_.]"
+						}
+					]
+				}
+			}
 		},
 		"type_declaration": {
 			"name": "meta.declaration.type.ada",
@@ -475,6 +528,7 @@
 			"patterns": [
 				{ "include": "#enumeration_type_definition" },
 				{ "include": "#integer_type_definition" },
+				{ "include": "#real_type_definition" },
 				{ "include": "#record_type_definition" }
 			]
 		},
