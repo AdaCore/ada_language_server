@@ -149,7 +149,8 @@
 		},
 		"basic_declaration": {
 			"patterns": [
-				{ "include": "#type_declaration" }
+				{ "include": "#type_declaration" },
+				{ "include": "#subprogram_specification" }
 			]
 		},
 		"character_literal": {
@@ -189,7 +190,7 @@
 		},
 		"comment-section": {
 			"name": "comment.line.double-dash.ada",
-			"match": "--\\s*((?:\\w|\\d|\\.|_)+)\\s*--$",
+			"match": "--\\s*([^-].*?[^-])\\s*--$",
 			"captures": {
 				"1": { "name": "entity.name.section.ada" }
 			}
@@ -207,7 +208,7 @@
 		"derived_type_definition": {
 			"name": "meta.declaration.type.definition.derived.ada",
 			"begin": "(?i)\\b(is)\\b",
-			"end": "(?i)(?=(with(?!\\s+private)|;))",
+			"end": "(?i)(?=(with(?!\\s+(private|record))|;))",
 			"beginCaptures": {
 				"1": { "name": "keyword.ada" }
 			},
@@ -350,6 +351,18 @@
 				{ "include": "#basic_declaration" }
 			]
 		},
+		"function_specification": {
+			"begin": "(?i)\\b(overriding\\s+)?(function)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "storage.visibility.ada" },
+				"2": { "name": "keyword.ada" },
+				"3": { "name": "entity.name.function.ada" }
+			},
+			"patterns": [
+				{ "include": "#aspect_specification" }
+			]
+		},
 		"goto": {
 			"name": "meta.statement.goto.ada",
 			"match": "(?i)\\b(goto)\\s+((?:\\w|\\d|_)+)\\s*(;)",
@@ -470,7 +483,7 @@
 			}
 		},
 		"procedure_body": {
-			"begin": "(?i)\\b(procedure)\\s+((\\w|\\d|\\.|_)+)\\b",
+			"begin": "(?i)\\b(procedure)\\s+((?:\\w|\\d|\\.|_)+)\\b",
 			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
 			"beginCaptures": {
 				"1": { "name": "keyword.ada" },
@@ -483,6 +496,18 @@
 			},
 			"patterns": [
 				{ "include": "#basic_declaration" }
+			]
+		},
+		"procedure_specification": {
+			"begin": "(?i)\\b(overriding\\s+)?(procedure)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "storage.visibility.ada" },
+				"2": { "name": "keyword.ada" },
+				"3": { "name": "entity.name.function.ada" }
+			},
+			"patterns": [
+				{ "include": "#aspect_specification" }
 			]
 		},
 		"raise_statement": {
@@ -632,6 +657,13 @@
 			"patterns": [
 				{ "include": "#procedure_body" },
 				{ "include": "#function_body" }
+			]
+		},
+		"subprogram_specification": {
+			"name": "meta.declaration.subprogram.specification.ada",
+			"patterns": [
+				{ "include": "#procedure_specification" },
+				{ "include": "#function_specification" }
 			]
 		},
 		"subtype_mark": {
