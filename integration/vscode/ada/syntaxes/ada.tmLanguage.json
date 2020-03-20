@@ -126,6 +126,21 @@
 				{ "include": "#aspect_mark" }
 			]
 		},
+		"assignment_statement": {
+			"name": "meta.statement.assignment.ada",
+			"begin": "\\b((?:\\w|\\d|\\.|_)+)\\s*(:=)",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "variable.name.ada" },
+				"2": { "name": "punctuation.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#expression" }
+			]
+		},
 		"attribute": {
 			"name": "meta.attribute.ada",
 			"match": "(')((?:\\w|\\d|_)+)\\b",
@@ -749,6 +764,11 @@
 					"match": "\\.\\."
 				},
 				{ "include": "#expression" }
+			]
+		},
+		"statement": {
+			"patterns": [
+				{ "include": "#assignment_statement" }
 			]
 		},
 		"string_literal": {
