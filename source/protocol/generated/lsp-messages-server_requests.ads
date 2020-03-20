@@ -267,6 +267,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Folding_Range_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Selection_Range_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        SelectionRangeParams,
+        Server_Request_Receiver'Class);
+
+   type Selection_Range_Request is
+     new Selection_Range_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Selection_Range_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

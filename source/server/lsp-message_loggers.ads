@@ -206,6 +206,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Folding_Range_Request);
 
+   overriding procedure On_Selection_Range_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Selection_Range_Request);
+
    overriding procedure On_ALS_Called_By_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.ALS_Called_By_Request);
@@ -233,6 +237,10 @@ private
    overriding procedure On_FoldingRange_Response
      (Self  : in out Message_Logger;
       Value : LSP.Messages.Server_Responses.FoldingRange_Response);
+
+   overriding procedure On_SelectionRange_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.SelectionRange_Response);
 
    overriding procedure On_Highlight_Response
      (Self   : in out Message_Logger;

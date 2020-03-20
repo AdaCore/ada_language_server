@@ -133,6 +133,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response;
 
+   overriding function On_Selection_Range_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
+      return LSP.Messages.Server_Responses.SelectionRange_Response;
+
    overriding function On_Workspace_Symbols_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
