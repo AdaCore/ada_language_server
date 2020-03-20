@@ -784,6 +784,27 @@
 				{ "include": "#aspect_specification" }
 			]
 		},
+		"requeue_statement": {
+			"name": "meta.statement.requeue.ada",
+			"begin": "(?i)\\brequeue\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "keyword.control.ada",
+					"match": "(?i)\\b(with|abort)\\b"
+				},
+				{
+					"name": "entity.name.function.ada",
+					"match": "\\b(\\w|\\d|\\.|_)+\\b"
+				}
+			]
+		},
 		"result_profile": {
 			"begin": "(?i)\\breturn\\b",
 			"end": "(?=(is|with|;))",
@@ -829,7 +850,8 @@
 				{ "include": "#assignment_statement" },
 				{ "include": "#exit_statement" },
 				{ "include": "#goto_statement" },
-				{ "include": "#simple_return_statement" }
+				{ "include": "#simple_return_statement" },
+				{ "include": "#requeue_statement" }
 			]
 		},
 		"string_literal": {
