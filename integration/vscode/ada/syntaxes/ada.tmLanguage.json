@@ -429,14 +429,22 @@
 				{ "include": "#parameter_profile" }
 			]
 		},
-		"goto": {
+		"goto_statement": {
 			"name": "meta.statement.goto.ada",
-			"match": "(?i)\\b(goto)\\s+((?:\\w|\\d|_)+)\\s*(;)",
-			"captures": {
-				"1": { "name": "keyword.control.goto.ada" },
-				"2": { "name": "entity.name.label.ada" },
-				"3": { "name": "punctuation.ada" }
-			}
+			"begin": "(?i)\\bgoto\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.goto.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "entity.name.label.ada",
+					"match": "\\b(\\w|\\d|_)+\\b"
+				}
+			]
 		},
 		"integer_type_definition": {
 			"name": "meta.declaration.type.definition.integer.ada",
@@ -805,7 +813,8 @@
 			"patterns": [
 				{ "include": "#null_statement" },
 				{ "include": "#assignment_statement" },
-				{ "include": "#exit_statement" }
+				{ "include": "#exit_statement" },
+				{ "include": "#goto_statement" }
 			]
 		},
 		"string_literal": {
