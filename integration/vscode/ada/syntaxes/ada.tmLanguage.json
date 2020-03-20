@@ -204,6 +204,48 @@
 				"4": { "patterns": [ { "include": "#exponent_part" } ] }
 			}
 		},
+		"derived_type_definition": {
+			"name": "meta.declaration.type.definition.derived.ada",
+			"begin": "(?i)\\b(is)\\b",
+			"end": "(?i)(?=;)",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" }
+			},
+			"patterns": [
+				{
+					"match": "(?i)\\b(new)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+					"captures": {
+						"1": { "name": "storage.modifier.ada" },
+						"2": { "patterns": [ { "include": "#subtype_mark" } ] }
+					}
+				},
+				{
+					"begin": "(?i)\\b(with)\\s+(record)\\b",
+					"end": "(?i)\\b(end)\\s+(record)\\b",
+					"beginCaptures": {
+						"1": { "name": "storage.modifier.ada" },
+						"2": { "name": "storage.modifier.ada" }
+					},
+					"endCaptures": {
+						"1": { "name": "keyword.ada" },
+						"2": { "name": "storage.modifier.ada" }
+					}
+				},
+				{
+					"match": "(?i)\\b(with)\\s+(null)\\s+(record)\\b",
+					"captures": {
+						"1": { "name": "storage.modifier.ada" },
+						"2": { "name": "storage.modifier.ada" },
+						"3": { "name": "storage.modifier.ada" }
+					}
+				},
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\b(abstract|and|limited)\\b"
+				},
+				{ "include": "#subtype_mark" }
+			]
+		},
 		"enumeration_type_definition": {
 			"name": "meta.declaration.type.definition.enumeration.ada",
 			"begin": "(?i)\\b(is)\\s+(\\()",
@@ -614,7 +656,8 @@
 				{ "include": "#array_type_definition" },
 				{ "include": "#record_type_definition" },
 				{ "include": "#access_type_definition" },
-				{ "include": "#interface_type_definition" }
+				{ "include": "#interface_type_definition" },
+				{ "include": "#derived_type_definition" }
 			]
 		},
 		"use_clause": {
