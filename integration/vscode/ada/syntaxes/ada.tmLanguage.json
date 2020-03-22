@@ -189,6 +189,54 @@
 				{ "include": "#subprogram_specification" }
 			]
 		},
+		"case_statement": {
+			"name": "meta.statement.case.ada",
+			"begin": "(?i)\\bcase\\b",
+			"end": "(?i)\\b(end)\\s+(case)\\s*(;)",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.control.ada" },
+				"2": { "name": "keyword.control.ada" },
+				"3": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)(?<=case)\\b",
+					"end": "(?i)\\bis\\b",
+					"endCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				},
+				{
+					"name": "meta.statement.case.alternative.ada",
+					"begin": "(?i)\\bwhen\\b",
+					"end": "=>",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"endCaptures": {
+						"0": { "name": "punctuation.ada" }
+					},
+					"patterns": [
+						{
+							"name": "keyword.modifier.unknown.ada",
+							"match": "(?i)\\bothers\\b"
+						},
+						{
+							"name": "punctuation.ada",
+							"match": "\\|"
+						},
+						{ "include": "#expression" }
+					]
+				},
+				{ "include": "#statement" }
+			]
+		},
 		"character_literal": {
 			"name": "string.quoted.single.ada",
 			"match": "'.'",
@@ -951,7 +999,8 @@
 				{ "include": "#delay_statement" },
 				{ "include": "#abort_statement" },
 				{ "include": "#raise_statement" },
-				{ "include": "#if_statement" }
+				{ "include": "#if_statement" },
+				{ "include": "#case_statement" }
 			]
 		},
 		"string_literal": {
