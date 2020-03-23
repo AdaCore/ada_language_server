@@ -216,13 +216,22 @@ package body LSP.Ada_Handlers is
    -----------------------
 
    overriding function Get_Open_Document
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access is
    begin
       if Self.Open_Documents.Contains (URI) then
          return LSP.Ada_Documents.Document_Access
            (Self.Open_Documents.Element (URI));
+      elsif Force then
+         declare
+            Document : constant Internal_Document_Access :=
+              new LSP.Ada_Documents.Document (Self.Trace);
+         begin
+            Document.Initialize (URI, Empty_LSP_String);
+            return LSP.Ada_Documents.Document_Access (Document);
+         end;
       else
          return null;
       end if;
@@ -2084,23 +2093,33 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response
    is
+      use type LSP.Ada_Documents.Document_Access;
+
       --  The list of symbols for one document shouldn't depend
       --  on the project: we can just choose the best context for this.
       Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-   begin
-      return Result : LSP.Messages.Server_Responses.Symbol_Response :=
+      Result   : LSP.Messages.Server_Responses.Symbol_Response :=
         (Is_Error => False,
          result   => <>,
          error    => (Is_Set => False),
-         others   => <>)
-      do
+         others   => <>);
+   begin
+      if Document = null then
+         declare
+            Document : LSP.Ada_Documents.Document_Access :=
+              Get_Open_Document (Self, Value.textDocument.uri, Force => True);
+         begin
+            Self.Get_Symbols (Document.all, Context.all, Result.result);
+            Unchecked_Free (Internal_Document_Access (Document));
+         end;
+      else
          Self.Get_Symbols (Document.all, Context.all, Result.result);
-      end return;
+      end if;
+      return Result;
    end On_Document_Symbols_Request;
 
    -----------------------

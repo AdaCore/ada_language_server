@@ -119,11 +119,14 @@ package LSP.Ada_Documents is
    --  is able to retrieve a document from its given URI.
 
    function Get_Open_Document
-     (Self : access Document_Provider;
-      URI  : LSP.Messages.DocumentUri)
+     (Self  : access Document_Provider;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
       return Document_Access is abstract;
-   --  Return the open document for the given URI, null if this document
-   --  is not open.
+   --  Return the open document for the given URI.
+   --  If the document is not opened, then if Force a new document
+   --  will be created and must be freed by the user else null will be
+   --  returned.
 
 private
 
