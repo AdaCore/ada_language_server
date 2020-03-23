@@ -1037,6 +1037,43 @@
 				{ "include": "#subtype_mark" }
 			]
 		},
+		"return_statement": {
+			"name": "meta.statement.return.ada",
+			"begin": "(?i)\\breturn\\b",
+			"end": ";",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)\\bdo\\b",
+					"end": "(?i)\\b(end)\\s+(return)\\s*(?=;)",
+					"beginCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"endCaptures": {
+						"1": { "name": "keyword.control.ada" },
+						"2": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{ "include": "#label" },
+						{ "include": "#statement" }
+					]
+				},
+				{
+					"match": "\\b((?:\\w|\\d|_)+)\\s*(:)\\s*((?:\\w|\\d|\\.|_)+)\\b",
+					"captures": {
+						"1": { "name": "variable.name.ada" },
+						"2": { "name": "punctuation.ada" },
+						"3": { "name": "entity.name.type.ada" }
+					}
+				},
+				{ "include": "#expression" }
+			]
+		},
 		"signed_integer_type_definition": {
 			"begin": "(?i)\\b(is)\\s+(range)\\b",
 			"end": "(?i)(?=(with|;))",
@@ -1069,27 +1106,13 @@
 				{ "include": "#statement" }
 			]
 		},
-		"simple_return_statement": {
-			"name": "meta.statement.return.simple.ada",
-			"begin": "(?i)\\breturn\\b",
-			"end": ";",
-			"beginCaptures": {
-				"0": { "name": "keyword.control.ada" }
-			},
-			"endCaptures": {
-				"0": { "name": "punctuation.ada" }
-			},
-			"patterns": [
-				{ "include": "#expression" }
-			]
-		},
 		"statement": {
 			"patterns": [
 				{ "include": "#null_statement" },
 				{ "include": "#assignment_statement" },
 				{ "include": "#exit_statement" },
 				{ "include": "#goto_statement" },
-				{ "include": "#simple_return_statement" },
+				{ "include": "#return_statement" },
 				{ "include": "#requeue_statement" },
 				{ "include": "#delay_statement" },
 				{ "include": "#abort_statement" },
