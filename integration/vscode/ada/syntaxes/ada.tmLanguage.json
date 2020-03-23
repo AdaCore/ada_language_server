@@ -475,6 +475,50 @@
 				{ "include": "#expression" }
 			]
 		},
+		"for_loop_statement": {
+			"name": "meta.statement.loop.for.ada",
+			"begin": "(?i)\\bfor\\b",
+			"end": "(?i)\\b(end)\\s+(loop)(\\s+(?:\\w|\\d|_)+)?\\s*(;)",
+			"beginCaptures": {
+				"0": { "name": "keyword.control.ada" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.control.ada" },
+				"2": { "name": "keyword.control.ada" },
+				"3": { "name": "entity.name.label.ada" },
+				"4": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)(?<=for)",
+					"end": "(?i)\\bloop\\b",
+					"endCaptures": {
+						"0": { "name": "keyword.control.ada" }
+					},
+					"patterns": [
+						{
+							"match": "(?i)\\b((?:\\w|\\d|_)+)\\s+(in)(\\s+reverse)?\\b",
+							"captures": {
+								"1": { "name": "variable.name.ada" },
+								"2": { "name": "keyword.control.ada" },
+								"3": { "name": "keyword.control.ada" }
+							}
+						},
+						{
+							"match": "(?i)\\b((?:\\w|\\d|_)+)(?:\\s*(:)\\s*((?:\\w|\\d|\\.|_)+))?\\s+(of)(\\s+reverse)?\\b",
+							"captures": {
+								"1": { "name": "variable.name.ada" },
+								"2": { "name": "punctuation.ada" },
+								"3": { "patterns": [ { "include": "#subtype_mark" } ] },
+								"4": { "name": "keyword.control.ada" },
+								"5": { "name": "keyword.control.ada" }
+							}
+						},
+						{ "include": "#expression" }
+					]
+				}
+			]
+		},
 		"full_type_declaration": {
 			"patterns": [
 				{ "include": "#regular_type_declaration" }
@@ -645,7 +689,8 @@
 		"loop_statement": {
 			"patterns": [
 				{ "include": "#simple_loop_statement" },
-				{ "include": "#while_loop_statement" }
+				{ "include": "#while_loop_statement" },
+				{ "include": "#for_loop_statement" }
 			]
 		},
 		"modular_type_definition": {
