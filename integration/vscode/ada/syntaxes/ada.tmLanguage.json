@@ -189,6 +189,38 @@
 				{ "include": "#subprogram_specification" }
 			]
 		},
+		"block_statement": {
+			"name": "meta.statement.block.ada",
+			"begin": "(?i)\\bdeclare\\b",
+			"end": "(?i)\\b(end)(\\s+(?:\\w|\\d|_)+)?\\s*(;)",
+			"beginCaptures": {
+				"0": { "name": "keyword.ada" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "entity.name.label.ada" },
+				"3": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)(?<=declare)",
+					"end": "(?i)\\bbegin\\b",
+					"endCaptures": {
+						"0": { "name": "keyword.ada" }
+					},
+					"patterns": [
+						{ "include": "#basic_declaration" }
+					]
+				},
+				{
+					"begin": "(?i)(?<=begin)",
+					"end": "(?i)(?=end)",
+					"patterns": [
+						{ "include": "#statement" }
+					]
+				}
+			]
+		},
 		"case_statement": {
 			"name": "meta.statement.case.ada",
 			"begin": "(?i)\\bcase\\b",
@@ -415,10 +447,7 @@
 						{ "include": "#expression" }
 					]
 				},
-				{
-					"name": "entity.name.label.ada",
-					"match": "\\b(\\w|\\d|_)+\\b"
-				}
+				{ "include": "#label" }
 			]
 		},
 		"exponent_part": {
@@ -485,7 +514,7 @@
 			"endCaptures": {
 				"1": { "name": "keyword.control.ada" },
 				"2": { "name": "keyword.control.ada" },
-				"3": { "name": "entity.name.label.ada" },
+				"3": { "patterns": [ { "include": "#label" } ] },
 				"4": { "name": "punctuation.ada" }
 			},
 			"patterns": [
@@ -588,10 +617,7 @@
 				"0": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{
-					"name": "entity.name.label.ada",
-					"match": "\\b(\\w|\\d|_)+\\b"
-				}
+				{}
 			]
 		},
 		"if_statement": {
@@ -1070,7 +1096,8 @@
 				{ "include": "#raise_statement" },
 				{ "include": "#if_statement" },
 				{ "include": "#case_statement" },
-				{ "include": "#loop_statement" }
+				{ "include": "#loop_statement" },
+				{ "include": "#block_statement" }
 			]
 		},
 		"string_literal": {
