@@ -516,7 +516,8 @@
 						},
 						{ "include": "#expression" }
 					]
-				}
+				},
+				{ "include": "#statement" }
 			]
 		},
 		"full_type_declaration": {
