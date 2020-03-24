@@ -69,6 +69,7 @@ endif
 all: coverage-instrument
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
+	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
