@@ -24,6 +24,7 @@ with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
 
+with GNATCOLL.Memory;         use GNATCOLL.Memory;
 with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
@@ -32,6 +33,7 @@ with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
+with LSP.Memory_Statistics;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -121,21 +123,25 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
    end Register_Commands;
 
-   Cmdline   : Command_Line_Configuration;
-
-   Fuzzing_Activated : constant Boolean := Getenv ("ALS_FUZZING") /= "";
-
-   ALS_Home  : constant String := Getenv ("ALS_HOME");
-   Home_Dir  : constant Virtual_File :=
-                 (if ALS_Home /= "" then Create (+ALS_Home)
-                  else Get_Home_Directory);
-   ALS_Dir   : constant Virtual_File := Home_Dir / ".als";
-   GNATdebug : constant Virtual_File := Create_From_Base (".gnatdebug");
-
    use GNAT.Strings;
-   Tracefile_Name : aliased String_Access;
-   Config_File    : Virtual_File;
-   Help_Arg       : aliased Boolean := False;
+
+   Cmdline                : Command_Line_Configuration;
+
+   Fuzzing_Activated      : constant Boolean := Getenv ("ALS_FUZZING") /= "";
+
+   ALS_Home               : constant String := Getenv ("ALS_HOME");
+   Home_Dir               : constant Virtual_File :=
+                            (if ALS_Home /= "" then Create (+ALS_Home)
+                             else Get_Home_Directory);
+   ALS_Dir                : constant Virtual_File := Home_Dir / ".als";
+   GNATdebug              : constant Virtual_File := Create_From_Base
+     (".gnatdebug");
+
+   Tracefile_Name         : aliased String_Access;
+   Config_File            : Virtual_File;
+   Help_Arg               : aliased Boolean := False;
+
+   Memory_Monitor_Enabled : Boolean;
 begin
    --  Handle the command line
    Set_Usage
@@ -199,6 +205,15 @@ begin
 
    Server_Trace.Trace ("Initializing server ...");
 
+   --  Start monitoring the memory if the memory monitor trace is active
+
+   Memory_Monitor_Enabled := Create ("DEBUG.ADA_MEMORY").Is_Active;
+
+   if Memory_Monitor_Enabled then
+      GNATCOLL.Memory.Configure
+        (Activate_Monitor => True);
+   end if;
+
    Server.Initialize (Stream'Unchecked_Access);
    begin
       Register_Commands;
@@ -243,6 +258,18 @@ begin
          Server_Trace.Trace (Symbolic_Traceback (E));
    end;
    Server_Trace.Trace ("Shutting server down ...");
+
+   --  Dump the memory statistics if the memory monitor trace is active
+   if Memory_Monitor_Enabled then
+      declare
+         Memory_Stats : constant String :=
+                          LSP.Memory_Statistics.Dump_Memory_Statistics (3);
+
+      begin
+         Server_Trace.Trace (Memory_Stats);
+      end;
+   end if;
+
    Server.Finalize;
    Handler.Cleanup;
 end LSP.Ada_Driver;

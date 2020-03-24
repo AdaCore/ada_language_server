@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                        Copyright (C) 2020, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,37 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
+--  This package is used to dump the memory statistics gathered by
+--  GNATCOLL.Memory.
 
-with "lsp";
+with GNATCOLL.Memory; use GNATCOLL.Memory;
 
-project LSP_Server is
+package LSP.Memory_Statistics is
 
-   VERSION := external ("VERSION", "latest");
+   function Dump_Memory_Statistics
+     (Size   : Positive;
+      Report : Report_Type := Memory_Usage)
+      return String;
+   --  Dump information about memory usage to configurable output
+   --  Size is the number of the biggest memory users we want to show. Report
+   --  indicates which sorting order is used in the report.
 
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada",
-      "../source/memory");
-
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
-
-   package Compiler is
-      for Default_Switches ("Ada") use LSP.Ada_Switches;
-      for Switches ("lsp-ada_driver.adb") use
-        LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
-      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
-   end Compiler;
-
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+end LSP.Memory_Statistics;

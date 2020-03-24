@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                        Copyright (C) 2020, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,37 +15,23 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
+with GNATCOLL.Memory;
 
-with "lsp";
+package body System.Memory is
+   package M renames GNATCOLL.Memory;
 
-project LSP_Server is
+   function Alloc (Size : size_t) return System.Address is
+   begin
+      return M.Alloc (M.size_t (Size));
+   end Alloc;
 
-   VERSION := external ("VERSION", "latest");
+   procedure Free (Ptr : System.Address) renames M.Free;
 
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada",
-      "../source/memory");
-
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
-
-   package Compiler is
-      for Default_Switches ("Ada") use LSP.Ada_Switches;
-      for Switches ("lsp-ada_driver.adb") use
-        LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
-      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
-   end Compiler;
-
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+   function Realloc
+     (Ptr  : System.Address;
+      Size : size_t)
+      return System.Address is
+   begin
+      return M.Realloc (Ptr, M.size_t (Size));
+   end Realloc;
+end System.Memory;
