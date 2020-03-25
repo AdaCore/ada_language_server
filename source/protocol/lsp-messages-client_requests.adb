@@ -44,6 +44,17 @@ package body LSP.Messages.Client_Requests is
    -----------
 
    overriding procedure Visit
+     (Self    : WorkDoneProgressCreate_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_WorkDoneProgress_Create_Request (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Workspace_Configuration_Request;
       Reciver : access Client_Request_Receiver'Class) is
    begin

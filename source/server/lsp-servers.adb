@@ -615,6 +615,17 @@ package body LSP.Servers is
       Self.Send_Request ("workspace/configuration", Message);
    end On_Workspace_Configuration_Request;
 
+   ----------------------------------------
+   -- On_WorkDoneProgress_Create_Request --
+   ----------------------------------------
+
+   overriding procedure On_WorkDoneProgress_Create_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request) is
+   begin
+      Self.Send_Request ("window/workDoneProgress/create", Message);
+   end On_WorkDoneProgress_Create_Request;
+
    ---------
    -- Run --
    ---------

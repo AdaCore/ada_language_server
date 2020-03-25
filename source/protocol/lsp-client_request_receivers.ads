@@ -38,4 +38,9 @@ package LSP.Client_Request_Receivers is
       Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
         is abstract;
 
+   procedure On_WorkDoneProgress_Create_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request)
+        is abstract;
+
 end LSP.Client_Request_Receivers;

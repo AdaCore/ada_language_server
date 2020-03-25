@@ -2963,6 +2963,20 @@ package LSP.Messages is
    --	token: ProgressToken;
    --}
    --```
+   type WorkDoneProgressCreateParams is record
+      token: ProgressToken;
+   end record;
+
+   procedure Read_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressCreateParams);
+
+   procedure Write_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressCreateParams);
+
+   for WorkDoneProgressCreateParams'Read use Read_WorkDoneProgressCreateParams;
+   for WorkDoneProgressCreateParams'Write use Write_WorkDoneProgressCreateParams;
 
    --```typescript
    --export interface WorkDoneProgressParams {
