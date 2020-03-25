@@ -3231,6 +3231,22 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WindowClientCapabilities;
 
+   ---------------------------------------
+   -- Read_WorkDoneProgressCreateParams --
+   ---------------------------------------
+
+   procedure Read_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressCreateParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number_Or_String (JS, +"token", V.token);
+      JS.End_Object;
+   end Read_WorkDoneProgressCreateParams;
+
    ----------------------------------
    -- Read_WorkDoneProgressOptions --
    ----------------------------------
@@ -6469,6 +6485,22 @@ package body LSP.Messages is
       Write_Optional_Number (JS, +"percentage", V.percentage);
       JS.End_Object;
    end Write_WorkDoneProgressBegin;
+
+   ----------------------------------------
+   -- Write_WorkDoneProgressCreateParams --
+   ----------------------------------------
+
+   procedure Write_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressCreateParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number_Or_String (JS, +"token", V.token);
+      JS.End_Object;
+   end Write_WorkDoneProgressCreateParams;
 
    -----------------------------------
    -- Write_WorkDoneProgressOptions --

@@ -67,4 +67,17 @@ package LSP.Messages.Client_Requests is
      (Self    : Workspace_Configuration_Request;
       Reciver : access Client_Request_Receiver'Class);
 
+   package WorkDoneProgressCreate_Requests is
+     new LSP.Generic_Requests
+       (Client_Request,
+        WorkDoneProgressCreateParams,
+        Client_Request_Receiver'Class);
+
+   type WorkDoneProgressCreate_Request is
+     new WorkDoneProgressCreate_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : WorkDoneProgressCreate_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
 end LSP.Messages.Client_Requests;

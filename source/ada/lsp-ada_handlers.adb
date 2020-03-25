@@ -36,6 +36,7 @@ with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
+with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
 with LSP.Types;        use LSP.Types;
 
@@ -2522,7 +2523,18 @@ package body LSP.Ada_Handlers is
 
       procedure Emit_Progress_Begin is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Begin);
+
+         Create_Progress : constant LSP.Messages.Client_Requests
+           .WorkDoneProgressCreate_Request :=
+             (params => (token => token), others => <>);
       begin
+         Self.Server.On_WorkDoneProgress_Create_Request
+           (Create_Progress);
+         --  FIXME: wait response before sending progress notifications.
+         --  Currenctly, we just send a `window/workDoneProgress/create`
+         --  request and immediately after this start sending notifications.
+         --  We could do better, send request, wait for client response and
+         --  start progress-report sending only after response.
          P.Begin_Param.token := token;
          P.Begin_Param.value.title := +"Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
@@ -2557,8 +2569,9 @@ package body LSP.Ada_Handlers is
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
    begin
-      --  Prevent work if the indexing has been explicitly disabled
-      if not Self.Indexing_Enabled then
+      --  Prevent work if the indexing has been explicitly disabled or
+      --  if we have other messages to process.
+      if not Self.Indexing_Enabled or Self.Server.Has_Pending_Work then
          return;
       end if;
 

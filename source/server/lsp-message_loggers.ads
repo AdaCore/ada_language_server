@@ -306,6 +306,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.ShowMessage_Request);
 
+   overriding procedure On_WorkDoneProgress_Create_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request);
+
    overriding procedure On_Workspace_Apply_Edit_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request);
