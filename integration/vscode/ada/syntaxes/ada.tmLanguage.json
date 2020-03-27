@@ -186,6 +186,7 @@
 		"basic_declaration": {
 			"patterns": [
 				{ "include": "#type_declaration" },
+				{ "include": "#object_declaration" },
 				{ "include": "#subprogram_specification" }
 			]
 		},
@@ -738,6 +739,56 @@
 				"1": { "name": "keyword.ada" },
 				"2": { "name": "punctuation.ada" }
 			}
+		},
+		"object_declaration": {
+			"name": "meta.declaration.object.ada",
+			"begin": "(?i)\\b((?:\\w|\\d|_)+(?:\\s*,\\s*(?:\\w|\\d|_)+)?)\\s*(:)",
+			"end": "(;)",
+			"beginCaptures": {
+				"1": {
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": ","
+						},
+						{
+							"name": "variable.name.ada",
+							"match": "\\b(\\w|\\d|_)+\\b"
+						}
+					]
+				},
+				"2": { "name": "punctuation.ada" }
+			},
+			"endCaptures": {
+				"0" : { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": "(?<=:)",
+					"end": "((?=;)|:=)",
+					"endCaptures": {
+						"0": { "name": "punctuation.ada" }
+					},
+					"patterns": [
+						{
+							"name": "storage.modifier.ada",
+							"match": "(?i)\\bconstant\\b"
+						},
+						{
+							"name": "storage.visibility.ada",
+							"match": "(?i)\\baliased\\b"
+						},
+						{ "include": "#subtype_mark" }
+					]
+				},
+				{
+					"begin": "(?<=:=)",
+					"end": "(?=;)",
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				}
+			]
 		},
 		"package_body": {
 			"name": "meta.declaration.package.body.ada",
