@@ -186,6 +186,7 @@
 		"basic_declaration": {
 			"patterns": [
 				{ "include": "#type_declaration" },
+				{ "include": "#exception_declaration" },
 				{ "include": "#object_declaration" },
 				{ "include": "#subprogram_specification" }
 			]
@@ -426,6 +427,27 @@
 					"match": "\\b(\\w|\\d|_)+\\b"
 				}
 			]
+		},
+		"exception_declaration": {
+			"name": "meta.declaration.exception.ada",
+			"match": "(?i)\\b((?:\\w|\\d|_)+(?:\\s*,\\s*(?:\\w|\\d|_)+)?)\\s*(:)\\s*(exception)\\s*(;)",
+			"captures": {
+				"1": {
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": ","
+						},
+						{
+							"name": "entity.name.exception.ada",
+							"match": "\\b(\\w|\\d|_)+\\b"
+						}
+					]
+				},
+				"2": { "name": "punctuation.ada" },
+				"3": { "name": "storage.type.ada" },
+				"4": { "name": "punctuation.ada"}
+			}
 		},
 		"exit_statement": {
 			"name": "meta.statement.exit.ada",
