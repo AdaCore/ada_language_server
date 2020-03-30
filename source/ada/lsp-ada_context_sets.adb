@@ -85,7 +85,7 @@ package body LSP.Ada_Context_Sets is
          end if;
       end loop;
 
-      return Self.Contexts.Last_Element;
+      return Self.Contexts.First_Element;
    end Get_Best_Context;
 
    ---------

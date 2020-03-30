@@ -172,6 +172,9 @@ package body LSP.Ada_Handlers is
    --  initialized and a project is loaded. If they are not initialized,
    --  initialize them.
 
+   procedure Load_Implicit_Project (Self : access Message_Handler);
+   --  Load the implicit project
+
    procedure Load_Project
      (Self     : access Message_Handler;
       GPR      : Virtual_File;
@@ -363,6 +366,60 @@ package body LSP.Ada_Handlers is
    end Reload_Implicit_Project_Dirs;
 
    ---------------------------
+   -- Load_Implicit_Project --
+   ---------------------------
+
+   procedure Load_Implicit_Project (Self : access Message_Handler) is
+      C    : constant Context_Access := new Context (Self.Trace);
+      Attr : GNAT.Strings.String_List (1 .. 1);
+      use GNATCOLL.Projects;
+   begin
+      --  Unload all the contexts
+      Self.Contexts.Cleanup;
+
+      Self.Trace.Trace ("Loading the implicit project");
+
+      Self.Implicit_Project_Loaded := True;
+      Self.Release_Project_Info;
+      Initialize (Self.Project_Environment);
+      Self.Project_Tree := new Project_Tree;
+      C.Initialize;
+
+      --  Note: we would call Load_Implicit_Project here, but this has
+      --  two problems:
+      --    - there is a bug under Windows where the files returned by
+      --      Source_Files have an extraneous directory separator
+      --    - the implicit project relies on the current working
+      --      of the ALS, which imposes a restriction on clients, and
+      --      is an extra pitfall for developers of this server
+      --
+      --  Instead, use Load_Empty_Project and set the source dir and
+      --  language manually: this does not have these inconvenients.
+
+      Load_Empty_Project
+        (Self.Project_Tree.all, Self.Project_Environment);
+      Attr := (1 => new String'("Ada"));
+      Set_Attribute
+        (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
+      GNAT.Strings.Free (Attr (1));
+
+      --  When there is no .gpr, create a project which loads the
+      --  root directory in the workspace.
+
+      Self.Project_Dirs_Loaded.Include (Self.Root);
+      Self.Reload_Implicit_Project_Dirs;
+      C.Load_Project (Self.Project_Tree,
+                      Self.Project_Tree.Root_Project,
+                      "iso-8859-1");
+
+      for File of Self.Project_Environment.Predefined_Source_Files loop
+         Self.Project_Predefined_Sources.Include (File);
+      end loop;
+
+      Self.Contexts.Prepend (C);
+   end Load_Implicit_Project;
+
+   ---------------------------
    -- Ensure_Project_Loaded --
    ---------------------------
 
@@ -410,51 +467,7 @@ package body LSP.Ada_Handlers is
       if GPRs_Found = 0 then
          --  We have found zero .gpr files: load the implicit project
 
-         Self.Trace.Trace ("Loading the implicit project");
-         declare
-            C    : constant Context_Access := new Context (Self.Trace);
-            Attr : GNAT.Strings.String_List (1 .. 1);
-            use GNATCOLL.Projects;
-         begin
-            Self.Implicit_Project_Loaded := True;
-            Self.Release_Project_Info;
-            Initialize (Self.Project_Environment);
-            Self.Project_Tree := new Project_Tree;
-            C.Initialize;
-
-            --  Note: we would call Load_Implicit_Project here, but this has
-            --  two problems:
-            --    - there is a bug under Windows where the files returned by
-            --      Source_Files have an extraneous directory separator
-            --    - the implicit project relies on the current working
-            --      of the ALS, which imposes a restriction on clients, and
-            --      is an extra pitfall for developers of this server
-            --
-            --  Instead, use Load_Empty_Project and set the source dir and
-            --  language manually: this does not have these inconvenients.
-
-            Load_Empty_Project
-              (Self.Project_Tree.all, Self.Project_Environment);
-            Attr := (1 => new String'("Ada"));
-            Set_Attribute
-              (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
-            GNAT.Strings.Free (Attr (1));
-
-            --  When there is no .gpr, create a project which loads the
-            --  root directory in the workspace.
-
-            Self.Project_Dirs_Loaded.Include (Self.Root);
-            Self.Reload_Implicit_Project_Dirs;
-            C.Load_Project (Self.Project_Tree,
-                            Self.Project_Tree.Root_Project,
-                            "iso-8859-1");
-
-            for File of Self.Project_Environment.Predefined_Source_Files loop
-               Self.Project_Predefined_Sources.Include (File);
-            end loop;
-
-            Self.Contexts.Prepend (C);
-         end;
+         Self.Load_Implicit_Project;
       elsif GPRs_Found = 1 then
          --  We have not found exactly one .gpr file: load the default
          --  project.
@@ -2455,6 +2468,10 @@ package body LSP.Ada_Handlers is
                LSP.Types.To_LSP_String
                  ("Unable to load project file: " &
                   (+GPR.Full_Name.all) & Line_Feed));
+
+            --  The project was invalid: fallback on loading the implicit
+            --  project.
+            Self.Load_Implicit_Project;
       end;
 
       --  Report the errors, if any

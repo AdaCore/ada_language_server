@@ -1,0 +1,3 @@
+with "doesnotexist";
+project invalid is
+end project;
