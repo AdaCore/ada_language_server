@@ -48,7 +48,8 @@ package LSP.Ada_Context_Sets is
      (Self : Context_Set'Class;
       URI  : LSP.Messages.DocumentUri) return Context_Access;
    --  Return the first context in Contexts which contains a project
-   --  which knows about file. Fallback on the "no project" context.
+   --  which knows about file. Return the first context if no such
+   --  context was found.
 
    function Total_Source_Files (Self : Context_Set'Class) return Natural;
    --  Number of files in all contexts

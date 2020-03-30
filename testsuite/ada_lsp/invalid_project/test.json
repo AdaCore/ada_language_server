@@ -1,0 +1,329 @@
+[
+   {
+      "comment": [
+         "verify that basic behavior is working even if the project is invalid"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext", 
+                              "markdown"
+                           ], 
+                           "snippetSupport": false
+                        }, 
+                        "completionItemKind": {}, 
+                        "dynamicRegistration": true
+                     }, 
+                     "definition": {}, 
+                     "hover": {}, 
+                     "codeLens": {}, 
+                     "selectionRange": {}, 
+                     "implementation": {}, 
+                     "formatting": {}, 
+                     "typeDefinition": {}, 
+                     "documentHighlight": {}, 
+                     "synchronization": {}, 
+                     "references": {}, 
+                     "rangeFormatting": {}, 
+                     "onTypeFormatting": {}, 
+                     "declaration": {}, 
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }, 
+                     "colorProvider": {}
+                  }, 
+                  "workspace": {
+                     "applyEdit": true, 
+                     "executeCommand": {}, 
+                     "didChangeWatchedFiles": {}, 
+                     "workspaceEdit": {}, 
+                     "didChangeConfiguration": {}
+                  }
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "invalid.gpr", 
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": [
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with foo; use foo;\nprocedure Main is\nbegin\n   if A = 2 then\n      raise Program_Error;\n   end if;\nend;\n", 
+                  "version": 0, 
+                  "uri": "$URI{main.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/foldingRange"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "endLine": 6, 
+                     "startLine": 1, 
+                     "kind": "region"
+                  }, 
+                  {
+                     "endLine": 5, 
+                     "startLine": 3, 
+                     "kind": "region"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/foldingRange"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "endLine": 6, 
+                     "startLine": 1, 
+                     "kind": "region"
+                  }, 
+                  {
+                     "endLine": 5, 
+                     "startLine": 3, 
+                     "kind": "region"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3, 
+                  "character": 6
+               }, 
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 4, 
+            "method": "textDocument/definition"
+         }, 
+         "wait": [
+            {
+               "id": 4, 
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1, 
+                           "character": 3
+                        }, 
+                        "end": {
+                           "line": 1, 
+                           "character": 4
+                        }
+                     }, 
+                     "uri": "$URI{foo.ads}"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package foo is\n   A : Integer := 1;\nend foo;\n", 
+                  "version": 0, 
+                  "uri": "$URI{foo.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 5, 
+            "method": "textDocument/foldingRange"
+         }, 
+         "wait": [
+            {
+               "id": 5, 
+               "result": [
+                  {
+                     "endLine": 2, 
+                     "startLine": 0, 
+                     "kind": "region"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 6, 
+            "method": "textDocument/foldingRange"
+         }, 
+         "wait": [
+            {
+               "id": 6, 
+               "result": [
+                  {
+                     "endLine": 2, 
+                     "startLine": 0, 
+                     "kind": "region"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
