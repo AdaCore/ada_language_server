@@ -313,6 +313,56 @@
 				"1": { "name": "entity.name.section.ada" }
 			}
 		},
+		"component_declaration": {
+			"name": "meta.declaration.type.definition.record.component.ada",
+			"begin": "(?i)\\b((?:\\w|\\d|_)+(?:\\s*,\\s*(?:\\w|\\d|_)+)?)\\s*(:)",
+			"end": ";",
+			"beginCaptures": {
+				"1": {
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": ","
+						},
+						{
+							"name": "variable.name.ada",
+							"match": "\\b(\\w|\\d|_)+\\b"
+						}
+					]
+				},
+				"2": { "name": "punctuation.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": ":="
+						},
+						{ "include": "#expression" }
+					]
+				},
+				{ "include": "#component_definition" }
+			]
+		},
+		"component_definition": {
+			"patterns": [
+				{
+					"name": "storage.visibility.ada",
+					"match": "(?i)\\baliased\\b"
+				},
+				{ "include": "#access_definition" },
+				{ "include": "#subtype_mark" }
+			]
+		},
+		"component_item": {
+			"patterns": [
+				{ "include": "#component_declaration" }
+			]
+		},
 		"decimal_literal": {
 			"name": "constant.numeric.ada",
 			"match": "\\d(?:(_)?\\d)*(?:(\\.)\\d(?:(_)?\\d)*)?([eE](?:\\+|\\-)?\\d(?:_?\\d)*)?",
@@ -382,7 +432,10 @@
 					"endCaptures": {
 						"1": { "name": "keyword.ada" },
 						"2": { "name": "storage.modifier.ada" }
-					}
+					},
+					"patterns": [
+						{ "include": "#component_item" }
+					]
 				},
 				{
 					"match": "(?i)\\b(with)\\s+(null)\\s+(record)\\b",
@@ -1044,7 +1097,10 @@
 						"4": { "name": "storage.modifier.ada" },
 						"5": { "name": "storage.modifier.ada" },
 						"6": { "name": "storage.modifier.ada" }
-					}
+					},
+					"patterns": [
+						{ "include": "#component_item" }
+					]
 				},
 				{
 					"name": "meta.declaration.type.definition.record.ada",
@@ -1060,7 +1116,10 @@
 					"endCaptures": {
 						"1": { "name": "keyword.ada" },
 						"2": { "name": "storage.modifier.ada" }
-					}
+					},
+					"patterns": [
+						{ "include": "#component_item" }
+					]
 				}
 			]
 		},
