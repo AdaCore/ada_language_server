@@ -459,6 +459,45 @@
 				{ "include": "#subtype_mark" }
 			]
 		},
+		"discriminant_specification": {
+			"begin": "(?i)\\b((?:\\w|\\d|_)+(?:\\s*,\\s*(?:\\w|\\d|_)+)?)\\s*(:)",
+			"end": "(?=(;|\\)))",
+			"beginCaptures": {
+				"1": {
+					"patterns": [
+						{
+							"name": "punctuation.ada",
+							"match": ","
+						},
+						{
+							"name": "variable.name.ada",
+							"match": "\\b(\\w|\\d|_)+\\b"
+						}
+					]
+				},
+				"2": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"begin": ":=",
+					"end": "(?=(;|\\)))",
+					"beginCaptures": {
+						"0": { "name": "punctuation.ada" }
+					},
+					"patterns": [
+						{ "include": "#expression" }
+					]
+				},
+				{
+					"match": "(?i)(not\\s+null\\s+)?((?:\\w|\\d|\\.|_)+)\\b",
+					"captures": {
+						"1": { "name": "storage.visibility.ada" },
+						"2": { "patterns": [ { "include": "#subtype_mark" } ] }
+					}
+				},
+				{ "include": "#access_definition" }
+			]
+		},
 		"enumeration_type_definition": {
 			"name": "meta.declaration.type.definition.enumeration.ada",
 			"begin": "(?i)\\b(is)\\s+(\\()",
@@ -770,6 +809,21 @@
 					"match": "(?i)\\band\\b"
 				},
 				{ "include": "#subtype_mark" }
+			]
+		},
+		"known_discriminant_part": {
+			"name": "meta.declaration.type.discriminant.ada",
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ";"
+				},
+				{ "include": "#discriminant_specification" }
 			]
 		},
 		"label": {
@@ -1135,7 +1189,8 @@
 			},
 			"patterns": [
 				{ "include": "#type_definition" },
-				{ "include": "#aspect_specification" }
+				{ "include": "#aspect_specification" },
+				{ "include": "#known_discriminant_part" }
 			]
 		},
 		"requeue_statement": {
