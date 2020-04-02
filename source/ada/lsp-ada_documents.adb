@@ -19,6 +19,7 @@ with Ada.Characters.Conversions;
 with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
+with GNATCOLL.Utils;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -53,6 +54,20 @@ package body LSP.Ada_Documents is
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
+
+   function Compute_Completion_Item
+     (Context          : LSP.Ada_Contexts.Context;
+      Node             : Libadalang.Analysis.Ada_Node;
+      BD               : Libadalang.Analysis.Basic_Decl;
+      DN               : Libadalang.Analysis.Defining_Name;
+      Snippets_Enabled : Boolean)
+      return LSP.Messages.CompletionItem;
+   --  Compute a completion item.
+   --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
+   --  BD and DN are respectively the basic declaration and the defining name
+   --  that should be used to compute the completion item.
+   --  When Snippets_Enabled is True, subprogram completion items are computed
+   --  as snippets that list all the subprogram's formal parameters.
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
@@ -991,15 +1006,141 @@ package body LSP.Ada_Documents is
       return Ret;
    end Compute_Completion_Detail;
 
+   -----------------------------
+   -- Compute_Completion_Item --
+   -----------------------------
+
+   function Compute_Completion_Item
+     (Context          : LSP.Ada_Contexts.Context;
+      Node             : Libadalang.Analysis.Ada_Node;
+      BD               : Libadalang.Analysis.Basic_Decl;
+      DN               : Libadalang.Analysis.Defining_Name;
+      Snippets_Enabled : Boolean)
+      return LSP.Messages.CompletionItem
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+      use LSP.Messages;
+      use LSP.Types;
+
+      Item           : CompletionItem;
+      Subp_Spec_Node : Base_Subp_Spec;
+   begin
+      Item.label := To_LSP_String (DN.P_Relative_Name.Text);
+      Item.kind := (True, To_Completion_Kind
+                 (Get_Decl_Kind (BD)));
+      Item.detail := (True, Compute_Completion_Detail (BD));
+
+      --  Property_Errors can occur when calling
+      --  Get_Documentation on unsupported docstrings, so
+      --  add an exception handler to catch them and recover.
+      begin
+         Item.documentation :=
+           (Is_Set => True,
+            Value  => String_Or_MarkupContent'
+              (Is_String => True,
+               String    => To_LSP_String
+                 (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
+                      Encode
+                    (Libadalang.Doc_Utils.Get_Documentation
+                         (BD).Doc.To_String))));
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            LSP.Common.Log (Context.Trace, E);
+            Item.documentation := (others => <>);
+      end;
+
+      --  Return immediately if the client does not support completion
+      --  snippets.
+      if not Snippets_Enabled then
+         return Item;
+      end if;
+
+      --  Check if we are dealing with a subprogram and return a completion
+      --  snippet that lists all the formal parameters if it's the case.
+
+      Subp_Spec_Node := BD.P_Subp_Spec_Or_Null;
+
+      if Subp_Spec_Node.Is_Null then
+         return Item;
+      end if;
+
+      declare
+         Insert_Text : LSP_String := Item.label;
+         All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
+
+         Params      : constant Param_Spec_Array :=
+           (if Node.Kind in Ada_Dotted_Name_Range then
+               All_Params (All_Params'First + 1 .. All_Params'Last)
+            else
+               All_Params);
+         --  Remove the first formal parameter from the list when the dotted
+         --  notation is used.
+
+         Idx         : Positive := 1;
+      begin
+
+         --  Create a completion snippet if the subprogram expects some
+         --  parameters.
+
+         if Params'Length /= 0 then
+            Item.insertTextFormat := Optional_InsertTextFormat'
+              (Is_Set => True,
+               Value  => Snippet);
+
+            Insert_Text := Insert_Text & " (";
+
+            for Param of Params loop
+               for Id of Param.F_Ids loop
+                  declare
+                     Mode : constant String :=
+                       Langkit_Support.Text.To_UTF8 (Param.F_Mode.Text);
+                  begin
+                     Insert_Text := Insert_Text & To_LSP_String
+                       ("${" & GNATCOLL.Utils.Image (Idx, Min_Width => 1) & ":"
+                        & (if Mode /= "" then
+                               Mode & " "
+                           else
+                               "")
+                        & Langkit_Support.Text.To_UTF8 (Param.F_Type_Expr.Text)
+                        & " : "
+                        & Langkit_Support.Text.To_UTF8 (Id.Text)
+                        & "}, ");
+
+                     Idx := Idx + 1;
+                  end;
+               end loop;
+            end loop;
+
+            --  Remove the "}, " substring that has been appended in the last
+            --  loop iteration.
+            Insert_Text := Unbounded_Slice
+              (Insert_Text,
+               1,
+               Length (Insert_Text) - 2);
+
+            --  Insert '$0' (i.e: the final tab stop) at the end.
+            Insert_Text := Insert_Text & ")$0";
+
+            Item.insertText :=
+              (Is_Set => True,
+               Value  => Insert_Text);
+         end if;
+      end;
+
+      return Item;
+   end Compute_Completion_Item;
+
    ------------------------
    -- Get_Completions_At --
    ------------------------
 
    procedure Get_Completions_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Result   : out LSP.Messages.CompletionList)
+     (Self             : Document;
+      Context          : LSP.Ada_Contexts.Context;
+      Position         : LSP.Messages.Position;
+      Snippets_Enabled : Boolean;
+      Result           : out LSP.Messages.CompletionList)
    is
       use Libadalang.Analysis;
       use Libadalang.Common;
@@ -1049,11 +1190,11 @@ package body LSP.Ada_Documents is
       begin
          Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
+
          for BD of Raw_Completions loop
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
                   declare
-                     R      : CompletionItem;
                      Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
                                 Langkit_Support.Text.To_UTF8 (Node.Text);
                   begin
@@ -1070,32 +1211,14 @@ package body LSP.Ada_Documents is
                           ("Calling Get_Documentation on Node = "
                            & Image (BD));
 
-                        R.label := To_LSP_String (DN.P_Relative_Name.Text);
-                        R.kind := (True, To_Completion_Kind
-                                   (Get_Decl_Kind (BD)));
-                        R.detail := (True, Compute_Completion_Detail (BD));
-
-                        --  Property_Errors can occur when calling
-                        --  Get_Documentation on unsupported docstrings, so
-                        --  add an exception handler to catch them and recover.
-
-                        begin
-                           R.documentation :=
-                             (Is_Set => True,
-                              Value  => String_Or_MarkupContent'
-                                (Is_String => True,
-                                 String    => To_LSP_String
-                                   (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
-                                        Encode
-                                      (Libadalang.Doc_Utils.Get_Documentation
-                                           (BD).Doc.To_String))));
-                        exception
-                           when E : Libadalang.Common.Property_Error =>
-                              LSP.Common.Log (Context.Trace, E);
-                              R.documentation := (others => <>);
-                        end;
-
-                        Result.items.Append (R);
+                        Result.items.Append
+                          (Compute_Completion_Item
+                             (Context => Context,
+                              Node    => Node,
+                              BD      => BD,
+                              DN      => DN,
+                              Snippets_Enabled =>
+                                Snippets_Enabled));
                      end if;
                   end;
                end loop;

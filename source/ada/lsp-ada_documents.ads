@@ -95,10 +95,11 @@ package LSP.Ada_Documents is
    --  Get Libadalang Node for given position in the document.
 
    procedure Get_Completions_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Result   : out LSP.Messages.CompletionList);
+     (Self             : Document;
+      Context          : LSP.Ada_Contexts.Context;
+      Position         : LSP.Messages.Position;
+      Snippets_Enabled : Boolean;
+      Result           : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
    procedure Get_Folding_Blocks
