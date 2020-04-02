@@ -36,7 +36,7 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${([^}]+)}|\$URI{([^}]+)}");
+     GNAT.Regpat.Compile ("\${([\W]+)}|\$URI{([^}]+)}");
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;

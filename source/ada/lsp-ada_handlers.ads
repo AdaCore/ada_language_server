@@ -153,6 +153,9 @@ private
       Line_Folding_Only : Boolean := False;
       --  Client capabilities, folding only per lines
 
+      Completion_Snippets_Enabled : Boolean := False;
+      --  True if the client supports completion snippets
+
       ----------------------
       -- Project handling --
       ----------------------

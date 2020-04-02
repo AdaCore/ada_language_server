@@ -597,6 +597,16 @@ package body LSP.Ada_Handlers is
            foldingRange.Value.lineFoldingOnly.Value;
       end if;
 
+      if Value.capabilities.textDocument.completion.completionItem.Is_Set
+        and then Value.capabilities.textDocument.completion.
+          completionItem.Value.snippetSupport.Is_Set
+          and then Value.capabilities.textDocument.completion.
+            completionItem.Value.snippetSupport.Value
+      then
+         --  Client capability to support snippets for completion
+         Self.Completion_Snippets_Enabled := True;
+      end if;
+
       if not LSP.Types.Is_Empty (Value.rootUri) then
          Root := URI_To_File (Value.rootUri);
       else
@@ -2835,7 +2845,11 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
    begin
       Document.Get_Completions_At
-        (Context.all, Value.position, Response.result);
+        (Context          => Context.all,
+         Position         => Value.position,
+         Snippets_Enabled => Self.Completion_Snippets_Enabled,
+         Result           => Response.result);
+
       return Response;
    end On_Completion_Request;
 
