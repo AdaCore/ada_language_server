@@ -235,7 +235,7 @@
                         "label": "A"
                      },
                      {
-                        "insertText": "Do_Nothing (${1:Integer : A})$0",
+                        "insertText": "Do_Nothing (${1:A : Integer})$0",
                         "kind": 3,
                         "documentation": "",
                         "detail": "(subprogram) ",
@@ -379,7 +379,7 @@
                         "label": "A"
                      },
                      {
-                        "insertText": "Add (${1:Integer : A}, ${2:Integer : B})$0",
+                        "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
                         "kind": 3,
                         "documentation": "",
                         "detail": "(subprogram) ",
