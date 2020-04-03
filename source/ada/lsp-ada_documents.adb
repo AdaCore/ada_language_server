@@ -730,7 +730,9 @@ package body LSP.Ada_Documents is
             return LSP.Messages.Number;
 
          when Ada_Enum_Literal_Decl =>
-            return LSP.Messages.Enum;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.Enum);
 
          when Ada_Exception_Decl =>
             return LSP.Messages.String;
