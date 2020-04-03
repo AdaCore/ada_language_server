@@ -1101,10 +1101,10 @@ package body LSP.Ada_Documents is
                         & (if Mode /= "" then
                                Mode & " "
                            else
-                               "")
-                        & Langkit_Support.Text.To_UTF8 (Param.F_Type_Expr.Text)
-                        & " : "
+                             "")
                         & Langkit_Support.Text.To_UTF8 (Id.Text)
+                        & " : "
+                        & Langkit_Support.Text.To_UTF8 (Param.F_Type_Expr.Text)
                         & "}, ");
 
                      Idx := Idx + 1;
