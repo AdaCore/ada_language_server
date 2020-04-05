@@ -60,3 +60,17 @@
    fun:gpr__nmsc__process_naming_scheme__check
 }
 
+# Valgrind limitation: GNAT’s superaligned secondary stack chunk
+# appears to be leaked, but we actually have a pointer to the
+# middle of the allocated memory block.
+{
+   Libadalang_Elaborations
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:gnatcoll__memory__alloc
+   fun:system__secondary_stack__ss_allocate
+   fun:langkit_support__text__to_text
+   fun:libadalang__implementation__c___elabb
+   fun:adalanginit
+}
