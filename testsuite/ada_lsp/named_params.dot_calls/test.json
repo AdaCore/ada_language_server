@@ -1,0 +1,380 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 24348,
+               "rootPath": "/home/leonardo/Development/ancr/src/gnatstudio/ada_language_server/testsuite/ada_lsp/named_params.dot_calls/",
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "completionItemKind": {},
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "codeLens": {},
+                     "selectionRange": {},
+                     "implementation": {},
+                     "formatting": {},
+                     "typeDefinition": {},
+                     "documentHighlight": {},
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "resolveProvider": false,
+                              "triggerCharacters": [
+                                  "."
+                              ]
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "documentSymbolProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {
+                              "commands": [
+                                  "als-named-parameters"
+                              ]
+                          },
+                          "alsCalledByProvider": true,
+                          "alsReferenceKinds": [
+                              "reference",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child"
+                          ]
+                      }
+                  }
+              }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "enableIndexing": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Bar; use Bar;\nwith Ada.Text_IO;\n\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Obj.Do_Nothing (3);\n   Ada.Text_IO.Put_Line (\"Zboob\");\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "command": "als-named-parameters",
+               "arguments": [
+                  {
+                     "where": {
+                        "position": {
+                           "line": 6,
+                           "character": 19
+                        },
+                        "textDocument": {
+                           "uri": "$URI{src/main.adb}"
+                        }
+                     },
+                     "context": "Default"
+                  }
+               ]
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand"
+         },
+         "wait": [
+            {
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "version": 1,
+                              "uri": "$URI{src/main.adb}"
+                           },
+                           "edits": [
+                              {
+                                 "newText": "A => ",
+                                 "range": {
+                                    "start": {
+                                       "line": 6,
+                                       "character": 19
+                                    },
+                                    "end": {
+                                       "line": 6,
+                                       "character": 19
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               },
+               "id": 2,
+               "jsonrpc": "2.0",
+               "method": "workspace/applyEdit"
+            },
+            {
+               "id": 2,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Bar; use Bar;\nwith Ada.Text_IO;\n\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Obj.Do_Nothing (A => 3);\n   Ada.Text_IO.Put_Line (\"Zboob\");\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "result": {
+               "applied": true
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "command": "als-named-parameters",
+               "arguments": [
+                  {
+                     "where": {
+                        "position": {
+                           "line": 7,
+                           "character": 26
+                        },
+                        "textDocument": {
+                           "uri": "$URI{src/main.adb}"
+                        }
+                     },
+                     "context": "Default"
+                  }
+               ]
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand"
+         },
+         "wait": [
+            {
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "version": 1,
+                              "uri": "$URI{src/main.adb}"
+                           },
+                           "edits": [
+                              {
+                                 "newText": "Item => ",
+                                 "range": {
+                                    "start": {
+                                       "line": 7,
+                                       "character": 25
+                                    },
+                                    "end": {
+                                       "line": 7,
+                                       "character": 25
+                                    }
+                                 }
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               },
+               "id": 3,
+               "method": "workspace/applyEdit"
+            },
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Bar; use Bar;\nwith Ada.Text_IO;\n\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Obj.Do_Nothing (A => 3);\n   Ada.Text_IO.Put_Line (Item => \"Zboob\");\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "result": {
+               "applied": true
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

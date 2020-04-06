@@ -176,9 +176,19 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       procedure Append (Params : Libadalang.Analysis.Param_Spec_Array);
       --  Append identifiers from Params to Result
 
+      function Get_Params_Spec_Array
+        (Decl : Libadalang.Analysis.Basic_Decl)
+         return Libadalang.Analysis.Param_Spec_Array;
+      --  Return the Param_Spec_Array associated with the given
+
       Result : LSP.Types.LSP_String_Vector;
 
-      procedure Append (Params : Libadalang.Analysis.Param_Spec_Array) is
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append
+        (Params : Libadalang.Analysis.Param_Spec_Array) is
       begin
          for Param of Params loop
             for Id of Param.F_Ids loop
@@ -187,27 +197,22 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          end loop;
       end Append;
 
-      Expr   : constant Libadalang.Analysis.Ada_Node := Args.Parent;
-      Name   : Libadalang.Analysis.Name;
-      Decl   : Libadalang.Analysis.Basic_Decl;
-   begin
-      case Expr.Kind is
-         when Libadalang.Common.Ada_Call_Expr =>
-            Name := Expr.As_Call_Expr.F_Name;
-         when others =>
-            return LSP.Types.Empty_Vector;
-      end case;
+      ---------------------------
+      -- Get_Params_Spec_Array --
+      ---------------------------
 
-      Decl := Name.P_Referenced_Decl;
-
-      case Decl.Kind is
+      function Get_Params_Spec_Array
+        (Decl : Libadalang.Analysis.Basic_Decl)
+         return Libadalang.Analysis.Param_Spec_Array is
+      begin
+         case Decl.Kind is
 
          when Libadalang.Common.Ada_Base_Subp_Spec =>
             declare
                Params : constant Libadalang.Analysis.Param_Spec_Array :=
                  Decl.As_Base_Subp_Spec.P_Params;
             begin
-               Append (Params);
+               return Params;
             end;
 
          when Libadalang.Common.Ada_Base_Subp_Body =>
@@ -217,22 +222,50 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
                Params : constant Libadalang.Analysis.Param_Spec_Array :=
                  Spec.P_Params;
             begin
-               Append (Params);
+               return Params;
             end;
 
          when Libadalang.Common.Ada_Basic_Subp_Decl =>
             declare
-               Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
+               Spec   : constant Libadalang.Analysis.Base_Subp_Spec :=
                  Decl.As_Basic_Subp_Decl.P_Subp_Decl_Spec;
                Params : constant Libadalang.Analysis.Param_Spec_Array :=
                  Spec.P_Params;
             begin
-               Append (Params);
+               return Params;
             end;
 
          when others =>
-            null;
+            return (1 .. 0 => <>);
+         end case;
+      end Get_Params_Spec_Array;
+
+      Expr        : constant Libadalang.Analysis.Ada_Node := Args.Parent;
+      Name        : Libadalang.Analysis.Name;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Is_Dot_Call : Boolean;
+   begin
+      case Expr.Kind is
+         when Libadalang.Common.Ada_Call_Expr =>
+            Name := Expr.As_Call_Expr.F_Name;
+         when others =>
+            return LSP.Types.Empty_Vector;
       end case;
+
+      Decl := Name.P_Referenced_Decl;
+      Is_Dot_Call := Name.P_Is_Dot_Call;
+
+      --  Don't append the first parameter if we are dealing with a dot call
+      declare
+         Params : constant Libadalang.Analysis.Param_Spec_Array :=
+           Get_Params_Spec_Array (Decl);
+      begin
+         if Is_Dot_Call then
+            Append (Params (Params'First + 1 .. Params'Last));
+         else
+            Append (Params);
+         end if;
+      end;
 
       return Result;
    end Get_Parameters;
