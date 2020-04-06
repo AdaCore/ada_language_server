@@ -39,9 +39,9 @@ package LSP.Common is
       Message : String := "");
    --  Log an exception in the given traces, with an optional message
 
-   function Get_Hover_Text (Node : Ada_Node'Class) return LSP_String;
-   --  Return a pretty printed version of the node's text to be displayed on
-   --  hover requests, removing unnecessary indentation whitespaces if needed
-   --  and attaching extra information in some cases.
+   function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String;
+   --  Return a pretty printed version of the declaration's text to be
+   --  displayed on hover requests, removing unnecessary indentation
+   --  whitespaces if needed and attaching extra information in some cases.
 
 end LSP.Common;

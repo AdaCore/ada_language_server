@@ -231,14 +231,14 @@
                         "additionalTextEdits": [],
                         "kind": 5,
                         "documentation": "",
-                        "detail": "",
+                        "detail": "A : Integer;",
                         "label": "A"
                      },
                      {
                         "insertText": "Do_Nothing (${1:A : Integer})$0",
                         "kind": 3,
                         "documentation": "",
-                        "detail": "(subprogram) ",
+                        "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer) is null",
                         "label": "Do_Nothing",
                         "additionalTextEdits": [],
                         "insertTextFormat": 2
@@ -375,14 +375,14 @@
                         "additionalTextEdits": [],
                         "kind": 6,
                         "documentation": "",
-                        "detail": "(var) Integer",
+                        "detail": "A : Integer := 3;",
                         "label": "A"
                      },
                      {
                         "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
                         "kind": 3,
                         "documentation": "",
-                        "detail": "(subprogram) ",
+                        "detail": "function Add (A, B : Integer) return Integer",
                         "label": "Add",
                         "additionalTextEdits": [],
                         "insertTextFormat": 2
@@ -391,7 +391,7 @@
                         "additionalTextEdits": [],
                         "kind": 9,
                         "documentation": "",
-                        "detail": "(package) ",
+                        "detail": "package ASCII ",
                         "label": "ASCII"
                      }
                   ]
