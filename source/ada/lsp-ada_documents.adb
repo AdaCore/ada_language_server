@@ -965,47 +965,9 @@ package body LSP.Ada_Documents is
    --------------------
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
-   is
-      use Libadalang.Analysis;
-      use Libadalang.Common;
-      use LSP.Messages;
-      use LSP.Types;
-
-      Ret : LSP_String;
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String is
    begin
-      case Get_Decl_Kind (BD) is
-         when A_Function =>
-            Append (Ret, "(subprogram) ");
-
-         when Variable =>
-            case BD.Kind is
-               when Ada_Param_Spec =>
-                  Append (Ret, "(param) ");
-               when others =>
-                  Append (Ret, "(var) ");
-            end case;
-
-            declare
-               TE : constant Type_Expr := BD.As_Basic_Decl.P_Type_Expression;
-            begin
-               if not TE.Is_Null then
-                  Append
-                    (Ret,
-                     To_LSP_String (TE.Text));
-               end if;
-            end;
-         when LSP.Messages.Class =>
-
-            Append (Ret, "(type) ");
-
-         when LSP.Messages.A_Package =>
-            Append (Ret, "(package) ");
-
-         when others => null;
-      end case;
-
-      return Ret;
+      return LSP.Common.Get_Hover_Text (BD);
    end Compute_Completion_Detail;
 
    -----------------------------
