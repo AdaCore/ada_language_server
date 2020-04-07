@@ -165,14 +165,14 @@ package body LSP.Ada_Handlers is
    --  are not configured specifically for this language server might
    --  not pass a .gpr file to didChangeConfiguration: for these IDEs,
    --  we fallback to loading the project the first time an editor is
-   --  open.
+   --  open or a request on non-openned file.
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String);
+      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
    --  This function makes sure that the contexts in Self are properly
    --  initialized and a project is loaded. If they are not initialized,
-   --  initialize them.
+   --  initialize them. Use custom Root directory if provided.
 
    procedure Load_Implicit_Project (Self : access Message_Handler);
    --  Load the implicit project
@@ -226,6 +226,8 @@ package body LSP.Ada_Handlers is
       Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access is
    begin
+      Self.Ensure_Project_Loaded;
+
       if Self.Open_Documents.Contains (URI) then
          return LSP.Ada_Documents.Document_Access
            (Self.Open_Documents.Element (URI));
@@ -436,7 +438,7 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String)
+      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
    is
       GPRs_Found : Natural := 0;
       Files      : File_Array_Access;
@@ -450,7 +452,7 @@ package body LSP.Ada_Handlers is
 
       --  If we never passed through Initialize, this might be empty:
       --  initialize it now
-      if Self.Root = No_File then
+      if Self.Root = No_File and then not LSP.Types.Is_Empty (Root) then
          Self.Root := Create (+To_UTF_8_String (Root));
       end if;
 
@@ -2464,8 +2466,7 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
-      Self.Ensure_Project_Loaded
-        (To_LSP_String (Self.Root.Display_Full_Name));
+      Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
    ------------------
