@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -163,7 +163,7 @@ package body Spawn.Processes is
            Error      => Error'Access);
 
       In_Callback : constant Boolean :=
-        Pipe.Event not in Glib.Main.No_Source_Id;
+        Pipe.Event /= Glib.Main.No_Source_Id;
    begin
       case Status is
          when Glib.IOChannel.G_Io_Status_Eof =>
@@ -176,7 +176,7 @@ package body Spawn.Processes is
 
          when Glib.IOChannel.G_Io_Status_Again =>
             --  No data to read, so start to watching again
-            pragma Assert (Count in 0);
+            pragma Assert (Count = 0);
             Last := Data'First - 1;
 
             if In_Callback then
@@ -252,7 +252,7 @@ package body Spawn.Processes is
          Standard_Input    => Self.pipe (Stdin).FD'Access,
          Standard_Output   => Self.pipe (Stdout).FD'Access,
          Standard_Error    => Self.pipe (Stderr).FD'Access,
-         Error             => Error'Access) in 0
+         Error             => Error'Access) = 0
       then
          Self.Listener.Error_Occurred (Integer (Glib.Error.Get_Code (Error)));
          return;
@@ -401,7 +401,7 @@ package body Spawn.Processes is
          when Glib.IOChannel.G_Io_In =>
             if Process.pipe (Stdout).Channel = source then
                pragma Assert
-                 (Process.pipe (Stdout).Event not in Glib.Main.No_Source_Id);
+                 (Process.pipe (Stdout).Event /= Glib.Main.No_Source_Id);
 
                Process.pipe (Stdout).Watch := False;
                Process.Listener.Standard_Output_Available;
@@ -414,7 +414,7 @@ package body Spawn.Processes is
                end if;
             else
                pragma Assert
-                 (Process.pipe (Stderr).Event not in Glib.Main.No_Source_Id);
+                 (Process.pipe (Stderr).Event /= Glib.Main.No_Source_Id);
 
                Process.pipe (Stderr).Watch := False;
                Process.Listener.Standard_Error_Available;
@@ -428,7 +428,7 @@ package body Spawn.Processes is
             end if;
          when Glib.IOChannel.G_Io_Out =>
             pragma Assert
-              (Process.pipe (Stdin).Event not in Glib.Main.No_Source_Id);
+              (Process.pipe (Stdin).Event /= Glib.Main.No_Source_Id);
 
             Process.pipe (Stdin).Watch := False;
             Process.Listener.Standard_Input_Available;
@@ -590,7 +590,7 @@ package body Spawn.Processes is
            Error         => Error'Access);
 
       In_Callback : constant Boolean :=
-        Pipe.Event not in Glib.Main.No_Source_Id;
+        Pipe.Event /= Glib.Main.No_Source_Id;
    begin
       case Status is
          when Glib.IOChannel.G_Io_Status_Normal =>
@@ -598,7 +598,7 @@ package body Spawn.Processes is
 
          when Glib.IOChannel.G_Io_Status_Again =>
             --  No space in the buffer to write, so start watching again
-            pragma Assert (Count in 0);
+            pragma Assert (Count = 0);
             Last := Data'First - 1;
 
             if In_Callback then

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -131,6 +131,7 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
+      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
       Count : constant Interfaces.C.size_t :=
         Posix.read (Self.pipe (Stderr), Data, Data'Length);
@@ -159,6 +160,7 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
+      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
       Count : constant Interfaces.C.size_t :=
         Posix.read (Self.pipe (Stdout), Data, Data'Length);
@@ -272,6 +274,7 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
+      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
       Count : constant Interfaces.C.size_t :=
         Posix.write (Self.pipe (Stdin), Data, Data'Length);
