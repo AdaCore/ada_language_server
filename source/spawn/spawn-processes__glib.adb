@@ -151,6 +151,8 @@ package body Spawn.Processes is
       Kind : Standard_Pipe)
    is
       use type Ada.Streams.Stream_Element_Offset;
+      use Glib;
+      use Glib.Main;
 
       Pipe   : Internal.Pipe_Record renames Self.pipe (Kind);
       Error  : aliased Glib.Error.GError;
@@ -202,6 +204,7 @@ package body Spawn.Processes is
 
    procedure Do_Start_Process (Self : aliased in out Process'Class) is
       use Ada.Strings.Unbounded;
+      use Glib;
       use type Interfaces.C.size_t;
       use type Glib.IOChannel.GIOStatus;
 
@@ -394,6 +397,8 @@ package body Spawn.Processes is
       data      : access Internal.Process_Reference) return Glib.Gboolean
    is
       use type Glib.IOChannel.Giochannel;
+      use Glib.Main;
+
       Process : constant Process_Access := Process_Access (data.Self);
       Watch   : Glib.Gboolean := 0;
    begin
@@ -577,7 +582,10 @@ package body Spawn.Processes is
       Data : Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset)
    is
+      use Glib;
+      use Glib.Main;
       use type Ada.Streams.Stream_Element_Offset;
+
       Pipe   : Internal.Pipe_Record renames Self.pipe (Stdin);
       Error  : aliased Glib.Error.GError;
       Count  : aliased Glib.Gsize;
