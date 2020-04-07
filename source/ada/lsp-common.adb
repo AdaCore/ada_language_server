@@ -48,6 +48,10 @@ package body LSP.Common is
                    & ASCII.LF & Symbolic_Traceback (E));
    end Log;
 
+   -----------------------------
+   -- Get_Hover_Text_For_Node --
+   -----------------------------
+
    function Get_Hover_Text_For_Node (Node : Ada_Node'Class) return LSP_String
    is
       Text   : constant String := Langkit_Support.Text.To_UTF8

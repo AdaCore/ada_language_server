@@ -965,9 +965,20 @@ package body LSP.Ada_Documents is
    --------------------
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String is
+     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+   is
+      use Libadalang.Analysis;
+      use Libadalang.Common;
    begin
-      return LSP.Common.Get_Hover_Text (BD);
+
+      --  If the basic declaration is an enum literal, display the whole
+      --  enumeration type declaration instead.
+      if BD.Kind in Ada_Enum_Literal_Decl then
+         return LSP.Common.Get_Hover_Text
+           (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
+      else
+         return LSP.Common.Get_Hover_Text (BD);
+      end if;
    end Compute_Completion_Detail;
 
    -----------------------------
