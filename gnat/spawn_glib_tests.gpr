@@ -21,13 +21,17 @@ project Spawn_Glib_Tests is
 
    for Source_Dirs use ("../testsuite/spawn");
    for Object_Dir use "../.obj/spawn_test";
-   for Main use ("spawn_glib_test.adb");
+   for Main use ("spawn_glib_test.adb", "spawn_glib_args_test.adb");
 
    package Compiler renames Spawn_Glib.Compiler;
 
    package Binder is
       for Switches ("ada") use ("-E");
    end Binder;
+
+   package Builder is
+      for Executable ("spawn_glib_args_test.adb") use "spawn_glib_args_test.exe";
+   end Builder;
 
 end Spawn_Glib_Tests;
 

@@ -15,7 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
+with Ada.Strings.Wide_Fixed;
 with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Conversion;
 with Interfaces.C;
@@ -43,9 +45,95 @@ package body Spawn.Processes.Windows is
       lpOverlapped              : access Internal.Context)
         with Convention => Stdcall;
 
+   procedure Append_Escaped_String
+     (Command_Line : in out Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+      Argument     : Ada.Strings.Unbounded.Unbounded_String);
+   --  Append the given argument to a command line such that CommandLineToArgvW
+   --  return the argument string unchanged. Arguments in a command line should
+   --  be separated by spaces; this subprogram doesn't add these spaces.
+
    Callback : constant array (Stdout .. Stderr) of Read_Write_Ex.Callback :=
      (Standard_Output_Callback'Access,
       Standard_Error_Callback'Access);
+
+   ---------------------------
+   -- Append_Escaped_String --
+   ---------------------------
+
+   procedure Append_Escaped_String
+     (Command_Line : in out Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+      Argument     : Ada.Strings.Unbounded.Unbounded_String)
+   is
+      --  Implementation of the subprogam based on Microsoft's blog post
+      --  "Everyone quotes command line arguments the wrong way".
+
+      use Ada.Strings.Wide_Unbounded;
+
+      Quotation_Check_Pattern : constant Wide_String :=
+        Ada.Characters.Wide_Latin_1.Space
+        & Ada.Characters.Wide_Latin_1.Quotation
+        & Ada.Characters.Wide_Latin_1.LF
+        & Ada.Characters.Wide_Latin_1.HT
+        & Ada.Characters.Wide_Latin_1.VT;
+
+      S : constant Wide_String :=
+        Ada.Strings.UTF_Encoding.Wide_Strings.Decode
+          (Ada.Strings.Unbounded.To_String (Argument));
+
+      J : Natural;  --  Iterator
+      N : Natural;  --  Number of sequencial backslashes.
+
+   begin
+      if S'Length /= 0
+        and then Ada.Strings.Wide_Fixed.Index (S, Quotation_Check_Pattern) /= 0
+      then
+         --  Don't quote unless we actually need to do so - hopefully avoid
+         --  problems if programs won't parse quotes properly.
+
+         Append (Command_Line, S);
+
+      else
+         Append (Command_Line, '"');
+         --  Opening double quotation mark
+
+         J := S'First;
+
+         while J <= S'Last loop
+            N := 0;
+
+            while J <= S'Last and S (J) = '\' loop
+               J := J + 1;
+               N := N + 1;
+            end loop;
+
+            if J > S'Last then
+               --  Escape all backslashed, but let the terminating double
+               --  quotation mark we add below be interpreted as a
+               --  metacharacter.
+
+               Append (Command_Line, (N * 2) * '\');
+
+            elsif S (J) = '"' then
+               --  Escape all backslashes and the following double
+               --  quotation mark.
+
+               Append (Command_Line, (N * 2 + 1) * '\');
+               Append (Command_Line, '"');
+
+            else
+               --  Backslashes aren't special here.
+
+               Append (Command_Line, N * '\');
+               Append (Command_Line, S (J));
+            end if;
+
+            J := J + 1;
+         end loop;
+
+         Append (Command_Line, '"');
+         --  Closing double quotation mark
+      end if;
+   end Append_Escaped_String;
 
    -------------------
    -- Do_Close_Pipe --
@@ -124,7 +212,6 @@ package body Spawn.Processes.Windows is
    is
       function Make_Command_Line return Interfaces.C.wchar_array;
       function Work_Directory return String;
-      function Escape (Text : Wide_String) return Wide_String;
       function Is_Error (Value : Windows_API.BOOL) return Boolean;
       procedure Request_Read (Kind : Standard_Pipe);
 
@@ -233,15 +320,6 @@ package body Spawn.Processes.Windows is
          return Ok;
       end Create_Pipes;
 
-      ------------
-      -- Escape --
-      ------------
-
-      function Escape (Text : Wide_String) return Wide_String is
-      begin
-         return Text;
-      end Escape;
-
       --------------
       -- If_Error --
       --------------
@@ -262,18 +340,14 @@ package body Spawn.Processes.Windows is
 
       function Make_Command_Line return Interfaces.C.wchar_array is
          Result : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+
       begin
-         Ada.Strings.Wide_Unbounded.Append
-           (Result,
-            Ada.Strings.UTF_Encoding.Wide_Strings.Decode
-              (Ada.Strings.Unbounded.To_String (Self.Program)));
+         Append_Escaped_String (Result, Self.Program);
 
          for Arg of Self.Arguments loop
             Ada.Strings.Wide_Unbounded.Append (Result, ' ');
-
-            Ada.Strings.Wide_Unbounded.Append
-              (Result,
-               Escape (Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Arg)));
+            Append_Escaped_String
+              (Result, Ada.Strings.Unbounded.To_Unbounded_String (Arg));
          end loop;
 
          return Interfaces.C.To_C
