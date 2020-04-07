@@ -37,6 +37,9 @@ with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
+with Magic.Stream_Element_Buffers;
+with Magic.Text_Streams.Memory;
+
 package body LSP.Servers is
 
    New_Line : constant String :=
@@ -65,10 +68,6 @@ package body LSP.Servers is
    procedure Append
      (Vector : in out Ada.Strings.Unbounded.Unbounded_String;
       Buffer : Ada.Streams.Stream_Element_Array);
-
-   function To_Unbounded_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream)
-      return Ada.Strings.Unbounded.Unbounded_String;
 
    function To_Stream_Element_Array
      (Vector : Ada.Strings.Unbounded.Unbounded_String)
@@ -827,22 +826,6 @@ package body LSP.Servers is
       return Buffer;
    end To_Stream_Element_Array;
 
-   -------------------------
-   -- To_Unbounded_String --
-   -------------------------
-
-   function To_Unbounded_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream)
-      return Ada.Strings.Unbounded.Unbounded_String
-   is
-      Document    : constant GNATCOLL.JSON.JSON_Array :=
-        Stream.Get_JSON_Document;
-      JSON_Object : constant GNATCOLL.JSON.JSON_Value :=
-        GNATCOLL.JSON.Get (Document, 1);
-   begin
-      return GNATCOLL.JSON.Write (JSON_Object);
-   end To_Unbounded_String;
-
    ------------------------
    -- Input_Queue_Length --
    ------------------------
@@ -920,26 +903,27 @@ package body LSP.Servers is
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : Ada.Strings.Unbounded.Unbounded_String);
+         Vector : Magic.Stream_Element_Buffers.Stream_Element_Buffer);
       --  Format Vector into a protocol string including the header,
       --  and send it to Stream.
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : Ada.Strings.Unbounded.Unbounded_String)
+         Vector : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
       is
-         Image  : constant String := Positive'Image
-           (Ada.Strings.Unbounded.Length (Vector));
+         Image  : constant String := Ada.Streams.Stream_Element_Count'Image
+           (Vector.Length);
          Header : constant String := "Content-Length:" & Image
            & New_Line & New_Line;
       begin
          String'Write (Stream, Header);
-         String'Write (Stream, Ada.Strings.Unbounded.To_String (Vector));
+         Magic.Stream_Element_Buffers.Stream_Element_Buffer'Write
+           (Stream, Vector);
 
-         if Server.Out_Trace.Is_Active then
+--         if Server.Out_Trace.Is_Active then
             --  Avoid expensive convertion to string when trace is off
-            Server.Out_Trace.Trace (To_String (Vector));
-         end if;
+--            Server.Out_Trace.Trace (To_String (Vector));
+--         end if;
       end Write_JSON_RPC;
 
    begin
@@ -953,22 +937,25 @@ package body LSP.Servers is
 
             declare
                Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True);
-               Output     : Ada.Strings.Unbounded.Unbounded_String;
+               Output     : aliased Magic.Text_Streams.Memory
+                 .Memory_UTF8_Output_Stream;
             begin
+               Out_Stream.Set_Stream (Output'Unchecked_Access);
+
                LSP.Messages.Message'Class'Write
                  (Out_Stream'Access, Message.all);
                Free (Message);
+               Out_Stream.End_Document;
 
-               Output := To_Unbounded_String (Out_Stream);
                --  Send the output to the stream
-               Write_JSON_RPC (Stream, Output);
+               Write_JSON_RPC (Stream, Output.Buffer);
             exception
                when E : others =>
                   --  Catch-all case: make sure no exception in output writing
                   --  can cause an exit of the task loop.
                   Server.Server_Trace.Trace
                     ("Exception when writing output:" & ASCII.LF
-                     & To_String (Output) & ASCII.LF
+--                     & To_String (Output) & ASCII.LF
                      & Exception_Name (E) & " - " &  Exception_Message (E));
                   Server.Server_Trace.Trace (Symbolic_Traceback (E));
 

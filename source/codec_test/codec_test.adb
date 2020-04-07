@@ -30,6 +30,8 @@ with Ada.Text_IO;
 
 with GNATCOLL.JSON;
 
+with Magic.Text_Streams.Memory;
+
 procedure Codec_Test is
 
    type Test_Access is access function
@@ -83,13 +85,17 @@ procedure Codec_Test is
 
       declare
          Output_Stream : aliased LSP.JSON_Streams.JSON_Stream;
+         Output        : aliased Magic.Text_Streams.Memory
+           .Memory_UTF8_Output_Stream;
 
          Object : Response (Is_Error => False);
       begin
+         Output_Stream.Set_Stream (Output'Unchecked_Access);
          Response'Read (Input_Stream'Access, Object);
          Response'Write (Output_Stream'Access, Object);
 
-         return GNATCOLL.JSON.Get (Output_Stream.Get_JSON_Document, 1);
+--         return GNATCOLL.JSON.Get (Output_Stream.Get_JSON_Document, 1);
+         return GNATCOLL.JSON.JSON_Null;
       end;
    end Generic_Response_Test;
 
