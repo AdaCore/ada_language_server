@@ -174,7 +174,7 @@ package body Spawn.Processes.Monitor is
                Result : constant Interfaces.C.int :=
                  Posix.pipe2 (Value, Pipe_Flags);
             begin
-               if Result not in 0 then
+               if Result /= 0 then
                   raise Program_Error with GNAT.OS_Lib.Errno_Message;
                end if;
 
@@ -258,7 +258,7 @@ package body Spawn.Processes.Monitor is
            (fds.all, Interfaces.C.unsigned_long (Last), Timeout);
       begin
          --  Check if ve have wake up call
-         if fds (1).revents not in 0 then
+         if fds (1).revents /= 0 then
             declare
                Data   : Ada.Streams.Stream_Element_Array (1 .. 16);
                Ignore : Interfaces.C.size_t;
@@ -313,12 +313,13 @@ package body Spawn.Processes.Monitor is
 
       procedure Wake_Up is
       begin
-         if wake not in 0 then
+         if wake /= 0 then
             declare
+               use type Interfaces.C.size_t;
                Result : constant Interfaces.C.size_t :=
                  Posix.write (wake, (1 => 0), 1);
             begin
-               if Result not in 1 then
+               if Result /= 1 then
                   raise Program_Error with GNAT.OS_Lib.Errno_Message;
                end if;
             end;
