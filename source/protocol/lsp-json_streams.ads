@@ -19,15 +19,19 @@
 --
 
 private with Ada.Containers.Vectors;
+private with Magic.JSON.Streams.Writers;
+private with Magic.Strings;
+
 with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
 
 with GNATCOLL.JSON;
+with Magic.Text_Streams;
 
 package LSP.JSON_Streams is
 
    type JSON_Stream (Is_Server_Side : Boolean := False) is
-     new Ada.Streams.Root_Stream_Type with private;
+     limited new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
    --  To support JSON serialization user provides Read/Write streaming
@@ -71,10 +75,14 @@ package LSP.JSON_Streams is
      Key  : Wide_String);
    --  The same but with Wide_String type
 
-   function Get_JSON_Document
-    (Self : not null access JSON_Stream'Class)
-       return GNATCOLL.JSON.JSON_Array;
-   --  Return resulting JSON document after writting to the JSON stream
+   procedure Set_Stream
+     (Self   : in out JSON_Stream'Class;
+      Stream : not null Magic.Text_Streams.Output_Text_Stream_Access);
+   --  Assign output text stream to retrieve resulting JSON document after
+   --  writting to the JSON stream
+
+   procedure End_Document (Self : in out JSON_Stream'Class);
+   --  Complete writting to the JSON stream
 
    procedure Set_JSON_Document
     (Self : not null access JSON_Stream'Class;
@@ -108,12 +116,46 @@ private
 
    package State_Vectors is new Ada.Containers.Vectors (Positive, State);
 
-   type JSON_Stream (Is_Server_Side : Boolean := False) is
-     new Ada.Streams.Root_Stream_Type with
-   record
-      Writable : Boolean := True;  --  True means stream to write
+   type Read_Stream is record
       Current  : State;
       Stack    : State_Vectors.Vector;
+   end record;
+
+   procedure Start_Object (Self : in out Read_Stream);
+   --  Start new JSON object during read of some compound type
+
+   procedure End_Object (Self : in out Read_Stream);
+   --  End JSON object during read of some compound type
+
+   procedure Start_Array (Self : in out Read_Stream);
+   --  Start new JSON array during read of some compound type
+
+   procedure End_Array (Self : in out Read_Stream);
+   --  End JSON array during read of some compound type
+
+   type Write_Stream is limited record
+      Writer : Magic.JSON.Streams.Writers.JSON_Simple_Writer;
+      Key    : Magic.Strings.Magic_String;
+   end record;
+
+   procedure Start_Object (Self : in out Write_Stream);
+   --  Start new JSON object during write of some compound type
+
+   procedure End_Object (Self : in out Write_Stream);
+   --  End JSON object during write of some compound type
+
+   procedure Start_Array (Self : in out Write_Stream);
+   --  Start new JSON array during write of some compound type
+
+   procedure End_Array (Self : in out Write_Stream);
+   --  End JSON array during write of some compound type
+
+   type JSON_Stream (Is_Server_Side : Boolean := False) is
+     limited new Ada.Streams.Root_Stream_Type with
+   record
+      Writable : Boolean := True;  --  True means stream to write
+      R : Read_Stream;
+      W : Write_Stream;
    end record;
 
    overriding procedure Read
