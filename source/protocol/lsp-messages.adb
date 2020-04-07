@@ -15,11 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 
-with GNATCOLL.JSON;
+with GNATCOLL.JSON;    use GNATCOLL.JSON;
 with LSP.JSON_Streams;
 
 package body LSP.Messages is
@@ -2207,8 +2208,6 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Provider_Options)
    is
-      use type GNATCOLL.JSON.JSON_Value_Type;
-
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 

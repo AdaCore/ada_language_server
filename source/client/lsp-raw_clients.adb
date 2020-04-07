@@ -16,11 +16,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Streams;
+with Ada.Streams;            use Ada.Streams;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 
 with GNAT.OS_Lib;
+
+with Spawn.Processes; use Spawn.Processes;
 
 package body LSP.Raw_Clients is
 

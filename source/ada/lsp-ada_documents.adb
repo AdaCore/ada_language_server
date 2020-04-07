@@ -23,6 +23,7 @@ with GNATCOLL.Utils;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
+with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
@@ -285,8 +286,6 @@ package body LSP.Ada_Documents is
       begin
          if Node.Kind in Libadalang.Common.Ada_Basic_Decl then
             declare
-               use type Libadalang.Analysis.Defining_Name;
-
                Decl : constant Libadalang.Analysis.Basic_Decl :=
                  Node.As_Basic_Decl;
 
@@ -404,7 +403,6 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
    is
-      use Libadalang.Analysis;
       use Langkit_Support.Slocs;
 
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
@@ -430,7 +428,6 @@ package body LSP.Ada_Documents is
       Result     : out LSP.Messages.FoldingRange_Vector)
    is
       use Libadalang.Common;
-      use Libadalang.Analysis;
 
       Location     : LSP.Messages.Location;
       foldingRange : LSP.Messages.FoldingRange;
@@ -759,7 +756,6 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
    is
       use Ada.Strings.Wide_Wide_Unbounded;
-      use Libadalang.Analysis;
       use Libadalang.Common;
 
       function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
@@ -967,7 +963,6 @@ package body LSP.Ada_Documents is
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
    is
-      use Libadalang.Analysis;
       use Libadalang.Common;
    begin
 
@@ -993,7 +988,6 @@ package body LSP.Ada_Documents is
       Snippets_Enabled : Boolean)
       return LSP.Messages.CompletionItem
    is
-      use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Messages;
       use LSP.Types;
@@ -1117,7 +1111,6 @@ package body LSP.Ada_Documents is
       Snippets_Enabled : Boolean;
       Result           : out LSP.Messages.CompletionList)
    is
-      use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Messages;
       use LSP.Types;

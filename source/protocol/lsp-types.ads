@@ -21,7 +21,7 @@ with Ada.Containers.Vectors;
 with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
-with GNATCOLL.JSON;
+with GNATCOLL.JSON;        use GNATCOLL.JSON;
 with LSP.Generic_Optional;
 
 limited with LSP.JSON_Streams;
