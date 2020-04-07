@@ -97,8 +97,6 @@ package body LSP.Types is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP_Boolean_Or_String)
    is
-      use type GNATCOLL.JSON.JSON_Value_Type;
-
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
       Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;

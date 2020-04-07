@@ -30,7 +30,8 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
-with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
+with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
@@ -44,7 +45,7 @@ with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
-with Libadalang.Common;
+with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 
 with URIs;
@@ -853,7 +854,7 @@ package body LSP.Ada_Handlers is
 
       Found : Boolean := False;
    begin
-      if Document in null then
+      if Document = null then
          return Response;
       end if;
 
@@ -1487,8 +1488,6 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response
    is
-      use type LSP.Ada_Documents.Document_Access;
-
       Value : LSP.Messages.FoldingRangeParams renames
         Request.params;
 
@@ -1574,7 +1573,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Hover_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
@@ -1674,7 +1672,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Value      : LSP.Messages.ReferenceParams renames Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Response
@@ -2085,8 +2082,6 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response
    is
-      use type LSP.Ada_Documents.Document_Access;
-
       --  The list of symbols for one document shouldn't depend
       --  on the project: we can just choose the best context for this.
       Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
@@ -2166,8 +2161,6 @@ package body LSP.Ada_Handlers is
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri)
          is
-            use Libadalang.Common;
-
             Token     : Token_Reference := First_Token (Node.Unit);
             Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String

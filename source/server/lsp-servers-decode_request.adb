@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Tags; use Ada.Tags;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
