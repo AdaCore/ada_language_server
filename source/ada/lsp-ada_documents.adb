@@ -1189,18 +1189,20 @@ package body LSP.Ada_Documents is
          & Image (Node));
 
       declare
-         Raw_Completions : constant Basic_Decl_Array :=
+         Raw_Completions : constant Completion_Item_Array :=
            Node.P_Complete;
+         BD : Basic_Decl;
       begin
          Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
 
-         for BD of Raw_Completions loop
+         for CI of Raw_Completions loop
+            BD := Decl (CI).As_Basic_Decl;
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
                   declare
                      Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                                Langkit_Support.Text.To_UTF8 (Node.Text);
+                       Langkit_Support.Text.To_UTF8 (Node.Text);
                   begin
 
                      --  If we are not completing a dotted name, filter the

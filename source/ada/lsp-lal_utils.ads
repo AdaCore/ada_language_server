@@ -24,6 +24,7 @@ with GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with LSP.Ada_Contexts;
+with LSP.Common;       use LSP.Common;
 with LSP.Messages;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
