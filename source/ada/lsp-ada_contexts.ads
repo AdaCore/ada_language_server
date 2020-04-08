@@ -18,6 +18,7 @@
 --  This package provides a context of Ada Language server.
 
 with Ada.Containers.Ordered_Sets;
+
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -25,8 +26,9 @@ with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
-with LSP.Messages;
 
+with LSP.Common; use LSP.Common;
+with LSP.Messages;
 with LSP.Ada_Documents;
 with LSP.Types;
 
@@ -86,7 +88,7 @@ package LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array;
+      return Base_Id_Array;
    --  Finds all references to a given defining name in all units of the
    --  context.
    --  Imprecise_Results is set to True if we don't know whether the results
@@ -119,7 +121,7 @@ package LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array;
+      return Base_Id_Array;
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.
 
@@ -127,7 +129,7 @@ package LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array;
+      return Base_Id_Array;
    --  Get all the references to a given defining name in all units for
    --  renaming purposes: for instance, when called on a tagged type primitive
    --  definition, references to the base subprograms it inherits and to the

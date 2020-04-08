@@ -18,7 +18,6 @@
 with Ada.Wide_Wide_Characters.Handling;
 with Ada.Strings.Wide_Wide_Fixed;
 
-with LSP.Common;        use LSP.Common;
 with LSP.Types;         use LSP.Types;
 
 with Libadalang.Common; use Libadalang.Common;

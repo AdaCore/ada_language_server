@@ -44,4 +44,7 @@ package LSP.Common is
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.
 
+   type Base_Id_Array is array (Positive range <>) of Base_Id;
+   --  Helper type: array of base ids. Used in cross references.
+
 end LSP.Common;
