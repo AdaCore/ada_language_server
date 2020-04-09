@@ -66,6 +66,19 @@ package body LSP.Raw_Clients is
       return Self.Server.Status in Spawn.Processes.Running;
    end Is_Server_Running;
 
+   -------------------------------
+   -- On_Standard_Error_Message --
+   -------------------------------
+
+   procedure On_Standard_Error_Message
+     (Self : in out Raw_Client;
+      Text : String)
+   is
+      pragma Unreferenced (Self);
+   begin
+      Ada.Text_IO.Put (Text);
+   end On_Standard_Error_Message;
+
    ------------------
    -- Send_Message --
    ------------------
@@ -137,6 +150,7 @@ package body LSP.Raw_Clients is
    ------------------------------
 
    overriding procedure Standard_Error_Available (Self : in out Listener) is
+      Client : Raw_Clients.Raw_Client'Class renames Self.Client.all;
    begin
       loop
          declare
@@ -146,7 +160,7 @@ package body LSP.Raw_Clients is
          begin
             Self.Client.Server.Read_Standard_Error (Raw, Last);
             exit when Last in 0;
-            Ada.Text_IO.Put (Text (1 .. Natural (Last)));
+            Client.On_Standard_Error_Message (Text (1 .. Natural (Last)));
          end;
       end loop;
    end Standard_Error_Available;

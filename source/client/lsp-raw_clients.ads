@@ -31,6 +31,11 @@ package LSP.Raw_Clients is
       Error : String) is null;
    --  Callback to be called on LSP server termination.
 
+   procedure On_Standard_Error_Message
+     (Self : in out Raw_Client;
+      Text : String);
+   --  Callback to be called when stderror has data.
+
    procedure On_Exception
      (Self       : in out Raw_Client;
       Occurrence : Ada.Exceptions.Exception_Occurrence) is null;
