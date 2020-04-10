@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------------
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 
-with Interfaces;
-
 with Magic.Strings.Conversions;
+with LSP.Types;
 
 package body LSP.JSON_Streams is
 
@@ -500,5 +499,66 @@ package body LSP.JSON_Streams is
    begin
       raise Program_Error;
    end Write;
+
+   -------------------
+   -- Write_Boolean --
+   -------------------
+
+   procedure Write_Boolean
+    (Self : in out JSON_Stream'Class;
+     Item : Boolean) is
+   begin
+      Write_Key (Self.W);
+      Self.W.Writer.Boolean_Value (Item);
+   end Write_Boolean;
+
+   -------------------
+   -- Write_Integer --
+   -------------------
+
+   procedure Write_Integer
+    (Self : in out JSON_Stream'Class;
+     Item : Interfaces.Integer_64) is
+   begin
+      Write_Key (Self.W);
+      Self.W.Writer.Integer_Value (Item);
+   end Write_Integer;
+
+   ----------------
+   -- Write_Null --
+   ----------------
+
+   procedure Write_Null (Self : in out JSON_Stream'Class) is
+   begin
+      Write_Key (Self.W);
+      Self.W.Writer.Null_Value;
+   end Write_Null;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
+     Item : String) is
+   begin
+      Write_Key (Self.W);
+      Self.W.Writer.String_Value
+        (Magic.Strings.Conversions.To_Magic_String (Item));
+   end Write_String;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
+     Item : LSP.Types.LSP_String) is
+   begin
+      Write_Key (Self.W);
+      Self.W.Writer.String_Value
+        (Magic.Strings.Conversions.To_Magic_String
+           (LSP.Types.To_UTF_8_String (Item)));
+   end Write_String;
 
 end LSP.JSON_Streams;

@@ -19,6 +19,7 @@ with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Interfaces;
 
 with LSP.JSON_Streams;
 
@@ -447,7 +448,7 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V)));
+      JS.Write_String (V);  --  To_UTF_8_Unbounded_String
    end Write;
 
    ---------------
@@ -487,7 +488,7 @@ package body LSP.Types is
      Item   : LSP.Types.LSP_Number) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Write (Stream'Unchecked_Access, Item);
+      Stream.Write_Integer (Interfaces.Integer_64 (Item));
    end Write_Number;
 
    ----------------------------
@@ -502,7 +503,7 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_Set then
-         JS.Write (GNATCOLL.JSON.Create (V.Value));
+         JS.Write_Boolean (V.Value);
       end if;
    end Write_Optional_Boolean;
 
@@ -545,7 +546,7 @@ package body LSP.Types is
      Item   : LSP.Types.LSP_String) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (Item)));
+      Stream.Write_String (Item);
    end Write_String;
 
    --------------------------------
@@ -613,9 +614,9 @@ package body LSP.Types is
    begin
       case V.Is_Boolean is
          when True =>
-            JS.Write (GNATCOLL.JSON.Create (V.Boolean));
+            JS.Write_Boolean (V.Boolean);
          when False =>
-            JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V.String)));
+            JS.Write_String (V.String);
       end case;
    end Write_LSP_Boolean_Or_String;
 

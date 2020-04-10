@@ -24,11 +24,16 @@ private with Magic.Strings;
 
 with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
+with Interfaces;
 
 with GNATCOLL.JSON;
+pragma Elaborate_All (GNATCOLL.JSON);
 with Magic.Text_Streams;
 
+limited with LSP.Types;
+
 package LSP.JSON_Streams is
+--   pragma Elaborate_Body;
 
    type JSON_Stream (Is_Server_Side : Boolean := False) is
      limited new Ada.Streams.Root_Stream_Type with private;
@@ -98,6 +103,29 @@ package LSP.JSON_Streams is
     (Self : in out JSON_Stream'Class;
      Item : GNATCOLL.JSON.JSON_Value);
    --  Writes value into the stream and updates stream's position.
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
+     Item : String);
+   --  The same as Write, but optimized for strings.
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
+     Item : LSP.Types.LSP_String);
+   --  The same as Write, but optimized for strings.
+
+   procedure Write_Integer
+    (Self : in out JSON_Stream'Class;
+     Item : Interfaces.Integer_64);
+   --  The same as Write, but optimized for integers.
+
+   procedure Write_Boolean
+    (Self : in out JSON_Stream'Class;
+     Item : Boolean);
+   --  The same as Write, but optimized for booleans.
+
+   procedure Write_Null (Self : in out JSON_Stream'Class);
+   --  The same as Write, but for null value.
 
 private
    type State_Kinds is (Array_State, Object_State);
