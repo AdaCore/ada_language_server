@@ -16,18 +16,20 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Interfaces;
 
 with GNATCOLL.JSON;
 
 with LSP.JSON_Streams;
 
 package body LSP.Errors is
+   use type Interfaces.Integer_64;
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   Error_Map : constant array (ErrorCodes) of Long_Integer
+   Error_Map : constant array (ErrorCodes) of Interfaces.Integer_64
      :=
      (ParseError           => -32700,
       InvalidRequest       => -32600,
@@ -49,13 +51,13 @@ package body LSP.Errors is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ResponseError)
    is
-      Code : Long_Integer;
+      Code : Interfaces.Integer_64;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
       JS.Key ("code");
-      Code := JS.Read.Get;
+      Code := Interfaces.Integer_64 (Integer'(JS.Read.Get));
 
       for J in Error_Map'Range loop
          if Error_Map (J) = Code then
@@ -84,7 +86,7 @@ package body LSP.Errors is
    begin
       JS.Start_Object;
       JS.Key ("code");
-      JS.Write (GNATCOLL.JSON.Create (Error_Map (V.code)));
+      JS.Write_Integer (Error_Map (V.code));
       Write_String (JS, +"message", V.message);
 
       if not V.data.Is_Empty then
