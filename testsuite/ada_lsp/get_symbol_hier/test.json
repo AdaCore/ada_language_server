@@ -136,6 +136,35 @@
                              "children": []
                            },
                            {
+                            "name": "Variable",
+                            "detail": "",
+                            "kind": 13,
+                            "range": {
+                              "start": {
+                                "line": 2,
+                                "character": 3
+                              },
+                              "end": {
+                                "line": 2,
+                                "character": 19
+                              }
+                            },
+                            "selectionRange": {
+                              "start": {
+                                "line": 2,
+                                "character": 3
+                              },
+                              "end": {
+                                "line": 2,
+                                "character": 11
+                              }
+                            },
+                            "alsIsDeclaration": false,
+                            "alsVisibility": 1,
+                            "children": [
+                            ]
+                           },
+                           {
                              "name": "Nested_Package",
                              "detail": "",
                              "kind": 4,

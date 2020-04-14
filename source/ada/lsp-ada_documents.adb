@@ -266,9 +266,10 @@ package body LSP.Ada_Documents is
       use LSP.Messages;
 
       procedure Walk
-        (Node   : Libadalang.Analysis.Ada_Node;
-         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree   : in out LSP.Messages.DocumentSymbol_Tree);
+        (Node         : Libadalang.Analysis.Ada_Node;
+         Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Nested_Level : Integer;
+         Tree         : in out LSP.Messages.DocumentSymbol_Tree);
       --  Traverse Node and all its children recursively. Find any defining
       --  name and construct corresponding symbol node, then append it to
       --  the Tree under a position pointed by the Cursor.
@@ -278,22 +279,29 @@ package body LSP.Ada_Documents is
       ----------
 
       procedure Walk
-        (Node   : Libadalang.Analysis.Ada_Node;
-         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree   : in out LSP.Messages.DocumentSymbol_Tree)
+        (Node         : Libadalang.Analysis.Ada_Node;
+         Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Nested_Level : Integer;
+         Tree         : in out LSP.Messages.DocumentSymbol_Tree)
       is
-         Next : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         Next             : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         New_Nested_Level : Integer := Nested_Level;
       begin
+         if Node = No_Ada_Node then
+            return;
+         end if;
+
          if Node.Kind in Libadalang.Common.Ada_Basic_Decl then
             declare
                Decl : constant Libadalang.Analysis.Basic_Decl :=
                  Node.As_Basic_Decl;
 
                Kind : constant LSP.Messages.SymbolKind :=
-                 Get_Decl_Kind (Decl, Ignore_Local => True);
+                 Get_Decl_Kind (Decl, Ignore_Local => Nested_Level > 1);
 
             begin
                if Kind /= LSP.Messages.A_Null then
+                  New_Nested_Level := New_Nested_Level + 1;
                   declare
                      Names : constant Libadalang.Analysis.Defining_Name_Array
                        := Decl.P_Defining_Names;
@@ -332,11 +340,40 @@ package body LSP.Ada_Documents is
                   end;
                end if;
             end;
+         elsif Node.Kind in Libadalang.Common.Ada_With_Clause_Range then
+            declare
+               With_Node : constant Libadalang.Analysis.With_Clause :=
+                 Node.As_With_Clause;
+            begin
+               for N of With_Node.F_Packages loop
+                  declare
+                     Item : constant LSP.Messages.DocumentSymbol :=
+                       (name             => To_LSP_String (N.Text),
+                        detail           => (Is_Set => False),
+                        kind             => Namespace,
+                        deprecated       => (Is_Set => False),
+                        span             => LSP.Lal_Utils.To_Span
+                          (Node.Sloc_Range),
+                        selectionRange   => LSP.Lal_Utils.To_Span
+                          (N.Sloc_Range),
+                        alsIsDeclaration => (Is_Set => False),
+                        alsVisibility    => (Is_Set => False),
+                        children         => False);
+                  begin
+                     Tree.Insert_Child
+                       (Parent   => Cursor,
+                        Before   =>
+                          Messages.DocumentSymbol_Trees.No_Element,
+                        New_Item => Item,
+                        Position => Next);
+                  end;
+               end loop;
+            end;
          end if;
 
          for Child of Node.Children loop
             if Child not in Libadalang.Analysis.No_Ada_Node then
-               Walk (Child, Next, Tree);
+               Walk (Child, Next, New_Nested_Level, Tree);
             end if;
          end loop;
       end Walk;
@@ -344,7 +381,7 @@ package body LSP.Ada_Documents is
       Root : constant Libadalang.Analysis.Ada_Node := Self.Unit (Context).Root;
    begin
       Result := (Is_Tree => True, others => <>);
-      Walk (Root, Result.Tree.Root, Result.Tree);
+      Walk (Root, Result.Tree.Root, 0, Result.Tree);
    end Get_Symbol_Hierarchy;
 
    -----------------
@@ -701,8 +738,7 @@ package body LSP.Ada_Documents is
               Ada_Package_Renaming_Decl =>
             return LSP.Messages.A_Package;
 
-         when
-              Ada_Package_Body_Stub |
+         when Ada_Package_Body_Stub |
               Ada_Protected_Body_Stub |
               Ada_Task_Body_Stub |
               Ada_Package_Body |
