@@ -22,6 +22,7 @@ with Ada.Strings.Wide_Unbounded;
 
 with GNATCOLL.JSON;    use GNATCOLL.JSON;
 with LSP.JSON_Streams;
+with LSP.Message_IO;
 
 package body LSP.Messages is
 
@@ -6021,18 +6022,7 @@ package body LSP.Messages is
 
    procedure Write_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentEdit)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      VersionedTextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("edits");
-      TextEdit_Vector'Write (S, V.edits);
-      JS.End_Object;
-   end Write_TextDocumentEdit;
+      V : TextDocumentEdit) renames LSP.Message_IO.Write_TextDocumentEdit;
 
    ---------------------------
    -- Write_Document_Change --
