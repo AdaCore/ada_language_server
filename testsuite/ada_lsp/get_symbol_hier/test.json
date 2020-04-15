@@ -132,6 +132,7 @@
                                }
                              },
                              "alsIsDeclaration": true,
+                             "alsIsAdaProcedure": true,
                              "alsVisibility": 1,
                              "children": []
                            },
@@ -216,6 +217,7 @@
                                    }
                                  },
                                  "alsIsDeclaration": true,
+                                 "alsIsAdaProcedure": true,
                                  "alsVisibility": 1,
                                  "children": [
                                  ]
