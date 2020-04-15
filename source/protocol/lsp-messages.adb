@@ -1445,6 +1445,8 @@ package body LSP.Messages is
                Span'Read (S, Item.selectionRange);
                Read_Optional_Boolean
                  (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
+               Read_Optional_Boolean
+                 (JS, +"alsIsAdaProcedure", Item.alsIsAdaProcedure);
                JS.Key ("alsVisibility");
                Optional_Als_Visibility'Read (S, Item.alsVisibility);
                JS.Key ("children");
@@ -2819,6 +2821,7 @@ package body LSP.Messages is
       Read_String (JS, +"name", V.name);
       JS.Key ("kind");
       SymbolKind'Read (S, V.kind);
+      Read_Optional_Boolean (JS, +"alsIsAdaProcedure", V.alsIsAdaProcedure);
       Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Read (S, V.location);
@@ -4533,6 +4536,8 @@ package body LSP.Messages is
                Span'Write (S, Item.selectionRange);
                Write_Optional_Boolean
                  (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
+               Write_Optional_Boolean
+                   (JS, +"alsIsAdaProcedure", Item.alsIsAdaProcedure);
                JS.Key ("alsVisibility");
                Optional_Als_Visibility'Write (S, Item.alsVisibility);
 
@@ -5863,6 +5868,7 @@ package body LSP.Messages is
       Write_String (JS, +"name", V.name);
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
+      Write_Optional_Boolean (JS, +"alsIsAdaProcedure", V.alsIsAdaProcedure);
       Write_Optional_Boolean (JS, +"deprecated", V.deprecated);
       JS.Key ("location");
       Location'Write (S, V.location);

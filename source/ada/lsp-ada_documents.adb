@@ -46,11 +46,17 @@ package body LSP.Ada_Documents is
    --  variables.
 
    function Get_Profile
-     (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+     (Node        : Libadalang.Analysis.Basic_Decl;
+      Is_Function : out Boolean)
+      return LSP.Types.LSP_String;
    --  Return the profile of Node.
 
    function Is_Declaration
      (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+
+   function Is_Structure
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+   --  Return True if the type contains a record part.
 
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
@@ -311,23 +317,30 @@ package body LSP.Ada_Documents is
                         exit when Name = Libadalang.Analysis.No_Defining_Name;
 
                         declare
+                           Is_Function : Boolean;
+                           Profile : constant LSP.Types.LSP_String :=
+                             Get_Profile (Decl, Is_Function);
                            Item : constant LSP.Messages.DocumentSymbol :=
-                             (name             => To_LSP_String (Name.Text),
-                              detail           =>
-                                (Is_Set => True, Value => Get_Profile (Decl)),
-                              kind             => Kind,
-                              deprecated       => (Is_Set => False),
-                              span             => LSP.Lal_Utils.To_Span
+                             (name              => To_LSP_String (Name.Text),
+                              detail            =>
+                                (Is_Set => True, Value => Profile),
+                              kind              => Kind,
+                              deprecated        => (Is_Set => False),
+                              span              => LSP.Lal_Utils.To_Span
                                 (Node.Sloc_Range),
-                              selectionRange   => LSP.Lal_Utils.To_Span
+                              selectionRange    => LSP.Lal_Utils.To_Span
                                 (Name.Sloc_Range),
-                              alsIsDeclaration =>
+                              alsIsDeclaration  =>
                                 (Is_Set => True,
                                  Value  => Is_Declaration (Decl)),
-                              alsVisibility    =>
+                              alsIsAdaProcedure =>
+                                (if Is_Function
+                                 then (Is_Set => False)
+                                 else (Is_Set => True, Value => True)),
+                              alsVisibility     =>
                                 (Is_Set => True,
                                  Value  => Get_Visibility (Decl)),
-                              children         => True);
+                              children          => True);
                         begin
                            Tree.Insert_Child
                              (Parent   => Cursor,
@@ -348,17 +361,18 @@ package body LSP.Ada_Documents is
                for N of With_Node.F_Packages loop
                   declare
                      Item : constant LSP.Messages.DocumentSymbol :=
-                       (name             => To_LSP_String (N.Text),
-                        detail           => (Is_Set => False),
-                        kind             => Namespace,
-                        deprecated       => (Is_Set => False),
-                        span             => LSP.Lal_Utils.To_Span
+                       (name              => To_LSP_String (N.Text),
+                        detail            => (Is_Set => False),
+                        kind              => Namespace,
+                        deprecated        => (Is_Set => False),
+                        span              => LSP.Lal_Utils.To_Span
                           (Node.Sloc_Range),
-                        selectionRange   => LSP.Lal_Utils.To_Span
+                        selectionRange    => LSP.Lal_Utils.To_Span
                           (N.Sloc_Range),
-                        alsIsDeclaration => (Is_Set => False),
-                        alsVisibility    => (Is_Set => False),
-                        children         => False);
+                        alsIsDeclaration  => (Is_Set => False),
+                        alsIsAdaProcedure => (Is_Set => False),
+                        alsVisibility     => (Is_Set => False),
+                        children          => False);
                   begin
                      Tree.Insert_Child
                        (Parent   => Cursor,
@@ -746,13 +760,17 @@ package body LSP.Ada_Documents is
               Ada_Task_Body =>
             return LSP.Messages.Module;
 
+         when Ada_Type_Decl =>
+            return (if Is_Structure (Node)
+                    then LSP.Messages.Struct
+                    else LSP.Messages.Class);
+
          when Ada_Generic_Formal_Type_Decl |
               Ada_Classwide_Type_Decl |
               Ada_Incomplete_Type_Decl |
               Ada_Incomplete_Tagged_Type_Decl |
               Ada_Protected_Type_Decl |
               Ada_Task_Type_Decl |
-              Ada_Type_Decl |
               Ada_Subtype_Decl |
               Ada_Anonymous_Type_Decl |
               Ada_Synth_Anonymous_Type_Decl =>
@@ -789,7 +807,9 @@ package body LSP.Ada_Documents is
    -----------------
 
    function Get_Profile
-     (Node : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+     (Node        : Libadalang.Analysis.Basic_Decl;
+      Is_Function : out Boolean)
+      return LSP.Types.LSP_String
    is
       use Ada.Strings.Wide_Wide_Unbounded;
       use Libadalang.Common;
@@ -889,6 +909,7 @@ package body LSP.Ada_Documents is
          end if;
 
          if not Returns.Is_Null then
+            Is_Function := True;
             Append (Result, " return ");
             Append (Result, To_Text (Returns));
          end if;
@@ -896,6 +917,7 @@ package body LSP.Ada_Documents is
          return To_LSP_String (To_Wide_Wide_String (Result));
       end To_Profile;
    begin
+      Is_Function := False;
       case Node.Kind is
          when Ada_Classic_Subp_Decl =>
             return To_Profile (Node.As_Classic_Subp_Decl.F_Subp_Spec);
@@ -944,6 +966,26 @@ package body LSP.Ada_Documents is
             return False;
       end case;
    end Is_Declaration;
+
+   ------------------
+   -- Is_Structure --
+   ------------------
+
+   function Is_Structure
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+      use Libadalang.Common;
+   begin
+      for Child of Node.Children loop
+         if Child /= No_Ada_Node
+           and then Child.Kind = Ada_Record_Type_Def
+         then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Is_Structure;
 
    --------------------
    -- Get_Visibility --

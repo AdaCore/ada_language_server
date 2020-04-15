@@ -5577,6 +5577,7 @@ package LSP.Messages is
       span: LSP.Messages.Span;
       selectionRange: LSP.Messages.Span;
       alsIsDeclaration : Optional_Boolean;
+      alsIsAdaProcedure : Optional_Boolean;
       alsVisibility : Optional_Als_Visibility;
       children: Boolean;  --  True if emit children in JSON
    end record;
@@ -5599,6 +5600,7 @@ package LSP.Messages is
    type SymbolInformation is record
       name: LSP_String;
       kind: SymbolKind;
+      alsIsAdaProcedure : Optional_Boolean;
       deprecated: Optional_Boolean;
       location: LSP.Messages.Location;
       containerName: Optional_String;
