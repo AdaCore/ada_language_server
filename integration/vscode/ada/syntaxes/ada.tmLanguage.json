@@ -186,6 +186,7 @@
 		"basic_declaration": {
 			"patterns": [
 				{ "include": "#type_declaration" },
+				{ "include": "#subtype_declaration" },
 				{ "include": "#exception_declaration" },
 				{ "include": "#object_declaration" },
 				{ "include": "#subprogram_specification" }
@@ -1334,6 +1335,76 @@
 			"patterns": [
 				{ "include": "#procedure_specification" },
 				{ "include": "#function_specification" }
+			]
+		},
+		"subtype_declaration": {
+			"name": "meta.declaration.subtype.ada",
+			"begin": "(?i)\\b(subtype)\\s+((?:\\w|\\d|_)+)\\s+(is)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "patterns": [ { "include": "#subtype_mark" } ] },
+				"3": { "name": "keyword.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\b(not\\s+null)\\b"
+				},
+				{ "include": "#composite_constraint" },
+				{ "include": "#subtype_indication" }
+			]
+		},
+		"subtype_indication": {
+			"name": "meta.declaration.indication.subtype.ada",
+			"match": "(?i)\\b((?:\\w|\\d|_)+)(\\s+[^\\s\\(][^;]+)?\\b",
+			"captures": {
+				"1": { "patterns": [ { "include": "#subtype_mark" } ] },
+				"2": { "patterns": [ { "include": "#scalar_constraint" } ] }
+			}
+		},
+		"scalar_constraint": {
+			"name": "meta.declaration.constraint.scalar.ada",
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\b(digits|range|delta)\\b"
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" }
+			]
+		},
+		"composite_constraint": {
+			"name": "meta.declaration.constraint.composite.ada",
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{
+					"match": "(?i)\\b((?:\\w|\\d|_)+)\\s*(=>)\\s*([^,\\)])+\\b",
+					"captures": {
+						"1": { "name": "variable.name.ada" },
+						"2": { "name": "keyword.other.ada" },
+						"3": { "patterns": [ { "include": "#expression" } ] }
+					}
+				},
+				{ "include": "#expression" }
 			]
 		},
 		"subtype_mark": {
