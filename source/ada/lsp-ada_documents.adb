@@ -64,10 +64,10 @@ package body LSP.Ada_Documents is
 
    function Compute_Completion_Item
      (Context          : LSP.Ada_Contexts.Context;
-      Node             : Libadalang.Analysis.Ada_Node;
       BD               : Libadalang.Analysis.Basic_Decl;
       DN               : Libadalang.Analysis.Defining_Name;
-      Snippets_Enabled : Boolean)
+      Snippets_Enabled : Boolean;
+      Is_Dot_Call      : Boolean)
       return LSP.Messages.CompletionItem;
    --  Compute a completion item.
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
@@ -75,6 +75,8 @@ package body LSP.Ada_Documents is
    --  that should be used to compute the completion item.
    --  When Snippets_Enabled is True, subprogram completion items are computed
    --  as snippets that list all the subprogram's formal parameters.
+   --  Is_Dot_Call is used to know if we should omit the first parameter
+   --  when computing subprogram snippets.
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
@@ -1060,13 +1062,12 @@ package body LSP.Ada_Documents is
 
    function Compute_Completion_Item
      (Context          : LSP.Ada_Contexts.Context;
-      Node             : Libadalang.Analysis.Ada_Node;
       BD               : Libadalang.Analysis.Basic_Decl;
       DN               : Libadalang.Analysis.Defining_Name;
-      Snippets_Enabled : Boolean)
+      Snippets_Enabled : Boolean;
+      Is_Dot_Call      : Boolean)
       return LSP.Messages.CompletionItem
    is
-      use Libadalang.Common;
       use LSP.Messages;
       use LSP.Types;
 
@@ -1117,7 +1118,7 @@ package body LSP.Ada_Documents is
          All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
 
          Params      : constant Param_Spec_Array :=
-           (if Node.Kind in Ada_Dotted_Name_Range then
+           (if Is_Dot_Call then
                All_Params (All_Params'First + 1 .. All_Params'Last)
             else
                All_Params);
@@ -1261,12 +1262,11 @@ package body LSP.Ada_Documents is
 
                         Result.items.Append
                           (Compute_Completion_Item
-                             (Context => Context,
-                              Node    => Node,
-                              BD      => BD,
-                              DN      => DN,
-                              Snippets_Enabled =>
-                                Snippets_Enabled));
+                             (Context          => Context,
+                              BD               => BD,
+                              DN               => DN,
+                              Snippets_Enabled => Snippets_Enabled,
+                              Is_Dot_Call      => Is_Dot_Call (CI)));
                      end if;
                   end;
                end loop;
