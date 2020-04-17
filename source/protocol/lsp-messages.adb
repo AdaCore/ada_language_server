@@ -36,21 +36,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out MessageType);
 
-   procedure Read_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out Boolean);
-
-   procedure Write_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : Boolean);
-
-   procedure Read_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Boolean);
-
    procedure Read_Optional_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -66,11 +51,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : MessageType);
 
-   procedure Write_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_Boolean);
-
    procedure Write_Optional_Number
     (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key        : LSP.Types.LSP_String;
@@ -78,11 +58,6 @@ package body LSP.Messages is
      Write_Null : Boolean := False);
    --  If Item has a value write its value into Key. Otherwise if Write_Null,
    --  then write 'null' into Key. Otherwise do nothing.
-
-   procedure Write_Optional_AlsReferenceKind_Set
-    (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : Optional_AlsReferenceKind_Set);
 
    procedure Write_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -428,30 +403,6 @@ package body LSP.Messages is
       Read_Optional_String (JS, +"failureReason", V.failureReason);
       JS.End_Object;
    end Read_ApplyWorkspaceEditResult;
-
-   ------------------
-   -- Read_Boolean --
-   ------------------
-
-   procedure Read_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out Boolean)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
-
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := False;  --  No such property
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
-         Item := Value.Get;  --  Property of a boolean type
-      else
-         Item := True;  --  Property of non-boolean type, protocol extension
-         --  could provide an object instead of boolean.
-      end if;
-   end Read_Boolean;
 
    -----------------------
    -- Read_CancelParams --
@@ -2062,27 +2013,6 @@ package body LSP.Messages is
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Item := LSP.Types.LSP_Number (Integer'(Stream.Read.Get));
    end Read_Number;
-
-   ---------------------------
-   -- Read_Optional_Boolean --
-   ---------------------------
-
-   procedure Read_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Boolean)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
-
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := (Is_Set => False);
-      else
-         Item := (Is_Set => True, Value => Value.Get);
-      end if;
-   end Read_Optional_Boolean;
 
    --------------------------
    -- Read_Optional_Number --
@@ -3721,19 +3651,7 @@ package body LSP.Messages is
    procedure Write_CodeActionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("codeActionLiteralSupport");
-      Optional_codeActionLiteralSupport_Capability'Write
-        (S, V.codeActionLiteralSupport);
-      Write_Optional_Boolean (JS, +"isPreferredSupport", V.isPreferredSupport);
-      JS.End_Object;
-   end Write_CodeActionClientCapabilities;
+      renames LSP.Message_IO.Write_CodeActionClientCapabilities;
 
    ---------------------------
    -- Write_CodeLensOptions --
@@ -3950,24 +3868,7 @@ package body LSP.Messages is
    procedure Write_completionItemCapability
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : completionItemCapability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
-      Write_Optional_Boolean
-        (JS, +"commitCharactersSupport", V.commitCharactersSupport);
-
-      JS.Key ("documentationFormat");
-      MarkupKind_Vector'Write (S, V.documentationFormat);
-      Write_Optional_Boolean (JS, +"deprecatedSupport", V.deprecatedSupport);
-      Write_Optional_Boolean (JS, +"preselectSupport", V.preselectSupport);
-      JS.Key ("tagSupport");
-      Optional_CompletionItemTagSupport'Write (S, V.tagSupport);
-
-      JS.End_Object;
-   end Write_completionItemCapability;
+      renames LSP.Message_IO.Write_completionItemCapability;
 
    ------------------------------
    -- Write_CompletionItemKind --
@@ -4022,7 +3923,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Optional_Boolean (JS, +"isIncomplete", (True, V.isIncomplete));
+      Write_Boolean (JS, +"isIncomplete", V.isIncomplete);
       JS.Key ("items");
       CompletionItem_Vector'Write (S, V.items);
       JS.End_Object;
@@ -4266,16 +4167,7 @@ package body LSP.Messages is
    procedure Write_DeclarationClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DeclarationClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Write_Optional_Boolean (JS, +"linkSupport", V.linkSupport);
-      JS.End_Object;
-   end Write_DeclarationClientCapabilities;
+      renames LSP.Message_IO.Write_DeclarationClientCapabilities;
 
    -------------------------------------------
    -- Write_WorkspaceEditClientCapabilities --
@@ -4284,18 +4176,7 @@ package body LSP.Messages is
    procedure Write_WorkspaceEditClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceEditClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"documentChanges", V.documentChanges);
-      JS.Key ("resourceOperations");
-      Optional_ResourceOperationKindSet'Write (S, V.resourceOperations);
-      JS.Key ("failureHandling");
-      Optional_FailureHandlingKind'Write (S, V.failureHandling);
-      JS.End_Object;
-   end Write_WorkspaceEditClientCapabilities;
+      renames LSP.Message_IO.Write_WorkspaceEditClientCapabilities;
 
    -----------------------------
    -- Write_DocumentHighlight --
@@ -4340,16 +4221,7 @@ package body LSP.Messages is
    procedure Write_DocumentLinkClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentLinkClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Write_Optional_Boolean (JS, +"tooltipSupport", V.tooltipSupport);
-      JS.End_Object;
-   end Write_DocumentLinkClientCapabilities;
+      renames LSP.Message_IO.Write_DocumentLinkClientCapabilities;
 
    -------------------------------
    -- Write_DocumentLinkOptions --
@@ -4679,17 +4551,7 @@ package body LSP.Messages is
    procedure Write_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : HoverClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("contentFormat");
-      Optional_MarkupKind_Vector'Write (S, V.contentFormat);
-      JS.End_Object;
-   end Write_HoverClientCapabilities;
+      renames LSP.Message_IO.Write_HoverClientCapabilities;
 
    ----------------------------------
    -- Read_HoverClientCapabilities --
@@ -5000,34 +4862,6 @@ package body LSP.Messages is
       Write_String (JS, +"method", V.method);
    end Write_Notification_Prefix;
 
-   -------------------
-   -- Write_Boolean --
-   -------------------
-
-   procedure Write_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : Boolean) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (Item));
-   end Write_Boolean;
-
-   ----------------------------
-   -- Write_Optional_Boolean --
-   ----------------------------
-
-   procedure Write_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_Boolean) is
-   begin
-      if Item.Is_Set then
-         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write (GNATCOLL.JSON.Create (Item.Value));
-      end if;
-   end Write_Optional_Boolean;
-
    ---------------------------
    -- Write_Optional_Number --
    ---------------------------
@@ -5045,21 +4879,6 @@ package body LSP.Messages is
          Stream.Write (GNATCOLL.JSON.Create);
       end if;
    end Write_Optional_Number;
-
-   -----------------------------------------
-   -- Write_Optional_AlsReferenceKind_Set --
-   -----------------------------------------
-
-   procedure Write_Optional_AlsReferenceKind_Set
-    (Stream : access LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : Optional_AlsReferenceKind_Set) is
-   begin
-      if Item.Is_Set then
-         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         AlsReferenceKind_Set'Write (Stream, Item.Value);
-      end if;
-   end Write_Optional_AlsReferenceKind_Set;
 
    ---------------------------
    -- Write_Optional_String --
@@ -5130,14 +4949,7 @@ package body LSP.Messages is
    procedure Write_parameterInformation_Capability
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : parameterInformation_Capability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"labelOffsetSupport", V.labelOffsetSupport);
-      JS.End_Object;
-   end Write_parameterInformation_Capability;
+      renames LSP.Message_IO.Write_parameterInformation_Capability;
 
    --------------------
    -- Write_Position --
@@ -5209,18 +5021,7 @@ package body LSP.Messages is
    procedure Write_PublishDiagnosticsClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : PublishDiagnosticsClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"relatedInformation", V.relatedInformation);
-      JS.Key ("tagSupport");
-      Optional_DiagnosticTagSupport'Write (S, V.tagSupport);
-      Write_Optional_Boolean (JS, +"versionSupport", V.versionSupport);
-      JS.End_Object;
-   end Write_PublishDiagnosticsClientCapabilities;
+      renames LSP.Message_IO.Write_PublishDiagnosticsClientCapabilities;
 
    ----------------------
    -- Write_RGBA_Color --
@@ -5360,16 +5161,7 @@ package body LSP.Messages is
    procedure Write_RenameClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : RenameClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Write_Optional_Boolean (JS, +"prepareSupport", V.prepareSupport);
-      JS.End_Object;
-   end Write_RenameClientCapabilities;
+      renames LSP.Message_IO.Write_RenameClientCapabilities;
 
    ---------------------------------
    -- Write_ResourceOperationKind --
@@ -5436,14 +5228,7 @@ package body LSP.Messages is
    procedure Write_SaveOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SaveOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"includeText", V.includeText);
-      JS.End_Object;
-   end Write_SaveOptions;
+      renames LSP.Message_IO.Write_SaveOptions;
 
    --------------------------
    -- Write_SelectionRange --
@@ -5489,70 +5274,7 @@ package body LSP.Messages is
    procedure Write_ServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ServerCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocumentSync");
-      Optional_TextDocumentSyncOptions'Write (S, V.textDocumentSync);
-      JS.Key ("completionProvider");
-      Optional_CompletionOptions'Write (S, V.completionProvider);
-      JS.Key ("hoverProvider");
-      HoverOptions'Write (S, V.hoverProvider);
-      JS.Key ("signatureHelpProvider");
-      Optional_SignatureHelpOptions'Write (S, V.signatureHelpProvider);
-      JS.Key ("declarationProvider");
-      DeclarationOptions'Write (S, V.declarationProvider);
-      JS.Key ("definitionProvider");
-      DefinitionOptions'Write (S, V.definitionProvider);
-      JS.Key ("typeDefinitionProvider");
-      TypeDefinitionOptions'Write (S, V.typeDefinitionProvider);
-      JS.Key ("implementationProvider");
-      ImplementationOptions'Write (S, V.implementationProvider);
-      JS.Key ("referencesProvider");
-      ReferenceOptions'Write (S, V.referencesProvider);
-      JS.Key ("documentHighlightProvider");
-      DocumentHighlightOptions'Write (S, V.documentHighlightProvider);
-      JS.Key ("documentSymbolProvider");
-      DocumentSymbolOptions'Write (S, V.documentSymbolProvider);
-      JS.Key ("codeActionProvider");
-      Optional_CodeActionOptions'Write (S, V.codeActionProvider);
-      JS.Key ("codeLensProvider");
-      Optional_CodeLensOptions'Write (S, V.codeLensProvider);
-      JS.Key ("documentLinkProvider");
-      Optional_DocumentLinkOptions'Write (S, V.documentLinkProvider);
-      JS.Key ("colorProvider");
-      DocumentColorOptions'Write (S, V.colorProvider);
-      JS.Key ("documentFormattingProvider");
-      DocumentFormattingOptions'Write (S, V.documentFormattingProvider);
-      JS.Key ("documentRangeFormattingProvider");
-      DocumentRangeFormattingOptions'Write
-        (S, V.documentRangeFormattingProvider);
-      JS.Key ("documentOnTypeFormattingProvider");
-      Optional_DocumentOnTypeFormattingOptions'Write
-        (S, V.documentOnTypeFormattingProvider);
-      JS.Key ("renameProvider");
-      Optional_RenameOptions'Write (S, V.renameProvider);
-      JS.Key ("foldingRangeProvider");
-      FoldingRangeOptions'Write (S, V.foldingRangeProvider);
-      JS.Key ("executeCommandProvider");
-      Optional_ExecuteCommandOptions'Write (S, V.executeCommandProvider);
-      JS.Key ("selectionRangeProvider");
-      SelectionRangeOptions'Write (S, V.selectionRangeProvider);
-      JS.Key ("workspaceSymbolProvider");
-      WorkspaceSymbolOptions'Write (S, V.workspaceSymbolProvider);
-
-      JS.Key ("workspace");
-      Optional_workspace_Options'Write (S, V.workspace);
-
-      Write_Optional_Boolean
-        (JS, +"alsCalledByProvider", V.alsCalledByProvider);
-      Write_Optional_AlsReferenceKind_Set
-        (JS'Access, +"alsReferenceKinds", V.alsReferenceKinds);
-
-      JS.End_Object;
-   end Write_ServerCapabilities;
+      renames LSP.Message_IO.Write_ServerCapabilities;
 
    -------------------------
    -- Write_SignatureHelp --
@@ -5607,19 +5329,7 @@ package body LSP.Messages is
    procedure Write_SignatureHelpClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureHelpClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("signatureInformation");
-      Optional_signatureInformation_Capability'Write
-        (S, V.signatureInformation);
-      Write_Optional_Boolean (JS, +"contextSupport", V.contextSupport);
-      JS.End_Object;
-   end Write_SignatureHelpClientCapabilities;
+      renames LSP.Message_IO.Write_SignatureHelpClientCapabilities;
 
    --------------------------------
    -- Write_SignatureInformation --
@@ -5805,18 +5515,7 @@ package body LSP.Messages is
    procedure Write_TextDocumentSyncClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Write_Optional_Boolean (JS, +"willSave", V.willSave);
-      Write_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
-      Write_Optional_Boolean (JS, +"didSave", V.didSave);
-      JS.End_Object;
-   end Write_TextDocumentSyncClientCapabilities;
+      renames LSP.Message_IO.Write_TextDocumentSyncClientCapabilities;
 
    ------------------------------------------
    -- Write_TextDocumentClientCapabilities --
@@ -5971,20 +5670,7 @@ package body LSP.Messages is
    procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"openClose", V.openClose);
-      JS.Key ("change");
-      Optional_TextDocumentSyncKind'Write (S, V.change);
-      Write_Optional_Boolean (JS, +"willSave", V.willSave);
-      Write_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
-      JS.Key ("save");
-      Optional_SaveOptions'Write (S, V.save);
-      JS.End_Object;
-   end Write_TextDocumentSyncOptions;
+      renames LSP.Message_IO.Write_TextDocumentSyncOptions;
 
    --------------------
    -- Write_TextEdit --
@@ -6079,26 +5765,7 @@ package body LSP.Messages is
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"applyEdit", V.applyEdit);
-      JS.Key ("workspaceEdit");
-      WorkspaceEditClientCapabilities'Write (S, V.workspaceEdit);
-      JS.Key ("didChangeConfiguration");
-      dynamicRegistration'Write (S, V.didChangeConfiguration);
-      JS.Key ("didChangeWatchedFiles");
-      dynamicRegistration'Write (S, V.didChangeWatchedFiles);
-      JS.Key ("symbol");
-      Optional_WorkspaceSymbolClientCapabilities'Write (S, V.symbol);
-      JS.Key ("executeCommand");
-      dynamicRegistration'Write (S, V.executeCommand);
-      Write_Optional_Boolean (JS, +"workspaceFolders", V.workspaceFolders);
-      Write_Optional_Boolean (JS, +"configuration", V.configuration);
-      JS.End_Object;
-   end Write_WorkspaceClientCapabilities;
+     renames LSP.Message_IO.Write_WorkspaceClientCapabilities;
 
    -------------------------
    -- Write_WorkspaceEdit --
@@ -6167,16 +5834,7 @@ package body LSP.Messages is
    procedure Write_WorkspaceFoldersServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceFoldersServerCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"supported", V.supported);
-      JS.Key ("changeNotifications");
-      Optional_Boolean_Or_String'Write (S, V.changeNotifications);
-      JS.End_Object;
-   end Write_WorkspaceFoldersServerCapabilities;
+      renames LSP.Message_IO.Write_WorkspaceFoldersServerCapabilities;
 
    -----------------------------
    -- Write_workspace_Options --
@@ -6283,14 +5941,7 @@ package body LSP.Messages is
    procedure Write_WindowClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WindowClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.End_Object;
-   end Write_WindowClientCapabilities;
+      renames LSP.Message_IO.Write_WindowClientCapabilities;
 
    ---------------------------------
    -- Write_WorkDoneProgressBegin --
