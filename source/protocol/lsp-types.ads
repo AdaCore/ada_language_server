@@ -198,6 +198,28 @@ package LSP.Types is
    function None return Optional_Boolean
      is ((Is_Set => Standard.False));
 
+   --  Shortcut utilities
+
+   procedure Read_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out Boolean);
+
+   procedure Write_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Boolean);
+
+   procedure Read_Optional_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out LSP.Types.Optional_Boolean);
+
+   procedure Write_Optional_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.Optional_Boolean);
+
    ---------------------
    -- Optional_String --
    ---------------------

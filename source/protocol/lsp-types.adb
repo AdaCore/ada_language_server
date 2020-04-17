@@ -89,6 +89,30 @@ package body LSP.Types is
       V := LSP_Any'(JS.Read with null record);
    end Read_Any;
 
+   ------------------
+   -- Read_Boolean --
+   ------------------
+
+   procedure Read_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out Boolean)
+   is
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Value := Stream.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+         Item := False;  --  No such property
+      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
+         Item := Value.Get;  --  Property of a boolean type
+      else
+         Item := True;  --  Property of non-boolean type, protocol extension
+         --  could provide an object instead of boolean.
+      end if;
+   end Read_Boolean;
+
    --------------------------------
    -- Read_LSP_Boolean_Or_String --
    --------------------------------
@@ -157,6 +181,27 @@ package body LSP.Types is
          V := (Is_Set => True, Value => Value.Get);
       else
          V := (Is_Set => True, Value => True);
+      end if;
+   end Read_Optional_Boolean;
+
+   ---------------------------
+   -- Read_Optional_Boolean --
+   ---------------------------
+
+   procedure Read_Optional_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : out LSP.Types.Optional_Boolean)
+   is
+      Value : GNATCOLL.JSON.JSON_Value;
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Value := Stream.Read;
+
+      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+         Item := (Is_Set => False);
+      else
+         Item := (Is_Set => True, Value => Value.Get);
       end if;
    end Read_Optional_Boolean;
 
@@ -370,6 +415,19 @@ package body LSP.Types is
       JS.Write (GNATCOLL.JSON.JSON_Value (V));
    end Write_Any;
 
+   -------------------
+   -- Write_Boolean --
+   -------------------
+
+   procedure Write_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : Boolean) is
+   begin
+      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Write (GNATCOLL.JSON.Create (Item));
+   end Write_Boolean;
+
    ------------------
    -- Write_Number --
    ------------------
@@ -396,6 +454,21 @@ package body LSP.Types is
    begin
       if V.Is_Set then
          JS.Write (GNATCOLL.JSON.Create (V.Value));
+      end if;
+   end Write_Optional_Boolean;
+
+   ----------------------------
+   -- Write_Optional_Boolean --
+   ----------------------------
+
+   procedure Write_Optional_Boolean
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : LSP.Types.LSP_String;
+     Item   : LSP.Types.Optional_Boolean) is
+   begin
+      if Item.Is_Set then
+         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+         Stream.Write (GNATCOLL.JSON.Create (Item.Value));
       end if;
    end Write_Optional_Boolean;
 
