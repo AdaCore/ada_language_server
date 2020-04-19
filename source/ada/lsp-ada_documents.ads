@@ -95,10 +95,11 @@ package LSP.Ada_Documents is
    --  Get Libadalang Node for given position in the document.
 
    procedure Get_Completions_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Result   : out LSP.Messages.CompletionList);
+     (Self             : Document;
+      Context          : LSP.Ada_Contexts.Context;
+      Position         : LSP.Messages.Position;
+      Snippets_Enabled : Boolean;
+      Result           : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
 
    procedure Get_Folding_Blocks
@@ -119,11 +120,14 @@ package LSP.Ada_Documents is
    --  is able to retrieve a document from its given URI.
 
    function Get_Open_Document
-     (Self : access Document_Provider;
-      URI  : LSP.Messages.DocumentUri)
+     (Self  : access Document_Provider;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
       return Document_Access is abstract;
-   --  Return the open document for the given URI, null if this document
-   --  is not open.
+   --  Return the open document for the given URI.
+   --  If the document is not opened, then if Force a new document
+   --  will be created and must be freed by the user else null will be
+   --  returned.
 
 private
 

@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with GNATCOLL.JSON;    use GNATCOLL.JSON;
 with LSP.JSON_Streams;
 
 package body LSP.Generic_Optional is

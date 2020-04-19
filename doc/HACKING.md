@@ -10,14 +10,29 @@ ALS.IN=yes > inout.txt:buffer_size=0
 ALS.OUT=yes > inout.txt:buffer_size=0
 ```
 
-When this is present, the ALS will generate a file `$HOME/.als/inout.txt`
-which logs the input received and the output sent by the language server.
+When this is present, the Ada Language Server will generate a file
+`$HOME/.als/inout.txt` which logs the input received and the output sent by
+the language server.
+
+You can also monitor the server's memory usage by adding the following lines:
+
+```
+>ada_ls_log.$T.txt:buffer_size=0:buffer_size=0
+ALS.MAIN=yes
+DEBUG.ADA_MEMORY=yes
+```
+
+This will create `ada_ls_log.<timestamp>.txt` log files in your `$HOME/.als`
+directory each time the Ada Language Server is run, with additional information
+about memory usage, allowing to track down which parts of the program consumes
+the most memory.
+This is very useful to resolve unexpected memory consumption issues.
 
 ### Writing tests
 
 To write a functional test for Ada Language Server:
 
-  * Choose a meaninful name for your test, for instance `completion_inside_generics`. 
+  * Choose a meaninful name for your test, for instance `completion_inside_generics`.
      We'll refer to this as `<testname>` below
   * Create a new directory `testsuite/ada_lsp/<testname>` containing your test data
   * Activate full in/out language server traces. See the Debugging section above.
@@ -26,7 +41,7 @@ To write a functional test for Ada Language Server:
      python scripts/traces_to_test.py <testname> <path_to_the_als_traces_file>
      ```
   * Delete all extra requests, notifications and capabilities that are not related
-    to the feature being tested. It will help a lot later when tests are 
+    to the feature being tested. It will help a lot later when tests are
     baselined because of changes in protocol, capablitities or message formats.
   * Replace the comment at the beginning of the test with something meaningful:
   ```
@@ -108,7 +123,7 @@ sed -n -e '/^```typescript/,/^```/p' specification-3-14.md |sed -e 's/^/   --/'
 
 To extract corresponding snippets from `lsp-messages.ads` use this:
 ```
-sed -n -e '/^   --```typescript/,/^   --```/p' lsp-messages.ads 
+sed -n -e '/^   --```typescript/,/^   --```/p' lsp-messages.ads
 ```
 
 Unfortunately we have to reorder Ada declarations to follow _"define before use"_

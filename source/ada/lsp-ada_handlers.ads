@@ -153,6 +153,9 @@ private
       Line_Folding_Only : Boolean := False;
       --  Client capabilities, folding only per lines
 
+      Completion_Snippets_Enabled : Boolean := False;
+      --  True if the client supports completion snippets
+
       ----------------------
       -- Project handling --
       ----------------------
@@ -257,6 +260,11 @@ private
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response;
 
+   overriding function On_Selection_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
+      return LSP.Messages.Server_Responses.SelectionRange_Response;
+
    overriding function On_Rename_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Rename_Request)
@@ -334,10 +342,13 @@ private
    --  LSP server itself.
 
    overriding function Get_Open_Document
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access;
-   --  Return the document for the given URI, assuming this document
-   --  is open. Return null if this document is not open.
+   --  Return the open document for the given URI.
+   --  If the document is not opened, then if Force a new document
+   --  will be created and must be freed by the user else null will be
+   --  returned.
 
 end LSP.Ada_Handlers;

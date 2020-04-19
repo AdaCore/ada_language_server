@@ -26,6 +26,11 @@ with Libadalang.Common;        use Libadalang.Common;
 
 package body LSP.Common is
 
+   function Get_Hover_Text_For_Node (Node : Ada_Node'Class) return LSP_String;
+   --  Return a pretty printed version of the node's text to be
+   --  displayed on hover requests, removing unnecessary indentation
+   --  whitespaces if needed and attaching extra information in some cases.
+
    ---------
    -- Log --
    ---------
@@ -43,11 +48,11 @@ package body LSP.Common is
                    & ASCII.LF & Symbolic_Traceback (E));
    end Log;
 
-   --------------------
-   -- Get_Hover_Text --
-   --------------------
+   -----------------------------
+   -- Get_Hover_Text_For_Node --
+   -----------------------------
 
-   function Get_Hover_Text (Node : Ada_Node'Class) return LSP_String
+   function Get_Hover_Text_For_Node (Node : Ada_Node'Class) return LSP_String
    is
       Text   : constant String := Langkit_Support.Text.To_UTF8
         (Node.Text);
@@ -324,6 +329,7 @@ package body LSP.Common is
       end Get_Aspect_Hover_Text;
 
    begin
+
       case Node.Kind is
          when Ada_Package_Body =>
 
@@ -349,7 +355,55 @@ package body LSP.Common is
       end case;
 
       GNAT.Strings.Free (Lines);
+
       return Result;
+   end Get_Hover_Text_For_Node;
+
+   --------------------
+   -- Get_Hover_Text --
+   --------------------
+
+   function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String is
+      Decl_Text      : LSP_String;
+      Subp_Spec_Node : Base_Subp_Spec;
+      Line_Feed      : constant String := "" & ASCII.LF;
+   begin
+      --  Try to retrieve the subprogram spec node, if any : if it's a
+      --  subprogram node that does not have any separate declaration we
+      --  only want to display its specification, not the body.
+      Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
+
+      if Subp_Spec_Node /= No_Base_Subp_Spec then
+         Decl_Text := Get_Hover_Text_For_Node (Subp_Spec_Node);
+
+         --  Append the aspects to the declaration text, if any.
+         declare
+            Aspects      : constant Aspect_Spec := Decl.F_Aspects;
+            Aspects_Text : LSP_String;
+         begin
+            if not Aspects.Is_Null then
+               for Aspect of Aspects.F_Aspect_Assocs loop
+                  if Aspects_Text /= Empty_LSP_String then
+                     --  need to add "," for the highlighting
+                     Append (Aspects_Text, ",");
+                  end if;
+
+                  Append (Aspects_Text, Get_Hover_Text_For_Node (Aspect));
+               end loop;
+
+               if Aspects_Text /= Empty_LSP_String then
+                  Decl_Text := Decl_Text
+                    & To_LSP_String (Line_Feed & "with")
+                    & Aspects_Text;
+               end if;
+            end if;
+         end;
+
+      else
+         Decl_Text := Get_Hover_Text_For_Node (Decl);
+      end if;
+
+      return Decl_Text;
    end Get_Hover_Text;
 
 end LSP.Common;

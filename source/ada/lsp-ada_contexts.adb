@@ -15,17 +15,16 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
 with GNATCOLL.JSON;
-with GNATCOLL.Projects;       use GNATCOLL.Projects;
-with GNATCOLL.VFS;            use GNATCOLL.VFS;
+with GNATCOLL.Projects;           use GNATCOLL.Projects;
+with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
 with URIs;
-with LSP.Common;              use LSP.Common;
-with LSP.Lal_Utils;           use LSP.Lal_Utils;
+with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
-with Libadalang.Common;
+with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Project_Provider;
 with Langkit_Support.Slocs;
 
@@ -42,7 +41,7 @@ package body LSP.Ada_Contexts is
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array;
+      return Base_Id_Array;
    --  When called on a tagged type primitive declaration, return all the
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
@@ -186,23 +185,26 @@ package body LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array
+      return Base_Id_Array
    is
+      use Libadalang.Analysis;
+
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
       Imprecise_Results := False;
 
-      --  Make two attempts: first with precise results, then with the
-      --  imprecise_fallback.
+      declare
+         Refs : constant Ref_Result_Array :=
+           Definition.P_Find_All_References (Units);
+         R    : Base_Id_Array (Refs'Range);
       begin
-         return Definition.P_Find_All_References (Units);
-      exception
-         when E : Libadalang.Common.Property_Error =>
-            Imprecise_Results := True;
-            Log (Self.Trace, E, "in Find_All_References (precise)");
-            return Definition.P_Find_All_References
-              (Units, Imprecise_Fallback => True);
+         for I in Refs'Range loop
+            R (I) := Ref (Refs (I)).As_Base_Id;
+            Imprecise_Results := Imprecise_Results
+              or Kind (Refs (I)) = Imprecise;
+         end loop;
+         return R;
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
@@ -304,10 +306,9 @@ package body LSP.Ada_Contexts is
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array
+      return Base_Id_Array
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       function Find_All_Subp_References_In_Hierarchy
         (Hierarchy : Basic_Decl_Array) return Base_Id_Array;
@@ -392,9 +393,9 @@ package body LSP.Ada_Contexts is
                       (Definition        => Param.F_Ids.List_Child (1),
                        Imprecise_Results => Imprecise_Results)
                  & Find_All_Param_References_In_Hierarchy
-                      (Param     => Param,
-                       Hierarchy => Hierarchy,
-                       Idx       => Idx + 1);
+                 (Param     => Param,
+                  Hierarchy => Hierarchy,
+                  Idx       => Idx + 1);
             end if;
          end loop;
 
@@ -447,7 +448,7 @@ package body LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array
+      return Base_Id_Array
    is
       use Libadalang.Analysis;
 
@@ -485,23 +486,26 @@ package body LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean)
-      return Libadalang.Analysis.Base_Id_Array
+      return Base_Id_Array
    is
+      use Libadalang.Analysis;
+
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
       Imprecise_Results := False;
 
-      --  Make two attempts: first with precise results, then with the
-      --  imprecise_fallback.
+      declare
+         Refs    : constant Ref_Result_Array
+           := Definition.P_Find_All_Calls (Units);
+         R       : Base_Id_Array (Refs'Range);
       begin
-         return Definition.P_Find_All_Calls (Units);
-      exception
-         when E : Libadalang.Common.Property_Error =>
-            Imprecise_Results := True;
-            Log (Self.Trace, E, "in Is_Called_By (precise)");
-            return Definition.P_Find_All_Calls
-              (Units, Imprecise_Fallback => True);
+         for I in Refs'Range loop
+            R (I) := Ref (Refs (I)).As_Base_Id;
+            Imprecise_Results := Imprecise_Results
+              or Kind (Refs (I)) = Imprecise;
+         end loop;
+         return R;
       end;
    exception
       when E : Libadalang.Common.Property_Error =>

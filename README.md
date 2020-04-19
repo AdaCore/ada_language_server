@@ -249,6 +249,16 @@ for the `ada_language_server` and defines default customizable configuration
 values in the `lsp-ada` group that can be edited similarly to
 `lsp-ada-project-file` in the example above.
 
+# Integration with QtCreator
+Starting with version `4.9`, QtCreator supports a LSP plugin. Follow
+[the official documentation](https://doc.qt.io/qtcreator/creator-language-servers.html)
+to configure the Ada Language Server in this plugin. Make sure to set `Startup behavior`
+to `Start Server per Project`, otherwise QtCreator won't provide the project root to
+the Ada Language Server. QtCreator doesn't send any configuration request to the language server, so the only
+option to enable project support is to have a single `.gpr` file in the QtCreator
+project folder. For a projectless configuration, you could also place all Ada sources in
+the project root folder, this should work as well.
+
 ## Authors & Contributors
 
  * Maintained by [AdaCore](https://www.adacore.com).

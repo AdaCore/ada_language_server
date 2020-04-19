@@ -1433,6 +1433,28 @@ package LSP.Messages is
    type Optional_SymbolKindSet is
      new Optional_SymbolKindSets.Optional_Type;
 
+   type Als_Visibility is
+     (Als_Public,
+      Als_Protected,
+      Als_Private);
+
+   procedure Read_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Als_Visibility);
+
+   procedure Write_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Als_Visibility);
+
+   for Als_Visibility'Read use Read_Als_Visibility;
+   for Als_Visibility'Write use Write_Als_Visibility;
+
+   package Optional_Als_Visibilities is
+     new LSP.Generic_Optional (Als_Visibility);
+
+   type Optional_Als_Visibility is
+     new Optional_Als_Visibilities.Optional_Type;
+
    type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_SymbolKindSet;
@@ -2963,6 +2985,20 @@ package LSP.Messages is
    --	token: ProgressToken;
    --}
    --```
+   type WorkDoneProgressCreateParams is record
+      token: ProgressToken;
+   end record;
+
+   procedure Read_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressCreateParams);
+
+   procedure Write_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressCreateParams);
+
+   for WorkDoneProgressCreateParams'Read use Read_WorkDoneProgressCreateParams;
+   for WorkDoneProgressCreateParams'Write use Write_WorkDoneProgressCreateParams;
 
    --```typescript
    --export interface WorkDoneProgressParams {
@@ -5540,6 +5576,9 @@ package LSP.Messages is
       deprecated: Optional_Boolean;
       span: LSP.Messages.Span;
       selectionRange: LSP.Messages.Span;
+      alsIsDeclaration : Optional_Boolean;
+      alsIsAdaProcedure : Optional_Boolean;
+      alsVisibility : Optional_Als_Visibility;
       children: Boolean;  --  True if emit children in JSON
    end record;
 
@@ -5561,6 +5600,7 @@ package LSP.Messages is
    type SymbolInformation is record
       name: LSP_String;
       kind: SymbolKind;
+      alsIsAdaProcedure : Optional_Boolean;
       deprecated: Optional_Boolean;
       location: LSP.Messages.Location;
       containerName: Optional_String;
@@ -7048,6 +7088,23 @@ package LSP.Messages is
    --    parent?: SelectionRange;
    --}
    --```
+   type SelectionRange is record
+      span    : LSP.Messages.Span;  --  range: is reserved word
+      --  parent : FIXME: TBD
+   end record;
+
+   procedure Read_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SelectionRange);
+   procedure Write_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SelectionRange);
+   for SelectionRange'Read use Read_SelectionRange;
+   for SelectionRange'Write use Write_SelectionRange;
+
+   package SelectionRange_Vectors is new LSP.Generic_Vectors (SelectionRange);
+   type SelectionRange_Vector is new SelectionRange_Vectors.Vector
+     with null record;
 
    --```typescript
    --export interface WorkDoneProgressCancelParams {

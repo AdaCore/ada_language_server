@@ -44,7 +44,7 @@ package body LSP.Servers is
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
+     LSP.Types.To_LSP_String;
 
    procedure Process_One_Message
      (Self        : in out Server'Class;
@@ -144,8 +144,7 @@ package body LSP.Servers is
 
    procedure Initialize
      (Self         : in out Server;
-      Stream       : access Ada.Streams.Root_Stream_Type'Class)
-   is
+      Stream       : access Ada.Streams.Root_Stream_Type'Class) is
    begin
       Self.Stream := Stream;
    end Initialize;
@@ -614,6 +613,17 @@ package body LSP.Servers is
    begin
       Self.Send_Request ("workspace/configuration", Message);
    end On_Workspace_Configuration_Request;
+
+   ----------------------------------------
+   -- On_WorkDoneProgress_Create_Request --
+   ----------------------------------------
+
+   overriding procedure On_WorkDoneProgress_Create_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request) is
+   begin
+      Self.Send_Request ("window/workDoneProgress/create", Message);
+   end On_WorkDoneProgress_Create_Request;
 
    ---------
    -- Run --

@@ -30,19 +30,22 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
-with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
+with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
+with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
 with LSP.Types;        use LSP.Types;
 
+with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
-with Libadalang.Common;
+with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 
 with URIs;
@@ -163,14 +166,17 @@ package body LSP.Ada_Handlers is
    --  are not configured specifically for this language server might
    --  not pass a .gpr file to didChangeConfiguration: for these IDEs,
    --  we fallback to loading the project the first time an editor is
-   --  open.
+   --  open or a request on non-openned file.
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String);
+      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
    --  This function makes sure that the contexts in Self are properly
    --  initialized and a project is loaded. If they are not initialized,
-   --  initialize them.
+   --  initialize them. Use custom Root directory if provided.
+
+   procedure Load_Implicit_Project (Self : access Message_Handler);
+   --  Load the implicit project
 
    procedure Load_Project
      (Self     : access Message_Handler;
@@ -216,13 +222,24 @@ package body LSP.Ada_Handlers is
    -----------------------
 
    overriding function Get_Open_Document
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access is
    begin
+      Self.Ensure_Project_Loaded;
+
       if Self.Open_Documents.Contains (URI) then
          return LSP.Ada_Documents.Document_Access
            (Self.Open_Documents.Element (URI));
+      elsif Force then
+         declare
+            Document : constant Internal_Document_Access :=
+              new LSP.Ada_Documents.Document (Self.Trace);
+         begin
+            Document.Initialize (URI, Empty_LSP_String);
+            return LSP.Ada_Documents.Document_Access (Document);
+         end;
       else
          return null;
       end if;
@@ -363,12 +380,66 @@ package body LSP.Ada_Handlers is
    end Reload_Implicit_Project_Dirs;
 
    ---------------------------
+   -- Load_Implicit_Project --
+   ---------------------------
+
+   procedure Load_Implicit_Project (Self : access Message_Handler) is
+      C    : constant Context_Access := new Context (Self.Trace);
+      Attr : GNAT.Strings.String_List (1 .. 1);
+      use GNATCOLL.Projects;
+   begin
+      --  Unload all the contexts
+      Self.Contexts.Cleanup;
+
+      Self.Trace.Trace ("Loading the implicit project");
+
+      Self.Implicit_Project_Loaded := True;
+      Self.Release_Project_Info;
+      Initialize (Self.Project_Environment);
+      Self.Project_Tree := new Project_Tree;
+      C.Initialize;
+
+      --  Note: we would call Load_Implicit_Project here, but this has
+      --  two problems:
+      --    - there is a bug under Windows where the files returned by
+      --      Source_Files have an extraneous directory separator
+      --    - the implicit project relies on the current working
+      --      of the ALS, which imposes a restriction on clients, and
+      --      is an extra pitfall for developers of this server
+      --
+      --  Instead, use Load_Empty_Project and set the source dir and
+      --  language manually: this does not have these inconvenients.
+
+      Load_Empty_Project
+        (Self.Project_Tree.all, Self.Project_Environment);
+      Attr := (1 => new String'("Ada"));
+      Set_Attribute
+        (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
+      GNAT.Strings.Free (Attr (1));
+
+      --  When there is no .gpr, create a project which loads the
+      --  root directory in the workspace.
+
+      Self.Project_Dirs_Loaded.Include (Self.Root);
+      Self.Reload_Implicit_Project_Dirs;
+      C.Load_Project (Self.Project_Tree,
+                      Self.Project_Tree.Root_Project,
+                      "iso-8859-1");
+
+      for File of Self.Project_Environment.Predefined_Source_Files loop
+         Self.Project_Predefined_Sources.Include (File);
+      end loop;
+
+      Self.Contexts.Prepend (C);
+   end Load_Implicit_Project;
+
+   ---------------------------
    -- Ensure_Project_Loaded --
    ---------------------------
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String)
+      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
    is
       GPRs_Found : Natural := 0;
       Files      : File_Array_Access;
@@ -382,7 +453,7 @@ package body LSP.Ada_Handlers is
 
       --  If we never passed through Initialize, this might be empty:
       --  initialize it now
-      if Self.Root = No_File then
+      if Self.Root = No_File and then not LSP.Types.Is_Empty (Root) then
          Self.Root := Create (+To_UTF_8_String (Root));
       end if;
 
@@ -410,51 +481,7 @@ package body LSP.Ada_Handlers is
       if GPRs_Found = 0 then
          --  We have found zero .gpr files: load the implicit project
 
-         Self.Trace.Trace ("Loading the implicit project");
-         declare
-            C    : constant Context_Access := new Context (Self.Trace);
-            Attr : GNAT.Strings.String_List (1 .. 1);
-            use GNATCOLL.Projects;
-         begin
-            Self.Implicit_Project_Loaded := True;
-            Self.Release_Project_Info;
-            Initialize (Self.Project_Environment);
-            Self.Project_Tree := new Project_Tree;
-            C.Initialize;
-
-            --  Note: we would call Load_Implicit_Project here, but this has
-            --  two problems:
-            --    - there is a bug under Windows where the files returned by
-            --      Source_Files have an extraneous directory separator
-            --    - the implicit project relies on the current working
-            --      of the ALS, which imposes a restriction on clients, and
-            --      is an extra pitfall for developers of this server
-            --
-            --  Instead, use Load_Empty_Project and set the source dir and
-            --  language manually: this does not have these inconvenients.
-
-            Load_Empty_Project
-              (Self.Project_Tree.all, Self.Project_Environment);
-            Attr := (1 => new String'("Ada"));
-            Set_Attribute
-              (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
-            GNAT.Strings.Free (Attr (1));
-
-            --  When there is no .gpr, create a project which loads the
-            --  root directory in the workspace.
-
-            Self.Project_Dirs_Loaded.Include (Self.Root);
-            Self.Reload_Implicit_Project_Dirs;
-            C.Load_Project (Self.Project_Tree,
-                            Self.Project_Tree.Root_Project,
-                            "iso-8859-1");
-
-            for File of Self.Project_Environment.Predefined_Source_Files loop
-               Self.Project_Predefined_Sources.Include (File);
-            end loop;
-
-            Self.Contexts.Prepend (C);
-         end;
+         Self.Load_Implicit_Project;
       elsif GPRs_Found = 1 then
          --  We have not found exactly one .gpr file: load the default
          --  project.
@@ -571,6 +598,16 @@ package body LSP.Ada_Handlers is
          --  Client capability to fold only entire lines
          Self.Line_Folding_Only := Value.capabilities.textDocument.
            foldingRange.Value.lineFoldingOnly.Value;
+      end if;
+
+      if Value.capabilities.textDocument.completion.completionItem.Is_Set
+        and then Value.capabilities.textDocument.completion.
+          completionItem.Value.snippetSupport.Is_Set
+          and then Value.capabilities.textDocument.completion.
+            completionItem.Value.snippetSupport.Value
+      then
+         --  Client capability to support snippets for completion
+         Self.Completion_Snippets_Enabled := True;
       end if;
 
       if not LSP.Types.Is_Empty (Value.rootUri) then
@@ -817,7 +854,7 @@ package body LSP.Ada_Handlers is
 
       Found : Boolean := False;
    begin
-      if Document in null then
+      if Document = null then
          return Response;
       end if;
 
@@ -1451,8 +1488,6 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response
    is
-      use type LSP.Ada_Documents.Document_Access;
-
       Value : LSP.Messages.FoldingRangeParams renames
         Request.params;
 
@@ -1486,6 +1521,27 @@ package body LSP.Ada_Handlers is
       end if;
    end On_Folding_Range_Request;
 
+   --------------------------------
+   -- On_Selection_Range_Request --
+   --------------------------------
+
+   overriding function On_Selection_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
+      return LSP.Messages.Server_Responses.SelectionRange_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.SelectionRange_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Selection_Range_Request;
+
    --------------------------
    -- On_Highlight_Request --
    --------------------------
@@ -1517,7 +1573,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Hover_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
@@ -1526,7 +1581,6 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
-      Subp_Spec_Node     : Base_Subp_Spec;
       Decl_Text          : LSP_String;
       Comments_Text      : LSP_String;
       Location_Text      : LSP_String;
@@ -1557,41 +1611,7 @@ package body LSP.Ada_Handlers is
          Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
          Decl_Text := Get_Hover_Text (Decl);
       else
-
-         --  Try to retrieve the subprogram spec node, if any: if it's a
-         --  subprogram node that does not have any separate declaration we
-         --  only want to display its specification, not the body.
-         Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
-
-         if Subp_Spec_Node /= No_Base_Subp_Spec then
-            Decl_Text := Get_Hover_Text (Subp_Spec_Node);
-
-            --  Append the aspects to the declaration text, if any.
-            declare
-               Aspects      : constant Aspect_Spec := Decl.F_Aspects;
-               Aspects_Text : LSP_String;
-            begin
-               if not Aspects.Is_Null then
-                  for Aspect of Aspects.F_Aspect_Assocs loop
-                     if Aspects_Text /= Empty_LSP_String then
-                        --  need to add "," for the highlighting
-                        Append (Aspects_Text, +",");
-                     end if;
-
-                     Append (Aspects_Text, Get_Hover_Text (Aspect));
-                  end loop;
-
-                  if Aspects_Text /= Empty_LSP_String then
-                     Decl_Text := Decl_Text
-                       & To_LSP_String (Line_Feed & "with")
-                       & Aspects_Text;
-                  end if;
-               end if;
-            end;
-
-         else
-            Decl_Text := Get_Hover_Text (Decl);
-         end if;
+         Decl_Text := Get_Hover_Text (Decl);
       end if;
 
       if Decl_Text = Empty_LSP_String then
@@ -1652,7 +1672,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Response
    is
       use Libadalang.Analysis;
-      use Libadalang.Common;
 
       Value      : LSP.Messages.ReferenceParams renames Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Response
@@ -1820,6 +1839,14 @@ package body LSP.Ada_Handlers is
       --  Query whether Node is a static or a dispatching call, and format
       --  this into an AlsReferenceKind_Set.
 
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
+
+      procedure Add_Subprogram
+        (Subp : LSP.Messages.ALS_Subprogram_And_References);
+      --  Add a subprogram in results, it prevents having duplicates
+
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
@@ -1841,10 +1868,6 @@ package body LSP.Ada_Handlers is
 
          return Result;
       end Get_Reference_Kind;
-
-      procedure Process_Context (C : Context_Access);
-      --  Process the calls found in one context and append
-      --  them to Response.results.
 
       ---------------------
       -- Process_Context --
@@ -1873,7 +1896,6 @@ package body LSP.Ada_Handlers is
 
             use LSP.Lal_Utils.References_By_Subprogram;
             C     : Cursor := Called.First;
-            Count : Cancel_Countdown := 0;
          begin
             Imprecise := Imprecise or This_Imprecise;
 
@@ -1893,19 +1915,35 @@ package body LSP.Ada_Handlers is
                   for Ref of Refs loop
                      Append_Location (Subp_And_Refs.refs, Ref,
                                       Get_Reference_Kind (Ref.As_Name));
-                     Count := Count - 1;
 
-                     if Count = 0 and then Request.Canceled then
+                     if Request.Canceled then
                         return;
                      end if;
                   end loop;
-                  Sort_And_Remove_Duplicates (Subp_And_Refs.refs);
-                  Response.result.Append (Subp_And_Refs);
+                  Add_Subprogram (Subp_And_Refs);
                   Next (C);
                end;
             end loop;
          end;
       end Process_Context;
+
+      --------------------
+      -- Add_Subprogram --
+      --------------------
+
+      procedure Add_Subprogram
+        (Subp : LSP.Messages.ALS_Subprogram_And_References)
+      is
+         use LSP.Messages;
+      begin
+         for Cur of Response.result loop
+            if Cur.loc = Subp.loc and then Cur.name = Subp.name then
+               Cur.refs.Append (Subp.refs);
+               return;
+            end if;
+         end loop;
+         Response.result.Append (Subp);
+      end Add_Subprogram;
 
    begin
       --  Find the references in all contexts
@@ -1921,6 +1959,9 @@ package body LSP.Ada_Handlers is
             LSP.Messages.Warning);
       end if;
 
+      for Loc of Response.result loop
+         Sort_And_Remove_Duplicates (Loc.refs);
+      end loop;
       return Response;
    end On_ALS_Called_By_Request;
 
@@ -2045,19 +2086,27 @@ package body LSP.Ada_Handlers is
       --  on the project: we can just choose the best context for this.
       Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-   begin
-      return Result : LSP.Messages.Server_Responses.Symbol_Response :=
+      Result   : LSP.Messages.Server_Responses.Symbol_Response :=
         (Is_Error => False,
          result   => <>,
          error    => (Is_Set => False),
-         others   => <>)
-      do
+         others   => <>);
+   begin
+      if Document = null then
+         declare
+            Document : LSP.Ada_Documents.Document_Access :=
+              Get_Open_Document (Self, Value.textDocument.uri, Force => True);
+         begin
+            Self.Get_Symbols (Document.all, Context.all, Result.result);
+            Unchecked_Free (Internal_Document_Access (Document));
+         end;
+      else
          Self.Get_Symbols (Document.all, Context.all, Result.result);
-      end return;
+      end if;
+      return Result;
    end On_Document_Symbols_Request;
 
    -----------------------
@@ -2112,28 +2161,136 @@ package body LSP.Ada_Handlers is
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri)
          is
-            use Libadalang.Common;
-
-            Token : Token_Reference := First_Token (Node.Unit);
-            Name  : constant Wide_Wide_String :=
+            Token     : Token_Reference := First_Token (Node.Unit);
+            Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
                 (Get_Last_Name (Name_Node));
-            Span  : LSP.Messages.Span;
+            Text_Edit : LSP.Messages.TextEdit;
+            Span      : LSP.Messages.Span;
+            Current   : Token_Reference;
+            Diff      : Integer;
+
+            Box_Line : constant Wide_String (1 .. 80) := (others => '-');
+
+            function Process_Box return Boolean;
+            --  Check whether Current is box header/footer and modify it.
+            --  Return False when the searching cycle should be stopped.
+
+            -----------------
+            -- Process_Box --
+            -----------------
+
+            function Process_Box return Boolean is
+               use Langkit_Support.Text;
+               use Langkit_Support.Slocs;
+
+            begin
+               if Current = No_Token then
+                  return False;
+               end if;
+
+               case Kind (Data (Current)) is
+                  when Ada_Whitespace =>
+                     return True;
+
+                  when Ada_Comment =>
+                     declare
+                        Value : constant Text_Type := Text (Current);
+                     begin
+                        for Idx in Value'Range loop
+                           if Value (Idx) /= '-' then
+                              return False;
+                           end if;
+                        end loop;
+
+                        if Diff > 0 then
+                           --  Increase '-', Diff is positive
+                           declare
+                              Sloc : constant Source_Location_Range :=
+                                Sloc_Range (Data (Current));
+
+                              Line  : constant LSP.Types.Line_Number :=
+                                LSP.Types.Line_Number (Sloc.Start_Line) - 1;
+                              Start : constant UTF_16_Index := UTF_16_Index
+                                (Sloc.End_Column - 1);
+                           begin
+                              Response.result.changes (Uri).Append
+                                (LSP.Messages.TextEdit'
+                                   (span =>
+                                        (first => (Line, Start),
+                                         last  => (Line, Start)),
+                                    newText =>
+                                      LSP.Types.To_Unbounded_Wide_String
+                                        (Box_Line (1 .. Diff))));
+                           end;
+
+                        else
+                           --  Decrease '-', Diff is negative
+                           declare
+                              Sloc : constant Source_Location_Range :=
+                                Sloc_Range (Data (Current));
+
+                              Line  : constant LSP.Types.Line_Number :=
+                                LSP.Types.Line_Number (Sloc.Start_Line) - 1;
+                              Last : constant UTF_16_Index := UTF_16_Index
+                                (Sloc.End_Column - 1);
+                           begin
+                              Response.result.changes (Uri).Append
+                                (LSP.Messages.TextEdit'
+                                   (span =>
+                                        (first =>
+                                             (Line, Last - UTF_16_Index
+                                                (abs Diff)),
+                                         last  =>
+                                           (Line, Last)),
+                                    newText =>
+                                      LSP.Types.To_Unbounded_Wide_String
+                                        ("")));
+                           end;
+                        end if;
+
+                        return False;
+                     end;
+
+                  when others =>
+                     return False;
+               end case;
+            end Process_Box;
 
          begin
+            Diff := Length (Value.newName) - Name'Length;
+
             while Token /= No_Token loop
                if Kind (Data (Token)) = Ada_Comment
-                 and then Contains (Token, Name, True, Span)
+                 and then Contains (Token, Name, True, Text_Edit.span)
                then
-                  declare
-                     C : constant LSP.Messages.TextEdit :=
-                       (span    => Span,
-                        newText => Value.newName);
-                  begin
-                     if not Response.result.changes (Uri).Contains (C) then
-                        Response.result.changes (Uri).Append (C);
-                     end if;
-                  end;
+                  Text_Edit.newText := Value.newName;
+
+                  if Diff /= 0
+                    and then Contains
+                      (Token, "-- " & Name & " --", False, Span)
+                  then
+                     --  Can be a comment box
+                     Current := Previous (Token);
+                     loop
+                        --  Looking for the box header
+                        exit when not Process_Box;
+                        Current := Previous (Current);
+                     end loop;
+
+                     --  Include corrected comment itself
+                     Response.result.changes (Uri).Append (Text_Edit);
+
+                     Current := Next (Token);
+                     loop
+                        --  Looking for the box footer
+                        exit when not Process_Box;
+                        Current := Next (Current);
+                     end loop;
+
+                  else
+                     Response.result.changes (Uri).Append (Text_Edit);
+                  end if;
                end if;
 
                Token := Next (Token);
@@ -2302,8 +2459,7 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
-      Self.Ensure_Project_Loaded
-        (To_LSP_String (Self.Root.Display_Full_Name));
+      Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
    ------------------
@@ -2412,6 +2568,10 @@ package body LSP.Ada_Handlers is
                LSP.Types.To_LSP_String
                  ("Unable to load project file: " &
                   (+GPR.Full_Name.all) & Line_Feed));
+
+            --  The project was invalid: fallback on loading the implicit
+            --  project.
+            Self.Load_Implicit_Project;
       end;
 
       --  Report the errors, if any
@@ -2479,7 +2639,18 @@ package body LSP.Ada_Handlers is
 
       procedure Emit_Progress_Begin is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Begin);
+
+         Create_Progress : constant LSP.Messages.Client_Requests
+           .WorkDoneProgressCreate_Request :=
+             (params => (token => token), others => <>);
       begin
+         Self.Server.On_WorkDoneProgress_Create_Request
+           (Create_Progress);
+         --  FIXME: wait response before sending progress notifications.
+         --  Currenctly, we just send a `window/workDoneProgress/create`
+         --  request and immediately after this start sending notifications.
+         --  We could do better, send request, wait for client response and
+         --  start progress-report sending only after response.
          P.Begin_Param.token := token;
          P.Begin_Param.value.title := +"Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
@@ -2514,8 +2685,9 @@ package body LSP.Ada_Handlers is
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
    begin
-      --  Prevent work if the indexing has been explicitly disabled
-      if not Self.Indexing_Enabled then
+      --  Prevent work if the indexing has been explicitly disabled or
+      --  if we have other messages to process.
+      if not Self.Indexing_Enabled or Self.Server.Has_Pending_Work then
          return;
       end if;
 
@@ -2632,7 +2804,11 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
    begin
       Document.Get_Completions_At
-        (Context.all, Value.position, Response.result);
+        (Context          => Context.all,
+         Position         => Value.position,
+         Snippets_Enabled => Self.Completion_Snippets_Enabled,
+         Result           => Response.result);
+
       return Response;
    end On_Completion_Request;
 

@@ -22,11 +22,12 @@ with "lsp";
 project LSP_Server is
 
    VERSION := external ("VERSION", "latest");
-   
+
    for Source_Dirs use
      ("../source/server",
       "../source/server/generated",
-      "../source/ada");
+      "../source/ada",
+      "../source/memory");
 
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");
@@ -35,6 +36,7 @@ project LSP_Server is
       for Default_Switches ("Ada") use LSP.Ada_Switches;
       for Switches ("lsp-ada_driver.adb") use
         LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
+      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
    end Compiler;
 
 

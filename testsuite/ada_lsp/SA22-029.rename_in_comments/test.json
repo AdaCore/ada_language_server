@@ -89,7 +89,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "\npackage P is\n\n   type T is tagged null record;\n\n   ------------\n   --  Print --\n   ------------\n\n   procedure Print (S : T);\n\n   ------------\n   --  Print --\n   ------------\n\nend P;\n",
+                  "text": "\npackage P is\n\n   type T is tagged null record;\n\n   ------------\n   -- Print --\n   ------------\n\n   procedure Print (S : T);\n\n   ------------\n   -- Print --\n   ------------\n\nend P;\n",
                   "version": 0,
                   "uri": "$URI{p.ads}",
                   "languageId": "Ada"
@@ -168,47 +168,99 @@
                         }
                      ],
                      "$URI{p.ads}": [
-                        {
-                           "newText": "Print1",
-                           "range": {
-                              "start": {
-                                 "line": 6,
-                                 "character": 7
-                              },
-                              "end": {
-                                 "line": 6,
-                                 "character": 18
-                              }
+                       {
+                         "range": {
+                           "start": {
+                             "line": 5,
+                             "character": 15
+                           },
+                           "end": {
+                             "line": 5,
+                             "character": 15
                            }
-                        },
-                        {
-                           "newText": "Print1",
-                           "range": {
-                              "start": {
-                                 "line": 12,
-                                 "character": 7
-                              },
-                              "end": {
-                                 "line": 12,
-                                 "character": 18
-                              }
+                         },
+                         "newText": "-"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 6,
+                             "character": 6
+                           },
+                           "end": {
+                             "line": 6,
+                             "character": 11
                            }
-                        },
-                        {
-                           "newText": "Print1",
-                           "range": {
-                              "start": {
-                                 "line": 9,
-                                 "character": 13
-                              },
-                              "end": {
-                                 "line": 9,
-                                 "character": 18
-                              }
+                         },
+                         "newText": "Print1"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 7,
+                             "character": 15
+                           },
+                           "end": {
+                             "line": 7,
+                             "character": 15
                            }
-                        }
+                         },
+                         "newText": "-"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 11,
+                             "character": 15
+                           },
+                           "end": {
+                             "line": 11,
+                             "character": 15
+                           }
+                         },
+                         "newText": "-"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 12,
+                             "character": 6
+                           },
+                           "end": {
+                             "line": 12,
+                             "character": 11
+                           }
+                         },
+                         "newText": "Print1"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 13,
+                             "character": 15
+                           },
+                           "end": {
+                             "line": 13,
+                             "character": 15
+                           }
+                         },
+                         "newText": "-"
+                       },
+                       {
+                         "range": {
+                           "start": {
+                             "line": 9,
+                             "character": 13
+                           },
+                           "end": {
+                             "line": 9,
+                             "character": 18
+                           }
+                         },
+                         "newText": "Print1"
+                       }
                      ],
-                     "$URI{p1.adb}": [
+                       "$URI{p1.adb}": [
                         {
                            "newText": "Print1",
                            "range": {

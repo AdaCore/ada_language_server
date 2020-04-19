@@ -39,9 +39,12 @@ package LSP.Common is
       Message : String := "");
    --  Log an exception in the given traces, with an optional message
 
-   function Get_Hover_Text (Node : Ada_Node'Class) return LSP_String;
-   --  Return a pretty printed version of the node's text to be displayed on
-   --  hover requests, removing unnecessary indentation whitespaces if needed
-   --  and attaching extra information in some cases.
+   function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String;
+   --  Return a pretty printed version of the declaration's text to be
+   --  displayed on hover requests, removing unnecessary indentation
+   --  whitespaces if needed and attaching extra information in some cases.
+
+   type Base_Id_Array is array (Positive range <>) of Base_Id;
+   --  Helper type: array of base ids. Used in cross references.
 
 end LSP.Common;

@@ -69,11 +69,6 @@
                      "location":{"range":{
                          "start":{"line":0,"character":8},
                          "end":{"line":0,"character":11}}}},
-                    {"name":"Variable",
-                     "kind":13,
-                     "location":{"range":{
-                         "start":{"line":2,"character":3},
-                         "end":{"line":2,"character":11}}}},
                     {"name":"Proc",
                      "kind":12,
                      "location":{"range":{

@@ -185,7 +185,7 @@
         "postinstall": "vscode-install"
     },
     "dependencies": {
-        "vscode-languageclient": "^5.2.1",
+        "vscode-languageclient": "^6.0.1",
         "ws": "^6.0.0",
         "process": "^0.10.0"
     }

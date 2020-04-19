@@ -1,0 +1,246 @@
+[
+   {
+      "comment": [
+         "This test checks that completion works fine on renamed packages."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 14502,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "completionItemKind": {},
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "codeLens": {},
+                     "selectionRange": {},
+                     "implementation": {},
+                     "formatting": {},
+                     "typeDefinition": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "symbolKind": {},
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "resolveProvider": false,
+                             "triggerCharacters": [
+                                 "."
+                             ]
+                         },
+                         "hoverProvider": true,
+                         "declarationProvider": true,
+                         "definitionProvider": true,
+                         "typeDefinitionProvider": true,
+                         "implementationProvider": true,
+                         "referencesProvider": true,
+                         "documentSymbolProvider": true,
+                         "codeActionProvider": {
+                         },
+                         "renameProvider": {
+                         },
+                         "foldingRangeProvider": true,
+                         "executeCommandProvider": {
+                             "commands": [
+                                 "als-named-parameters"
+                             ]
+                         },
+                         "alsCalledByProvider": true,
+                         "alsReferenceKinds": [
+                             "reference",
+                             "write",
+                             "call",
+                             "dispatching call",
+                             "parent",
+                             "child"
+                         ]
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Parent.Children;\n\nprocedure Main is\n   package Wl renames Parent.Children;\n   Child : Wl.Child;\nbegin\n   Child\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "with Parent.Children;\n\nprocedure Main is\n   package Wl renames Parent.Children;\n   Child : Wl.Child;\nbegin\n   Child.\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 6,
+                  "character": 9
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "additionalTextEdits": [],
+                        "kind": 3,
+                        "documentation": "",
+                        "detail": "procedure Do_Someting (D : Children.Child) is null",
+                        "label": "Do_Someting"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

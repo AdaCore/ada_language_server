@@ -22,6 +22,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;           use GNAT.OS_Lib;
 
 with GNATCOLL.Utils; use GNATCOLL.Utils;
+with GNATCOLL.JSON;  use GNATCOLL.JSON;
 
 with Spawn.Processes.Monitor_Loop;
 
@@ -236,8 +237,6 @@ package body Tester.Tests is
      (Self : in out Test;
       Data : Ada.Strings.Unbounded.Unbounded_String)
    is
-      use type GNATCOLL.JSON.JSON_Value_Type;
-
       procedure Sweep_Waits (JSON : GNATCOLL.JSON.JSON_Value);
       --  Find matching wait if any and delete it from Test.Waits
 
@@ -258,8 +257,6 @@ package body Tester.Tests is
       -----------
 
       function Match (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean is
-
-         use type GNATCOLL.JSON.JSON_Value;
 
          procedure Match_Property
            (Name  : String;

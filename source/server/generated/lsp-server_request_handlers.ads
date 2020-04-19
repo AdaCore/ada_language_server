@@ -110,6 +110,11 @@ package LSP.Server_Request_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response is abstract;
 
+   function On_Selection_Range_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
+      return LSP.Messages.Server_Responses.SelectionRange_Response is abstract;
+
    function On_Workspace_Symbols_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

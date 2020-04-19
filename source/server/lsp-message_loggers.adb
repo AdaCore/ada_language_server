@@ -31,6 +31,7 @@ package body LSP.Message_Loggers is
    function Image (Value : LSP.Messages.ResponseMessage'Class) return String;
    function Image (Value : LSP.Messages.Position) return String;
    function Image (Value : LSP.Messages.Span) return String;
+   function Image (Value : LSP.Types.LSP_Number_Or_String) return String;
 
    function Image
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String;
@@ -50,14 +51,23 @@ package body LSP.Message_Loggers is
    -- Image --
    -----------
 
+   function Image (Value : LSP.Types.LSP_Number_Or_String) return String is
+   begin
+      if Value.Is_Number then
+         return LSP.Types.LSP_Number'Image (Value.Number);
+      else
+         return +Value.String;
+      end if;
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
    function Image (Value : LSP.Messages.RequestMessage'Class) return String is
       Prefix : constant String := "Request ";
    begin
-      if Value.id.Is_Number then
-         return Prefix & LSP.Types.LSP_Number'Image (Value.id.Number) & ' ';
-      else
-         return Prefix & (+Value.id.String) & ' ';
-      end if;
+      return Prefix & Image (Value.id) & ' ';
    end Image;
 
    -----------
@@ -649,6 +659,42 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_FoldingRange_Response;
+
+   --------------------------------
+   -- On_Selection_Range_Request --
+   --------------------------------
+
+   overriding procedure On_Selection_Range_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Selection_Range_Request) is
+   begin
+      Self.Trace.Trace
+        ("Selection_Range_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Selection_Range_Request;
+
+   --------------------------------
+   -- On_SelectionRange_Response --
+   --------------------------------
+
+   overriding procedure On_SelectionRange_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.SelectionRange_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("SelectionRange_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("SelectionRange_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_SelectionRange_Response;
 
    --------------------------
    -- On_Highlight_Request --
@@ -1245,5 +1291,20 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & (+Value.params.query));
    end On_Workspace_Symbols_Request;
+
+   ----------------------------------------
+   -- On_WorkDoneProgress_Create_Request --
+   ----------------------------------------
+
+   overriding procedure On_WorkDoneProgress_Create_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request)
+   is
+   begin
+      Self.Trace.Trace
+        ("WorkDoneProgress_Create_Request: "
+         & Image (Value)
+         & Image (Value.params.token));
+   end On_WorkDoneProgress_Create_Request;
 
 end LSP.Message_Loggers;

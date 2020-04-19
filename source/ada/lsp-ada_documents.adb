@@ -15,16 +15,21 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Conversions;
 with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
+with GNATCOLL.Utils;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
+with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Common;
 with LSP.Lal_Utils;
 
 package body LSP.Ada_Documents is
@@ -33,9 +38,45 @@ package body LSP.Ada_Documents is
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
    function Get_Decl_Kind
-     (Node : Libadalang.Analysis.Basic_Decl)
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
       return LSP.Messages.SymbolKind;
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+   --  When Ignore_Local it will return Is_Null for all local objects like
+   --  variables.
+
+   function Get_Profile
+     (Node        : Libadalang.Analysis.Basic_Decl;
+      Is_Function : out Boolean)
+      return LSP.Types.LSP_String;
+   --  Return the profile of Node.
+
+   function Is_Declaration
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+
+   function Is_Structure
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+   --  Return True if the type contains a record part.
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.Als_Visibility;
+
+   function Compute_Completion_Item
+     (Context          : LSP.Ada_Contexts.Context;
+      BD               : Libadalang.Analysis.Basic_Decl;
+      DN               : Libadalang.Analysis.Defining_Name;
+      Snippets_Enabled : Boolean;
+      Is_Dot_Call      : Boolean)
+      return LSP.Messages.CompletionItem;
+   --  Compute a completion item.
+   --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
+   --  BD and DN are respectively the basic declaration and the defining name
+   --  that should be used to compute the completion item.
+   --  When Snippets_Enabled is True, subprogram completion items are computed
+   --  as snippets that list all the subprogram's formal parameters.
+   --  Is_Dot_Call is used to know if we should omit the first parameter
+   --  when computing subprogram snippets.
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
@@ -230,10 +271,13 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
+
       procedure Walk
-        (Node   : Libadalang.Analysis.Ada_Node;
-         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree   : in out LSP.Messages.DocumentSymbol_Tree);
+        (Node         : Libadalang.Analysis.Ada_Node;
+         Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Nested_Level : Integer;
+         Tree         : in out LSP.Messages.DocumentSymbol_Tree);
       --  Traverse Node and all its children recursively. Find any defining
       --  name and construct corresponding symbol node, then append it to
       --  the Tree under a position pointed by the Cursor.
@@ -243,42 +287,99 @@ package body LSP.Ada_Documents is
       ----------
 
       procedure Walk
-        (Node   : Libadalang.Analysis.Ada_Node;
-         Cursor : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree   : in out LSP.Messages.DocumentSymbol_Tree)
+        (Node         : Libadalang.Analysis.Ada_Node;
+         Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         Nested_Level : Integer;
+         Tree         : in out LSP.Messages.DocumentSymbol_Tree)
       is
-         Next : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         Next             : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         New_Nested_Level : Integer := Nested_Level;
       begin
+         if Node = No_Ada_Node then
+            return;
+         end if;
+
          if Node.Kind in Libadalang.Common.Ada_Basic_Decl then
             declare
-               use type Libadalang.Analysis.Defining_Name;
-
                Decl : constant Libadalang.Analysis.Basic_Decl :=
                  Node.As_Basic_Decl;
 
-               Names : constant Libadalang.Analysis.Defining_Name_Array :=
-                 Decl.P_Defining_Names;
+               Kind : constant LSP.Messages.SymbolKind :=
+                 Get_Decl_Kind (Decl, Ignore_Local => Nested_Level > 1);
 
             begin
-               for Name of Names loop
+               if Kind /= LSP.Messages.A_Null then
+                  New_Nested_Level := New_Nested_Level + 1;
+                  declare
+                     Names : constant Libadalang.Analysis.Defining_Name_Array
+                       := Decl.P_Defining_Names;
+                  begin
 
-                  exit when Name = Libadalang.Analysis.No_Defining_Name;
+                     for Name of Names loop
+                        exit when Name = Libadalang.Analysis.No_Defining_Name;
 
+                        declare
+                           Is_Function : Boolean;
+                           Profile : constant LSP.Types.LSP_String :=
+                             Get_Profile (Decl, Is_Function);
+                           Item : constant LSP.Messages.DocumentSymbol :=
+                             (name              => To_LSP_String (Name.Text),
+                              detail            =>
+                                (Is_Set => True, Value => Profile),
+                              kind              => Kind,
+                              deprecated        => (Is_Set => False),
+                              span              => LSP.Lal_Utils.To_Span
+                                (Node.Sloc_Range),
+                              selectionRange    => LSP.Lal_Utils.To_Span
+                                (Name.Sloc_Range),
+                              alsIsDeclaration  =>
+                                (Is_Set => True,
+                                 Value  => Is_Declaration (Decl)),
+                              alsIsAdaProcedure =>
+                                (if Is_Function
+                                 then (Is_Set => False)
+                                 else (Is_Set => True, Value => True)),
+                              alsVisibility     =>
+                                (Is_Set => True,
+                                 Value  => Get_Visibility (Decl)),
+                              children          => True);
+                        begin
+                           Tree.Insert_Child
+                             (Parent   => Cursor,
+                              Before   =>
+                                Messages.DocumentSymbol_Trees.No_Element,
+                              New_Item => Item,
+                              Position => Next);
+                        end;
+                     end loop;
+                  end;
+               end if;
+            end;
+         elsif Node.Kind in Libadalang.Common.Ada_With_Clause_Range then
+            declare
+               With_Node : constant Libadalang.Analysis.With_Clause :=
+                 Node.As_With_Clause;
+            begin
+               for N of With_Node.F_Packages loop
                   declare
                      Item : constant LSP.Messages.DocumentSymbol :=
-                       (name           => To_LSP_String (Name.Text),
-                        detail         => (Is_Set => False),
-                        kind           => Get_Decl_Kind (Decl),
-                        deprecated     => (Is_Set => False),
-                        span           => LSP.Lal_Utils.To_Span
+                       (name              => To_LSP_String (N.Text),
+                        detail            => (Is_Set => False),
+                        kind              => Namespace,
+                        deprecated        => (Is_Set => False),
+                        span              => LSP.Lal_Utils.To_Span
                           (Node.Sloc_Range),
-                        selectionRange => LSP.Lal_Utils.To_Span
-                          (Node.Sloc_Range),
-                        children       => True);
+                        selectionRange    => LSP.Lal_Utils.To_Span
+                          (N.Sloc_Range),
+                        alsIsDeclaration  => (Is_Set => False),
+                        alsIsAdaProcedure => (Is_Set => False),
+                        alsVisibility     => (Is_Set => False),
+                        children          => False);
                   begin
                      Tree.Insert_Child
                        (Parent   => Cursor,
-                        Before   => Messages.DocumentSymbol_Trees.No_Element,
+                        Before   =>
+                          Messages.DocumentSymbol_Trees.No_Element,
                         New_Item => Item,
                         Position => Next);
                   end;
@@ -288,7 +389,7 @@ package body LSP.Ada_Documents is
 
          for Child of Node.Children loop
             if Child not in Libadalang.Analysis.No_Ada_Node then
-               Walk (Child, Next, Tree);
+               Walk (Child, Next, New_Nested_Level, Tree);
             end if;
          end loop;
       end Walk;
@@ -296,7 +397,7 @@ package body LSP.Ada_Documents is
       Root : constant Libadalang.Analysis.Ada_Node := Self.Unit (Context).Root;
    begin
       Result := (Is_Tree => True, others => <>);
-      Walk (Root, Result.Tree.Root, Result.Tree);
+      Walk (Root, Result.Tree.Root, 0, Result.Tree);
    end Get_Symbol_Hierarchy;
 
    -----------------
@@ -308,6 +409,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
       Item    : LSP.Messages.SymbolInformation;
 
@@ -325,14 +427,22 @@ package body LSP.Ada_Documents is
          Vector  => <>);
 
       while Cursor.Next (Element) loop
-         Item.name := To_LSP_String (Element.Text);
-         Item.kind := Get_Decl_Kind (Element.As_Defining_Name.P_Basic_Decl);
-         Item.location :=
-           (uri     => Self.URI,
-            span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
-            alsKind => LSP.Messages.Empty_Set);
+         declare
+            Kind : constant LSP.Messages.SymbolKind :=
+              Get_Decl_Kind
+                (Element.As_Defining_Name.P_Basic_Decl, Ignore_Local => True);
+         begin
+            if Kind /= LSP.Messages.A_Null then
+               Item.name := To_LSP_String (Element.Text);
+               Item.kind := Kind;
+               Item.location :=
+                 (uri     => Self.URI,
+                  span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
+                  alsKind => LSP.Messages.Empty_Set);
 
-         Result.Vector.Append (Item);
+               Result.Vector.Append (Item);
+            end if;
+         end;
       end loop;
    end Get_Symbols;
 
@@ -346,7 +456,6 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
    is
-      use Libadalang.Analysis;
       use Langkit_Support.Slocs;
 
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
@@ -372,7 +481,6 @@ package body LSP.Ada_Documents is
       Result     : out LSP.Messages.FoldingRange_Vector)
    is
       use Libadalang.Common;
-      use Libadalang.Analysis;
 
       Location     : LSP.Messages.Location;
       foldingRange : LSP.Messages.FoldingRange;
@@ -598,7 +706,8 @@ package body LSP.Ada_Documents is
    -------------------
 
    function Get_Decl_Kind
-     (Node : Libadalang.Analysis.Basic_Decl)
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
       return LSP.Messages.SymbolKind
    is
       use Libadalang.Common;
@@ -633,7 +742,9 @@ package body LSP.Ada_Documents is
               Ada_Extended_Return_Stmt_Object_Decl |
               Ada_Single_Protected_Decl |
               Ada_Single_Task_Decl =>
-            return LSP.Messages.Variable;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.Variable);
 
          when Ada_Generic_Formal_Package |
               Ada_Package_Decl |
@@ -643,8 +754,7 @@ package body LSP.Ada_Documents is
               Ada_Package_Renaming_Decl =>
             return LSP.Messages.A_Package;
 
-         when
-              Ada_Package_Body_Stub |
+         when Ada_Package_Body_Stub |
               Ada_Protected_Body_Stub |
               Ada_Task_Body_Stub |
               Ada_Package_Body |
@@ -652,13 +762,17 @@ package body LSP.Ada_Documents is
               Ada_Task_Body =>
             return LSP.Messages.Module;
 
+         when Ada_Type_Decl =>
+            return (if Is_Structure (Node)
+                    then LSP.Messages.Struct
+                    else LSP.Messages.Class);
+
          when Ada_Generic_Formal_Type_Decl |
               Ada_Classwide_Type_Decl |
               Ada_Incomplete_Type_Decl |
               Ada_Incomplete_Tagged_Type_Decl |
               Ada_Protected_Type_Decl |
               Ada_Task_Type_Decl |
-              Ada_Type_Decl |
               Ada_Subtype_Decl |
               Ada_Anonymous_Type_Decl |
               Ada_Synth_Anonymous_Type_Decl =>
@@ -669,7 +783,9 @@ package body LSP.Ada_Documents is
             return LSP.Messages.Number;
 
          when Ada_Enum_Literal_Decl =>
-            return LSP.Messages.Enum;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.Enum);
 
          when Ada_Exception_Decl =>
             return LSP.Messages.String;
@@ -677,14 +793,221 @@ package body LSP.Ada_Documents is
          when Ada_For_Loop_Var_Decl |
               Ada_Label_Decl |
               Ada_Named_Stmt_Decl =>
-            return LSP.Messages.A_Constant;
+            return (if Ignore_Local
+                    then LSP.Messages.A_Null
+                    else LSP.Messages.A_Constant);
 
          when others
             => null;
       end case;
 
-      return LSP.Messages.A_Function;
+      return LSP.Messages.A_Null;
    end Get_Decl_Kind;
+
+   -----------------
+   -- Get_Profile --
+   -----------------
+
+   function Get_Profile
+     (Node        : Libadalang.Analysis.Basic_Decl;
+      Is_Function : out Boolean)
+      return LSP.Types.LSP_String
+   is
+      use Ada.Strings.Wide_Wide_Unbounded;
+      use Libadalang.Common;
+
+      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
+      --  Retrieve the node text and format it
+
+      function To_Profile
+        (Node : Libadalang.Analysis.Subp_Spec'Class)
+         return LSP.Types.LSP_String;
+
+      -------------
+      -- To_Text --
+      -------------
+
+      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String
+      is
+         Node_Text : constant String :=
+           Langkit_Support.Text.To_UTF8 (Node.Text);
+         Result    : String  := Node_Text;
+         Was_Space : Boolean := False;
+         Cur       : Integer := Node_Text'First;
+      begin
+         for I in Node_Text'Range loop
+            if Node_Text (I) = ' ' then
+               --  Trim multiple whitespace to only keep one
+               if not Was_Space then
+                  Result (Cur) := Node_Text (I);
+                  Cur := Cur + 1;
+               end if;
+               Was_Space := True;
+               --  Remove the new line character
+            elsif Node_Text (I) /= ASCII.LF then
+               Was_Space := False;
+               Result (Cur) := Node_Text (I);
+               Cur := Cur + 1;
+            end if;
+         end loop;
+         return Ada.Characters.Conversions.To_Wide_Wide_String
+           (Result (Result'First .. Cur - 1));
+      end To_Text;
+
+      ----------------
+      -- To_Profile --
+      ----------------
+
+      function To_Profile
+        (Node : Libadalang.Analysis.Subp_Spec'Class)
+         return LSP.Types.LSP_String
+      is
+         Result  : Unbounded_Wide_Wide_String;
+         Params  : constant Param_Spec_Array := Node.P_Params;
+         Returns : constant Type_Expr := Node.F_Subp_Returns;
+      begin
+         if Params'Length > 0 then
+            Append (Result, "(");
+         end if;
+
+         for Param of Params loop
+            declare
+               Names : constant Defining_Name_List := Param.F_Ids;
+               Init  : constant Expr := Param.F_Default_Expr;
+               Item  : Unbounded_Wide_Wide_String;
+            begin
+               Append (Item, " :");
+
+               case Param.F_Mode is
+                  when Ada_Mode_Default | Ada_Mode_In =>
+                     Append (Item, " in ");
+                  when Ada_Mode_In_Out =>
+                     Append (Item, " in out ");
+                  when Ada_Mode_Out =>
+                     Append (Item, " out ");
+               end case;
+
+               Append (Item, To_Text (Param.F_Type_Expr));
+
+               if not Init.Is_Null then
+                  Append (Item, " := ");
+                  Append (Item, To_Text (Init));
+               end if;
+
+               for J in Names.First_Child_Index .. Names.Last_Child_Index loop
+                  if Length (Result) /= 1 then
+                     Append (Result, "; ");
+                  end if;
+
+                  Append (Result, To_Text (Names.Child (J)));
+                  Append (Result, Item);
+               end loop;
+
+            end;
+         end loop;
+
+         if Params'Length > 0 then
+            Append (Result, ")");
+         end if;
+
+         if not Returns.Is_Null then
+            Is_Function := True;
+            Append (Result, " return ");
+            Append (Result, To_Text (Returns));
+         end if;
+
+         return To_LSP_String (To_Wide_Wide_String (Result));
+      end To_Profile;
+   begin
+      Is_Function := False;
+      case Node.Kind is
+         when Ada_Classic_Subp_Decl =>
+            return To_Profile (Node.As_Classic_Subp_Decl.F_Subp_Spec);
+         when Ada_Base_Subp_Body    =>
+            return To_Profile (Node.As_Base_Subp_Body.F_Subp_Spec);
+         when Ada_Generic_Subp_Decl =>
+            return To_Profile
+              (Node.As_Generic_Subp_Decl.F_Subp_Decl.F_Subp_Spec);
+         when others =>
+            return LSP.Types.Empty_LSP_String;
+      end case;
+   end Get_Profile;
+
+   --------------------
+   -- Is_Declaration --
+   --------------------
+
+   function Is_Declaration
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+      use Libadalang.Common;
+   begin
+      case Node.Kind is
+         when Ada_Generic_Package_Decl |
+              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Renaming_Decl |
+              Ada_Package_Decl |
+              Ada_Package_Renaming_Decl |
+              Ada_Abstract_Subp_Decl |
+              Ada_Formal_Subp_Decl |
+              Ada_Subp_Decl |
+              Ada_Subp_Renaming_Decl |
+              Ada_Generic_Subp_Instantiation |
+              Ada_Generic_Subp_Renaming_Decl |
+              Ada_Generic_Subp_Decl |
+              Ada_Null_Subp_Decl |
+              Ada_Expr_Function |
+              Ada_Protected_Type_Decl |
+              Ada_Single_Protected_Decl |
+              Ada_Entry_Decl |
+              Ada_Type_Decl |
+              Ada_Single_Task_Decl |
+              Ada_Task_Type_Decl =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Declaration;
+
+   ------------------
+   -- Is_Structure --
+   ------------------
+
+   function Is_Structure
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+      use Libadalang.Common;
+   begin
+      for Child of Node.Children loop
+         if Child /= No_Ada_Node
+           and then Child.Kind = Ada_Record_Type_Def
+         then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Is_Structure;
+
+   --------------------
+   -- Get_Visibility --
+   --------------------
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Messages.Als_Visibility
+   is
+      use Libadalang.Common;
+   begin
+      for Parent of Node.Parents loop
+         if Parent.Kind = Ada_Private_Part then
+            return LSP.Messages.Als_Private;
+         elsif Parent.Kind in Ada_Protected_Body | Ada_Protected_Def then
+            return LSP.Messages.Als_Protected;
+         end if;
+      end loop;
+      return LSP.Messages.Als_Public;
+   end Get_Visibility;
 
    ----------------
    -- Initialize --
@@ -720,58 +1043,153 @@ package body LSP.Ada_Documents is
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
    is
-      use Libadalang.Analysis;
       use Libadalang.Common;
+   begin
+
+      --  If the basic declaration is an enum literal, display the whole
+      --  enumeration type declaration instead.
+      if BD.Kind in Ada_Enum_Literal_Decl then
+         return LSP.Common.Get_Hover_Text
+           (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
+      else
+         return LSP.Common.Get_Hover_Text (BD);
+      end if;
+   end Compute_Completion_Detail;
+
+   -----------------------------
+   -- Compute_Completion_Item --
+   -----------------------------
+
+   function Compute_Completion_Item
+     (Context          : LSP.Ada_Contexts.Context;
+      BD               : Libadalang.Analysis.Basic_Decl;
+      DN               : Libadalang.Analysis.Defining_Name;
+      Snippets_Enabled : Boolean;
+      Is_Dot_Call      : Boolean)
+      return LSP.Messages.CompletionItem
+   is
       use LSP.Messages;
       use LSP.Types;
 
-      Ret : LSP_String;
+      Item           : CompletionItem;
+      Subp_Spec_Node : Base_Subp_Spec;
    begin
-      case Get_Decl_Kind (BD) is
-         when A_Function =>
-            Append (Ret, "(subprogram) ");
+      Item.label := To_LSP_String (DN.P_Relative_Name.Text);
+      Item.kind := (True, To_Completion_Kind
+                 (Get_Decl_Kind (BD)));
+      Item.detail := (True, Compute_Completion_Detail (BD));
 
-         when Variable =>
-            case BD.Kind is
-               when Ada_Param_Spec =>
-                  Append (Ret, "(param) ");
-               when others =>
-                  Append (Ret, "(var) ");
-            end case;
+      --  Property_Errors can occur when calling
+      --  Get_Documentation on unsupported docstrings, so
+      --  add an exception handler to catch them and recover.
+      begin
+         Item.documentation :=
+           (Is_Set => True,
+            Value  => String_Or_MarkupContent'
+              (Is_String => True,
+               String    => To_LSP_String
+                 (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
+                      Encode
+                    (Libadalang.Doc_Utils.Get_Documentation
+                         (BD).Doc.To_String))));
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            LSP.Common.Log (Context.Trace, E);
+            Item.documentation := (others => <>);
+      end;
 
-            declare
-               TE : constant Type_Expr := BD.As_Basic_Decl.P_Type_Expression;
-            begin
-               if not TE.Is_Null then
-                  Append
-                    (Ret,
-                     To_LSP_String (TE.Text));
-               end if;
-            end;
-         when LSP.Messages.Class =>
+      --  Return immediately if the client does not support completion
+      --  snippets.
+      if not Snippets_Enabled then
+         return Item;
+      end if;
 
-            Append (Ret, "(type) ");
+      --  Check if we are dealing with a subprogram and return a completion
+      --  snippet that lists all the formal parameters if it's the case.
 
-         when LSP.Messages.A_Package =>
-            Append (Ret, "(package) ");
+      Subp_Spec_Node := BD.P_Subp_Spec_Or_Null;
 
-         when others => null;
-      end case;
+      if Subp_Spec_Node.Is_Null then
+         return Item;
+      end if;
 
-      return Ret;
-   end Compute_Completion_Detail;
+      declare
+         Insert_Text : LSP_String := Item.label;
+         All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
+
+         Params      : constant Param_Spec_Array :=
+           (if Is_Dot_Call then
+               All_Params (All_Params'First + 1 .. All_Params'Last)
+            else
+               All_Params);
+         --  Remove the first formal parameter from the list when the dotted
+         --  notation is used.
+
+         Idx         : Positive := 1;
+      begin
+
+         --  Create a completion snippet if the subprogram expects some
+         --  parameters.
+
+         if Params'Length /= 0 then
+            Item.insertTextFormat := Optional_InsertTextFormat'
+              (Is_Set => True,
+               Value  => Snippet);
+
+            Insert_Text := Insert_Text & " (";
+
+            for Param of Params loop
+               for Id of Param.F_Ids loop
+                  declare
+                     Mode : constant String :=
+                       Langkit_Support.Text.To_UTF8 (Param.F_Mode.Text);
+                  begin
+                     Insert_Text := Insert_Text & To_LSP_String
+                       ("${" & GNATCOLL.Utils.Image (Idx, Min_Width => 1) & ":"
+                        & (if Mode /= "" then
+                               Mode & " "
+                           else
+                             "")
+                        & Langkit_Support.Text.To_UTF8 (Id.Text)
+                        & " : "
+                        & Langkit_Support.Text.To_UTF8 (Param.F_Type_Expr.Text)
+                        & "}, ");
+
+                     Idx := Idx + 1;
+                  end;
+               end loop;
+            end loop;
+
+            --  Remove the "}, " substring that has been appended in the last
+            --  loop iteration.
+            Insert_Text := Unbounded_Slice
+              (Insert_Text,
+               1,
+               Length (Insert_Text) - 2);
+
+            --  Insert '$0' (i.e: the final tab stop) at the end.
+            Insert_Text := Insert_Text & ")$0";
+
+            Item.insertText :=
+              (Is_Set => True,
+               Value  => Insert_Text);
+         end if;
+      end;
+
+      return Item;
+   end Compute_Completion_Item;
 
    ------------------------
    -- Get_Completions_At --
    ------------------------
 
    procedure Get_Completions_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Result   : out LSP.Messages.CompletionList)
+     (Self             : Document;
+      Context          : LSP.Ada_Contexts.Context;
+      Position         : LSP.Messages.Position;
+      Snippets_Enabled : Boolean;
+      Result           : out LSP.Messages.CompletionList)
    is
-      use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Messages;
       use LSP.Types;
@@ -814,18 +1232,20 @@ package body LSP.Ada_Documents is
          & Image (Node));
 
       declare
-         Raw_Completions : constant Basic_Decl_Array :=
+         Raw_Completions : constant Completion_Item_Array :=
            Node.P_Complete;
+         BD : Basic_Decl;
       begin
          Context.Trace.Trace
            ("Number of raw completions : " & Raw_Completions'Length'Image);
-         for BD of Raw_Completions loop
+
+         for CI of Raw_Completions loop
+            BD := Decl (CI).As_Basic_Decl;
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
                   declare
-                     R      : CompletionItem;
                      Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                              Langkit_Support.Text.To_UTF8 (Node.Text);
+                       Langkit_Support.Text.To_UTF8 (Node.Text);
                   begin
 
                      --  If we are not completing a dotted name, filter the
@@ -836,11 +1256,17 @@ package body LSP.Ada_Documents is
                           Prefix         => Prefix,
                           Case_Sensitive => False)
                      then
-                        R.label := To_LSP_String (DN.P_Relative_Name.Text);
-                        R.kind := (True, To_Completion_Kind
-                                   (Get_Decl_Kind (BD)));
-                        R.detail := (True, Compute_Completion_Detail (BD));
-                        Result.items.Append (R);
+                        Context.Trace.Trace
+                          ("Calling Get_Documentation on Node = "
+                           & Image (BD));
+
+                        Result.items.Append
+                          (Compute_Completion_Item
+                             (Context          => Context,
+                              BD               => BD,
+                              DN               => DN,
+                              Snippets_Enabled => Snippets_Enabled,
+                              Is_Dot_Call      => Is_Dot_Call (CI)));
                      end if;
                   end;
                end loop;

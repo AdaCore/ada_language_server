@@ -295,6 +295,8 @@ REQUESTS = [
      'ColorPresentationParams', 'ColorPresentation_Response'),
     ('textDocument/foldingRange', 'Folding_Range',
      'FoldingRangeParams', 'FoldingRange_Response'),
+    ('textDocument/selectionRange', 'Selection_Range',
+     'SelectionRangeParams', 'SelectionRange_Response'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
