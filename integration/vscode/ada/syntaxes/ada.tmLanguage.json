@@ -1355,12 +1355,13 @@
 					"match": "(?i)\\b(not\\s+null)\\b"
 				},
 				{ "include": "#composite_constraint" },
+				{ "include": "#aspect_specification" },
 				{ "include": "#subtype_indication" }
 			]
 		},
 		"subtype_indication": {
 			"name": "meta.declaration.indication.subtype.ada",
-			"match": "(?i)\\b((?:\\w|\\d|_)+)(\\s+[^\\s\\(][^;]+)?\\b",
+			"match": "(?i)\\b((?:\\w|\\d|_)+)(\\s+[^\\s\\((with)][^;]+)?\\b",
 			"captures": {
 				"1": { "patterns": [ { "include": "#subtype_mark" } ] },
 				"2": { "patterns": [ { "include": "#scalar_constraint" } ] }
