@@ -1154,7 +1154,9 @@
 				"0": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#array_aggregate" }
+				{ "include": "#record_representation_clause" },
+				{ "include": "#array_aggregate" },
+				{ "include": "#expression" }
 			]
 		},
 		"array_aggregate": {
@@ -1214,6 +1216,46 @@
 						}
 					}
 				}
+			]
+		},
+		"record_representation_clause": {
+			"name": "meta.aspect.clause.record.representation.ada",
+			"begin": "(?i)\\b(record)\\b",
+			"end": "(?i)\\b(end)\\s+(record)\\b",
+			"beginCaptures": {
+				"1": { "name": "storage.modifier.ada" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.ada" },
+				"2": { "name": "storage.modifier.ada" }
+			},
+			"patterns": [
+				{ "include": "#component_clause" },
+				{ "include": "#comment" }
+			]
+		},
+		"component_clause": {
+			"name": "meta.aspect.clause.record.representation.component.ada",
+			"begin": "(?i)\\b((?:\\w|\\d|_)+)\\s+(at)\\s+((?:(?!range).)*)\\b",
+			"beginCaptures": {
+				"1": { "name": "variable.name.ada" },
+				"2": { "name": "keyword.ada" },
+				"3": { "patterns": [ { "include": "#expression" } ] }
+			},
+			"end": ";",
+			"endCaptures": {
+				"0": { "name": "puunctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "storage.modifier.ada",
+					"match": "(?i)\\b(range)\\b"
+				},
+				{
+					"name": "keyword.ada",
+					"match": "\\.\\."
+				},
+				{ "include": "#expression" }
 			]
 		},
 		"real_type_definition": {
