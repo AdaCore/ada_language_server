@@ -1,5 +1,6 @@
 import libadalang as lal
 
+# The list of types to generate Write procedures:
 types_to_print = {
     #  'Message',
     #  'RequestMessage',
@@ -16,8 +17,8 @@ types_to_print = {
     'LocationLink',
     #  'Location_Or_Link_Kind',
     #  'Location_Or_Link_Vector',
-    #  'DiagnosticSeverity',
-    #  'DiagnosticTag',
+    'DiagnosticSeverity',
+    'DiagnosticTag',
     'DiagnosticRelatedInformation',
     #  'Diagnostic',
     #  'Command',
@@ -42,8 +43,8 @@ types_to_print = {
     #  'ResourceOperationKind',
     #  'FailureHandlingKind',
     'WorkspaceEditClientCapabilities',
-    #  'SymbolKind',
-    #  'Als_Visibility',
+    'SymbolKind',
+    'Als_Visibility',
     #  'WorkspaceSymbolClientCapabilities',
     'WorkspaceClientCapabilities',
     #  'MarkupKind',
@@ -51,10 +52,10 @@ types_to_print = {
     #  'String_Or_MarkupContent',
     'SaveOptions',
     'TextDocumentSyncClientCapabilities',
-    #  'CompletionItemTag',
+    'CompletionItemTag',
     'CompletionItemTagSupport',
     'completionItemCapability',
-    #  'CompletionItemKind',
+    'CompletionItemKind',
     #  'CompletionClientCapabilities',
     'HoverClientCapabilities',
     'parameterInformation_Capability',
@@ -83,7 +84,7 @@ types_to_print = {
     'ProgramInfo',
     #  'InitializeParams',
     #  'WorkDoneProgressOptions',
-    #  'TextDocumentSyncKind',
+    'TextDocumentSyncKind',
     'TextDocumentSyncOptions',
     #  'Optional_TextDocumentSyncOptions',
     #  'CompletionOptions',
@@ -103,7 +104,7 @@ types_to_print = {
     'InitializeResult',
     'InitializedParams',
     #  'InitializeError',
-    #  'MessageType',
+    'MessageType',
     #  'ShowMessageParams',
     #  'ShowMessageRequestParams',
     #  'LogMessageParams',
@@ -132,7 +133,7 @@ types_to_print = {
     #  'FileEvent',
     #  'DidChangeWatchedFilesParams',
     #  'PublishDiagnosticsParams',
-    #  'InsertTextFormat',
+    'InsertTextFormat',
     #  'CompletionItem',
     'CompletionList',
     #  'MarkedString',
@@ -144,7 +145,7 @@ types_to_print = {
     #  'SignatureHelp',
     'ReferenceContext',
     #  'ReferenceParams',
-    #  'DocumentHighlightKind',
+    'DocumentHighlightKind',
     'DocumentHighlight',
     #  'DocumentSymbolParams',
     #  'DocumentSymbol',
@@ -179,8 +180,8 @@ types_to_print = {
     #  'WatchKind_Set',
     'FileSystemWatcher',
     'DidChangeWatchedFilesRegistrationOptions',
-    #  'CompletionTriggerKind',
-    #  'CompletionContext',
+    'CompletionTriggerKind',
+    'CompletionContext',
     #  'CompletionParams',
     #  'CodeAction',
     #  'CodeActionRegistrationOptions',
@@ -214,6 +215,8 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
+with GNATCOLL.JSON;
+
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
@@ -240,11 +243,9 @@ write_header = """
 {unref}      JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
 """
 
 write_footer = """\
-      JS.End_Object;
    end Write_{type};
 """
 
@@ -273,6 +274,13 @@ write_component = \
 """
     }
 
+write_pos_enum = """\
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'({type}'Pos (V)) + {offset}));
+"""
+
+# The map to substitute words reserved in Ada:
 reserver_named = \
    {
     "first": "start",
@@ -311,20 +319,36 @@ def print_spec(file, node):
 
 
 def print_components(file, node):
+    file.write('      JS.Start_Object;\n')
+
     for x in node.finditer(lal.ComponentDecl):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
         txt = write_format(tp).format(key=get_key(name), name=name, type=tp)
         file.write(txt)
 
+    file.write('      JS.End_Object;\n')
+
+
+def print_enums(file, type, node):
+    offset = 0 if type == 'TextDocumentSyncKind' else 1
+    txt = write_pos_enum.format(type=type, offset=offset)
+    file.write(txt)
+
 
 def print_body(file, node):
-    unref = '      pragma Unreferenced (V);\n\n' if \
-       len(list(node.finditer(lal.NullRecordDef))) else ''
+    name = node.p_defining_name.token_start.text
 
-    file.write(write_header.format(type=node.p_defining_name.token_start.text,
+    unref = '      pragma Unreferenced (V);\n\n' if \
+        len(list(node.finditer(lal.NullRecordDef))) else ''
+
+    file.write(write_header.format(type=name,
                                    unref=unref))
-    print_components(file, node.f_type_def)
+    if isinstance(node.f_type_def, lal.EnumTypeDef):
+        print_enums(file, name, node.f_type_def)
+    else:
+        print_components(file, node.f_type_def)
+
     file.write(write_footer.format(type=node.p_defining_name.token_start.text))
 
 

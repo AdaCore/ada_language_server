@@ -4207,6 +4207,15 @@ package LSP.Messages is
    --```
    type MessageType is (Error, Warning, Info, Log);
 
+   procedure Read_MessageType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MessageType);
+   procedure Write_MessageType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MessageType);
+   for MessageType'Read use Read_MessageType;
+   for MessageType'Write use Write_MessageType;
+
    --```typescript
    --interface ShowMessageParams {
    --	/**
@@ -6547,6 +6556,15 @@ package LSP.Messages is
 
    type CompletionTriggerKind is
      (Invoked, TriggerCharacter, TriggerForIncompleteCompletions);
+
+   procedure Read_CompletionTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionTriggerKind);
+   procedure Write_CompletionTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionTriggerKind);
+   for CompletionTriggerKind'Read use Read_CompletionTriggerKind;
+   for CompletionTriggerKind'Write use Write_CompletionTriggerKind;
 
    type CompletionContext is record
       triggerKind: CompletionTriggerKind;
