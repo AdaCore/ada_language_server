@@ -5367,17 +5367,7 @@ package body LSP.Messages is
    procedure Write_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Span)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("start");
-      Position'Write (S, V.first);
-      JS.Key ("end");
-      Position'Write (S, V.last);
-      JS.End_Object;
-   end Write_Span;
+      renames LSP.Message_IO.Write_Span;
 
    -------------------------------------
    -- Write_StaticRegistrationOptions --
