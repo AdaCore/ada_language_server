@@ -165,6 +165,19 @@ package LSP.Types is
    package Optional_Numbers is new LSP.Generic_Optional (LSP_Number);
    type Optional_Number is new Optional_Numbers.Optional_Type;
 
+   procedure Read_Optional_Number
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_Number);
+   --  Read a value from JSON stream
+
+   procedure Write_Optional_Number
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_Number);
+   --  Write a value to JSON stream
+
+   for Optional_Number'Read use Read_Optional_Number;
+   for Optional_Number'Write use Write_Optional_Number;
+
    ----------------------
    -- Optional_Boolean --
    ----------------------

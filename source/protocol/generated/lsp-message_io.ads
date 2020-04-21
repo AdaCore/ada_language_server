@@ -8,9 +8,33 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.Span);
 
+   procedure Write_Location
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Location);
+
+   procedure Write_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.LocationLink);
+
+   procedure Write_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DiagnosticRelatedInformation);
+
+   procedure Write_TextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextEdit);
+
+   procedure Write_TextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentIdentifier);
+
    procedure Write_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentEdit);
+
+   procedure Write_TextDocumentItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentItem);
 
    procedure Write_TextDocumentPositionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -23,6 +47,10 @@ package LSP.Message_IO is
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceClientCapabilities);
+
+   procedure Write_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.MarkupContent);
 
    procedure Write_SaveOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -80,6 +108,10 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.PublishDiagnosticsClientCapabilities);
 
+   procedure Write_FoldingRangeClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FoldingRangeClientCapabilities);
+
    procedure Write_TextDocumentClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentClientCapabilities);
@@ -91,6 +123,14 @@ package LSP.Message_IO is
    procedure Write_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ClientCapabilities);
+
+   procedure Write_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceFolder);
+
+   procedure Write_ProgramInfo
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ProgramInfo);
 
    procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -112,6 +152,10 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.InitializeResult);
 
+   procedure Write_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.InitializedParams);
+
    procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeConfigurationParams);
@@ -120,21 +164,57 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidOpenTextDocumentParams);
 
+   procedure Write_TextDocumentContentChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentContentChangeEvent);
+
    procedure Write_DidChangeTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeTextDocumentParams);
+
+   procedure Write_DidSaveTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidSaveTextDocumentParams);
 
    procedure Write_DidCloseTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidCloseTextDocumentParams);
 
+   procedure Write_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionList);
+
+   procedure Write_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Hover);
+
    procedure Write_ParameterInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ParameterInformation);
 
+   procedure Write_SignatureInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureInformation);
+
+   procedure Write_ReferenceContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ReferenceContext);
+
+   procedure Write_DocumentHighlight
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentHighlight);
+
+   procedure Write_SymbolInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SymbolInformation);
+
    procedure Write_CodeActionContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CodeActionContext);
+
+   procedure Write_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ApplyWorkspaceEditResult);
 
    procedure Write_WorkspaceFoldersChangeEvent
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -144,12 +224,40 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeWorkspaceFoldersParams);
 
+   procedure Write_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ConfigurationItem);
+
    procedure Write_ConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ConfigurationParams);
 
+   procedure Write_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileSystemWatcher);
+
    procedure Write_DidChangeWatchedFilesRegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeWatchedFilesRegistrationOptions);
+
+   procedure Write_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RGBA_Color);
+
+   procedure Write_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ColorInformation);
+
+   procedure Write_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FoldingRange);
+
+   procedure Write_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SelectionRange);
+
+   procedure Write_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_Subprogram_And_References);
 
 end LSP.Message_IO;
