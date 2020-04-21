@@ -4,6 +4,10 @@ with LSP.Messages;
 
 package LSP.Message_IO is
 
+   procedure Write_Span
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Span);
+
    procedure Write_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentEdit);

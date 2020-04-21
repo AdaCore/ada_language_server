@@ -7,7 +7,7 @@ types_to_print = {
     #  'NotificationMessage',
     #  'CancelParams',
     #  'Position',
-    #  'Span',
+    'Span',
     #  'CodeActionKind',
     #  'AlsReferenceKind',
     #  'AlsReferenceKind_Array',
@@ -125,7 +125,6 @@ types_to_print = {
     'DidChangeConfigurationParams',
     'DidOpenTextDocumentParams',
     #  'TextDocumentContentChangeEvent',
-    #  'TextDocumentContentChangeEvent_Vector',
     'DidChangeTextDocumentParams',
     #  'TextDocumentSaveReason',
     #  'WillSaveTextDocumentParams',
@@ -133,7 +132,6 @@ types_to_print = {
     'DidCloseTextDocumentParams',
     #  'FileChangeType',
     #  'FileEvent',
-    #  'FileEvent_Vector',
     #  'DidChangeWatchedFilesParams',
     #  'PublishDiagnosticsParams',
     #  'InsertTextFormat',
@@ -206,7 +204,6 @@ types_to_print = {
     #  'SelectionRangeParams',
     #  'SelectionRange',
     #  'ALS_Subprogram_And_References',
-    #  'ALS_Subprogram_And_References_Vector',
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
     }
@@ -254,9 +251,23 @@ write_footer = """\
 """
 
 write_component = """\
-      JS.Key ("{name}");
+      JS.Key ("{key}");
       {type}'Write (S, V.{name});
 """
+
+reserver_named = \
+   {
+    "first": "start",
+    "last": "end",
+    "span": "range"
+    }
+
+
+def get_key(field):
+    if field in reserver_named:
+        return reserver_named[field]
+    else:
+        return field
 
 
 def filter(x):
@@ -275,7 +286,8 @@ def print_components(file, node):
     for x in node.finditer(lal.ComponentDecl):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
-        file.write(write_component.format(name=name, type=tp))
+        txt = write_component.format(key=get_key(name), name=name, type=tp)
+        file.write(txt)
 
 
 def print_body(file, node):
