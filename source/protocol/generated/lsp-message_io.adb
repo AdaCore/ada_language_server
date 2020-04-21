@@ -1,4 +1,6 @@
 --  Automatically generated, do not edit.
+with GNATCOLL.JSON;
+
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
@@ -58,6 +60,30 @@ package body LSP.Message_IO is
       AlsReferenceKind_Set'Write (S, V.alsKind);
       JS.End_Object;
    end Write_LocationLink;
+
+   procedure Write_DiagnosticSeverity
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DiagnosticSeverity)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(DiagnosticSeverity'Pos (V)) + 1));
+   end Write_DiagnosticSeverity;
+
+   procedure Write_DiagnosticTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DiagnosticTag)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(DiagnosticTag'Pos (V)) + 1));
+   end Write_DiagnosticTag;
 
    procedure Write_DiagnosticRelatedInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -167,6 +193,30 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_WorkspaceEditClientCapabilities;
 
+   procedure Write_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(SymbolKind'Pos (V)) + 1));
+   end Write_SymbolKind;
+
+   procedure Write_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Als_Visibility)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(Als_Visibility'Pos (V)) + 1));
+   end Write_Als_Visibility;
+
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceClientCapabilities)
@@ -241,6 +291,18 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_TextDocumentSyncClientCapabilities;
 
+   procedure Write_CompletionItemTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemTag)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(CompletionItemTag'Pos (V)) + 1));
+   end Write_CompletionItemTag;
+
    procedure Write_CompletionItemTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionItemTagSupport)
@@ -276,6 +338,18 @@ package body LSP.Message_IO is
       Optional_CompletionItemTagSupport'Write (S, V.tagSupport);
       JS.End_Object;
    end Write_completionItemCapability;
+
+   procedure Write_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(CompletionItemKind'Pos (V)) + 1));
+   end Write_CompletionItemKind;
 
    procedure Write_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -561,6 +635,18 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_ProgramInfo;
 
+   procedure Write_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(TextDocumentSyncKind'Pos (V)) + 0));
+   end Write_TextDocumentSyncKind;
+
    procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextDocumentSyncOptions)
@@ -701,6 +787,18 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_InitializedParams;
 
+   procedure Write_MessageType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MessageType)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(MessageType'Pos (V)) + 1));
+   end Write_MessageType;
+
    procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidChangeConfigurationParams)
@@ -787,6 +885,18 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_DidCloseTextDocumentParams;
 
+   procedure Write_InsertTextFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertTextFormat)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(InsertTextFormat'Pos (V)) + 1));
+   end Write_InsertTextFormat;
+
    procedure Write_CompletionList
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionList)
@@ -859,6 +969,18 @@ package body LSP.Message_IO is
       Write_Boolean (JS, +"includeDeclaration", V.includeDeclaration);
       JS.End_Object;
    end Write_ReferenceContext;
+
+   procedure Write_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentHighlightKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(DocumentHighlightKind'Pos (V)) + 1));
+   end Write_DocumentHighlightKind;
 
    procedure Write_DocumentHighlight
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1010,6 +1132,33 @@ package body LSP.Message_IO is
       FileSystemWatcher_Vector'Write (S, V.watchers);
       JS.End_Object;
    end Write_DidChangeWatchedFilesRegistrationOptions;
+
+   procedure Write_CompletionTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionTriggerKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(CompletionTriggerKind'Pos (V)) + 1));
+   end Write_CompletionTriggerKind;
+
+   procedure Write_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("triggerKind");
+      CompletionTriggerKind'Write (S, V.triggerKind);
+      JS.Key ("triggerCharacter");
+      Optional_String'Write (S, V.triggerCharacter);
+      JS.End_Object;
+   end Write_CompletionContext;
 
    procedure Write_RGBA_Color
      (S : access Ada.Streams.Root_Stream_Type'Class;
