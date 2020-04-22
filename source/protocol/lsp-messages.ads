@@ -5982,6 +5982,14 @@ package LSP.Messages is
       trimFinalNewlines: Optional_Boolean;
       --  [key: string]: boolean | number | string; ???
    end record;
+   procedure Read_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FormattingOptions);
+   procedure Write_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FormattingOptions);
+   for FormattingOptions'Read use Read_FormattingOptions;
+   for FormattingOptions'Write use Write_FormattingOptions;
 
    type DocumentFormattingParams is new WorkDoneProgressParams with record
       textDocument: TextDocumentIdentifier;
@@ -6011,6 +6019,16 @@ package LSP.Messages is
       span: LSP.Messages.Span;
       options: FormattingOptions;
    end record;
+   procedure Read_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentRangeFormattingParams);
+   procedure Write_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentRangeFormattingParams);
+   for DocumentRangeFormattingParams'Read use
+     Read_DocumentRangeFormattingParams;
+   for DocumentRangeFormattingParams'Write use
+     Write_DocumentRangeFormattingParams;
 
    --```typescript
    --interface DocumentOnTypeFormattingParams extends TextDocumentPositionParams {
