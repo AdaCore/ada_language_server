@@ -355,6 +355,16 @@ package LSP.Messages is
 
    type AlsReferenceKind is
      (Simple, Write, Static_Call, Dispatching_Call, Parent, Child);
+
+   procedure Read_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsReferenceKind);
+   procedure Write_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsReferenceKind);
+   for AlsReferenceKind'Read use Read_AlsReferenceKind;
+   for AlsReferenceKind'Write use Write_AlsReferenceKind;
+
    type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
    type AlsReferenceKind_Set (Is_Server_Side : Boolean := True) is record
       case Is_Server_Side is
@@ -4665,6 +4675,15 @@ package LSP.Messages is
    --```
    type TextDocumentSaveReason is (Manual, AfterDelay, FocusOut);
 
+   procedure Read_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSaveReason);
+   procedure Write_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveReason);
+   for TextDocumentSaveReason'Read use Read_TextDocumentSaveReason;
+   for TextDocumentSaveReason'Write use Write_TextDocumentSaveReason;
+
    type WillSaveTextDocumentParams is record
       textDocument: TextDocumentIdentifier;
       reason: TextDocumentSaveReason;
@@ -4754,6 +4773,16 @@ package LSP.Messages is
    --}
    --```
    type FileChangeType is (Created, Changed, Deleted);
+
+   procedure Read_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileChangeType);
+   procedure Write_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileChangeType);
+   for FileChangeType'Read use Read_FileChangeType;
+   for FileChangeType'Write use Write_FileChangeType;
+
    type FileEvent is record
       uri: DocumentUri;
       the_type : FileChangeType;  -- type: is reserver word

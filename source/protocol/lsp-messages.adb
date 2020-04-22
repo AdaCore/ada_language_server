@@ -284,6 +284,29 @@ package body LSP.Messages is
       end if;
    end Method_To_Tag;
 
+   ---------------------------
+   -- Read_AlsReferenceKind --
+   ---------------------------
+
+   procedure Read_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsReferenceKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Text : constant Standard.String := JS.Read.Get;
+   begin
+      for J in AlsReferenceKind_Map'Range loop
+         if Text = AlsReferenceKind_Map (J).all then
+            V := J;
+            return;
+         end if;
+      end loop;
+
+      V := AlsReferenceKind'First;
+   end Read_AlsReferenceKind;
+
    -------------------------------
    -- Read_AlsReferenceKind_Set --
    -------------------------------
@@ -295,6 +318,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
+      Kind : AlsReferenceKind;
    begin
       if JS.Is_Server_Side then
          V := (Is_Server_Side => True, others => <>);
@@ -305,27 +329,21 @@ package body LSP.Messages is
       JS.Start_Array;
 
       while not JS.End_Of_Array loop
-         declare
-            Text : constant Standard.String := JS.Read.Get;
-
-         begin
-            if V.Is_Server_Side then
-               for J in AlsReferenceKind_Map'Range loop
-                  if Text = AlsReferenceKind_Map (J).all then
-                     V.As_Flags (J) := True;
-
-                     exit;
-                  end if;
-               end loop;
-
-            else
-               V.As_Strings.Append (+Text);
-            end if;
-         end;
+         if V.Is_Server_Side then
+            AlsReferenceKind'Read (S, Kind);
+            V.As_Flags (Kind) := True;
+         else
+            V.As_Strings.Append (+JS.Read.Get);
+         end if;
       end loop;
 
       JS.End_Array;
    end Read_AlsReferenceKind_Set;
+
+   procedure Write_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsReferenceKind)
+      renames LSP.Message_IO.Write_AlsReferenceKind;
 
    --------------------------------
    -- Write_AlsReferenceKind_Set --
@@ -344,8 +362,7 @@ package body LSP.Messages is
          if V.Is_Server_Side then
             for J in V.As_Flags'Range loop
                if V.As_Flags (J) then
-                  JS.Write
-                    (GNATCOLL.JSON.Create (AlsReferenceKind_Map (J).all));
+                  AlsReferenceKind'Write (S, J);
                end if;
             end loop;
 
@@ -2776,6 +2793,34 @@ package body LSP.Messages is
       V := Als_Visibility'Val (JS.Read.Get - 1);
    end Read_Als_Visibility;
 
+   ---------------------------------
+   -- Read_TextDocumentSaveReason --
+   ---------------------------------
+
+   procedure Read_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSaveReason)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := TextDocumentSaveReason'Val (JS.Read.Get - 1);
+   end Read_TextDocumentSaveReason;
+
+   -------------------------
+   -- Read_FileChangeType --
+   -------------------------
+
+   procedure Read_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileChangeType)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := FileChangeType'Val (JS.Read.Get - 1);
+   end Read_FileChangeType;
+
    ---------------------------------------------
    -- Read_TextDocumentSyncClientCapabilities --
    ---------------------------------------------
@@ -3573,41 +3618,7 @@ package body LSP.Messages is
    procedure Write_CodeActionKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-      function Image (V : CodeActionKind) return GNATCOLL.JSON.UTF8_String;
-
-      -----------
-      -- Image --
-      -----------
-
-      function Image (V : CodeActionKind) return GNATCOLL.JSON.UTF8_String is
-      begin
-         case V is
-            when Empty =>
-               return "";
-            when QuickFix =>
-               return "quickfix";
-            when Refactor =>
-               return "refactor";
-            when RefactorExtract =>
-               return "refactor.extract";
-            when RefactorInline =>
-               return "refactor.inline";
-            when RefactorRewrite =>
-               return "refactor.rewrite";
-            when Source =>
-               return "source";
-            when SourceOrganizeImports =>
-               return "source.organizeImports";
-         end case;
-      end Image;
-
-   begin
-      JS.Write (GNATCOLL.JSON.Create (Image (V)));
-   end Write_CodeActionKind;
+      renames LSP.Message_IO.Write_CodeActionKind;
 
    -----------------------------------------------
    -- Write_codeActionLiteralSupport_Capability --
@@ -4264,6 +4275,11 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_dynamicRegistration;
 
+   procedure Write_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileChangeType)
+      renames LSP.Message_IO.Write_FileChangeType;
+
    -----------------------------
    -- Write_FileSystemWatcher --
    -----------------------------
@@ -4384,31 +4400,7 @@ package body LSP.Messages is
    procedure Write_FailureHandlingKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : FailureHandlingKind)
-   is
-      function Image return GNATCOLL.JSON.UTF8_String;
-
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      -----------
-      -- Image --
-      -----------
-
-      function Image return GNATCOLL.JSON.UTF8_String is
-      begin
-         case V is
-            when abortApplying =>
-               return "abort";
-            when transactional =>
-               return "transactional";
-            when undo =>
-               return "undo";
-            when textOnlyTransactional =>
-               return "textOnlyTransactional";
-         end case;
-      end Image;
-   begin
-      JS.Write (GNATCOLL.JSON.Create (Image));
-   end Write_FailureHandlingKind;
+      renames LSP.Message_IO.Write_FailureHandlingKind;
 
    ------------------------------------------
    -- Write_FoldingRangeClientCapabilities --
@@ -4641,17 +4633,7 @@ package body LSP.Messages is
    procedure Write_MarkupKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : MarkupKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      case V is
-         when plaintext =>
-            JS.Write (GNATCOLL.JSON.Create ("plaintext"));
-         when markdown =>
-            JS.Write (GNATCOLL.JSON.Create ("markdown"));
-      end case;
-   end Write_MarkupKind;
+      renames LSP.Message_IO.Write_MarkupKind;
 
    -----------------------
    -- Write_MessageType --
@@ -4983,34 +4965,7 @@ package body LSP.Messages is
    procedure Write_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResourceOperationKind)
-   is
-      function To_String
-        (Value : ResourceOperationKind)
-         return GNATCOLL.JSON.UTF8_String;
-
-      ---------------
-      -- To_String --
-      ---------------
-
-      function To_String
-        (Value : ResourceOperationKind)
-         return GNATCOLL.JSON.UTF8_String is
-      begin
-         case Value is
-            when create =>
-               return "create";
-            when rename =>
-               return "rename";
-            when delete =>
-               return "delete";
-         end case;
-      end To_String;
-
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
-   end Write_ResourceOperationKind;
+      renames LSP.Message_IO.Write_ResourceOperationKind;
 
    ---------------------------
    -- Write_ResponseMessage --
@@ -5263,6 +5218,11 @@ package body LSP.Messages is
          SymbolInformation_Vector'Write (S, V.Vector);
       end if;
    end Write_Symbol_Vector;
+
+   procedure Write_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveReason)
+      renames LSP.Message_IO.Write_TextDocumentSaveReason;
 
    ----------------------------------------------
    -- Write_TextDocumentSyncClientCapabilities --

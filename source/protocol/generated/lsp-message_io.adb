@@ -23,6 +23,80 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_Span;
 
+   procedure Write_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : CodeActionKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : CodeActionKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when Empty =>
+               return "";
+            when QuickFix =>
+               return "quickfix";
+            when Refactor =>
+               return "refactor";
+            when RefactorExtract =>
+               return "refactor.extract";
+            when RefactorInline =>
+               return "refactor.inline";
+            when RefactorRewrite =>
+               return "refactor.rewrite";
+            when Source =>
+               return "source";
+            when SourceOrganizeImports =>
+               return "source.organizeImports";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_CodeActionKind;
+
+   procedure Write_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsReferenceKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : AlsReferenceKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : AlsReferenceKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when Simple =>
+               return "reference";
+            when Write =>
+               return "write";
+            when Static_Call =>
+               return "call";
+            when Dispatching_Call =>
+               return "dispatching call";
+            when Parent =>
+               return "parent";
+            when Child =>
+               return "child";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_AlsReferenceKind;
+
    procedure Write_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Location)
@@ -176,6 +250,66 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_TextDocumentPositionParams;
 
+   procedure Write_ResourceOperationKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ResourceOperationKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : ResourceOperationKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : ResourceOperationKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when create =>
+               return "create";
+            when rename =>
+               return "rename";
+            when delete =>
+               return "delete";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_ResourceOperationKind;
+
+   procedure Write_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FailureHandlingKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : FailureHandlingKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : FailureHandlingKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when abortApplying =>
+               return "abort";
+            when transactional =>
+               return "transactional";
+            when undo =>
+               return "undo";
+            when textOnlyTransactional =>
+               return "textOnlyTransactional";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_FailureHandlingKind;
+
    procedure Write_WorkspaceEditClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceEditClientCapabilities)
@@ -243,6 +377,33 @@ package body LSP.Message_IO is
       Optional_Boolean'Write (S, V.configuration);
       JS.End_Object;
    end Write_WorkspaceClientCapabilities;
+
+   procedure Write_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkupKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : MarkupKind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : MarkupKind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when plaintext =>
+               return "plaintext";
+            when markdown =>
+               return "markdown";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_MarkupKind;
 
    procedure Write_MarkupContent
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -857,6 +1018,18 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_DidChangeTextDocumentParams;
 
+   procedure Write_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveReason)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(TextDocumentSaveReason'Pos (V)) + 1));
+   end Write_TextDocumentSaveReason;
+
    procedure Write_DidSaveTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidSaveTextDocumentParams)
@@ -884,6 +1057,18 @@ package body LSP.Message_IO is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.End_Object;
    end Write_DidCloseTextDocumentParams;
+
+   procedure Write_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileChangeType)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(FileChangeType'Pos (V)) + 1));
+   end Write_FileChangeType;
 
    procedure Write_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;

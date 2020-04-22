@@ -8,6 +8,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.Span);
 
+   procedure Write_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionKind);
+
+   procedure Write_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.AlsReferenceKind);
+
    procedure Write_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.Location);
@@ -48,6 +56,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentPositionParams);
 
+   procedure Write_ResourceOperationKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ResourceOperationKind);
+
+   procedure Write_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FailureHandlingKind);
+
    procedure Write_WorkspaceEditClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceEditClientCapabilities);
@@ -63,6 +79,10 @@ package LSP.Message_IO is
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceClientCapabilities);
+
+   procedure Write_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.MarkupKind);
 
    procedure Write_MarkupContent
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -204,6 +224,10 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeTextDocumentParams);
 
+   procedure Write_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSaveReason);
+
    procedure Write_DidSaveTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidSaveTextDocumentParams);
@@ -211,6 +235,10 @@ package LSP.Message_IO is
    procedure Write_DidCloseTextDocumentParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidCloseTextDocumentParams);
+
+   procedure Write_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileChangeType);
 
    procedure Write_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
