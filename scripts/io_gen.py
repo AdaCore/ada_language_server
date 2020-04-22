@@ -9,8 +9,8 @@ types_to_print = {
     #  'CancelParams',
     #  'Position',
     'Span',
-    #  'CodeActionKind',
-    #  'AlsReferenceKind',
+    'CodeActionKind',
+    'AlsReferenceKind',
     #  'AlsReferenceKind_Array',
     #  'AlsReferenceKind_Set',
     'Location',
@@ -40,14 +40,14 @@ types_to_print = {
     #  'DocumentFilter',
     #  'DocumentSelector',
     #  'dynamicRegistration',
-    #  'ResourceOperationKind',
-    #  'FailureHandlingKind',
+    'ResourceOperationKind',
+    'FailureHandlingKind',
     'WorkspaceEditClientCapabilities',
     'SymbolKind',
     'Als_Visibility',
     #  'WorkspaceSymbolClientCapabilities',
     'WorkspaceClientCapabilities',
-    #  'MarkupKind',
+    'MarkupKind',
     'MarkupContent',
     #  'String_Or_MarkupContent',
     'SaveOptions',
@@ -125,11 +125,11 @@ types_to_print = {
     'DidOpenTextDocumentParams',
     'TextDocumentContentChangeEvent',
     'DidChangeTextDocumentParams',
-    #  'TextDocumentSaveReason',
+    'TextDocumentSaveReason',
     #  'WillSaveTextDocumentParams',
     'DidSaveTextDocumentParams',
     'DidCloseTextDocumentParams',
-    #  'FileChangeType',
+    'FileChangeType',
     #  'FileEvent',
     #  'DidChangeWatchedFilesParams',
     #  'PublishDiagnosticsParams',
@@ -242,7 +242,6 @@ write_header = """
    is
 {unref}      JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
 """
 
 write_footer = """\
@@ -280,14 +279,63 @@ write_pos_enum = """\
            (Integer'({type}'Pos (V)) + {offset}));
 """
 
+write_string_enum_header = """
+      function To_String
+        (Value : {type})
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : {type})
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+"""
+
+write_string_enum_case = """\
+            when {name} =>
+               return "{key}";
+"""
+
+write_string_enum_footer = """\
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+"""
+
+# The list of enumeration type represented as strings
+enum_as_string = [
+    'AlsReferenceKind',
+    'CodeActionKind',
+    'ResourceOperationKind',
+    'FailureHandlingKind',
+    'MarkupKind']
+
 # The map to substitute words reserved in Ada:
 reserver_named = \
    {
+    "abortapplying": "abort",
     "first": "start",
     "last": "end",
+    "loc": "location",    # for ALS_Subprogram_And_References
     "span": "range",
     "the_type": "type",
-    "loc": "location"     # for ALS_Subprogram_And_References
+    "simple": "reference",  # For AlsReferenceKind
+    "write": "write",
+    "static_call": "call",
+    "dispatching_call": "dispatching call",
+    "parent": "parent",
+    "child": "child",
+    "empty": "",            # For CodeActionKind
+    "quickfix": "quickfix",
+    "refactor": "refactor",
+    "refactorextract": "refactor.extract",
+    "refactorinline": "refactor.inline",
+    "refactorrewrite": "refactor.rewrite",
+    "source": "source",
+    "sourceorganizeimports": "source.organizeImports",
+
     }
 
 
@@ -319,6 +367,7 @@ def print_spec(file, node):
 
 
 def print_components(file, node):
+    file.write('   begin\n')
     file.write('      JS.Start_Object;\n')
 
     for x in node.finditer(lal.ComponentDecl):
@@ -331,8 +380,16 @@ def print_components(file, node):
 
 
 def print_enums(file, type, node):
-    offset = 0 if type == 'TextDocumentSyncKind' else 1
-    txt = write_pos_enum.format(type=type, offset=offset)
+    if type in enum_as_string:
+        txt = write_string_enum_header.format(type=type)
+        for x in node.finditer(lal.EnumLiteralDecl):
+            name = x.p_defining_name.token_start.text
+            txt += write_string_enum_case.format(name=name, key=get_key(name))
+        txt += write_string_enum_footer
+    else:
+        offset = 0 if type == 'TextDocumentSyncKind' else 1
+        file.write('   begin\n')
+        txt = write_pos_enum.format(type=type, offset=offset)
     file.write(txt)
 
 
