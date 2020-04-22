@@ -6158,4 +6158,104 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Progress_Params;
 
+   ----------------------------
+   -- Read_FormattingOptions --
+   ----------------------------
+
+   procedure Read_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FormattingOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Read_Number (JS, +"tabSize", V.tabSize);
+
+      JS.Key ("insertSpaces");
+      V.insertSpaces := JS.Read.Get;
+
+      Read_Optional_Boolean
+        (JS, +"trimTrailingWhitespace", V.trimTrailingWhitespace);
+      Read_Optional_Boolean (JS, +"insertFinalNewline", V.insertFinalNewline);
+      Read_Optional_Boolean (JS, +"trimFinalNewlines", V.trimFinalNewlines);
+      JS.End_Object;
+   end Read_FormattingOptions;
+
+   -----------------------------
+   -- Write_FormattingOptions --
+   -----------------------------
+
+   procedure Write_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FormattingOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Write_Number (JS, +"tabSize", V.tabSize);
+
+      JS.Key ("insertSpaces");
+      JS.Write (GNATCOLL.JSON.Create (V.insertSpaces));
+
+      Write_Optional_Boolean
+        (JS, +"trimTrailingWhitespace", V.trimTrailingWhitespace);
+      Write_Optional_Boolean (JS, +"insertFinalNewline", V.insertFinalNewline);
+      Write_Optional_Boolean (JS, +"trimFinalNewlines", V.trimFinalNewlines);
+      JS.End_Object;
+   end Write_FormattingOptions;
+
+   ----------------------------------------
+   -- Read_DocumentRangeFormattingParams --
+   ----------------------------------------
+
+   procedure Read_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentRangeFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Get_WorkDoneProgressParams (S, V);
+
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+
+      JS.Key ("range");
+      Span'Read (S, V.span);
+
+      JS.Key ("options");
+      FormattingOptions'Read (S, V.options);
+
+      JS.End_Object;
+   end Read_DocumentRangeFormattingParams;
+
+   -----------------------------------------
+   -- Write_DocumentRangeFormattingParams --
+   -----------------------------------------
+
+   procedure Write_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentRangeFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Put_WorkDoneProgressParams (S, V);
+
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+
+      JS.Key ("range");
+      Span'Write (S, V.span);
+
+      JS.Key ("options");
+      FormattingOptions'Write (S, V.options);
+
+      JS.End_Object;
+   end Write_DocumentRangeFormattingParams;
+
 end LSP.Messages;
