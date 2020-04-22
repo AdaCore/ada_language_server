@@ -728,6 +728,10 @@ package body LSP.Ada_Handlers is
 
             Decl := Name.P_Referenced_Decl;
 
+            if Decl.Is_Null then
+               return False;
+            end if;
+
             case Decl.Kind is
                when Libadalang.Common.Ada_Base_Subp_Spec =>
                   return True;
