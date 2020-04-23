@@ -210,6 +210,38 @@ the language server *even for files which might have nothing to do with that
 specific project*, so this needs to be taken into account. Ultimately what this
 means is that the configuration is determined by where you open vim.
 
+# Integration with Neovim's built-in LSP client
+
+Neovim 0.5.0 and later have a built-in LSP client which can be used with the
+Ada Language Server. In order to use it with minimal effort, follow these steps:
+
+- Use your favorite Neovim plugin manager to add the default set of [LSP
+  configuration files](https://github.com/neovim/nvim-lsp) to Neovim.
+- (Optional) Run `:LspInstall als` to ask Neovim to install the Ada Language
+  Server for you.
+- Enable the Ada Language Server by adding `:lua require('nvim_lsp').als.setup{}` to
+  your init.vim.
+
+If you decided to install the Ada Language Server yourself instead of using
+`:LspInstall als`, you will need to specify a command:
+
+```lua
+require('nvim_lsp').als.setup{ cmd = "/path/to/als/executable" }
+```
+
+Configuring the language server's settings can be achieved like this:
+
+```lua
+require('nvim_lsp').als.setup{
+  settings = {
+    ada = {
+      projectFile = "project.gpr";
+      scenarioVariables = { ... };
+    }
+  }
+}
+```
+
 # Integration with emacs lsp-mode
 
 The configuration for each project can be provided using a `.dir-locals.el`
