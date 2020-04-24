@@ -241,7 +241,7 @@
 			"end": ";",
 			"beginCaptures": {
 				"1": { "name": "variable.name.ada" },
-				"2": { "name": "punctuation.ada" }
+				"2": { "name": "keyword.operator.new.ada" }
 			},
 			"endCaptures": {
 				"0": { "name": "punctuation.ada" }
@@ -472,7 +472,7 @@
 				{
 					"patterns": [
 						{
-							"name": "punctuation.ada",
+							"name": "keyword.operator.new.ada",
 							"match": ":="
 						},
 						{ "include": "#expression" }
@@ -648,7 +648,7 @@
 					"begin": ":=",
 					"end": "(?=(;|\\)))",
 					"beginCaptures": {
-						"0": { "name": "punctuation.ada" }
+						"0": { "name": "keyword.operator.new.ada" }
 					},
 					"patterns": [
 						{ "include": "#expression" }
@@ -1073,7 +1073,7 @@
 					"begin": "(?<=:)",
 					"end": "((?=;)|:=)",
 					"endCaptures": {
-						"0": { "name": "punctuation.ada" }
+						"0": { "name": "keyword.operator.new.ada" }
 					},
 					"patterns": [
 						{
@@ -1220,7 +1220,7 @@
 					"begin": ":=",
 					"end": "(?=[:;)])",
 					"beginCaptures": {
-						"0": { "name": "punctuation.ada" }
+						"0": { "name": "keyword.operator.new.ada" }
 					},
 					"patterns": [
 						{ "include": "#expression" }
