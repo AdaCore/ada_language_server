@@ -893,7 +893,7 @@
 		},
 		"highest_precedence_operator": {
 			"name": "keyword.operator.highest-precedence.ada",
-			"match": "(?i)\\b(\\*\\*|abs|not)\\b"
+			"match": "(?i)(\\*\\*|\\babs\\b|\\bnot\\b)"
 		},
 		"if_statement": {
 			"name": "meta.statement.if.ada",
@@ -1023,7 +1023,7 @@
 		},
 		"multiplying_operator": {
 			"name": "keyword.operator.multiplying.ada",
-			"match": "(?i)\\b(\\*|/|mod|rem)\\b"
+			"match": "(?i)(\\*|/|\\bmod\\b|\\brem\\b)"
 		},
 		"null_statement": {
 			"name": "meta.statement.null.ada",
