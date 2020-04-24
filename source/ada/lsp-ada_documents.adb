@@ -507,6 +507,7 @@ package body LSP.Ada_Documents is
          ----------------------
 
          procedure Store_With_Block is
+            use type LSP.Types.Line_Number;
          begin
             if not Have_With then
                return;
@@ -624,10 +625,10 @@ package body LSP.Ada_Documents is
                   foldingRange.kind :=
                     (Is_Set => True, Value => LSP.Messages.Imports);
 
-                  foldingRange.startLine := Integer (Location.span.first.line);
+                  foldingRange.startLine := Location.span.first.line;
                end if;
 
-               foldingRange.endLine := Integer (Location.span.last.line);
+               foldingRange.endLine := Location.span.last.line;
 
                --  Do not step into with/use clause
                Result := Over;
@@ -649,17 +650,17 @@ package body LSP.Ada_Documents is
          if not Lines_Only
            or else Span.first.line /= Span.last.line
          then
-            foldingRange.startLine := Integer (Span.first.line);
-            foldingRange.endLine   := Integer (Span.last.line);
+            foldingRange.startLine := Span.first.line;
+            foldingRange.endLine   := Span.last.line;
 
             if not Lines_Only then
                foldingRange.startCharacter :=
                  (Is_Set => True,
-                  Value  => Integer (Span.first.character));
+                  Value  => LSP.Types.LSP_Number (Span.first.character));
 
                foldingRange.startCharacter :=
                  (Is_Set => True,
-                  Value  => Integer (Span.last.character));
+                  Value  => LSP.Types.LSP_Number (Span.last.character));
             end if;
 
             Result.Append (foldingRange);

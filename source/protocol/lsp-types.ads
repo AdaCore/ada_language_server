@@ -49,7 +49,21 @@ package LSP.Types is
      (GNATCOLL.JSON.Create_Object with null record);
    --  An empty object value of No_Any type
 
-   subtype LSP_Number is Natural;
+   type LSP_Number is new Natural;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Number);
+   --  Read a value from JSON stream
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Number);
+   --  Write a value to JSON stream
+
+   for LSP_Number'Read use Read;
+   for LSP_Number'Write use Write;
+
    type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
    procedure Read
@@ -120,6 +134,19 @@ package LSP.Types is
       end case;
    end record;
 
+   procedure Read_LSP_Number_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Number_Or_String);
+   --  Read a value from JSON stream
+
+   procedure Write_LSP_Number_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Number_Or_String);
+   --  Write a value to JSON stream
+
+   for LSP_Number_Or_String'Read use Read_LSP_Number_Or_String;
+   for LSP_Number_Or_String'Write use Write_LSP_Number_Or_String;
+
    function Assigned (Id : LSP_Number_Or_String) return Boolean;
    --  Check if Id has an empty value
 
@@ -148,11 +175,11 @@ package LSP.Types is
    for LSP_Boolean_Or_String'Read use Read_LSP_Boolean_Or_String;
    for LSP_Boolean_Or_String'Write use Write_LSP_Boolean_Or_String;
 
-   type Line_Number is new Natural;
+   type Line_Number is new LSP_Number;
    --  Line number. In LSP first line has zero number
-   type UTF_16_Index is new Natural;
+   type UTF_16_Index is new LSP_Number;
    --  LSP measures character position in UTF_16 code units starting from zero
-   type Version_Id is new Natural;
+   type Version_Id is new LSP_Number;
    --  Document version
 
    type Trace_Kinds is (Unspecified, Off, Messages, Verbose);
@@ -164,19 +191,6 @@ package LSP.Types is
 
    package Optional_Numbers is new LSP.Generic_Optional (LSP_Number);
    type Optional_Number is new Optional_Numbers.Optional_Type;
-
-   procedure Read_Optional_Number
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_Number);
-   --  Read a value from JSON stream
-
-   procedure Write_Optional_Number
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_Number);
-   --  Write a value to JSON stream
-
-   for Optional_Number'Read use Read_Optional_Number;
-   for Optional_Number'Write use Write_Optional_Number;
 
    ----------------------
    -- Optional_Boolean --

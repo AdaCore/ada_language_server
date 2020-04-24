@@ -753,6 +753,7 @@ package body LSP.Servers is
       Method : String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class)
    is
+      use type LSP.Types.LSP_Number;
       Message : constant Client_Request_Access :=
         new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
       --  The Message will be deleted by Output_Task

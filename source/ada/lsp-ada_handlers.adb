@@ -1987,9 +1987,9 @@ package body LSP.Ada_Handlers is
       case Request.params.Kind is
          when LSP.Messages.Suspend_Execution =>
             declare
-               Limit : constant Positive := Request.params.inputQueueLength;
+               Limit : constant LSP_Number := Request.params.inputQueueLength;
             begin
-               while Self.Server.Input_Queue_Length < Limit loop
+               while Self.Server.Input_Queue_Length < Integer (Limit) loop
                   delay 0.1;
                end loop;
             end;
@@ -2675,7 +2675,8 @@ package body LSP.Ada_Handlers is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
       begin
          P.Report_Param.token := token;
-         P.Report_Param.value.percentage := (Is_Set => True, Value => Percent);
+         P.Report_Param.value.percentage :=
+           (Is_Set => True, Value => LSP_Number (Percent));
          Self.Server.On_Progress (P);
       end Emit_Progress_Report;
 

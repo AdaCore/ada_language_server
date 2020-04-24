@@ -6,8 +6,8 @@ types_to_print = {
     #  'RequestMessage',
     #  'ResponseMessage',
     #  'NotificationMessage',
-    #  'CancelParams',
-    #  'Position',
+    'CancelParams',
+    'Position',
     'Span',
     'CodeActionKind',
     'AlsReferenceKind',
@@ -257,12 +257,6 @@ write_component = \
      "DocumentUri": """\
       JS.Key ("{key}");
       LSP.Types.Write (S, V.{name});
-""",
-     "LSP_Number": """\
-      Write_Number (JS, +"{key}", V.{name});
-""",
-     "Version_Id": """\
-      Write_Number (JS, +"{key}", LSP.Types.LSP_Number (V.{name}));
 """,
      "Boolean": """\
       Write_Boolean (JS, +"{key}", V.{name});
