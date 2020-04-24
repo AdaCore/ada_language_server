@@ -6983,9 +6983,9 @@ package LSP.Messages is
    --}
    --```
    type FoldingRange is record
-      startLine: LSP_Number;
+      startLine: Line_Number;
       startCharacter: Optional_Number;
-      endLine: LSP_Number;
+      endLine: Line_Number;
       endCharacter: Optional_Number;
       kind: Optional_String;
    end record;

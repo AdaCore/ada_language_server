@@ -8,6 +8,34 @@ with LSP.Types;                    use LSP.Types;
 package body LSP.Message_IO is
    pragma Style_Checks ("M175");
 
+   procedure Write_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CancelParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("id");
+      LSP_Number_Or_String'Write (S, V.id);
+      JS.End_Object;
+   end Write_CancelParams;
+
+   procedure Write_Position
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Position)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("line");
+      Line_Number'Write (S, V.line);
+      JS.Key ("character");
+      UTF_16_Index'Write (S, V.character);
+      JS.End_Object;
+   end Write_Position;
+
    procedure Write_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Span)
@@ -229,7 +257,8 @@ package body LSP.Message_IO is
       LSP.Types.Write (S, V.uri);
       JS.Key ("languageId");
       LSP.Types.Write (S, V.languageId);
-      Write_Number (JS, +"version", LSP.Types.LSP_Number (V.version));
+      JS.Key ("version");
+      Version_Id'Write (S, V.version);
       JS.Key ("text");
       LSP.Types.Write (S, V.text);
       JS.End_Object;
@@ -1353,10 +1382,14 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Number (JS, +"red", V.red);
-      Write_Number (JS, +"green", V.green);
-      Write_Number (JS, +"blue", V.blue);
-      Write_Number (JS, +"alpha", V.alpha);
+      JS.Key ("red");
+      LSP_Number'Write (S, V.red);
+      JS.Key ("green");
+      LSP_Number'Write (S, V.green);
+      JS.Key ("blue");
+      LSP_Number'Write (S, V.blue);
+      JS.Key ("alpha");
+      LSP_Number'Write (S, V.alpha);
       JS.End_Object;
    end Write_RGBA_Color;
 
@@ -1383,10 +1416,12 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Number (JS, +"startLine", V.startLine);
+      JS.Key ("startLine");
+      Line_Number'Write (S, V.startLine);
       JS.Key ("startCharacter");
       Optional_Number'Write (S, V.startCharacter);
-      Write_Number (JS, +"endLine", V.endLine);
+      JS.Key ("endLine");
+      Line_Number'Write (S, V.endLine);
       JS.Key ("endCharacter");
       Optional_Number'Write (S, V.endCharacter);
       JS.Key ("kind");

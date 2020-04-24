@@ -31,11 +31,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_String);
 
-   procedure Read_Optional_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Number);
-
    procedure Read_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -1532,10 +1527,14 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Read_Number (JS, +"startLine", V.startLine);
-      Read_Optional_Number (JS, +"startCharacter", V.startCharacter);
-      Read_Number (JS, +"endLine", V.endLine);
-      Read_Optional_Number (JS, +"endCharacter", V.endCharacter);
+      JS.Key ("startLine");
+      Line_Number'Read (S, V.startLine);
+      JS.Key ("startCharacter");
+      Optional_Number'Read (S, V.startCharacter);
+      JS.Key ("enfLine");
+      Line_Number'Read (S, V.endLine);
+      JS.Key ("endCharacter");
+      Optional_Number'Read (S, V.endCharacter);
       Read_Optional_String (JS, +"kind", V.kind);
       JS.End_Object;
    end Read_FoldingRange;
@@ -1615,7 +1614,8 @@ package body LSP.Messages is
       JS.Start_Object;
       Read_Optional_Boolean
         (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Number (JS, +"rangeLimit", V.rangeLimit);
+      JS.Key ("rangeLimit");
+      Optional_Number'Read (S, V.rangeLimit);
       Read_Optional_Boolean (JS, +"lineFoldingOnly", V.lineFoldingOnly);
       JS.End_Object;
    end Read_FoldingRangeClientCapabilities;
@@ -1676,7 +1676,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("workDoneToken");
       Optional_ProgressToken'Read (S, V.workDoneToken);
-      Read_Optional_Number (JS, +"processId", V.processId);
+      JS.Key ("processId");
+      Optional_Number'Read (S, V.processId);
       JS.Key ("clientInfo");
       Optional_ProgramInfo'Read (S, V.clientInfo);
       JS.Key ("rootPath");
@@ -2018,27 +2019,6 @@ package body LSP.Messages is
       Item := LSP.Types.LSP_Number (Integer'(Stream.Read.Get));
    end Read_Number;
 
-   --------------------------
-   -- Read_Optional_Number --
-   --------------------------
-
-   procedure Read_Optional_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Number)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
-
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := (Is_Set => False);
-      else
-         Item := (Is_Set => True, Value => Integer'(Value.Get));
-      end if;
-   end Read_Optional_Number;
-
    -------------------------------------------
    -- Read_Optional_TextDocumentSyncOptions --
    -------------------------------------------
@@ -2180,7 +2160,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
-      Read_Optional_Number (JS, +"version", V.version);
+      JS.Key ("version");
+      Optional_Number'Read (S, V.version);
       JS.Key ("diagnostics");
       Diagnostic_Vector'Read (S, V.diagnostics);
       JS.End_Object;
@@ -2604,8 +2585,10 @@ package body LSP.Messages is
       end loop;
 
       JS.End_Array;
-      Read_Optional_Number (JS, +"activeSignature", V.activeSignature);
-      Read_Optional_Number (JS, +"activeParameter", V.activeParameter);
+      JS.Key ("activeSignature");
+      Optional_Number'Read (S, V.activeSignature);
+      JS.Key ("activeParameter");
+      Optional_Number'Read (S, V.activeParameter);
       JS.End_Object;
    end Read_SignatureHelp;
 
@@ -2915,7 +2898,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("range");
       Optional_Span'Read (S, V.span);
-      Read_Optional_Number (JS, +"rangeLength", V.rangeLength);
+      JS.Key ("rangeLength");
+      Optional_Number'Read (S, V.rangeLength);
       Read_String (JS, +"text", V.text);
       JS.End_Object;
    end Read_TextDocumentContentChangeEvent;
@@ -3175,7 +3159,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("uri");
       DocumentUri'Read (S, V.uri);
-      Read_Optional_Number (JS, +"version", V.version);
+      JS.Key ("version");
+      Optional_Number'Read (S, V.version);
       JS.End_Object;
    end Read_VersionedTextDocumentIdentifier;
 
@@ -3214,8 +3199,8 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
       Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-      Result : LSP_Number;
-      Mask   : LSP_Number := 4;
+      Result : Integer;
+      Mask   : Integer := 4;
    begin
       if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
          Result := Value.Get;
@@ -3528,14 +3513,7 @@ package body LSP.Messages is
    procedure Write_CancelParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CancelParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Number_Or_String (JS, +"id", V.id);
-      JS.End_Object;
-   end Write_CancelParams;
+      renames LSP.Message_IO.Write_CancelParams;
 
    ------------------------------
    -- Write_ClientCapabilities --
@@ -4296,18 +4274,7 @@ package body LSP.Messages is
    procedure Write_FoldingRange
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : FoldingRange)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Number (JS, +"startLine", V.startLine);
-      Write_Optional_Number (JS, +"startCharacter", V.startCharacter);
-      Write_Number (JS, +"endLine", V.endLine);
-      Write_Optional_Number (JS, +"endCharacter", V.endCharacter);
-      Write_Optional_String (JS, +"kind", V.kind);
-      JS.End_Object;
-   end Write_FoldingRange;
+      renames LSP.Message_IO.Write_FoldingRange;
 
    ------------------------------
    -- Write_FoldingRangeParams --
@@ -4771,15 +4738,7 @@ package body LSP.Messages is
    procedure Write_Position
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Position)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Number (JS, +"line", LSP_Number (V.line));
-      Write_Number (JS, +"character", LSP_Number (V.character));
-      JS.End_Object;
-   end Write_Position;
+      renames LSP.Message_IO.Write_Position;
 
    ----------------------------
    -- Write_Provider_Options --
@@ -5389,8 +5348,8 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Result : LSP_Number := 0;
-      Mask   : LSP_Number := 1;
+      Result : Integer := 0;
+      Mask   : Integer := 1;
    begin
       if V /= Default_WatchKind_Set then
          for J in WatchKind loop
@@ -5719,8 +5678,8 @@ package body LSP.Messages is
                                    P.Begin_Param.value.cancellable);
             Read_Optional_String (JS, +"message",
                                   P.Begin_Param.value.message);
-            Read_Optional_Number (JS, +"percentage",
-                                  P.Begin_Param.value.percentage);
+            JS.Key ("percentage");
+            Optional_Number'Read (S, P.Begin_Param.value.percentage);
             JS.End_Object;
             JS.End_Object;
             V := P;
@@ -5735,8 +5694,8 @@ package body LSP.Messages is
                                    P.Report_Param.value.cancellable);
             Read_Optional_String (JS, +"message",
                                   P.Report_Param.value.message);
-            Read_Optional_Number (JS, +"percentage",
-                                  P.Report_Param.value.percentage);
+            JS.Key ("percentage");
+            Optional_Number'Read (S, P.Report_Param.value.percentage);
             JS.End_Object;
             JS.End_Object;
             V := P;

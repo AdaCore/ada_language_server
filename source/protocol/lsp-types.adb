@@ -137,6 +137,30 @@ package body LSP.Types is
       end if;
    end Read_LSP_Boolean_Or_String;
 
+   -------------------------------
+   -- Read_LSP_Number_Or_String --
+   -------------------------------
+
+   procedure Read_LSP_Number_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_Number_Or_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+   begin
+      if Value.Is_Empty then
+         V := (Is_Number => False,
+               String    => Empty_LSP_String);
+      elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
+         V := (Is_Number => False,
+               String    => To_LSP_String (Unbounded_String'(Value.Get)));
+      else
+         V := (Is_Number => True,
+               Number    => LSP_Number (Integer'(Value.Get)));
+      end if;
+   end Read_LSP_Number_Or_String;
+
    ---------------------------
    -- Read_Number_Or_String --
    ---------------------------
@@ -144,22 +168,10 @@ package body LSP.Types is
    procedure Read_Number_Or_String
      (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
       Key    : LSP.Types.LSP_String;
-      Item   : out LSP.Types.LSP_Number_Or_String)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
+      Item   : out LSP.Types.LSP_Number_Or_String) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
-
-      if Value.Is_Empty then
-         Item := (Is_Number => False,
-                  String    => Empty_LSP_String);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         Item := (Is_Number => False,
-                  String    => To_LSP_String (Unbounded_String'(Value.Get)));
-      else
-         Item := (Is_Number => True, Number => Integer'(Value.Get));
-      end if;
+      Read_LSP_Number_Or_String (Stream'Unchecked_Access, Item);
    end Read_Number_Or_String;
 
    ---------------------------
@@ -205,25 +217,21 @@ package body LSP.Types is
       end if;
    end Read_Optional_Boolean;
 
-   --------------------------
-   -- Read_Optional_Number --
-   --------------------------
+   ----------
+   -- Read --
+   ----------
 
-   procedure Read_Optional_Number
+   procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_Number)
+      V : out LSP_Number)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
+      Value : constant Integer := JS.Read.Get;
    begin
-      if Value.Is_Empty then
-         V := (Is_Set => False);
-      else
-         V := (Is_Set => True, Value => Integer'(Value.Get));
-      end if;
-   end Read_Optional_Number;
+      V := LSP_Number (Value);
+   end Read;
 
    --------------------------
    -- Read_Optional_String --
@@ -458,7 +466,7 @@ package body LSP.Types is
      Item   : LSP.Types.LSP_Number) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (Item));
+      Write (Stream'Unchecked_Access, Item);
    end Write_Number;
 
    ----------------------------
@@ -492,21 +500,19 @@ package body LSP.Types is
       end if;
    end Write_Optional_Boolean;
 
-   ---------------------------
-   -- Write_Optional_Number --
-   ---------------------------
+   -----------
+   -- Write --
+   -----------
 
-   procedure Write_Optional_Number
+   procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_Number)
+      V : LSP_Number)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      if V.Is_Set then
-         JS.Write (GNATCOLL.JSON.Create (V.Value));
-      end if;
-   end Write_Optional_Number;
+      JS.Write (GNATCOLL.JSON.Create (Integer (V)));
+   end Write;
 
    ------------------
    -- Write_String --
@@ -520,6 +526,21 @@ package body LSP.Types is
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
       Stream.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (Item)));
    end Write_String;
+
+   --------------------------------
+   -- Write_LSP_Number_Or_String --
+   --------------------------------
+
+   procedure Write_LSP_Number_Or_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_Number_Or_String) is
+   begin
+      if V.Is_Number then
+         Write (S, V.Number);
+      elsif not Is_Empty (V.String) then
+         Write (S, V.String);
+      end if;
+   end Write_LSP_Number_Or_String;
 
    ----------------------------
    -- Write_Number_Or_String --

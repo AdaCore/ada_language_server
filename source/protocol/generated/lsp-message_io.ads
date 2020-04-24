@@ -4,6 +4,14 @@ with LSP.Messages;
 
 package LSP.Message_IO is
 
+   procedure Write_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CancelParams);
+
+   procedure Write_Position
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Position);
+
    procedure Write_Span
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.Span);
