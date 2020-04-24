@@ -206,26 +206,6 @@ package body LSP.Types is
    end Read_Optional_Boolean;
 
    --------------------------
-   -- Read_Optional_Number --
-   --------------------------
-
-   procedure Read_Optional_Number
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_Number)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-   begin
-      if Value.Is_Empty then
-         V := (Is_Set => False);
-      else
-         V := (Is_Set => True, Value => Integer'(Value.Get));
-      end if;
-   end Read_Optional_Number;
-
-   --------------------------
    -- Read_Optional_String --
    --------------------------
 
@@ -491,22 +471,6 @@ package body LSP.Types is
          Stream.Write (GNATCOLL.JSON.Create (Item.Value));
       end if;
    end Write_Optional_Boolean;
-
-   ---------------------------
-   -- Write_Optional_Number --
-   ---------------------------
-
-   procedure Write_Optional_Number
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_Number)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if V.Is_Set then
-         JS.Write (GNATCOLL.JSON.Create (V.Value));
-      end if;
-   end Write_Optional_Number;
 
    ------------------
    -- Write_String --
