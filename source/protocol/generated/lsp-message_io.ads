@@ -16,14 +16,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.LocationLink);
 
-   procedure Write_DiagnosticSeverity
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.DiagnosticSeverity);
-
-   procedure Write_DiagnosticTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.DiagnosticTag);
-
    procedure Write_DiagnosticRelatedInformation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DiagnosticRelatedInformation);
@@ -52,14 +44,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceEditClientCapabilities);
 
-   procedure Write_SymbolKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.SymbolKind);
-
-   procedure Write_Als_Visibility
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.Als_Visibility);
-
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceClientCapabilities);
@@ -76,10 +60,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentSyncClientCapabilities);
 
-   procedure Write_CompletionItemTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.CompletionItemTag);
-
    procedure Write_CompletionItemTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CompletionItemTagSupport);
@@ -87,10 +67,6 @@ package LSP.Message_IO is
    procedure Write_completionItemCapability
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.completionItemCapability);
-
-   procedure Write_CompletionItemKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.CompletionItemKind);
 
    procedure Write_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -156,10 +132,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ProgramInfo);
 
-   procedure Write_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.TextDocumentSyncKind);
-
    procedure Write_TextDocumentSyncOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentSyncOptions);
@@ -183,10 +155,6 @@ package LSP.Message_IO is
    procedure Write_InitializedParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.InitializedParams);
-
-   procedure Write_MessageType
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.MessageType);
 
    procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -212,10 +180,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidCloseTextDocumentParams);
 
-   procedure Write_InsertTextFormat
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.InsertTextFormat);
-
    procedure Write_CompletionList
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CompletionList);
@@ -235,10 +199,6 @@ package LSP.Message_IO is
    procedure Write_ReferenceContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ReferenceContext);
-
-   procedure Write_DocumentHighlightKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.DocumentHighlightKind);
 
    procedure Write_DocumentHighlight
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -279,14 +239,6 @@ package LSP.Message_IO is
    procedure Write_DidChangeWatchedFilesRegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DidChangeWatchedFilesRegistrationOptions);
-
-   procedure Write_CompletionTriggerKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.CompletionTriggerKind);
-
-   procedure Write_CompletionContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.CompletionContext);
 
    procedure Write_RGBA_Color
      (S : access Ada.Streams.Root_Stream_Type'Class;
