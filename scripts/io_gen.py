@@ -1,5 +1,6 @@
 import libadalang as lal
 
+# The list of types to generate Write procedures:
 types_to_print = {
     #  'Message',
     #  'RequestMessage',
@@ -7,22 +8,22 @@ types_to_print = {
     #  'NotificationMessage',
     #  'CancelParams',
     #  'Position',
-    #  'Span',
+    'Span',
     #  'CodeActionKind',
     #  'AlsReferenceKind',
     #  'AlsReferenceKind_Array',
     #  'AlsReferenceKind_Set',
-    #  'Location',
-    #  'LocationLink',
+    'Location',
+    'LocationLink',
     #  'Location_Or_Link_Kind',
     #  'Location_Or_Link_Vector',
-    #  'DiagnosticSeverity',
-    #  'DiagnosticTag',
-    #  'DiagnosticRelatedInformation',
+    'DiagnosticSeverity',
+    'DiagnosticTag',
+    'DiagnosticRelatedInformation',
     #  'Diagnostic',
     #  'Command',
-    #  'TextEdit',
-    #  'TextDocumentIdentifier',
+    'TextEdit',
+    'TextDocumentIdentifier',
     #  'VersionedTextDocumentIdentifier',
     'TextDocumentEdit',
     #  'CreateFileOptions',
@@ -34,28 +35,27 @@ types_to_print = {
     #  'Document_Change_Kind',
     #  'Document_Change',
     #  'WorkspaceEdit',
-    #  'TextDocumentItem',
+    'TextDocumentItem',
     'TextDocumentPositionParams',
     #  'DocumentFilter',
     #  'DocumentSelector',
     #  'dynamicRegistration',
     #  'ResourceOperationKind',
-    #  'ResourceOperationKindSet',
     #  'FailureHandlingKind',
     'WorkspaceEditClientCapabilities',
-    #  'SymbolKind',
-    #  'Als_Visibility',
+    'SymbolKind',
+    'Als_Visibility',
     #  'WorkspaceSymbolClientCapabilities',
     'WorkspaceClientCapabilities',
     #  'MarkupKind',
-    #  'MarkupContent',
+    'MarkupContent',
     #  'String_Or_MarkupContent',
     'SaveOptions',
     'TextDocumentSyncClientCapabilities',
-    #  'CompletionItemTag',
+    'CompletionItemTag',
     'CompletionItemTagSupport',
     'completionItemCapability',
-    #  'CompletionItemKind',
+    'CompletionItemKind',
     #  'CompletionClientCapabilities',
     'HoverClientCapabilities',
     'parameterInformation_Capability',
@@ -69,11 +69,11 @@ types_to_print = {
     'RenameClientCapabilities',
     'DiagnosticTagSupport',
     'PublishDiagnosticsClientCapabilities',
-    #  'FoldingRangeClientCapabilities',
+    'FoldingRangeClientCapabilities',
     'TextDocumentClientCapabilities',
     'WindowClientCapabilities',
     'ClientCapabilities',
-    #  'WorkspaceFolder',
+    'WorkspaceFolder',
     #  'ProgressParam',
     #  'WorkDoneProgressCreateParams',
     #  'WorkDoneProgressParams',
@@ -81,10 +81,10 @@ types_to_print = {
     #  'Progress_Partial_Params',
     #  'Text_Progress_Partial_Params',
     #  'Text_Progress_Params',
-    #  'ProgramInfo',
+    'ProgramInfo',
     #  'InitializeParams',
     #  'WorkDoneProgressOptions',
-    #  'TextDocumentSyncKind',
+    'TextDocumentSyncKind',
     'TextDocumentSyncOptions',
     #  'Optional_TextDocumentSyncOptions',
     #  'CompletionOptions',
@@ -102,9 +102,9 @@ types_to_print = {
     'workspace_Options',
     'ServerCapabilities',
     'InitializeResult',
-    #  'InitializedParams',
+    'InitializedParams',
     #  'InitializeError',
-    #  'MessageType',
+    'MessageType',
     #  'ShowMessageParams',
     #  'ShowMessageRequestParams',
     #  'LogMessageParams',
@@ -121,39 +121,36 @@ types_to_print = {
     #  'Registration_Array',
     #  'RegistrationParams',
     #  'Unregistration',
-    #  'UnregistrationParams',
     'DidChangeConfigurationParams',
     'DidOpenTextDocumentParams',
-    #  'TextDocumentContentChangeEvent',
-    #  'TextDocumentContentChangeEvent_Vector',
+    'TextDocumentContentChangeEvent',
     'DidChangeTextDocumentParams',
     #  'TextDocumentSaveReason',
     #  'WillSaveTextDocumentParams',
-    #  'DidSaveTextDocumentParams',
+    'DidSaveTextDocumentParams',
     'DidCloseTextDocumentParams',
     #  'FileChangeType',
     #  'FileEvent',
-    #  'FileEvent_Vector',
     #  'DidChangeWatchedFilesParams',
     #  'PublishDiagnosticsParams',
-    #  'InsertTextFormat',
+    'InsertTextFormat',
     #  'CompletionItem',
-    #  'CompletionList',
+    'CompletionList',
     #  'MarkedString',
     #  'MarkupContent_Or_MarkedString_Vector',
-    #  'Hover',
+    'Hover',
     #  'Parameter_Label',
     'ParameterInformation',
-    #  'SignatureInformation',
+    'SignatureInformation',
     #  'SignatureHelp',
-    #  'ReferenceContext',
+    'ReferenceContext',
     #  'ReferenceParams',
-    #  'DocumentHighlightKind',
-    #  'DocumentHighlight',
+    'DocumentHighlightKind',
+    'DocumentHighlight',
     #  'DocumentSymbolParams',
     #  'DocumentSymbol',
     #  'DocumentSymbol_Tree',
-    #  'SymbolInformation',
+    'SymbolInformation',
     #  'Symbol_Vector',
     #  'WorkspaceSymbolParams',
     'CodeActionContext',
@@ -169,7 +166,7 @@ types_to_print = {
     #  'RenameParams',
     #  'ExecuteCommandParams',
     #  'ApplyWorkspaceEditParams',
-    #  'ApplyWorkspaceEditResult',
+    'ApplyWorkspaceEditResult',
     #  'WorkDoneProgressBegin',
     #  'WorkDoneProgressReport',
     #  'WorkDoneProgressEnd',
@@ -177,24 +174,24 @@ types_to_print = {
     #  'Progress_Params',
     'WorkspaceFoldersChangeEvent',
     'DidChangeWorkspaceFoldersParams',
-    #  'ConfigurationItem',
+    'ConfigurationItem',
     'ConfigurationParams',
     #  'WatchKind',
     #  'WatchKind_Set',
-    #  'FileSystemWatcher',
+    'FileSystemWatcher',
     'DidChangeWatchedFilesRegistrationOptions',
-    #  'CompletionTriggerKind',
-    #  'CompletionContext',
+    'CompletionTriggerKind',
+    'CompletionContext',
     #  'CompletionParams',
     #  'CodeAction',
     #  'CodeActionRegistrationOptions',
-    #  'RGBA_Color',
-    #  'ColorInformation',
+    'RGBA_Color',
+    'ColorInformation',
     #  'ColorPresentationParams',
     #  'ColorPresentation',
     #  'RenameRegistrationOptions',
     #  'FoldingRangeParams',
-    #  'FoldingRange',
+    'FoldingRange',
     #  'DocumentColorParams',
     #  'HoverParams',
     #  'SignatureHelpParams',
@@ -204,9 +201,8 @@ types_to_print = {
     #  'ImplementationParams',
     #  'DocumentHighlightParams',
     #  'SelectionRangeParams',
-    #  'SelectionRange',
-    #  'ALS_Subprogram_And_References',
-    #  'ALS_Subprogram_And_References_Vector',
+    'SelectionRange',
+    'ALS_Subprogram_And_References',
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
     }
@@ -219,6 +215,8 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
+with GNATCOLL.JSON;
+
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
@@ -242,21 +240,70 @@ write_header = """
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : {type})
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+{unref}      JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
 """
 
 write_footer = """\
-      JS.End_Object;
    end Write_{type};
 """
 
-write_component = """\
-      JS.Key ("{name}");
+write_component = \
+    {
+     "LSP_String": """\
+      JS.Key ("{key}");
+      LSP.Types.Write (S, V.{name});
+""",
+     "DocumentUri": """\
+      JS.Key ("{key}");
+      LSP.Types.Write (S, V.{name});
+""",
+     "LSP_Number": """\
+      Write_Number (JS, +"{key}", V.{name});
+""",
+     "Version_Id": """\
+      Write_Number (JS, +"{key}", LSP.Types.LSP_Number (V.{name}));
+""",
+     "Boolean": """\
+      Write_Boolean (JS, +"{key}", V.{name});
+""",
+     "": """\
+      JS.Key ("{key}");
       {type}'Write (S, V.{name});
 """
+    }
+
+write_pos_enum = """\
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'({type}'Pos (V)) + {offset}));
+"""
+
+# The map to substitute words reserved in Ada:
+reserver_named = \
+   {
+    "first": "start",
+    "last": "end",
+    "span": "range",
+    "the_type": "type",
+    "loc": "location"     # for ALS_Subprogram_And_References
+    }
+
+
+def get_key(field):
+    lower = field.lower()
+    if lower in reserver_named:
+        return reserver_named[lower]
+    else:
+        return field
+
+
+def write_format(type):
+    if type in write_component:
+        return write_component[type]
+    else:
+        return write_component[""]
 
 
 def filter(x):
@@ -272,15 +319,36 @@ def print_spec(file, node):
 
 
 def print_components(file, node):
+    file.write('      JS.Start_Object;\n')
+
     for x in node.finditer(lal.ComponentDecl):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
-        file.write(write_component.format(name=name, type=tp))
+        txt = write_format(tp).format(key=get_key(name), name=name, type=tp)
+        file.write(txt)
+
+    file.write('      JS.End_Object;\n')
+
+
+def print_enums(file, type, node):
+    offset = 0 if type == 'TextDocumentSyncKind' else 1
+    txt = write_pos_enum.format(type=type, offset=offset)
+    file.write(txt)
 
 
 def print_body(file, node):
-    file.write(write_header.format(type=node.p_defining_name.token_start.text))
-    print_components(file, node.f_type_def)
+    name = node.p_defining_name.token_start.text
+
+    unref = '      pragma Unreferenced (V);\n\n' if \
+        len(list(node.finditer(lal.NullRecordDef))) else ''
+
+    file.write(write_header.format(type=name,
+                                   unref=unref))
+    if isinstance(node.f_type_def, lal.EnumTypeDef):
+        print_enums(file, name, node.f_type_def)
+    else:
+        print_components(file, node.f_type_def)
+
     file.write(write_footer.format(type=node.p_defining_name.token_start.text))
 
 
