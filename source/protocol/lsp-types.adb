@@ -418,7 +418,7 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V)));
+      JS.Write (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V)));
    end Write;
 
    ---------------
