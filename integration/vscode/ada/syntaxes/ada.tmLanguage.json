@@ -60,7 +60,7 @@
 				},
 				{ "include": "#subtype_mark" }
 			]
-		},<<< HEAD
+		},
 		"actual_parameter_part": {
 			"begin": "\\(",
 			"end": "\\)",
@@ -81,6 +81,16 @@
 		},
 		"array_aggregate": {
 			"name": "meta.definition.array.aggregate.ada",
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
 				{ "include": "#positional_array_aggregate" },
 				{ "include": "#array_component_association" }
 			]
@@ -906,7 +916,7 @@
 		},
 		"highest_precedence_operator": {
 			"name": "keyword.operator.highest-precedence.ada",
-			"match": "(?i)\\b(\\*\\*|abs|not)\\b"
+			"match": "(?i)(\\*\\*|\\babs\\b|\\bnot\\b)"
 		},
 		"if_statement": {
 			"name": "meta.statement.if.ada",
@@ -1036,7 +1046,7 @@
 		},
 		"multiplying_operator": {
 			"name": "keyword.operator.multiplying.ada",
-			"match": "(?i)\\b(\\*|/|mod|rem)\\b"
+			"match": "(?i)(\\*|/|\\bmod\\b|\\brem\\b)"
 		},
 		"null_statement": {
 			"name": "meta.statement.null.ada",
@@ -1374,7 +1384,6 @@
 				}
 			]
 		},
-<<<<<<< HEAD
 		"positional_array_aggregate": {
 			"name": "meta.definition.array.aggregate.positional.ada",
 			"patterns": [
@@ -1429,6 +1438,7 @@
 					]
 				}
 			}
+		},
 		"relational_operator": {
 			"name": "keyword.operator.relational.ada",
 			"match": "(=|/=|<|<=|>|>=)"
