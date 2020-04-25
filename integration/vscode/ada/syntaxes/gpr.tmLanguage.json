@@ -2,6 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "gpr",
 	"patterns": [
+		{ "include": "#with_clause" },
 		{ "include": "#project" },
 		{ "include": "#comment" }
 	],
@@ -192,6 +193,25 @@
 			"patterns": [
 				{ "include": "#assignment" },
 				{ "include": "#type_annotation" }
+			]
+		},
+		"with_clause": {
+			"name": "meta.clause.with.gpr",
+			"begin": "(?i)\\b(?:(limited)\\s+)?(with)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "keyword.gpr" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{ "include": "#string" },
+				{
+					"match": ",",
+					"name": "punctuation.gpr"
+				}
 			]
 		}
 	 },
