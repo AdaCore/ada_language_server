@@ -100,12 +100,11 @@
 		},
 		"package": {
 			"name": "meta.package.gpr",
-			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\s+(is)\\b",
+			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\b",
 			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
 			"beginCaptures": {
 				"1": { "name": "keyword.gpr" },
-				"2": { "name": "entity.name.package.gpr" },
-				"3": { "name": "keyword.gpr" }
+				"2": { "name": "entity.name.package.gpr" }
 			},
 			"endCaptures": {
 				"1": { "name": "keyword.gpr" },
@@ -113,9 +112,35 @@
 				"3": { "name": "punctuation.gpr" }
 			},
 			"patterns": [
-				{ "include": "#case_construction" },
-				{ "include": "#comment" },
-				{ "include": "#attribute" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"end": "(?i)\\b(?=end)\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.gpr" }
+					},
+					"patterns": [
+						{ "include": "#case_construction" },
+						{ "include": "#comment" },
+						{ "include": "#attribute" }
+					]
+				},
+				{
+					"begin": "(?i)\\bextends\\b",
+					"end": "(?i)\\b(?=is)\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.gpr" }
+					},
+					"patterns": [
+						{
+							"match": "\\b((?:\\w|\\d|_)+)(\\.)((?:\\w|\\d|_)+)\\b",
+							"captures": {
+								"1": { "name": "entity.name.project.gpr" },
+								"2": { "name": "punctuation.gpr" },
+								"3": { "name": "entity.name.package.gpr" }
+							}
+						}
+					]
+				}
 			]
 		},
 		"package_renaming": {
@@ -163,8 +188,8 @@
 						"0": { "name": "keyword.gpr" }
 					},
 					"patterns": [
-						{ "include": "#package" },
 						{ "include": "#package_renaming" },
+						{ "include": "#package" },
 						{ "include": "#comment" },
 						{ "include": "#attribute" },
 						{ "include": "#type" },
