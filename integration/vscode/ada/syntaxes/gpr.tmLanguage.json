@@ -214,10 +214,10 @@
 			"match": "(\").*?(\")",
 			"captures": {
 				"1": {
-					"name": "punctuation.definition.string.ada"
+					"name": "punctuation.definition.string.gpr"
 				},
 				"2": {
-					"name": "punctuation.definition.string.ada"
+					"name": "punctuation.definition.string.gpr"
 				}
 			}
 		},
