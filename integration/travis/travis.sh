@@ -37,6 +37,14 @@ function linux_script()
     TAG=${TRAVIS_TAG:-latest}
     sed -i -e "s/VERSION/$TAG/g" integration/travis/bintray.json
     make LIBRARY_TYPE=relocatable check
+
+    # Make the VS Code plugin
+    make vscode
+
+    # Test the VS Code plugin
+    /usr/bin/Xvfb :101 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    DISPLAY=:101 make vscode-test
+
     integration/travis/deploy.sh linux
 }
 

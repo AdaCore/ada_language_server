@@ -56,6 +56,11 @@ To write a functional test for Ada Language Server:
  * to run an individual test, go to `testsuite` and run `sh run.sh ada_lsp/<testname>`
     (you will need `https://github.com/AdaCore/e3-testsuite` installed to do this)
 
+
+### VS Code integration tests
+
+Run `make vscode-test` to run the VS Code testsuite.
+
 ### Other tests
 
 See more about the project testsuite [here](../testsuite/README.md).
