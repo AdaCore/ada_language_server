@@ -118,6 +118,29 @@
 				{ "include": "#attribute" }
 			]
 		},
+		"package_renaming": {
+			"name": "meta.package_renaming.gpr",
+			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\s+(renames)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "entity.name.package.gpr" },
+				"3": { "name": "keyword.gpr" }
+			},
+			"endCaptures": {
+				"0": { "name": "package.punctuation" }
+			},
+			"patterns": [
+				{
+					"match": "\\b((?:\\w|\\d|_)+)(\\.)((?:\\w|\\d|_)+)\\b",
+					"captures": {
+						"1": { "name": "entity.name.project.gpr" },
+						"2": { "name": "punctuation.gpr" },
+						"3": { "name": "entity.name.package.gpr" }
+					}
+				}
+			]
+		},
 		"project": {
 			"name": "meta.project.gpr",
 			"begin": "(?i)\\b(?:(abstract|aggregate|library)\\s+)?(project)\\s+((?:\\w|\\d|_)+)\\b",
@@ -141,6 +164,7 @@
 					},
 					"patterns": [
 						{ "include": "#package" },
+						{ "include": "#package_renaming" },
 						{ "include": "#comment" },
 						{ "include": "#attribute" },
 						{ "include": "#type" },
