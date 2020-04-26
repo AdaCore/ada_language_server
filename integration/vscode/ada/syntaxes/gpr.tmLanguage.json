@@ -2,6 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "gpr",
 	"patterns": [
+		{ "include": "#with_clause" },
 		{ "include": "#project" },
 		{ "include": "#comment" }
 	],
@@ -99,44 +100,113 @@
 		},
 		"package": {
 			"name": "meta.package.gpr",
-			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\s+(is)\\b",
+			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\b",
 			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
+			"beginCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "entity.name.package.gpr" }
+			},
+			"endCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "entity.name.package.gpr" },
+				"3": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{
+					"begin": "(?i)\\bis\\b",
+					"end": "(?i)\\b(?=end)\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.gpr" }
+					},
+					"patterns": [
+						{ "include": "#case_construction" },
+						{ "include": "#comment" },
+						{ "include": "#attribute" }
+					]
+				},
+				{
+					"begin": "(?i)\\bextends\\b",
+					"end": "(?i)\\b(?=is)\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.gpr" }
+					},
+					"patterns": [
+						{
+							"match": "\\b((?:\\w|\\d|_)+)(\\.)((?:\\w|\\d|_)+)\\b",
+							"captures": {
+								"1": { "name": "entity.name.project.gpr" },
+								"2": { "name": "punctuation.gpr" },
+								"3": { "name": "entity.name.package.gpr" }
+							}
+						}
+					]
+				}
+			]
+		},
+		"package_renaming": {
+			"name": "meta.package_renaming.gpr",
+			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|_)+)\\s+(renames)\\b",
+			"end": ";",
 			"beginCaptures": {
 				"1": { "name": "keyword.gpr" },
 				"2": { "name": "entity.name.package.gpr" },
 				"3": { "name": "keyword.gpr" }
 			},
 			"endCaptures": {
-				"1": { "name": "keyword.gpr" },
-				"2": { "name": "entity.name.package.gpr" },
-				"3": { "name": "punctuation.gpr" }
+				"0": { "name": "package.punctuation" }
 			},
 			"patterns": [
-				{ "include": "#case_construction" },
-				{ "include": "#comment" },
-				{ "include": "#attribute" }
+				{
+					"match": "\\b((?:\\w|\\d|_)+)(\\.)((?:\\w|\\d|_)+)\\b",
+					"captures": {
+						"1": { "name": "entity.name.project.gpr" },
+						"2": { "name": "punctuation.gpr" },
+						"3": { "name": "entity.name.package.gpr" }
+					}
+				}
 			]
 		},
 		"project": {
 			"name": "meta.project.gpr",
-			"begin": "(?i)\\b(?:(abstract|aggregate|library)\\s+)?(project)\\s+((?:\\w|\\d|_)+)\\s+(is)\\b",
+			"begin": "(?i)\\b(?:(abstract|aggregate|library)\\s+)?(project)\\s+((?:\\w|\\d|_)+)\\b",
 			"end": "(?i)\\b(end)\\s+(\\3)\\s*(;)",
 			"beginCaptures": {
 				"1": { "name": "keyword.gpr" },
 				"2": { "name": "keyword.gpr" },
-				"3": { "name": "entity.name.project.gpr" },
-				"4": { "name": "keyword.gpr" }
+				"3": { "name": "entity.name.project.gpr" }
 			},
 			"endCaptures": {
 				"1": { "name": "keyword.gpr" },
+				"2": { "name": "entity.name.project.gpr" },
 				"3": { "name": "punctuation.gpr" }
 			},
 			"patterns": [
-				{ "include": "#package" },
-				{ "include": "#comment" },
-				{ "include": "#attribute" },
-				{ "include": "#type" },
-				{ "include": "#typed_variable" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"end": "(?i)\\b(?=end)\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.gpr" }
+					},
+					"patterns": [
+						{ "include": "#package_renaming" },
+						{ "include": "#package" },
+						{ "include": "#comment" },
+						{ "include": "#attribute" },
+						{ "include": "#type" },
+						{ "include": "#typed_variable" }
+					]
+				},
+				{
+					"begin": "(?i)\\b(extends)(?:\\s+(all))?\\b",
+					"beginCaptures": {
+						"1": { "name": "keyword.gpr" },
+						"2": { "name": "keyword.gpr" }
+					},
+					"end": "(?i)\\b(?=is)\\b",
+					"patterns": [
+						{ "include": "#string" }
+					]
+				}
 			]
 		},
 		"string": {
@@ -144,10 +214,10 @@
 			"match": "(\").*?(\")",
 			"captures": {
 				"1": {
-					"name": "punctuation.definition.string.ada"
+					"name": "punctuation.definition.string.gpr"
 				},
 				"2": {
-					"name": "punctuation.definition.string.ada"
+					"name": "punctuation.definition.string.gpr"
 				}
 			}
 		},
@@ -192,6 +262,25 @@
 			"patterns": [
 				{ "include": "#assignment" },
 				{ "include": "#type_annotation" }
+			]
+		},
+		"with_clause": {
+			"name": "meta.clause.with.gpr",
+			"begin": "(?i)\\b(?:(limited)\\s+)?(with)\\b",
+			"end": ";",
+			"beginCaptures": {
+				"1": { "name": "keyword.gpr" },
+				"2": { "name": "keyword.gpr" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.gpr" }
+			},
+			"patterns": [
+				{ "include": "#string" },
+				{
+					"match": ",",
+					"name": "punctuation.gpr"
+				}
 			]
 		}
 	 },
