@@ -8,6 +8,18 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": ["--extensionDevelopmentPath=${workspaceRoot}" ]
-        }
+        },
+	{
+	"name": "Run Extension Tests",
+	"type": "extensionHost",
+	"request": "launch",
+	"runtimeExecutable": "${execPath}",
+	"args": [
+		"--extensionDevelopmentPath=${workspaceFolder}",
+		"--extensionTestsPath=${workspaceFolder}/out"
+		],
+		"outFiles": ["${workspaceFolder}/out/test/**/*.js"],
+		"preLaunchTask": "npm: watch"
+	}
     ]
 }

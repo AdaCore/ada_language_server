@@ -115,7 +115,12 @@ vscode:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
 vscode-test:
-	cd integration/vscode/ada; npm run compile && node out/runTests.js
+	# Run the VS Code grammar testsuite
+	cd integration/vscode/ada ; ./run_grammar_tests.sh
+
+	# Run the VS Code integration testsuite.
+	# This contains no useful test, so deactivated for now.
+	# cd integration/vscode/ada; npm run compile && node out/runTests.js
 
 check: all
 	set -e; \
