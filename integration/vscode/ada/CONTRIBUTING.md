@@ -32,4 +32,8 @@ Ada's grammar is officially given in EBNF however, and structured Regex is not E
 
 When supplying new classifications it is a good idea to keep everything as close to [Annex P](http://ada-auth.org/standards/rm12_w_tc1/html/RM-P.html) definitions as possible. Furthermore, check for regressions.
 
-Do not hesitate to ask for advice or help.
+Furthermore, classifications within `repository` should be kept in alphabetical order.
+
+## Final Notes
+
+Do not hesitate to ask for advice or help. *Any* working contributions are greatly appreciated.
