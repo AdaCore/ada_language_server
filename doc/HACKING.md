@@ -73,7 +73,7 @@ Tests for the Ada grammar are in `testsuite_grammar`, with one test per subdirec
 To create new tests, do the following:
 
   * Create a directory for it, for instance `testsuite_grammar/newtest`
-  * Add `.ads` and/or `.adb` sources in that directory
+  * Add `.ads`, `.adb` or `.gpr` sources in that directory
   * Run the driver: the first run will create the baselines under the form
     of `.snap` files.
 

@@ -1,0 +1,109 @@
+>with "Ada_Drivers_Library/boards/stm32f769_discovery/stm32f769_discovery_sfp.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                                                                                ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                                 ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>
+>project HTTP_Cyclone extends "Ada_Drivers_Library/examples/shared/common/common.gpr" is
+#^^^^^^^ source.gpr meta.project.gpr keyword.gpr
+#       ^ source.gpr meta.project.gpr
+#        ^^^^^^^^^^^^ source.gpr meta.project.gpr entity.name.project.gpr
+#                    ^ source.gpr meta.project.gpr
+#                     ^^^^^^^ source.gpr meta.project.gpr keyword.gpr
+#                            ^ source.gpr meta.project.gpr
+#                             ^ source.gpr meta.project.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr string.quoted.double.gpr
+#                                                                                   ^ source.gpr meta.project.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                                    ^ source.gpr meta.project.gpr
+#                                                                                     ^^ source.gpr meta.project.gpr keyword.gpr
+>
+>
+>   for Runtime ("Ada") use STM32F769_Discovery_sfp'Runtime("Ada");
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#              ^^ source.gpr meta.project.gpr meta.attribute.gpr
+#                ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                 ^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                    ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^ source.gpr meta.project.gpr meta.attribute.gpr
+#                       ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr
+#                                                           ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                            ^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                               ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                                                                 ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>   for Target use "arm-eabi";
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#             ^ source.gpr meta.project.gpr meta.attribute.gpr
+#              ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                 ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                  ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                   ^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                           ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                            ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>   for Object_Dir use "obj";
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                 ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                  ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                      ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                       ^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                          ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                           ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>   for Create_Missing_Dirs use "True";
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                          ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                           ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                              ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                               ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                    ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                     ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>
+>   for Source_Dirs use ("src/**");
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                  ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                      ^^ source.gpr meta.project.gpr meta.attribute.gpr
+#                        ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                         ^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                               ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                                 ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>
+>   package Compiler renames STM32F769_Discovery_SFP.Compiler;
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package_renaming.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package_renaming.gpr
+#           ^^^^^^^^ source.gpr meta.project.gpr meta.package_renaming.gpr entity.name.package.gpr
+#                   ^ source.gpr meta.project.gpr meta.package_renaming.gpr
+#                    ^^^^^^^ source.gpr meta.project.gpr meta.package_renaming.gpr keyword.gpr
+#                           ^ source.gpr meta.project.gpr meta.package_renaming.gpr
+#                            ^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package_renaming.gpr entity.name.project.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.package_renaming.gpr punctuation.gpr
+#                                                    ^^^^^^^^ source.gpr meta.project.gpr meta.package_renaming.gpr entity.name.package.gpr
+#                                                            ^ source.gpr meta.project.gpr meta.package_renaming.gpr package.punctuation
+>
+>end HTTP_Cyclone;
+#^^^ source.gpr meta.project.gpr keyword.gpr
+#   ^ source.gpr meta.project.gpr
+#    ^^^^^^^^^^^^ source.gpr meta.project.gpr entity.name.project.gpr
+#                ^ source.gpr meta.project.gpr punctuation.gpr
+>

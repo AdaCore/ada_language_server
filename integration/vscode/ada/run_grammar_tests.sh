@@ -10,9 +10,24 @@ testpath=$1
 
 run_test(){
     dir=$1
-   ./node_modules/.bin/vscode-tmgrammar-snap -g syntaxes/ada.tmLanguage.json \
-     -s source.ada \
-     -t "$dir/*.ad?"
+    _err=0
+
+    ada_files=`find $dir -name "*.ad?"`
+    gpr_files=`find $dir -name "*.gpr"`
+
+    if [ "$ada_files" != "" ]; then
+      ./node_modules/.bin/vscode-tmgrammar-snap -g syntaxes/ada.tmLanguage.json \
+        -s source.ada \
+        -t "$dir/*.ad?" || _err=1
+    fi
+
+    if [ "$gpr_files" != "" ]; then
+      ./node_modules/.bin/vscode-tmgrammar-snap -g syntaxes/gpr.tmLanguage.json \
+        -s source.gpr \
+        -t "$dir/*.gpr" || _err=1
+    fi
+
+    return $_err
 }
 
 error=0
