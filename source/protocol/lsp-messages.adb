@@ -3692,12 +3692,8 @@ package body LSP.Messages is
       Write_String (JS, +"label", V.label);
       JS.Key ("textEdit");
       Optional_TextEdit'Write (S, V.textEdit);
-
-      if not V.additionalTextEdits.Is_Empty then
-         JS.Key ("additionalTextEdits");
-         TextEdit_Vector'Write (S, V.additionalTextEdits);
-      end if;
-
+      JS.Key ("additionalTextEdits");
+      TextEdit_Vector'Write (S, V.additionalTextEdits);
       JS.End_Object;
    end Write_ColorPresentation;
 
@@ -3972,12 +3968,8 @@ package body LSP.Messages is
       Write_Number_Or_String (JS, +"code", V.code);
       Write_Optional_String (JS, +"source", V.source);
       Write_String (JS, +"message", V.message);
-
-      if not V.relatedInformation.Is_Empty then
-         JS.Key ("relatedInformation");
-         DiagnosticRelatedInformation_Vector'Write (S, V.relatedInformation);
-      end if;
-
+      JS.Key ("relatedInformation");
+      DiagnosticRelatedInformation_Vector'Write (S, V.relatedInformation);
       JS.End_Object;
    end Write_Diagnostic;
 
@@ -4776,13 +4768,7 @@ package body LSP.Messages is
       Write_Optional_Number (JS, +"version", V.version);
       DocumentUri'Write (S, V.uri);
       JS.Key ("diagnostics");
-
-      if V.diagnostics.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-      else
-         Diagnostic_Vector'Write (S, V.diagnostics);
-      end if;
-
+      Diagnostic_Vector'Write (S, V.diagnostics);
       JS.End_Object;
    end Write_PublishDiagnosticsParams;
 
@@ -5007,18 +4993,8 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-
       JS.Key ("signatures");
-      if V.signatures.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
-      else
-         JS.Start_Array;
-         for Item of V.signatures loop
-            SignatureInformation'Write (S, Item);
-         end loop;
-         JS.End_Array;
-      end if;
-
+      SignatureInformation_Vector'Write (S, V.signatures);
       Write_Optional_Number (JS, +"activeSignature", V.activeSignature);
       Write_Optional_Number (JS, +"activeParameter", V.activeParameter);
       JS.End_Object;

@@ -17,4 +17,7 @@
 
 package LSP is
    pragma Pure;
+
+   type On_Empty_Array is (Skip, Write_Array, Write_Null);
+   --  Configuration of array writting procedure
 end LSP;
