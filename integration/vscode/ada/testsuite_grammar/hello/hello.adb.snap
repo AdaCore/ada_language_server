@@ -1,0 +1,23 @@
+>-- SYNTAX TEST "source.ada" "simple test"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>-- simple test
+#^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>procedure Hello is
+#^^^^^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#         ^ source.ada meta.declaration.procedure.body.ada
+#          ^^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#               ^ source.ada meta.declaration.procedure.body.ada
+#                ^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+>begin
+#^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+>   null;
+#^^^ source.ada meta.declaration.procedure.body.ada
+#   ^^^^ source.ada meta.declaration.procedure.body.ada meta.statement.null.ada keyword.ada
+#       ^ source.ada meta.declaration.procedure.body.ada meta.statement.null.ada punctuation.ada
+>end Hello;
+#^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#   ^ source.ada meta.declaration.procedure.body.ada
+#    ^^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#         ^ source.ada meta.declaration.procedure.body.ada punctuation.ada
+>

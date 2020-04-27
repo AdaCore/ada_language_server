@@ -114,6 +114,14 @@ vscode:
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
+vscode-test:
+	# Run the VS Code grammar testsuite
+	cd integration/vscode/ada ; ./run_grammar_tests.sh
+
+	# Run the VS Code integration testsuite.
+	# This contains no useful test, so deactivated for now.
+	# cd integration/vscode/ada; npm run compile && node out/runTests.js
+
 check: all
 	set -e; \
         if [ `python -c "import sys;print 'e3' in sys.modules"` = "True" ]; then\

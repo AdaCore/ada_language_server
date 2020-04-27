@@ -61,6 +61,20 @@
 				{ "include": "#subtype_mark" }
 			]
 		},
+		"actual_parameter_part": {
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{
+					"name": "punctuation.ada",
+					"match": ","
+				},
+				{ "include": "#parameter_association" }
+			]
+		},
 		"adding_operator": {
 			"name": "keyword.operator.adding.ada",
 			"match": "(\\+|-|\\&)"
@@ -198,7 +212,7 @@
 		"aspect_definition": {
 			"name": "meta.aspect.definition.ada",
 			"begin": "=>",
-			"end": "(?i)\\b(?=(,|;|is))\\b",
+			"end": "(?i)(?=(,|;|\\bis\\b))",
 			"beginCaptures": {
 				"0": { "name": "keyword.other.ada" }
 			},
@@ -218,7 +232,7 @@
 		"aspect_specification": {
 			"name": "meta.aspect.specification.ada",
 			"begin": "(?i)\\bwith\\b",
-			"end": "(?i)\\b(?=(;|is))\\b",
+			"end": "(?i)(?=(;|\\bis\\b))",
 			"beginCaptures": {
 				"0": { "name": "keyword.ada" }
 			},
@@ -279,7 +293,8 @@
 				{ "include": "#subtype_declaration" },
 				{ "include": "#exception_declaration" },
 				{ "include": "#object_declaration" },
-				{ "include": "#subprogram_specification" }
+				{ "include": "#subprogram_specification" },
+				{ "include": "#package_declaration" }
 			]
 		},
 		"block_statement": {
@@ -527,6 +542,12 @@
 				"3": { "name": "punctuation.ada" },
 				"4": { "patterns": [ { "include": "#exponent_part" } ] }
 			}
+		},
+		"declarative_item": {
+			"patterns": [
+				{ "include": "#body" },
+				{ "include": "#basic_declarative_item" }
+			]
 		},
 		"delay_statement": {
 			"patterns": [
@@ -826,11 +847,12 @@
 			]
 		},
 		"function_body": {
-			"begin": "(?i)\\b(function)\\s+((\\w|\\d|\\.|_)+)\\b",
-			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
+			"begin": "(?i)\\b(overriding\\s+)?(function)\\s+((\\w|\\d|\\.|_)+)\\b",
+			"end": "(?i)\\b(?:(end)\\s+(\\3)\\s*)?(;)",
 			"beginCaptures": {
-				"1": { "name": "keyword.ada" },
-				"2": { "name": "entity.name.function.ada" }
+				"1": { "name": "storage.visibility.ada" },
+				"2": { "name": "keyword.ada" },
+				"3": { "name": "entity.name.function.ada" }
 			},
 			"endCaptures": {
 				"1": { "name": "keyword.ada" },
@@ -845,7 +867,7 @@
 						"0": { "name": "keyword.ada" }
 					},
 					"patterns": [
-						{ "include": "#basic_declaration" }
+						{ "include": "#declarative_item" }
 					]
 				},
 				{
@@ -856,6 +878,7 @@
 						{ "include": "#statement" }
 					]
 				},
+				{ "include": "#aspect_specification" },
 				{ "include": "#result_profile" },
 				{ "include": "#parameter_profile" }
 			]
@@ -937,7 +960,7 @@
 				},
 				{
 					"begin": "(?i)\\bthen\\b",
-					"end": "(?i)(?=(elsif|else))",
+					"end": "(?i)(?=(elsif|else|end))",
 					"beginCaptures": {
 						"0": { "name": "keyword.control.ada" }
 					},
@@ -1095,7 +1118,7 @@
 		"package_body": {
 			"name": "meta.declaration.package.body.ada",
 			"begin": "(?i)\\b(package)\\s+(body)\\s+((?:\\w|\\d|\\.|_)+)\\b",
-			"end": "(?i)\\b(end)\\s(\\2)(;)",
+			"end": "(?i)\\b(end)\\s+(\\3)\\s*(;)",
 			"beginCaptures": {
 				"1": { "name": "keyword.ada" },
 				"2": { "name": "keyword.ada" },
@@ -1107,8 +1130,17 @@
 				"3": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#comment" },
-				{ "include": "#basic_declarative_item" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.ada" }
+					},
+					"end": "(?i)\\b(?=end)\\b",
+					"patterns": [
+						{ "include": "#declarative_item" },
+						{ "include": "#comment" }
+					]
+				}
 			]
 		},
 		"package_declaration": {
@@ -1123,7 +1155,7 @@
 		"package_specification": {
 			"name": "meta.declaration.package.specification.ada",
 			"begin": "(?i)\\b(package)\\s+((?:\\w|\\d|\\.|_)+)\\b",
-			"end": "(?i)\\b(end)\\s(\\2)(;)",
+			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
 			"beginCaptures": {
 				"1": { "name": "keyword.ada" },
 				"2": { "patterns": [ { "include": "#package_mark" } ] }
@@ -1134,8 +1166,29 @@
 				"3": { "name": "punctuation.ada" }
 			},
 			"patterns": [
-				{ "include": "#comment" },
-				{ "include": "#basic_declarative_item" }
+				{
+					"begin": "(?i)\\bis\\b",
+					"beginCaptures": {
+						"0": { "name": "keyword.ada" }
+					},
+					"end": "(?i)\\b(?=end)\\b",
+					"patterns": [
+						{ "include": "#basic_declarative_item" },
+						{ "include": "#comment" }
+					]
+				}
+			]
+		},
+		"parameter_association": {
+			"patterns": [
+				{
+					"match": "((?:\\w|\\d|_)+)\\s*(=>)",
+					"captures": {
+						"1": { "name": "variable.parameter.ada" },
+						"2": { "name": "keyword.ada.other" }
+					}
+				},
+				{ "include": "#expression" }
 			]
 		},
 		"parameter_profile": {
@@ -1205,12 +1258,30 @@
 				"1": { "name": "punctuation.ada" }
 			}
 		},
-		"procedure_body": {
-			"begin": "(?i)\\b(procedure)\\s+((?:\\w|\\d|\\.|_)+)\\b",
-			"end": "(?i)\\b(end)\\s+(\\2)\\s*(;)",
+		"procedure_call_statement": {
+			"name": "meta.statement.call.ada",
+			"begin": "(?i)\\b(?:((?:\\w|\\d|_|\\.)+)(\\.))?((?:\\w|\\d|_)+)\\b",
+			"end": ";",
 			"beginCaptures": {
-				"1": { "name": "keyword.ada" },
-				"2": { "name": "entity.name.function.ada" }
+				"1": { "patterns": [ { "include": "#package_mark" } ] },
+				"2": { "name": "punctuation.ada" },
+				"3": { "name": "entity.name.function.ada" }
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.ada" }
+			},
+			"patterns": [
+				{ "include": "#actual_parameter_part" }
+			]
+		},
+		"procedure_body": {
+			"name": "meta.declaration.procedure.body.ada",
+			"begin": "(?i)\\b(overriding\\s+)?(procedure)\\s+((?:\\w|\\d|\\.|_)+)\\b",
+			"end": "(?i)(?:\\b(end)\\s+(\\3)\\s*)?(;)",
+			"beginCaptures": {
+				"1": { "name": "storage.visibility.ada" },
+				"2": { "name": "keyword.ada" },
+				"3": { "name": "entity.name.function.ada" }
 			},
 			"endCaptures": {
 				"1": { "name": "keyword.ada" },
@@ -1225,7 +1296,7 @@
 						"0": { "name": "keyword.ada" }
 					},
 					"patterns": [
-						{ "include": "#basic_declaration" }
+						{ "include": "#declarative_item" }
 					]
 				},
 				{
@@ -1236,6 +1307,7 @@
 						{ "include": "#statement" }
 					]
 				},
+				{ "include": "#aspect_specification" },
 				{ "include": "#parameter_profile" }
 			]
 		},
@@ -1331,7 +1403,7 @@
 		"relational_operator": {
 			"name": "keyword.operator.relational.ada",
 			"match": "(=|/=|<|<=|>|>=)"
-		},
+    },
 		"record_representation_clause": {
 			"name": "meta.aspect.clause.record.representation.ada",
 			"begin": "(?i)\\b(record)\\b",
@@ -1536,7 +1608,10 @@
 				{ "include": "#if_statement" },
 				{ "include": "#case_statement" },
 				{ "include": "#loop_statement" },
-				{ "include": "#block_statement" }
+				{ "include": "#block_statement" },
+				{ "include": "#pragma" },
+				{ "include": "#procedure_call_statement" },
+				{ "include": "#comment" }
 			]
 		},
 		"string_literal": {
@@ -1550,6 +1625,12 @@
 					"name": "punctuation.definition.string.ada"
 				}
 			}
+		},
+		"body": {
+			"patterns": [
+				{ "include": "#subprogram_body" },
+				{ "include": "#package_body" }
+			]
 		},
 		"subprogram_body": {
 			"name": "meta.declaration.subprogram.body.ada",

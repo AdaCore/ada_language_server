@@ -1,0 +1,15 @@
+with "Ada_Drivers_Library/boards/stm32f769_discovery/stm32f769_discovery_sfp.gpr";
+
+project HTTP_Cyclone extends "Ada_Drivers_Library/examples/shared/common/common.gpr" is
+
+
+   for Runtime ("Ada") use STM32F769_Discovery_sfp'Runtime("Ada");
+   for Target use "arm-eabi";
+   for Object_Dir use "obj";
+   for Create_Missing_Dirs use "True";
+
+   for Source_Dirs use ("src/**");
+
+   package Compiler renames STM32F769_Discovery_SFP.Compiler;
+
+end HTTP_Cyclone;

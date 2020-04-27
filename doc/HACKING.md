@@ -56,6 +56,31 @@ To write a functional test for Ada Language Server:
  * to run an individual test, go to `testsuite` and run `sh run.sh ada_lsp/<testname>`
     (you will need `https://github.com/AdaCore/e3-testsuite` installed to do this)
 
+### VS Code integration tests
+
+Run `make vscode-test` to run the VS Code testsuite.
+
+### VS Code grammar tests
+
+The following is under `integration/vscode/ada/`.
+
+Tests for the Ada grammar are in `testsuite_grammar`, with one test per subdirectory.
+
+ * To run the full testsuite, call `./run_grammar_tests.sh`
+ * To run one individual test, pass its directory as parameter to
+   that script, for instance `./run_grammar_tests.sh testsuite_grammar/hello`
+
+To create new tests, do the following:
+
+  * Create a directory for it, for instance `testsuite_grammar/newtest`
+  * Add `.ads`, `.adb` or `.gpr` sources in that directory
+  * Run the driver: the first run will create the baselines under the form
+    of `.snap` files.
+
+The engine for the test driver is implemented using
+[vscode-tmgrammartest](https://github.com/PanAeon/vscode-tmgrammar-test):
+see the full documentation there.
+
 ### Other tests
 
 See more about the project testsuite [here](../testsuite/README.md).

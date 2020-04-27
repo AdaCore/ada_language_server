@@ -1,0 +1,6 @@
+>procedure hello isd laskndnlads
+#^^^^^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#         ^ source.ada meta.declaration.procedure.body.ada
+#          ^^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#               ^^^^^^^^^^^^^^^^^ source.ada meta.declaration.procedure.body.ada
+>
