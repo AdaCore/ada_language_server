@@ -235,7 +235,7 @@
                         "value": "function Common_Fun return Integer",
                         "language": "ada"
                      },
-                     "at common_pack.ads (4:4)"
+                     "at common_pack.ads (4:4) in project p"
                   ]
                }
             }
@@ -267,7 +267,7 @@
                         "value": "function Common_Fun return Integer",
                         "language": "ada"
                      },
-                     "at common_pack.ads (4:4)"
+                     "at common_pack.ads (4:4) in project p"
                   ]
                }
             }
