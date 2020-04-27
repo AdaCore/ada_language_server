@@ -4,20 +4,20 @@
 #^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
 >
 >procedure Hello is
-#^^^^^^^^^ source.ada keyword.ada
-#         ^ source.ada
-#          ^^^^^ source.ada entity.name.function.ada
-#               ^ source.ada
-#                ^^ source.ada keyword.ada
+#^^^^^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#         ^ source.ada meta.declaration.procedure.body.ada
+#          ^^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#               ^ source.ada meta.declaration.procedure.body.ada
+#                ^^ source.ada meta.declaration.procedure.body.ada keyword.ada
 >begin
-#^^^^^ source.ada keyword.ada
+#^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
 >   null;
-#^^^ source.ada
-#   ^^^^ source.ada meta.statement.null.ada keyword.ada
-#       ^ source.ada meta.statement.null.ada punctuation.ada
+#^^^ source.ada meta.declaration.procedure.body.ada
+#   ^^^^ source.ada meta.declaration.procedure.body.ada meta.statement.null.ada keyword.ada
+#       ^ source.ada meta.declaration.procedure.body.ada meta.statement.null.ada punctuation.ada
 >end Hello;
-#^^^ source.ada keyword.ada
-#   ^ source.ada
-#    ^^^^^ source.ada entity.name.function.ada
-#         ^ source.ada punctuation.ada
+#^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#   ^ source.ada meta.declaration.procedure.body.ada
+#    ^^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#         ^ source.ada meta.declaration.procedure.body.ada punctuation.ada
 >
