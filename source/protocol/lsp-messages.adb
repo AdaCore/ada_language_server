@@ -3023,6 +3023,40 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_TextDocumentPositionParams;
 
+   ------------------------------------
+   -- Get_TextDocumentPositionParams --
+   ------------------------------------
+
+   procedure Get_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentPositionParams'Class)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.Key ("position");
+      Position'Read (S, V.position);
+   end Get_TextDocumentPositionParams;
+
+   ------------------------------------
+   -- Put_TextDocumentPositionParams --
+   ------------------------------------
+
+   procedure Put_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentPositionParams'Class)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      LSP.Messages.Position'Write (S, V.position);
+   end Put_TextDocumentPositionParams;
+
    -------------------------------
    -- Read_TextDocumentSyncKind --
    -------------------------------
@@ -5961,5 +5995,49 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_DocumentFormattingParams;
+
+   -----------------------------------------
+   -- Read_DocumentOnTypeFormattingParams --
+   -----------------------------------------
+
+   procedure Read_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Get_TextDocumentPositionParams (S, V);
+
+      Read_String (JS, +"ch", V.ch);
+
+      JS.Key ("options");
+      FormattingOptions'Read (S, V.options);
+
+      JS.End_Object;
+   end Read_DocumentOnTypeFormattingParams;
+
+   ------------------------------------------
+   -- Write_DocumentOnTypeFormattingParams --
+   ------------------------------------------
+
+   procedure Write_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentOnTypeFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Put_TextDocumentPositionParams (S, V);
+
+      Write_String (JS, +"ch", V.ch);
+
+      JS.Key ("options");
+      FormattingOptions'Write (S, V.options);
+
+      JS.End_Object;
+   end Write_DocumentOnTypeFormattingParams;
 
 end LSP.Messages;

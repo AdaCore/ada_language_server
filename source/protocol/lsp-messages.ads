@@ -1131,6 +1131,13 @@ package LSP.Messages is
    for TextDocumentPositionParams'Read use Read_TextDocumentPositionParams;
    for TextDocumentPositionParams'Write use Write_TextDocumentPositionParams;
 
+   procedure Get_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentPositionParams'Class);
+   procedure Put_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentPositionParams'Class);
+
    --```typescript
    --{ language: 'typescript', scheme: 'file' }
    --{ language: 'json', pattern: '**/package.json' }
@@ -6066,6 +6073,16 @@ package LSP.Messages is
       ch: LSP_String;
       options: FormattingOptions;
    end record;
+   procedure Read_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingParams);
+   procedure Write_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentOnTypeFormattingParams);
+   for DocumentOnTypeFormattingParams'Read use
+     Read_DocumentOnTypeFormattingParams;
+   for DocumentOnTypeFormattingParams'Write use
+     Write_DocumentOnTypeFormattingParams;
 
    --```typescript
    --interface RenameParams extends TextDocumentPositionParams, WorkDoneProgressParams {
