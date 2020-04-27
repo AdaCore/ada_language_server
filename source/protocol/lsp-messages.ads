@@ -6004,6 +6004,16 @@ package LSP.Messages is
       textDocument: TextDocumentIdentifier;
       options: FormattingOptions;
    end record;
+   procedure Read_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentFormattingParams);
+   procedure Write_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentFormattingParams);
+   for DocumentFormattingParams'Read use
+     Read_DocumentFormattingParams;
+   for DocumentFormattingParams'Write use
+     Write_DocumentFormattingParams;
 
    --```typescript
    --interface DocumentRangeFormattingParams extends WorkDoneProgressParams {

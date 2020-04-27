@@ -5916,4 +5916,50 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_DocumentRangeFormattingParams;
 
+   -----------------------------------
+   -- Read_DocumentFormattingParams --
+   -----------------------------------
+
+   procedure Read_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Get_WorkDoneProgressParams (S, V);
+
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+
+      JS.Key ("options");
+      FormattingOptions'Read (S, V.options);
+
+      JS.End_Object;
+   end Read_DocumentFormattingParams;
+
+   ------------------------------------
+   -- Write_DocumentFormattingParams --
+   ------------------------------------
+
+   procedure Write_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentFormattingParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      Put_WorkDoneProgressParams (S, V);
+
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+
+      JS.Key ("options");
+      FormattingOptions'Write (S, V.options);
+
+      JS.End_Object;
+   end Write_DocumentFormattingParams;
+
 end LSP.Messages;
