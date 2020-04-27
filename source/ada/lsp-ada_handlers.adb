@@ -1630,7 +1630,9 @@ package body LSP.Ada_Handlers is
             value     => Decl_Text,
             language  => +"ada"));
 
-      --  Append the declaration's location
+      --  Append the declaration's location.
+      --  In addition, append the project's name if we are dealing with an
+      --  aggregate project.
 
       Decl_Unit_File := GNATCOLL.VFS.Create (+Decl.Unit.Get_Filename);
 
@@ -1642,6 +1644,10 @@ package body LSP.Ada_Handlers is
          & GNATCOLL.Utils.Image
            (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
          & ")");
+
+      if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
+         Location_Text := Location_Text & " in project " & C.Id;
+      end if;
 
       Response.result.contents.Vector.Append
         (LSP.Messages.MarkedString'
