@@ -22,6 +22,8 @@ with Ada.Streams;
 
 generic
    type Element is private;
+   Write_Empty : LSP.On_Empty_Array;
+   --  How to write an empty array: skip, write `[]` or write `null`
 
 package LSP.Generic_Vectors is
 

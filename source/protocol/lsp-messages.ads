@@ -276,7 +276,8 @@ package LSP.Messages is
       V : Position);
    for Position'Write use Write_Position;
 
-   package Position_Vectors is new LSP.Generic_Vectors (Position);
+   package Position_Vectors is new LSP.Generic_Vectors
+     (Position, Write_Empty => LSP.Write_Array);
 
    type Position_Vector is new Position_Vectors.Vector with null record;
 
@@ -418,7 +419,8 @@ package LSP.Messages is
    for Location'Read use Read_Location;
    for Location'Write use Write_Location;
 
-   package Location_Vectors is new LSP.Generic_Vectors (Location);
+   package Location_Vectors is new LSP.Generic_Vectors
+     (Location, Write_Empty => LSP.Write_Array);
 
    type Location_Vector is new Location_Vectors.Vector with null record;
 
@@ -469,7 +471,8 @@ package LSP.Messages is
    for LocationLink'Read use Read_LocationLink;
    for LocationLink'Write use Write_LocationLink;
 
-   package LocationLink_Vectors is new LSP.Generic_Vectors (LocationLink);
+   package LocationLink_Vectors is new LSP.Generic_Vectors
+     (LocationLink, Write_Empty => LSP.Write_Array);
 
    type LocationLink_Vector is new LocationLink_Vectors.Vector with null record;
 
@@ -616,7 +619,7 @@ package LSP.Messages is
      use Write_DiagnosticRelatedInformation;
 
    package DiagnosticRelatedInformation_Vectors is new LSP.Generic_Vectors
-     (DiagnosticRelatedInformation);
+     (DiagnosticRelatedInformation, Write_Empty => LSP.Skip);
 
    type DiagnosticRelatedInformation_Vector is
      new DiagnosticRelatedInformation_Vectors.Vector with null record;
@@ -684,14 +687,16 @@ package LSP.Messages is
       V : Diagnostic);
    for Diagnostic'Write use Write_Diagnostic;
 
-   package Diagnostic_Vectors is new LSP.Generic_Vectors (Diagnostic);
+   package Diagnostic_Vectors is new LSP.Generic_Vectors
+     (Diagnostic, Write_Empty => LSP.Write_Array);
 
    type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
 
    package Optional_Diagnostic_Vectors is new LSP.Generic_Optional (Diagnostic_Vector);
    type Optional_Diagnostic_Vector is new Optional_Diagnostic_Vectors.Optional_Type;
 
-   package Any_Vectors is new LSP.Generic_Vectors (LSP.Types.LSP_Any);
+   package Any_Vectors is new LSP.Generic_Vectors
+     (LSP.Types.LSP_Any, Write_Empty => LSP.Write_Array);
    type Any_Vector is new Any_Vectors.Vector with null record;
 
    package Optional_Any_Vectors is new LSP.Generic_Optional (Any_Vector);
@@ -738,7 +743,8 @@ package LSP.Messages is
    for Command'Read use Read_Command;
    for Command'Write use Write_Command;
 
-   package Command_Vectors is new LSP.Generic_Vectors (Command);
+   package Command_Vectors is new LSP.Generic_Vectors
+     (Command, Write_Empty => LSP.Write_Array);
 
    type Command_Vector is new Command_Vectors.Vector with null record;
 
@@ -775,7 +781,9 @@ package LSP.Messages is
    package Optional_TextEdits is new LSP.Generic_Optional (TextEdit);
    type Optional_TextEdit is new Optional_TextEdits.Optional_Type;
 
-   package TextEdit_Vectors is new LSP.Generic_Vectors (TextEdit);
+   package TextEdit_Vectors is new LSP.Generic_Vectors
+     (TextEdit, Write_Empty => LSP.Write_Array);
+
    type TextEdit_Vector is new TextEdit_Vectors.Vector with null record;
 
    --
@@ -1026,8 +1034,8 @@ package LSP.Messages is
       V : Document_Change);
    for Document_Change'Write use Write_Document_Change;
 
-   package Document_Change_Vectors is
-     new LSP.Generic_Vectors (Document_Change);
+   package Document_Change_Vectors is new LSP.Generic_Vectors
+     (Document_Change, Write_Empty => LSP.Write_Array);
 
    type Document_Change_Vector is
      new Document_Change_Vectors.Vector with null record;
@@ -1186,7 +1194,8 @@ package LSP.Messages is
       pattern: LSP.Types.Optional_String;
    end record;
 
-   package DocumentFilter_Vectors is new LSP.Generic_Vectors (DocumentFilter);
+   package DocumentFilter_Vectors is new
+     LSP.Generic_Vectors (DocumentFilter, Write_Empty => LSP.Write_Null);
    --```typescript
    --export type DocumentSelector = DocumentFilter[];
    --```
@@ -1599,7 +1608,9 @@ package LSP.Messages is
    for MarkupKind'Read use Read_MarkupKind;
    for MarkupKind'Write use Write_MarkupKind;
 
-   package MarkupKind_Vectors is new LSP.Generic_Vectors (MarkupKind);
+   package MarkupKind_Vectors is new LSP.Generic_Vectors
+     (MarkupKind, Write_Empty => LSP.Write_Array);
+
    type MarkupKind_Vector is new MarkupKind_Vectors.Vector with null record;
 
    package Optional_MarkupKind_Vectors is
@@ -2959,7 +2970,9 @@ package LSP.Messages is
    for WorkspaceFolder'Read use Read_WorkspaceFolder;
    for WorkspaceFolder'Write use Write_WorkspaceFolder;
 
-   package WorkspaceFolder_Vectors is new LSP.Generic_Vectors (WorkspaceFolder);
+   package WorkspaceFolder_Vectors is new
+     LSP.Generic_Vectors (WorkspaceFolder, Write_Empty => LSP.Write_Array);
+
    type WorkspaceFolder_Vector is new WorkspaceFolder_Vectors.Vector with null record;
 
    package Optional_WorkspaceFolder_Vectors is new LSP.Generic_Optional (WorkspaceFolder_Vector);
@@ -4498,10 +4511,13 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
-   package Unregistration_Vectors is new LSP.Generic_Vectors (Unregistration);
+   package Unregistration_Vectors is new LSP.Generic_Vectors
+     (Unregistration, Write_Empty => LSP.Write_Array);
+   type Unregistration_Vector is new Unregistration_Vectors.Vector with null record;
 
-   type UnregistrationParams is
-     new Unregistration_Vectors.Vector with null record;
+   type UnregistrationParams is record
+      unregisterations : Unregistration_Vector;
+   end record;
 
    --```typescript
    --interface DidChangeConfigurationParams {
@@ -4616,7 +4632,7 @@ package LSP.Messages is
    for TextDocumentContentChangeEvent'Write use Write_TextDocumentContentChangeEvent;
 
    package TextDocumentContentChangeEvent_Vectors is new LSP.Generic_Vectors
-     (TextDocumentContentChangeEvent);
+     (TextDocumentContentChangeEvent, Write_Empty => LSP.Write_Array);
 
    type TextDocumentContentChangeEvent_Vector is
      new TextDocumentContentChangeEvent_Vectors.Vector with null record;
@@ -4788,7 +4804,9 @@ package LSP.Messages is
       the_type : FileChangeType;  -- type: is reserver word
    end record;
 
-   package FileEvent_Vectors is new LSP.Generic_Vectors (FileEvent);
+   package FileEvent_Vectors is new LSP.Generic_Vectors
+     (FileEvent, Write_Empty => LSP.Write_Array);
+
    type FileEvent_Vector is new FileEvent_Vectors.Vector with null record;
 
    --```typescript
@@ -5095,7 +5113,9 @@ package LSP.Messages is
    for CompletionItem'Read use Read_CompletionItem;
    for CompletionItem'Write use Write_CompletionItem;
 
-   package CompletionItem_Vectors is new LSP.Generic_Vectors (CompletionItem);
+   package CompletionItem_Vectors is new LSP.Generic_Vectors
+     (CompletionItem, Write_Empty => LSP.Write_Array);
+
    type CompletionItem_Vector is
      new CompletionItem_Vectors.Vector with null record;
 
@@ -5150,7 +5170,9 @@ package LSP.Messages is
    for MarkedString'Read use Read_MarkedString;
    for MarkedString'Write use Write_MarkedString;
 
-   package MarkedString_Vectors is new LSP.Generic_Vectors (MarkedString);
+   package MarkedString_Vectors is new LSP.Generic_Vectors
+     (MarkedString, Write_Empty => LSP.Write_Array);
+
    type MarkedString_Vector is new MarkedString_Vectors.Vector with null record;
 
    type MarkupContent_Or_MarkedString_Vector (Is_MarkupContent : Boolean := False) is record
@@ -5319,7 +5341,7 @@ package LSP.Messages is
    for ParameterInformation'Write use Write_ParameterInformation;
 
    package ParameterInformation_Vectors is new LSP.Generic_Vectors
-     (ParameterInformation);
+     (ParameterInformation, Write_Empty => LSP.Skip);
    type ParameterInformation_Vector is
      new ParameterInformation_Vectors.Vector with null record;
 
@@ -5339,7 +5361,7 @@ package LSP.Messages is
    for SignatureInformation'Write use Write_SignatureInformation;
 
    package SignatureInformation_Vectors is new LSP.Generic_Vectors
-     (SignatureInformation);
+     (SignatureInformation, Write_Empty => LSP.Write_Array);
    type SignatureInformation_Vector is
      new SignatureInformation_Vectors.Vector with null record;
 
@@ -5466,7 +5488,7 @@ package LSP.Messages is
    for DocumentHighlight'Write use Write_DocumentHighlight;
 
    package DocumentHighlight_Vectors is new LSP.Generic_Vectors
-     (DocumentHighlight);
+     (DocumentHighlight, Write_Empty => LSP.Write_Array);
 
    type DocumentHighlight_Vector is
      new DocumentHighlight_Vectors.Vector with null record;
@@ -5661,7 +5683,7 @@ package LSP.Messages is
    for SymbolInformation'Write use Write_SymbolInformation;
 
    package SymbolInformation_Vectors is new LSP.Generic_Vectors
-     (SymbolInformation);
+     (SymbolInformation, Write_Empty => LSP.Write_Array);
 
    type SymbolInformation_Vector is
      new SymbolInformation_Vectors.Vector with null record;
@@ -5961,7 +5983,8 @@ package LSP.Messages is
       --  data?: any
    end record;
 
-   package DocumentLink_Vectors is new LSP.Generic_Vectors (DocumentLink);
+   package DocumentLink_Vectors is new LSP.Generic_Vectors
+     (DocumentLink, Write_Empty => LSP.Write_Array);
 
    type DocumentLink_Vector is new DocumentLink_Vectors.Vector with null record;
 
@@ -6468,7 +6491,9 @@ package LSP.Messages is
    for ConfigurationItem'Read use Read_ConfigurationItem;
    for ConfigurationItem'Write use Write_ConfigurationItem;
 
-   package ConfigurationItem_Vectors is new LSP.Generic_Vectors (ConfigurationItem);
+   package ConfigurationItem_Vectors is new LSP.Generic_Vectors
+     (ConfigurationItem, Write_Empty => LSP.Write_Array);
+
    type ConfigurationItem_Vector is new ConfigurationItem_Vectors.Vector with null record;
 
    type ConfigurationParams is record
@@ -6562,7 +6587,9 @@ package LSP.Messages is
    for FileSystemWatcher'Read use Read_FileSystemWatcher;
    for FileSystemWatcher'Write use Write_FileSystemWatcher;
 
-   package FileSystemWatcher_Vectors is new LSP.Generic_Vectors (FileSystemWatcher);
+   package FileSystemWatcher_Vectors is new LSP.Generic_Vectors
+     (FileSystemWatcher, Write_Empty => LSP.Write_Array);
+
    type FileSystemWatcher_Vector is new FileSystemWatcher_Vectors.Vector with null record;
 
    type DidChangeWatchedFilesRegistrationOptions is record
@@ -6738,7 +6765,9 @@ package LSP.Messages is
    for CodeAction'Read use Read_CodeAction;
    for CodeAction'Write use Write_CodeAction;
 
-   package CodeAction_Vectors is new LSP.Generic_Vectors (CodeAction);
+   package CodeAction_Vectors is new LSP.Generic_Vectors
+     (CodeAction, Write_Empty => LSP.Write_Array);
+
    type CodeAction_Vector is new CodeAction_Vectors.Vector with null record;
    --  CodeAction_Vector represents a sequence of CodeAction OR Command.
    --  Command is represented as CodeAction with just `command` property set.
@@ -6822,8 +6851,9 @@ package LSP.Messages is
    for ColorInformation'Read use Read_ColorInformation;
    for ColorInformation'Write use Write_ColorInformation;
 
-   package ColorInformation_Vectors is
-     new LSP.Generic_Vectors (ColorInformation);
+   package ColorInformation_Vectors is new LSP.Generic_Vectors
+     (ColorInformation, Write_Empty => LSP.Write_Array);
+
    type ColorInformation_Vector is
      new ColorInformation_Vectors.Vector with null record;
 
@@ -6896,8 +6926,9 @@ package LSP.Messages is
    for ColorPresentation'Read use Read_ColorPresentation;
    for ColorPresentation'Write use Write_ColorPresentation;
 
-   package ColorPresentation_Vectors is
-     new LSP.Generic_Vectors (ColorPresentation);
+   package ColorPresentation_Vectors is new LSP.Generic_Vectors
+     (ColorPresentation, Write_Empty => LSP.Write_Array);
+
    type ColorPresentation_Vector is
      new ColorPresentation_Vectors.Vector with null record;
 
@@ -6999,8 +7030,9 @@ package LSP.Messages is
    for FoldingRange'Read use Read_FoldingRange;
    for FoldingRange'Write use Write_FoldingRange;
 
-   package FoldingRange_Vectors is
-     new LSP.Generic_Vectors (FoldingRange);
+   package FoldingRange_Vectors is new LSP.Generic_Vectors
+     (FoldingRange, Write_Empty => LSP.Write_Array);
+
    type FoldingRange_Vector is
      new FoldingRange_Vectors.Vector with null record;
 
@@ -7194,7 +7226,9 @@ package LSP.Messages is
    for SelectionRange'Read use Read_SelectionRange;
    for SelectionRange'Write use Write_SelectionRange;
 
-   package SelectionRange_Vectors is new LSP.Generic_Vectors (SelectionRange);
+   package SelectionRange_Vectors is new LSP.Generic_Vectors
+     (SelectionRange, Write_Empty => LSP.Write_Array);
+
    type SelectionRange_Vector is new SelectionRange_Vectors.Vector
      with null record;
 
@@ -7241,7 +7275,8 @@ package LSP.Messages is
      Write_ALS_Subprogram_And_References;
 
    package ALS_Subprogram_And_References_Vectors is new LSP.Generic_Vectors
-     (ALS_Subprogram_And_References);
+     (ALS_Subprogram_And_References, Write_Empty => LSP.Write_Array);
+
    type ALS_Subprogram_And_References_Vector is
      new ALS_Subprogram_And_References_Vectors.Vector with null record;
 
