@@ -89,6 +89,17 @@ package LSP.Types is
    type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
    --  Vector of strings
 
+   procedure Read_LSP_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_String_Vector);
+
+   procedure Write_LSP_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_String_Vector);
+
+   for LSP_String_Vector'Read use Read_LSP_String_Vector;
+   for LSP_String_Vector'Write use Write_LSP_String_Vector;
+
    Empty_Vector : constant LSP_String_Vector :=
      (LSP_String_Vectors.Vector with null record);
 
@@ -181,9 +192,6 @@ package LSP.Types is
    --  LSP measures character position in UTF_16 code units starting from zero
    type Version_Id is new LSP_Number;
    --  Document version
-
-   type Trace_Kinds is (Unspecified, Off, Messages, Verbose);
-   --  LSP trace kinds
 
    ---------------------
    -- Optional_Number --

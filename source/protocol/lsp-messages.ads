@@ -47,6 +47,11 @@ package LSP.Messages is
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
 
+   package Optional_LSP_String_Vectors is
+     new LSP.Generic_Optional (LSP_String_Vector);
+   type Optional_LSP_String_Vector is
+     new Optional_LSP_String_Vectors.Optional_Type;
+
    --```typescript
    --interface Message {
    --	jsonrpc: string;
@@ -1201,7 +1206,9 @@ package LSP.Messages is
    --```
    type DocumentSelector is new DocumentFilter_Vectors.Vector with null record;
 
-   type dynamicRegistration is new Optional_Boolean;
+   type dynamicRegistration is record
+      dynamicRegistration: Optional_Boolean;
+   end record;
 
    procedure Read_dynamicRegistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1459,6 +1466,27 @@ package LSP.Messages is
    type Optional_SymbolKindSet is
      new Optional_SymbolKindSets.Optional_Type;
 
+   type symbolKindCapabilities is record
+      valueSet: Optional_SymbolKindSet;
+   end record;
+
+   procedure Read_symbolKindCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out symbolKindCapabilities);
+
+   procedure Write_symbolKindCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : symbolKindCapabilities);
+
+   for symbolKindCapabilities'Read use Read_symbolKindCapabilities;
+   for symbolKindCapabilities'Write use Write_symbolKindCapabilities;
+
+   package Optional_symbolKindCapabilities_Package is
+     new LSP.Generic_Optional (symbolKindCapabilities);
+
+   type Optional_symbolKindCapabilities is
+     new Optional_symbolKindCapabilities_Package.Optional_Type;
+
    type Als_Visibility is
      (Als_Public,
       Als_Protected,
@@ -1483,7 +1511,7 @@ package LSP.Messages is
 
    type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
-      symbolKind: Optional_SymbolKindSet;
+      symbolKind: Optional_symbolKindCapabilities;
    end record;
 
    procedure Read_WorkspaceSymbolClientCapabilities
@@ -1982,10 +2010,31 @@ package LSP.Messages is
    type Optional_CompletionItemKindSet is
      new Optional_CompletionItemKindSets.Optional_Type;
 
+   type CompletionItemKindSetCapabilities is record
+      valueSet : Optional_CompletionItemKindSet;
+   end record;
+
+   procedure Read_CompletionItemKindSetCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionItemKindSetCapabilities);
+   procedure Write_CompletionItemKindSetCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemKindSetCapabilities);
+   for CompletionItemKindSetCapabilities'Read
+     use Read_CompletionItemKindSetCapabilities;
+   for CompletionItemKindSetCapabilities'Write
+     use Write_CompletionItemKindSetCapabilities;
+
+   package Optional_CompletionItemKindSetCapabilities_Package is
+     new LSP.Generic_Optional (CompletionItemKindSetCapabilities);
+
+   type Optional_CompletionItemKindSetCapabilities is
+     new Optional_CompletionItemKindSetCapabilities_Package.Optional_Type;
+
    type CompletionClientCapabilities is record
       dynamicRegistration : Optional_Boolean;
       completionItem : Optional_completionItemCapability;
-      completionItemKind : Optional_CompletionItemKindSet;
+      completionItemKind : Optional_CompletionItemKindSetCapabilities;
       contextSupport : Optional_Boolean;
    end record;
 
@@ -2181,7 +2230,7 @@ package LSP.Messages is
    --```
    type DocumentSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
-      symbolKind: Optional_SymbolKindSet;
+      symbolKind: Optional_symbolKindCapabilities;
       hierarchicalDocumentSymbolSupport: Optional_Boolean;
    end record;
 
@@ -2353,8 +2402,23 @@ package LSP.Messages is
    --	isPreferredSupport?: boolean;
    --}
    --```
+   type codeActionKindCapability is record
+      valueSet: CodeActionKindSet;
+   end record;
+
+   procedure Read_codeActionKindCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out codeActionKindCapability);
+
+   procedure Write_codeActionKindCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : codeActionKindCapability);
+
+   for codeActionKindCapability'Read use Read_codeActionKindCapability;
+   for codeActionKindCapability'Write use Write_codeActionKindCapability;
+
    type codeActionLiteralSupport_Capability is record
-      codeActionKind: CodeActionKindSet;
+      codeActionKind: codeActionKindCapability;
    end record;
 
    procedure Read_codeActionLiteralSupport_Capability
@@ -3149,6 +3213,25 @@ package LSP.Messages is
    type Optional_ProgramInfo is
      new Optional_ProgramInfo_Package.Optional_Type;
 
+   type Trace_Kind is (off, messages_trace, verbose);
+
+   procedure Read_Trace_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Trace_Kind);
+
+   procedure Write_Trace_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Trace_Kind);
+
+   for Trace_Kind'Read use Read_Trace_Kind;
+   for Trace_Kind'Write use Write_Trace_Kind;
+
+   package Optional_Trace_Kind_Package is
+     new LSP.Generic_Optional (Trace_Kind);
+
+   type Optional_Trace_Kind is
+     new Optional_Trace_Kind_Package.Optional_Type;
+
    --```typescript
    --interface InitializeParams extends WorkDoneProgressParams {
    --	/**
@@ -3223,7 +3306,7 @@ package LSP.Messages is
       rootUri: DocumentUri;  --  or null???
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
-      trace: Trace_Kinds;
+      trace: Optional_Trace_Kind;
       workspaceFolders: Optional_WorkspaceFolder_Vector;
    end record;
 
@@ -3399,8 +3482,8 @@ package LSP.Messages is
    --}
    --```
    type CompletionOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: LSP.Types.LSP_String_Vector;
-      allCommitCharacters: LSP.Types.LSP_String_Vector;
+      triggerCharacters: Optional_LSP_String_Vector;
+      allCommitCharacters: Optional_LSP_String_Vector;
       resolveProvider: LSP.Types.Optional_Boolean;
    end record;
 
@@ -3446,8 +3529,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: LSP.Types.LSP_String_Vector;
-      retriggerCharacters: LSP.Types.LSP_String_Vector;
+      triggerCharacters: Optional_LSP_String_Vector;
+      retriggerCharacters: Optional_LSP_String_Vector;
    end record;
 
    procedure Read_SignatureHelpOptions
@@ -3733,7 +3816,7 @@ package LSP.Messages is
    --```
    type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
       firstTriggerCharacter: LSP.Types.LSP_String;
-      moreTriggerCharacter: LSP.Types.LSP_String_Vector;
+      moreTriggerCharacter: Optional_LSP_String_Vector;
    end record;
 
    procedure Read_DocumentOnTypeFormattingOptions
@@ -4370,8 +4453,8 @@ package LSP.Messages is
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: LSP_String_Vector;
-      allCommitCharacters: LSP_String_Vector;
+      triggerCharacters: Optional_LSP_String_Vector;
+      allCommitCharacters: Optional_LSP_String_Vector;
       resolveProvider: Optional_Boolean;
    end record;
 
@@ -4380,7 +4463,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: LSP_String_Vector;
+      triggerCharacters: Optional_LSP_String_Vector;
+      retriggerCharacters: Optional_LSP_String_Vector;
    end record;
 
    --```typescript
@@ -4405,7 +4489,7 @@ package LSP.Messages is
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
       firstTriggerCharacter: LSP_String;
-      moreTriggerCharacter: LSP_String_Vector;
+      moreTriggerCharacter: Optional_LSP_String_Vector;
    end record;
 
    --```typescript
@@ -5099,7 +5183,7 @@ package LSP.Messages is
       insertTextFormat: Optional_InsertTextFormat;
       textEdit: Optional_TextEdit;
       additionalTextEdits: TextEdit_Vector;
-      commitCharacters: LSP_String_Vector;
+      commitCharacters: Optional_LSP_String_Vector;
       command: Optional_Command;
    --	data?: any
    end record;

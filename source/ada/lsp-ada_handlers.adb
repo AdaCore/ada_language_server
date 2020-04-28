@@ -545,8 +545,8 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.completionProvider :=
         (True,
          (resolveProvider   => (True, False),
-          triggerCharacters => Empty_Vector & (+"."),
-          allCommitCharacters => Empty_Vector,
+          triggerCharacters => (True, Empty_Vector & (+".")),
+          allCommitCharacters => (Is_Set => False),
           workDoneProgress  => (Is_Set => False)));
       Response.result.capabilities.hoverProvider :=
         (Is_Set => True,
