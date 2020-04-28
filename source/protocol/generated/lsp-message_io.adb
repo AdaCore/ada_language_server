@@ -202,6 +202,31 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_DiagnosticRelatedInformation;
 
+   procedure Write_Diagnostic
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Diagnostic)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("range");
+      LSP.Messages.Span'Write (S, V.span);
+      JS.Key ("severity");
+      Optional_DiagnosticSeverity'Write (S, V.severity);
+      JS.Key ("code");
+      LSP_Number_Or_String'Write (S, V.code);
+      JS.Key ("source");
+      Optional_String'Write (S, V.source);
+      JS.Key ("message");
+      LSP.Types.Write (S, V.message);
+      JS.Key ("tags");
+      Optional_DiagnosticTagSet'Write (S, V.tags);
+      JS.Key ("relatedInformation");
+      DiagnosticRelatedInformation_Vector'Write (S, V.relatedInformation);
+      JS.End_Object;
+   end Write_Diagnostic;
+
    procedure Write_TextEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TextEdit)
@@ -278,6 +303,19 @@ package body LSP.Message_IO is
       LSP.Messages.Position'Write (S, V.position);
       JS.End_Object;
    end Write_TextDocumentPositionParams;
+
+   procedure Write_dynamicRegistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : dynamicRegistration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("dynamicRegistration");
+      Optional_Boolean'Write (S, V.dynamicRegistration);
+      JS.End_Object;
+   end Write_dynamicRegistration;
 
    procedure Write_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -368,6 +406,19 @@ package body LSP.Message_IO is
            (Integer'(SymbolKind'Pos (V)) + 1));
    end Write_SymbolKind;
 
+   procedure Write_symbolKindCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : symbolKindCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_SymbolKindSet'Write (S, V.valueSet);
+      JS.End_Object;
+   end Write_symbolKindCapabilities;
+
    procedure Write_Als_Visibility
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Als_Visibility)
@@ -379,6 +430,21 @@ package body LSP.Message_IO is
         (GNATCOLL.JSON.Create
            (Integer'(Als_Visibility'Pos (V)) + 1));
    end Write_Als_Visibility;
+
+   procedure Write_WorkspaceSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkspaceSymbolClientCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("dynamicRegistration");
+      Optional_Boolean'Write (S, V.dynamicRegistration);
+      JS.Key ("symbolKind");
+      Optional_symbolKindCapabilities'Write (S, V.symbolKind);
+      JS.End_Object;
+   end Write_WorkspaceSymbolClientCapabilities;
 
    procedure Write_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -541,6 +607,38 @@ package body LSP.Message_IO is
            (Integer'(CompletionItemKind'Pos (V)) + 1));
    end Write_CompletionItemKind;
 
+   procedure Write_CompletionItemKindSetCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItemKindSetCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      Optional_CompletionItemKindSet'Write (S, V.valueSet);
+      JS.End_Object;
+   end Write_CompletionItemKindSetCapabilities;
+
+   procedure Write_CompletionClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionClientCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("dynamicRegistration");
+      Optional_Boolean'Write (S, V.dynamicRegistration);
+      JS.Key ("completionItem");
+      Optional_completionItemCapability'Write (S, V.completionItem);
+      JS.Key ("completionItemKind");
+      Optional_CompletionItemKindSetCapabilities'Write (S, V.completionItemKind);
+      JS.Key ("contextSupport");
+      Optional_Boolean'Write (S, V.contextSupport);
+      JS.End_Object;
+   end Write_CompletionClientCapabilities;
+
    procedure Write_HoverClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : HoverClientCapabilities)
@@ -601,6 +699,23 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_SignatureHelpClientCapabilities;
 
+   procedure Write_DocumentSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbolClientCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("dynamicRegistration");
+      Optional_Boolean'Write (S, V.dynamicRegistration);
+      JS.Key ("symbolKind");
+      Optional_symbolKindCapabilities'Write (S, V.symbolKind);
+      JS.Key ("hierarchicalDocumentSymbolSupport");
+      Optional_Boolean'Write (S, V.hierarchicalDocumentSymbolSupport);
+      JS.End_Object;
+   end Write_DocumentSymbolClientCapabilities;
+
    procedure Write_DeclarationClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DeclarationClientCapabilities)
@@ -615,6 +730,32 @@ package body LSP.Message_IO is
       Optional_Boolean'Write (S, V.linkSupport);
       JS.End_Object;
    end Write_DeclarationClientCapabilities;
+
+   procedure Write_codeActionKindCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : codeActionKindCapability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("valueSet");
+      CodeActionKindSet'Write (S, V.valueSet);
+      JS.End_Object;
+   end Write_codeActionKindCapability;
+
+   procedure Write_codeActionLiteralSupport_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : codeActionLiteralSupport_Capability)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("codeActionKind");
+      codeActionKindCapability'Write (S, V.codeActionKind);
+      JS.End_Object;
+   end Write_codeActionLiteralSupport_Capability;
 
    procedure Write_CodeActionClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -810,6 +951,19 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_WorkspaceFolder;
 
+   procedure Write_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressCreateParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("token");
+      ProgressToken'Write (S, V.token);
+      JS.End_Object;
+   end Write_WorkDoneProgressCreateParams;
+
    procedure Write_ProgramInfo
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ProgramInfo)
@@ -824,6 +978,35 @@ package body LSP.Message_IO is
       Optional_String'Write (S, V.version);
       JS.End_Object;
    end Write_ProgramInfo;
+
+   procedure Write_Trace_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Trace_Kind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : Trace_Kind)
+         return GNATCOLL.JSON.UTF8_String;
+
+      function To_String
+        (Value : Trace_Kind)
+         return GNATCOLL.JSON.UTF8_String is
+      begin
+         case Value is
+            when off =>
+               return "off";
+            when messages_trace =>
+               return "messages_trace";
+            when verbose =>
+               return "verbose";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+   end Write_Trace_Kind;
 
    procedure Write_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -989,6 +1172,36 @@ package body LSP.Message_IO is
            (Integer'(MessageType'Pos (V)) + 1));
    end Write_MessageType;
 
+   procedure Write_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("type");
+      MessageType'Write (S, V.the_type);
+      JS.Key ("message");
+      LSP.Types.Write (S, V.message);
+      JS.End_Object;
+   end Write_ShowMessageParams;
+
+   procedure Write_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogMessageParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("type");
+      MessageType'Write (S, V.the_type);
+      JS.Key ("message");
+      LSP.Types.Write (S, V.message);
+      JS.End_Object;
+   end Write_LogMessageParams;
+
    procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DidChangeConfigurationParams)
@@ -1099,6 +1312,23 @@ package body LSP.Message_IO is
            (Integer'(FileChangeType'Pos (V)) + 1));
    end Write_FileChangeType;
 
+   procedure Write_PublishDiagnosticsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PublishDiagnosticsParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("version");
+      Optional_Number'Write (S, V.version);
+      JS.Key ("diagnostics");
+      Diagnostic_Vector'Write (S, V.diagnostics);
+      JS.End_Object;
+   end Write_PublishDiagnosticsParams;
+
    procedure Write_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : InsertTextFormat)
@@ -1110,6 +1340,47 @@ package body LSP.Message_IO is
         (GNATCOLL.JSON.Create
            (Integer'(InsertTextFormat'Pos (V)) + 1));
    end Write_InsertTextFormat;
+
+   procedure Write_CompletionItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("label");
+      LSP.Types.Write (S, V.label);
+      JS.Key ("kind");
+      Optional_CompletionItemKind'Write (S, V.kind);
+      JS.Key ("tags");
+      Optional_CompletionItemTagSet'Write (S, V.tags);
+      JS.Key ("detail");
+      Optional_String'Write (S, V.detail);
+      JS.Key ("documentation");
+      Optional_String_Or_MarkupContent'Write (S, V.documentation);
+      JS.Key ("deprecated");
+      Optional_Boolean'Write (S, V.deprecated);
+      JS.Key ("preselect");
+      Optional_Boolean'Write (S, V.preselect);
+      JS.Key ("sortText");
+      Optional_String'Write (S, V.sortText);
+      JS.Key ("filterText");
+      Optional_String'Write (S, V.filterText);
+      JS.Key ("insertText");
+      Optional_String'Write (S, V.insertText);
+      JS.Key ("insertTextFormat");
+      Optional_InsertTextFormat'Write (S, V.insertTextFormat);
+      JS.Key ("textEdit");
+      Optional_TextEdit'Write (S, V.textEdit);
+      JS.Key ("additionalTextEdits");
+      TextEdit_Vector'Write (S, V.additionalTextEdits);
+      JS.Key ("commitCharacters");
+      Optional_LSP_String_Vector'Write (S, V.commitCharacters);
+      JS.Key ("command");
+      Optional_Command'Write (S, V.command);
+      JS.End_Object;
+   end Write_CompletionItem;
 
    procedure Write_CompletionList
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1171,6 +1442,23 @@ package body LSP.Message_IO is
       ParameterInformation_Vector'Write (S, V.parameters);
       JS.End_Object;
    end Write_SignatureInformation;
+
+   procedure Write_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelp)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("signatures");
+      SignatureInformation_Vector'Write (S, V.signatures);
+      JS.Key ("activeSignature");
+      Optional_Number'Write (S, V.activeSignature);
+      JS.Key ("activeParameter");
+      Optional_Number'Write (S, V.activeParameter);
+      JS.End_Object;
+   end Write_SignatureHelp;
 
    procedure Write_ReferenceContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1249,6 +1537,26 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_CodeActionContext;
 
+   procedure Write_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FormattingOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("tabSize");
+      LSP_Number'Write (S, V.tabSize);
+      Write_Boolean (JS, +"insertSpaces", V.insertSpaces);
+      JS.Key ("trimTrailingWhitespace");
+      Optional_Boolean'Write (S, V.trimTrailingWhitespace);
+      JS.Key ("insertFinalNewline");
+      Optional_Boolean'Write (S, V.insertFinalNewline);
+      JS.Key ("trimFinalNewlines");
+      Optional_Boolean'Write (S, V.trimFinalNewlines);
+      JS.End_Object;
+   end Write_FormattingOptions;
+
    procedure Write_ApplyWorkspaceEditResult
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditResult)
@@ -1262,6 +1570,61 @@ package body LSP.Message_IO is
       Optional_String'Write (S, V.failureReason);
       JS.End_Object;
    end Write_ApplyWorkspaceEditResult;
+
+   procedure Write_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressBegin)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      LSP.Types.Write (S, V.kind);
+      JS.Key ("title");
+      LSP.Types.Write (S, V.title);
+      JS.Key ("cancellable");
+      Optional_Boolean'Write (S, V.cancellable);
+      JS.Key ("message");
+      Optional_String'Write (S, V.message);
+      JS.Key ("percentage");
+      Optional_Number'Write (S, V.percentage);
+      JS.End_Object;
+   end Write_WorkDoneProgressBegin;
+
+   procedure Write_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressReport)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      LSP.Types.Write (S, V.kind);
+      JS.Key ("cancellable");
+      Optional_Boolean'Write (S, V.cancellable);
+      JS.Key ("message");
+      Optional_String'Write (S, V.message);
+      JS.Key ("percentage");
+      Optional_Number'Write (S, V.percentage);
+      JS.End_Object;
+   end Write_WorkDoneProgressReport;
+
+   procedure Write_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WorkDoneProgressEnd)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      LSP.Types.Write (S, V.kind);
+      JS.Key ("message");
+      Optional_String'Write (S, V.message);
+      JS.End_Object;
+   end Write_WorkDoneProgressEnd;
 
    procedure Write_WorkspaceFoldersChangeEvent
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1407,6 +1770,23 @@ package body LSP.Message_IO is
       RGBA_Color'Write (S, V.color);
       JS.End_Object;
    end Write_ColorInformation;
+
+   procedure Write_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ColorPresentation)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("label");
+      LSP.Types.Write (S, V.label);
+      JS.Key ("textEdit");
+      Optional_TextEdit'Write (S, V.textEdit);
+      JS.Key ("additionalTextEdits");
+      TextEdit_Vector'Write (S, V.additionalTextEdits);
+      JS.End_Object;
+   end Write_ColorPresentation;
 
    procedure Write_FoldingRange
      (S : access Ada.Streams.Root_Stream_Type'Class;

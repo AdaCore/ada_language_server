@@ -161,6 +161,27 @@ package body LSP.Types is
       end if;
    end Read_LSP_Number_Or_String;
 
+   ----------------------------
+   -- Read_LSP_String_Vector --
+   ----------------------------
+
+   procedure Read_LSP_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_String_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V.Clear;
+      JS.Start_Array;
+
+      while not JS.End_Of_Array loop
+         V.Append (To_LSP_String (Unbounded_String'(JS.Read.Get)));
+      end loop;
+
+      JS.End_Array;
+   end Read_LSP_String_Vector;
+
    ---------------------------
    -- Read_Number_Or_String --
    ---------------------------
@@ -541,6 +562,27 @@ package body LSP.Types is
          Write (S, V.String);
       end if;
    end Write_LSP_Number_Or_String;
+
+   -----------------------------
+   -- Write_LSP_String_Vector --
+   -----------------------------
+
+   procedure Write_LSP_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_String_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Array;
+
+      for J in 1 .. V.Last_Index loop
+         JS.Write
+           (GNATCOLL.JSON.Create (To_UTF_8_String (V.Element (J))));
+      end loop;
+
+      JS.End_Array;
+   end Write_LSP_String_Vector;
 
    ----------------------------
    -- Write_Number_Or_String --
