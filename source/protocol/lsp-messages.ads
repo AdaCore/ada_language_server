@@ -1157,9 +1157,6 @@ package LSP.Messages is
    procedure Get_TextDocumentPositionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentPositionParams'Class);
-   procedure Put_TextDocumentPositionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentPositionParams'Class);
 
    --```typescript
    --{ language: 'typescript', scheme: 'file' }
@@ -3112,10 +3109,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkDoneProgressParams'Class);
    --  Get attributes of WorkDoneProgressParams from a stream.
-   procedure Put_WorkDoneProgressParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressParams'Class);
-   --  Put attributes of WorkDoneProgressParams to a stream.
 
    --```typescript
    --export interface PartialResultParams {
@@ -3136,10 +3129,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out PartialResultParams'Class);
    --  Get attributes of PartialResultParams from a stream.
-   procedure Put_PartialResultParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PartialResultParams'Class);
-   --  Put attributes of PartialResultParams to a stream.
 
    --  Common type for `extends WorkDoneProgressParams, PartialResultParams`
    type Progress_Partial_Params is abstract tagged record
@@ -3153,10 +3142,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Progress_Partial_Params'Class);
    --  Get attributes of Progress_Partial_Params from a stream.
-   procedure Put_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Progress_Partial_Params'Class);
-   --  Put attributes of Progress_Partial_Params to a stream.
 
    --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams`
    type Text_Progress_Partial_Params is abstract new TextDocumentPositionParams with record
@@ -3170,10 +3155,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Text_Progress_Partial_Params'Class);
    --  Get attributes of Text_Progress_Partial_Params from a stream.
-   procedure Put_Text_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Text_Progress_Partial_Params'Class);
-   --  Put attributes of Text_Progress_Partial_Params to a stream.
 
    --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams`
    type Text_Progress_Params is abstract new TextDocumentPositionParams with record
@@ -3186,10 +3167,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Text_Progress_Params'Class);
    --  Get attributes of Text_Progress_Params from a stream.
-   procedure Put_Text_Progress_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Text_Progress_Params'Class);
-   --  Put attributes of Text_Progress_Params to a stream.
 
    type ProgramInfo is record
       name : LSP_String;
