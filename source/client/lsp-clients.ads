@@ -187,7 +187,7 @@ private
      (Key_Type        => LSP.Types.LSP_Number,
       Element_Type    => Response_Decoder,
       Hash            => Hash,
-      Equivalent_Keys => "=");
+      Equivalent_Keys => LSP.Types."=");
 
    type Notification_Decoder is access procedure
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;

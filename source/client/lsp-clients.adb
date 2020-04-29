@@ -167,7 +167,7 @@ package body LSP.Clients is
    function Allocate_Request_Id
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String is
    begin
-      Self.Request_Id := Self.Request_Id + 1;
+      Self.Request_Id := LSP.Types.LSP_Number'Succ (Self.Request_Id);
 
       return (True, Self.Request_Id);
    end Allocate_Request_Id;
