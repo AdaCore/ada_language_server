@@ -1558,7 +1558,7 @@ package body LSP.Messages is
       Line_Number'Read (S, V.startLine);
       JS.Key ("startCharacter");
       Optional_Number'Read (S, V.startCharacter);
-      JS.Key ("enfLine");
+      JS.Key ("endLine");
       Line_Number'Read (S, V.endLine);
       JS.Key ("endCharacter");
       Optional_Number'Read (S, V.endCharacter);
