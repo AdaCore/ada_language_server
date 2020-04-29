@@ -24,7 +24,7 @@ with Ada.Strings.UTF_Encoding;
 with LSP.Messages;
 with LSP.Server_Notification_Receivers;
 with LSP.Raw_Clients;
-with LSP.Types;
+with LSP.Types; use LSP.Types;
 
 limited with LSP.Clients.Request_Handlers;
 limited with LSP.Clients.Response_Handlers;
