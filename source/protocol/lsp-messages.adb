@@ -54,11 +54,6 @@ package body LSP.Messages is
      Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_String_Vector);
 
-   procedure Write_String_Vector
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_String_Vector);
-
    Simple_Reference_Image           : aliased constant Standard.String :=
                                         "reference";
    Write_Reference_Image            : aliased constant Standard.String :=
@@ -103,21 +98,6 @@ package body LSP.Messages is
       Optional_ProgressToken'Read (S, V.workDoneToken);
    end Get_WorkDoneProgressParams;
 
-   --------------------------------
-   -- Put_WorkDoneProgressParams --
-   --------------------------------
-
-   procedure Put_WorkDoneProgressParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressParams'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Write (S, V.workDoneToken);
-   end Put_WorkDoneProgressParams;
-
    -----------------------------
    -- Get_PartialResultParams --
    -----------------------------
@@ -132,21 +112,6 @@ package body LSP.Messages is
       JS.Key ("partialResultToken");
       Optional_ProgressToken'Read (S, V.partialResultToken);
    end Get_PartialResultParams;
-
-   -----------------------------
-   -- Put_PartialResultParams --
-   -----------------------------
-
-   procedure Put_PartialResultParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PartialResultParams'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Write (S, V.partialResultToken);
-   end Put_PartialResultParams;
 
    ---------------------------------
    -- Get_Progress_Partial_Params --
@@ -164,23 +129,6 @@ package body LSP.Messages is
       JS.Key ("partialResultToken");
       Optional_ProgressToken'Read (S, V.partialResultToken);
    end Get_Progress_Partial_Params;
-
-   ---------------------------------
-   -- Put_Progress_Partial_Params --
-   ---------------------------------
-
-   procedure Put_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Progress_Partial_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Write (S, V.workDoneToken);
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Write (S, V.partialResultToken);
-   end Put_Progress_Partial_Params;
 
    --------------------------------------
    -- Get_Text_Progress_Partial_Params --
@@ -203,27 +151,6 @@ package body LSP.Messages is
       Optional_ProgressToken'Read (S, V.partialResultToken);
    end Get_Text_Progress_Partial_Params;
 
-   --------------------------------------
-   -- Put_Text_Progress_Partial_Params --
-   --------------------------------------
-
-   procedure Put_Text_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Text_Progress_Partial_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      Position'Write (S, V.position);
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Write (S, V.workDoneToken);
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Write (S, V.partialResultToken);
-   end Put_Text_Progress_Partial_Params;
-
    ------------------------------
    -- Get_Text_Progress_Params --
    ------------------------------
@@ -242,25 +169,6 @@ package body LSP.Messages is
       JS.Key ("workDoneToken");
       Optional_ProgressToken'Read (S, V.workDoneToken);
    end Get_Text_Progress_Params;
-
-   ------------------------------
-   -- Put_Text_Progress_Params --
-   ------------------------------
-
-   procedure Put_Text_Progress_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Text_Progress_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      Position'Write (S, V.position);
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Write (S, V.workDoneToken);
-   end Put_Text_Progress_Params;
 
    -------------------
    -- Method_To_Tag --
@@ -3103,23 +3011,6 @@ package body LSP.Messages is
       Position'Read (S, V.position);
    end Get_TextDocumentPositionParams;
 
-   ------------------------------------
-   -- Put_TextDocumentPositionParams --
-   ------------------------------------
-
-   procedure Put_TextDocumentPositionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentPositionParams'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      LSP.Messages.Position'Write (S, V.position);
-   end Put_TextDocumentPositionParams;
-
    -------------------------------
    -- Read_TextDocumentSyncKind --
    -------------------------------
@@ -3510,17 +3401,7 @@ package body LSP.Messages is
    procedure Write_ShowMessageRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ShowMessageRequestParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("type");
-      MessageType'Write (S, V.the_type);
-      Write_String (JS, +"message", V.message);
-      Write_String_Vector (JS, +"actions", V.actions);
-      JS.End_Object;
-   end Write_ShowMessageRequestParams;
+      renames LSP.Message_IO.Write_ShowMessageRequestParams;
 
    ------------------------------------
    -- Write_ApplyWorkspaceEditParams --
@@ -3529,15 +3410,7 @@ package body LSP.Messages is
    procedure Write_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ApplyWorkspaceEditParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("edit");
-      WorkspaceEdit'Write (S, V.edit);
-      JS.End_Object;
-   end Write_ApplyWorkspaceEditParams;
+      renames LSP.Message_IO.Write_ApplyWorkspaceEditParams;
 
    ------------------------------------
    -- Write_ApplyWorkspaceEditResult --
@@ -3620,16 +3493,7 @@ package body LSP.Messages is
    procedure Write_CodeActionOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.Key ("codeActionKinds");
-      Optional_CodeActionKindSet'Write (S, V.codeActionKinds);
-      JS.End_Object;
-   end Write_CodeActionOptions;
+      renames LSP.Message_IO.Write_CodeActionOptions;
 
    --------------------------
    -- Write_CodeActionKind --
@@ -3661,20 +3525,7 @@ package body LSP.Messages is
    procedure Write_CodeActionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeActionParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("range");
-      Span'Write (S, V.span);
-      JS.Key ("context");
-      CodeActionContext'Write (S, V.context);
-      JS.End_Object;
-   end Write_CodeActionParams;
+      renames LSP.Message_IO.Write_CodeActionParams;
 
    ----------------------------------------
    -- Write_CodeActionClientCapabilities --
@@ -3692,15 +3543,7 @@ package body LSP.Messages is
    procedure Write_CodeLensOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeLensOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.End_Object;
-   end Write_CodeLensOptions;
+      renames LSP.Message_IO.Write_CodeLensOptions;
 
    ----------------------------
    -- Write_ColorInformation --
@@ -3727,20 +3570,7 @@ package body LSP.Messages is
    procedure Write_ColorPresentationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ColorPresentationParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("color");
-      RGBA_Color'Write (S, V.color);
-      JS.Key ("range");
-      Span'Write (S, V.span);
-      JS.End_Object;
-   end Write_ColorPresentationParams;
+      renames LSP.Message_IO.Write_ColorPresentationParams;
 
    -------------------
    -- Write_Command --
@@ -3870,19 +3700,7 @@ package body LSP.Messages is
    procedure Write_CompletionOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
-      JS.Key ("allCommitCharacters");
-      Optional_LSP_String_Vector'Write (S, V.allCommitCharacters);
-      JS.End_Object;
-   end Write_CompletionOptions;
+      renames LSP.Message_IO.Write_CompletionOptions;
 
    ----------------------------
    -- Write_CompletionParams --
@@ -3891,20 +3709,7 @@ package body LSP.Messages is
    procedure Write_CompletionParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CompletionParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Text_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      Position'Write (S, V.position);
-      JS.Key ("context");
-      Optional_CompletionContext'Write (S, V.context);
-      JS.End_Object;
-   end Write_CompletionParams;
+      renames LSP.Message_IO.Write_CompletionParams;
 
    -----------------------------
    -- Write_ConfigurationItem --
@@ -4084,15 +3889,7 @@ package body LSP.Messages is
    procedure Write_DocumentLinkOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentLinkOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.End_Object;
-   end Write_DocumentLinkOptions;
+      renames LSP.Message_IO.Write_DocumentLinkOptions;
 
    -------------------------------------------
    -- Write_DocumentOnTypeFormattingOptions --
@@ -4101,17 +3898,7 @@ package body LSP.Messages is
    procedure Write_DocumentOnTypeFormattingOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentOnTypeFormattingOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_String (JS, +"firstTriggerCharacter", V.firstTriggerCharacter);
-      JS.Key ("moreTriggerCharacter");
-      Optional_LSP_String_Vector'Write (S, V.moreTriggerCharacter);
-      JS.End_Object;
-   end Write_DocumentOnTypeFormattingOptions;
+      renames LSP.Message_IO.Write_DocumentOnTypeFormattingOptions;
 
    --------------------------------
    -- Write_DocumentSymbolParams --
@@ -4120,16 +3907,7 @@ package body LSP.Messages is
    procedure Write_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentSymbolParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.End_Object;
-   end Write_DocumentSymbolParams;
+      renames LSP.Message_IO.Write_DocumentSymbolParams;
 
    -------------------------------
    -- Write_DocumentSymbol_Tree --
@@ -4227,16 +4005,7 @@ package body LSP.Messages is
    procedure Write_FoldingRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : FoldingRangeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.End_Object;
-   end Write_FoldingRangeParams;
+      renames LSP.Message_IO.Write_FoldingRangeParams;
 
    -------------------------------
    -- Write_DocumentColorParams --
@@ -4245,16 +4014,7 @@ package body LSP.Messages is
    procedure Write_DocumentColorParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentColorParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.End_Object;
-   end Write_DocumentColorParams;
+      renames LSP.Message_IO.Write_DocumentColorParams;
 
    ---------------------------------
    -- Write_ExecuteCommandOptions --
@@ -4263,15 +4023,7 @@ package body LSP.Messages is
    procedure Write_ExecuteCommandOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ExecuteCommandOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_String_Vector (JS, +"commands", V.commands);
-      JS.End_Object;
-   end Write_ExecuteCommandOptions;
+      renames LSP.Message_IO.Write_ExecuteCommandOptions;
 
    --------------------------------
    -- Write_ExecuteCommandParams --
@@ -4286,7 +4038,8 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Put_WorkDoneProgressParams (S, V.Base);
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.Base.workDoneToken);
       JS.Key ("arguments");
 
       if V.Is_Unknown then
@@ -4538,14 +4291,7 @@ package body LSP.Messages is
    procedure Write_NotificationMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : NotificationMessage)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Notification_Prefix (S, V);
-      JS.End_Object;
-   end Write_NotificationMessage;
+      renames LSP.Message_IO.Write_NotificationMessage;
 
    -------------------------------
    -- Write_Notification_Prefix --
@@ -4723,20 +4469,7 @@ package body LSP.Messages is
    procedure Write_ReferenceParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ReferenceParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Text_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      Position'Write (S, V.position);
-      JS.Key ("context");
-      ReferenceContext'Write (S, V.context);
-      JS.End_Object;
-   end Write_ReferenceParams;
+      renames LSP.Message_IO.Write_ReferenceParams;
 
    --------------------
    -- Write_Response --
@@ -4762,16 +4495,7 @@ package body LSP.Messages is
    procedure Write_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : RequestMessage)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-      Write_String (JS, +"method", V.method);
-      Write_Number_Or_String (JS, +"id", V.id);
-      JS.End_Object;
-   end Write_RequestMessage;
+      renames LSP.Message_IO.Write_RequestMessage;
 
    -------------------------
    -- Write_RenameOptions --
@@ -4780,15 +4504,7 @@ package body LSP.Messages is
    procedure Write_RenameOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : RenameOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_Optional_Boolean (JS, +"prepareProvider", V.prepareProvider);
-      JS.End_Object;
-   end Write_RenameOptions;
+      renames LSP.Message_IO.Write_RenameOptions;
 
    ------------------------
    -- Write_RenameParams --
@@ -4797,19 +4513,7 @@ package body LSP.Messages is
    procedure Write_RenameParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : RenameParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Text_Progress_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("position");
-      Position'Write (S, V.position);
-      Write_String (JS, +"newName", V.newName);
-      JS.End_Object;
-   end Write_RenameParams;
+      renames LSP.Message_IO.Write_RenameParams;
 
    ------------------------------------
    -- Write_RenameClientCapabilities --
@@ -4876,18 +4580,7 @@ package body LSP.Messages is
    procedure Write_SelectionRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SelectionRangeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-      JS.Key ("positions");
-      Position_Vector'Write (S, V.positions);
-      JS.End_Object;
-   end Write_SelectionRangeParams;
+      renames LSP.Message_IO.Write_SelectionRangeParams;
 
    ------------------------------
    -- Write_ServerCapabilities --
@@ -4914,17 +4607,7 @@ package body LSP.Messages is
    procedure Write_SignatureHelpOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SignatureHelpOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
-      JS.Key ("retriggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.retriggerCharacters);
-      JS.End_Object;
-   end Write_SignatureHelpOptions;
+      renames LSP.Message_IO.Write_SignatureHelpOptions;
 
    -------------------------------------------
    -- Write_SignatureHelpClientCapabilities --
@@ -4969,17 +4652,7 @@ package body LSP.Messages is
    procedure Write_TSW_RegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : TSW_RegistrationOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Write_Optional_String (JS, +"id", V.id);
-      JS.Key ("documentSelector");
-      DocumentSelector'Write (S, V.documentSelector);
-      JS.End_Object;
-   end Write_TSW_RegistrationOptions;
+      renames LSP.Message_IO.Write_TSW_RegistrationOptions;
 
    -----------------------------------
    -- Write_String_Or_MarkupContent --
@@ -5000,26 +4673,6 @@ package body LSP.Messages is
             MarkupContent'Write (S, V.Content);
       end case;
    end Write_String_Or_MarkupContent;
-
-   -------------------------
-   -- Write_String_Vector --
-   -------------------------
-
-   procedure Write_String_Vector
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_String_Vector) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Start_Array;
-
-      for J in 1 .. Item.Last_Index loop
-         Stream.Write
-           (GNATCOLL.JSON.Create (To_UTF_8_String (Item.Element (J))));
-      end loop;
-
-      Stream.End_Array;
-   end Write_String_Vector;
 
    -----------------------------
    -- Write_SymbolInformation --
@@ -5335,15 +4988,7 @@ package body LSP.Messages is
    procedure Write_WorkspaceSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkspaceSymbolParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_Progress_Partial_Params (S, V);
-      Write_String (JS, +"query", V.query);
-      JS.End_Object;
-   end Write_WorkspaceSymbolParams;
+      renames LSP.Message_IO.Write_WorkspaceSymbolParams;
 
    ----------------------------------------
    -- Read_ALS_Subprogram_And_References --
@@ -5660,24 +5305,7 @@ package body LSP.Messages is
    procedure Write_DocumentRangeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentRangeFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_WorkDoneProgressParams (S, V);
-
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-
-      JS.Key ("range");
-      Span'Write (S, V.span);
-
-      JS.Key ("options");
-      FormattingOptions'Write (S, V.options);
-
-      JS.End_Object;
-   end Write_DocumentRangeFormattingParams;
+      renames LSP.Message_IO.Write_DocumentRangeFormattingParams;
 
    -----------------------------------
    -- Read_DocumentFormattingParams --
@@ -5709,21 +5337,7 @@ package body LSP.Messages is
    procedure Write_DocumentFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_WorkDoneProgressParams (S, V);
-
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Write (S, V.textDocument);
-
-      JS.Key ("options");
-      FormattingOptions'Write (S, V.options);
-
-      JS.End_Object;
-   end Write_DocumentFormattingParams;
+      renames LSP.Message_IO.Write_DocumentFormattingParams;
 
    -----------------------------------------
    -- Read_DocumentOnTypeFormattingParams --
@@ -5754,19 +5368,6 @@ package body LSP.Messages is
    procedure Write_DocumentOnTypeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : DocumentOnTypeFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Put_TextDocumentPositionParams (S, V);
-
-      Write_String (JS, +"ch", V.ch);
-
-      JS.Key ("options");
-      FormattingOptions'Write (S, V.options);
-
-      JS.End_Object;
-   end Write_DocumentOnTypeFormattingParams;
+      renames LSP.Message_IO.Write_DocumentOnTypeFormattingParams;
 
 end LSP.Messages;

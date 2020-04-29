@@ -3,9 +3,9 @@ import libadalang as lal
 # The list of types to generate Write procedures:
 types_to_print = {
     #  'Message',
-    #  'RequestMessage',
+    'RequestMessage',
     #  'ResponseMessage',
-    #  'NotificationMessage',
+    'NotificationMessage',
     'CancelParams',
     'Position',
     'Span',
@@ -91,17 +91,17 @@ types_to_print = {
     'TextDocumentSyncKind',
     'TextDocumentSyncOptions',
     #  'Optional_TextDocumentSyncOptions',
-    #  'CompletionOptions',
-    #  'SignatureHelpOptions',
+    'CompletionOptions',
+    'SignatureHelpOptions',
     #  'TextDocumentRegistrationOptions',
-    #  'TSW_RegistrationOptions',
+    'TSW_RegistrationOptions',
     #  'Provider_Options',
-    #  'CodeActionOptions',
-    #  'CodeLensOptions',
-    #  'DocumentOnTypeFormattingOptions',
-    #  'RenameOptions',
-    #  'DocumentLinkOptions',
-    #  'ExecuteCommandOptions',
+    'CodeActionOptions',
+    'CodeLensOptions',
+    'DocumentOnTypeFormattingOptions',
+    'RenameOptions',
+    'DocumentLinkOptions',
+    'ExecuteCommandOptions',
     'WorkspaceFoldersServerCapabilities',
     'workspace_Options',
     'ServerCapabilities',
@@ -110,7 +110,7 @@ types_to_print = {
     #  'InitializeError',
     'MessageType',
     'ShowMessageParams',
-    #  'ShowMessageRequestParams',
+    'ShowMessageRequestParams',
     'LogMessageParams',
     #  'TextDocumentChangeRegistrationOptions',
     #  'TextDocumentSaveRegistrationOptions',
@@ -148,28 +148,28 @@ types_to_print = {
     'SignatureInformation',
     'SignatureHelp',
     'ReferenceContext',
-    #  'ReferenceParams',
+    'ReferenceParams',
     'DocumentHighlightKind',
     'DocumentHighlight',
-    #  'DocumentSymbolParams',
+    'DocumentSymbolParams',
     #  'DocumentSymbol',
     #  'DocumentSymbol_Tree',
     'SymbolInformation',
     #  'Symbol_Vector',
-    #  'WorkspaceSymbolParams',
+    'WorkspaceSymbolParams',
     'CodeActionContext',
-    #  'CodeActionParams',
+    'CodeActionParams',
     #  'CodeLensParams',
     #  'CodeLens',
     #  'DocumentLinkParams',
     #  'DocumentLink',
     'FormattingOptions',
-    #  'DocumentFormattingParams',
-    #  'DocumentRangeFormattingParams',
-    #  'DocumentOnTypeFormattingParams',
-    #  'RenameParams',
+    'DocumentFormattingParams',
+    'DocumentRangeFormattingParams',
+    'DocumentOnTypeFormattingParams',
+    'RenameParams',
     #  'ExecuteCommandParams',
-    #  'ApplyWorkspaceEditParams',
+    'ApplyWorkspaceEditParams',
     'ApplyWorkspaceEditResult',
     'WorkDoneProgressBegin',
     'WorkDoneProgressReport',
@@ -186,17 +186,17 @@ types_to_print = {
     'DidChangeWatchedFilesRegistrationOptions',
     'CompletionTriggerKind',
     'CompletionContext',
-    #  'CompletionParams',
+    'CompletionParams',
     #  'CodeAction',
     #  'CodeActionRegistrationOptions',
     'RGBA_Color',
     'ColorInformation',
-    #  'ColorPresentationParams',
+    'ColorPresentationParams',
     'ColorPresentation',
     #  'RenameRegistrationOptions',
-    #  'FoldingRangeParams',
+    'FoldingRangeParams',
     'FoldingRange',
-    #  'DocumentColorParams',
+    'DocumentColorParams',
     #  'HoverParams',
     #  'SignatureHelpParams',
     #  'DeclarationParams',
@@ -204,7 +204,7 @@ types_to_print = {
     #  'TypeDefinitionParams',
     #  'ImplementationParams',
     #  'DocumentHighlightParams',
-    #  'SelectionRangeParams',
+    'SelectionRangeParams',
     'SelectionRange',
     'ALS_Subprogram_And_References',
     #  'ALS_Debug_Kinds',
@@ -365,11 +365,23 @@ def print_spec(file, node):
     # print write_body.format(type=x.p_defining_name.token_start.text)
 
 
+def get_components(node):
+    if isinstance(node, lal.DerivedTypeDef):
+        parent = node.f_subtype_indication.p_designated_type_decl
+        result = get_components(parent.f_type_def)
+    else:
+        result = []
+
+    result += list(node.finditer(lal.ComponentDecl))
+
+    return result
+
+
 def print_components(file, node):
     file.write('   begin\n')
     file.write('      JS.Start_Object;\n')
 
-    for x in node.finditer(lal.ComponentDecl):
+    for x in get_components(node):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
         txt = write_format(tp).format(key=get_key(name), name=name, type=tp)
