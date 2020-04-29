@@ -44,11 +44,6 @@ package body LSP.Messages is
    --  If Item has a value write its value into Key. Otherwise if Write_Null,
    --  then write 'null' into Key. Otherwise do nothing.
 
-   procedure Write_Optional_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_String);
-
    procedure Read_String_Vector
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
@@ -3936,7 +3931,8 @@ package body LSP.Messages is
             begin
                JS.Start_Object;
                Write_String (JS, +"name", Item.name);
-               Write_Optional_String (JS, +"detail", Item.detail);
+               JS.Key ("detail");
+               Optional_String'Write (S, Item.detail);
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
                Write_Optional_Boolean (JS, +"deprecated", Item.deprecated);
@@ -4126,7 +4122,8 @@ package body LSP.Messages is
       JS.Start_Object;
       JS.Key ("workDoneToken");
       Optional_ProgressToken'Write (S, V.workDoneToken);
-      Write_Optional_Number (JS, +"processId", V.processId);
+      JS.Key ("processId");
+      Optional_Number'Write (S, V.processId);
       JS.Key ("clientInfo");
       Optional_ProgramInfo'Write (S, V.clientInfo);
 
@@ -4325,20 +4322,6 @@ package body LSP.Messages is
          Stream.Write (GNATCOLL.JSON.Create);
       end if;
    end Write_Optional_Number;
-
-   ---------------------------
-   -- Write_Optional_String --
-   ---------------------------
-
-   procedure Write_Optional_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.Optional_String) is
-   begin
-      if Item.Is_Set then
-         Write_String (Stream, Key, Item.Value);
-      end if;
-   end Write_Optional_String;
 
    --------------------------------------------
    -- Write_Optional_TextDocumentSyncOptions --
@@ -5210,10 +5193,10 @@ package body LSP.Messages is
             Write_String (JS, +"title", V.Begin_Param.value.title);
             Write_Optional_Boolean (JS, +"cancellable",
                                     V.Begin_Param.value.cancellable);
-            Write_Optional_String (JS, +"message",
-                                   V.Begin_Param.value.message);
-            Write_Optional_Number (JS, +"percentage",
-                                   V.Begin_Param.value.percentage);
+            JS.Key ("message");
+            Optional_String'Write (S, V.Begin_Param.value.message);
+            JS.Key ("percentage");
+            Optional_Number'Write (S, V.Begin_Param.value.percentage);
             JS.End_Object;
          when Progress_Report =>
             Write_Number_Or_String (JS, +"token", V.Report_Param.token);
@@ -5222,17 +5205,18 @@ package body LSP.Messages is
             Write_String (JS, +"kind", +"report");
             Write_Optional_Boolean (JS, +"cancellable",
                                     V.Report_Param.value.cancellable);
-            Write_Optional_String (JS, +"message",
-                                   V.Report_Param.value.message);
-            Write_Optional_Number (JS, +"percentage",
-                                   V.Report_Param.value.percentage);
+            JS.Key ("message");
+            Optional_String'Write (S, V.Report_Param.value.message);
+            JS.Key ("percentage");
+            Optional_Number'Write (S, V.Report_Param.value.percentage);
             JS.End_Object;
          when Progress_End =>
             Write_Number_Or_String (JS, +"token", V.End_Param.token);
             JS.Key ("value");
             JS.Start_Object;
             Write_String (JS, +"kind", +"end");
-            Write_Optional_String (JS, +"message", V.End_Param.value.message);
+            JS.Key ("message");
+            Optional_String'Write (S, V.End_Param.value.message);
             JS.End_Object;
       end case;
 
