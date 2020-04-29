@@ -284,7 +284,8 @@
 		"basic_declarative_item": {
 			"patterns": [
 				{ "include": "#basic_declaration" },
-				{ "include": "#aspect_clause" }
+				{ "include": "#aspect_clause" },
+				{ "include": "#use_clause" }
 			]
 		},
 		"basic_declaration": {
@@ -294,7 +295,9 @@
 				{ "include": "#exception_declaration" },
 				{ "include": "#object_declaration" },
 				{ "include": "#subprogram_specification" },
-				{ "include": "#package_declaration" }
+				{ "include": "#package_declaration" },
+				{ "include": "#pragma" },
+				{ "include": "#comment" }
 			]
 		},
 		"block_statement": {
@@ -503,7 +506,8 @@
 		},
 		"component_item": {
 			"patterns": [
-				{ "include": "#component_declaration" }
+				{ "include": "#component_declaration" },
+				{ "include": "#comment" }
 			]
 		},
 		"composite_constraint": {
@@ -752,6 +756,7 @@
 		"expression": {
 			"name": "meta.expression.ada",
 			"patterns": [
+				{ "include": "#comment" },
 				{ "include": "#value" },
 				{ "include": "#operator" }
 			]
