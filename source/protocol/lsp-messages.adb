@@ -44,39 +44,1330 @@ package body LSP.Messages is
    --  If Item has a value write its value into Key. Otherwise if Write_Null,
    --  then write 'null' into Key. Otherwise do nothing.
 
-   procedure Read_String_Vector
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_String_Vector);
-
-   Simple_Reference_Image           : aliased constant Standard.String :=
-                                        "reference";
-   Write_Reference_Image            : aliased constant Standard.String :=
-                                        "write";
-   Static_Call_Reference_Image      : aliased constant Standard.String :=
-                                        "call";
-   Dispatching_Call_Reference_Image : aliased constant Standard.String :=
-                                        "dispatching call";
-   Parent_Reference_Image           : aliased constant Standard.String :=
-                                        "parent";
-   Child_Reference_Image            : aliased constant Standard.String :=
-                                        "child";
-
-   type String_Constant_Access is access constant Standard.String;
-
-   AlsReferenceKind_Map : constant array
-     (AlsReferenceKind) of not null String_Constant_Access :=
-     (Simple           => Simple_Reference_Image'Access,
-      Write            => Write_Reference_Image'Access,
-      Static_Call      => Static_Call_Reference_Image'Access,
-      Dispatching_Call => Dispatching_Call_Reference_Image'Access,
-      Parent           => Parent_Reference_Image'Access,
-      Child            => Child_Reference_Image'Access);
-
    function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
      (T           => LSP.Commands.Command,
       Parameters  => LSP.JSON_Streams.JSON_Stream'Class,
       Constructor => LSP.Commands.Create);
+
+   procedure Read_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RequestMessage)
+      renames LSP.Message_IO.Read_RequestMessage;
+
+   procedure Read_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.NotificationMessage)
+      renames LSP.Message_IO.Read_NotificationMessage;
+
+   procedure Read_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CancelParams)
+      renames LSP.Message_IO.Read_CancelParams;
+
+   procedure Read_Position
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Position)
+      renames LSP.Message_IO.Read_Position;
+
+   procedure Read_Span
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Span)
+      renames LSP.Message_IO.Read_Span;
+
+   procedure Read_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionKind)
+      renames LSP.Message_IO.Read_CodeActionKind;
+
+   procedure Read_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.AlsReferenceKind)
+      renames LSP.Message_IO.Read_AlsReferenceKind;
+
+   procedure Read_Location
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Location)
+      renames LSP.Message_IO.Read_Location;
+
+   procedure Read_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.LocationLink)
+      renames LSP.Message_IO.Read_LocationLink;
+
+   procedure Read_DiagnosticSeverity
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DiagnosticSeverity)
+      renames LSP.Message_IO.Read_DiagnosticSeverity;
+
+   procedure Read_DiagnosticTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DiagnosticTag)
+      renames LSP.Message_IO.Read_DiagnosticTag;
+
+   procedure Read_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DiagnosticRelatedInformation)
+      renames LSP.Message_IO.Read_DiagnosticRelatedInformation;
+
+   procedure Read_Diagnostic
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Diagnostic)
+      renames LSP.Message_IO.Read_Diagnostic;
+
+   procedure Read_TextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextEdit)
+      renames LSP.Message_IO.Read_TextEdit;
+
+   procedure Read_TextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentIdentifier)
+      renames LSP.Message_IO.Read_TextDocumentIdentifier;
+
+   procedure Read_TextDocumentEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentEdit)
+      renames LSP.Message_IO.Read_TextDocumentEdit;
+
+   procedure Read_TextDocumentItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentItem)
+      renames LSP.Message_IO.Read_TextDocumentItem;
+
+   procedure Read_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentPositionParams)
+      renames LSP.Message_IO.Read_TextDocumentPositionParams;
+
+   procedure Read_dynamicRegistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.dynamicRegistration)
+      renames LSP.Message_IO.Read_dynamicRegistration;
+
+   procedure Read_ResourceOperationKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ResourceOperationKind)
+      renames LSP.Message_IO.Read_ResourceOperationKind;
+
+   procedure Read_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FailureHandlingKind)
+      renames LSP.Message_IO.Read_FailureHandlingKind;
+
+   procedure Read_WorkspaceEditClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceEditClientCapabilities)
+      renames LSP.Message_IO.Read_WorkspaceEditClientCapabilities;
+
+   procedure Read_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SymbolKind)
+      renames LSP.Message_IO.Read_SymbolKind;
+
+   procedure Read_symbolKindCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.symbolKindCapabilities)
+      renames LSP.Message_IO.Read_symbolKindCapabilities;
+
+   procedure Read_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Als_Visibility)
+      renames LSP.Message_IO.Read_Als_Visibility;
+
+   procedure Read_WorkspaceSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceSymbolClientCapabilities)
+      renames LSP.Message_IO.Read_WorkspaceSymbolClientCapabilities;
+
+   procedure Read_WorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceClientCapabilities)
+      renames LSP.Message_IO.Read_WorkspaceClientCapabilities;
+
+   procedure Read_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.MarkupKind)
+      renames LSP.Message_IO.Read_MarkupKind;
+
+   procedure Read_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.MarkupContent)
+      renames LSP.Message_IO.Read_MarkupContent;
+
+   procedure Read_SaveOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SaveOptions)
+      renames LSP.Message_IO.Read_SaveOptions;
+
+   procedure Read_TextDocumentSyncClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentSyncClientCapabilities)
+      renames LSP.Message_IO.Read_TextDocumentSyncClientCapabilities;
+
+   procedure Read_CompletionItemTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionItemTag)
+      renames LSP.Message_IO.Read_CompletionItemTag;
+
+   procedure Read_CompletionItemTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionItemTagSupport)
+      renames LSP.Message_IO.Read_CompletionItemTagSupport;
+
+   procedure Read_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.completionItemCapability)
+      renames LSP.Message_IO.Read_completionItemCapability;
+
+   procedure Read_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionItemKind)
+      renames LSP.Message_IO.Read_CompletionItemKind;
+
+   procedure Read_CompletionItemKindSetCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionItemKindSetCapabilities)
+      renames LSP.Message_IO.Read_CompletionItemKindSetCapabilities;
+
+   procedure Read_CompletionClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionClientCapabilities)
+      renames LSP.Message_IO.Read_CompletionClientCapabilities;
+
+   procedure Read_HoverClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.HoverClientCapabilities)
+      renames LSP.Message_IO.Read_HoverClientCapabilities;
+
+   procedure Read_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.parameterInformation_Capability)
+      renames LSP.Message_IO.Read_parameterInformation_Capability;
+
+   procedure Read_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.signatureInformation_Capability)
+      renames LSP.Message_IO.Read_signatureInformation_Capability;
+
+   procedure Read_SignatureHelpClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpClientCapabilities)
+      renames LSP.Message_IO.Read_SignatureHelpClientCapabilities;
+
+   procedure Read_DocumentSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentSymbolClientCapabilities)
+      renames LSP.Message_IO.Read_DocumentSymbolClientCapabilities;
+
+   procedure Read_DeclarationClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeclarationClientCapabilities)
+      renames LSP.Message_IO.Read_DeclarationClientCapabilities;
+
+   procedure Read_codeActionKindCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.codeActionKindCapability)
+      renames LSP.Message_IO.Read_codeActionKindCapability;
+
+   procedure Read_codeActionLiteralSupport_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.codeActionLiteralSupport_Capability)
+      renames LSP.Message_IO.Read_codeActionLiteralSupport_Capability;
+
+   procedure Read_CodeActionClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionClientCapabilities)
+      renames LSP.Message_IO.Read_CodeActionClientCapabilities;
+
+   procedure Read_DocumentLinkClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentLinkClientCapabilities)
+      renames LSP.Message_IO.Read_DocumentLinkClientCapabilities;
+
+   procedure Read_RenameClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameClientCapabilities)
+      renames LSP.Message_IO.Read_RenameClientCapabilities;
+
+   procedure Read_DiagnosticTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DiagnosticTagSupport)
+      renames LSP.Message_IO.Read_DiagnosticTagSupport;
+
+   procedure Read_PublishDiagnosticsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.PublishDiagnosticsClientCapabilities)
+      renames LSP.Message_IO.Read_PublishDiagnosticsClientCapabilities;
+
+   procedure Read_FoldingRangeClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FoldingRangeClientCapabilities)
+      renames LSP.Message_IO.Read_FoldingRangeClientCapabilities;
+
+   procedure Read_TextDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentClientCapabilities)
+      renames LSP.Message_IO.Read_TextDocumentClientCapabilities;
+
+   procedure Read_WindowClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WindowClientCapabilities)
+      renames LSP.Message_IO.Read_WindowClientCapabilities;
+
+   procedure Read_ClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ClientCapabilities)
+      renames LSP.Message_IO.Read_ClientCapabilities;
+
+   procedure Read_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceFolder)
+      renames LSP.Message_IO.Read_WorkspaceFolder;
+
+   procedure Read_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkDoneProgressCreateParams)
+      renames LSP.Message_IO.Read_WorkDoneProgressCreateParams;
+
+   procedure Read_ProgramInfo
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ProgramInfo)
+      renames LSP.Message_IO.Read_ProgramInfo;
+
+   procedure Read_Trace_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Trace_Kind)
+      renames LSP.Message_IO.Read_Trace_Kind;
+
+   procedure Read_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentSyncKind)
+      renames LSP.Message_IO.Read_TextDocumentSyncKind;
+
+   procedure Read_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentSyncOptions)
+      renames LSP.Message_IO.Read_TextDocumentSyncOptions;
+
+   procedure Read_CompletionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionOptions)
+      renames LSP.Message_IO.Read_CompletionOptions;
+
+   procedure Read_SignatureHelpOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpOptions)
+      renames LSP.Message_IO.Read_SignatureHelpOptions;
+
+   procedure Read_TSW_RegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TSW_RegistrationOptions)
+      renames LSP.Message_IO.Read_TSW_RegistrationOptions;
+
+   procedure Read_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionOptions)
+      renames LSP.Message_IO.Read_CodeActionOptions;
+
+   procedure Read_CodeLensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeLensOptions)
+      renames LSP.Message_IO.Read_CodeLensOptions;
+
+   procedure Read_DocumentOnTypeFormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentOnTypeFormattingOptions)
+      renames LSP.Message_IO.Read_DocumentOnTypeFormattingOptions;
+
+   procedure Read_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameOptions)
+      renames LSP.Message_IO.Read_RenameOptions;
+
+   procedure Read_DocumentLinkOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentLinkOptions)
+      renames LSP.Message_IO.Read_DocumentLinkOptions;
+
+   procedure Read_ExecuteCommandOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ExecuteCommandOptions)
+      renames LSP.Message_IO.Read_ExecuteCommandOptions;
+
+   procedure Read_WorkspaceFoldersServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceFoldersServerCapabilities)
+      renames LSP.Message_IO.Read_WorkspaceFoldersServerCapabilities;
+
+   procedure Read_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.workspace_Options)
+      renames LSP.Message_IO.Read_workspace_Options;
+
+   procedure Read_ServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ServerCapabilities)
+      renames LSP.Message_IO.Read_ServerCapabilities;
+
+   procedure Read_InitializeResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.InitializeResult)
+      renames LSP.Message_IO.Read_InitializeResult;
+
+   procedure Read_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.InitializedParams)
+      renames LSP.Message_IO.Read_InitializedParams;
+
+   procedure Read_MessageType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.MessageType)
+      renames LSP.Message_IO.Read_MessageType;
+
+   procedure Read_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ShowMessageParams)
+      renames LSP.Message_IO.Read_ShowMessageParams;
+
+   procedure Read_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ShowMessageRequestParams)
+      renames LSP.Message_IO.Read_ShowMessageRequestParams;
+
+   procedure Read_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.LogMessageParams)
+      renames LSP.Message_IO.Read_LogMessageParams;
+
+   procedure Read_DidChangeConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidChangeConfigurationParams)
+      renames LSP.Message_IO.Read_DidChangeConfigurationParams;
+
+   procedure Read_DidOpenTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidOpenTextDocumentParams)
+      renames LSP.Message_IO.Read_DidOpenTextDocumentParams;
+
+   procedure Read_TextDocumentContentChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentContentChangeEvent)
+      renames LSP.Message_IO.Read_TextDocumentContentChangeEvent;
+
+   procedure Read_DidChangeTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidChangeTextDocumentParams)
+      renames LSP.Message_IO.Read_DidChangeTextDocumentParams;
+
+   procedure Read_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentSaveReason)
+      renames LSP.Message_IO.Read_TextDocumentSaveReason;
+
+   procedure Read_DidSaveTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidSaveTextDocumentParams)
+      renames LSP.Message_IO.Read_DidSaveTextDocumentParams;
+
+   procedure Read_DidCloseTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidCloseTextDocumentParams)
+      renames LSP.Message_IO.Read_DidCloseTextDocumentParams;
+
+   procedure Read_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileChangeType)
+      renames LSP.Message_IO.Read_FileChangeType;
+
+   procedure Read_PublishDiagnosticsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.PublishDiagnosticsParams)
+      renames LSP.Message_IO.Read_PublishDiagnosticsParams;
+
+   procedure Read_InsertTextFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.InsertTextFormat)
+      renames LSP.Message_IO.Read_InsertTextFormat;
+
+   procedure Read_CompletionItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionItem)
+      renames LSP.Message_IO.Read_CompletionItem;
+
+   procedure Read_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionList)
+      renames LSP.Message_IO.Read_CompletionList;
+
+   procedure Read_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Hover)
+      renames LSP.Message_IO.Read_Hover;
+
+   procedure Read_ParameterInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ParameterInformation)
+      renames LSP.Message_IO.Read_ParameterInformation;
+
+   procedure Read_SignatureInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureInformation)
+      renames LSP.Message_IO.Read_SignatureInformation;
+
+   procedure Read_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelp)
+      renames LSP.Message_IO.Read_SignatureHelp;
+
+   procedure Read_ReferenceContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ReferenceContext)
+      renames LSP.Message_IO.Read_ReferenceContext;
+
+   procedure Read_ReferenceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ReferenceParams)
+      renames LSP.Message_IO.Read_ReferenceParams;
+
+   procedure Read_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentHighlightKind)
+      renames LSP.Message_IO.Read_DocumentHighlightKind;
+
+   procedure Read_DocumentHighlight
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentHighlight)
+      renames LSP.Message_IO.Read_DocumentHighlight;
+
+   procedure Read_DocumentSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentSymbolParams)
+      renames LSP.Message_IO.Read_DocumentSymbolParams;
+
+   procedure Read_SymbolInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SymbolInformation)
+      renames LSP.Message_IO.Read_SymbolInformation;
+
+   procedure Read_WorkspaceSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceSymbolParams)
+      renames LSP.Message_IO.Read_WorkspaceSymbolParams;
+
+   procedure Read_CodeActionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionContext)
+      renames LSP.Message_IO.Read_CodeActionContext;
+
+   procedure Read_CodeActionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionParams)
+      renames LSP.Message_IO.Read_CodeActionParams;
+
+   procedure Read_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FormattingOptions)
+      renames LSP.Message_IO.Read_FormattingOptions;
+
+   procedure Read_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentFormattingParams)
+      renames LSP.Message_IO.Read_DocumentFormattingParams;
+
+   procedure Read_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentRangeFormattingParams)
+      renames LSP.Message_IO.Read_DocumentRangeFormattingParams;
+
+   procedure Read_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentOnTypeFormattingParams)
+      renames LSP.Message_IO.Read_DocumentOnTypeFormattingParams;
+
+   procedure Read_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameParams)
+      renames LSP.Message_IO.Read_RenameParams;
+
+   procedure Read_ApplyWorkspaceEditParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ApplyWorkspaceEditParams)
+      renames LSP.Message_IO.Read_ApplyWorkspaceEditParams;
+
+   procedure Read_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ApplyWorkspaceEditResult)
+      renames LSP.Message_IO.Read_ApplyWorkspaceEditResult;
+
+   procedure Read_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkDoneProgressBegin)
+      renames LSP.Message_IO.Read_WorkDoneProgressBegin;
+
+   procedure Read_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkDoneProgressReport)
+      renames LSP.Message_IO.Read_WorkDoneProgressReport;
+
+   procedure Read_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkDoneProgressEnd)
+      renames LSP.Message_IO.Read_WorkDoneProgressEnd;
+
+   procedure Read_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.WorkspaceFoldersChangeEvent)
+      renames LSP.Message_IO.Read_WorkspaceFoldersChangeEvent;
+
+   procedure Read_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidChangeWorkspaceFoldersParams)
+      renames LSP.Message_IO.Read_DidChangeWorkspaceFoldersParams;
+
+   procedure Read_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ConfigurationItem)
+      renames LSP.Message_IO.Read_ConfigurationItem;
+
+   procedure Read_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ConfigurationParams)
+      renames LSP.Message_IO.Read_ConfigurationParams;
+
+   procedure Read_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileSystemWatcher)
+      renames LSP.Message_IO.Read_FileSystemWatcher;
+
+   procedure Read_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidChangeWatchedFilesRegistrationOptions)
+      renames LSP.Message_IO.Read_DidChangeWatchedFilesRegistrationOptions;
+
+   procedure Read_CompletionTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionTriggerKind)
+      renames LSP.Message_IO.Read_CompletionTriggerKind;
+
+   procedure Read_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionContext)
+      renames LSP.Message_IO.Read_CompletionContext;
+
+   procedure Read_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionParams)
+      renames LSP.Message_IO.Read_CompletionParams;
+
+   procedure Read_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RGBA_Color)
+      renames LSP.Message_IO.Read_RGBA_Color;
+
+   procedure Read_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ColorInformation)
+      renames LSP.Message_IO.Read_ColorInformation;
+
+   procedure Read_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ColorPresentationParams)
+      renames LSP.Message_IO.Read_ColorPresentationParams;
+
+   procedure Read_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ColorPresentation)
+      renames LSP.Message_IO.Read_ColorPresentation;
+
+   procedure Read_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FoldingRangeParams)
+      renames LSP.Message_IO.Read_FoldingRangeParams;
+
+   procedure Read_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FoldingRange)
+      renames LSP.Message_IO.Read_FoldingRange;
+
+   procedure Read_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentColorParams)
+      renames LSP.Message_IO.Read_DocumentColorParams;
+
+   procedure Read_SelectionRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SelectionRangeParams)
+      renames LSP.Message_IO.Read_SelectionRangeParams;
+
+   procedure Read_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SelectionRange)
+      renames LSP.Message_IO.Read_SelectionRange;
+
+   procedure Read_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_Subprogram_And_References)
+      renames LSP.Message_IO.Read_ALS_Subprogram_And_References;
+
+   procedure Write_RequestMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RequestMessage)
+      renames LSP.Message_IO.Write_RequestMessage;
+
+   procedure Write_NotificationMessage
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.NotificationMessage)
+      renames LSP.Message_IO.Write_NotificationMessage;
+
+   procedure Write_CancelParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CancelParams)
+      renames LSP.Message_IO.Write_CancelParams;
+
+   procedure Write_Position
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Position)
+      renames LSP.Message_IO.Write_Position;
+
+   procedure Write_Span
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Span)
+      renames LSP.Message_IO.Write_Span;
+
+   procedure Write_CodeActionKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionKind)
+      renames LSP.Message_IO.Write_CodeActionKind;
+
+   procedure Write_AlsReferenceKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.AlsReferenceKind)
+      renames LSP.Message_IO.Write_AlsReferenceKind;
+
+   procedure Write_Location
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Location)
+      renames LSP.Message_IO.Write_Location;
+
+   procedure Write_LocationLink
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.LocationLink)
+      renames LSP.Message_IO.Write_LocationLink;
+
+   procedure Write_DiagnosticSeverity
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DiagnosticSeverity)
+      renames LSP.Message_IO.Write_DiagnosticSeverity;
+
+   procedure Write_DiagnosticTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DiagnosticTag)
+      renames LSP.Message_IO.Write_DiagnosticTag;
+
+   procedure Write_DiagnosticRelatedInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DiagnosticRelatedInformation)
+      renames LSP.Message_IO.Write_DiagnosticRelatedInformation;
+
+   procedure Write_Diagnostic
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Diagnostic)
+      renames LSP.Message_IO.Write_Diagnostic;
+
+   procedure Write_TextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextEdit)
+      renames LSP.Message_IO.Write_TextEdit;
+
+   procedure Write_TextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentIdentifier)
+      renames LSP.Message_IO.Write_TextDocumentIdentifier;
+
+   procedure Write_TextDocumentEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentEdit)
+      renames LSP.Message_IO.Write_TextDocumentEdit;
+
+   procedure Write_TextDocumentItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentItem)
+      renames LSP.Message_IO.Write_TextDocumentItem;
+
+   procedure Write_TextDocumentPositionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentPositionParams)
+      renames LSP.Message_IO.Write_TextDocumentPositionParams;
+
+   procedure Write_dynamicRegistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.dynamicRegistration)
+      renames LSP.Message_IO.Write_dynamicRegistration;
+
+   procedure Write_ResourceOperationKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ResourceOperationKind)
+      renames LSP.Message_IO.Write_ResourceOperationKind;
+
+   procedure Write_FailureHandlingKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FailureHandlingKind)
+      renames LSP.Message_IO.Write_FailureHandlingKind;
+
+   procedure Write_WorkspaceEditClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceEditClientCapabilities)
+      renames LSP.Message_IO.Write_WorkspaceEditClientCapabilities;
+
+   procedure Write_SymbolKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SymbolKind)
+      renames LSP.Message_IO.Write_SymbolKind;
+
+   procedure Write_symbolKindCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.symbolKindCapabilities)
+      renames LSP.Message_IO.Write_symbolKindCapabilities;
+
+   procedure Write_Als_Visibility
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Als_Visibility)
+      renames LSP.Message_IO.Write_Als_Visibility;
+
+   procedure Write_WorkspaceSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceSymbolClientCapabilities)
+      renames LSP.Message_IO.Write_WorkspaceSymbolClientCapabilities;
+
+   procedure Write_WorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceClientCapabilities)
+      renames LSP.Message_IO.Write_WorkspaceClientCapabilities;
+
+   procedure Write_MarkupKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.MarkupKind)
+      renames LSP.Message_IO.Write_MarkupKind;
+
+   procedure Write_MarkupContent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.MarkupContent)
+      renames LSP.Message_IO.Write_MarkupContent;
+
+   procedure Write_SaveOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SaveOptions)
+      renames LSP.Message_IO.Write_SaveOptions;
+
+   procedure Write_TextDocumentSyncClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSyncClientCapabilities)
+      renames LSP.Message_IO.Write_TextDocumentSyncClientCapabilities;
+
+   procedure Write_CompletionItemTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionItemTag)
+      renames LSP.Message_IO.Write_CompletionItemTag;
+
+   procedure Write_CompletionItemTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionItemTagSupport)
+      renames LSP.Message_IO.Write_CompletionItemTagSupport;
+
+   procedure Write_completionItemCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.completionItemCapability)
+      renames LSP.Message_IO.Write_completionItemCapability;
+
+   procedure Write_CompletionItemKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionItemKind)
+      renames LSP.Message_IO.Write_CompletionItemKind;
+
+   procedure Write_CompletionItemKindSetCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionItemKindSetCapabilities)
+      renames LSP.Message_IO.Write_CompletionItemKindSetCapabilities;
+
+   procedure Write_CompletionClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionClientCapabilities)
+      renames LSP.Message_IO.Write_CompletionClientCapabilities;
+
+   procedure Write_HoverClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.HoverClientCapabilities)
+      renames LSP.Message_IO.Write_HoverClientCapabilities;
+
+   procedure Write_parameterInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.parameterInformation_Capability)
+      renames LSP.Message_IO.Write_parameterInformation_Capability;
+
+   procedure Write_signatureInformation_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.signatureInformation_Capability)
+      renames LSP.Message_IO.Write_signatureInformation_Capability;
+
+   procedure Write_SignatureHelpClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpClientCapabilities)
+      renames LSP.Message_IO.Write_SignatureHelpClientCapabilities;
+
+   procedure Write_DocumentSymbolClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentSymbolClientCapabilities)
+      renames LSP.Message_IO.Write_DocumentSymbolClientCapabilities;
+
+   procedure Write_DeclarationClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeclarationClientCapabilities)
+      renames LSP.Message_IO.Write_DeclarationClientCapabilities;
+
+   procedure Write_codeActionKindCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.codeActionKindCapability)
+      renames LSP.Message_IO.Write_codeActionKindCapability;
+
+   procedure Write_codeActionLiteralSupport_Capability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.codeActionLiteralSupport_Capability)
+      renames LSP.Message_IO.Write_codeActionLiteralSupport_Capability;
+
+   procedure Write_CodeActionClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionClientCapabilities)
+      renames LSP.Message_IO.Write_CodeActionClientCapabilities;
+
+   procedure Write_DocumentLinkClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentLinkClientCapabilities)
+      renames LSP.Message_IO.Write_DocumentLinkClientCapabilities;
+
+   procedure Write_RenameClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameClientCapabilities)
+      renames LSP.Message_IO.Write_RenameClientCapabilities;
+
+   procedure Write_DiagnosticTagSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DiagnosticTagSupport)
+      renames LSP.Message_IO.Write_DiagnosticTagSupport;
+
+   procedure Write_PublishDiagnosticsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.PublishDiagnosticsClientCapabilities)
+      renames LSP.Message_IO.Write_PublishDiagnosticsClientCapabilities;
+
+   procedure Write_FoldingRangeClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FoldingRangeClientCapabilities)
+      renames LSP.Message_IO.Write_FoldingRangeClientCapabilities;
+
+   procedure Write_TextDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentClientCapabilities)
+      renames LSP.Message_IO.Write_TextDocumentClientCapabilities;
+
+   procedure Write_WindowClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WindowClientCapabilities)
+      renames LSP.Message_IO.Write_WindowClientCapabilities;
+
+   procedure Write_ClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ClientCapabilities)
+      renames LSP.Message_IO.Write_ClientCapabilities;
+
+   procedure Write_WorkspaceFolder
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceFolder)
+      renames LSP.Message_IO.Write_WorkspaceFolder;
+
+   procedure Write_WorkDoneProgressCreateParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkDoneProgressCreateParams)
+      renames LSP.Message_IO.Write_WorkDoneProgressCreateParams;
+
+   procedure Write_ProgramInfo
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ProgramInfo)
+      renames LSP.Message_IO.Write_ProgramInfo;
+
+   procedure Write_Trace_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Trace_Kind)
+      renames LSP.Message_IO.Write_Trace_Kind;
+
+   procedure Write_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSyncKind)
+      renames LSP.Message_IO.Write_TextDocumentSyncKind;
+
+   procedure Write_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSyncOptions)
+      renames LSP.Message_IO.Write_TextDocumentSyncOptions;
+
+   procedure Write_CompletionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionOptions)
+      renames LSP.Message_IO.Write_CompletionOptions;
+
+   procedure Write_SignatureHelpOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpOptions)
+      renames LSP.Message_IO.Write_SignatureHelpOptions;
+
+   procedure Write_TSW_RegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TSW_RegistrationOptions)
+      renames LSP.Message_IO.Write_TSW_RegistrationOptions;
+
+   procedure Write_CodeActionOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionOptions)
+      renames LSP.Message_IO.Write_CodeActionOptions;
+
+   procedure Write_CodeLensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeLensOptions)
+      renames LSP.Message_IO.Write_CodeLensOptions;
+
+   procedure Write_DocumentOnTypeFormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentOnTypeFormattingOptions)
+      renames LSP.Message_IO.Write_DocumentOnTypeFormattingOptions;
+
+   procedure Write_RenameOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameOptions)
+      renames LSP.Message_IO.Write_RenameOptions;
+
+   procedure Write_DocumentLinkOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentLinkOptions)
+      renames LSP.Message_IO.Write_DocumentLinkOptions;
+
+   procedure Write_ExecuteCommandOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ExecuteCommandOptions)
+      renames LSP.Message_IO.Write_ExecuteCommandOptions;
+
+   procedure Write_WorkspaceFoldersServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceFoldersServerCapabilities)
+      renames LSP.Message_IO.Write_WorkspaceFoldersServerCapabilities;
+
+   procedure Write_workspace_Options
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.workspace_Options)
+      renames LSP.Message_IO.Write_workspace_Options;
+
+   procedure Write_ServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ServerCapabilities)
+      renames LSP.Message_IO.Write_ServerCapabilities;
+
+   procedure Write_InitializeResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.InitializeResult)
+      renames LSP.Message_IO.Write_InitializeResult;
+
+   procedure Write_InitializedParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.InitializedParams)
+      renames LSP.Message_IO.Write_InitializedParams;
+
+   procedure Write_MessageType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.MessageType)
+      renames LSP.Message_IO.Write_MessageType;
+
+   procedure Write_ShowMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ShowMessageParams)
+      renames LSP.Message_IO.Write_ShowMessageParams;
+
+   procedure Write_ShowMessageRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ShowMessageRequestParams)
+      renames LSP.Message_IO.Write_ShowMessageRequestParams;
+
+   procedure Write_LogMessageParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.LogMessageParams)
+      renames LSP.Message_IO.Write_LogMessageParams;
+
+   procedure Write_DidChangeConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidChangeConfigurationParams)
+      renames LSP.Message_IO.Write_DidChangeConfigurationParams;
+
+   procedure Write_DidOpenTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidOpenTextDocumentParams)
+      renames LSP.Message_IO.Write_DidOpenTextDocumentParams;
+
+   procedure Write_TextDocumentContentChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentContentChangeEvent)
+      renames LSP.Message_IO.Write_TextDocumentContentChangeEvent;
+
+   procedure Write_DidChangeTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidChangeTextDocumentParams)
+      renames LSP.Message_IO.Write_DidChangeTextDocumentParams;
+
+   procedure Write_TextDocumentSaveReason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSaveReason)
+      renames LSP.Message_IO.Write_TextDocumentSaveReason;
+
+   procedure Write_DidSaveTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidSaveTextDocumentParams)
+      renames LSP.Message_IO.Write_DidSaveTextDocumentParams;
+
+   procedure Write_DidCloseTextDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidCloseTextDocumentParams)
+      renames LSP.Message_IO.Write_DidCloseTextDocumentParams;
+
+   procedure Write_FileChangeType
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileChangeType)
+      renames LSP.Message_IO.Write_FileChangeType;
+
+   procedure Write_PublishDiagnosticsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.PublishDiagnosticsParams)
+      renames LSP.Message_IO.Write_PublishDiagnosticsParams;
+
+   procedure Write_InsertTextFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.InsertTextFormat)
+      renames LSP.Message_IO.Write_InsertTextFormat;
+
+   procedure Write_CompletionItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionItem)
+      renames LSP.Message_IO.Write_CompletionItem;
+
+   procedure Write_CompletionList
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionList)
+      renames LSP.Message_IO.Write_CompletionList;
+
+   procedure Write_Hover
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Hover)
+      renames LSP.Message_IO.Write_Hover;
+
+   procedure Write_ParameterInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ParameterInformation)
+      renames LSP.Message_IO.Write_ParameterInformation;
+
+   procedure Write_SignatureInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureInformation)
+      renames LSP.Message_IO.Write_SignatureInformation;
+
+   procedure Write_SignatureHelp
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelp)
+      renames LSP.Message_IO.Write_SignatureHelp;
+
+   procedure Write_ReferenceContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ReferenceContext)
+      renames LSP.Message_IO.Write_ReferenceContext;
+
+   procedure Write_ReferenceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ReferenceParams)
+      renames LSP.Message_IO.Write_ReferenceParams;
+
+   procedure Write_DocumentHighlightKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentHighlightKind)
+      renames LSP.Message_IO.Write_DocumentHighlightKind;
+
+   procedure Write_DocumentHighlight
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentHighlight)
+      renames LSP.Message_IO.Write_DocumentHighlight;
+
+   procedure Write_DocumentSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentSymbolParams)
+      renames LSP.Message_IO.Write_DocumentSymbolParams;
+
+   procedure Write_SymbolInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SymbolInformation)
+      renames LSP.Message_IO.Write_SymbolInformation;
+
+   procedure Write_WorkspaceSymbolParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceSymbolParams)
+      renames LSP.Message_IO.Write_WorkspaceSymbolParams;
+
+   procedure Write_CodeActionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionContext)
+      renames LSP.Message_IO.Write_CodeActionContext;
+
+   procedure Write_CodeActionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionParams)
+      renames LSP.Message_IO.Write_CodeActionParams;
+
+   procedure Write_FormattingOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FormattingOptions)
+      renames LSP.Message_IO.Write_FormattingOptions;
+
+   procedure Write_DocumentFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentFormattingParams)
+      renames LSP.Message_IO.Write_DocumentFormattingParams;
+
+   procedure Write_DocumentRangeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentRangeFormattingParams)
+      renames LSP.Message_IO.Write_DocumentRangeFormattingParams;
+
+   procedure Write_DocumentOnTypeFormattingParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentOnTypeFormattingParams)
+      renames LSP.Message_IO.Write_DocumentOnTypeFormattingParams;
+
+   procedure Write_RenameParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameParams)
+      renames LSP.Message_IO.Write_RenameParams;
+
+   procedure Write_ApplyWorkspaceEditParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ApplyWorkspaceEditParams)
+      renames LSP.Message_IO.Write_ApplyWorkspaceEditParams;
+
+   procedure Write_ApplyWorkspaceEditResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ApplyWorkspaceEditResult)
+      renames LSP.Message_IO.Write_ApplyWorkspaceEditResult;
+
+   procedure Write_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkDoneProgressBegin)
+      renames LSP.Message_IO.Write_WorkDoneProgressBegin;
+
+   procedure Write_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkDoneProgressReport)
+      renames LSP.Message_IO.Write_WorkDoneProgressReport;
+
+   procedure Write_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkDoneProgressEnd)
+      renames LSP.Message_IO.Write_WorkDoneProgressEnd;
+
+   procedure Write_WorkspaceFoldersChangeEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.WorkspaceFoldersChangeEvent)
+      renames LSP.Message_IO.Write_WorkspaceFoldersChangeEvent;
+
+   procedure Write_DidChangeWorkspaceFoldersParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidChangeWorkspaceFoldersParams)
+      renames LSP.Message_IO.Write_DidChangeWorkspaceFoldersParams;
+
+   procedure Write_ConfigurationItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ConfigurationItem)
+      renames LSP.Message_IO.Write_ConfigurationItem;
+
+   procedure Write_ConfigurationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ConfigurationParams)
+      renames LSP.Message_IO.Write_ConfigurationParams;
+
+   procedure Write_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileSystemWatcher)
+      renames LSP.Message_IO.Write_FileSystemWatcher;
+
+   procedure Write_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidChangeWatchedFilesRegistrationOptions)
+      renames LSP.Message_IO.Write_DidChangeWatchedFilesRegistrationOptions;
+
+   procedure Write_CompletionTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionTriggerKind)
+      renames LSP.Message_IO.Write_CompletionTriggerKind;
+
+   procedure Write_CompletionContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionContext)
+      renames LSP.Message_IO.Write_CompletionContext;
+
+   procedure Write_CompletionParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionParams)
+      renames LSP.Message_IO.Write_CompletionParams;
+
+   procedure Write_RGBA_Color
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RGBA_Color)
+      renames LSP.Message_IO.Write_RGBA_Color;
+
+   procedure Write_ColorInformation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ColorInformation)
+      renames LSP.Message_IO.Write_ColorInformation;
+
+   procedure Write_ColorPresentationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ColorPresentationParams)
+      renames LSP.Message_IO.Write_ColorPresentationParams;
+
+   procedure Write_ColorPresentation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ColorPresentation)
+      renames LSP.Message_IO.Write_ColorPresentation;
+
+   procedure Write_FoldingRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FoldingRangeParams)
+      renames LSP.Message_IO.Write_FoldingRangeParams;
+
+   procedure Write_FoldingRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FoldingRange)
+      renames LSP.Message_IO.Write_FoldingRange;
+
+   procedure Write_DocumentColorParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentColorParams)
+      renames LSP.Message_IO.Write_DocumentColorParams;
+
+   procedure Write_SelectionRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SelectionRangeParams)
+      renames LSP.Message_IO.Write_SelectionRangeParams;
+
+   procedure Write_SelectionRange
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SelectionRange)
+      renames LSP.Message_IO.Write_SelectionRange;
+
+   procedure Write_ALS_Subprogram_And_References
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_Subprogram_And_References)
+      renames LSP.Message_IO.Write_ALS_Subprogram_And_References;
 
    --------------------------------
    -- Get_WorkDoneProgressParams --
@@ -182,29 +1473,6 @@ package body LSP.Messages is
       end if;
    end Method_To_Tag;
 
-   ---------------------------
-   -- Read_AlsReferenceKind --
-   ---------------------------
-
-   procedure Read_AlsReferenceKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out AlsReferenceKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-      Text : constant Standard.String := JS.Read.Get;
-   begin
-      for J in AlsReferenceKind_Map'Range loop
-         if Text = AlsReferenceKind_Map (J).all then
-            V := J;
-            return;
-         end if;
-      end loop;
-
-      V := AlsReferenceKind'First;
-   end Read_AlsReferenceKind;
-
    -------------------------------
    -- Read_AlsReferenceKind_Set --
    -------------------------------
@@ -238,11 +1506,6 @@ package body LSP.Messages is
       JS.End_Array;
    end Read_AlsReferenceKind_Set;
 
-   procedure Write_AlsReferenceKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : AlsReferenceKind)
-      renames LSP.Message_IO.Write_AlsReferenceKind;
-
    --------------------------------
    -- Write_AlsReferenceKind_Set --
    --------------------------------
@@ -271,92 +1534,6 @@ package body LSP.Messages is
 
       end if;
    end Write_AlsReferenceKind_Set;
-
-   -----------------------------------
-   -- Read_ApplyWorkspaceEditParams --
-   -----------------------------------
-
-   procedure Read_ApplyWorkspaceEditParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ApplyWorkspaceEditParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("edit");
-      WorkspaceEdit'Read (S, V.edit);
-      JS.End_Object;
-   end Read_ApplyWorkspaceEditParams;
-
-   -----------------------------------
-   -- Read_ApplyWorkspaceEditResult --
-   -----------------------------------
-
-   procedure Read_ApplyWorkspaceEditResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ApplyWorkspaceEditResult)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Boolean (JS, +"applied", V.applied);
-      Read_Optional_String (JS, +"failureReason", V.failureReason);
-      JS.End_Object;
-   end Read_ApplyWorkspaceEditResult;
-
-   -----------------------
-   -- Read_CancelParams --
-   -----------------------
-
-   procedure Read_CancelParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CancelParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Number_Or_String (JS, +"id", V.id);
-      JS.End_Object;
-   end Read_CancelParams;
-
-   -----------------------------
-   -- Read_ClientCapabilities --
-   -----------------------------
-
-   procedure Read_ClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("workspace");
-      WorkspaceClientCapabilities'Read (S, V.workspace);
-      JS.Key ("textDocument");
-      TextDocumentClientCapabilities'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_ClientCapabilities;
-
-   ---------------------
-   -- Read_ClientInfo --
-   ---------------------
-
-   procedure Read_ProgramInfo
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ProgramInfo)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"name", V.name);
-      Read_Optional_String (JS, +"version", V.version);
-      JS.End_Object;
-   end Read_ProgramInfo;
 
    ---------------------
    -- Read_CodeAction --
@@ -398,231 +1575,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_CodeAction;
 
-   ----------------------------
-   -- Read_CodeActionContext --
-   ----------------------------
-
-   procedure Read_CodeActionContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionContext)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("diagnostics");
-      Diagnostic_Vector'Read (S, V.diagnostics);
-      JS.Key ("only");
-      Optional_CodeActionKindSet'Read (S, V.only);
-      JS.End_Object;
-   end Read_CodeActionContext;
-
-   ----------------------------
-   -- Read_CodeActionOptions --
-   ----------------------------
-
-   procedure Read_CodeActionOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("codeActionKinds");
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Optional_CodeActionKindSet'Read (S, V.codeActionKinds);
-      JS.End_Object;
-   end Read_CodeActionOptions;
-
-   -------------------------
-   -- Read_CodeActionKind --
-   -------------------------
-
-   procedure Read_CodeActionKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Text : constant Standard.String := JS.Read.Get;
-   begin
-      if Text = "quickfix" then
-         V := QuickFix;
-      elsif Text = "refactor" then
-         V := Refactor;
-      elsif Text = "refactor.extract" then
-         V := RefactorExtract;
-      elsif Text = "refactor.inline" then
-         V := RefactorInline;
-      elsif Text = "refactor.rewrite" then
-         V := RefactorRewrite;
-      elsif Text = "source" then
-         V := Source;
-      elsif Text = "source.organizeImports" then
-         V := SourceOrganizeImports;
-      else
-         V := Empty;
-      end if;
-   end Read_CodeActionKind;
-
-   -----------------------------------
-   -- Read_codeActionKindCapability --
-   -----------------------------------
-
-   procedure Read_codeActionKindCapability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out codeActionKindCapability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("valueSet");
-      CodeActionKindSet'Read (S, V.valueSet);
-      JS.End_Object;
-   end Read_codeActionKindCapability;
-
-   ----------------------------------------------
-   -- Read_codeActionLiteralSupport_Capability --
-   ----------------------------------------------
-
-   procedure Read_codeActionLiteralSupport_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out codeActionLiteralSupport_Capability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-
-      JS.Key ("codeActionKind");
-      codeActionKindCapability'Read (S, V.codeActionKind);
-
-      JS.End_Object;
-   end Read_codeActionLiteralSupport_Capability;
-
-   ---------------------------
-   -- Read_CodeActionParams --
-   ---------------------------
-
-   procedure Read_CodeActionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.Key ("context");
-      CodeActionContext'Read (S, V.context);
-      JS.End_Object;
-   end Read_CodeActionParams;
-
-   ---------------------------------------
-   -- Read_CodeActionClientCapabilities --
-   ---------------------------------------
-
-   procedure Read_CodeActionClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("codeActionLiteralSupport");
-      Optional_codeActionLiteralSupport_Capability'Read
-        (S, V.codeActionLiteralSupport);
-      Read_Optional_Boolean (JS, +"isPreferredSupport", V.isPreferredSupport);
-      JS.End_Object;
-   end Read_CodeActionClientCapabilities;
-
-   --------------------------
-   -- Read_CodeLensOptions --
-   --------------------------
-
-   procedure Read_CodeLensOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeLensOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.End_Object;
-   end Read_CodeLensOptions;
-
-   ---------------------------
-   -- Read_ColorInformation --
-   ---------------------------
-
-   procedure Read_ColorInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ColorInformation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.Key ("color");
-      RGBA_Color'Read (S, V.color);
-      JS.End_Object;
-   end Read_ColorInformation;
-
-   ----------------------------
-   -- Read_ColorPresentation --
-   ----------------------------
-
-   procedure Read_ColorPresentation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ColorPresentation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"label", V.label);
-      JS.Key ("textEdit");
-      Optional_TextEdit'Read (S, V.textEdit);
-      JS.Key ("additionalTextEdits");
-      TextEdit_Vector'Read (S, V.additionalTextEdits);
-      JS.End_Object;
-   end Read_ColorPresentation;
-
-   ----------------------------------
-   -- Read_ColorPresentationParams --
-   ----------------------------------
-
-   procedure Read_ColorPresentationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ColorPresentationParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("color");
-      RGBA_Color'Read (S, V.color);
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.End_Object;
-   end Read_ColorPresentationParams;
-
    ------------------
    -- Read_Command --
    ------------------
@@ -656,636 +1608,6 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Read_Command;
-
-   ---------------------------------------
-   -- Read_CompletionClientCapabilities --
-   ---------------------------------------
-
-   procedure Read_CompletionClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("completionItem");
-      Optional_completionItemCapability'Read (S, V.completionItem);
-      JS.Key ("completionItemKind");
-      Optional_CompletionItemKindSetCapabilities'Read
-        (S, V.completionItemKind);
-      Read_Optional_Boolean (JS, +"contextSupport", V.contextSupport);
-      JS.End_Object;
-   end Read_CompletionClientCapabilities;
-
-   -------------------------
-   -- Read_CompletionList --
-   -------------------------
-
-   procedure Read_CompletionList
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionList)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("isIncomplete");
-      V.isIncomplete := JS.Read.Get;
-      JS.Key ("items");
-      CompletionItem_Vector'Read (S, V.items);
-      JS.End_Object;
-   end Read_CompletionList;
-
-   ----------------------------
-   -- Read_CompletionContext --
-   ----------------------------
-
-   procedure Read_CompletionContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionContext)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("triggerKind");
-      CompletionTriggerKind'Read (S, V.triggerKind);
-      JS.Key ("triggerCharacter");
-      Optional_String'Read (S, V.triggerCharacter);
-      JS.End_Object;
-   end Read_CompletionContext;
-
-   -------------------------
-   -- Read_CompletionItem --
-   -------------------------
-
-   procedure Read_CompletionItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItem)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"label", V.label);
-      JS.Key ("kind");
-      Optional_CompletionItemKind'Read (S, V.kind);
-      JS.Key ("tags");
-      Optional_CompletionItemTagSet'Read (S, V.tags);
-      Read_Optional_String (JS, +"detail", V.detail);
-      JS.Key ("documentation");
-      Optional_String_Or_MarkupContent'Read (S, V.documentation);
-      Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
-      Read_Optional_Boolean (JS, +"preselect", V.preselect);
-      Read_Optional_String (JS, +"sortText", V.sortText);
-      Read_Optional_String (JS, +"filterText", V.filterText);
-      Read_Optional_String (JS, +"insertText", V.insertText);
-      JS.Key ("insertTextFormat");
-      Optional_InsertTextFormat'Read (S, V.insertTextFormat);
-      JS.Key ("textEdit");
-      Optional_TextEdit'Read (S, V.textEdit);
-      JS.Key ("additionalTextEdits");
-      TextEdit_Vector'Read (S, V.additionalTextEdits);
-      JS.Key ("commitCharacters");
-      Optional_LSP_String_Vector'Read (S, V.commitCharacters);
-      JS.Key ("command");
-      Optional_Command'Read (S, V.command);
-      JS.End_Object;
-   end Read_CompletionItem;
-
-   -----------------------------------
-   -- Read_completionItemCapability --
-   -----------------------------------
-
-   procedure Read_completionItemCapability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out completionItemCapability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"snippetSupport", V.snippetSupport);
-      Read_Optional_Boolean
-        (JS, +"commitCharactersSupport", V.commitCharactersSupport);
-
-      JS.Key ("documentationFormat");
-      MarkupKind_Vector'Read (S, V.documentationFormat);
-      Read_Optional_Boolean (JS, +"deprecatedSupport", V.deprecatedSupport);
-      Read_Optional_Boolean (JS, +"preselectSupport", V.preselectSupport);
-      JS.Key ("tagSupport");
-      Optional_CompletionItemTagSupport'Read (S, V.tagSupport);
-
-      JS.End_Object;
-   end Read_completionItemCapability;
-
-   -----------------------------
-   -- Read_CompletionItemKind --
-   -----------------------------
-
-   procedure Read_CompletionItemKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItemKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := CompletionItemKind'Val (JS.Read.Get - 1);
-   end Read_CompletionItemKind;
-
-   --------------------------------------------
-   -- Read_CompletionItemKindSetCapabilities --
-   --------------------------------------------
-
-   procedure Read_CompletionItemKindSetCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItemKindSetCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("valueSet");
-      Optional_CompletionItemKindSet'Read (S, V.valueSet);
-      JS.End_Object;
-   end Read_CompletionItemKindSetCapabilities;
-
-   ----------------------------
-   -- Read_CompletionItemTag --
-   ----------------------------
-
-   procedure Read_CompletionItemTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItemTag)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := CompletionItemTag'Val (JS.Read.Get - 1);
-   end Read_CompletionItemTag;
-
-   -----------------------------------
-   -- Read_CompletionItemTagSupport --
-   -----------------------------------
-
-   procedure Read_CompletionItemTagSupport
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionItemTagSupport)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("valueSet");
-      CompletionItemTagSet'Read (S, V.valueSet);
-      JS.End_Object;
-   end Read_CompletionItemTagSupport;
-
-   ----------------------------
-   -- Read_CompletionOptions --
-   ----------------------------
-
-   procedure Read_CompletionOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
-      JS.Key ("allCommitCharacters");
-      Optional_LSP_String_Vector'Read (S, V.allCommitCharacters);
-      Read_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.End_Object;
-   end Read_CompletionOptions;
-
-   ---------------------------
-   -- Read_CompletionParams --
-   ---------------------------
-
-   procedure Read_CompletionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Text_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      JS.Key ("context");
-      Optional_CompletionContext'Read (S, V.context);
-      JS.End_Object;
-   end Read_CompletionParams;
-
-   --------------------------------
-   -- Read_CompletionTriggerKind --
-   --------------------------------
-
-   procedure Read_CompletionTriggerKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CompletionTriggerKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := CompletionTriggerKind'Val (JS.Read.Get - 1);
-   end Read_CompletionTriggerKind;
-
-   ----------------------------
-   -- Read_ConfigurationItem --
-   ----------------------------
-
-   procedure Read_ConfigurationItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ConfigurationItem)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_String (JS, +"scopeUri", V.scopeUri);
-      Read_Optional_String (JS, +"section", V.section);
-      JS.End_Object;
-   end Read_ConfigurationItem;
-
-   ------------------------------
-   -- Read_ConfigurationParams --
-   ------------------------------
-
-   procedure Read_ConfigurationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ConfigurationParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("items");
-      ConfigurationItem_Vector'Read (S, V.items);
-      JS.End_Object;
-   end Read_ConfigurationParams;
-
-   ---------------------
-   -- Read_Diagnostic --
-   ---------------------
-
-   procedure Read_Diagnostic
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Diagnostic)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.Key ("severity");
-      Optional_DiagnosticSeverity'Read (S, V.severity);
-      LSP.Types.Read_Number_Or_String (JS, +"code", V.code);
-      Read_Optional_String (JS, +"source", V.source);
-      Read_String (JS, +"message", V.message);
-      JS.Key ("relatedInformation");
-      DiagnosticRelatedInformation_Vector'Read (S, V.relatedInformation);
-      JS.End_Object;
-   end Read_Diagnostic;
-
-   ---------------------------------------
-   -- Read_DiagnosticRelatedInformation --
-   ---------------------------------------
-
-   procedure Read_DiagnosticRelatedInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DiagnosticRelatedInformation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("location");
-      Location'Read (S, V.location);
-      Read_String (JS, +"message", V.message);
-      JS.End_Object;
-   end Read_DiagnosticRelatedInformation;
-
-   -----------------------------
-   -- Read_DiagnosticSeverity --
-   -----------------------------
-
-   procedure Read_DiagnosticSeverity
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DiagnosticSeverity)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := DiagnosticSeverity'Val (JS.Read.Get - 1);
-   end Read_DiagnosticSeverity;
-
-   ------------------------
-   -- Read_DiagnosticTag --
-   ------------------------
-
-   procedure Read_DiagnosticTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DiagnosticTag)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := DiagnosticTag'Val (JS.Read.Get - 1);
-   end Read_DiagnosticTag;
-
-   -------------------------------
-   -- Read_DiagnosticTagSupport --
-   -------------------------------
-
-   procedure Read_DiagnosticTagSupport
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DiagnosticTagSupport)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("valueSet");
-      DiagnosticTagSet'Read (S, V.valueSet);
-      JS.End_Object;
-   end Read_DiagnosticTagSupport;
-
-   ---------------------------------------
-   -- Read_DidChangeConfigurationParams --
-   ---------------------------------------
-
-   procedure Read_DidChangeConfigurationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidChangeConfigurationParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("settings");
-      LSP.Types.LSP_Any'Read (S, V.settings);
-      JS.End_Object;
-   end Read_DidChangeConfigurationParams;
-
-   --------------------------------------
-   -- Read_DidChangeTextDocumentParams --
-   --------------------------------------
-
-   procedure Read_DidChangeTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidChangeTextDocumentParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      VersionedTextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("contentChanges");
-      TextDocumentContentChangeEvent_Vector'Read (S, V.contentChanges);
-      JS.End_Object;
-   end Read_DidChangeTextDocumentParams;
-
-   ---------------------------------------------------
-   -- Read_DidChangeWatchedFilesRegistrationOptions --
-   ---------------------------------------------------
-
-   procedure Read_DidChangeWatchedFilesRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidChangeWatchedFilesRegistrationOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("watchers");
-      FileSystemWatcher_Vector'Read (S, V.watchers);
-      JS.End_Object;
-   end Read_DidChangeWatchedFilesRegistrationOptions;
-
-   ------------------------------------------
-   -- Read_DidChangeWorkspaceFoldersParams --
-   ------------------------------------------
-
-   procedure Read_DidChangeWorkspaceFoldersParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidChangeWorkspaceFoldersParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("event");
-      WorkspaceFoldersChangeEvent'Read (S, V.event);
-      JS.End_Object;
-   end Read_DidChangeWorkspaceFoldersParams;
-
-   -------------------------------------
-   -- Read_DidCloseTextDocumentParams --
-   -------------------------------------
-
-   procedure Read_DidCloseTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidCloseTextDocumentParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_DidCloseTextDocumentParams;
-
-   ------------------------------------
-   -- Read_DidOpenTextDocumentParams --
-   ------------------------------------
-
-   procedure Read_DidOpenTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidOpenTextDocumentParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      TextDocumentItem'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_DidOpenTextDocumentParams;
-
-   ------------------------------------
-   -- Read_DidSaveTextDocumentParams --
-   ------------------------------------
-
-   procedure Read_DidSaveTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidSaveTextDocumentParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      Read_Optional_String (JS, +"text", V.text);
-      JS.End_Object;
-   end Read_DidSaveTextDocumentParams;
-
-   ----------------------------------------
-   -- Read_DeclarationClientCapabilities --
-   ----------------------------------------
-
-   procedure Read_DeclarationClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DeclarationClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Boolean (JS, +"linkSupport", V.linkSupport);
-      JS.End_Object;
-   end Read_DeclarationClientCapabilities;
-
-   ------------------------------------------
-   -- Read_WorkspaceEditClientCapabilities --
-   ------------------------------------------
-
-   procedure Read_WorkspaceEditClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceEditClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"documentChanges", V.documentChanges);
-      JS.Key ("resourceOperations");
-      Optional_ResourceOperationKindSet'Read (S, V.resourceOperations);
-      JS.Key ("failureHandling");
-      Optional_FailureHandlingKind'Read (S, V.failureHandling);
-      JS.End_Object;
-   end Read_WorkspaceEditClientCapabilities;
-
-   ----------------------------
-   -- Read_DocumentHighlight --
-   ----------------------------
-
-   procedure Read_DocumentHighlight
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentHighlight)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.Key ("kind");
-      Optional_DocumentHighlightKind'Read (S, V.kind);
-      JS.End_Object;
-   end Read_DocumentHighlight;
-
-   --------------------------------
-   -- Read_DocumentHighlightKind --
-   --------------------------------
-
-   procedure Read_DocumentHighlightKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentHighlightKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := DocumentHighlightKind'Val (JS.Read.Get - 1);
-   end Read_DocumentHighlightKind;
-
-   -----------------------------------------
-   -- Read_DocumentLinkClientCapabilities --
-   -----------------------------------------
-
-   procedure Read_DocumentLinkClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentLinkClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Boolean (JS, +"tooltipSupport", V.tooltipSupport);
-      JS.End_Object;
-   end Read_DocumentLinkClientCapabilities;
-
-   ------------------------------
-   -- Read_DocumentLinkOptions --
-   ------------------------------
-
-   procedure Read_DocumentLinkOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentLinkOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_Optional_Boolean (JS, +"resolveProvider", V.resolveProvider);
-      JS.End_Object;
-   end Read_DocumentLinkOptions;
-
-   ------------------------------------------
-   -- Read_DocumentOnTypeFormattingOptions --
-   ------------------------------------------
-
-   procedure Read_DocumentOnTypeFormattingOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentOnTypeFormattingOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_String (JS, +"firstTriggerCharacter", V.firstTriggerCharacter);
-      JS.Key ("moreTriggerCharacter");
-      Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
-      JS.End_Object;
-   end Read_DocumentOnTypeFormattingOptions;
-
-   -------------------------------
-   -- Read_DocumentSymbolParams --
-   -------------------------------
-
-   procedure Read_DocumentSymbolParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentSymbolParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_DocumentSymbolParams;
 
    ------------------------------
    -- Read_DocumentSymbol_Tree --
@@ -1357,40 +1679,6 @@ package body LSP.Messages is
       Read_Array (V.Root);
    end Read_DocumentSymbol_Tree;
 
-   ------------------------------
-   -- Read_dynamicRegistration --
-   ------------------------------
-
-   procedure Read_dynamicRegistration
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out dynamicRegistration)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.End_Object;
-   end Read_dynamicRegistration;
-
-   --------------------------------
-   -- Read_ExecuteCommandOptions --
-   --------------------------------
-
-   procedure Read_ExecuteCommandOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ExecuteCommandOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_String_Vector (JS, +"commands", V.commands);
-      JS.End_Object;
-   end Read_ExecuteCommandOptions;
-
    -------------------------------
    -- Read_ExecuteCommandParams --
    -------------------------------
@@ -1426,148 +1714,6 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Read_ExecuteCommandParams;
-
-   ----------------------------
-   -- Read_FileSystemWatcher --
-   ----------------------------
-
-   procedure Read_FileSystemWatcher
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FileSystemWatcher)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"globPattern", V.globPattern);
-      JS.Key ("kind");
-      WatchKind_Set'Read (S, V.kind);
-      JS.End_Object;
-   end Read_FileSystemWatcher;
-
-   -----------------------
-   -- Read_FoldingRange --
-   -----------------------
-
-   procedure Read_FoldingRange
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FoldingRange)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("startLine");
-      Line_Number'Read (S, V.startLine);
-      JS.Key ("startCharacter");
-      Optional_Number'Read (S, V.startCharacter);
-      JS.Key ("endLine");
-      Line_Number'Read (S, V.endLine);
-      JS.Key ("endCharacter");
-      Optional_Number'Read (S, V.endCharacter);
-      Read_Optional_String (JS, +"kind", V.kind);
-      JS.End_Object;
-   end Read_FoldingRange;
-
-   -----------------------------
-   -- Read_FoldingRangeParams --
-   -----------------------------
-
-   procedure Read_FoldingRangeParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FoldingRangeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_FoldingRangeParams;
-
-   ------------------------------
-   -- Read_DocumentColorParams --
-   ------------------------------
-
-   procedure Read_DocumentColorParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentColorParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.End_Object;
-   end Read_DocumentColorParams;
-
-   ------------------------------
-   -- Read_FailureHandlingKind --
-   ------------------------------
-
-   procedure Read_FailureHandlingKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FailureHandlingKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.UTF8_String := JS.Read.Get;
-   begin
-      if Value = "abort" then
-         V := abortApplying;
-      elsif Value = "transactional" then
-         V := transactional;
-      elsif Value = "undo" then
-         V := undo;
-      elsif Value = "textOnlyTransactional" then
-         V := textOnlyTransactional;
-      else
-         V := abortApplying;
-      end if;
-   end Read_FailureHandlingKind;
-
-   -----------------------------------------
-   -- Read_FoldingRangeClientCapabilities --
-   -----------------------------------------
-
-   procedure Read_FoldingRangeClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FoldingRangeClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("rangeLimit");
-      Optional_Number'Read (S, V.rangeLimit);
-      Read_Optional_Boolean (JS, +"lineFoldingOnly", V.lineFoldingOnly);
-      JS.End_Object;
-   end Read_FoldingRangeClientCapabilities;
-
-   ----------------
-   -- Read_Hover --
-   ----------------
-
-   procedure Read_Hover
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Hover)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("contents");
-      MarkupContent_Or_MarkedString_Vector'Read (S, V.contents);
-      JS.Key ("range");
-      Optional_Span'Read (S, V.Span);
-      JS.End_Object;
-   end Read_Hover;
 
    --------------------
    -- Read_If_String --
@@ -1623,103 +1769,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_InitializeParams;
 
-   ---------------------------
-   -- Read_InitializeResult --
-   ---------------------------
-
-   procedure Read_InitializeResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out InitializeResult)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("capabilities");
-      ServerCapabilities'Read (S, V.capabilities);
-      JS.Key ("serverInfo");
-      Optional_ProgramInfo'Read (S, V.serverInfo);
-      JS.End_Object;
-   end Read_InitializeResult;
-
-   ----------------------------
-   -- Read_InitializedParams --
-   ----------------------------
-
-   not overriding procedure Read_InitializedParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out InitializedParams)
-   is
-      pragma Unreferenced (V);
-
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.End_Object;
-   end Read_InitializedParams;
-
-   ---------------------------
-   -- Read_InsertTextFormat --
-   ---------------------------
-
-   procedure Read_InsertTextFormat
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out InsertTextFormat)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := InsertTextFormat'Val (JS.Read.Get - 1);
-   end Read_InsertTextFormat;
-
-   -------------------
-   -- Read_Location --
-   -------------------
-
-   procedure Read_Location
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Location)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      DocumentUri'Read (S, V.uri);
-      JS.Key ("range");
-      Span'Read (S, V.span);
-
-      JS.Key ("alsKind");
-      AlsReferenceKind_Set'Read (S, V.alsKind);
-
-      JS.End_Object;
-   end Read_Location;
-
-   -----------------------
-   -- Read_LocationLink --
-   -----------------------
-
-   procedure Read_LocationLink
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LocationLink)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("originSelectionRange");
-      Optional_Span'Read (S, V.originSelectionRange);
-      Read_String (JS, +"targetUri", V.targetUri);
-      JS.Key ("targetRange");
-      Span'Read (S, V.targetRange);
-      JS.Key ("targetSelectionRange");
-      Span'Read (S, V.targetSelectionRange);
-      JS.Key ("alsKind");
-      AlsReferenceKind_Set'Read (S, V.alsKind);
-      JS.End_Object;
-   end Read_LocationLink;
-
    ----------------------------------
    -- Read_Location_Or_Link_Vector --
    ----------------------------------
@@ -1753,24 +1802,6 @@ package body LSP.Messages is
       end;
    end Read_Location_Or_Link_Vector;
 
-   ---------------------------
-   -- Read_LogMessageParams --
-   ---------------------------
-
-   procedure Read_LogMessageParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LogMessageParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("type");
-      MessageType'Read (S, V.the_type);
-      Read_String (JS, +"message", V.message);
-      JS.End_Object;
-   end Read_LogMessageParams;
-
    -----------------------
    -- Read_MarkedString --
    -----------------------
@@ -1800,24 +1831,6 @@ package body LSP.Messages is
             V := (Is_String => True, Value => Empty_LSP_String);
       end case;
    end Read_MarkedString;
-
-   ------------------------
-   -- Read_MarkupContent --
-   ------------------------
-
-   procedure Read_MarkupContent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out MarkupContent)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("kind");
-      MarkupKind'Read (S, V.kind);
-      Read_String (JS, +"value", V.value);
-      JS.End_Object;
-   end Read_MarkupContent;
 
    -----------------------------------------------
    -- Read_MarkupContent_Or_MarkedString_Vector --
@@ -1859,58 +1872,6 @@ package body LSP.Messages is
          end;
       end if;
    end Read_MarkupContent_Or_MarkedString_Vector;
-
-   ---------------------
-   -- Read_MarkupKind --
-   ---------------------
-
-   procedure Read_MarkupKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out MarkupKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-   begin
-      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         if Standard.String'(Value.Get) = "markdown" then
-            V := markdown;
-            return;
-         end if;
-      end if;
-
-      V := plaintext;
-   end Read_MarkupKind;
-
-   ----------------------
-   -- Read_MessageType --
-   ----------------------
-
-   procedure Read_MessageType
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out MessageType)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := MessageType'Val (JS.Read.Get - 1);
-   end Read_MessageType;
-
-   ------------------------------
-   -- Read_NotificationMessage --
-   ------------------------------
-
-   procedure Read_NotificationMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out NotificationMessage)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Notification_Prefix (S, V);
-      JS.End_Object;
-   end Read_NotificationMessage;
 
    ------------------------------
    -- Read_Notification_Prefix --
@@ -1963,25 +1924,6 @@ package body LSP.Messages is
       end if;
    end Read_Optional_TextDocumentSyncOptions;
 
-   -------------------------------
-   -- Read_ParameterInformation --
-   -------------------------------
-
-   procedure Read_ParameterInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ParameterInformation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("label");
-      Parameter_Label'Read (S, V.label);
-      JS.Key ("documentation");
-      Optional_String_Or_MarkupContent'Read (S, V.documentation);
-      JS.End_Object;
-   end Read_ParameterInformation;
-
    --------------------------
    -- Read_Parameter_Label --
    --------------------------
@@ -2004,39 +1946,6 @@ package body LSP.Messages is
          JS.End_Array;
       end if;
    end Read_Parameter_Label;
-
-   ------------------------------------------
-   -- Read_parameterInformation_Capability --
-   ------------------------------------------
-
-   procedure Read_parameterInformation_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out parameterInformation_Capability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"labelOffsetSupport", V.labelOffsetSupport);
-      JS.End_Object;
-   end Read_parameterInformation_Capability;
-
-   -------------------
-   -- Read_Position --
-   -------------------
-
-   procedure Read_Position
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Position)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Number (JS, +"line", LSP_Number (V.line));
-      Read_Number (JS, +"character", LSP_Number (V.character));
-      JS.End_Object;
-   end Read_Position;
 
    ---------------------------
    -- Read_Provider_Options --
@@ -2067,104 +1976,6 @@ package body LSP.Messages is
       end if;
    end Read_Provider_Options;
 
-   -----------------------------------
-   -- Read_PublishDiagnosticsParams --
-   -----------------------------------
-
-   procedure Read_PublishDiagnosticsParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PublishDiagnosticsParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      DocumentUri'Read (S, V.uri);
-      JS.Key ("version");
-      Optional_Number'Read (S, V.version);
-      JS.Key ("diagnostics");
-      Diagnostic_Vector'Read (S, V.diagnostics);
-      JS.End_Object;
-   end Read_PublishDiagnosticsParams;
-
-   -----------------------------------------------
-   -- Read_PublishDiagnosticsClientCapabilities --
-   -----------------------------------------------
-
-   procedure Read_PublishDiagnosticsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PublishDiagnosticsClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"relatedInformation", V.relatedInformation);
-      JS.Key ("tagSupport");
-      Optional_DiagnosticTagSupport'Read (S, V.tagSupport);
-      Read_Optional_Boolean (JS, +"versionSupport", V.versionSupport);
-      JS.End_Object;
-   end Read_PublishDiagnosticsClientCapabilities;
-
-   ---------------------------
-   -- Read_ReferenceContext --
-   ---------------------------
-
-   procedure Read_ReferenceContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ReferenceContext)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("includeDeclaration");
-      V.includeDeclaration := JS.Read.Get;
-      JS.End_Object;
-   end Read_ReferenceContext;
-
-   --------------------------
-   -- Read_ReferenceParams --
-   --------------------------
-
-   procedure Read_ReferenceParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ReferenceParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Text_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      JS.Key ("context");
-      ReferenceContext'Read (S, V.context);
-      JS.End_Object;
-   end Read_ReferenceParams;
-
-   -------------------------
-   -- Read_RequestMessage --
-   -------------------------
-
-   procedure Read_RequestMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RequestMessage)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      LSP.Types.Read_String (JS, +"jsonrpc", V.jsonrpc);
-      LSP.Types.Read_String (JS, +"method", V.method);
-      Read_Number_Or_String (JS, +"id", V.id);
-      JS.End_Object;
-   end Read_RequestMessage;
-
    --------------------------
    -- Read_Response_Prefix --
    --------------------------
@@ -2182,25 +1993,6 @@ package body LSP.Messages is
       Optional_ResponseError'Read (S, V.error);
    end Read_Response_Prefix;
 
-   ---------------------
-   -- Read_RGBA_Color --
-   ---------------------
-
-   procedure Read_RGBA_Color
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RGBA_Color)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Number (JS, +"red", V.red);
-      Read_Number (JS, +"green", V.green);
-      Read_Number (JS, +"blue", V.blue);
-      Read_Number (JS, +"alpha", V.alpha);
-      JS.End_Object;
-   end Read_RGBA_Color;
-
    --------------------------
    -- Read_ResponseMessage --
    --------------------------
@@ -2216,396 +2008,6 @@ package body LSP.Messages is
       Read_Response_Prefix (S, V);
       JS.End_Object;
    end Read_ResponseMessage;
-
-   ------------------------
-   -- Read_RenameOptions --
-   ------------------------
-
-   procedure Read_RenameOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RenameOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_Optional_Boolean (JS, +"prepareProvider", V.prepareProvider);
-      JS.End_Object;
-   end Read_RenameOptions;
-
-   -----------------------
-   -- Read_RenameParams --
-   -----------------------
-
-   procedure Read_RenameParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RenameParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Text_Progress_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      Read_String (JS, +"newName", V.newName);
-      JS.End_Object;
-   end Read_RenameParams;
-
-   -----------------------------------
-   -- Read_RenameClientCapabilities --
-   -----------------------------------
-
-   procedure Read_RenameClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RenameClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Boolean (JS, +"prepareSupport", V.prepareSupport);
-      JS.End_Object;
-   end Read_RenameClientCapabilities;
-
-   --------------------------------
-   -- Read_ResourceOperationKind --
-   --------------------------------
-
-   procedure Read_ResourceOperationKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResourceOperationKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-      Text  : constant GNATCOLL.JSON.UTF8_String := Value.Get;
-   begin
-      if Text = "create" then
-         V := create;
-      elsif Text = "rename" then
-         V := rename;
-      elsif Text = "delete" then
-         V := delete;
-      else
-         V := create;
-      end if;
-   end Read_ResourceOperationKind;
-
-   ----------------------
-   -- Read_SaveOptions --
-   ----------------------
-
-   procedure Read_SaveOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SaveOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"includeText", V.includeText);
-      JS.End_Object;
-   end Read_SaveOptions;
-
-   -------------------------
-   -- Read_SelectionRange --
-   -------------------------
-
-   procedure Read_SelectionRange
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SelectionRange)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      JS.End_Object;
-   end Read_SelectionRange;
-
-   -------------------------------
-   -- Read_SelectionRangeParams --
-   -------------------------------
-
-   procedure Read_SelectionRangeParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SelectionRangeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("positions");
-      Position_Vector'Read (S, V.positions);
-      JS.End_Object;
-   end Read_SelectionRangeParams;
-
-   -----------------------------
-   -- Read_ServerCapabilities --
-   -----------------------------
-
-   procedure Read_ServerCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ServerCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocumentSync");
-      Optional_TextDocumentSyncOptions'Read (S, V.textDocumentSync);
-      JS.Key ("completionProvider");
-      Optional_CompletionOptions'Read (S, V.completionProvider);
-      JS.Key ("hoverProvider");
-      HoverOptions'Read (S, V.hoverProvider);
-      JS.Key ("signatureHelpProvider");
-      Optional_SignatureHelpOptions'Read (S, V.signatureHelpProvider);
-      JS.Key ("declarationProvider");
-      DeclarationOptions'Read (S, V.declarationProvider);
-      JS.Key ("definitionProvider");
-      DefinitionOptions'Read (S, V.definitionProvider);
-      JS.Key ("typeDefinitionProvider");
-      TypeDefinitionOptions'Read (S, V.typeDefinitionProvider);
-      JS.Key ("implementationProvider");
-      ImplementationOptions'Read (S, V.implementationProvider);
-      JS.Key ("referencesProvider");
-      ReferenceOptions'Read (S, V.referencesProvider);
-      JS.Key ("documentHighlightProvider");
-      DocumentHighlightOptions'Read (S, V.documentHighlightProvider);
-      JS.Key ("documentSymbolProvider");
-      DocumentSymbolOptions'Read (S, V.documentSymbolProvider);
-      JS.Key ("codeActionProvider");
-      Optional_CodeActionOptions'Read (S, V.codeActionProvider);
-      JS.Key ("codeLensProvider");
-      Optional_CodeLensOptions'Read (S, V.codeLensProvider);
-      JS.Key ("documentLinkProvider");
-      Optional_DocumentLinkOptions'Read (S, V.documentLinkProvider);
-      JS.Key ("colorProvider");
-      DocumentColorOptions'Read (S, V.colorProvider);
-      JS.Key ("documentFormattingProvider");
-      DocumentFormattingOptions'Read (S, V.documentFormattingProvider);
-      JS.Key ("documentRangeFormattingProvider");
-      DocumentRangeFormattingOptions'Read
-        (S, V.documentRangeFormattingProvider);
-      JS.Key ("documentOnTypeFormattingProvider");
-      Optional_DocumentOnTypeFormattingOptions'Read
-        (S, V.documentOnTypeFormattingProvider);
-      JS.Key ("renameProvider");
-      Optional_RenameOptions'Read (S, V.renameProvider);
-      JS.Key ("foldingRangeProvider");
-      FoldingRangeOptions'Read (S, V.foldingRangeProvider);
-      JS.Key ("executeCommandProvider");
-      Optional_ExecuteCommandOptions'Read (S, V.executeCommandProvider);
-      JS.Key ("selectionRangeProvider");
-      SelectionRangeOptions'Read (S, V.selectionRangeProvider);
-      JS.Key ("workspaceSymbolProvider");
-      WorkspaceSymbolOptions'Read (S, V.workspaceSymbolProvider);
-
-      JS.Key ("workspace");
-      Optional_workspace_Options'Read (S, V.workspace);
-
-      Read_Optional_Boolean (JS, +"alsCalledByProvider",
-                             V.alsCalledByProvider);
-
-      JS.End_Object;
-   end Read_ServerCapabilities;
-
-   ------------------------------------------
-   -- Read_SignatureHelpClientCapabilities --
-   ------------------------------------------
-
-   procedure Read_SignatureHelpClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureHelpClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("signatureInformation");
-      Optional_signatureInformation_Capability'Read
-        (S, V.signatureInformation);
-      Read_Optional_Boolean (JS, +"contextSupport", V.contextSupport);
-      JS.End_Object;
-   end Read_SignatureHelpClientCapabilities;
-
-   -------------------------------
-   -- Read_SignatureInformation --
-   -------------------------------
-
-   procedure Read_SignatureInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureInformation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"label", V.label);
-      JS.Key ("documentation");
-      Optional_String_Or_MarkupContent'Read (S, V.documentation);
-      JS.Key ("parameters");
-      ParameterInformation_Vector'Read (S, V.parameters);
-      JS.End_Object;
-   end Read_SignatureInformation;
-
-   ------------------------------------------
-   -- Read_signatureInformation_Capability --
-   ------------------------------------------
-
-   procedure Read_signatureInformation_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out signatureInformation_Capability)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("documentationFormat");
-      Optional_MarkupKind_Vector'Read (S, V.documentationFormat);
-      JS.Key ("parameterInformation");
-      Optional_parameterInformation_Capability'Read
-        (S, V.parameterInformation);
-      JS.End_Object;
-   end Read_signatureInformation_Capability;
-
-   ------------------------
-   -- Read_SignatureHelp --
-   ------------------------
-
-   procedure Read_SignatureHelp
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureHelp)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("signatures");
-      JS.Start_Array;
-
-      while not JS.End_Of_Array loop
-         declare
-            Item : SignatureInformation;
-         begin
-            SignatureInformation'Read (S, Item);
-            V.signatures.Append (Item);
-         end;
-      end loop;
-
-      JS.End_Array;
-      JS.Key ("activeSignature");
-      Optional_Number'Read (S, V.activeSignature);
-      JS.Key ("activeParameter");
-      Optional_Number'Read (S, V.activeParameter);
-      JS.End_Object;
-   end Read_SignatureHelp;
-
-   -------------------------------
-   -- Read_SignatureHelpOptions --
-   -------------------------------
-
-   procedure Read_SignatureHelpOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SignatureHelpOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
-      JS.Key ("retriggerCharacters");
-      Optional_LSP_String_Vector'Read (S, V.retriggerCharacters);
-      JS.End_Object;
-   end Read_SignatureHelpOptions;
-
-   ----------------------------
-   -- Read_ShowMessageParams --
-   ----------------------------
-
-   procedure Read_ShowMessageParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessageParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("type");
-      MessageType'Read (S, V.the_type);
-      Read_String (JS, +"message", V.message);
-      JS.End_Object;
-   end Read_ShowMessageParams;
-
-   -----------------------------------
-   -- Read_ShowMessageRequestParams --
-   -----------------------------------
-
-   procedure Read_ShowMessageRequestParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ShowMessageRequestParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("type");
-      MessageType'Read (S, V.the_type);
-      Read_String (JS, +"message", V.message);
-      Read_String_Vector (JS, +"actions", V.actions);
-      JS.End_Object;
-   end Read_ShowMessageRequestParams;
-
-   ---------------
-   -- Read_Span --
-   ---------------
-
-   procedure Read_Span
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Span)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("start");
-      Position'Read (S, V.first);
-      JS.Key ("end");
-      Position'Read (S, V.last);
-      JS.End_Object;
-   end Read_Span;
-
-   ------------------------------------
-   -- Read_StaticRegistrationOptions --
-   ------------------------------------
-
-   procedure Read_TSW_RegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TSW_RegistrationOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      Read_Optional_String (JS, +"id", V.id);
-      JS.Key ("documentSelector");
-      DocumentSelector'Read (S, V.documentSelector);
-      JS.End_Object;
-   end Read_TSW_RegistrationOptions;
 
    ----------------------------------
    -- Read_String_Or_MarkupContent --
@@ -2627,241 +2029,6 @@ package body LSP.Messages is
          MarkupContent'Read (S, V.Content);
       end if;
    end Read_String_Or_MarkupContent;
-
-   ------------------------
-   -- Read_String_Vector --
-   ------------------------
-
-   procedure Read_String_Vector
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_String_Vector) is
-   begin
-      Item.Clear;
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Start_Array;
-
-      while not Stream.End_Of_Array loop
-         Item.Append (To_LSP_String (Unbounded_String'(Stream.Read.Get)));
-      end loop;
-
-      Stream.End_Array;
-   end Read_String_Vector;
-
-   ----------------------------
-   -- Read_SymbolInformation --
-   ----------------------------
-
-   procedure Read_SymbolInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolInformation)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"name", V.name);
-      JS.Key ("kind");
-      SymbolKind'Read (S, V.kind);
-      Read_Optional_Boolean (JS, +"alsIsAdaProcedure", V.alsIsAdaProcedure);
-      Read_Optional_Boolean (JS, +"deprecated", V.deprecated);
-      JS.Key ("location");
-      Location'Read (S, V.location);
-      Read_Optional_String (JS, +"containerName", V.containerName);
-      JS.End_Object;
-   end Read_SymbolInformation;
-
-   ---------------------
-   -- Read_SymbolKind --
-   ---------------------
-
-   procedure Read_SymbolKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out SymbolKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := SymbolKind'Val (JS.Read.Get - 1);
-   end Read_SymbolKind;
-
-   ---------------------------------
-   -- Read_symbolKindCapabilities --
-   ---------------------------------
-
-   procedure Read_symbolKindCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out symbolKindCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("valueSet");
-      Optional_SymbolKindSet'Read (S, V.valueSet);
-      JS.End_Object;
-   end Read_symbolKindCapabilities;
-
-   -------------------------
-   -- Read_Als_Visibility --
-   -------------------------
-
-   procedure Read_Als_Visibility
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Als_Visibility)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := Als_Visibility'Val (JS.Read.Get - 1);
-   end Read_Als_Visibility;
-
-   ---------------------------------
-   -- Read_TextDocumentSaveReason --
-   ---------------------------------
-
-   procedure Read_TextDocumentSaveReason
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSaveReason)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := TextDocumentSaveReason'Val (JS.Read.Get - 1);
-   end Read_TextDocumentSaveReason;
-
-   -------------------------
-   -- Read_FileChangeType --
-   -------------------------
-
-   procedure Read_FileChangeType
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FileChangeType)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := FileChangeType'Val (JS.Read.Get - 1);
-   end Read_FileChangeType;
-
-   ---------------------------------------------
-   -- Read_TextDocumentSyncClientCapabilities --
-   ---------------------------------------------
-
-   procedure Read_TextDocumentSyncClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      Read_Optional_Boolean (JS, +"willSave", V.willSave);
-      Read_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
-      Read_Optional_Boolean (JS, +"didSave", V.didSave);
-      JS.End_Object;
-   end Read_TextDocumentSyncClientCapabilities;
-
-   -----------------------------------------
-   -- Read_TextDocumentClientCapabilities --
-   -----------------------------------------
-
-   procedure Read_TextDocumentClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("synchronization");
-      TextDocumentSyncClientCapabilities'Read (S, V.synchronization);
-      JS.Key ("completion");
-      CompletionClientCapabilities'Read (S, V.completion);
-      JS.Key ("hover");
-      Optional_HoverClientCapabilities'Read (S, V.hover);
-      JS.Key ("signatureHelp");
-      Optional_SignatureHelpClientCapabilities'Read (S, V.signatureHelp);
-      JS.Key ("references");
-      dynamicRegistration'Read (S, V.references);
-      JS.Key ("documentHighlight");
-      dynamicRegistration'Read (S, V.documentHighlight);
-      JS.Key ("documentSymbol");
-      Optional_DocumentSymbolClientCapabilities'Read (S, V.documentSymbol);
-      JS.Key ("formatting");
-      dynamicRegistration'Read (S, V.formatting);
-      JS.Key ("rangeFormatting");
-      dynamicRegistration'Read (S, V.rangeFormatting);
-      JS.Key ("onTypeFormatting");
-      dynamicRegistration'Read (S, V.onTypeFormatting);
-      JS.Key ("declaration");
-      Optional_DeclarationClientCapabilities'Read (S, V.declaration);
-      JS.Key ("definition");
-      Optional_DefinitionClientCapabilities'Read (S, V.definition);
-      JS.Key ("typeDefinition");
-      Optional_TypeDefinitionClientCapabilities'Read (S, V.typeDefinition);
-      JS.Key ("implementation");
-      Optional_ImplementationClientCapabilities'Read (S, V.implementation);
-      JS.Key ("codeAction");
-      Optional_CodeActionClientCapabilities'Read (S, V.codeAction);
-      JS.Key ("codeLens");
-      dynamicRegistration'Read (S, V.codeLens);
-      JS.Key ("documentLink");
-      Optional_DocumentLinkClientCapabilities'Read (S, V.documentLink);
-      JS.Key ("colorProvider");
-      dynamicRegistration'Read (S, V.colorProvider);
-      JS.Key ("rename");
-      Optional_RenameClientCapabilities'Read (S, V.rename);
-      JS.Key ("publishDiagnostics");
-      Optional_PublishDiagnosticsClientCapabilities'Read
-        (S, V.publishDiagnostics);
-      JS.Key ("foldingRange");
-      Optional_FoldingRangeClientCapabilities'Read (S, V.foldingRange);
-      JS.Key ("selectionRange");
-      SelectionRangeClientCapabilities'Read (S, V.selectionRange);
-      JS.End_Object;
-   end Read_TextDocumentClientCapabilities;
-
-   -----------------------------------------
-   -- Read_TextDocumentContentChangeEvent --
-   -----------------------------------------
-
-   procedure Read_TextDocumentContentChangeEvent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentContentChangeEvent)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Optional_Span'Read (S, V.span);
-      JS.Key ("rangeLength");
-      Optional_Number'Read (S, V.rangeLength);
-      Read_String (JS, +"text", V.text);
-      JS.End_Object;
-   end Read_TextDocumentContentChangeEvent;
-
-   ---------------------------
-   -- Read_TextDocumentEdit --
-   ---------------------------
-
-   procedure Read_TextDocumentEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentEdit)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      VersionedTextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("edits");
-      TextEdit_Vector'Read (S, V.edits);
-      JS.End_Object;
-   end Read_TextDocumentEdit;
 
    --------------------------
    -- Read_Document_Change --
@@ -2909,86 +2076,6 @@ package body LSP.Messages is
       end if;
    end Read_Symbol_Vector;
 
-   -------------------------------------------
-   -- Read_DocumentSymbolClientCapabilities --
-   -------------------------------------------
-
-   procedure Read_DocumentSymbolClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentSymbolClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-
-      JS.Key ("symbolKind");
-      Optional_symbolKindCapabilities'Read (S, V.symbolKind);
-
-      Read_Optional_Boolean
-        (JS,
-         +"hierarchicalDocumentSymbolSupport",
-         V.hierarchicalDocumentSymbolSupport);
-      JS.End_Object;
-   end Read_DocumentSymbolClientCapabilities;
-
-   ---------------------------------
-   -- Read_TextDocumentIdentifier --
-   ---------------------------------
-
-   procedure Read_TextDocumentIdentifier
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentIdentifier)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      DocumentUri'Read (S, V.uri);
-      JS.End_Object;
-   end Read_TextDocumentIdentifier;
-
-   ---------------------------
-   -- Read_TextDocumentItem --
-   ---------------------------
-
-   procedure Read_TextDocumentItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentItem)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_If_String (JS, +"uri", V.uri);
-      Read_String (JS, +"languageId", V.languageId);
-      Read_Number (JS, +"version", LSP.Types.LSP_Number (V.version));
-      Read_String (JS, +"text", V.text);
-      JS.End_Object;
-   end Read_TextDocumentItem;
-
-   -------------------------------------
-   -- Read_TextDocumentPositionParams --
-   -------------------------------------
-
-   procedure Read_TextDocumentPositionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentPositionParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      JS.End_Object;
-   end Read_TextDocumentPositionParams;
-
    ------------------------------------
    -- Get_TextDocumentPositionParams --
    ------------------------------------
@@ -3005,85 +2092,6 @@ package body LSP.Messages is
       JS.Key ("position");
       Position'Read (S, V.position);
    end Get_TextDocumentPositionParams;
-
-   -------------------------------
-   -- Read_TextDocumentSyncKind --
-   -------------------------------
-
-   procedure Read_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncKind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-
-      Map : constant array (0 .. 2) of TextDocumentSyncKind :=
-        (0 => None, 1 => Full, 2 => Incremental);
-   begin
-      V := Map (Value.Get);
-   end Read_TextDocumentSyncKind;
-
-   ----------------------------------
-   -- Read_TextDocumentSyncOptions --
-   ----------------------------------
-
-   procedure Read_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"openClose", V.openClose);
-      JS.Key ("change");
-      Optional_TextDocumentSyncKind'Read (S, V.change);
-      Read_Optional_Boolean (JS, +"willSave", V.willSave);
-      Read_Optional_Boolean (JS, +"willSaveWaitUntil", V.willSaveWaitUntil);
-      JS.Key ("save");
-      Optional_SaveOptions'Read (S, V.save);
-      JS.End_Object;
-   end Read_TextDocumentSyncOptions;
-
-   -------------------
-   -- Read_TextEdit --
-   -------------------
-
-   procedure Read_TextEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextEdit)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("range");
-      Span'Read (S, V.span);
-      Read_String (JS, +"newText", V.newText);
-      JS.End_Object;
-   end Read_TextEdit;
-
-   procedure Read_Trace_Kind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Trace_Kind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
-      Text  : constant GNATCOLL.JSON.UTF8_String := Value.Get;
-   begin
-      if Text = "off" then
-         V := off;
-      elsif Text = "messages" then
-         V := messages_trace;
-      elsif Text = "verbose" then
-         V := verbose;
-      else
-         V := off;
-      end if;
-   end Read_Trace_Kind;
 
    ------------------------------------------
    -- Read_VersionedTextDocumentIdentifier --
@@ -3103,27 +2111,6 @@ package body LSP.Messages is
       Optional_Number'Read (S, V.version);
       JS.End_Object;
    end Read_VersionedTextDocumentIdentifier;
-
-   --------------------------------------------
-   -- Read_WorkspaceSymbolClientCapabilities --
-   --------------------------------------------
-
-   procedure Read_WorkspaceSymbolClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceSymbolClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-
-      JS.Key ("symbolKind");
-      Optional_symbolKindCapabilities'Read (S, V.symbolKind);
-
-      JS.End_Object;
-   end Read_WorkspaceSymbolClientCapabilities;
 
    ------------------------
    -- Read_WatchKind_Set --
@@ -3155,38 +2142,6 @@ package body LSP.Messages is
       end if;
    end Read_WatchKind_Set;
 
-   -----------------------------------
-   -- Read_WindowClientCapabilities --
-   -----------------------------------
-
-   procedure Read_WindowClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WindowClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.End_Object;
-   end Read_WindowClientCapabilities;
-
-   ---------------------------------------
-   -- Read_WorkDoneProgressCreateParams --
-   ---------------------------------------
-
-   procedure Read_WorkDoneProgressCreateParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkDoneProgressCreateParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Number_Or_String (JS, +"token", V.token);
-      JS.End_Object;
-   end Read_WorkDoneProgressCreateParams;
-
    ----------------------------------
    -- Read_WorkDoneProgressOptions --
    ----------------------------------
@@ -3202,34 +2157,6 @@ package body LSP.Messages is
       Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
       JS.End_Object;
    end Read_WorkDoneProgressOptions;
-
-   --------------------------------------
-   -- Read_WorkspaceClientCapabilities --
-   --------------------------------------
-
-   procedure Read_WorkspaceClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"applyEdit", V.applyEdit);
-      JS.Key ("workspaceEdit");
-      WorkspaceEditClientCapabilities'Read (S, V.workspaceEdit);
-      JS.Key ("didChangeConfiguration");
-      dynamicRegistration'Read (S, V.didChangeConfiguration);
-      JS.Key ("didChangeWatchedFiles");
-      dynamicRegistration'Read (S, V.didChangeWatchedFiles);
-      JS.Key ("symbol");
-      Optional_WorkspaceSymbolClientCapabilities'Read (S, V.symbol);
-      JS.Key ("executeCommand");
-      dynamicRegistration'Read (S, V.executeCommand);
-      Read_Optional_Boolean (JS, +"workspaceFolders", V.workspaceFolders);
-      Read_Optional_Boolean (JS, +"configuration", V.configuration);
-      JS.End_Object;
-   end Read_WorkspaceClientCapabilities;
 
    ------------------------
    -- Read_WorkspaceEdit --
@@ -3292,157 +2219,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_WorkspaceEdit;
 
-   --------------------------
-   -- Read_WorkspaceFolder --
-   --------------------------
-
-   procedure Read_WorkspaceFolder
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceFolder)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_String (JS, +"uri", V.uri);
-      Read_String (JS, +"name", V.name);
-      JS.End_Object;
-   end Read_WorkspaceFolder;
-
-   --------------------------------------
-   -- Read_WorkspaceFoldersChangeEvent --
-   --------------------------------------
-
-   procedure Read_WorkspaceFoldersChangeEvent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceFoldersChangeEvent)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("added");
-      WorkspaceFolder_Vector'Read (S, V.added);
-      JS.Key ("removed");
-      WorkspaceFolder_Vector'Read (S, V.removed);
-      JS.End_Object;
-   end Read_WorkspaceFoldersChangeEvent;
-
-   ---------------------------
-   -- Read_workspaceFolders --
-   ---------------------------
-
-   procedure Read_WorkspaceFoldersServerCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceFoldersServerCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"supported", V.supported);
-      JS.Key ("changeNotifications");
-      Optional_Boolean_Or_String'Read (S, V.changeNotifications);
-      JS.End_Object;
-   end Read_WorkspaceFoldersServerCapabilities;
-
-   ----------------------------
-   -- Read_workspace_Options --
-   ----------------------------
-
-   procedure Read_workspace_Options
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out workspace_Options)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("workspaceFolders");
-      Optional_WorkspaceFoldersServerCapabilities'Read (S, V.workspaceFolders);
-      JS.End_Object;
-   end Read_workspace_Options;
-
-   --------------------------------
-   -- Read_WorkspaceSymbolParams --
-   --------------------------------
-
-   procedure Read_WorkspaceSymbolParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkspaceSymbolParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_Progress_Partial_Params (S, V);
-      Read_String (JS, +"query", V.query);
-      JS.End_Object;
-   end Read_WorkspaceSymbolParams;
-
-   -----------------------------
-   -- Write_ShowMessageParams --
-   -----------------------------
-
-   procedure Write_ShowMessageParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessageParams)
-      renames LSP.Message_IO.Write_ShowMessageParams;
-
-   ------------------------------------
-   -- Write_ShowMessageRequestParams --
-   ------------------------------------
-
-   procedure Write_ShowMessageRequestParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ShowMessageRequestParams)
-      renames LSP.Message_IO.Write_ShowMessageRequestParams;
-
-   ------------------------------------
-   -- Write_ApplyWorkspaceEditParams --
-   ------------------------------------
-
-   procedure Write_ApplyWorkspaceEditParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEditParams)
-      renames LSP.Message_IO.Write_ApplyWorkspaceEditParams;
-
-   ------------------------------------
-   -- Write_ApplyWorkspaceEditResult --
-   ------------------------------------
-
-   procedure Write_ApplyWorkspaceEditResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ApplyWorkspaceEditResult)
-      renames LSP.Message_IO.Write_ApplyWorkspaceEditResult;
-
-   ------------------------
-   -- Write_CancelParams --
-   ------------------------
-
-   procedure Write_CancelParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CancelParams)
-      renames LSP.Message_IO.Write_CancelParams;
-
-   ------------------------------
-   -- Write_ClientCapabilities --
-   ------------------------------
-
-   procedure Write_ClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ClientCapabilities)
-      renames LSP.Message_IO.Write_ClientCapabilities;
-
-   ----------------------
-   -- Write_ClientInfo --
-   ----------------------
-
-   procedure Write_ProgramInfo
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ProgramInfo)
-      renames LSP.Message_IO.Write_ProgramInfo;
-
    ----------------------
    -- Write_CodeAction --
    ----------------------
@@ -3471,101 +2247,6 @@ package body LSP.Messages is
          JS.End_Object;
       end if;
    end Write_CodeAction;
-
-   -----------------------------
-   -- Write_CodeActionContext --
-   -----------------------------
-
-   procedure Write_CodeActionContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionContext)
-      renames LSP.Message_IO.Write_CodeActionContext;
-
-   -----------------------------
-   -- Write_CodeActionOptions --
-   -----------------------------
-
-   procedure Write_CodeActionOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionOptions)
-      renames LSP.Message_IO.Write_CodeActionOptions;
-
-   --------------------------
-   -- Write_CodeActionKind --
-   --------------------------
-
-   procedure Write_CodeActionKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionKind)
-      renames LSP.Message_IO.Write_CodeActionKind;
-
-   procedure Write_codeActionKindCapability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : codeActionKindCapability)
-      renames LSP.Message_IO.Write_codeActionKindCapability;
-
-   -----------------------------------------------
-   -- Write_codeActionLiteralSupport_Capability --
-   -----------------------------------------------
-
-   procedure Write_codeActionLiteralSupport_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : codeActionLiteralSupport_Capability)
-      renames LSP.Message_IO.Write_codeActionLiteralSupport_Capability;
-
-   ----------------------------
-   -- Write_CodeActionParams --
-   ----------------------------
-
-   procedure Write_CodeActionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionParams)
-      renames LSP.Message_IO.Write_CodeActionParams;
-
-   ----------------------------------------
-   -- Write_CodeActionClientCapabilities --
-   ----------------------------------------
-
-   procedure Write_CodeActionClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionClientCapabilities)
-      renames LSP.Message_IO.Write_CodeActionClientCapabilities;
-
-   ---------------------------
-   -- Write_CodeLensOptions --
-   ---------------------------
-
-   procedure Write_CodeLensOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeLensOptions)
-      renames LSP.Message_IO.Write_CodeLensOptions;
-
-   ----------------------------
-   -- Write_ColorInformation --
-   ----------------------------
-
-   procedure Write_ColorInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ColorInformation)
-      renames LSP.Message_IO.Write_ColorInformation;
-
-   -----------------------------
-   -- Write_ColorPresentation --
-   -----------------------------
-
-   procedure Write_ColorPresentation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ColorPresentation)
-      renames LSP.Message_IO.Write_ColorPresentation;
-
-   -----------------------------------
-   -- Write_ColorPresentationParams --
-   -----------------------------------
-
-   procedure Write_ColorPresentationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ColorPresentationParams)
-      renames LSP.Message_IO.Write_ColorPresentationParams;
 
    -------------------
    -- Write_Command --
@@ -3605,304 +2286,6 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_Command;
-
-   ----------------------------------------
-   -- Write_CompletionClientCapabilities --
-   ----------------------------------------
-
-   procedure Write_CompletionClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionClientCapabilities)
-      renames LSP.Message_IO.Write_CompletionClientCapabilities;
-
-   -----------------------------
-   -- Write_CompletionContext --
-   -----------------------------
-
-   procedure Write_CompletionContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionContext)
-      renames LSP.Message_IO.Write_CompletionContext;
-
-   --------------------------
-   -- Write_CompletionItem --
-   --------------------------
-
-   procedure Write_CompletionItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItem)
-      renames LSP.Message_IO.Write_CompletionItem;
-
-   procedure Write_CompletionTriggerKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionTriggerKind)
-      renames LSP.Message_IO.Write_CompletionTriggerKind;
-
-   ------------------------------------
-   -- Write_completionItemCapability --
-   ------------------------------------
-
-   procedure Write_completionItemCapability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : completionItemCapability)
-      renames LSP.Message_IO.Write_completionItemCapability;
-
-   ------------------------------
-   -- Write_CompletionItemKind --
-   ------------------------------
-
-   procedure Write_CompletionItemKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItemKind)
-      renames LSP.Message_IO.Write_CompletionItemKind;
-
-   procedure Write_CompletionItemKindSetCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItemKindSetCapabilities)
-      renames LSP.Message_IO.Write_CompletionItemKindSetCapabilities;
-
-   -----------------------------
-   -- Write_CompletionItemTag --
-   -----------------------------
-
-   procedure Write_CompletionItemTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItemTag)
-      renames LSP.Message_IO.Write_CompletionItemTag;
-
-   ------------------------------------
-   -- Write_CompletionItemTagSupport --
-   ------------------------------------
-
-   procedure Write_CompletionItemTagSupport
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionItemTagSupport)
-     renames LSP.Message_IO.Write_CompletionItemTagSupport;
-
-   --------------------------
-   -- Write_CompletionList --
-   --------------------------
-
-   procedure Write_CompletionList
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionList)
-      renames LSP.Message_IO.Write_CompletionList;
-
-   -----------------------------
-   -- Write_CompletionOptions --
-   -----------------------------
-
-   procedure Write_CompletionOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionOptions)
-      renames LSP.Message_IO.Write_CompletionOptions;
-
-   ----------------------------
-   -- Write_CompletionParams --
-   ----------------------------
-
-   procedure Write_CompletionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CompletionParams)
-      renames LSP.Message_IO.Write_CompletionParams;
-
-   -----------------------------
-   -- Write_ConfigurationItem --
-   -----------------------------
-
-   procedure Write_ConfigurationItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ConfigurationItem)
-      renames LSP.Message_IO.Write_ConfigurationItem;
-
-   -------------------------------
-   -- Write_ConfigurationParams --
-   -------------------------------
-
-   procedure Write_ConfigurationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ConfigurationParams)
-      renames LSP.Message_IO.Write_ConfigurationParams;
-
-   ----------------------
-   -- Write_Diagnostic --
-   ----------------------
-
-   procedure Write_Diagnostic
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Diagnostic)
-      renames LSP.Message_IO.Write_Diagnostic;
-
-   ----------------------------------------
-   -- Write_DiagnosticRelatedInformation --
-   ----------------------------------------
-
-   procedure Write_DiagnosticRelatedInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DiagnosticRelatedInformation)
-      renames LSP.Message_IO.Write_DiagnosticRelatedInformation;
-
-   ------------------------------
-   -- Write_DiagnosticSeverity --
-   ------------------------------
-
-   procedure Write_DiagnosticSeverity
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DiagnosticSeverity)
-      renames LSP.Message_IO.Write_DiagnosticSeverity;
-
-   -------------------------
-   -- Write_DiagnosticTag --
-   -------------------------
-
-   procedure Write_DiagnosticTag
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DiagnosticTag)
-      renames LSP.Message_IO.Write_DiagnosticTag;
-
-   --------------------------------
-   -- Write_DiagnosticTagSupport --
-   --------------------------------
-
-   procedure Write_DiagnosticTagSupport
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DiagnosticTagSupport)
-      renames LSP.Message_IO.Write_DiagnosticTagSupport;
-
-   ----------------------------------------
-   -- Write_DidChangeConfigurationParams --
-   ----------------------------------------
-
-   procedure Write_DidChangeConfigurationParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidChangeConfigurationParams)
-      renames LSP.Message_IO.Write_DidChangeConfigurationParams;
-
-   ---------------------------------------
-   -- Write_DidChangeTextDocumentParams --
-   ---------------------------------------
-
-   procedure Write_DidChangeTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidChangeTextDocumentParams)
-      renames LSP.Message_IO.Write_DidChangeTextDocumentParams;
-
-   ----------------------------------------------------
-   -- Write_DidChangeWatchedFilesRegistrationOptions --
-   ----------------------------------------------------
-
-   procedure Write_DidChangeWatchedFilesRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidChangeWatchedFilesRegistrationOptions)
-      renames LSP.Message_IO.Write_DidChangeWatchedFilesRegistrationOptions;
-
-   -------------------------------------------
-   -- Write_DidChangeWorkspaceFoldersParams --
-   -------------------------------------------
-
-   procedure Write_DidChangeWorkspaceFoldersParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidChangeWorkspaceFoldersParams)
-      renames LSP.Message_IO.Write_DidChangeWorkspaceFoldersParams;
-
-   --------------------------------------
-   -- Write_DidCloseTextDocumentParams --
-   --------------------------------------
-
-   procedure Write_DidCloseTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidCloseTextDocumentParams)
-      renames LSP.Message_IO.Write_DidCloseTextDocumentParams;
-
-   -------------------------------------
-   -- Write_DidOpenTextDocumentParams --
-   -------------------------------------
-
-   procedure Write_DidOpenTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidOpenTextDocumentParams)
-      renames LSP.Message_IO.Write_DidOpenTextDocumentParams;
-
-   -------------------------------------
-   -- Write_DidSaveTextDocumentParams --
-   -------------------------------------
-
-   procedure Write_DidSaveTextDocumentParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidSaveTextDocumentParams)
-      renames LSP.Message_IO.Write_DidSaveTextDocumentParams;
-
-   -----------------------------------------
-   -- Write_DeclarationClientCapabilities --
-   -----------------------------------------
-
-   procedure Write_DeclarationClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DeclarationClientCapabilities)
-      renames LSP.Message_IO.Write_DeclarationClientCapabilities;
-
-   -------------------------------------------
-   -- Write_WorkspaceEditClientCapabilities --
-   -------------------------------------------
-
-   procedure Write_WorkspaceEditClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceEditClientCapabilities)
-      renames LSP.Message_IO.Write_WorkspaceEditClientCapabilities;
-
-   -----------------------------
-   -- Write_DocumentHighlight --
-   -----------------------------
-
-   procedure Write_DocumentHighlight
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentHighlight)
-      renames LSP.Message_IO.Write_DocumentHighlight;
-
-   ---------------------------------
-   -- Write_DocumentHighlightKind --
-   ---------------------------------
-
-   procedure Write_DocumentHighlightKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentHighlightKind)
-      renames LSP.Message_IO.Write_DocumentHighlightKind;
-
-   ------------------------------------------
-   -- Write_DocumentLinkClientCapabilities --
-   ------------------------------------------
-
-   procedure Write_DocumentLinkClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentLinkClientCapabilities)
-      renames LSP.Message_IO.Write_DocumentLinkClientCapabilities;
-
-   -------------------------------
-   -- Write_DocumentLinkOptions --
-   -------------------------------
-
-   procedure Write_DocumentLinkOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentLinkOptions)
-      renames LSP.Message_IO.Write_DocumentLinkOptions;
-
-   -------------------------------------------
-   -- Write_DocumentOnTypeFormattingOptions --
-   -------------------------------------------
-
-   procedure Write_DocumentOnTypeFormattingOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentOnTypeFormattingOptions)
-      renames LSP.Message_IO.Write_DocumentOnTypeFormattingOptions;
-
-   --------------------------------
-   -- Write_DocumentSymbolParams --
-   --------------------------------
-
-   procedure Write_DocumentSymbolParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentSymbolParams)
-      renames LSP.Message_IO.Write_DocumentSymbolParams;
 
    -------------------------------
    -- Write_DocumentSymbol_Tree --
@@ -3962,65 +2345,6 @@ package body LSP.Messages is
       Write_Array (V.Root);
    end Write_DocumentSymbol_Tree;
 
-   -------------------------------
-   -- Write_dynamicRegistration --
-   -------------------------------
-
-   procedure Write_dynamicRegistration
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : dynamicRegistration)
-      renames LSP.Message_IO.Write_dynamicRegistration;
-
-   procedure Write_FileChangeType
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FileChangeType)
-      renames LSP.Message_IO.Write_FileChangeType;
-
-   -----------------------------
-   -- Write_FileSystemWatcher --
-   -----------------------------
-
-   procedure Write_FileSystemWatcher
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FileSystemWatcher)
-      renames LSP.Message_IO.Write_FileSystemWatcher;
-
-   ------------------------
-   -- Write_FoldingRange --
-   ------------------------
-
-   procedure Write_FoldingRange
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FoldingRange)
-      renames LSP.Message_IO.Write_FoldingRange;
-
-   ------------------------------
-   -- Write_FoldingRangeParams --
-   ------------------------------
-
-   procedure Write_FoldingRangeParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FoldingRangeParams)
-      renames LSP.Message_IO.Write_FoldingRangeParams;
-
-   -------------------------------
-   -- Write_DocumentColorParams --
-   -------------------------------
-
-   procedure Write_DocumentColorParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentColorParams)
-      renames LSP.Message_IO.Write_DocumentColorParams;
-
-   ---------------------------------
-   -- Write_ExecuteCommandOptions --
-   ---------------------------------
-
-   procedure Write_ExecuteCommandOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ExecuteCommandOptions)
-      renames LSP.Message_IO.Write_ExecuteCommandOptions;
-
    --------------------------------
    -- Write_ExecuteCommandParams --
    --------------------------------
@@ -4052,61 +2376,6 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_ExecuteCommandParams;
-
-   -------------------------------
-   -- Write_FailureHandlingKind --
-   -------------------------------
-
-   procedure Write_FailureHandlingKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FailureHandlingKind)
-      renames LSP.Message_IO.Write_FailureHandlingKind;
-
-   ------------------------------------------
-   -- Write_FoldingRangeClientCapabilities --
-   ------------------------------------------
-
-   procedure Write_FoldingRangeClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FoldingRangeClientCapabilities)
-      renames LSP.Message_IO.Write_FoldingRangeClientCapabilities;
-
-   -----------------
-   -- Write_Hover --
-   -----------------
-
-   procedure Write_Hover
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Hover)
-      renames LSP.Message_IO.Write_Hover;
-
-   -----------------------------------
-   -- Write_HoverClientCapabilities --
-   -----------------------------------
-
-   procedure Write_HoverClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : HoverClientCapabilities)
-      renames LSP.Message_IO.Write_HoverClientCapabilities;
-
-   ----------------------------------
-   -- Read_HoverClientCapabilities --
-   ----------------------------------
-
-   procedure Read_HoverClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out HoverClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Optional_Boolean
-        (JS, +"dynamicRegistration", V.dynamicRegistration);
-      JS.Key ("contentFormat");
-      Optional_MarkupKind_Vector'Read (S, V.contentFormat);
-      JS.End_Object;
-   end Read_HoverClientCapabilities;
 
    ----------------------------
    -- Write_InitializeParams --
@@ -4141,51 +2410,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_InitializeParams;
 
-   ----------------------------
-   -- Write_InitializeResult --
-   ----------------------------
-
-   procedure Write_InitializeResult
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : InitializeResult)
-      renames LSP.Message_IO.Write_InitializeResult;
-
-   -----------------------------
-   -- Write_InitializedParams --
-   -----------------------------
-
-   not overriding procedure Write_InitializedParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : InitializedParams)
-      renames LSP.Message_IO.Write_InitializedParams;
-
-   ----------------------------
-   -- Write_InsertTextFormat --
-   ----------------------------
-
-   procedure Write_InsertTextFormat
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : InsertTextFormat)
-      renames LSP.Message_IO.Write_InsertTextFormat;
-
-   --------------------
-   -- Write_Location --
-   --------------------
-
-   procedure Write_Location
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Location)
-      renames LSP.Message_IO.Write_Location;
-
-   ------------------------
-   -- Write_LocationLink --
-   ------------------------
-
-   procedure Write_LocationLink
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LocationLink)
-      renames LSP.Message_IO.Write_LocationLink;
-
    -----------------------------------
    -- Write_Location_Or_Link_Vector --
    -----------------------------------
@@ -4206,15 +2430,6 @@ package body LSP.Messages is
             LocationLink_Vector'Write (S, V.LocationLinks);
       end case;
    end Write_Location_Or_Link_Vector;
-
-   ----------------------------
-   -- Write_LogMessageParams --
-   ----------------------------
-
-   procedure Write_LogMessageParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LogMessageParams)
-      renames LSP.Message_IO.Write_LogMessageParams;
 
    ------------------------
    -- Write_MarkedString --
@@ -4237,15 +2452,6 @@ package body LSP.Messages is
       end if;
    end Write_MarkedString;
 
-   -------------------------
-   -- Write_MarkupContent --
-   -------------------------
-
-   procedure Write_MarkupContent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : MarkupContent)
-      renames LSP.Message_IO.Write_MarkupContent;
-
    ------------------------------------------------
    -- Write_MarkupContent_Or_MarkedString_Vector --
    ------------------------------------------------
@@ -4262,33 +2468,6 @@ package body LSP.Messages is
          MarkedString_Vector'Write (S, V.Vector);
       end if;
    end Write_MarkupContent_Or_MarkedString_Vector;
-
-   ----------------------
-   -- Write_MarkupKind --
-   ----------------------
-
-   procedure Write_MarkupKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : MarkupKind)
-      renames LSP.Message_IO.Write_MarkupKind;
-
-   -----------------------
-   -- Write_MessageType --
-   -----------------------
-
-   procedure Write_MessageType
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : MessageType)
-      renames LSP.Message_IO.Write_MessageType;
-
-   -------------------------------
-   -- Write_NotificationMessage --
-   -------------------------------
-
-   procedure Write_NotificationMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : NotificationMessage)
-      renames LSP.Message_IO.Write_NotificationMessage;
 
    -------------------------------
    -- Write_Notification_Prefix --
@@ -4340,15 +2519,6 @@ package body LSP.Messages is
       end if;
    end Write_Optional_TextDocumentSyncOptions;
 
-   --------------------------------
-   -- Write_ParameterInformation --
-   --------------------------------
-
-   procedure Write_ParameterInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ParameterInformation)
-      renames LSP.Message_IO.Write_ParameterInformation;
-
    ---------------------------
    -- Write_Parameter_Label --
    ---------------------------
@@ -4371,24 +2541,6 @@ package body LSP.Messages is
       end if;
    end Write_Parameter_Label;
 
-   -------------------------------------------
-   -- Write_parameterInformation_Capability --
-   -------------------------------------------
-
-   procedure Write_parameterInformation_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : parameterInformation_Capability)
-      renames LSP.Message_IO.Write_parameterInformation_Capability;
-
-   --------------------
-   -- Write_Position --
-   --------------------
-
-   procedure Write_Position
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Position)
-      renames LSP.Message_IO.Write_Position;
-
    ----------------------------
    -- Write_Provider_Options --
    ----------------------------
@@ -4409,51 +2561,6 @@ package body LSP.Messages is
       end if;
    end Write_Provider_Options;
 
-   ------------------------------------
-   -- Write_PublishDiagnosticsParams --
-   ------------------------------------
-
-   procedure Write_PublishDiagnosticsParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PublishDiagnosticsParams)
-      renames LSP.Message_IO.Write_PublishDiagnosticsParams;
-
-   ------------------------------------------------
-   -- Write_PublishDiagnosticsClientCapabilities --
-   ------------------------------------------------
-
-   procedure Write_PublishDiagnosticsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : PublishDiagnosticsClientCapabilities)
-      renames LSP.Message_IO.Write_PublishDiagnosticsClientCapabilities;
-
-   ----------------------
-   -- Write_RGBA_Color --
-   ----------------------
-
-   procedure Write_RGBA_Color
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RGBA_Color)
-      renames LSP.Message_IO.Write_RGBA_Color;
-
-   ----------------------------
-   -- Write_ReferenceContext --
-   ----------------------------
-
-   procedure Write_ReferenceContext
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ReferenceContext)
-      renames LSP.Message_IO.Write_ReferenceContext;
-
-   ---------------------------
-   -- Write_ReferenceParams --
-   ---------------------------
-
-   procedure Write_ReferenceParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ReferenceParams)
-      renames LSP.Message_IO.Write_ReferenceParams;
-
    --------------------
    -- Write_Response --
    --------------------
@@ -4470,51 +2577,6 @@ package body LSP.Messages is
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prefix;
-
-   --------------------------
-   -- Write_RequestMessage --
-   --------------------------
-
-   procedure Write_RequestMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RequestMessage)
-      renames LSP.Message_IO.Write_RequestMessage;
-
-   -------------------------
-   -- Write_RenameOptions --
-   -------------------------
-
-   procedure Write_RenameOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RenameOptions)
-      renames LSP.Message_IO.Write_RenameOptions;
-
-   ------------------------
-   -- Write_RenameParams --
-   ------------------------
-
-   procedure Write_RenameParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RenameParams)
-      renames LSP.Message_IO.Write_RenameParams;
-
-   ------------------------------------
-   -- Write_RenameClientCapabilities --
-   ------------------------------------
-
-   procedure Write_RenameClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RenameClientCapabilities)
-      renames LSP.Message_IO.Write_RenameClientCapabilities;
-
-   ---------------------------------
-   -- Write_ResourceOperationKind --
-   ---------------------------------
-
-   procedure Write_ResourceOperationKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ResourceOperationKind)
-      renames LSP.Message_IO.Write_ResourceOperationKind;
 
    ---------------------------
    -- Write_ResponseMessage --
@@ -4538,105 +2600,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ResponseMessage;
 
-   -----------------------
-   -- Write_SaveOptions --
-   -----------------------
-
-   procedure Write_SaveOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SaveOptions)
-      renames LSP.Message_IO.Write_SaveOptions;
-
-   --------------------------
-   -- Write_SelectionRange --
-   --------------------------
-
-   procedure Write_SelectionRange
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SelectionRange)
-      renames LSP.Message_IO.Write_SelectionRange;
-
-   --------------------------------
-   -- Write_SelectionRangeParams --
-   --------------------------------
-
-   procedure Write_SelectionRangeParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SelectionRangeParams)
-      renames LSP.Message_IO.Write_SelectionRangeParams;
-
-   ------------------------------
-   -- Write_ServerCapabilities --
-   ------------------------------
-
-   procedure Write_ServerCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ServerCapabilities)
-      renames LSP.Message_IO.Write_ServerCapabilities;
-
-   -------------------------
-   -- Write_SignatureHelp --
-   -------------------------
-
-   procedure Write_SignatureHelp
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelp)
-      renames LSP.Message_IO.Write_SignatureHelp;
-
-   --------------------------------
-   -- Write_SignatureHelpOptions --
-   --------------------------------
-
-   procedure Write_SignatureHelpOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelpOptions)
-      renames LSP.Message_IO.Write_SignatureHelpOptions;
-
-   -------------------------------------------
-   -- Write_SignatureHelpClientCapabilities --
-   -------------------------------------------
-
-   procedure Write_SignatureHelpClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureHelpClientCapabilities)
-      renames LSP.Message_IO.Write_SignatureHelpClientCapabilities;
-
-   --------------------------------
-   -- Write_SignatureInformation --
-   --------------------------------
-
-   procedure Write_SignatureInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SignatureInformation)
-      renames LSP.Message_IO.Write_SignatureInformation;
-
-   -------------------------------------------
-   -- Write_signatureInformation_Capability --
-   -------------------------------------------
-
-   procedure Write_signatureInformation_Capability
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : signatureInformation_Capability)
-      renames LSP.Message_IO.Write_signatureInformation_Capability;
-
-   ----------------
-   -- Write_Span --
-   ----------------
-
-   procedure Write_Span
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Span)
-      renames LSP.Message_IO.Write_Span;
-
-   -------------------------------------
-   -- Write_StaticRegistrationOptions --
-   -------------------------------------
-
-   procedure Write_TSW_RegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TSW_RegistrationOptions)
-      renames LSP.Message_IO.Write_TSW_RegistrationOptions;
-
    -----------------------------------
    -- Write_String_Or_MarkupContent --
    -----------------------------------
@@ -4657,38 +2620,6 @@ package body LSP.Messages is
       end case;
    end Write_String_Or_MarkupContent;
 
-   -----------------------------
-   -- Write_SymbolInformation --
-   -----------------------------
-
-   procedure Write_SymbolInformation
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolInformation)
-      renames LSP.Message_IO.Write_SymbolInformation;
-
-   ----------------------
-   -- Write_SymbolKind --
-   ----------------------
-
-   procedure Write_SymbolKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : SymbolKind)
-      renames LSP.Message_IO.Write_SymbolKind;
-
-   procedure Write_symbolKindCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : symbolKindCapabilities)
-      renames LSP.Message_IO.Write_symbolKindCapabilities;
-
-   --------------------------
-   -- Write_Als_Visibility --
-   --------------------------
-
-   procedure Write_Als_Visibility
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Als_Visibility)
-      renames LSP.Message_IO.Write_Als_Visibility;
-
    -------------------------
    -- Write_Symbol_Vector --
    -------------------------
@@ -4703,46 +2634,6 @@ package body LSP.Messages is
          SymbolInformation_Vector'Write (S, V.Vector);
       end if;
    end Write_Symbol_Vector;
-
-   procedure Write_TextDocumentSaveReason
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSaveReason)
-      renames LSP.Message_IO.Write_TextDocumentSaveReason;
-
-   ----------------------------------------------
-   -- Write_TextDocumentSyncClientCapabilities --
-   ----------------------------------------------
-
-   procedure Write_TextDocumentSyncClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncClientCapabilities)
-      renames LSP.Message_IO.Write_TextDocumentSyncClientCapabilities;
-
-   ------------------------------------------
-   -- Write_TextDocumentClientCapabilities --
-   ------------------------------------------
-
-   procedure Write_TextDocumentClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentClientCapabilities)
-      renames LSP.Message_IO.Write_TextDocumentClientCapabilities;
-
-   ------------------------------------------
-   -- Write_TextDocumentContentChangeEvent --
-   ------------------------------------------
-
-   procedure Write_TextDocumentContentChangeEvent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentContentChangeEvent)
-      renames LSP.Message_IO.Write_TextDocumentContentChangeEvent;
-
-   ----------------------------
-   -- Write_TextDocumentEdit --
-   ----------------------------
-
-   procedure Write_TextDocumentEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentEdit) renames LSP.Message_IO.Write_TextDocumentEdit;
 
    ---------------------------
    -- Write_Document_Change --
@@ -4763,74 +2654,6 @@ package body LSP.Messages is
             DeleteFile'Write (S, V.Delete_File);
       end case;
    end Write_Document_Change;
-
-   --------------------------------------------
-   -- Write_DocumentSymbolClientCapabilities --
-   --------------------------------------------
-
-   procedure Write_DocumentSymbolClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentSymbolClientCapabilities)
-      renames LSP.Message_IO.Write_DocumentSymbolClientCapabilities;
-
-   ----------------------------------
-   -- Write_TextDocumentIdentifier --
-   ----------------------------------
-
-   procedure Write_TextDocumentIdentifier
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentIdentifier)
-      renames LSP.Message_IO.Write_TextDocumentIdentifier;
-
-   ----------------------------
-   -- Write_TextDocumentItem --
-   ----------------------------
-
-   procedure Write_TextDocumentItem
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentItem)
-      renames LSP.Message_IO.Write_TextDocumentItem;
-
-   --------------------------------------
-   -- Write_TextDocumentPositionParams --
-   --------------------------------------
-
-   procedure Write_TextDocumentPositionParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentPositionParams)
-      renames LSP.Message_IO.Write_TextDocumentPositionParams;
-
-   --------------------------------
-   -- Write_TextDocumentSyncKind --
-   --------------------------------
-
-   procedure Write_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncKind)
-      renames LSP.Message_IO.Write_TextDocumentSyncKind;
-
-   -----------------------------------
-   -- Write_TextDocumentSyncOptions --
-   -----------------------------------
-
-   procedure Write_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncOptions)
-      renames LSP.Message_IO.Write_TextDocumentSyncOptions;
-
-   --------------------
-   -- Write_TextEdit --
-   --------------------
-
-   procedure Write_TextEdit
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextEdit)
-      renames LSP.Message_IO.Write_TextEdit;
-
-   procedure Write_Trace_Kind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Trace_Kind)
-      renames LSP.Message_IO.Write_Trace_Kind;
 
    -------------------------------------------
    -- Write_VersionedTextDocumentIdentifier --
@@ -4876,24 +2699,6 @@ package body LSP.Messages is
       end if;
    end Write_WatchKind_Set;
 
-   ---------------------------------------------
-   -- Write_WorkspaceSymbolClientCapabilities --
-   ---------------------------------------------
-
-   procedure Write_WorkspaceSymbolClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceSymbolClientCapabilities)
-      renames LSP.Message_IO.Write_WorkspaceSymbolClientCapabilities;
-
-   ---------------------------------------
-   -- Write_WorkspaceClientCapabilities --
-   ---------------------------------------
-
-   procedure Write_WorkspaceClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceClientCapabilities)
-     renames LSP.Message_IO.Write_WorkspaceClientCapabilities;
-
    -------------------------
    -- Write_WorkspaceEdit --
    -------------------------
@@ -4928,71 +2733,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_WorkspaceEdit;
 
-   ---------------------------
-   -- Write_WorkspaceFolder --
-   ---------------------------
-
-   procedure Write_WorkspaceFolder
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceFolder)
-      renames LSP.Message_IO.Write_WorkspaceFolder;
-
-   ---------------------------------------
-   -- Write_WorkspaceFoldersChangeEvent --
-   ---------------------------------------
-
-   procedure Write_WorkspaceFoldersChangeEvent
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceFoldersChangeEvent)
-      renames LSP.Message_IO.Write_WorkspaceFoldersChangeEvent;
-
-   ----------------------------
-   -- Write_workspaceFolders --
-   ----------------------------
-
-   procedure Write_WorkspaceFoldersServerCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceFoldersServerCapabilities)
-      renames LSP.Message_IO.Write_WorkspaceFoldersServerCapabilities;
-
-   -----------------------------
-   -- Write_workspace_Options --
-   -----------------------------
-
-   procedure Write_workspace_Options
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : workspace_Options)
-      renames LSP.Message_IO.Write_workspace_Options;
-
-   ---------------------------------
-   -- Write_WorkspaceSymbolParams --
-   ---------------------------------
-
-   procedure Write_WorkspaceSymbolParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkspaceSymbolParams)
-      renames LSP.Message_IO.Write_WorkspaceSymbolParams;
-
-   ----------------------------------------
-   -- Read_ALS_Subprogram_And_References --
-   ----------------------------------------
-
-   procedure Read_ALS_Subprogram_And_References
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ALS_Subprogram_And_References)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("location");
-      Location'Read (S, V.loc);
-      Read_String (JS, +"name", V.name);
-      JS.Key ("refs");
-      Location_Vector'Read (S, V.refs);
-      JS.End_Object;
-   end Read_ALS_Subprogram_And_References;
-
    -------------------------
    -- Read_ALSDebugParams --
    -------------------------
@@ -5009,15 +2749,6 @@ package body LSP.Messages is
       JS.End_Object;
    end Read_ALSDebugParams;
 
-   -----------------------------------------
-   -- Write_ALS_Subprogram_And_References --
-   -----------------------------------------
-
-   procedure Write_ALS_Subprogram_And_References
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : ALS_Subprogram_And_References)
-      renames LSP.Message_IO.Write_ALS_Subprogram_And_References;
-
    --------------------------
    -- Write_ALSDebugParams --
    --------------------------
@@ -5033,33 +2764,6 @@ package body LSP.Messages is
       Write_Number (JS, +"inputQueueLength", V.inputQueueLength);
       JS.End_Object;
    end Write_ALSDebugParams;
-
-   ------------------------------------
-   -- Write_WindowClientCapabilities --
-   ------------------------------------
-
-   procedure Write_WindowClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WindowClientCapabilities)
-      renames LSP.Message_IO.Write_WindowClientCapabilities;
-
-   ---------------------------------
-   -- Write_WorkDoneProgressBegin --
-   ---------------------------------
-
-   procedure Write_WorkDoneProgressBegin
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressBegin)
-      renames LSP.Message_IO.Write_WorkDoneProgressBegin;
-
-   ----------------------------------------
-   -- Write_WorkDoneProgressCreateParams --
-   ----------------------------------------
-
-   procedure Write_WorkDoneProgressCreateParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressCreateParams)
-      renames LSP.Message_IO.Write_WorkDoneProgressCreateParams;
 
    -----------------------------------
    -- Write_WorkDoneProgressOptions --
@@ -5084,24 +2788,6 @@ package body LSP.Messages is
          JS.End_Object;
       end if;
    end Write_WorkDoneProgressOptions;
-
-   ----------------------------------
-   -- Write_WorkDoneProgressReport --
-   ----------------------------------
-
-   procedure Write_WorkDoneProgressReport
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressReport)
-      renames LSP.Message_IO.Write_WorkDoneProgressReport;
-
-   -------------------------------
-   -- Write_WorkDoneProgressEnd --
-   -------------------------------
-
-   procedure Write_WorkDoneProgressEnd
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WorkDoneProgressEnd)
-      renames LSP.Message_IO.Write_WorkDoneProgressEnd;
 
    --------------------------
    -- Read_Progress_Params --
@@ -5222,136 +2908,5 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_Progress_Params;
-
-   ----------------------------
-   -- Read_FormattingOptions --
-   ----------------------------
-
-   procedure Read_FormattingOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FormattingOptions)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Number (JS, +"tabSize", V.tabSize);
-
-      JS.Key ("insertSpaces");
-      V.insertSpaces := JS.Read.Get;
-
-      Read_Optional_Boolean
-        (JS, +"trimTrailingWhitespace", V.trimTrailingWhitespace);
-      Read_Optional_Boolean (JS, +"insertFinalNewline", V.insertFinalNewline);
-      Read_Optional_Boolean (JS, +"trimFinalNewlines", V.trimFinalNewlines);
-      JS.End_Object;
-   end Read_FormattingOptions;
-
-   -----------------------------
-   -- Write_FormattingOptions --
-   -----------------------------
-
-   procedure Write_FormattingOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FormattingOptions)
-      renames LSP.Message_IO.Write_FormattingOptions;
-
-   ----------------------------------------
-   -- Read_DocumentRangeFormattingParams --
-   ----------------------------------------
-
-   procedure Read_DocumentRangeFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentRangeFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_WorkDoneProgressParams (S, V);
-
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-
-      JS.Key ("range");
-      Span'Read (S, V.span);
-
-      JS.Key ("options");
-      FormattingOptions'Read (S, V.options);
-
-      JS.End_Object;
-   end Read_DocumentRangeFormattingParams;
-
-   -----------------------------------------
-   -- Write_DocumentRangeFormattingParams --
-   -----------------------------------------
-
-   procedure Write_DocumentRangeFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentRangeFormattingParams)
-      renames LSP.Message_IO.Write_DocumentRangeFormattingParams;
-
-   -----------------------------------
-   -- Read_DocumentFormattingParams --
-   -----------------------------------
-
-   procedure Read_DocumentFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_WorkDoneProgressParams (S, V);
-
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-
-      JS.Key ("options");
-      FormattingOptions'Read (S, V.options);
-
-      JS.End_Object;
-   end Read_DocumentFormattingParams;
-
-   ------------------------------------
-   -- Write_DocumentFormattingParams --
-   ------------------------------------
-
-   procedure Write_DocumentFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentFormattingParams)
-      renames LSP.Message_IO.Write_DocumentFormattingParams;
-
-   -----------------------------------------
-   -- Read_DocumentOnTypeFormattingParams --
-   -----------------------------------------
-
-   procedure Read_DocumentOnTypeFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DocumentOnTypeFormattingParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Get_TextDocumentPositionParams (S, V);
-
-      Read_String (JS, +"ch", V.ch);
-
-      JS.Key ("options");
-      FormattingOptions'Read (S, V.options);
-
-      JS.End_Object;
-   end Read_DocumentOnTypeFormattingParams;
-
-   ------------------------------------------
-   -- Write_DocumentOnTypeFormattingParams --
-   ------------------------------------------
-
-   procedure Write_DocumentOnTypeFormattingParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DocumentOnTypeFormattingParams)
-      renames LSP.Message_IO.Write_DocumentOnTypeFormattingParams;
 
 end LSP.Messages;
