@@ -6411,7 +6411,7 @@ package LSP.Messages is
       message : Optional_String;
    end record;
 
-   --  Writers
+   --  Reads/Writers
    procedure Write_WorkDoneProgressBegin
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkDoneProgressBegin);
@@ -6424,6 +6424,19 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : WorkDoneProgressEnd);
    for WorkDoneProgressEnd'Write use Write_WorkDoneProgressEnd;
+
+   procedure Read_WorkDoneProgressBegin
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressBegin);
+   for WorkDoneProgressBegin'Read use Read_WorkDoneProgressBegin;
+   procedure Read_WorkDoneProgressReport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressReport);
+   for WorkDoneProgressReport'Read use Read_WorkDoneProgressReport;
+   procedure Read_WorkDoneProgressEnd
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WorkDoneProgressEnd);
+   for WorkDoneProgressEnd'Read use Read_WorkDoneProgressEnd;
 
    --  Pre-instantiate the use cases for the ProgressParams
 

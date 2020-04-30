@@ -233,51 +233,61 @@ file_footer = """
 end LSP.Message_IO;
 """
 
-write_spec = """
-   procedure Write_{type}
+io_spec = """
+   procedure {kind}_{type}
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.{type});
+      V : {out}LSP.Messages.{type});
 """
 
-write_header = """
-   procedure Write_{type}
+io_header = """
+   procedure {kind}_{type}
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : {type})
+      V : {out}{type})
    is
 {unref}      JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 """
 
-write_footer = """\
-   end Write_{type};
+io_footer = """\
+   end {kind}_{type};
 """
 
 write_component = \
     {
      "LSP_String": """\
       JS.Key ("{key}");
-      LSP.Types.Write (S, V.{name});
+      LSP.Types.{kind} (S, V.{name});
 """,
      "DocumentUri": """\
       JS.Key ("{key}");
-      LSP.Types.Write (S, V.{name});
+      LSP.Types.{kind} (S, V.{name});
 """,
      "Boolean": """\
-      Write_Boolean (JS, +"{key}", V.{name});
+      {kind}_Boolean (JS, +"{key}", V.{name});
 """,
      "": """\
       JS.Key ("{key}");
-      {type}'Write (S, V.{name});
+      {type}'{kind} (S, V.{name});
 """
     }
 
-write_pos_enum = """\
+io_pos_enum = {
+    'Read': """\
+      V := {type}'Val (JS.Read.Get - {offset});
+""",
+    'Write': """\
       JS.Write
         (GNATCOLL.JSON.Create
            (Integer'({type}'Pos (V)) + {offset}));
 """
+}
 
-write_string_enum_header = """
+io_string_enum_header = {
+    'Read': """
+      Text : constant Standard.String := JS.Read.Get;
+   begin
+      """,
+    'Write': """
       function To_String
         (Value : {type})
          return GNATCOLL.JSON.UTF8_String;
@@ -288,19 +298,31 @@ write_string_enum_header = """
       begin
          case Value is
 """
+}
 
-write_string_enum_case = """\
+io_string_enum_case = {
+    'Read': """if Text = "{key}" then
+         V := {name};
+      els""",
+    'Write': """\
             when {name} =>
                return "{key}";
 """
+}
 
-write_string_enum_footer = """\
+io_string_enum_footer = {
+    'Read': """e
+         V := {type}'First;
+      end if;
+""",
+    'Write': """\
          end case;
       end To_String;
 
    begin
       JS.Write (GNATCOLL.JSON.Create (To_String (V)));
 """
+}
 
 # The list of enumeration type represented as strings
 enum_as_string = [
@@ -360,9 +382,10 @@ def filter(x):
 
 
 def print_spec(file, node):
-    print node.p_defining_name.token_start.text
-    file.write(write_spec.format(type=node.p_defining_name.token_start.text))
-    # print write_body.format(type=x.p_defining_name.token_start.text)
+    name = node.p_defining_name.token_start.text
+    print name
+    file.write(io_spec.format(type=name, kind='Read', out='out '))
+    file.write(io_spec.format(type=name, kind='Write', out=''))
 
 
 def get_components(node):
@@ -377,30 +400,35 @@ def get_components(node):
     return result
 
 
-def print_components(file, node):
+def print_components(file, kind, node):
     file.write('   begin\n')
     file.write('      JS.Start_Object;\n')
 
     for x in get_components(node):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
-        txt = write_format(tp).format(key=get_key(name), name=name, type=tp)
+        txt = write_format(tp).format(key=get_key(name),
+                                      kind=kind,
+                                      name=name,
+                                      type=tp)
         file.write(txt)
 
     file.write('      JS.End_Object;\n')
 
 
-def print_enums(file, type, node):
-    if type in enum_as_string:
-        txt = write_string_enum_header.format(type=type)
-        for x in node.finditer(lal.EnumLiteralDecl):
-            name = x.p_defining_name.token_start.text
-            txt += write_string_enum_case.format(name=name, key=get_key(name))
-        txt += write_string_enum_footer
-    else:
+def print_enums(file, kind, type, node):
+    if type not in enum_as_string:
         offset = 0 if type == 'TextDocumentSyncKind' else 1
         file.write('   begin\n')
-        txt = write_pos_enum.format(type=type, offset=offset)
+        txt = io_pos_enum[kind].format(type=type, offset=offset)
+    else:
+        txt = io_string_enum_header[kind].format(type=type)
+        for x in node.finditer(lal.EnumLiteralDecl):
+            name = x.p_defining_name.token_start.text
+            txt += io_string_enum_case[kind].format(name=name,
+                                                    key=get_key(name))
+        txt += io_string_enum_footer[kind].format(type=type)
+
     file.write(txt)
 
 
@@ -410,17 +438,23 @@ def print_body(file, node):
     unref = '      pragma Unreferenced (V);\n\n' if \
         len(list(node.finditer(lal.NullRecordDef))) else ''
 
-    file.write(write_header.format(type=name,
-                                   unref=unref))
-    if isinstance(node.f_type_def, lal.EnumTypeDef):
-        print_enums(file, name, node.f_type_def)
-    else:
-        print_components(file, node.f_type_def)
+    def print_decls_and_statements(kind):
+        file.write(io_header.format(type=name,
+                                    kind=kind,
+                                    out='' if kind == 'Write' else 'out ',
+                                    unref=unref))
+        if isinstance(node.f_type_def, lal.EnumTypeDef):
+            print_enums(file, kind, name, node.f_type_def)
+        else:
+            print_components(file, kind, node.f_type_def)
 
-    file.write(write_footer.format(type=node.p_defining_name.token_start.text))
+        file.write(io_footer.format(type=node.p_defining_name.token_start.text,
+                                    kind=kind))
+    print_decls_and_statements('Read')
+    print_decls_and_statements('Write')
 
 
-def print_writes():
+def print_io():
     up = lal.UnitProvider.for_project("gnat/lsp.gpr")
     ctx = lal.AnalysisContext(unit_provider=up)
     unit = ctx.get_from_file("source/protocol/lsp-messages.ads")
@@ -437,4 +471,4 @@ def print_writes():
     adb.write(file_footer)
 
 if __name__ == '__main__':
-    print_writes()
+    print_io()
