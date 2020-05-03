@@ -1,0 +1,9 @@
+>procedure hello isd laskndnlads
+#^^^^^^^^^ source.ada keyword.other.ada
+#         ^ source.ada
+#          ^^^^^ source.ada entity.name.ada
+#               ^ source.ada
+#                ^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^^^^^^^^^^^ source.ada entity.name.ada
+>

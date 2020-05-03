@@ -64,7 +64,11 @@ Run `make vscode-test` to run the VS Code testsuite.
 
 The following is under `integration/vscode/ada/`.
 
-Tests for the Ada grammar are in `testsuite_grammar`, with one test per subdirectory.
+The grammars under `syntaxes/` are in production. An advanced classifier for Ada
+is under `advanced/`; this one is not in production at the moment. The testsuite
+supports testing all grammars.
+
+Tests for the grammars are in `testsuite_grammar`, with one test per subdirectory.
 
  * To run the full testsuite, call `./run_grammar_tests.sh`
  * To run one individual test, pass its directory as parameter to
@@ -75,7 +79,7 @@ To create new tests, do the following:
   * Create a directory for it, for instance `testsuite_grammar/newtest`
   * Add `.ads`, `.adb` or `.gpr` sources in that directory
   * Run the driver: the first run will create the baselines under the form
-    of `.snap` files.
+    of `.snap.syntaxes` and `.snap.advanced` files.
 
 The engine for the test driver is implemented using
 [vscode-tmgrammartest](https://github.com/PanAeon/vscode-tmgrammar-test):
