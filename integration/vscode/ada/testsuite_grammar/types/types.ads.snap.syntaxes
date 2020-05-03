@@ -1,0 +1,918 @@
+>package Types is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^ source.ada entity.name.ada
+#             ^ source.ada
+#              ^^ source.ada keyword.other.ada
+>
+>    type Incomplete;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^ source.ada entity.name.ada
+#                   ^^ source.ada
+>
+>    type Taggle_Incomplete is tagged;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                          ^ source.ada
+#                           ^^ source.ada keyword.other.ada
+#                             ^ source.ada
+#                              ^^^^^^ source.ada keyword.other.ada
+#                                    ^^ source.ada
+>
+>    type Day    is (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^ source.ada entity.name.ada
+#            ^^^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+#                    ^^^ source.ada entity.name.ada
+#                       ^ source.ada keyword.operator.ada
+#                        ^ source.ada
+#                         ^^^ source.ada entity.name.ada
+#                            ^ source.ada keyword.operator.ada
+#                             ^ source.ada
+#                              ^^^ source.ada entity.name.ada
+#                                 ^ source.ada keyword.operator.ada
+#                                  ^ source.ada
+#                                   ^^^ source.ada entity.name.ada
+#                                      ^ source.ada keyword.operator.ada
+#                                       ^ source.ada
+#                                        ^^^ source.ada entity.name.ada
+#                                           ^ source.ada keyword.operator.ada
+#                                            ^ source.ada
+#                                             ^^^ source.ada entity.name.ada
+#                                                ^ source.ada keyword.operator.ada
+#                                                 ^ source.ada
+#                                                  ^^^ source.ada entity.name.ada
+#                                                     ^^^ source.ada
+>    type Suit   is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.ada
+#             ^^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+>        (Clubs, Diamonds, Hearts, Spades);
+#^^^^^^^^^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^ source.ada keyword.operator.ada
+#               ^ source.ada
+#                ^^^^^^^^ source.ada entity.name.ada
+#                        ^ source.ada keyword.operator.ada
+#                         ^ source.ada
+#                          ^^^^^^ source.ada entity.name.ada
+#                                ^ source.ada keyword.operator.ada
+#                                 ^ source.ada
+#                                  ^^^^^^ source.ada entity.name.ada
+#                                        ^^^ source.ada
+>    type Gender is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^ source.ada entity.name.ada
+#               ^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+>        (
+#^^^^^^^^^^ source.ada
+>            M,
+#^^^^^^^^^^^^ source.ada
+#            ^ source.ada entity.name.ada
+#             ^ source.ada keyword.operator.ada
+>            F
+#^^^^^^^^^^^^ source.ada
+#            ^ source.ada entity.name.ada
+>        );
+#^^^^^^^^^^^ source.ada
+>    type Level  is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+>        (Low, 
+#^^^^^^^^^ source.ada
+#         ^^^ source.ada entity.name.ada
+#            ^ source.ada keyword.operator.ada
+#             ^^ source.ada
+>        Medium,
+#^^^^^^^^ source.ada
+#        ^^^^^^ source.ada entity.name.ada
+#              ^ source.ada keyword.operator.ada
+>        -- This is a comment
+#^^^^^^^^ source.ada
+#        ^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>        Urgent);
+#^^^^^^^^ source.ada
+#        ^^^^^^ source.ada entity.name.ada
+#              ^^^ source.ada
+>    type Light  is (Red, Amber, Green); -- Red and Green are overloaded
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+#                    ^^^ source.ada entity.name.ada
+#                       ^ source.ada keyword.operator.ada
+#                        ^ source.ada
+#                         ^^^^^ source.ada entity.name.ada
+#                              ^ source.ada keyword.operator.ada
+#                               ^ source.ada
+#                                ^^^^^ source.ada entity.name.ada
+#                                     ^^^ source.ada
+#                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>    type Hexa   is ('A', 'B', 'C', 'D', 'E', 'F');
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.ada
+#             ^^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+#                    ^^^ source.ada constant.character.ada
+#                       ^ source.ada keyword.operator.ada
+#                        ^ source.ada
+#                         ^^^ source.ada constant.character.ada
+#                            ^ source.ada keyword.operator.ada
+#                             ^ source.ada
+#                              ^^^ source.ada constant.character.ada
+#                                 ^ source.ada keyword.operator.ada
+#                                  ^ source.ada
+#                                   ^^^ source.ada constant.character.ada
+#                                      ^ source.ada keyword.operator.ada
+#                                       ^ source.ada
+#                                        ^^^ source.ada constant.character.ada
+#                                           ^ source.ada keyword.operator.ada
+#                                            ^ source.ada
+#                                             ^^^ source.ada constant.character.ada
+#                                                ^^^ source.ada
+>    type Mixed  is ('A', 'B', '*', B, None, '?', '%');
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^^ source.ada
+#                ^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+#                    ^^^ source.ada constant.character.ada
+#                       ^ source.ada keyword.operator.ada
+#                        ^ source.ada
+#                         ^^^ source.ada constant.character.ada
+#                            ^ source.ada keyword.operator.ada
+#                             ^ source.ada
+#                              ^^^ source.ada constant.character.ada
+#                                 ^ source.ada keyword.operator.ada
+#                                  ^ source.ada
+#                                   ^ source.ada entity.name.ada
+#                                    ^ source.ada keyword.operator.ada
+#                                     ^ source.ada
+#                                      ^^^^ source.ada entity.name.ada
+#                                          ^ source.ada keyword.operator.ada
+#                                           ^ source.ada
+#                                            ^^^ source.ada constant.character.ada
+#                                               ^ source.ada keyword.operator.ada
+#                                                ^ source.ada
+#                                                 ^^^ source.ada constant.character.ada
+#                                                    ^^^ source.ada
+>
+>    subtype Weekday is 
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^^ source.ada
+>        Day range Mon .. Fri;
+#^^^^^^^^ source.ada
+#        ^^^ source.ada entity.name.ada
+#           ^ source.ada
+#            ^^^^^ source.ada keyword.other.ada
+#                 ^ source.ada
+#                  ^^^ source.ada entity.name.ada
+#                     ^ source.ada
+#                      ^^ source.ada keyword.operator.ada
+#                        ^ source.ada
+#                         ^^^ source.ada entity.name.ada
+#                            ^^ source.ada
+>    subtype Major   is Suit  range Hearts .. Spades;
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^ source.ada entity.name.ada
+#                 ^^^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^ source.ada
+#                       ^^^^ source.ada entity.name.ada
+#                           ^^ source.ada
+#                             ^^^^^ source.ada keyword.other.ada
+#                                  ^ source.ada
+#                                   ^^^^^^ source.ada entity.name.ada
+#                                         ^ source.ada
+#                                          ^^ source.ada keyword.operator.ada
+#                                            ^ source.ada
+#                                             ^^^^^^ source.ada entity.name.ada
+#                                                   ^^ source.ada
+>    subtype Rainbow is Color range Red .. Blue;  --  the Color Red, not the Light
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^ source.ada
+#                       ^^^^^ source.ada entity.name.ada
+#                            ^ source.ada
+#                             ^^^^^ source.ada keyword.other.ada
+#                                  ^ source.ada
+#                                   ^^^ source.ada entity.name.ada
+#                                      ^ source.ada
+#                                       ^^ source.ada keyword.operator.ada
+#                                         ^ source.ada
+#                                          ^^^^ source.ada entity.name.ada
+#                                              ^^^ source.ada
+#                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>    type Page_Num  is range 1 .. 2_000;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^ source.ada entity.name.ada
+#                 ^^ source.ada
+#                   ^^ source.ada keyword.other.ada
+#                     ^ source.ada
+#                      ^^^^^ source.ada keyword.other.ada
+#                           ^ source.ada
+#                            ^ source.ada constant.numeric.ada
+#                             ^ source.ada
+#                              ^^ source.ada keyword.operator.ada
+#                                ^ source.ada
+#                                 ^^^^^ source.ada constant.numeric.ada
+#                                      ^^ source.ada
+>    type Line_Size is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^ source.ada entity.name.ada
+#                  ^ source.ada
+#                   ^^ source.ada keyword.other.ada
+>        range 1 .. Max_Line_Size;
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^ source.ada constant.numeric.ada
+#               ^ source.ada
+#                ^^ source.ada keyword.operator.ada
+#                  ^ source.ada
+#                   ^^^^^^^^^^^^^ source.ada entity.name.ada
+#                                ^^ source.ada
+>
+>    subtype Small_Int   is Integer   range -10 .. 10;
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^^^ source.ada entity.name.ada
+#                     ^^^ source.ada
+#                        ^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^^^^ source.ada storage.type.ada
+#                                  ^^^ source.ada
+#                                     ^^^^^ source.ada keyword.other.ada
+#                                          ^^ source.ada
+#                                            ^^ source.ada constant.numeric.ada
+#                                              ^ source.ada
+#                                               ^^ source.ada keyword.operator.ada
+#                                                 ^ source.ada
+#                                                  ^^ source.ada constant.numeric.ada
+#                                                    ^^ source.ada
+>    subtype Column_Ptr  is Line_Size range 1 .. 10;
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^^^^ source.ada entity.name.ada
+#                      ^^ source.ada
+#                        ^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^^^^^^ source.ada entity.name.ada
+#                                    ^ source.ada
+#                                     ^^^^^ source.ada keyword.other.ada
+#                                          ^ source.ada
+#                                           ^ source.ada constant.numeric.ada
+#                                            ^ source.ada
+#                                             ^^ source.ada keyword.operator.ada
+#                                               ^ source.ada
+#                                                ^^ source.ada constant.numeric.ada
+#                                                  ^^ source.ada
+>    subtype Buffer_Size is Integer   range 0 .. Max;
+#^^^^ source.ada
+#    ^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^^^^^ source.ada entity.name.ada
+#                       ^ source.ada
+#                        ^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^^^^ source.ada storage.type.ada
+#                                  ^^^ source.ada
+#                                     ^^^^^ source.ada keyword.other.ada
+#                                          ^ source.ada
+#                                           ^ source.ada constant.numeric.ada
+#                                            ^ source.ada
+#                                             ^^ source.ada keyword.operator.ada
+#                                               ^ source.ada
+#                                                ^^^ source.ada entity.name.ada
+#                                                   ^^ source.ada
+>
+>    type Byte        is mod 256; -- an unsigned byte
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.ada
+#             ^^^^^^^^ source.ada
+#                     ^^ source.ada keyword.other.ada
+#                       ^ source.ada
+#                        ^^^ source.ada keyword.operator.ada
+#                           ^ source.ada
+#                            ^^^ source.ada constant.numeric.ada
+#                               ^^ source.ada
+#                                 ^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>    type Hash_Index  is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^ source.ada entity.name.ada
+#                   ^^ source.ada
+#                     ^^ source.ada keyword.other.ada
+>        mod 97;  -- modulus is prime
+#^^^^^^^^ source.ada
+#        ^^^ source.ada keyword.operator.ada
+#           ^ source.ada
+#            ^^ source.ada constant.numeric.ada
+#              ^^^ source.ada
+#                 ^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>    type Vector     is array(Integer  range <>) of Real;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^ source.ada entity.name.ada
+#               ^^^^^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^ source.ada
+#                       ^^^^^ source.ada keyword.other.ada
+#                            ^ source.ada
+#                             ^^^^^^^ source.ada storage.type.ada
+#                                    ^^ source.ada
+#                                      ^^^^^ source.ada keyword.other.ada
+#                                           ^ source.ada
+#                                            ^^ source.ada keyword.operator.ada
+#                                              ^^ source.ada
+#                                                ^^ source.ada keyword.operator.ada
+#                                                  ^ source.ada
+#                                                   ^^^^ source.ada entity.name.ada
+#                                                       ^^ source.ada
+>    type Matrix     is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^ source.ada entity.name.ada
+#               ^^^^^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^^ source.ada
+>        array(Integer  range <>, Integer range <>) of Real;
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^^^ source.ada storage.type.ada
+#                     ^^ source.ada
+#                       ^^^^^ source.ada keyword.other.ada
+#                            ^ source.ada
+#                             ^^ source.ada keyword.operator.ada
+#                               ^ source.ada keyword.operator.ada
+#                                ^ source.ada
+#                                 ^^^^^^^ source.ada storage.type.ada
+#                                        ^ source.ada
+#                                         ^^^^^ source.ada keyword.other.ada
+#                                              ^ source.ada
+#                                               ^^ source.ada keyword.operator.ada
+#                                                 ^^ source.ada
+#                                                   ^^ source.ada keyword.operator.ada
+#                                                     ^ source.ada
+#                                                      ^^^^ source.ada entity.name.ada
+#                                                          ^^ source.ada
+>    type Bit_Vector is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^^ source.ada
+>        array(
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^^ source.ada
+>            Integer  range <>
+#^^^^^^^^^^^^ source.ada
+#            ^^^^^^^ source.ada storage.type.ada
+#                   ^^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^ source.ada keyword.operator.ada
+>        ) of Boolean;
+#^^^^^^^^^^ source.ada
+#          ^^ source.ada keyword.operator.ada
+#            ^ source.ada
+#             ^^^^^^^ source.ada storage.type.ada
+#                    ^^ source.ada
+>    type Roman      is array(Positive range <>) of Roman_Digit;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^^^^^^ source.ada
+#                    ^^ source.ada keyword.other.ada
+#                      ^ source.ada
+#                       ^^^^^ source.ada keyword.other.ada
+#                            ^ source.ada
+#                             ^^^^^^^^ source.ada storage.type.ada
+#                                     ^ source.ada
+#                                      ^^^^^ source.ada keyword.other.ada
+#                                           ^ source.ada
+#                                            ^^ source.ada keyword.operator.ada
+#                                              ^^ source.ada
+#                                                ^^ source.ada keyword.operator.ada
+#                                                  ^ source.ada
+#                                                   ^^^^^^^^^^^ source.ada entity.name.ada
+#                                                              ^^ source.ada
+>    type Table    is array(1 .. 10) of Integer;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^^^^ source.ada
+#                  ^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^ source.ada constant.numeric.ada
+#                            ^ source.ada
+#                             ^^ source.ada keyword.operator.ada
+#                               ^ source.ada
+#                                ^^ source.ada constant.numeric.ada
+#                                  ^^ source.ada
+#                                    ^^ source.ada keyword.operator.ada
+#                                      ^ source.ada
+#                                       ^^^^^^^ source.ada storage.type.ada
+#                                              ^^ source.ada
+>    type Schedule is array(Day) of Boolean;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^ source.ada entity.name.ada
+#                              ^^ source.ada
+#                                ^^ source.ada keyword.operator.ada
+#                                  ^ source.ada
+#                                   ^^^^^^^ source.ada storage.type.ada
+#                                          ^^ source.ada
+>    type Line     is array(1 .. Max_Line_Size) of Character;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.ada
+#             ^^^^^ source.ada
+#                  ^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^ source.ada constant.numeric.ada
+#                            ^ source.ada
+#                             ^^ source.ada keyword.operator.ada
+#                               ^ source.ada
+#                                ^^^^^^^^^^^^^ source.ada entity.name.ada
+#                                             ^^ source.ada
+#                                               ^^ source.ada keyword.operator.ada
+#                                                 ^ source.ada
+#                                                  ^^^^^^^^^ source.ada storage.type.ada
+#                                                           ^^ source.ada
+>
+>    type Date is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.ada
+#             ^ source.ada
+#              ^^ source.ada keyword.other.ada
+>   record
+#^^^ source.ada
+#   ^^^^^^ source.ada keyword.other.ada
+>      Day   : Integer range 1 .. 31;
+#^^^^^^ source.ada
+#      ^^^ source.ada entity.name.ada
+#         ^^^^^ source.ada
+#              ^^^^^^^ source.ada storage.type.ada
+#                     ^ source.ada
+#                      ^^^^^ source.ada keyword.other.ada
+#                           ^ source.ada
+#                            ^ source.ada constant.numeric.ada
+#                             ^ source.ada
+#                              ^^ source.ada keyword.operator.ada
+#                                ^ source.ada
+#                                 ^^ source.ada constant.numeric.ada
+#                                   ^^ source.ada
+>      Month : Month_Name;
+#^^^^^^ source.ada
+#      ^^^^^ source.ada entity.name.ada
+#           ^^^ source.ada
+#              ^^^^^^^^^^ source.ada entity.name.ada
+#                        ^^ source.ada
+>      Year  : Integer range 0 .. 4000;
+#^^^^^^ source.ada
+#      ^^^^ source.ada entity.name.ada
+#          ^^^^ source.ada
+#              ^^^^^^^ source.ada storage.type.ada
+#                     ^ source.ada
+#                      ^^^^^ source.ada keyword.other.ada
+#                           ^ source.ada
+#                            ^ source.ada constant.numeric.ada
+#                             ^ source.ada
+#                              ^^ source.ada keyword.operator.ada
+#                                ^ source.ada
+#                                 ^^^^ source.ada constant.numeric.ada
+#                                     ^^ source.ada
+>   end record;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^^^^^^ source.ada keyword.other.ada
+#             ^^ source.ada
+>
+>    type Complex is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^ source.ada entity.name.ada
+#                ^ source.ada
+#                 ^^ source.ada keyword.other.ada
+>    record
+#^^^^ source.ada
+#    ^^^^^^ source.ada keyword.other.ada
+>        Re : Real := 0.0;
+#^^^^^^^^ source.ada
+#        ^^ source.ada entity.name.ada
+#          ^^^ source.ada
+#             ^^^^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.operator.assignment.ada
+#                    ^ source.ada
+#                     ^^^ source.ada constant.numeric.ada
+#                        ^^ source.ada
+>        -- Comment
+#^^^^^^^^ source.ada
+#        ^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>        Im : Real := 0.0;
+#^^^^^^^^ source.ada
+#        ^^ source.ada entity.name.ada
+#          ^^^ source.ada
+#             ^^^^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.operator.assignment.ada
+#                    ^ source.ada
+#                     ^^^ source.ada constant.numeric.ada
+#                        ^^ source.ada
+>    end record;
+#^^^^ source.ada
+#    ^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^ source.ada keyword.other.ada
+#              ^^ source.ada
+>
+>    type Peripheral(Unit : Device := Disk) is record
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^^^^ source.ada entity.name.ada
+#                        ^^^ source.ada
+#                           ^^^^^^ source.ada entity.name.ada
+#                                 ^ source.ada
+#                                  ^^ source.ada keyword.operator.assignment.ada
+#                                    ^ source.ada
+#                                     ^^^^ source.ada entity.name.ada
+#                                         ^^ source.ada
+#                                           ^^ source.ada keyword.other.ada
+#                                             ^ source.ada
+#                                              ^^^^^^ source.ada keyword.other.ada
+>        Status : State;
+#^^^^^^^^ source.ada
+#        ^^^^^^ source.ada entity.name.ada
+#              ^^^ source.ada
+#                 ^^^^^ source.ada entity.name.ada
+#                      ^^ source.ada
+>        case Unit is
+#^^^^^^^^ source.ada
+#        ^^^^ source.ada keyword.control.ada
+#            ^ source.ada
+#             ^^^^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.other.ada
+>            when Printer =>
+#^^^^^^^^^^^^ source.ada
+#            ^^^^ source.ada keyword.other.ada
+#                ^ source.ada
+#                 ^^^^^^^ source.ada entity.name.ada
+#                        ^ source.ada
+#                         ^^ source.ada keyword.operator.ada
+>                Line_Count : Integer range 1 .. Page_Size;
+#^^^^^^^^^^^^^^^^ source.ada
+#                ^^^^^^^^^^ source.ada entity.name.ada
+#                          ^^^ source.ada
+#                             ^^^^^^^ source.ada storage.type.ada
+#                                    ^ source.ada
+#                                     ^^^^^ source.ada keyword.other.ada
+#                                          ^ source.ada
+#                                           ^ source.ada constant.numeric.ada
+#                                            ^ source.ada
+#                                             ^^ source.ada keyword.operator.ada
+#                                               ^ source.ada
+#                                                ^^^^^^^^^ source.ada entity.name.ada
+#                                                         ^^ source.ada
+>            when others =>
+#^^^^^^^^^^^^ source.ada
+#            ^^^^ source.ada keyword.other.ada
+#                ^ source.ada
+#                 ^^^^^^ source.ada keyword.other.ada
+#                       ^ source.ada
+#                        ^^ source.ada keyword.operator.ada
+>                Cylinder   : Cylinder_Index;
+#^^^^^^^^^^^^^^^^ source.ada
+#                ^^^^^^^^ source.ada entity.name.ada
+#                        ^^^^^ source.ada
+#                             ^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                                           ^^ source.ada
+>                -- Another comment
+#^^^^^^^^^^^^^^^^ source.ada
+#                ^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>                Track      : Track_Number;
+#^^^^^^^^^^^^^^^^ source.ada
+#                ^^^^^ source.ada entity.name.ada
+#                     ^^^^^^^^ source.ada
+#                             ^^^^^^^^^^^^ source.ada entity.name.ada
+#                                         ^^ source.ada
+>            end case;
+#^^^^^^^^^^^^ source.ada
+#            ^^^ source.ada keyword.other.ada
+#               ^ source.ada
+#                ^^^^ source.ada keyword.control.ada
+#                    ^^ source.ada
+>        end record;
+#^^^^^^^^ source.ada
+#        ^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^ source.ada keyword.other.ada
+#                  ^^ source.ada
+>
+>    type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                       ^ source.ada
+#                        ^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^ source.ada keyword.operator.ada
+#                              ^ source.ada
+#                               ^^^^ source.ada constant.lanuage.ada
+#                                   ^ source.ada
+#                                    ^^^^^^ source.ada keyword.other.ada
+#                                          ^ source.ada
+#                                           ^^^^^^^^^^ source.ada entity.name.ada
+#                                                     ^^^ source.ada
+#                                                        ^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>    type Binop_Ptr is 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^ source.ada entity.name.ada
+#                  ^ source.ada
+#                   ^^ source.ada keyword.other.ada
+#                     ^^ source.ada
+>        access all Binary_Operation'Class;
+#^^^^^^^^ source.ada
+#        ^^^^^^ source.ada keyword.other.ada
+#              ^ source.ada
+#               ^^^ source.ada keyword.other.ada
+#                  ^ source.ada
+#                   ^^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                                   ^ source.ada
+#                                    ^^^^^ source.ada entity.name.ada
+#                                         ^^ source.ada
+>
+>    type Local_Coordinate is new Coordinate;   --  two different types
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                         ^ source.ada
+#                          ^^ source.ada keyword.other.ada
+#                            ^ source.ada
+#                             ^^^ source.ada keyword.other.ada
+#                                ^ source.ada
+#                                 ^^^^^^^^^^ source.ada entity.name.ada
+#                                           ^^^^ source.ada
+#                                               ^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>    type Midweek is new Day range Tue .. Thu;  --  see 3.5.1
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^ source.ada entity.name.ada
+#                ^ source.ada
+#                 ^^ source.ada keyword.other.ada
+#                   ^ source.ada
+#                    ^^^ source.ada keyword.other.ada
+#                       ^ source.ada
+#                        ^^^ source.ada entity.name.ada
+#                           ^ source.ada
+#                            ^^^^^ source.ada keyword.other.ada
+#                                 ^ source.ada
+#                                  ^^^ source.ada entity.name.ada
+#                                     ^ source.ada
+#                                      ^^ source.ada keyword.operator.ada
+#                                        ^ source.ada
+#                                         ^^^ source.ada entity.name.ada
+#                                            ^^^ source.ada
+#                                               ^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>    type Counter is new Positive;              --  same range as Positive 
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^ source.ada entity.name.ada
+#                ^ source.ada
+#                 ^^ source.ada keyword.other.ada
+#                   ^ source.ada
+#                    ^^^ source.ada keyword.other.ada
+#                       ^ source.ada
+#                        ^^^^^^^^ source.ada storage.type.ada
+#                                ^^^^^^^^^^^^^^^ source.ada
+#                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>
+>    type Queue is limited interface;
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^ source.ada entity.name.ada
+#              ^ source.ada
+#               ^^ source.ada keyword.other.ada
+#                 ^ source.ada
+#                  ^^^^^^^ source.ada keyword.other.ada
+#                         ^ source.ada
+#                          ^^^^^^^^^ source.ada keyword.other.ada
+#                                   ^^ source.ada
+>    type Synchronized_Queue is synchronized interface and Queue; -- see 9.11
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                           ^ source.ada
+#                            ^^ source.ada keyword.other.ada
+#                              ^ source.ada
+#                               ^^^^^^^^^^^^ source.ada keyword.other.ada
+#                                           ^ source.ada
+#                                            ^^^^^^^^^ source.ada keyword.other.ada
+#                                                     ^ source.ada
+#                                                      ^^^ source.ada keyword.operator.ada
+#                                                         ^ source.ada
+#                                                          ^^^^^ source.ada entity.name.ada
+#                                                               ^^ source.ada
+#                                                                 ^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>    type Serial_Device is task interface;  -- see 9.1
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^^^^^^^^^^ source.ada entity.name.ada
+#                      ^ source.ada
+#                       ^^ source.ada keyword.other.ada
+#                         ^ source.ada
+#                          ^^^^ source.ada keyword.other.ada
+#                              ^ source.ada
+#                               ^^^^^^^^^ source.ada keyword.other.ada
+#                                        ^^^ source.ada
+#                                           ^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>    task type Server is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^^ source.ada entity.name.ada
+#                    ^ source.ada
+#                     ^^ source.ada keyword.other.ada
+>        entry Next_Work_Item(WI : in Work_Item);
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                            ^ source.ada
+#                             ^^ source.ada entity.name.ada
+#                               ^^^ source.ada
+#                                  ^^ source.ada keyword.operator.ada
+#                                    ^ source.ada
+#                                     ^^^^^^^^^ source.ada entity.name.ada
+#                                              ^^^ source.ada
+>        entry Shut_Down;
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^^^^^ source.ada entity.name.ada
+#                       ^^ source.ada
+>    end Server;
+#^^^^ source.ada
+#    ^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^ source.ada entity.name.ada
+#              ^^ source.ada
+>
+>    task type Keyboard_Driver(ID : Keyboard_ID := New_ID) is
+#^^^^ source.ada
+#    ^^^^ source.ada keyword.other.ada
+#        ^ source.ada
+#         ^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                             ^ source.ada
+#                              ^^ source.ada entity.name.ada
+#                                ^^^ source.ada
+#                                   ^^^^^^^^^^^ source.ada entity.name.ada
+#                                              ^ source.ada
+#                                               ^^ source.ada keyword.operator.assignment.ada
+#                                                 ^ source.ada
+#                                                  ^^^^^^ source.ada entity.name.ada
+#                                                        ^^ source.ada
+#                                                          ^^ source.ada keyword.other.ada
+>        new Serial_Device with  -- see 3.9.4
+#^^^^^^^^ source.ada
+#        ^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^^^^^^^^^^^^ source.ada entity.name.ada
+#                         ^ source.ada
+#                          ^^^^ source.ada keyword.other.ada
+#                              ^^ source.ada
+#                                ^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>        entry Read 
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^ source.ada entity.name.ada
+#                  ^^ source.ada
+>            (C : out Character);
+#^^^^^^^^^^^^^ source.ada
+#             ^ source.ada entity.name.ada
+#              ^^^ source.ada
+#                 ^^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^^^^^ source.ada storage.type.ada
+#                              ^^^ source.ada
+>        entry Write(C : in  Character);
+#^^^^^^^^ source.ada
+#        ^^^^^ source.ada keyword.other.ada
+#             ^ source.ada
+#              ^^^^^ source.ada entity.name.ada
+#                   ^ source.ada
+#                    ^ source.ada entity.name.ada
+#                     ^^^ source.ada
+#                        ^^ source.ada keyword.operator.ada
+#                          ^^ source.ada
+#                            ^^^^^^^^^ source.ada storage.type.ada
+#                                     ^^^ source.ada
+>    end Keyboard_Driver;
+#^^^^ source.ada
+#    ^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^^^^^^^^^ source.ada entity.name.ada
+#                       ^^ source.ada
+>
+>end Types;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^ source.ada entity.name.ada
+#         ^^ source.ada

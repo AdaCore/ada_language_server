@@ -1,0 +1,82 @@
+>with Ada.Text_IO;
+#^^^^ source.ada keyword.other.ada
+#    ^ source.ada
+#     ^^^ source.ada entity.name.ada
+#        ^ source.ada keyword.operator.ada
+#         ^^^^^^^ source.ada entity.name.ada
+#                ^^ source.ada
+>
+>procedure Main is
+#^^^^^^^^^ source.ada keyword.other.ada
+#         ^ source.ada
+#          ^^^^ source.ada entity.name.ada
+#              ^ source.ada
+#               ^^ source.ada keyword.other.ada
+>   package B is
+#^^^ source.ada
+#   ^^^^^^^ source.ada keyword.other.ada
+#          ^ source.ada
+#           ^ source.ada entity.name.ada
+#            ^ source.ada
+#             ^^ source.ada keyword.other.ada
+>      procedure C is begin null; end C;
+#^^^^^^ source.ada
+#      ^^^^^^^^^ source.ada keyword.other.ada
+#               ^ source.ada
+#                ^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^ source.ada constant.lanuage.ada
+#                               ^^ source.ada
+#                                 ^^^ source.ada keyword.other.ada
+#                                    ^ source.ada
+#                                     ^ source.ada entity.name.ada
+#                                      ^^ source.ada
+>   end B;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^ source.ada entity.name.ada
+#        ^^ source.ada
+>
+>   package body B is
+#^^^ source.ada
+#   ^^^^^^^ source.ada keyword.other.ada
+#          ^ source.ada
+#           ^^^^ source.ada keyword.other.ada
+#               ^ source.ada
+#                ^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.other.ada
+>      procedure C is begin null; end C;
+#^^^^^^ source.ada
+#      ^^^^^^^^^ source.ada keyword.other.ada
+#               ^ source.ada
+#                ^ source.ada entity.name.ada
+#                 ^ source.ada
+#                  ^^ source.ada keyword.other.ada
+#                    ^ source.ada
+#                     ^^^^^ source.ada keyword.other.ada
+#                          ^ source.ada
+#                           ^^^^ source.ada constant.lanuage.ada
+#                               ^^ source.ada
+#                                 ^^^ source.ada keyword.other.ada
+#                                    ^ source.ada
+#                                     ^ source.ada entity.name.ada
+#                                      ^^ source.ada
+>   end B;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^ source.ada entity.name.ada
+#        ^^ source.ada
+>begin
+#^^^^^ source.ada keyword.other.ada
+>end Main;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^ source.ada entity.name.ada
+#        ^^ source.ada
