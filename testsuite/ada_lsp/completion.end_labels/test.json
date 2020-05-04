@@ -1,0 +1,355 @@
+[
+   {
+      "comment": [
+          "This test checks that we don't send completion snippets when ",
+          "completing subprogram end labels."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 26091,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 "."
+                             ],
+                             "resolveProvider": false
+                         },
+                         "hoverProvider": true,
+                         "declarationProvider": true,
+                         "definitionProvider": true,
+                         "typeDefinitionProvider": true,
+                         "implementationProvider": true,
+                         "referencesProvider": true,
+                         "documentSymbolProvider": true,
+                         "codeActionProvider": {
+                         },
+                         "renameProvider": {
+                         },
+                         "foldingRangeProvider": true,
+                         "executeCommandProvider": {
+                             "commands": [
+                                 "als-named-parameters"
+                             ]
+                         },
+                         "alsCalledByProvider": true,
+                         "alsReferenceKinds": [
+                             "reference",
+                             "write",
+                             "call",
+                             "dispatching call",
+                             "parent",
+                             "child"
+                         ]
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\n\n   function Add (A, B : Integer) return Integer is\n   begin\n      return A + B;\n   end\n\nbegin\n   null;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   function Add (A, B : Integer) return Integer is\n   begin\n      return A + B;\n   end \n\nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 5,
+                  "character": 7
+               },
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   function Add (A, B : Integer) return Integer is\n   begin\n      return A + B;\n   end A\n\nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 5,
+                  "character": 8
+               },
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "additionalTextEdits": [],
+                        "kind": 6,
+                        "documentation": "",
+                        "detail": "A, B : Integer",
+                        "label": "A"
+                     },
+                     {
+                        "additionalTextEdits": [],
+                        "kind": 6,
+                        "documentation": "",
+                        "detail": "A, B : Integer",
+                        "label": "A"
+                     },
+                     {
+                        "additionalTextEdits": [],
+                        "kind": 3,
+                        "documentation": "",
+                        "detail": "function Add (A, B : Integer) return Integer",
+                        "label": "Add"
+                     },
+                     {
+                        "additionalTextEdits": [],
+                        "kind": 9,
+                        "documentation": "",
+                        "detail": "package ASCII ",
+                        "label": "ASCII"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   function Add (A, B : Integer) return Integer is\n   begin\n      return A + B;\n   end \n\nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 3,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   function Add (A, B : Integer) return Integer is\n   begin\n      return A + B;\n   end Add\n\nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 4,
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

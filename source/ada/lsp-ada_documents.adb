@@ -1204,6 +1204,10 @@ package body LSP.Ada_Documents is
       Node       : Libadalang.Analysis.Ada_Node :=
         Self.Get_Node_At (Context, Real_Pos);
       --  Get the corresponding LAL node
+
+      In_End_Label : Boolean := False;
+      --  Set to True if we are completing an end label
+      --  (e.g: end <Subp_Name>);
    begin
       Context.Trace.Trace ("In Get_Completions_At");
 
@@ -1231,6 +1235,11 @@ package body LSP.Ada_Documents is
         ("Getting completions, Pos = ("
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
+
+      --  Check if we are completing an end label. If it's the case, we want
+      --  to disable snippets since end labels don't expect any parameters.
+      In_End_Label := not Node.Parent.Is_Null
+        and then Node.Parent.Kind in Ada_End_Name_Range;
 
       declare
          Raw_Completions : constant Completion_Item_Array :=
@@ -1266,7 +1275,8 @@ package body LSP.Ada_Documents is
                              (Context          => Context,
                               BD               => BD,
                               DN               => DN,
-                              Snippets_Enabled => Snippets_Enabled,
+                              Snippets_Enabled =>
+                                Snippets_Enabled and not In_End_Label,
                               Is_Dot_Call      => Is_Dot_Call (CI)));
                      end if;
                   end;
