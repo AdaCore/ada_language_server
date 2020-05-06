@@ -215,4 +215,26 @@ package LSP.Messages.Server_Responses is
      (Self    : ALS_Debug_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package Formatting_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => TextEdit_Vector);
+
+   type Formatting_Response is
+     new Formatting_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : Formatting_Response;
+      Handler : access Server_Response_Sender'Class);
+
+   package Range_Formatting_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => TextEdit_Vector);
+
+   type Range_Formatting_Response is
+     new Range_Formatting_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : Range_Formatting_Response;
+      Handler : access Server_Response_Sender'Class);
+
 end LSP.Messages.Server_Responses;

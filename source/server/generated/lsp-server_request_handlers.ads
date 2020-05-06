@@ -103,12 +103,23 @@ package LSP.Server_Request_Handlers is
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
       return LSP.Messages.Server_Responses.ColorPresentation_Response
-        is abstract;
+      is abstract;
 
    function On_Folding_Range_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response is abstract;
+
+   function On_Formatting_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Formatting_Request)
+      return LSP.Messages.Server_Responses.Formatting_Response is abstract;
+
+   function On_Range_Formatting_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
+      return LSP.Messages.Server_Responses.Range_Formatting_Response
+      is abstract;
 
    function On_Selection_Range_Request
      (Self    : access Server_Request_Handler;

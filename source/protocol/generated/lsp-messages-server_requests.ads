@@ -267,6 +267,32 @@ package LSP.Messages.Server_Requests is
      (Self    : Folding_Range_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Formatting_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DocumentFormattingParams,
+        Server_Request_Receiver'Class);
+
+   type Formatting_Request is
+     new Formatting_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Formatting_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   package Range_Formatting_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DocumentRangeFormattingParams,
+        Server_Request_Receiver'Class);
+
+   type Range_Formatting_Request is
+     new Range_Formatting_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Range_Formatting_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Selection_Range_Requests is
      new LSP.Generic_Requests
        (Server_Request,

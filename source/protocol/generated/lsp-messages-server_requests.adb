@@ -158,6 +158,20 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Formatting_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Formatting_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : Range_Formatting_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Range_Formatting_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Selection_Range_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -273,6 +287,14 @@ begin
    Map.Insert
      (+"textDocument/foldingRange",
       Folding_Range_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/formatting",
+      Formatting_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/rangeFormatting",
+      Range_Formatting_Request'Tag);
 
    Map.Insert
      (+"textDocument/selectionRange",
