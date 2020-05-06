@@ -1,7 +1,6 @@
 --  Automatically generated, do not edit.
 
 with Ada.Strings.UTF_Encoding;
-with LSP.Messages.Common_Writers;
 
 package body LSP.Messages.Server_Notifications is
 
@@ -20,7 +19,7 @@ package body LSP.Messages.Server_Notifications is
       return Initialized_Notification is
    begin
       return V : Initialized_Notification do
-         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
+         NotificationMessage'Read (JS, NotificationMessage (V));
       end return;
    end Decode;
 
@@ -38,7 +37,7 @@ package body LSP.Messages.Server_Notifications is
       return Exit_Notification is
    begin
       return V : Exit_Notification do
-         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
+         NotificationMessage'Read (JS, NotificationMessage (V));
       end return;
    end Decode;
 
