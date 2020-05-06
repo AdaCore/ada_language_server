@@ -440,4 +440,36 @@ package body LSP.Error_Decorators is
       return Self.Handler.On_ALS_Debug_Request (Request);
    end On_ALS_Debug_Request;
 
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   function Formatting_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Formatting_Request,
+      Response   => LSP.Messages.Server_Responses.Formatting_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_Formatting_Request);
+
+   overriding function On_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Formatting_Request)
+      return LSP.Messages.Server_Responses.Formatting_Response
+        renames Formatting_Request;
+
+   ---------------------------------
+   -- On_Range_Formatting_Request --
+   ---------------------------------
+
+   function Range_Formatting_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Range_Formatting_Request,
+      Response   => LSP.Messages.Server_Responses.Range_Formatting_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_Range_Formatting_Request);
+
+   overriding function On_Range_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
+      return LSP.Messages.Server_Responses.Range_Formatting_Response
+        renames Range_Formatting_Request;
+
 end LSP.Error_Decorators;

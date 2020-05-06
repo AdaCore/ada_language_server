@@ -27,12 +27,21 @@ package body LSP.Message_Loggers is
    function "+" (Text : LSP.Types.LSP_String) return String
      renames LSP.Types.To_UTF_8_String;
 
+   function Image (Value : LSP.Types.LSP_Number_Or_String) return String;
+   function Image (Value : LSP.Types.Optional_Boolean) return String;
+
    function Image (Value : LSP.Messages.RequestMessage'Class) return String;
    function Image (Value : LSP.Messages.ResponseMessage'Class) return String;
    function Image (Value : LSP.Messages.Position) return String;
    function Image (Value : LSP.Messages.Span) return String;
-   function Image (Value : LSP.Types.LSP_Number_Or_String) return String;
+   function Image (Value : LSP.Messages.TextDocumentIdentifier) return String;
+   function Image (Value : LSP.Messages.FormattingOptions) return String;
+   function Image (Value : LSP.Messages.TextEdit_Vector) return String;
 
+   function Image
+     (Value : LSP.Messages.DocumentRangeFormattingParams) return String;
+   function Image
+     (Value : LSP.Messages.DocumentFormattingParams) return String;
    function Image
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String;
 
@@ -101,6 +110,72 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String is
    begin
       return (+Value.textDocument.uri) & Image (Value.position);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.TextDocumentIdentifier) return String is
+   begin
+      return (+Value.uri);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Types.Optional_Boolean) return String is
+   begin
+      if Value.Is_Set then
+         return "(Value =>" & Boolean'Image (Value.Value) & ")";
+      else
+         return "(Is_Set => False)";
+      end if;
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.FormattingOptions) return String is
+   begin
+      return '(' & LSP.Types.LSP_Number'Image (Value.tabSize) & ","
+        & Boolean'Image (Value.insertSpaces) & ","
+        & Image (Value.trimTrailingWhitespace) & ","
+        & Image (Value.insertFinalNewline) & ","
+        & Image (Value.trimFinalNewlines) & ')';
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.DocumentFormattingParams) return String is
+   begin
+      return Image (Value.textDocument) & Image (Value.options);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.DocumentRangeFormattingParams) return String is
+   begin
+      return Image (Value.textDocument) & Image (Value.span)
+        & Image (Value.options);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.TextEdit_Vector) return String is
+   begin
+      return Ada.Containers.Count_Type'Image (Value.Length);
    end Image;
 
    ----------------
@@ -1306,5 +1381,73 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Image (Value.params.token));
    end On_WorkDoneProgress_Create_Request;
+
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding procedure On_Formatting_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Formatting_Request) is
+   begin
+      Self.Trace.Trace
+        ("Formatting_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Formatting_Request;
+
+   ---------------------------------
+   -- On_Range_Formatting_Request --
+   ---------------------------------
+
+   overriding procedure On_Range_Formatting_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Range_Formatting_Request)
+   is
+   begin
+      Self.Trace.Trace
+        ("Range_Formatting_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Range_Formatting_Request;
+
+   ----------------------------
+   -- On_Formatting_Response --
+   ----------------------------
+
+   overriding procedure On_Formatting_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.Formatting_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("Formatting_Response: " & Image (Response) & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("Formatting_Response: "
+         & Image (Response)
+         & Image (Response.result));
+   end On_Formatting_Response;
+
+   ----------------------------------
+   -- On_Range_Formatting_Response --
+   ----------------------------------
+
+   overriding procedure On_Range_Formatting_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.Range_Formatting_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("Range_Formatting_Response: " & Image (Response) & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("Range_Formatting_Response: "
+         & Image (Response) & Image (Response.result));
+   end On_Range_Formatting_Response;
 
 end LSP.Message_Loggers;

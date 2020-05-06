@@ -158,4 +158,14 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.ALS_Debug_Request)
       return LSP.Messages.Server_Responses.ALS_Debug_Response;
 
+   overriding function On_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Formatting_Request)
+      return LSP.Messages.Server_Responses.Formatting_Response;
+
+   overriding function On_Range_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
+      return LSP.Messages.Server_Responses.Range_Formatting_Response;
+
 end LSP.Error_Decorators;

@@ -338,4 +338,20 @@ private
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Client_Responses.ShowMessage_Response);
 
+   overriding procedure On_Formatting_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Formatting_Request);
+
+   overriding procedure On_Range_Formatting_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Range_Formatting_Request);
+
+   overriding procedure On_Formatting_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.Formatting_Response);
+
+   overriding procedure On_Range_Formatting_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.Range_Formatting_Response);
+
 end LSP.Message_Loggers;

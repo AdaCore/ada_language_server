@@ -2823,6 +2823,48 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Completion_Request;
 
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding function On_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Formatting_Request)
+      return LSP.Messages.Server_Responses.Formatting_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.Formatting_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Formatting_Request;
+
+   ---------------------------------
+   -- On_Range_Formatting_Request --
+   ---------------------------------
+
+   overriding function On_Range_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
+      return LSP.Messages.Server_Responses.Range_Formatting_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.Range_Formatting_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Range_Formatting_Request;
+
    ------------------
    -- Handle_Error --
    ------------------
