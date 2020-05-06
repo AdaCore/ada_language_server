@@ -1,7 +1,6 @@
 --  Automatically generated, do not edit.
 
 with Ada.Strings.UTF_Encoding;
-with LSP.Messages.Common_Writers;
 
 package body LSP.Messages.Server_Requests is
 
@@ -27,7 +26,7 @@ package body LSP.Messages.Server_Requests is
       return Shutdown_Request is
    begin
       return V : Shutdown_Request do
-         Messages.Common_Writers.Set_Common_Request_Fields (V, JS.all);
+         RequestMessage'Read (JS, RequestMessage (V));
       end return;
    end Decode;
 
