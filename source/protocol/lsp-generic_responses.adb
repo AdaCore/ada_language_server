@@ -15,7 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
+
 with LSP.JSON_Streams;
+with LSP.Types;
 
 package body LSP.Generic_Responses is
 
@@ -26,15 +30,31 @@ package body LSP.Generic_Responses is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      LSP.Messages.Read_Response_Prefix (S, V);
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      if not V.Is_Error then
-         JS.Key ("result");
-         T'Read (S, V.result);
-      end if;
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
 
-      JS.End_Object;
+            if Key = "jsonrpc" then
+               LSP.Types.LSP_String'Read (S, V.jsonrpc);
+            elsif Key = "id" then
+               LSP.Types.LSP_Number_Or_String'Read (S, V.id);
+            elsif Key = "error" then
+               LSP.Messages.Optional_ResponseError'Read (S, V.error);
+            elsif Key = "result" then
+               T'Read (S, V.result);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read;
 
    -----------

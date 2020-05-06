@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Magic.JSON.Streams.Readers;
 
 with LSP.JSON_Streams;
 
@@ -60,8 +60,10 @@ package body LSP.Generic_Sets is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       V := (others => False);
-      JS.Start_Array;
-      while not JS.End_Of_Array loop
+      pragma Assert (JS.R.Is_Start_Array);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Array loop
          declare
             Key : Element;
          begin
@@ -69,7 +71,8 @@ package body LSP.Generic_Sets is
             V (Key) := True;
          end;
       end loop;
-      JS.End_Array;
+
+      JS.R.Read_Next;
    end Read_Set;
 
    ------------

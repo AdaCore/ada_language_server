@@ -18,7 +18,6 @@
 --  This package provides an Ada stream type to serialize Ada object into JSON.
 --
 
-private with Ada.Containers.Vectors;
 private with Magic.JSON.Streams.Writers;
 private with Magic.Strings;
 
@@ -26,9 +25,9 @@ with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
 with Interfaces;
 
-with GNATCOLL.JSON;
-pragma Elaborate_All (GNATCOLL.JSON);
 with Magic.Text_Streams;
+with Magic.JSON.Streams.Readers;
+with Magic.JSON.Streams.Readers.Simple;
 
 limited with LSP.Types;
 
@@ -65,10 +64,6 @@ package LSP.JSON_Streams is
    procedure End_Array (Self : not null access JSON_Stream'Class);
    --  End JSON array during read/write of some compound type
 
-   function End_Of_Array
-    (Self : not null access JSON_Stream'Class) return Boolean;
-   --  Returns True when there are no array elements to be read.
-
    procedure Key
     (Self : not null access JSON_Stream'Class;
      Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String);
@@ -90,19 +85,14 @@ package LSP.JSON_Streams is
    --  Complete writting to the JSON stream
 
    procedure Set_JSON_Document
-    (Self : not null access JSON_Stream'Class;
-     Data : GNATCOLL.JSON.JSON_Array);
+    (Self  : not null access JSON_Stream'Class;
+     Input : not null Magic.Text_Streams.Input_Text_Stream_Access);
    --  Assign JSON document for reading from the stream
 
-   function Read
-    (Self : in out JSON_Stream'Class)
-       return GNATCOLL.JSON.JSON_Value;
-   --  Reads current value and updates stream's position.
-
-   procedure Write
-    (Self : in out JSON_Stream'Class;
-     Item : GNATCOLL.JSON.JSON_Value);
-   --  Writes value into the stream and updates stream's position.
+   function R
+     (Self : not null access JSON_Stream'Class)
+      return not null access
+        Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class;
 
    procedure Write_String
     (Self : in out JSON_Stream'Class;
@@ -128,61 +118,17 @@ package LSP.JSON_Streams is
    --  The same as Write, but for null value.
 
 private
-   type State_Kinds is (Array_State, Object_State);
-
-   type State (Kind : State_Kinds := Array_State) is record
-      case Kind is
-         when Array_State =>
-            Current_Array : GNATCOLL.JSON.JSON_Array;
-            Index         : Positive := 1;
-
-         when Object_State =>
-            Current_Object : GNATCOLL.JSON.JSON_Value;
-            Key            : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
-      end case;
-   end record;
-
-   package State_Vectors is new Ada.Containers.Vectors (Positive, State);
-
-   type Read_Stream is record
-      Current  : State;
-      Stack    : State_Vectors.Vector;
-   end record;
-
-   procedure Start_Object (Self : in out Read_Stream);
-   --  Start new JSON object during read of some compound type
-
-   procedure End_Object (Self : in out Read_Stream);
-   --  End JSON object during read of some compound type
-
-   procedure Start_Array (Self : in out Read_Stream);
-   --  Start new JSON array during read of some compound type
-
-   procedure End_Array (Self : in out Read_Stream);
-   --  End JSON array during read of some compound type
 
    type Write_Stream is limited record
       Writer : Magic.JSON.Streams.Writers.JSON_Simple_Writer;
       Key    : Magic.Strings.Magic_String;
    end record;
 
-   procedure Start_Object (Self : in out Write_Stream);
-   --  Start new JSON object during write of some compound type
-
-   procedure End_Object (Self : in out Write_Stream);
-   --  End JSON object during write of some compound type
-
-   procedure Start_Array (Self : in out Write_Stream);
-   --  Start new JSON array during write of some compound type
-
-   procedure End_Array (Self : in out Write_Stream);
-   --  End JSON array during write of some compound type
-
    type JSON_Stream (Is_Server_Side : Boolean := False) is
      limited new Ada.Streams.Root_Stream_Type with
    record
       Writable : Boolean := True;  --  True means stream to write
-      R : Read_Stream;
+      R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
       W : Write_Stream;
    end record;
 

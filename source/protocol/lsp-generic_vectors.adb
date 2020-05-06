@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Magic.JSON.Streams.Readers;
 
 with LSP.JSON_Streams;
 
@@ -33,9 +33,10 @@ package body LSP.Generic_Vectors is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       V.Clear;
-      JS.Start_Array;
+      pragma Assert (JS.R.Is_Start_Array);
+      JS.R.Read_Next;
 
-      while not JS.End_Of_Array loop
+      while not JS.R.Is_End_Array loop
          declare
             Item : Element;
          begin
@@ -44,7 +45,7 @@ package body LSP.Generic_Vectors is
          end;
       end loop;
 
-      JS.End_Array;
+      JS.R.Read_Next;
    end Read_Vector;
 
    ------------------
@@ -63,7 +64,7 @@ package body LSP.Generic_Vectors is
             when LSP.Skip =>
                return;
             when Write_Null =>
-               JS.Write (GNATCOLL.JSON.JSON_Null);
+               JS.Write_Null;
                return;
             when Write_Array =>
                null;  --  continue

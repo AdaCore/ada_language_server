@@ -15,11 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Magic.Text_Streams;
 with LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
-  (Document : GNATCOLL.JSON.JSON_Value)
+  (Document : Magic.Text_Streams.Input_Text_Stream_Access;
+   Method   : LSP.Types.LSP_String)
    return LSP.Messages.Server_Notifications.Server_Notification'Class;
 --  Decode the request present in the input document. Document is a JSON
 --  representation of the protocol string.

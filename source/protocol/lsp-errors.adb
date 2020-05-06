@@ -18,9 +18,10 @@
 with Ada.Strings.UTF_Encoding;
 with Interfaces;
 
-with GNATCOLL.JSON;
-
 with LSP.JSON_Streams;
+
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
 
 package body LSP.Errors is
    use type Interfaces.Integer_64;
@@ -55,22 +56,40 @@ package body LSP.Errors is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      JS.Key ("code");
-      Code := Interfaces.Integer_64 (Integer'(JS.Read.Get));
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      for J in Error_Map'Range loop
-         if Error_Map (J) = Code then
-            V.code := J;
-            exit;
-         end if;
+      while not JS.R.Is_End_Object loop
+         declare
+            Key : constant String :=
+              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "code" then
+               pragma Assert (JS.R.Is_Number_Value);
+               Code := JS.R.Number_Value.Integer_Value;
+               JS.R.Read_Next;
+
+               for J in Error_Map'Range loop
+                  if Error_Map (J) = Code then
+                     V.code := J;
+                     exit;
+                  end if;
+               end loop;
+
+            elsif Key = "message" then
+               LSP.Types.LSP_String'Read (S, V.message);
+
+            elsif Key = "data" then
+               LSP.Types.LSP_Any'Read (S, V.data);
+            else
+               JS.R.Read_Next;
+            end if;
+         end;
       end loop;
 
-      Read_String (JS, +"message", V.message);
-      JS.Key ("data");
-      LSP.Types.LSP_Any'Read (S, V.data);
-
-      JS.End_Object;
+      JS.R.Read_Next;
    end Read_ResponseError;
 
    -------------------------

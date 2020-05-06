@@ -15,7 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;    use GNATCOLL.JSON;
+with Magic.JSON.Streams.Readers;
+
 with LSP.JSON_Streams;
 
 package body LSP.Generic_Optional is
@@ -31,21 +32,23 @@ package body LSP.Generic_Optional is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
+      if JS.R.Is_Null_Value then
          V := (Is_Set => False);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
+         JS.R.Read_Next;
+      elsif JS.R.Is_Boolean_Value then
          --  During protocol extension some boolean settings become objects.
          --  To keep reading of optional settings compatible with earlier
          --  implementations we read `true` (while we expect an optional
          --  object) as a default value with Is_Set => True, but if we read
          --  `false`, then we return an empty value.
-         if Value.Get then
+         if JS.R.Boolean_Value then
             V := (Is_Set => True, Value => <>);
          else
             V := (Is_Set => False);
          end if;
+
+         JS.R.Read_Next;
       else
          V := (Is_Set => True, Value => <>);
          Element_Type'Read (S, V.Value);

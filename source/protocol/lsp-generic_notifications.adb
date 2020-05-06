@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
+
+with LSP.Types;
 with LSP.Messages.Common_Writers;
 
 package body LSP.Generic_Notifications is
@@ -28,9 +32,7 @@ package body LSP.Generic_Notifications is
         return Notification is
    begin
       return V : Notification do
-         Messages.Common_Writers.Set_Common_Notification_Fields (V, JS.all);
-         JS.Key ("params");
-         T'Read (JS, V.params);
+         Read (JS, V);
       end return;
    end Decode;
 
@@ -44,11 +46,29 @@ package body LSP.Generic_Notifications is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      LSP.Messages.Common_Writers.Set_Common_Notification_Fields (V, JS);
-      JS.Key ("params");
-      T'Read (S, V.params);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "jsonrpc" then
+               LSP.Types.LSP_String'Read (S, V.jsonrpc);
+            elsif Key = "method" then
+               LSP.Types.LSP_String'Read (S, V.method);
+            elsif Key = "params" then
+               T'Read (S, V.params);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read;
 
    -----------

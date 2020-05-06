@@ -18,6 +18,8 @@
 with Ada.Strings.UTF_Encoding;
 with LSP.Types; use LSP.Types;
 
+with LSP.JSON_Streams;
+
 package body LSP.Messages.Common_Writers is
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
@@ -60,42 +62,5 @@ package body LSP.Messages.Common_Writers is
       Write_String (JS, +"jsonrpc", V.jsonrpc);
       Write_String (JS, +"method", V.method);
    end Write_Notification_Prefix;
-
-   -------------------------------
-   -- Set_Common_Request_Fields --
-   -------------------------------
-
-   procedure Set_Common_Request_Fields
-     (R  : in out RequestMessage'Class;
-      JS : in out LSP.JSON_Streams.JSON_Stream'Class)
-   is
-      Version    : LSP.Types.LSP_String;
-      Method     : LSP.Types.LSP_String;
-      Request_Id : LSP.Types.LSP_Number_Or_String;
-   begin
-      LSP.Types.Read_String (JS, +"jsonrpc", Version);
-      LSP.Types.Read_String (JS, +"method", Method);
-      Read_Number_Or_String (JS, +"id", Request_Id);
-      R.jsonrpc := Version;
-      R.method := Method;
-      R.id := Request_Id;
-   end Set_Common_Request_Fields;
-
-   ------------------------------------
-   -- Set_Common_Notification_Fields --
-   ------------------------------------
-
-   procedure Set_Common_Notification_Fields
-     (R  : in out NotificationMessage'Class;
-      JS : in out LSP.JSON_Streams.JSON_Stream'Class)
-   is
-      Version    : LSP.Types.LSP_String;
-      Method     : LSP.Types.LSP_String;
-   begin
-      LSP.Types.Read_String (JS, +"jsonrpc", Version);
-      LSP.Types.Read_String (JS, +"method", Method);
-      R.jsonrpc := Version;
-      R.method := Method;
-   end Set_Common_Notification_Fields;
 
 end LSP.Messages.Common_Writers;
