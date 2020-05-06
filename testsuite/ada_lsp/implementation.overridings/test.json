@@ -68,7 +68,8 @@
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
-                           "."
+                            ".",
+                            "("
                         ],
                         "resolveProvider": false
                      },

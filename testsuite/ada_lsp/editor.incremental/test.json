@@ -282,7 +282,8 @@
                      "declarationProvider": true,
                      "completionProvider": {
                         "triggerCharacters": [
-                           "."
+                            ".",
+                            "("
                         ],
                         "resolveProvider": false
                      },

@@ -3,124 +3,125 @@
       "comment": [
          "test navigation accross invalidation of file contents"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
-               "processId": 12026, 
+               "processId": 12026,
                "capabilities": {
                   "workspace": {
                      "applyEdit": false
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true, 
-                     "hoverProvider": true, 
-                     "definitionProvider": true, 
-                     "renameProvider": {}, 
-                     "alsCalledByProvider": true, 
-                     "referencesProvider": true, 
+                     "typeDefinitionProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
-                           "."
-                        ], 
+                            ".",
+                            "("
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "documentSymbolProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "p.gpr", 
-                     "scenarioVariables": {}, 
-                     "enableDiagnostics": false, 
+                     "projectFile": "p.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
                      "defaultCharset": "UTF-8"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "--  with P; use P;\n--  with Q; use Q;\nprocedure Main is\nbegin\n   Foo;\nend Main;\n", 
-                  "version": 0, 
-                  "uri": "$URI{main.adb}", 
+                  "text": "--  with P; use P;\n--  with Q; use Q;\nprocedure Main is\nbegin\n   Foo;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 4, 
+                  "line": 4,
                   "character": 5
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": []
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -129,73 +130,73 @@
                   {
                      "text": "with P; use P;\n--  with Q; use Q;\nprocedure Main is\nbegin\n   Foo;\nend Main;\n"
                   }
-               ], 
+               ],
                "textDocument": {
-                  "version": 1, 
+                  "version": 1,
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didChange"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 4, 
+                  "line": 4,
                   "character": 4
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 3, 
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 3, 
+               "id": 3,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 16
                         }
-                     }, 
+                     },
                      "uri": "$URI{p.ads}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package P is\n   procedure Foo is null;\nend P;\n", 
-                  "version": 0, 
-                  "uri": "$URI{p.ads}", 
+                  "text": "package P is\n   procedure Foo is null;\nend P;\n",
+                  "version": 0,
+                  "uri": "$URI{p.ads}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -204,42 +205,42 @@
                   {
                      "text": ""
                   }
-               ], 
+               ],
                "textDocument": {
-                  "version": 1, 
+                  "version": 1,
                   "uri": "$URI{p.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didChange"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 4, 
+                  "line": 4,
                   "character": 4
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 4, 
+            },
+            "jsonrpc": "2.0",
+            "id": 4,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 4, 
+               "id": 4,
                "result": []
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -248,56 +249,56 @@
                   {
                      "text": "package P is\n   procedure Foo is null;\nend P;\n"
                   }
-               ], 
+               ],
                "textDocument": {
-                  "version": 2, 
+                  "version": 2,
                   "uri": "$URI{p.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didChange"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 4, 
+                  "line": 4,
                   "character": 5
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 5, 
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 5, 
+               "id": 5,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 16
                         }
-                     }, 
+                     },
                      "uri": "$URI{p.ads}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -306,18 +307,18 @@
                   {
                      "text": "with P; use P;\n with Q; use Q;\nprocedure Main is\nbegin\n   Foo;\nend Main;\n"
                   }
-               ], 
+               ],
                "textDocument": {
-                  "version": 2, 
+                  "version": 2,
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didChange"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -326,73 +327,73 @@
                   {
                      "text": "-- with P; use P;\n with Q; use Q;\nprocedure Main is\nbegin\n   Foo;\nend Main;\n"
                   }
-               ], 
+               ],
                "textDocument": {
-                  "version": 3, 
+                  "version": 3,
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didChange"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 4, 
+                  "line": 4,
                   "character": 4
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 6, 
+            },
+            "jsonrpc": "2.0",
+            "id": 6,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 6, 
+               "id": 6,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 13
-                        }, 
+                        },
                         "end": {
-                           "line": 1, 
+                           "line": 1,
                            "character": 16
                         }
-                     }, 
+                     },
                      "uri": "$URI{q.ads}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "package Q is\n   procedure Foo is null;\nend Q;\n", 
-                  "version": 0, 
-                  "uri": "$URI{q.ads}", 
+                  "text": "package Q is\n   procedure Foo is null;\nend Q;\n",
+                  "version": 0,
+                  "uri": "$URI{q.ads}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -400,13 +401,13 @@
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -414,13 +415,13 @@
                "textDocument": {
                   "uri": "$URI{p.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -428,28 +429,28 @@
                "textDocument": {
                   "uri": "$URI{q.ads}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
-            "id": 7, 
+            "jsonrpc": "2.0",
+            "id": 7,
             "method": "shutdown"
-         }, 
+         },
          "wait": [
             {
-               "id": 7, 
+               "id": 7,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0

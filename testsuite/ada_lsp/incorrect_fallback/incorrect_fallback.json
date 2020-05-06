@@ -3,180 +3,181 @@
       "comment": [
          "test automatically generated"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
-               "trace": "off", 
-               "processId": 8226, 
-               "rootPath": null, 
+               "trace": "off",
+               "processId": 8226,
+               "rootPath": null,
                "capabilities": {
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "commitCharactersSupport": true, 
+                           "commitCharactersSupport": true,
                            "snippetSupport": true
-                        }, 
+                        },
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "definition": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "signatureHelp": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "hover": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "formatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "codeAction": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentHighlight": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentSymbol": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "rename": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "synchronization": {
-                        "didSave": true, 
-                        "willSave": true, 
-                        "willSaveWaitUntil": true, 
+                        "didSave": true,
+                        "willSave": true,
+                        "willSaveWaitUntil": true,
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "references": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "rangeFormatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "onTypeFormatting": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "codeLens": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "documentLink": {
                         "dynamicRegistration": true
                      }
-                  }, 
+                  },
                   "workspace": {
                      "executeCommand": {
                         "dynamicRegistration": true
-                     }, 
-                     "applyEdit": true, 
+                     },
+                     "applyEdit": true,
                      "symbol": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "didChangeWatchedFiles": {
                         "dynamicRegistration": true
-                     }, 
+                     },
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
                      }
                   }
-               }, 
+               },
                "rootUri": null
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 0, 
+            },
+            "jsonrpc": "2.0",
+            "id": 0,
             "method": "initialize"
-         }, 
+         },
          "wait": [
             {
                "id": 0,
                "result": {
                   "capabilities": {
-                     "hoverProvider": true, 
-                     "documentSymbolProvider": true, 
-                     "referencesProvider": true, 
-                     "textDocumentSync": 2, 
+                     "hoverProvider": true,
+                     "documentSymbolProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
-                           "."
-                        ], 
+                            ".",
+                            "("
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "definitionProvider": true
                   }
                }
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "params": {}, 
-            "jsonrpc": "2.0", 
+            "params": {},
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "", 
-                     "scenarioVariables": {}, 
+                     "projectFile": "",
+                     "scenarioVariables": {},
                      "trace": {
                         "server": "off"
                      }
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": [ ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "textDocument": {
-                  "text": "procedure Test is\n   function Foo return Float is (12.0);\n   function Foo return Integer is (12);\n\n   procedure Bar (A : Float; B : Integer) is null;\nbegin\n   -- This should resolve to the wrong Foo, using the imprecise fallback\n   Bar (Foo, );\nend Test;\n", 
-                  "version": 1, 
-                  "uri": "$URI{test.adb}", 
+                  "text": "procedure Test is\n   function Foo return Float is (12.0);\n   function Foo return Integer is (12);\n\n   procedure Bar (A : Float; B : Integer) is null;\nbegin\n   -- This should resolve to the wrong Foo, using the imprecise fallback\n   Bar (Foo, );\nend Test;\n",
+                  "version": 1,
+                  "uri": "$URI{test.adb}",
                   "languageId": "ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
-         }, 
+         },
          "wait": [
             {
                "params": {
-                  "uri": "$URI{test.adb}", 
+                  "uri": "$URI{test.adb}",
                   "diagnostics": [
                      {
                         "range": {
                            "start": {
-                              "line": 7, 
+                              "line": 7,
                               "character": 13
-                           }, 
+                           },
                            "end": {
-                              "line": 7, 
+                              "line": 7,
                               "character": 14
                            }
-                        }, 
+                        },
                         "message": "Expected '<>', got ')'"
                      },
                      {
@@ -193,76 +194,76 @@
                         "message": "Missing ';'"
                      }
                   ]
-               }, 
+               },
                "method": "textDocument/publishDiagnostics"
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 7, 
+                  "line": 7,
                   "character": 8
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{test.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "textDocument/definition"
-         }, 
+         },
          "wait": [
             {
-               "id": 1, 
+               "id": 1,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 2, 
+                           "line": 2,
                            "character": 12
-                        }, 
+                        },
                         "end": {
-                           "line": 2, 
+                           "line": 2,
                            "character": 15
                         }
-                     }, 
+                     },
                      "uri": "$URI{test.adb}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "params": null, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            "params": null,
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "shutdown"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "params": null, 
-            "jsonrpc": "2.0", 
+            "params": null,
+            "jsonrpc": "2.0",
             "method": "exit"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": null
             }
          ]
       }
-   }, 
+   },
    {
       "stop": {
          "exit_code": 0

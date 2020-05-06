@@ -95,12 +95,18 @@ package LSP.Ada_Documents is
    --  Get Libadalang Node for given position in the document.
 
    procedure Get_Completions_At
-     (Self             : Document;
-      Context          : LSP.Ada_Contexts.Context;
-      Position         : LSP.Messages.Position;
-      Snippets_Enabled : Boolean;
-      Result           : out LSP.Messages.CompletionList);
+     (Self                     : Document;
+      Context                  : LSP.Ada_Contexts.Context;
+      Position                 : LSP.Messages.Position;
+      Snippets_Enabled         : Boolean;
+      Named_Notation_Threshold : Natural;
+      Result                   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
+   --  When Snippets_Enabled is True, subprogram completion items are computed
+   --  as snippets that list all the subprogram's formal parameters.
+   --  Named_Notation_Threshold defines the number of parameters / components
+   --  at which point named notation is used for subprogram/aggregate
+   --  completion snippets.
 
    procedure Get_Folding_Blocks
      (Self       : Document;
