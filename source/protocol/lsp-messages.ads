@@ -161,20 +161,11 @@ package LSP.Messages is
       error: Optional_ResponseError (Is_Error);
    end record;
 
-   procedure Read_ResponseMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResponseMessage);
-   for ResponseMessage'Read use Read_ResponseMessage;
-
    procedure Write_ResponseMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ResponseMessage);
 
    for ResponseMessage'Write use Write_ResponseMessage;
-
-   procedure Read_Response_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.ResponseMessage'Class);
 
    procedure Write_Response_Prefix
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -206,14 +197,6 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : NotificationMessage);
    for NotificationMessage'Write use Write_NotificationMessage;
-
-   procedure Read_Notification_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.NotificationMessage'Class);
-
-   procedure Write_Notification_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.NotificationMessage'Class);
 
    --```typescript
    --interface CancelParams {
@@ -6454,7 +6437,7 @@ package LSP.Messages is
 
    package ProgressParam_End_Package is new Generic_ProgressParam
      (WorkDoneProgressEnd);
-   subtype Progress_End_Params is ProgressParam_Begin_Package.ProgressParam;
+   subtype Progress_End_Params is ProgressParam_End_Package.ProgressParam;
 
    --  The $/progress request has a parameter of the form
    --    {
@@ -6638,7 +6621,8 @@ package LSP.Messages is
    --}
    --```
    type WatchKind is (Create, Change, Delete);
-   type WatchKind_Set is array (WatchKind) of Boolean;
+   type WatchKind_Set is array (WatchKind) of Boolean
+     with Default_Component_Value => True;
 
    procedure Read_WatchKind_Set
      (S : access Ada.Streams.Root_Stream_Type'Class;

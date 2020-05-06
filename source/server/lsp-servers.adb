@@ -37,8 +37,11 @@ with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
+with Magic.JSON.Streams.Readers.Simple;
 with Magic.Stream_Element_Buffers;
+with Magic.Strings.Conversions;
 with Magic.Text_Streams.Memory;
+with Memory_Text_Streams;
 
 package body LSP.Servers is
 
@@ -58,12 +61,6 @@ package body LSP.Servers is
    --  Handle initialization logic by tracking 'initialize' request, set
    --  Initialized parameter when the request arrives.
    --  Set EOF at end of stream or an "exit" notification.
-
-   procedure Read_Number_Or_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_Number_Or_String)
-       renames LSP.Types.Read_Number_Or_String;
 
    procedure Append
      (Vector : in out Ada.Strings.Unbounded.Unbounded_String;
@@ -222,8 +219,7 @@ package body LSP.Servers is
       --  Process Vector as complete JSON document.
 
       procedure Process_JSON_Document
-        (Document : GNATCOLL.JSON.JSON_Value;
-         Vector   : Ada.Strings.Unbounded.Unbounded_String);
+        (Vector : Ada.Strings.Unbounded.Unbounded_String);
       --  Process one JSON message. Vector is corresponding text for traces.
 
       Buffer_Size : constant := 512;
@@ -297,10 +293,108 @@ package body LSP.Servers is
       ---------------------------
 
       procedure Process_JSON_Document
-        (Document : GNATCOLL.JSON.JSON_Value;
-         Vector   : Ada.Strings.Unbounded.Unbounded_String)
+        (Vector : Ada.Strings.Unbounded.Unbounded_String)
       is
          use type LSP.Types.LSP_String;
+
+         Memory : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
+
+         procedure Decode_JSON_RPC_Headers
+           (Request_Id : out LSP.Types.LSP_Number_Or_String;
+            Version    : out LSP.Types.LSP_String;
+            Method     : out LSP.Types.Optional_String);
+
+         procedure Decode_JSON_RPC_Headers
+           (Request_Id : out LSP.Types.LSP_Number_Or_String;
+            Version    : out LSP.Types.LSP_String;
+            Method     : out LSP.Types.Optional_String)
+         is
+            use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
+            procedure Skip_Value;
+
+            R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+
+            ----------------
+            -- Skip_Value --
+            ----------------
+
+            procedure Skip_Value is
+            begin
+               case R.Event_Kind is
+                  when Start_Object =>
+                     R.Read_Next;
+                     while R.Event_Kind /= End_Object loop
+                        pragma Assert (R.Event_Kind = Key_Name);
+                        R.Read_Next;
+                        Skip_Value;
+                     end loop;
+                     R.Read_Next;
+                  when Start_Array =>
+                     R.Read_Next;
+                     while R.Event_Kind /= End_Array loop
+                        Skip_Value;
+                     end loop;
+                     R.Read_Next;
+                  when String_Value .. Null_Value =>
+                     R.Read_Next;
+                  when others =>
+                     raise Constraint_Error with "Unexpected JSON event";
+               end case;
+            end Skip_Value;
+
+         begin
+            R.Set_Stream (Memory'Unchecked_Access);
+            R.Read_Next;
+            pragma Assert (R.Event_Kind = Start_Document);
+            R.Read_Next;
+            pragma Assert (R.Event_Kind = Start_Object);
+            R.Read_Next;
+            while R.Event_Kind /= End_Object loop
+               pragma Assert (R.Event_Kind = Key_Name);
+               declare
+                  Key : constant String :=
+                    Magic.Strings.Conversions.To_UTF_8_String (R.Key_Name);
+               begin
+                  R.Read_Next;
+
+                  if Key = "id" then
+                     case R.Event_Kind is
+                        when String_Value =>
+                           Request_Id :=
+                             (Is_Number => False,
+                              String    => LSP.Types.To_LSP_String
+                                (Magic.Strings.Conversions.To_UTF_8_String
+                                     (R.String_Value)));
+                        when Number_Value =>
+                           Request_Id :=
+                             (Is_Number => True,
+                              Number    => LSP.Types.LSP_Number
+                                (R.Number_Value.Integer_Value));
+                        when others =>
+                           raise Constraint_Error;
+                     end case;
+                     R.Read_Next;
+                  elsif Key = "jsonrpc" then
+                     pragma Assert (R.Event_Kind = String_Value);
+                     Version := LSP.Types.To_LSP_String
+                       (Magic.Strings.Conversions.To_UTF_8_String
+                          (R.String_Value));
+                     R.Read_Next;
+                  elsif Key = "method" then
+                     pragma Assert (R.Event_Kind = String_Value);
+                     Method := (Is_Set => True,
+                                Value  => LSP.Types.To_LSP_String
+                                  (Magic.Strings.Conversions.To_UTF_8_String
+                                     (R.String_Value)));
+                     R.Read_Next;
+                  else
+                     Skip_Value;
+                  end if;
+               end;
+            end loop;
+
+            Memory.Current := 1;
+         end Decode_JSON_RPC_Headers;
 
          Message      : Message_Access;
          Request      : Request_Access;
@@ -309,34 +403,38 @@ package body LSP.Servers is
          Is_Exit_Notification : Boolean;
 
          JS         : aliased LSP.JSON_Streams.JSON_Stream (True);
-         JSON_Array : GNATCOLL.JSON.JSON_Array;
          Version    : LSP.Types.LSP_String;
          Method     : LSP.Types.Optional_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
-         Error      : LSP.Messages.Optional_ResponseError;
+         Error      : constant LSP.Messages.Optional_ResponseError :=
+           (Is_Set => False);
       begin
+         for J in 1 .. Length (Vector) loop
+            Memory.Buffer.Append
+              (Ada.Streams.Stream_Element'Val
+                 (Character'Pos (Element (Vector, J))));
+         end loop;
+
          --  Read request id and method if any
-         GNATCOLL.JSON.Append (JSON_Array, Document);
-         JS.Set_JSON_Document (JSON_Array);
-         JS.Start_Object;
-         Read_Number_Or_String (JS, +"id", Request_Id);
-         LSP.Types.Read_String (JS, +"jsonrpc", Version);
-         LSP.Types.Read_Optional_String (JS, +"method", Method);
+         Decode_JSON_RPC_Headers (Request_Id, Version, Method);
+
+         JS.Set_JSON_Document (Memory'Unchecked_Access);
 
          --  Decide if this is a request, response or notification
 
          if not Method.Is_Set then
             --  TODO: Process client responses here.
 
-            JS.Key ("error");
-            LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
-
+            --  FIXME:
+            --  JS.Key ("error");
+            --  LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
+            --
             if Error.Is_Set then
                --  We have got error from LSP client. Save it in the trace:
                Self.Server_Trace.Trace ("Got Error response:");
 
-               Self.Server_Trace.Trace
-                 (LSP.Types.To_UTF_8_String (Error.Value.message));
+            --     Self.Server_Trace.Trace
+            --       (LSP.Types.To_UTF_8_String (Error.Value.message));
             end if;
 
             return;
@@ -355,7 +453,8 @@ package body LSP.Servers is
             begin
                Request :=
                  new LSP.Messages.Server_Requests.Server_Request'Class'
-                   (LSP.Servers.Decode_Request (Document));
+                   (LSP.Servers.Decode_Request
+                      (Memory'Unchecked_Access, Method.Value));
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
@@ -387,7 +486,8 @@ package body LSP.Servers is
             begin
                Notification :=
                  new Messages.Server_Notifications.Server_Notification'Class'
-                   (LSP.Servers.Decode_Notification (Document));
+                   (LSP.Servers.Decode_Notification
+                      (Memory'Unchecked_Access, Method.Value));
             exception
                when E : Unknown_Method =>
                   Self.Server_Trace.Trace
@@ -446,22 +546,7 @@ package body LSP.Servers is
             Self.In_Trace.Trace (To_String (Vector));
          end if;
 
-         declare
-            --  Parse JSON now
-            Document : constant GNATCOLL.JSON.JSON_Value :=
-              GNATCOLL.JSON.Read (Vector);
-
-         begin
-            Process_JSON_Document (Document, Vector);
-         exception
-            when E : others =>
-               --  Something goes wrong after JSON parsing
-
-               Self.Server_Trace.Trace
-                 ("Unexpected exception when processing a message:");
-               Self.Server_Trace.Trace (Symbolic_Traceback (E));
-
-         end;
+         Process_JSON_Document (Vector);
 
       exception
          when E : others =>

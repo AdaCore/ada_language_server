@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Tags; use Ada.Tags;
-with Ada.Strings.UTF_Encoding;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
 with LSP.JSON_Streams;
@@ -24,31 +23,25 @@ with LSP.Types; use LSP.Types;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
-   (Document : GNATCOLL.JSON.JSON_Value)
+   (Document : Magic.Text_Streams.Input_Text_Stream_Access;
+    Method   : LSP.Types.LSP_String)
     return LSP.Messages.Server_Notifications.Server_Notification'Class
 is
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    function Constructor is new Ada.Tags.Generic_Dispatching_Constructor
      (T           => LSP.Messages.Server_Notifications.Server_Notification,
       Parameters  => LSP.JSON_Streams.JSON_Stream,
       Constructor => LSP.Messages.Server_Notifications.Decode);
 
-   JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => True);
-   JSON_Array : GNATCOLL.JSON.JSON_Array;
-
-   Method     : LSP.Types.LSP_String;
-   Tag        : Ada.Tags.Tag;
+   JS  : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => True);
+   Tag : constant Ada.Tags.Tag :=
+     LSP.Messages.Server_Notifications.Method_To_Tag (Method);
 
 begin
-   GNATCOLL.JSON.Append (JSON_Array, Document);
-   JS.Set_JSON_Document (JSON_Array);
-   JS.Start_Object;
-
-   LSP.Types.Read_String (JS, +"method", Method);
-   Tag := LSP.Messages.Server_Notifications.Method_To_Tag (Method);
+   JS.Set_JSON_Document (Document);
+   JS.R.Read_Next;
+   pragma Assert (JS.R.Is_Start_Document);
+   JS.R.Read_Next;
 
    if Tag in Ada.Tags.No_Tag then
       raise Unknown_Method;

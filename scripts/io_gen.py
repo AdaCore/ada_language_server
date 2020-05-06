@@ -222,7 +222,11 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
-with GNATCOLL.JSON;
+with Ada.Strings.UTF_Encoding;
+with Interfaces;
+
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
 
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
@@ -230,6 +234,7 @@ with LSP.Types;                    use LSP.Types;
 
 package body LSP.Message_IO is
    pragma Style_Checks ("M175");
+   use type Interfaces.Integer_64;
 """
 
 file_footer = """
@@ -276,28 +281,29 @@ write_component = \
 
 io_pos_enum = {
     'Read': """\
-      V := {type}'Val (JS.Read.Get - {offset});
+      V := {type}'Val (JS.R.Number_Value.Integer_Value - {offset});
+      JS.R.Read_Next;
 """,
     'Write': """\
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'({type}'Pos (V)) + {offset}));
+      JS.Write_Integer (({type}'Pos (V)) + {offset});
 """
 }
 
 io_string_enum_header = {
     'Read': """
-      Text : constant Standard.String := JS.Read.Get;
+      Text : constant Standard.String :=
+        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
+      JS.R.Read_Next;
       """,
     'Write': """
       function To_String
         (Value : {type})
-         return GNATCOLL.JSON.UTF8_String;
+         return Ada.Strings.UTF_Encoding.UTF_8_String;
 
       function To_String
         (Value : {type})
-         return GNATCOLL.JSON.UTF8_String is
+         return Ada.Strings.UTF_Encoding.UTF_8_String is
       begin
          case Value is
 """
@@ -323,9 +329,35 @@ io_string_enum_footer = {
       end To_String;
 
    begin
-      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+      JS.Write_String (To_String (V));
 """
 }
+
+read_prolog = """   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            """
+
+read_component = """if Key = "{key}" then
+               {type}'Read (S, V.{name});
+            els"""
+
+read_epilog = """e
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+"""
+
 
 # The list of enumeration type represented as strings
 enum_as_string = [
@@ -419,6 +451,26 @@ def print_components(file, kind, node):
     file.write('      JS.End_Object;\n')
 
 
+def print_read_components(file, node, no_components):
+    file.write(read_prolog)
+
+    if no_components:
+        #  Write something compilable
+        file.write("""if Key = "" then
+               null;
+            els""")
+
+    for x in get_components(node):
+        name = x.p_defining_name.token_start.text
+        tp = x.f_component_def.f_type_expr.f_name.full_name
+        txt = read_component.format(key=get_key(name),
+                                    name=name,
+                                    type=tp)
+        file.write(txt)
+
+    file.write(read_epilog)
+
+
 def print_enums(file, kind, type, node):
     if type not in enum_as_string:
         offset = 0 if type == 'TextDocumentSyncKind' else 1
@@ -448,6 +500,8 @@ def print_body(file, node):
                                     unref=unref))
         if isinstance(node.f_type_def, lal.EnumTypeDef):
             print_enums(file, kind, name, node.f_type_def)
+        elif kind == 'Read':
+            print_read_components(file, node.f_type_def, unref)
         else:
             print_components(file, kind, node.f_type_def)
 

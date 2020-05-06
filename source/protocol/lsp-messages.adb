@@ -17,24 +17,17 @@
 
 with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 
-with GNATCOLL.JSON;    use GNATCOLL.JSON;
+with Interfaces;
+
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
+
 with LSP.JSON_Streams;
 with LSP.Message_IO;
 
 package body LSP.Messages is
-
-   procedure Read_If_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_String);
-
-   procedure Read_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_Number);
 
    procedure Write_Optional_Number
     (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -1514,7 +1507,6 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Kind : AlsReferenceKind;
    begin
       if JS.Is_Server_Side then
          V := (Is_Server_Side => True, others => <>);
@@ -1522,18 +1514,28 @@ package body LSP.Messages is
          V := (Is_Server_Side => False, others => <>);
       end if;
 
-      JS.Start_Array;
+      pragma Assert (JS.R.Is_Start_Array);
+      JS.R.Read_Next;
 
-      while not JS.End_Of_Array loop
+      while not JS.R.Is_End_Array loop
          if V.Is_Server_Side then
-            AlsReferenceKind'Read (S, Kind);
-            V.As_Flags (Kind) := True;
+            declare
+               Kind : AlsReferenceKind;
+            begin
+               AlsReferenceKind'Read (S, Kind);
+               V.As_Flags (Kind) := True;
+            end;
          else
-            V.As_Strings.Append (+JS.Read.Get);
+            declare
+               Item : LSP_String;
+            begin
+               LSP_String'Read (S, Item);
+               V.As_Strings.Append (Item);
+            end;
          end if;
       end loop;
 
-      JS.End_Array;
+      JS.R.Read_Next;
    end Read_AlsReferenceKind_Set;
 
    --------------------------------
@@ -1575,34 +1577,67 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : GNATCOLL.JSON.JSON_Value;
+      Is_CodeAction : Boolean := False;
+      --  This is True if we are reading CodeAction (not a Command object).
    begin
-      JS.Start_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      --  if the object is Command set just V.command property
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
 
-      JS.Key ("command");
-      Value := JS.Read;
+            if Key = "command" then
+               --  if "command" property is a string then we are reading
+               --  a "Command" object, so we just set V.command property
+               if JS.R.Is_String_Value then
+                  if not V.command.Is_Set then
+                     V.command := (Is_Set => True, Value => <>);
+                     V.command.Value.title := V.title;
+                     V.title := Empty_LSP_String;
+                  end if;
+                  LSP_String'Read (S, V.command.Value.command);
+               else
+                  Optional_Command'Read (S, V.command);
+                  Is_CodeAction := True;
+               end if;
+            elsif Key = "title" then
+               if V.command.Is_Set and not Is_CodeAction then
+                  LSP_String'Read (S, V.command.Value.title);
+               else
+                  LSP_String'Read (S, V.title);
+               end if;
+            elsif Key = "arguments" then
+               --  "arguments" field is part of Command
+               if not V.command.Is_Set then
+                  V.command := (Is_Set => True, Value => <>);
+                  V.command.Value.title := V.title;
+                  V.title := Empty_LSP_String;
+               end if;
+               Optional_Any_Vector'Read (S, V.command.Value.arguments);
+            elsif Key = "kind" then
+               Optional_CodeActionKind'Read (S, V.kind);
+               Is_CodeAction := True;
+            elsif Key = "diagnostics" then
+               Optional_Diagnostic_Vector'Read (S, V.diagnostics);
+               Is_CodeAction := True;
+            elsif Key = "isPreferred" then
+               Optional_Boolean'Read (S, V.isPreferred);
+               Is_CodeAction := True;
+            elsif Key = "edit" then
+               Optional_WorkspaceEdit'Read (S, V.edit);
+               Is_CodeAction := True;
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
 
-      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         V.command := (Is_Set => True, Value => <>);
-         Read_String (JS, +"title", V.command.Value.title);
-         Read_String (JS, +"command", V.command.Value.command);
-         JS.Key ("arguments");
-         Optional_Any_Vector'Read (S, V.command.Value.arguments);
-      else
-         Optional_Command'Read (S, V.command);
-         Read_String (JS, +"title", V.title);
-         JS.Key ("kind");
-         Optional_CodeActionKind'Read (S, V.kind);
-         JS.Key ("diagnostics");
-         Optional_Diagnostic_Vector'Read (S, V.diagnostics);
-         Read_Optional_Boolean (JS, +"isPreferred", V.isPreferred);
-         JS.Key ("edit");
-         Optional_WorkspaceEdit'Read (S, V.edit);
-      end if;
-
-      JS.End_Object;
+      JS.R.Read_Next;
    end Read_CodeAction;
 
    ------------------
@@ -1617,26 +1652,42 @@ package body LSP.Messages is
       JS  : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      Read_String (JS, +"title", V.title);
-      Read_String (JS, +"command", V.command);
-      Tag := Ada.Tags.Internal_Tag (LSP.Types.To_UTF_8_String (V.command));
-      JS.Key ("arguments");
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      if Tag in Ada.Tags.No_Tag then
-         Optional_Any_Vector'Read (S, V.arguments);
-      else
-         V :=
-           (Is_Unknown => False,
-            title      => V.title,
-            Custom     => <>);
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
 
-         JS.Start_Array;
-         V.Custom.Set (Create_Command (Tag, JS'Access));
-         JS.End_Array;
-      end if;
+            if Key = "command" then
+               LSP_String'Read (S, V.command);
+               Tag := Ada.Tags.Internal_Tag
+                 (LSP.Types.To_UTF_8_String (V.command));
+            elsif Key = "title" then
+               LSP_String'Read (S, V.title);
+            elsif Key = "arguments" then
+               if Tag in Ada.Tags.No_Tag then
+                  Optional_Any_Vector'Read (S, V.arguments);
+               else
+                  --  FIXME: This doesn't work if command hasn't been got yet
+                  V :=
+                    (Is_Unknown => False,
+                     title      => V.title,
+                     Custom     => <>);
 
-      JS.End_Object;
+                  V.Custom.Set (Create_Command (Tag, JS'Access));
+               end if;
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+
+      JS.R.Read_Next;
    end Read_Command;
 
    ------------------------------
@@ -1648,6 +1699,7 @@ package body LSP.Messages is
       V : out DocumentSymbol_Tree)
    is
       procedure Read_Array (Parent : DocumentSymbol_Trees.Cursor);
+      procedure Read_Object (Next : DocumentSymbol_Trees.Cursor);
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -1658,52 +1710,77 @@ package body LSP.Messages is
 
       procedure Read_Array (Parent : DocumentSymbol_Trees.Cursor) is
       begin
-         JS.Start_Array;
+         pragma Assert (JS.R.Is_Start_Array);
+         JS.R.Read_Next;
 
-         while not JS.End_Of_Array loop
+         while not JS.R.Is_End_Array loop
             declare
-               Item : DocumentSymbol;
                Next : DocumentSymbol_Trees.Cursor;
             begin
-               JS.Start_Object;
-               Read_String (JS, +"name", Item.name);
-               Read_Optional_String (JS, +"detail", Item.detail);
-               JS.Key ("kind");
-               SymbolKind'Read (S, Item.kind);
-               Read_Optional_Boolean (JS, +"deprecated", Item.deprecated);
-               JS.Key ("range");
-               Span'Read (S, Item.span);
-               JS.Key ("selectionRange");
-               Span'Read (S, Item.selectionRange);
-               Read_Optional_Boolean
-                 (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
-               Read_Optional_Boolean
-                 (JS, +"alsIsAdaProcedure", Item.alsIsAdaProcedure);
-               JS.Key ("alsVisibility");
-               Optional_Als_Visibility'Read (S, Item.alsVisibility);
-               JS.Key ("children");
+               V.Insert_Child
+                 (Parent   => Parent,
+                  Before   => DocumentSymbol_Trees.No_Element,
+                  New_Item => (children => False, others => <>),
+                  Position => Next);
 
-               if JS.Read.Kind in GNATCOLL.JSON.JSON_Array_Type then
-                  Item.children := True;
+               Read_Object (Next);
+            end;
+         end loop;
+         JS.R.Read_Next;
+      end Read_Array;
 
-                  V.Insert_Child
-                    (Parent   => Parent,
-                     Before   => DocumentSymbol_Trees.No_Element,
-                     New_Item => Item,
-                     Position => Next);
+      -----------------
+      -- Read_Object --
+      -----------------
 
-                  Read_Array (Next);
+      procedure Read_Object (Next : DocumentSymbol_Trees.Cursor) is
+         Item : DocumentSymbol := V (Next);
+      begin
+         pragma Assert (JS.R.Is_Start_Object);
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Object loop
+            pragma Assert (JS.R.Is_Key_Name);
+            declare
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            begin
+               JS.R.Read_Next;
+
+               if Key = "name" then
+                  LSP_String'Read (S, Item.name);
+               elsif Key = "detail" then
+                  Optional_String'Read (S, Item.detail);
+               elsif Key = "kind" then
+                  SymbolKind'Read (S, Item.kind);
+               elsif Key = "deprecated" then
+                  Optional_Boolean'Read (S, Item.deprecated);
+               elsif Key = "range" then
+                  Span'Read (S, Item.span);
+               elsif Key = "selectionRange" then
+                  Span'Read (S, Item.selectionRange);
+               elsif Key = "alsIsDeclaration" then
+                  Optional_Boolean'Read (S, Item.alsIsDeclaration);
+               elsif Key = "alsIsAdaProcedure" then
+                  Optional_Boolean'Read (S, Item.alsIsAdaProcedure);
+               elsif Key = "alsVisibility" then
+                  Optional_Als_Visibility'Read (S, Item.alsVisibility);
+               elsif Key = "children" then
+                  if JS.R.Is_Start_Array then
+                     Item.children := True;
+                     Read_Array (Next);
+                  else
+                     JS.R.Read_Next;
+                  end if;
                else
-                  Item.children := False;
-                  V.Append_Child (Parent, Item);
+                  JS.R.Read_Next;  --  Skip corresponding value
                end if;
-
-               JS.End_Object;
             end;
          end loop;
 
-         JS.End_Array;
-      end Read_Array;
+         JS.R.Read_Next;
+         V (Next) := Item;
+      end Read_Object;
    begin
       V.Clear;
       Read_Array (V.Root);
@@ -1721,51 +1798,46 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      Get_WorkDoneProgressParams (S, V.Base);
-      Read_String (JS, +"command", V.command);
-      Tag := Ada.Tags.Internal_Tag (LSP.Types.To_UTF_8_String (V.command));
-      JS.Key ("arguments");
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      if Tag in Ada.Tags.No_Tag then
-         Optional_Any_Vector'Read (S, V.arguments);
-      else
-         --  Overwrite discriminant with Is_Unknown => False
-         V :=
-           (Is_Unknown => False,
-            Base       => V.Base,
-            command    => V.command,
-            Custom     => <>);
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
 
-         JS.Start_Array;
-         V.Custom.Set (Create_Command (Tag, JS'Access));
-         JS.End_Array;
-      end if;
+            if Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.Base.workDoneToken);
+            elsif Key = "command" then
+               LSP_String'Read (S, V.command);
+               Tag := Ada.Tags.Internal_Tag
+                 (LSP.Types.To_UTF_8_String (V.command));
+            elsif Key = "arguments" then
+               if Tag in Ada.Tags.No_Tag then
+                  Optional_Any_Vector'Read (S, V.arguments);
+               else
+                  --  FIXME: This doesn't work if command hasn't been got yet
+                  --
+                  --  Overwrite discriminant with Is_Unknown => False
+                  V :=
+                    (Is_Unknown => False,
+                     Base       => V.Base,
+                     command    => V.command,
+                     Custom     => <>);
 
-      JS.End_Object;
+                  V.Custom.Set (Create_Command (Tag, JS'Access));
+               end if;
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+
+      JS.R.Read_Next;
    end Read_ExecuteCommandParams;
-
-   --------------------
-   -- Read_If_String --
-   --------------------
-
-   procedure Read_If_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_String)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
-
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := Empty_LSP_String;
-      else
-         --  Item := League.IRIs.From_Universal_String (Stream.Read.To_String);
-         Item := To_LSP_String (Unbounded_String'(Stream.Read.Get));
-      end if;
-   end Read_If_String;
 
    ---------------------------
    -- Read_InitializeParams --
@@ -1777,26 +1849,48 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Trace : LSP.Types.Optional_String;
    begin
-      JS.Start_Object;
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Read (S, V.workDoneToken);
-      JS.Key ("processId");
-      Optional_Number'Read (S, V.processId);
-      JS.Key ("clientInfo");
-      Optional_ProgramInfo'Read (S, V.clientInfo);
-      JS.Key ("rootPath");
-      Read_If_String (JS, +"rootPath", V.rootPath);
-      Read_If_String (JS, +"rootUri", V.rootUri);
-      JS.Key ("capabilities");
-      LSP.Messages.ClientCapabilities'Read (S, V.capabilities);
-      Read_Optional_String (JS, +"trace", Trace);
-      JS.Key ("trace");
-      Optional_Trace_Kind'Read (S, V.trace);
-      JS.Key ("workspaceFolders");
-      Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "processId" then
+               Optional_Number'Read (S, V.processId);
+            elsif Key = "clientInfo" then
+               Optional_ProgramInfo'Read (S, V.clientInfo);
+            elsif Key = "rootPath" then
+               if JS.R.Is_String_Value then
+                  LSP_String'Read (S, V.rootPath);
+               else
+                  JS.R.Read_Next;
+               end if;
+            elsif Key = "rootUri" then
+               if JS.R.Is_String_Value then
+                  DocumentUri'Read (S, V.rootUri);
+               else
+                  JS.R.Read_Next;
+               end if;
+            elsif Key = "capabilities" then
+               ClientCapabilities'Read (S, V.capabilities);
+            elsif Key = "trace" then
+               Optional_Trace_Kind'Read (S, V.trace);
+            elsif Key = "workspaceFolders" then
+               Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_InitializeParams;
 
    ----------------------------------
@@ -1809,27 +1903,40 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Look_Ahead.Kind not in GNATCOLL.JSON.JSON_Array_Type then
+      pragma Assert (JS.R.Is_Start_Array);
+      JS.R.Read_Next;
+
+      if JS.R.Is_End_Array then
+         JS.R.Read_Next;
          V := (Kind => Empty_Vector_Kind);
          return;
       end if;
 
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+      pragma Assert (JS.R.Is_Key_Name);
       declare
-         Vector : constant GNATCOLL.JSON.JSON_Array := Look_Ahead.Get;
+         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+           Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
       begin
-         if GNATCOLL.JSON.Length (Vector) = 0 then
-            V := (Kind => Empty_Vector_Kind);
-            return;
-         elsif GNATCOLL.JSON.Get (Vector, 1).Has_Field ("uri") then
-            V := (Kind => Location_Vector_Kind, Locations => <>);
-            Location_Vector'Read (S, V.Locations);
-         else
+         JS.R.Read_Next;
+
+         if Key in "originSelectionRange" | "targetUri" | "targetRange"
+           | "targetSelectionRange"
+         then
             V := (Kind => LocationLink_Vector_Kind, LocationLinks => <>);
-            LocationLink_Vector'Read (S, V.LocationLinks);
+            --  LocationLink_Vector'Read (S, V.LocationLinks);
+         elsif Key in "uri" | "range" then
+            V := (Kind => Location_Vector_Kind, Locations => <>);
+            --  Location_Vector'Read (S, V.Locations);
+         else
+            --  Go to next fliend and try again
+            null;
          end if;
       end;
+
+      raise Program_Error with "FIXME";
    end Read_Location_Or_Link_Vector;
 
    -----------------------
@@ -1842,23 +1949,43 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      case Value.Kind is
-         when GNATCOLL.JSON.JSON_String_Type =>
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  Value => To_LSP_String (Unbounded_String'(Value.Get)));
-         when GNATCOLL.JSON.JSON_Object_Type =>
-            --  We can't use Start_Object/End_Object here because JS.Read
-            --  call has already skipped the array item.
-            V := (Is_String => False,
-                  language => To_LSP_String
-                    (Unbounded_String'(Value.Get ("language"))),
-                  value    => To_LSP_String
-                    (Unbounded_String'(Value.Get ("value"))));
+                  Value => To_LSP_String
+                    (Magic.Strings.Conversions.To_UTF_8_String
+                       (JS.R.String_Value)));
+
+            JS.R.Read_Next;
+         when Magic.JSON.Streams.Readers.Start_Object =>
+            V := (Is_String => False, others => <>);
+
+            JS.R.Read_Next;
+
+            while not JS.R.Is_End_Object loop
+               pragma Assert (JS.R.Is_Key_Name);
+               declare
+                  Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                    Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               begin
+                  JS.R.Read_Next;
+
+                  if Key = "language" then
+                     LSP_String'Read (S, V.language);
+                  elsif Key = "value" then
+                     LSP_String'Read (S, V.value);
+                  else
+                     JS.R.Read_Next;  --  Skip corresponding value
+                  end if;
+               end;
+            end loop;
+            JS.R.Read_Next;
+
          when others =>
-            --  Unexpected JSON type
+            --  Unexpected JSON event
             V := (Is_String => True, Value => Empty_LSP_String);
+            JS.R.Read_Next;  --  Skip unexpected value
       end case;
    end Read_MarkedString;
 
@@ -1872,64 +1999,41 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         V := (Is_MarkupContent => False,
-               Vector           => <>);
-         V.Vector.Append
-           (MarkedString'(Is_String => True,
-                          value     => To_LSP_String
-                                         (Unbounded_String'(Value.Get))));
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
-         V := (Is_MarkupContent => False,
-               Vector           => <>);
-         MarkedString_Vector'Read (S, V.Vector);
-      elsif Value.Kind not in GNATCOLL.JSON.JSON_Object_Type then
-         null;  --  Nothing to do if this is not an object
-      elsif Value.Has_Field ("kind") then
-         V := (Is_MarkupContent => True,
-               MarkupContent    => <>);
-         MarkupContent'Read (S, V.MarkupContent);
-      else
-         declare
-            Item : MarkedString;
-         begin
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.String_Value =>
+
             V := (Is_MarkupContent => False,
                   Vector           => <>);
-            MarkedString'Read (S, Item);
-            V.Vector.Append (Item);
-         end;
-      end if;
+            V.Vector.Append
+              (MarkedString'(Is_String => True,
+                             value     => To_LSP_String
+                               (Magic.Strings.Conversions.To_UTF_8_String
+                                  (JS.R.String_Value))));
+            JS.R.Read_Next;
+      when Magic.JSON.Streams.Readers.Start_Array =>
+            V := (Is_MarkupContent => False,
+                  Vector           => <>);
+            MarkedString_Vector'Read (S, V.Vector);
+      when Magic.JSON.Streams.Readers.Start_Object =>
+            --  if Value.Has_Field ("kind") then
+            V := (Is_MarkupContent => True,
+                  MarkupContent    => <>);
+            MarkupContent'Read (S, V.MarkupContent);
+      --  else
+      --     declare
+      --        Item : MarkedString;
+      --     begin
+      --        V := (Is_MarkupContent => False,
+      --              Vector           => <>);
+      --        MarkedString'Read (S, Item);
+      --        V.Vector.Append (Item);
+      --     end;
+      --  end if;
+         when others =>
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_MarkupContent_Or_MarkedString_Vector;
-
-   ------------------------------
-   -- Read_Notification_Prefix --
-   ------------------------------
-
-   procedure Read_Notification_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.NotificationMessage'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      Read_String (JS, +"jsonrpc", V.jsonrpc);
-      Read_String (JS, +"method", V.method);
-   end Read_Notification_Prefix;
-
-   -----------------
-   -- Read_Number --
-   -----------------
-
-   procedure Read_Number
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_Number) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Item := LSP.Types.LSP_Number (Integer'(Stream.Read.Get));
-   end Read_Number;
 
    -------------------------------------------
    -- Read_Optional_TextDocumentSyncOptions --
@@ -1941,17 +2045,20 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         V := (False, False);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Object_Type then
-         V := (True, False, others => <>);
-         TextDocumentSyncOptions'Read (S, V.Options);
-      else
-         V := (True, True, others => <>);
-         TextDocumentSyncKind'Read (S, V.Value);
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Null_Value =>
+            V := (False, False);
+            JS.R.Read_Next;
+         when Magic.JSON.Streams.Readers.Start_Object =>
+            V := (True, False, others => <>);
+            TextDocumentSyncOptions'Read (S, V.Options);
+         when Magic.JSON.Streams.Readers.Number_Value =>
+            V := (True, True, others => <>);
+            TextDocumentSyncKind'Read (S, V.Value);
+         when others =>
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_Optional_TextDocumentSyncOptions;
 
    --------------------------
@@ -1964,17 +2071,23 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         V := (Is_String => True,
-               String    => To_LSP_String (Unbounded_String'(Value.Get)));
-      else
-         JS.Start_Array;
-         V.From := UTF_16_Index (Integer'(JS.Read.Get));
-         V.Till := UTF_16_Index (Integer'(JS.Read.Get));
-         JS.End_Array;
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.String_Value =>
+            V := (Is_String => True,
+                  String    => To_LSP_String
+                    (Magic.Strings.Conversions.To_UTF_8_String
+                       (JS.R.String_Value)));
+            JS.R.Read_Next;
+         when Magic.JSON.Streams.Readers.Start_Array =>
+            JS.R.Read_Next;
+            UTF_16_Index'Read (S, V.From);
+            UTF_16_Index'Read (S, V.Till);
+            pragma Assert (JS.R.Is_End_Array);
+            JS.R.Read_Next;
+         when others =>
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_Parameter_Label;
 
    ---------------------------
@@ -1987,57 +2100,23 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-      Look_Ahead : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Look_Ahead.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
-         V := (Is_Boolean => True,
-               Bool       => Look_Ahead.Get);
-      elsif Look_Ahead.Kind = GNATCOLL.JSON.JSON_Object_Type
-        and then Look_Ahead.Has_Field ("documentSelector")
-      then
-         V := (Is_Boolean => False,
-               Options    => (Is_Set => True, Value => <>));
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Boolean_Value =>
+            V := (Is_Boolean => True,
+                  Bool       => JS.R.Boolean_Value);
+            JS.R.Read_Next;
+         when Magic.JSON.Streams.Readers.Start_Object =>
+            V := (Is_Boolean => False,
+                  Options    => (Is_Set => True, Value => <>));
 
-         Optional_TSW_RegistrationOptions'Read (S, V.Options);
-      else
-         V := (Is_Boolean => False,
-               Options    => (Is_Set => False));
-      end if;
+            Optional_TSW_RegistrationOptions'Read (S, V.Options);
+         when others =>
+            JS.R.Read_Next;  --  Skip unexpected value
+            V := (Is_Boolean => False,
+                  Options    => (Is_Set => False));
+      end case;
    end Read_Provider_Options;
-
-   --------------------------
-   -- Read_Response_Prefix --
-   --------------------------
-
-   procedure Read_Response_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.ResponseMessage'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      Read_String (JS, +"jsonrpc", V.jsonrpc);
-      Read_Number_Or_String (JS, +"id", V.id);
-      JS.Key ("error");
-      Optional_ResponseError'Read (S, V.error);
-   end Read_Response_Prefix;
-
-   --------------------------
-   -- Read_ResponseMessage --
-   --------------------------
-
-   procedure Read_ResponseMessage
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out ResponseMessage)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      Read_Response_Prefix (S, V);
-      JS.End_Object;
-   end Read_ResponseMessage;
 
    ----------------------------------
    -- Read_String_Or_MarkupContent --
@@ -2049,15 +2128,22 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         V := (Is_String => True,
-               String    => To_LSP_String (Unbounded_String'(Value.Get)));
-      else
-         V := (Is_String => False, Content => <>);
-         MarkupContent'Read (S, V.Content);
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.String_Value =>
+            V := (Is_String => True,
+                  String    => To_LSP_String
+                    (Magic.Strings.Conversions.To_UTF_8_String
+                       (JS.R.String_Value)));
+            JS.R.Read_Next;
+
+         when Magic.JSON.Streams.Readers.Start_Object =>
+            V := (Is_String => False, Content => <>);
+            MarkupContent'Read (S, V.Content);
+         when others =>
+            V := (Is_String => False, Content => <>);
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_String_Or_MarkupContent;
 
    --------------------------
@@ -2082,28 +2168,19 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_Array_Type then
-         declare
-            Vector : constant GNATCOLL.JSON.JSON_Array := Value.Get;
-            --  ??? This copies whole array and slow, try to avoid it.
-         begin
-            if GNATCOLL.JSON.Length (Vector) > 0 then
-               if GNATCOLL.JSON.Get (Vector, 1).Has_Field ("range") then
-                  V := (Is_Tree => True, Tree => <>);
-                  DocumentSymbol_Tree'Read (S, V.Tree);
-               else
-                  V := (Is_Tree => False, Vector => <>);
-                  SymbolInformation_Vector'Read (S, V.Vector);
-               end if;
-            else
-               V := (Is_Tree => False, Vector => <>);
-            end if;
-         end;
-      else
-         V := (Is_Tree => False, Vector => <>);
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Start_Array =>
+            --  FIXME:
+            --  if GNATCOLL.JSON.Get (Vector, 1).Has_Field ("range") then
+            --     V := (Is_Tree => True, Tree => <>);
+            --     DocumentSymbol_Tree'Read (S, V.Tree);
+            V := (Is_Tree => False, Vector => <>);
+            SymbolInformation_Vector'Read (S, V.Vector);
+         when others =>
+            V := (Is_Tree => False, Vector => <>);
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_Symbol_Vector;
 
    ------------------------------------
@@ -2152,24 +2229,26 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value  : constant GNATCOLL.JSON.JSON_Value := JS.Read;
       Result : Integer;
       Mask   : Integer := 4;
    begin
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Result := Value.Get;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Number_Value =>
+            Result := Integer (JS.R.Number_Value.Integer_Value);
 
-         for J in reverse WatchKind loop
-            if Result >= Mask then
-               V (J) := True;
-               Result := Result - Mask;
-            end if;
+            for J in reverse WatchKind loop
+               if Result >= Mask then
+                  V (J) := True;
+                  Result := Result - Mask;
+               end if;
 
-            Mask := Mask / 2;
-         end loop;
-      else
-         V := Default_WatchKind_Set;
-      end if;
+               Mask := Mask / 2;
+            end loop;
+            JS.R.Read_Next;
+         when others =>
+            V := Default_WatchKind_Set;
+            JS.R.Read_Next;  --  Skip unexpected value
+      end case;
    end Read_WatchKind_Set;
 
    ----------------------------------
@@ -2183,9 +2262,25 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      Read_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "workDoneProgress" then
+               Optional_Boolean'Read (S, V.workDoneProgress);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_WorkDoneProgressOptions;
 
    ------------------------
@@ -2196,9 +2291,7 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceEdit)
    is
-      procedure Each
-        (Name  : GNATCOLL.JSON.UTF8_String;
-         Value : GNATCOLL.JSON.JSON_Value);
+      procedure Each (Name : Magic.Strings.Magic_String);
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -2207,17 +2300,16 @@ package body LSP.Messages is
       -- Each --
       ----------
 
-      procedure Each
-        (Name  : GNATCOLL.JSON.UTF8_String;
-         Value : GNATCOLL.JSON.JSON_Value)
-      is
-         pragma Unreferenced (Value);
-         Key    : constant LSP.Types.LSP_String := +Name;
+      procedure Each (Name : Magic.Strings.Magic_String) is
+         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+           Magic.Strings.Conversions.To_UTF_8_String (Name);
          Vector : TextEdit_Vector;
       begin
-         JS.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         JS.Start_Array;
-         while not JS.End_Of_Array loop
+         JS.R.Read_Next;  --  Skip Key
+         pragma Assert (JS.R.Is_Start_Array);
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Array loop
             declare
                Item : TextEdit;
             begin
@@ -2225,28 +2317,41 @@ package body LSP.Messages is
                Vector.Append (Item);
             end;
          end loop;
-         JS.End_Array;
 
-         V.changes.Insert (Key, Vector);
+         JS.R.Read_Next;
+
+         V.changes.Insert (To_LSP_String (Key), Vector);
       end Each;
 
-      Value : GNATCOLL.JSON.JSON_Value;
    begin
-      JS.Start_Object;
-      JS.Key ("changes");
-      Value := JS.Read;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
 
-      if Value.Kind in GNATCOLL.JSON.JSON_Object_Type then
-         JS.Key ("changes");
-         JS.Start_Object;
-         Value.Map_JSON_Object (Each'Access);
-         JS.End_Object;
-      else
-         JS.Key ("documentChanges");
-         Document_Change_Vector'Read (S, V.documentChanges);
-      end if;
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
 
-      JS.End_Object;
+            if Key = "changes" then
+               pragma Assert (JS.R.Is_Start_Object);
+               JS.R.Read_Next;
+               while not JS.R.Is_End_Object loop
+                  pragma Assert (JS.R.Is_Key_Name);
+                  Each (JS.R.String_Value);
+               end loop;
+               JS.R.Read_Next;
+
+            elsif Key = "documentChanges" then
+               Document_Change_Vector'Read (S, V.documentChanges);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_WorkspaceEdit;
 
    ----------------------
@@ -2453,7 +2558,7 @@ package body LSP.Messages is
    begin
       case V.Kind is
          when Empty_Vector_Kind =>
-            JS.Write (GNATCOLL.JSON.JSON_Null);
+            JS.Write_Null;
          when Location_Vector_Kind =>
             Location_Vector'Write (S, V.Locations);
          when LocationLink_Vector_Kind =>
@@ -2473,7 +2578,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_String then
-         JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V.value)));
+         JS.Write_String (V.value);
       else
          JS.Start_Object;
          Write_String (JS, +"language", V.language);
@@ -2499,21 +2604,6 @@ package body LSP.Messages is
       end if;
    end Write_MarkupContent_Or_MarkedString_Vector;
 
-   -------------------------------
-   -- Write_Notification_Prefix --
-   -------------------------------
-
-   procedure Write_Notification_Prefix
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.NotificationMessage'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-      Write_String (JS, +"method", V.method);
-   end Write_Notification_Prefix;
-
    ---------------------------
    -- Write_Optional_Number --
    ---------------------------
@@ -2528,7 +2618,7 @@ package body LSP.Messages is
          Write_Number (Stream, Key, Item.Value);
       elsif Write_Null then
          Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write (GNATCOLL.JSON.Create);
+         Stream.Write_Null;
       end if;
    end Write_Optional_Number;
 
@@ -2561,12 +2651,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_String then
-         JS.Write
-           (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+         JS.Write_String (V.String);
       else
          JS.Start_Array;
-         JS.Write (GNATCOLL.JSON.Create (Integer (V.From)));
-         JS.Write (GNATCOLL.JSON.Create (Integer (V.Till)));
+         JS.Write_Integer (Interfaces.Integer_64 (V.From));
+         JS.Write_Integer (Interfaces.Integer_64 (V.Till));
          JS.End_Array;
       end if;
    end Write_Parameter_Label;
@@ -2583,11 +2672,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_Boolean then
-         JS.Write (GNATCOLL.JSON.Create (V.Bool));
+         JS.Write_Boolean (V.Bool);
       elsif V.Options.Is_Set then
          Optional_TSW_RegistrationOptions'Write (S, V.Options);
       else
-         JS.Write (GNATCOLL.JSON.Create_Object);  --  Write {}
+         JS.Start_Object;  --  Write {}
+         JS.End_Object;
       end if;
    end Write_Provider_Options;
 
@@ -2624,7 +2714,7 @@ package body LSP.Messages is
 
       if not V.Is_Error then
          JS.Key ("result");
-         JS.Write (GNATCOLL.JSON.JSON_Null);
+         JS.Write_Null;
       end if;
 
       JS.End_Object;
@@ -2643,8 +2733,7 @@ package body LSP.Messages is
    begin
       case V.Is_String is
          when True =>
-            JS.Write
-              (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+            JS.Write_String (V.String);
          when False =>
             MarkupContent'Write (S, V.Content);
       end case;
@@ -2725,7 +2814,7 @@ package body LSP.Messages is
             Mask := Mask * 2;
          end loop;
 
-         JS.Write (GNATCOLL.JSON.Create (Result));
+         JS.Write_Integer (Interfaces.Integer_64 (Result));
       end if;
    end Write_WatchKind_Set;
 
@@ -2774,9 +2863,25 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      Read_Number (JS, +"inputQueueLength", V.inputQueueLength);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "inputQueueLength" then
+               LSP_Number'Read (S, V.inputQueueLength);
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_ALSDebugParams;
 
    --------------------------
@@ -2811,7 +2916,7 @@ package body LSP.Messages is
       --  readers.
 
       if not V.workDoneProgress.Is_Set then
-         JS.Write (GNATCOLL.JSON.Create (True));
+         JS.Write_Boolean (True);
       else
          JS.Start_Object;
          Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
@@ -2827,61 +2932,80 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Progress_Params)
    is
+      procedure Read_Value;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      kind  : LSP_String;
-      token : LSP_Number_Or_String;
+
+      kind        : LSP_String;
+      title       : LSP_String;
+      cancellable : Optional_Boolean;
+      message     : Optional_String;
+      percentage  : Optional_Number;
+      token       : LSP_Number_Or_String;
+
+      procedure Read_Value is
+      begin
+         pragma Assert (JS.R.Is_Start_Object);
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Object loop
+            pragma Assert (JS.R.Is_Key_Name);
+            declare
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            begin
+               JS.R.Read_Next;
+
+               if Key = "kind" then
+                  LSP_String'Read (S, kind);
+               elsif Key = "title" then
+                  LSP_String'Read (S, title);
+               elsif Key = "cancellable" then
+                  Optional_Boolean'Read (S, cancellable);
+               elsif Key = "message" then
+                  Optional_String'Read (S, message);
+               elsif Key = "percentage" then
+                  Optional_Number'Read (S, percentage);
+               else
+                  JS.R.Read_Next;  --  Skip corresponding value
+               end if;
+            end;
+         end loop;
+         JS.R.Read_Next;
+      end Read_Value;
+
    begin
-      JS.Start_Object;
-      Read_Number_Or_String (JS, +"token", token);
-      JS.Key ("value");
-      JS.Start_Object;
-      Read_String (JS, +"kind", kind);
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "token" then
+               LSP_Number_Or_String'Read (S, token);
+            elsif Key = "value" then
+               Read_Value;
+            else
+               JS.R.Read_Next;  --  Skip corresponding value
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+
       if kind = +"begin" then
-         declare
-            P : Progress_Params (Progress_Begin);
-         begin
-            P.Begin_Param.token := token;
-            Read_String (JS, +"title", P.Begin_Param.value.title);
-            Read_Optional_Boolean (JS, +"cancellable",
-                                   P.Begin_Param.value.cancellable);
-            Read_Optional_String (JS, +"message",
-                                  P.Begin_Param.value.message);
-            JS.Key ("percentage");
-            Optional_Number'Read (S, P.Begin_Param.value.percentage);
-            JS.End_Object;
-            JS.End_Object;
-            V := P;
-            return;
-         end;
+         V := (Progress_Begin,
+               (token, (kind, title, cancellable, message, percentage)));
       elsif kind = +"report" then
-         declare
-            P : Progress_Params (Progress_Report);
-         begin
-            P.Report_Param.token := token;
-            Read_Optional_Boolean (JS, +"cancellable",
-                                   P.Report_Param.value.cancellable);
-            Read_Optional_String (JS, +"message",
-                                  P.Report_Param.value.message);
-            JS.Key ("percentage");
-            Optional_Number'Read (S, P.Report_Param.value.percentage);
-            JS.End_Object;
-            JS.End_Object;
-            V := P;
-            return;
-         end;
+         V := (Progress_Report,
+               (token, (kind, cancellable, message, percentage)));
       elsif kind = +"end" then
-         declare
-            P : Progress_Params (Progress_End);
-         begin
-            P.End_Param.token := token;
-            Read_Optional_String (JS, +"message",
-                                  P.End_Param.value.message);
-            JS.End_Object;
-            JS.End_Object;
-            V := P;
-            return;
-         end;
+         V := (Progress_End,
+               (token, (kind, message)));
       else
          --  Not implemented
          raise Program_Error;

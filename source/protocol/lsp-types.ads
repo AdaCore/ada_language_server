@@ -21,7 +21,7 @@ with Ada.Containers.Vectors;
 with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
-with GNATCOLL.JSON;        use GNATCOLL.JSON;
+with GNATCOLL.JSON;
 with LSP.Generic_Optional;
 
 limited with LSP.JSON_Streams;
@@ -237,18 +237,12 @@ package LSP.Types is
 
    procedure Read_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
      Item   : out Boolean);
 
    procedure Write_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : Boolean);
-
-   procedure Read_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Boolean);
 
    procedure Write_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -278,7 +272,6 @@ package LSP.Types is
 
    procedure Read_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.LSP_String);
    --  Read string from the JSON stream under given Key
 
@@ -294,21 +287,19 @@ package LSP.Types is
 
    procedure Read_Optional_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
      Item   : out LSP.Types.Optional_String);
-   --  Read optional string from the JSON stream under given Key
+   --  Read optional string from the JSON stream
 
-   procedure Read_Number_Or_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.LSP_Number_Or_String);
-   --  Read number or string from the JSON stream under given Key
+   --  procedure Read_Number_Or_String
+   --   (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+   --    Item   : out LSP.Types.LSP_Number_Or_String);
+   --  --  Read number or string from the JSON stream
 
    procedure Write_Number_Or_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
-     Item   : LSP.Types.LSP_Number_Or_String);
-   --  Write number or string from the JSON stream under given Key
+      Item   : LSP.Types.LSP_Number_Or_String);
+   --  Write number or string from the JSON stream
 
    -------------------
    -- ProgressToken --

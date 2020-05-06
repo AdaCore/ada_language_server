@@ -22,8 +22,11 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Interfaces;
 
 with LSP.JSON_Streams;
+with Magic.JSON.Streams.Readers;
+with Magic.Strings.Conversions;
 
 package body LSP.Types is
+   use type Magic.JSON.Streams.Readers.JSON_Event_Kind;
 
    Chunk_Size    : constant := 512;
    --  When processing strings in chunks, this is the size of the chunk
@@ -73,8 +76,25 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      V := To_LSP_String (Unbounded_String'(JS.Read.Get));
+      pragma Assert (JS.R.Is_String_Value);
+      V := To_LSP_String
+        (Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value));
+      JS.R.Read_Next;
    end Read;
+
+   -----------------
+   -- Read_String --
+   -----------------
+
+   procedure Read_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Item   : out LSP.Types.LSP_String) is
+   begin
+      pragma Assert (Stream.R.Is_String_Value);
+      Item := To_LSP_String
+        (Magic.Strings.Conversions.To_UTF_8_String (Stream.R.String_Value));
+      Stream.R.Read_Next;
+   end Read_String;
 
    --------------
    -- Read_Any --
@@ -84,10 +104,135 @@ package body LSP.Types is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP_Any)
    is
+      function Read_Value return GNATCOLL.JSON.JSON_Value;
+
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      ----------------
+      -- Read_Value --
+      ----------------
+
+      function Read_Value return GNATCOLL.JSON.JSON_Value is
+      begin
+         case JS.R.Event_Kind is
+            when Magic.JSON.Streams.Readers.No_Token |
+                 Magic.JSON.Streams.Readers.Invalid |
+                 Magic.JSON.Streams.Readers.Start_Document |
+                 Magic.JSON.Streams.Readers.End_Document |
+                 Magic.JSON.Streams.Readers.End_Array |
+                 Magic.JSON.Streams.Readers.End_Object |
+                 Magic.JSON.Streams.Readers.Key_Name =>
+
+               raise Program_Error;
+
+            when Magic.JSON.Streams.Readers.Start_Array =>
+
+               return Result : constant GNATCOLL.JSON.JSON_Value :=
+                 GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array)
+               do
+                  JS.R.Read_Next;
+
+                  while not JS.R.Is_End_Array loop
+                     GNATCOLL.JSON.Append (Result, Read_Value);
+                  end loop;
+
+                  JS.R.Read_Next;
+               end return;
+
+            when Magic.JSON.Streams.Readers.Start_Object =>
+
+               return Result : constant GNATCOLL.JSON.JSON_Value :=
+                 GNATCOLL.JSON.Create_Object
+               do
+                  JS.R.Read_Next;
+
+                  while not JS.R.Is_End_Object loop
+                     pragma Assert (JS.R.Is_Key_Name);
+
+                     declare
+                        Key : constant String :=
+                          Magic.Strings.Conversions.To_UTF_8_String
+                            (JS.R.Key_Name);
+                     begin
+                        JS.R.Read_Next;
+                        Result.Set_Field (Key, Read_Value);
+                     end;
+                  end loop;
+
+                  JS.R.Read_Next;
+               end return;
+
+            when Magic.JSON.Streams.Readers.String_Value =>
+
+               declare
+                  Value : constant String :=
+                    Magic.Strings.Conversions.To_UTF_8_String
+                      (JS.R.String_Value);
+               begin
+                  JS.R.Read_Next;
+
+                  return GNATCOLL.JSON.Create (Value);
+               end;
+
+            when Magic.JSON.Streams.Readers.Number_Value =>
+
+               declare
+                  Value : constant Magic.JSON.JSON_Number :=
+                    JS.R.Number_Value;
+               begin
+                  JS.R.Read_Next;
+
+                  case Value.Kind is
+                     when Magic.JSON.JSON_Integer =>
+                        return GNATCOLL.JSON.Create
+                          (Long_Long_Integer (Value.Integer_Value));
+                     when Magic.JSON.JSON_Float =>
+                        return GNATCOLL.JSON.Create
+                          (Long_Float (Value.Float_Value));
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end;
+
+            when Magic.JSON.Streams.Readers.Boolean_Value =>
+
+               declare
+                  Value : constant Boolean := (JS.R.Boolean_Value);
+               begin
+                  JS.R.Read_Next;
+
+                  return GNATCOLL.JSON.Create (Value);
+               end;
+
+            when Magic.JSON.Streams.Readers.Null_Value =>
+               JS.R.Read_Next;
+
+               return GNATCOLL.JSON.JSON_Null;
+
+         end case;
+      end Read_Value;
    begin
-      V := LSP_Any'(JS.Read with null record);
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.No_Token |
+              Magic.JSON.Streams.Readers.Invalid |
+              Magic.JSON.Streams.Readers.Start_Document |
+              Magic.JSON.Streams.Readers.End_Document |
+              Magic.JSON.Streams.Readers.End_Array |
+              Magic.JSON.Streams.Readers.End_Object |
+              Magic.JSON.Streams.Readers.Key_Name =>
+
+            raise Program_Error;
+
+         when Magic.JSON.Streams.Readers.Start_Array |
+              Magic.JSON.Streams.Readers.Start_Object |
+              Magic.JSON.Streams.Readers.String_Value |
+              Magic.JSON.Streams.Readers.Number_Value |
+              Magic.JSON.Streams.Readers.Boolean_Value |
+              Magic.JSON.Streams.Readers.Null_Value =>
+
+            V := (Read_Value with null record);
+      end case;
    end Read_Any;
 
    ------------------
@@ -96,22 +241,24 @@ package body LSP.Types is
 
    procedure Read_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out Boolean)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
+     Item   : out Boolean) is
    begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
+      case Stream.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Boolean_Value =>
 
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := False;  --  No such property
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
-         Item := Value.Get;  --  Property of a boolean type
-      else
-         Item := True;  --  Property of non-boolean type, protocol extension
-         --  could provide an object instead of boolean.
-      end if;
+            Item := Stream.R.Boolean_Value;
+
+         when Magic.JSON.Streams.Readers.Null_Value =>
+
+            Item := False;
+
+         when others =>
+            Item := True;
+            --  Property of non-boolean type, protocol extension
+            --  could provide an object instead of boolean.
+      end case;
+
+      Stream.R.Read_Next;
    end Read_Boolean;
 
    --------------------------------
@@ -124,18 +271,29 @@ package body LSP.Types is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-         V := (Is_Boolean => False,
-               String     => To_LSP_String (Unbounded_String'(Value.Get)));
-      elsif Value.Kind = GNATCOLL.JSON.JSON_Boolean_Type then
-         V := (Is_Boolean => True,
-               Boolean    => GNATCOLL.JSON.Get (Value));
-      else
-         V := (Is_Boolean => True,
-               Boolean    => True);
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.String_Value =>
+
+            declare
+               Value : constant String :=
+                 Magic.Strings.Conversions.To_UTF_8_String
+                   (JS.R.String_Value);
+            begin
+               V := (Is_Boolean => False,
+                     String     => To_LSP_String (Value));
+            end;
+
+         when Magic.JSON.Streams.Readers.Boolean_Value =>
+            V := (Is_Boolean => True,
+                  Boolean    => JS.R.Boolean_Value);
+
+         when others =>
+            V := (Is_Boolean => True,
+                  Boolean    => True);
+      end case;
+
+      JS.R.Read_Next;
    end Read_LSP_Boolean_Or_String;
 
    -------------------------------
@@ -148,18 +306,33 @@ package body LSP.Types is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Is_Empty then
-         V := (Is_Number => False,
-               String    => Empty_LSP_String);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_String_Type then
-         V := (Is_Number => False,
-               String    => To_LSP_String (Unbounded_String'(Value.Get)));
-      else
-         V := (Is_Number => True,
-               Number    => LSP_Number (Integer'(Value.Get)));
-      end if;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Null_Value =>
+
+            V := (Is_Number => False,
+                  String    => Empty_LSP_String);
+
+         when Magic.JSON.Streams.Readers.String_Value =>
+
+            declare
+               Value : constant String :=
+                 Magic.Strings.Conversions.To_UTF_8_String
+                   (JS.R.String_Value);
+            begin
+               V := (Is_Number => False,
+                     String    => To_LSP_String (Value));
+            end;
+
+         when Magic.JSON.Streams.Readers.Number_Value =>
+            V := (Is_Number => True,
+                  Number    => LSP_Number (JS.R.Number_Value.Integer_Value));
+
+         when others =>
+            raise Constraint_Error;
+      end case;
+
+      JS.R.Read_Next;
    end Read_LSP_Number_Or_String;
 
    ----------------------------
@@ -174,27 +347,20 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       V.Clear;
-      JS.Start_Array;
+      pragma Assert (JS.R.Is_Start_Array);
+      JS.R.Read_Next;
 
-      while not JS.End_Of_Array loop
-         V.Append (To_LSP_String (Unbounded_String'(JS.Read.Get)));
+      while JS.R.Is_End_Array loop
+         declare
+            Item : LSP_String;
+         begin
+            LSP_String'Read (S, Item);
+            V.Append (Item);
+         end;
       end loop;
 
-      JS.End_Array;
+      JS.R.Read_Next;
    end Read_LSP_String_Vector;
-
-   ---------------------------
-   -- Read_Number_Or_String --
-   ---------------------------
-
-   procedure Read_Number_Or_String
-     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-      Key    : LSP.Types.LSP_String;
-      Item   : out LSP.Types.LSP_Number_Or_String) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Read_LSP_Number_Or_String (Stream'Unchecked_Access, Item);
-   end Read_Number_Or_String;
 
    ---------------------------
    -- Read_Optional_Boolean --
@@ -207,36 +373,21 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Value : constant GNATCOLL.JSON.JSON_Value := JS.Read;
    begin
-      if Value.Is_Empty then
-         V := (Is_Set => False);
-      elsif Value.Kind in GNATCOLL.JSON.JSON_Boolean_Type then
-         V := (Is_Set => True, Value => Value.Get);
-      else
-         V := (Is_Set => True, Value => True);
-      end if;
-   end Read_Optional_Boolean;
+      case JS.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Null_Value =>
+            V := (Is_Set => False);
 
-   ---------------------------
-   -- Read_Optional_Boolean --
-   ---------------------------
+         when Magic.JSON.Streams.Readers.Boolean_Value =>
+            V := (Is_Set => True,
+                  Value  => JS.R.Boolean_Value);
 
-   procedure Read_Optional_Boolean
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
-     Item   : out LSP.Types.Optional_Boolean)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
+         when others =>
+            V := (Is_Set => True,
+                  Value  => True);
+      end case;
 
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := (Is_Set => False);
-      else
-         Item := (Is_Set => True, Value => Value.Get);
-      end if;
+      JS.R.Read_Next;
    end Read_Optional_Boolean;
 
    ----------
@@ -250,9 +401,10 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Value : constant Integer := JS.Read.Get;
    begin
-      V := LSP_Number (Value);
+      pragma Assert (JS.R.Is_Number_Value);
+      V := LSP_Number (JS.R.Number_Value.Integer_Value);
+      JS.R.Read_Next;
    end Read;
 
    --------------------------
@@ -261,34 +413,30 @@ package body LSP.Types is
 
    procedure Read_Optional_String
      (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-      Key    : LSP.Types.LSP_String;
-      Item   : out LSP.Types.Optional_String)
-   is
-      Value : GNATCOLL.JSON.JSON_Value;
+      Item   : out LSP.Types.Optional_String) is
    begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Value := Stream.Read;
+      case Stream.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.Null_Value =>
 
-      if Value.Kind in GNATCOLL.JSON.JSON_Null_Type then
-         Item := (Is_Set => False);
-      else
-         Item := (Is_Set => True, Value => To_LSP_String
-                  (Unbounded_String'(Value.Get)));
-      end if;
+            Item := (Is_Set => False);
+
+         when Magic.JSON.Streams.Readers.String_Value =>
+
+            declare
+               Value : constant String :=
+                 Magic.Strings.Conversions.To_UTF_8_String
+                   (Stream.R.String_Value);
+            begin
+               Item := (Is_Set => True,
+                        Value  => To_LSP_String (Value));
+            end;
+
+         when others =>
+            raise Constraint_Error;
+      end case;
+
+      Stream.R.Read_Next;
    end Read_Optional_String;
-
-   -----------------
-   -- Read_String --
-   -----------------
-
-   procedure Read_String
-     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-      Key    : LSP.Types.LSP_String;
-      Item   : out LSP.Types.LSP_String) is
-   begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Item := To_LSP_String (Unbounded_String'(Stream.Read.Get));
-   end Read_String;
 
    -----------------
    -- Starts_With --
@@ -461,8 +609,57 @@ package body LSP.Types is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      procedure Write (Value : GNATCOLL.JSON.JSON_Value'Class);
+      procedure Write_Field (Key : String; Value : GNATCOLL.JSON.JSON_Value);
+
+      -----------
+      -- Write --
+      -----------
+
+      procedure Write (Value : GNATCOLL.JSON.JSON_Value'Class) is
+      begin
+         case Value.Kind is
+            when GNATCOLL.JSON.JSON_Null_Type =>
+               JS.Write_Null;
+            when GNATCOLL.JSON.JSON_Boolean_Type =>
+               JS.Write_Boolean (Value.Get);
+            when GNATCOLL.JSON.JSON_Int_Type =>
+               JS.Write_Integer
+                 (Interfaces.Integer_64 (Long_Long_Integer'(Value.Get)));
+            when GNATCOLL.JSON.JSON_Float_Type =>
+               JS.Write_Integer
+                 (Interfaces.Integer_64 (Float'(Value.Get)));
+            when GNATCOLL.JSON.JSON_String_Type =>
+               JS.Write_String (String'(Value.Get));
+            when GNATCOLL.JSON.JSON_Array_Type =>
+               declare
+                  Vector : constant GNATCOLL.JSON.JSON_Array := Value.Get;
+               begin
+                  JS.Start_Array;
+                  for J in 1 .. GNATCOLL.JSON.Length (Vector) loop
+                     Write (GNATCOLL.JSON.Get (Vector, J));
+                  end loop;
+                  JS.End_Array;
+               end;
+            when GNATCOLL.JSON.JSON_Object_Type =>
+               JS.Start_Object;
+               Value.Map_JSON_Object (Write_Field'Access);
+               JS.End_Object;
+         end case;
+      end Write;
+
+      -----------------
+      -- Write_Field --
+      -----------------
+
+      procedure Write_Field (Key : String; Value : GNATCOLL.JSON.JSON_Value) is
+      begin
+         JS.Key (Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Key));
+         Write (Value);
+      end Write_Field;
    begin
-      JS.Write (GNATCOLL.JSON.JSON_Value (V));
+      Write (V);
    end Write_Any;
 
    -------------------
@@ -475,7 +672,7 @@ package body LSP.Types is
      Item   : Boolean) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (Item));
+      Stream.Write_Boolean (Item);
    end Write_Boolean;
 
    ------------------
@@ -518,7 +715,7 @@ package body LSP.Types is
    begin
       if Item.Is_Set then
          Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write (GNATCOLL.JSON.Create (Item.Value));
+         Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
 
@@ -533,7 +730,7 @@ package body LSP.Types is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write (GNATCOLL.JSON.Create (Integer (V)));
+      JS.Write_Integer (Interfaces.Integer_64 (V));
    end Write;
 
    ------------------
@@ -578,8 +775,7 @@ package body LSP.Types is
       JS.Start_Array;
 
       for J in 1 .. V.Last_Index loop
-         JS.Write
-           (GNATCOLL.JSON.Create (To_UTF_8_String (V.Element (J))));
+         JS.Write_String (V.Element (J));
       end loop;
 
       JS.End_Array;

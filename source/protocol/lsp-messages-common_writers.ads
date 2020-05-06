@@ -18,8 +18,6 @@
 --  This package provides utilities for factorizing the coding/decoding
 --  of common message types. It is meant to be used internally only.
 
-with LSP.JSON_Streams;
-
 package LSP.Messages.Common_Writers is
 
    procedure Write_Notification_Prefix
@@ -31,15 +29,5 @@ package LSP.Messages.Common_Writers is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.RequestMessage'Class);
    --  Write the data common to all requests in V
-
-   procedure Set_Common_Notification_Fields
-     (R  : in out NotificationMessage'Class;
-      JS : in out LSP.JSON_Streams.JSON_Stream'Class);
-   --  Read the data common to all notifications in R
-
-   procedure Set_Common_Request_Fields
-     (R  : in out RequestMessage'Class;
-      JS : in out LSP.JSON_Streams.JSON_Stream'Class);
-   --  Read the data common to all requests in R
 
 end LSP.Messages.Common_Writers;
