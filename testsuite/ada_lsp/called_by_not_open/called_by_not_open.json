@@ -3,97 +3,98 @@
       "comment": [
          "test automatically generated"
       ]
-   }, 
+   },
    {
       "start": {
          "cmd": [
             "${ALS}"
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
-               "processId": 13950, 
+               "processId": 13950,
                "capabilities": {
                   "workspace": {
                      "applyEdit": false
                   }
-               }, 
+               },
                "rootUri": "$URI{.}"
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 1, 
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
             "method": "initialize"
-         }, 
+         },
          "wait": [{
-               "id": 1, 
+               "id": 1,
                "result": {
                   "capabilities": {
-                     "hoverProvider": true, 
-                     "documentSymbolProvider": true, 
-                     "referencesProvider": true, 
-                     "textDocumentSync": 2, 
+                     "hoverProvider": true,
+                     "documentSymbolProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
-                           "."
-                        ], 
+                            ".",
+                            "("
+                        ],
                         "resolveProvider": false
-                     }, 
+                     },
                      "definitionProvider": true,
                      "alsCalledByProvider": true
                   }
                }
             }]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "p.gpr", 
-                     "scenarioVariables": {}, 
+                     "projectFile": "p.gpr",
+                     "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "position": {
-                  "line": 2, 
+                  "line": 2,
                   "character": 45
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
-               }, 
+               },
                "context": {
                   "includeDeclaration": true
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/alsCalledBy"
-         }, 
+         },
 
          "wait": [{"jsonrpc":"2.0","id":2,
                    "result":[

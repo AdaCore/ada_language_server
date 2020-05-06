@@ -156,6 +156,10 @@ private
       Completion_Snippets_Enabled : Boolean := False;
       --  True if the client supports completion snippets
 
+      Named_Notation_Threshold : Natural := 3;
+      --  Defines the number of parameters/components at which point named
+      --  notation is used for subprogram/aggregate completion snippets.
+
       ----------------------
       -- Project handling --
       ----------------------

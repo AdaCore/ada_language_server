@@ -76,7 +76,8 @@
                           "completionProvider": {
                               "resolveProvider": false,
                               "triggerCharacters": [
-                                  "."
+                                  ".",
+                                  "("
                               ]
                           },
                           "hoverProvider": true,

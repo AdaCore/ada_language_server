@@ -544,10 +544,10 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Full));
       Response.result.capabilities.completionProvider :=
         (True,
-         (resolveProvider   => (True, False),
-          triggerCharacters => (True, Empty_Vector & (+".")),
+         (resolveProvider     => (True, False),
+          triggerCharacters   => (True, Empty_Vector & (+".") & (+"(")),
           allCommitCharacters => (Is_Set => False),
-          workDoneProgress  => (Is_Set => False)));
+          workDoneProgress    => (Is_Set => False)));
       Response.result.capabilities.hoverProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
@@ -2402,6 +2402,7 @@ package body LSP.Ada_Handlers is
       enableDiagnostics      : constant String := "enableDiagnostics";
       enableIndexing         : constant String := "enableIndexing";
       renameInComments       : constant String := "renameInComments";
+      namedNotationThreshold : constant String := "namedNotationThreshold";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -2447,6 +2448,14 @@ package body LSP.Ada_Handlers is
          if Ada.Has_Field (renameInComments) then
             Self.Refactoring.Renaming.In_Comments :=
               Ada.Get (renameInComments);
+         end if;
+
+         --  Retrieve the number of parameters / components at which point
+         --  named notation is used for subprogram/aggregate completion
+         --  snippets.
+
+         if Ada.Has_Field (namedNotationThreshold) then
+            Self.Named_Notation_Threshold := Ada.Get (namedNotationThreshold);
          end if;
       end if;
 
@@ -2815,10 +2824,11 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
    begin
       Document.Get_Completions_At
-        (Context          => Context.all,
-         Position         => Value.position,
-         Snippets_Enabled => Self.Completion_Snippets_Enabled,
-         Result           => Response.result);
+        (Context                  => Context.all,
+         Position                 => Value.position,
+         Snippets_Enabled         => Self.Completion_Snippets_Enabled,
+         Named_Notation_Threshold => Self.Named_Notation_Threshold,
+         Result                   => Response.result);
 
       return Response;
    end On_Completion_Request;
