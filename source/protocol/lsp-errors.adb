@@ -84,7 +84,7 @@ package body LSP.Errors is
             elsif Key = "data" then
                LSP.Types.LSP_Any'Read (S, V.data);
             else
-               JS.R.Read_Next;
+               JS.Skip_Value;
             end if;
          end;
       end loop;

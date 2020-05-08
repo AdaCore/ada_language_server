@@ -32,12 +32,11 @@ with LSP.Servers.Decode_Notification;
 with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Request;
 
-with GNATCOLL.JSON;
 with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
-with Magic.JSON.Streams.Readers.Simple;
+with Magic.JSON.Streams.Readers;
 with Magic.Stream_Element_Buffers;
 with Magic.Strings.Conversions;
 with Magic.Text_Streams.Memory;
@@ -302,93 +301,69 @@ package body LSP.Servers is
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
             Version    : out LSP.Types.LSP_String;
-            Method     : out LSP.Types.Optional_String);
+            Method     : out LSP.Types.Optional_String;
+            Error      : out LSP.Messages.Optional_ResponseError);
 
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
             Version    : out LSP.Types.LSP_String;
-            Method     : out LSP.Types.Optional_String)
+            Method     : out LSP.Types.Optional_String;
+            Error      : out LSP.Messages.Optional_ResponseError)
          is
             use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
-            procedure Skip_Value;
 
-            R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
-
-            ----------------
-            -- Skip_Value --
-            ----------------
-
-            procedure Skip_Value is
-            begin
-               case R.Event_Kind is
-                  when Start_Object =>
-                     R.Read_Next;
-                     while R.Event_Kind /= End_Object loop
-                        pragma Assert (R.Event_Kind = Key_Name);
-                        R.Read_Next;
-                        Skip_Value;
-                     end loop;
-                     R.Read_Next;
-                  when Start_Array =>
-                     R.Read_Next;
-                     while R.Event_Kind /= End_Array loop
-                        Skip_Value;
-                     end loop;
-                     R.Read_Next;
-                  when String_Value .. Null_Value =>
-                     R.Read_Next;
-                  when others =>
-                     raise Constraint_Error with "Unexpected JSON event";
-               end case;
-            end Skip_Value;
+            JS : aliased LSP.JSON_Streams.JSON_Stream (True);
 
          begin
-            R.Set_Stream (Memory'Unchecked_Access);
-            R.Read_Next;
-            pragma Assert (R.Event_Kind = Start_Document);
-            R.Read_Next;
-            pragma Assert (R.Event_Kind = Start_Object);
-            R.Read_Next;
-            while R.Event_Kind /= End_Object loop
-               pragma Assert (R.Event_Kind = Key_Name);
+            JS.Set_JSON_Document (Memory'Unchecked_Access);
+            JS.R.Read_Next;
+            pragma Assert (JS.R.Is_Start_Document);
+            JS.R.Read_Next;
+            pragma Assert (JS.R.Is_Start_Object);
+            JS.R.Read_Next;
+            while not JS.R.Is_End_Object loop
+               pragma Assert (JS.R.Is_Key_Name);
                declare
                   Key : constant String :=
-                    Magic.Strings.Conversions.To_UTF_8_String (R.Key_Name);
+                    Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
                begin
-                  R.Read_Next;
+                  JS.R.Read_Next;
 
                   if Key = "id" then
-                     case R.Event_Kind is
+                     case JS.R.Event_Kind is
                         when String_Value =>
                            Request_Id :=
                              (Is_Number => False,
                               String    => LSP.Types.To_LSP_String
                                 (Magic.Strings.Conversions.To_UTF_8_String
-                                     (R.String_Value)));
+                                     (JS.R.String_Value)));
                         when Number_Value =>
                            Request_Id :=
                              (Is_Number => True,
                               Number    => LSP.Types.LSP_Number
-                                (R.Number_Value.Integer_Value));
+                                (JS.R.Number_Value.Integer_Value));
                         when others =>
                            raise Constraint_Error;
                      end case;
-                     R.Read_Next;
+                     JS.R.Read_Next;
                   elsif Key = "jsonrpc" then
-                     pragma Assert (R.Event_Kind = String_Value);
+                     pragma Assert (JS.R.Is_String_Value);
                      Version := LSP.Types.To_LSP_String
                        (Magic.Strings.Conversions.To_UTF_8_String
-                          (R.String_Value));
-                     R.Read_Next;
+                          (JS.R.String_Value));
+                     JS.R.Read_Next;
                   elsif Key = "method" then
-                     pragma Assert (R.Event_Kind = String_Value);
+                     pragma Assert (JS.R.Is_String_Value);
                      Method := (Is_Set => True,
                                 Value  => LSP.Types.To_LSP_String
                                   (Magic.Strings.Conversions.To_UTF_8_String
-                                     (R.String_Value)));
-                     R.Read_Next;
+                                     (JS.R.String_Value)));
+                     JS.R.Read_Next;
+                  elsif Key = "error" then
+                     LSP.Messages.Optional_ResponseError'Read
+                       (JS'Access, Error);
                   else
-                     Skip_Value;
+                     JS.Skip_Value;
                   end if;
                end;
             end loop;
@@ -406,8 +381,7 @@ package body LSP.Servers is
          Version    : LSP.Types.LSP_String;
          Method     : LSP.Types.Optional_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
-         Error      : constant LSP.Messages.Optional_ResponseError :=
-           (Is_Set => False);
+         Error      : LSP.Messages.Optional_ResponseError;
       begin
          for J in 1 .. Length (Vector) loop
             Memory.Buffer.Append
@@ -416,7 +390,7 @@ package body LSP.Servers is
          end loop;
 
          --  Read request id and method if any
-         Decode_JSON_RPC_Headers (Request_Id, Version, Method);
+         Decode_JSON_RPC_Headers (Request_Id, Version, Method, Error);
 
          JS.Set_JSON_Document (Memory'Unchecked_Access);
 
@@ -425,16 +399,12 @@ package body LSP.Servers is
          if not Method.Is_Set then
             --  TODO: Process client responses here.
 
-            --  FIXME:
-            --  JS.Key ("error");
-            --  LSP.Messages.Optional_ResponseError'Read (JS'Access, Error);
-            --
             if Error.Is_Set then
                --  We have got error from LSP client. Save it in the trace:
                Self.Server_Trace.Trace ("Got Error response:");
 
-            --     Self.Server_Trace.Trace
-            --       (LSP.Types.To_UTF_8_String (Error.Value.message));
+               Self.Server_Trace.Trace
+                 (LSP.Types.To_UTF_8_String (Error.Value.message));
             end if;
 
             return;

@@ -247,18 +247,20 @@ package body LSP.Types is
          when Magic.JSON.Streams.Readers.Boolean_Value =>
 
             Item := Stream.R.Boolean_Value;
+            Stream.R.Read_Next;
 
          when Magic.JSON.Streams.Readers.Null_Value =>
 
             Item := False;
+            Stream.R.Read_Next;
 
          when others =>
             Item := True;
+            Stream.Skip_Value;
             --  Property of non-boolean type, protocol extension
             --  could provide an object instead of boolean.
       end case;
 
-      Stream.R.Read_Next;
    end Read_Boolean;
 
    --------------------------------
@@ -282,18 +284,21 @@ package body LSP.Types is
             begin
                V := (Is_Boolean => False,
                      String     => To_LSP_String (Value));
+               JS.R.Read_Next;
             end;
 
          when Magic.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Boolean => True,
                   Boolean    => JS.R.Boolean_Value);
+            JS.R.Read_Next;
 
          when others =>
             V := (Is_Boolean => True,
                   Boolean    => True);
+
+            JS.Skip_Value;
       end case;
 
-      JS.R.Read_Next;
    end Read_LSP_Boolean_Or_String;
 
    -------------------------------
@@ -377,17 +382,19 @@ package body LSP.Types is
       case JS.R.Event_Kind is
          when Magic.JSON.Streams.Readers.Null_Value =>
             V := (Is_Set => False);
+            JS.R.Read_Next;
 
          when Magic.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Set => True,
                   Value  => JS.R.Boolean_Value);
+            JS.R.Read_Next;
 
          when others =>
             V := (Is_Set => True,
                   Value  => True);
+            JS.Skip_Value;
       end case;
 
-      JS.R.Read_Next;
    end Read_Optional_Boolean;
 
    ----------

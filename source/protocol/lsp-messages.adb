@@ -1632,7 +1632,7 @@ package body LSP.Messages is
                Optional_WorkspaceEdit'Read (S, V.edit);
                Is_CodeAction := True;
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1682,7 +1682,7 @@ package body LSP.Messages is
                   V.Custom.Set (Create_Command (Tag, JS'Access));
                end if;
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1770,10 +1770,10 @@ package body LSP.Messages is
                      Item.children := True;
                      Read_Array (Next);
                   else
-                     JS.R.Read_Next;
+                     JS.Skip_Value;
                   end if;
                else
-                  JS.R.Read_Next;  --  Skip corresponding value
+                  JS.Skip_Value;
                end if;
             end;
          end loop;
@@ -1828,10 +1828,16 @@ package body LSP.Messages is
                      command    => V.command,
                      Custom     => <>);
 
+                  pragma Assert (JS.R.Is_Start_Array);
+                  JS.R.Read_Next;
+
                   V.Custom.Set (Create_Command (Tag, JS'Access));
+
+                  pragma Assert (JS.R.Is_End_Array);
+                  JS.R.Read_Next;
                end if;
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1871,13 +1877,13 @@ package body LSP.Messages is
                if JS.R.Is_String_Value then
                   LSP_String'Read (S, V.rootPath);
                else
-                  JS.R.Read_Next;
+                  JS.Skip_Value;
                end if;
             elsif Key = "rootUri" then
                if JS.R.Is_String_Value then
                   DocumentUri'Read (S, V.rootUri);
                else
-                  JS.R.Read_Next;
+                  JS.Skip_Value;
                end if;
             elsif Key = "capabilities" then
                ClientCapabilities'Read (S, V.capabilities);
@@ -1886,7 +1892,7 @@ package body LSP.Messages is
             elsif Key = "workspaceFolders" then
                Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1976,7 +1982,7 @@ package body LSP.Messages is
                   elsif Key = "value" then
                      LSP_String'Read (S, V.value);
                   else
-                     JS.R.Read_Next;  --  Skip corresponding value
+                     JS.Skip_Value;
                   end if;
                end;
             end loop;
@@ -1985,7 +1991,7 @@ package body LSP.Messages is
          when others =>
             --  Unexpected JSON event
             V := (Is_String => True, Value => Empty_LSP_String);
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_MarkedString;
 
@@ -2031,7 +2037,7 @@ package body LSP.Messages is
       --     end;
       --  end if;
          when others =>
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_MarkupContent_Or_MarkedString_Vector;
 
@@ -2057,7 +2063,7 @@ package body LSP.Messages is
             V := (True, True, others => <>);
             TextDocumentSyncKind'Read (S, V.Value);
          when others =>
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_Optional_TextDocumentSyncOptions;
 
@@ -2086,7 +2092,7 @@ package body LSP.Messages is
             pragma Assert (JS.R.Is_End_Array);
             JS.R.Read_Next;
          when others =>
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_Parameter_Label;
 
@@ -2112,7 +2118,7 @@ package body LSP.Messages is
 
             Optional_TSW_RegistrationOptions'Read (S, V.Options);
          when others =>
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
             V := (Is_Boolean => False,
                   Options    => (Is_Set => False));
       end case;
@@ -2142,7 +2148,7 @@ package body LSP.Messages is
             MarkupContent'Read (S, V.Content);
          when others =>
             V := (Is_String => False, Content => <>);
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_String_Or_MarkupContent;
 
@@ -2179,7 +2185,7 @@ package body LSP.Messages is
             SymbolInformation_Vector'Read (S, V.Vector);
          when others =>
             V := (Is_Tree => False, Vector => <>);
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_Symbol_Vector;
 
@@ -2207,17 +2213,7 @@ package body LSP.Messages is
    procedure Read_VersionedTextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VersionedTextDocumentIdentifier)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      DocumentUri'Read (S, V.uri);
-      JS.Key ("version");
-      Optional_Number'Read (S, V.version);
-      JS.End_Object;
-   end Read_VersionedTextDocumentIdentifier;
+      renames LSP.Message_IO.Read_VersionedTextDocumentIdentifier;
 
    ------------------------
    -- Read_WatchKind_Set --
@@ -2247,7 +2243,7 @@ package body LSP.Messages is
             JS.R.Read_Next;
          when others =>
             V := Default_WatchKind_Set;
-            JS.R.Read_Next;  --  Skip unexpected value
+            JS.Skip_Value;
       end case;
    end Read_WatchKind_Set;
 
@@ -2276,7 +2272,7 @@ package body LSP.Messages is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2347,7 +2343,7 @@ package body LSP.Messages is
             elsif Key = "documentChanges" then
                Document_Change_Vector'Read (S, V.documentChanges);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2877,7 +2873,7 @@ package body LSP.Messages is
             if Key = "inputQueueLength" then
                LSP_Number'Read (S, V.inputQueueLength);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2967,7 +2963,7 @@ package body LSP.Messages is
                elsif Key = "percentage" then
                   Optional_Number'Read (S, percentage);
                else
-                  JS.R.Read_Next;  --  Skip corresponding value
+                  JS.Skip_Value;
                end if;
             end;
          end loop;
@@ -2991,7 +2987,7 @@ package body LSP.Messages is
             elsif Key = "value" then
                Read_Value;
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;

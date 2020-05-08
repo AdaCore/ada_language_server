@@ -135,6 +135,56 @@ package body LSP.JSON_Streams is
       Self.W.Writer.Start_Document;
    end Set_Stream;
 
+   ----------------
+   -- Skip_Value --
+   ----------------
+
+   procedure Skip_Value (Self : in out JSON_Stream'Class) is
+   begin
+      case Self.R.Event_Kind is
+         when Magic.JSON.Streams.Readers.No_Token |
+              Magic.JSON.Streams.Readers.Invalid |
+              Magic.JSON.Streams.Readers.Start_Document |
+              Magic.JSON.Streams.Readers.End_Document |
+              Magic.JSON.Streams.Readers.End_Array |
+              Magic.JSON.Streams.Readers.End_Object |
+              Magic.JSON.Streams.Readers.Key_Name =>
+
+            raise Program_Error;
+
+         when Magic.JSON.Streams.Readers.Start_Array =>
+
+            Self.R.Read_Next;
+
+            while not Self.R.Is_End_Array loop
+               Skip_Value (Self);  --  skip erray element
+            end loop;
+
+            Self.R.Read_Next;
+
+         when Magic.JSON.Streams.Readers.Start_Object =>
+
+            Self.R.Read_Next;
+
+            while not Self.R.Is_End_Object loop
+               pragma Assert (Self.R.Is_Key_Name);
+
+               Self.R.Read_Next;  --  Skip key
+               Skip_Value (Self);  --  Skip corresponding value
+            end loop;
+
+            Self.R.Read_Next;
+
+         when Magic.JSON.Streams.Readers.String_Value
+            | Magic.JSON.Streams.Readers.Number_Value
+            | Magic.JSON.Streams.Readers.Boolean_Value
+            | Magic.JSON.Streams.Readers.Null_Value =>
+
+            Self.R.Read_Next;
+
+      end case;
+   end Skip_Value;
+
    -----------------
    -- Start_Array --
    -----------------

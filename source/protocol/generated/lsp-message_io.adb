@@ -37,7 +37,7 @@ package body LSP.Message_IO is
             elsif Key = "method" then
                LSP_String'Read (S, V.method);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -83,7 +83,7 @@ package body LSP.Message_IO is
             elsif Key = "method" then
                LSP_String'Read (S, V.method);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -125,7 +125,7 @@ package body LSP.Message_IO is
             if Key = "id" then
                LSP_Number_Or_String'Read (S, V.id);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -167,7 +167,7 @@ package body LSP.Message_IO is
             elsif Key = "character" then
                UTF_16_Index'Read (S, V.character);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -211,7 +211,7 @@ package body LSP.Message_IO is
             elsif Key = "end" then
                Position'Read (S, V.last);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -395,7 +395,7 @@ package body LSP.Message_IO is
             elsif Key = "alsKind" then
                AlsReferenceKind_Set'Read (S, V.alsKind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -447,7 +447,7 @@ package body LSP.Message_IO is
             elsif Key = "alsKind" then
                AlsReferenceKind_Set'Read (S, V.alsKind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -539,7 +539,7 @@ package body LSP.Message_IO is
             elsif Key = "message" then
                LSP_String'Read (S, V.message);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -593,7 +593,7 @@ package body LSP.Message_IO is
             elsif Key = "relatedInformation" then
                DiagnosticRelatedInformation_Vector'Read (S, V.relatedInformation);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -647,7 +647,7 @@ package body LSP.Message_IO is
             elsif Key = "newText" then
                LSP_String'Read (S, V.newText);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -689,7 +689,7 @@ package body LSP.Message_IO is
             if Key = "uri" then
                DocumentUri'Read (S, V.uri);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -708,6 +708,50 @@ package body LSP.Message_IO is
       DocumentUri'Write (S, V.uri);
       JS.End_Object;
    end Write_TextDocumentIdentifier;
+
+   procedure Read_VersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VersionedTextDocumentIdentifier)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "uri" then
+               DocumentUri'Read (S, V.uri);
+            elsif Key = "version" then
+               Optional_Number'Read (S, V.version);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_VersionedTextDocumentIdentifier;
+
+   procedure Write_VersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VersionedTextDocumentIdentifier)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("uri");
+      DocumentUri'Write (S, V.uri);
+      JS.Key ("version");
+      Optional_Number'Write (S, V.version);
+      JS.End_Object;
+   end Write_VersionedTextDocumentIdentifier;
 
    procedure Read_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -731,7 +775,7 @@ package body LSP.Message_IO is
             elsif Key = "edits" then
                TextEdit_Vector'Read (S, V.edits);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -779,7 +823,7 @@ package body LSP.Message_IO is
             elsif Key = "text" then
                LSP_String'Read (S, V.text);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -827,7 +871,7 @@ package body LSP.Message_IO is
             elsif Key = "position" then
                LSP.Messages.Position'Read (S, V.position);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -869,7 +913,7 @@ package body LSP.Message_IO is
             if Key = "dynamicRegistration" then
                Optional_Boolean'Read (S, V.dynamicRegistration);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1019,7 +1063,7 @@ package body LSP.Message_IO is
             elsif Key = "failureHandling" then
                Optional_FailureHandlingKind'Read (S, V.failureHandling);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1084,7 +1128,7 @@ package body LSP.Message_IO is
             if Key = "valueSet" then
                Optional_SymbolKindSet'Read (S, V.valueSet);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1147,7 +1191,7 @@ package body LSP.Message_IO is
             elsif Key = "symbolKind" then
                Optional_symbolKindCapabilities'Read (S, V.symbolKind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1203,7 +1247,7 @@ package body LSP.Message_IO is
             elsif Key = "configuration" then
                Optional_Boolean'Read (S, V.configuration);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1306,7 +1350,7 @@ package body LSP.Message_IO is
             elsif Key = "value" then
                LSP_String'Read (S, V.value);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1348,7 +1392,7 @@ package body LSP.Message_IO is
             if Key = "includeText" then
                Optional_Boolean'Read (S, V.includeText);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1394,7 +1438,7 @@ package body LSP.Message_IO is
             elsif Key = "didSave" then
                Optional_Boolean'Read (S, V.didSave);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1461,7 +1505,7 @@ package body LSP.Message_IO is
             if Key = "valueSet" then
                CompletionItemTagSet'Read (S, V.valueSet);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1511,7 +1555,7 @@ package body LSP.Message_IO is
             elsif Key = "tagSupport" then
                Optional_CompletionItemTagSupport'Read (S, V.tagSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1582,7 +1626,7 @@ package body LSP.Message_IO is
             if Key = "valueSet" then
                Optional_CompletionItemKindSet'Read (S, V.valueSet);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1628,7 +1672,7 @@ package body LSP.Message_IO is
             elsif Key = "contextSupport" then
                Optional_Boolean'Read (S, V.contextSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1676,7 +1720,7 @@ package body LSP.Message_IO is
             elsif Key = "contentFormat" then
                Optional_MarkupKind_Vector'Read (S, V.contentFormat);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1718,7 +1762,7 @@ package body LSP.Message_IO is
             if Key = "labelOffsetSupport" then
                Optional_Boolean'Read (S, V.labelOffsetSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1760,7 +1804,7 @@ package body LSP.Message_IO is
             elsif Key = "parameterInformation" then
                Optional_parameterInformation_Capability'Read (S, V.parameterInformation);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1806,7 +1850,7 @@ package body LSP.Message_IO is
             elsif Key = "contextSupport" then
                Optional_Boolean'Read (S, V.contextSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1854,7 +1898,7 @@ package body LSP.Message_IO is
             elsif Key = "hierarchicalDocumentSymbolSupport" then
                Optional_Boolean'Read (S, V.hierarchicalDocumentSymbolSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1900,7 +1944,7 @@ package body LSP.Message_IO is
             elsif Key = "linkSupport" then
                Optional_Boolean'Read (S, V.linkSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1942,7 +1986,7 @@ package body LSP.Message_IO is
             if Key = "valueSet" then
                CodeActionKindSet'Read (S, V.valueSet);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -1982,7 +2026,7 @@ package body LSP.Message_IO is
             if Key = "codeActionKind" then
                codeActionKindCapability'Read (S, V.codeActionKind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2026,7 +2070,7 @@ package body LSP.Message_IO is
             elsif Key = "isPreferredSupport" then
                Optional_Boolean'Read (S, V.isPreferredSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2072,7 +2116,7 @@ package body LSP.Message_IO is
             elsif Key = "tooltipSupport" then
                Optional_Boolean'Read (S, V.tooltipSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2116,7 +2160,7 @@ package body LSP.Message_IO is
             elsif Key = "prepareSupport" then
                Optional_Boolean'Read (S, V.prepareSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2158,7 +2202,7 @@ package body LSP.Message_IO is
             if Key = "valueSet" then
                DiagnosticTagSet'Read (S, V.valueSet);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2202,7 +2246,7 @@ package body LSP.Message_IO is
             elsif Key = "versionSupport" then
                Optional_Boolean'Read (S, V.versionSupport);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2250,7 +2294,7 @@ package body LSP.Message_IO is
             elsif Key = "lineFoldingOnly" then
                Optional_Boolean'Read (S, V.lineFoldingOnly);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2336,7 +2380,7 @@ package body LSP.Message_IO is
             elsif Key = "selectionRange" then
                SelectionRangeClientCapabilities'Read (S, V.selectionRange);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2418,7 +2462,7 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2462,7 +2506,7 @@ package body LSP.Message_IO is
             elsif Key = "window" then
                Optional_WindowClientCapabilities'Read (S, V.window);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2508,7 +2552,7 @@ package body LSP.Message_IO is
             elsif Key = "name" then
                LSP_String'Read (S, V.name);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2550,7 +2594,7 @@ package body LSP.Message_IO is
             if Key = "token" then
                ProgressToken'Read (S, V.token);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2592,7 +2636,7 @@ package body LSP.Message_IO is
             elsif Key = "version" then
                Optional_String'Read (S, V.version);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2714,7 +2758,7 @@ package body LSP.Message_IO is
             elsif Key = "save" then
                Optional_SaveOptions'Read (S, V.save);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2768,7 +2812,7 @@ package body LSP.Message_IO is
             elsif Key = "resolveProvider" then
                LSP.Types.Optional_Boolean'Read (S, V.resolveProvider);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2818,7 +2862,7 @@ package body LSP.Message_IO is
             elsif Key = "retriggerCharacters" then
                Optional_LSP_String_Vector'Read (S, V.retriggerCharacters);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2866,7 +2910,7 @@ package body LSP.Message_IO is
             elsif Key = "documentSelector" then
                LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2912,7 +2956,7 @@ package body LSP.Message_IO is
             elsif Key = "codeActionKinds" then
                Optional_CodeActionKindSet'Read (S, V.codeActionKinds);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -2956,7 +3000,7 @@ package body LSP.Message_IO is
             elsif Key = "resolveProvider" then
                LSP.Types.Optional_Boolean'Read (S, V.resolveProvider);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3002,7 +3046,7 @@ package body LSP.Message_IO is
             elsif Key = "moreTriggerCharacter" then
                Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3048,7 +3092,7 @@ package body LSP.Message_IO is
             elsif Key = "prepareProvider" then
                LSP.Types.Optional_Boolean'Read (S, V.prepareProvider);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3092,7 +3136,7 @@ package body LSP.Message_IO is
             elsif Key = "resolveProvider" then
                LSP.Types.Optional_Boolean'Read (S, V.resolveProvider);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3136,7 +3180,7 @@ package body LSP.Message_IO is
             elsif Key = "commands" then
                LSP.Types.LSP_String_Vector'Read (S, V.commands);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3180,7 +3224,7 @@ package body LSP.Message_IO is
             elsif Key = "changeNotifications" then
                Optional_Boolean_Or_String'Read (S, V.changeNotifications);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3222,7 +3266,7 @@ package body LSP.Message_IO is
             if Key = "workspaceFolders" then
                Optional_WorkspaceFoldersServerCapabilities'Read (S, V.workspaceFolders);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3314,7 +3358,7 @@ package body LSP.Message_IO is
             elsif Key = "alsShowDepsProvider" then
                Optional_Boolean'Read (S, V.alsShowDepsProvider);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3408,7 +3452,7 @@ package body LSP.Message_IO is
             elsif Key = "serverInfo" then
                Optional_ProgramInfo'Read (S, V.serverInfo);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3452,7 +3496,7 @@ package body LSP.Message_IO is
             if Key = "" then
                null;
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3515,7 +3559,7 @@ package body LSP.Message_IO is
             elsif Key = "message" then
                LSP_String'Read (S, V.message);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3561,7 +3605,7 @@ package body LSP.Message_IO is
             elsif Key = "actions" then
                MessageActionItem_Vector'Read (S, V.actions);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3607,7 +3651,7 @@ package body LSP.Message_IO is
             elsif Key = "message" then
                LSP_String'Read (S, V.message);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3649,7 +3693,7 @@ package body LSP.Message_IO is
             if Key = "settings" then
                LSP.Types.LSP_Any'Read (S, V.settings);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3689,7 +3733,7 @@ package body LSP.Message_IO is
             if Key = "textDocument" then
                TextDocumentItem'Read (S, V.textDocument);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3733,7 +3777,7 @@ package body LSP.Message_IO is
             elsif Key = "text" then
                LSP_String'Read (S, V.text);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3779,7 +3823,7 @@ package body LSP.Message_IO is
             elsif Key = "contentChanges" then
                TextDocumentContentChangeEvent_Vector'Read (S, V.contentChanges);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3844,7 +3888,7 @@ package body LSP.Message_IO is
             elsif Key = "text" then
                Optional_String'Read (S, V.text);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3886,7 +3930,7 @@ package body LSP.Message_IO is
             if Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -3951,7 +3995,7 @@ package body LSP.Message_IO is
             elsif Key = "diagnostics" then
                Diagnostic_Vector'Read (S, V.diagnostics);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4044,7 +4088,7 @@ package body LSP.Message_IO is
             elsif Key = "command" then
                Optional_Command'Read (S, V.command);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4114,7 +4158,7 @@ package body LSP.Message_IO is
             elsif Key = "items" then
                CompletionItem_Vector'Read (S, V.items);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4157,7 +4201,7 @@ package body LSP.Message_IO is
             elsif Key = "range" then
                Optional_Span'Read (S, V.Span);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4201,7 +4245,7 @@ package body LSP.Message_IO is
             elsif Key = "documentation" then
                Optional_String_Or_MarkupContent'Read (S, V.documentation);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4247,7 +4291,7 @@ package body LSP.Message_IO is
             elsif Key = "parameters" then
                ParameterInformation_Vector'Read (S, V.parameters);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4295,7 +4339,7 @@ package body LSP.Message_IO is
             elsif Key = "activeParameter" then
                Optional_Number'Read (S, V.activeParameter);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4339,7 +4383,7 @@ package body LSP.Message_IO is
             if Key = "includeDeclaration" then
                LSP.Types.Read_Boolean (JS, V.includeDeclaration);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4386,7 +4430,7 @@ package body LSP.Message_IO is
             elsif Key = "context" then
                ReferenceContext'Read (S, V.context);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4457,7 +4501,7 @@ package body LSP.Message_IO is
             elsif Key = "kind" then
                Optional_DocumentHighlightKind'Read (S, V.kind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4503,7 +4547,7 @@ package body LSP.Message_IO is
             elsif Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4557,7 +4601,7 @@ package body LSP.Message_IO is
             elsif Key = "containerName" then
                Optional_String'Read (S, V.containerName);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4611,7 +4655,7 @@ package body LSP.Message_IO is
             elsif Key = "query" then
                LSP_String'Read (S, V.query);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4657,7 +4701,7 @@ package body LSP.Message_IO is
             elsif Key = "only" then
                Optional_CodeActionKindSet'Read (S, V.only);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4707,7 +4751,7 @@ package body LSP.Message_IO is
             elsif Key = "context" then
                CodeActionContext'Read (S, V.context);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4763,7 +4807,7 @@ package body LSP.Message_IO is
             elsif Key = "trimFinalNewlines" then
                Optional_Boolean'Read (S, V.trimFinalNewlines);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4814,7 +4858,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                FormattingOptions'Read (S, V.options);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4864,7 +4908,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                FormattingOptions'Read (S, V.options);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4916,7 +4960,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                FormattingOptions'Read (S, V.options);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -4968,7 +5012,7 @@ package body LSP.Message_IO is
             elsif Key = "newName" then
                LSP_String'Read (S, V.newName);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5016,7 +5060,7 @@ package body LSP.Message_IO is
             elsif Key = "edit" then
                WorkspaceEdit'Read (S, V.edit);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5060,7 +5104,7 @@ package body LSP.Message_IO is
             elsif Key = "failureReason" then
                Optional_String'Read (S, V.failureReason);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5109,7 +5153,7 @@ package body LSP.Message_IO is
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5163,7 +5207,7 @@ package body LSP.Message_IO is
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5211,7 +5255,7 @@ package body LSP.Message_IO is
             elsif Key = "message" then
                Optional_String'Read (S, V.message);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5255,7 +5299,7 @@ package body LSP.Message_IO is
             elsif Key = "removed" then
                WorkspaceFolder_Vector'Read (S, V.removed);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5297,7 +5341,7 @@ package body LSP.Message_IO is
             if Key = "event" then
                WorkspaceFoldersChangeEvent'Read (S, V.event);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5339,7 +5383,7 @@ package body LSP.Message_IO is
             elsif Key = "section" then
                Optional_String'Read (S, V.section);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5381,7 +5425,7 @@ package body LSP.Message_IO is
             if Key = "items" then
                ConfigurationItem_Vector'Read (S, V.items);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5423,7 +5467,7 @@ package body LSP.Message_IO is
             elsif Key = "kind" then
                WatchKind_Set'Read (S, V.kind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5465,7 +5509,7 @@ package body LSP.Message_IO is
             if Key = "watchers" then
                FileSystemWatcher_Vector'Read (S, V.watchers);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5528,7 +5572,7 @@ package body LSP.Message_IO is
             elsif Key = "triggerCharacter" then
                Optional_String'Read (S, V.triggerCharacter);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5578,7 +5622,7 @@ package body LSP.Message_IO is
             elsif Key = "context" then
                Optional_CompletionContext'Read (S, V.context);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5632,7 +5676,7 @@ package body LSP.Message_IO is
             elsif Key = "alpha" then
                LSP_Number'Read (S, V.alpha);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5680,7 +5724,7 @@ package body LSP.Message_IO is
             elsif Key = "color" then
                RGBA_Color'Read (S, V.color);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5730,7 +5774,7 @@ package body LSP.Message_IO is
             elsif Key = "range" then
                LSP.Messages.Span'Read (S, V.span);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5782,7 +5826,7 @@ package body LSP.Message_IO is
             elsif Key = "additionalTextEdits" then
                TextEdit_Vector'Read (S, V.additionalTextEdits);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5830,7 +5874,7 @@ package body LSP.Message_IO is
             elsif Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5882,7 +5926,7 @@ package body LSP.Message_IO is
             elsif Key = "kind" then
                Optional_String'Read (S, V.kind);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5934,7 +5978,7 @@ package body LSP.Message_IO is
             elsif Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -5984,7 +6028,7 @@ package body LSP.Message_IO is
             elsif Key = "positions" then
                Position_Vector'Read (S, V.positions);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -6030,7 +6074,7 @@ package body LSP.Message_IO is
             if Key = "range" then
                LSP.Messages.Span'Read (S, V.span);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;
@@ -6074,7 +6118,7 @@ package body LSP.Message_IO is
             elsif Key = "refs" then
                Location_Vector'Read (S, V.refs);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;

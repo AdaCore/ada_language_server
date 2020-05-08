@@ -24,7 +24,7 @@ types_to_print = {
     #  'Command',
     'TextEdit',
     'TextDocumentIdentifier',
-    #  'VersionedTextDocumentIdentifier',
+    'VersionedTextDocumentIdentifier',
     'TextDocumentEdit',
     #  'CreateFileOptions',
     #  'CreateFile',
@@ -356,7 +356,7 @@ read_prolog = {
 
 read_epilog = {
     'Read': """e
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;

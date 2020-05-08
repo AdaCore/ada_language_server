@@ -124,6 +124,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentIdentifier);
 
+   procedure Read_VersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.VersionedTextDocumentIdentifier);
+
+   procedure Write_VersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.VersionedTextDocumentIdentifier);
+
    procedure Read_TextDocumentEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.TextDocumentEdit);
