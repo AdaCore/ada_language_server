@@ -260,24 +260,26 @@ io_footer = """\
    end {kind}_{type};
 """
 
-write_component = \
-    {
-     "LSP_String": """\
-      JS.Key ("{key}");
-      LSP.Types.{kind} (S, V.{name});
-""",
-     "DocumentUri": """\
-      JS.Key ("{key}");
-      LSP.Types.{kind} (S, V.{name});
-""",
-     "Boolean": """\
+write_component = {
+    "Boolean": """\
       {kind}_Boolean (JS, +"{key}", V.{name});
 """,
-     "": """\
+    "": """\
       JS.Key ("{key}");
       {type}'{kind} (S, V.{name});
 """
-    }
+}
+
+read_component = {
+    "Boolean": """if Key = "{key}" then
+               LSP.Types.Read_Boolean (JS, V.{name});
+            els""",
+    "": """if Key = "{key}" then
+               {type}'Read (S, V.{name});
+            els"""
+}
+
+io_component = {'Read': read_component, 'Write': write_component}
 
 io_pos_enum = {
     'Read': """\
@@ -333,7 +335,8 @@ io_string_enum_footer = {
 """
 }
 
-read_prolog = """   begin
+read_prolog = {
+    'Read': """   begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
 
@@ -344,19 +347,24 @@ read_prolog = """   begin
                Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
-            """
+            """,
+    'Write': """   begin
+      JS.Start_Object;
+"""
+}
 
-read_component = """if Key = "{key}" then
-               {type}'Read (S, V.{name});
-            els"""
 
-read_epilog = """e
+read_epilog = {
+    'Read': """e
                JS.R.Read_Next;  --  Skip corresponding value
             end if;
          end;
       end loop;
       JS.R.Read_Next;
+""",
+    'Write': """      JS.End_Object;
 """
+}
 
 
 # The list of enumeration type represented as strings
@@ -403,11 +411,11 @@ def get_key(field):
         return field
 
 
-def write_format(type):
-    if type in write_component:
-        return write_component[type]
+def write_format(type, kind):
+    if type in io_component[kind]:
+        return io_component[kind][type]
     else:
-        return write_component[""]
+        return io_component[kind][""]
 
 
 def filter(x):
@@ -435,26 +443,10 @@ def get_components(node):
     return result
 
 
-def print_components(file, kind, node):
-    file.write('   begin\n')
-    file.write('      JS.Start_Object;\n')
+def print_components(file, kind, node, no_components):
+    file.write(read_prolog[kind])
 
-    for x in get_components(node):
-        name = x.p_defining_name.token_start.text
-        tp = x.f_component_def.f_type_expr.f_name.full_name
-        txt = write_format(tp).format(key=get_key(name),
-                                      kind=kind,
-                                      name=name,
-                                      type=tp)
-        file.write(txt)
-
-    file.write('      JS.End_Object;\n')
-
-
-def print_read_components(file, node, no_components):
-    file.write(read_prolog)
-
-    if no_components:
+    if kind == 'Read' and no_components:
         #  Write something compilable
         file.write("""if Key = "" then
                null;
@@ -463,12 +455,13 @@ def print_read_components(file, node, no_components):
     for x in get_components(node):
         name = x.p_defining_name.token_start.text
         tp = x.f_component_def.f_type_expr.f_name.full_name
-        txt = read_component.format(key=get_key(name),
-                                    name=name,
-                                    type=tp)
+        txt = write_format(tp, kind).format(key=get_key(name),
+                                            kind=kind,
+                                            name=name,
+                                            type=tp)
         file.write(txt)
 
-    file.write(read_epilog)
+    file.write(read_epilog[kind])
 
 
 def print_enums(file, kind, type, node):
@@ -500,10 +493,8 @@ def print_body(file, node):
                                     unref=unref))
         if isinstance(node.f_type_def, lal.EnumTypeDef):
             print_enums(file, kind, name, node.f_type_def)
-        elif kind == 'Read':
-            print_read_components(file, node.f_type_def, unref)
         else:
-            print_components(file, kind, node.f_type_def)
+            print_components(file, kind, node.f_type_def, unref)
 
         file.write(io_footer.format(type=node.p_defining_name.token_start.text,
                                     kind=kind))
