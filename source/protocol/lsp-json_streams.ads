@@ -94,6 +94,9 @@ package LSP.JSON_Streams is
       return not null access
         Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class;
 
+   procedure Skip_Value (Self : in out JSON_Stream'Class);
+   --  Read and discard one value from JSON
+
    procedure Write_String
     (Self : in out JSON_Stream'Class;
      Item : String);

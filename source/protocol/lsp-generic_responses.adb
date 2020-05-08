@@ -50,7 +50,7 @@ package body LSP.Generic_Responses is
             elsif Key = "result" then
                T'Read (S, V.result);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;

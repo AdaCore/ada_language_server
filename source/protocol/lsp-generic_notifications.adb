@@ -64,7 +64,7 @@ package body LSP.Generic_Notifications is
             elsif Key = "params" then
                T'Read (S, V.params);
             else
-               JS.R.Read_Next;  --  Skip corresponding value
+               JS.Skip_Value;
             end if;
          end;
       end loop;

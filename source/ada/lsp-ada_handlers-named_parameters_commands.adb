@@ -16,6 +16,9 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Strings.UTF_Encoding;
+
+with Magic.Strings.Conversions;
 
 with LSP.Lal_Utils;
 with Libadalang.Analysis;
@@ -40,12 +43,27 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    is
    begin
       return V : Command do
-         JS.Start_Object;
-         JS.Key ("context");
-         LSP.Types.Read (JS, V.Context);
-         JS.Key ("where");
-         LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
-         JS.End_Object;
+         pragma Assert (JS.R.Is_Start_Object);
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Object loop
+            pragma Assert (JS.R.Is_Key_Name);
+            declare
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            begin
+               JS.R.Read_Next;
+
+               if Key = "context" then
+                  LSP.Types.Read (JS, V.Context);
+               elsif Key = "where" then
+                  LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
+               else
+                  JS.Skip_Value;
+               end if;
+            end;
+         end loop;
+         JS.R.Read_Next;
       end return;
    end Create;
 
