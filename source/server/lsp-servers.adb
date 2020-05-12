@@ -36,7 +36,7 @@ with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
-with Magic.JSON.Streams.Readers;
+with Magic.JSON.Streams.Readers.Simple;
 with Magic.Stream_Element_Buffers;
 with Magic.Strings.Conversions;
 with Magic.Text_Streams.Memory;
@@ -312,10 +312,12 @@ package body LSP.Servers is
          is
             use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
 
-            JS : aliased LSP.JSON_Streams.JSON_Stream (True);
+            R  : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+            JS : aliased LSP.JSON_Streams.JSON_Stream
+              (True, R'Unchecked_Access);
 
          begin
-            JS.Set_JSON_Document (Memory'Unchecked_Access);
+            R.Set_Stream (Memory'Unchecked_Access);
             JS.R.Read_Next;
             pragma Assert (JS.R.Is_Start_Document);
             JS.R.Read_Next;
@@ -377,7 +379,6 @@ package body LSP.Servers is
 
          Is_Exit_Notification : Boolean;
 
-         JS         : aliased LSP.JSON_Streams.JSON_Stream (True);
          Version    : LSP.Types.LSP_String;
          Method     : LSP.Types.Optional_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
@@ -391,8 +392,6 @@ package body LSP.Servers is
 
          --  Read request id and method if any
          Decode_JSON_RPC_Headers (Request_Id, Version, Method, Error);
-
-         JS.Set_JSON_Document (Memory'Unchecked_Access);
 
          --  Decide if this is a request, response or notification
 
@@ -991,7 +990,7 @@ package body LSP.Servers is
             Server.Logger.Visit (Message.all);
 
             declare
-               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True);
+               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True, null);
                Output     : aliased Magic.Text_Streams.Memory
                  .Memory_UTF8_Output_Stream;
             begin

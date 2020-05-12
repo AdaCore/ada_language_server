@@ -15,7 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Memory_Text_Streams;
+with Magic.JSON.Streams.Readers.Simple;
+with Magic.Strings.Conversions;
+with Magic.Text_Streams.Memory;
 
 with LSP.Client_Notification_Receivers;
 with LSP.Clients.Request_Handlers;
@@ -27,6 +30,7 @@ with LSP.Messages.Client_Notifications;
 use LSP.Messages.Client_Notifications;
 with LSP.Messages.Server_Responses;
 with LSP.Messages.Client_Responses;
+with LSP.Messages.Client_Requests;
 
 package body LSP.Clients is
 
@@ -550,55 +554,116 @@ package body LSP.Clients is
      (Self : in out Client;
       Data : Ada.Strings.Unbounded.Unbounded_String)
    is
-      function Get_Id
-        (JSON   : GNATCOLL.JSON.JSON_Array)
-           return LSP.Types.LSP_Number_Or_String;
+      procedure Look_Ahead
+        (Id       : out LSP.Types.LSP_Number_Or_String;
+         Method   : out LSP.Types.Optional_String;
+         Is_Error : in out Boolean);
 
-      ------------
-      -- Get_Id --
-      ------------
+      Memory : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
 
-      function Get_Id
-        (JSON   : GNATCOLL.JSON.JSON_Array)
-          return LSP.Types.LSP_Number_Or_String
+      ----------------
+      -- Look_Ahead --
+      ----------------
+
+      procedure Look_Ahead
+        (Id       : out LSP.Types.LSP_Number_Or_String;
+         Method   : out LSP.Types.Optional_String;
+         Is_Error : in out Boolean)
       is
-         Stream : aliased LSP.JSON_Streams.JSON_Stream (False);
-         Result : LSP.Types.LSP_Number_Or_String;
+         use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
+
+         R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+
       begin
-         Stream.Set_JSON_Document (JSON);
-         Stream.Start_Object;
-         LSP.Types.Read_Number_Or_String (Stream, +"id", Result);
+         R.Set_Stream (Memory'Unchecked_Access);
+         R.Read_Next;
+         pragma Assert (R.Is_Start_Document);
+         R.Read_Next;
+         pragma Assert (R.Is_Start_Object);
+         R.Read_Next;
+         while not R.Is_End_Object loop
+            pragma Assert (R.Is_Key_Name);
+            declare
+               Key : constant String :=
+                 Magic.Strings.Conversions.To_UTF_8_String (R.Key_Name);
+            begin
+               R.Read_Next;
 
-         return Result;
-      end Get_Id;
+               if Key = "id" then
+                  case R.Event_Kind is
+                     when String_Value =>
+                        Id :=
+                          (Is_Number => False,
+                           String    => LSP.Types.To_LSP_String
+                             (Magic.Strings.Conversions.To_UTF_8_String
+                                  (R.String_Value)));
+                     when Number_Value =>
+                        Id :=
+                          (Is_Number => True,
+                           Number    => LSP.Types.LSP_Number
+                             (R.Number_Value.Integer_Value));
+                     when others =>
+                        raise Constraint_Error;
+                  end case;
+                  R.Read_Next;
+               elsif Key = "method" then
+                  pragma Assert (R.Is_String_Value);
+                  Method := (Is_Set => True,
+                             Value  => LSP.Types.To_LSP_String
+                               (Magic.Strings.Conversions.To_UTF_8_String
+                                  (R.String_Value)));
+                  R.Read_Next;
+               elsif Key = "error" then
+                  Is_Error := True;
+                  LSP.JSON_Streams.Skip_Value (R'Access);
+               else
+                  LSP.JSON_Streams.Skip_Value (R'Access);
+               end if;
+            end;
+         end loop;
 
-      Value  : constant GNATCOLL.JSON.JSON_Value := GNATCOLL.JSON.Read (Data);
-      JSON   : GNATCOLL.JSON.JSON_Array;
-      Stream : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
+         Memory.Current := 1;
+      end Look_Ahead;
+
+      Reader : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+      Stream : aliased LSP.JSON_Streams.JSON_Stream
+        (Is_Server_Side => False, R => Reader'Unchecked_Access);
       Id     : LSP.Types.LSP_Number_Or_String;
+      Method : LSP.Types.Optional_String;
 
-      Is_Error : constant Boolean := Value.Has_Field ("error");
+      Is_Error : Boolean := False;
    begin
-      GNATCOLL.JSON.Append (JSON, Value);
-      Stream.Set_JSON_Document (JSON);
+      declare
+         use Ada.Strings.Unbounded;
+      begin
+         for J in 1 .. Length (Data) loop
+            Memory.Buffer.Append
+              (Ada.Streams.Stream_Element'Val
+                 (Character'Pos (Element (Data, J))));
+         end loop;
+      end;
 
-      if Value.Has_Field ("id") then
-         Id := Get_Id (JSON);
+      Look_Ahead (Id, Method, Is_Error);
+      Reader.Set_Stream (Memory'Unchecked_Access);
+      Stream.R.Read_Next;
+      pragma Assert (Stream.R.Is_Start_Document);
+      Stream.R.Read_Next;
+      pragma Assert (Stream.R.Is_Start_Object);
 
-         if Value.Has_Field ("method") then
+      if LSP.Types.Assigned (Id) then
+         if Method.Is_Set then
             --   Request from server;
-            if Value.Get ("method") = "workspace/applyEdit" then
+            if Method.Value = "workspace/applyEdit" then
                declare
-                  Params : LSP.Messages.ApplyWorkspaceEditParams;
+                  Request : LSP.Messages.Client_Requests
+                              .Workspace_Apply_Edit_Request;
                begin
-                  Stream.Start_Object;
-                  Stream.Key ("params");
-                  LSP.Messages.ApplyWorkspaceEditParams'Read
-                    (Stream'Access, Params);
+                  LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request'
+                    Read (Stream'Access, Request);
 
                   Self.Request_Handler.Workspace_Apply_Edit
                     (Request => Id,
-                     Params  => Params);
+                     Params  => Request.params);
                end;
             else
                declare
@@ -607,8 +672,7 @@ package body LSP.Clients is
                      error =>
                        (True,
                         (code => LSP.Messages.MethodNotFound,
-                         message =>
-                           +("Unknown method:" & Value.Get ("method")),
+                         message => "Unknown method:" & Method.Value,
                          data => <>)),
                      others => <>);
                begin
@@ -626,12 +690,14 @@ package body LSP.Clients is
             end if;
          end if;
 
-      elsif Value.Has_Field ("method") then
+      elsif Method.Is_Set then
          --  Notification from server
 
          declare
             Position : constant Notification_Maps.Cursor :=
-                         Self.Notif_Decoders.Find (Value.Get ("method"));
+              Self.Notif_Decoders.Find
+                (Ada.Strings.Unbounded.To_Unbounded_String
+                   (LSP.Types.To_UTF_8_String (Method.Value)));
          begin
             if Notification_Maps.Has_Element (Position) then
                Notification_Maps.Element (Position).all
@@ -650,14 +716,16 @@ package body LSP.Clients is
       Method : Ada.Strings.UTF_Encoding.UTF_8_String;
       Value  : in out LSP.Messages.NotificationMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
-      JSON : GNATCOLL.JSON.JSON_Value;
+      JS     : aliased LSP.JSON_Streams.JSON_Stream
+        (Is_Server_Side => False, R => null);
+      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
+      JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";
       Value.method := +Method;
       LSP.Messages.NotificationMessage'Class'Write (JS'Access, Value);
-      JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Message (JSON.Write);
+      JS.End_Document;
+      Self.Send_Buffer (Output.Buffer);
    end Send_Notification;
 
    ------------------
@@ -671,9 +739,11 @@ package body LSP.Clients is
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
-      JSON : GNATCOLL.JSON.JSON_Value;
+      JS     : aliased LSP.JSON_Streams.JSON_Stream
+        (Is_Server_Side => False, R => null);
+      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
+      JS.Set_Stream (Output'Unchecked_Access);
       Request := Self.Allocate_Request_Id.Number;
       Self.Request_Map.Insert (Request, Decoder);
 
@@ -681,8 +751,8 @@ package body LSP.Clients is
       Value.method := +Method;
       Value.id := (True, Request);
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
-      JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Message (JSON.Write);
+      JS.End_Document;
+      Self.Send_Buffer (Output.Buffer);
    end Send_Request;
 
    ------------------------------
@@ -745,14 +815,16 @@ package body LSP.Clients is
       Request : LSP.Types.LSP_Number_Or_String;
       Value   : in out LSP.Messages.ResponseMessage'Class)
    is
-      JS : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => False);
-      JSON : GNATCOLL.JSON.JSON_Value;
+      JS     : aliased LSP.JSON_Streams.JSON_Stream
+        (Is_Server_Side => False, R => null);
+      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
+      JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";
       Value.id := Request;
       LSP.Messages.ResponseMessage'Class'Write (JS'Access, Value);
-      JSON := GNATCOLL.JSON.Get (JS.Get_JSON_Document, 1);
-      Self.Send_Message (JSON.Write);
+      JS.End_Document;
+      Self.Send_Buffer (Output.Buffer);
    end Send_Response;
 
    ---------------------------------------

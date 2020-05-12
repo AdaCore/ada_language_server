@@ -34,7 +34,7 @@ package body LSP.JSON_Streams is
 
    procedure End_Array (Self : not null access JSON_Stream'Class) is
    begin
-      pragma Assert (Self.Writable);
+      pragma Assert (Self.R = null);
       Self.W.Writer.End_Array;
       Self.W.Key := Magic.Strings.Empty_Magic_String;
    end End_Array;
@@ -45,6 +45,7 @@ package body LSP.JSON_Streams is
 
    procedure End_Document (Self : in out JSON_Stream'Class) is
    begin
+      pragma Assert (Self.R = null);
       Self.W.Writer.End_Document;
    end End_Document;
 
@@ -54,7 +55,7 @@ package body LSP.JSON_Streams is
 
    procedure End_Object (Self : not null access JSON_Stream'Class) is
    begin
-      pragma Assert (Self.Writable);
+      pragma Assert (Self.R = null);
       Self.W.Writer.End_Object;
       Self.W.Key := Magic.Strings.Empty_Magic_String;
    end End_Object;
@@ -67,13 +68,9 @@ package body LSP.JSON_Streams is
      (Self : not null access JSON_Stream'Class;
       Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String) is
    begin
-      case Self.Writable is
-         when True =>
-            Self.W.Key := Magic.Strings.Conversions.To_Magic_String
-              (To_UTF_8_String (Key));
-         when False =>
-            raise Program_Error;
-      end case;
+      pragma Assert (Self.R = null);
+      Self.W.Key := Magic.Strings.Conversions.To_Magic_String
+        (To_UTF_8_String (Key));
    end Key;
 
    ---------
@@ -87,18 +84,6 @@ package body LSP.JSON_Streams is
       Self.Key (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (Key));
    end Key;
 
-   -------
-   -- R --
-   -------
-
-   function R
-     (Self : not null access JSON_Stream'Class)
-      return not null access
-        Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class is
-   begin
-      return Self.R'Unchecked_Access;
-   end R;
-
    ----------
    -- Read --
    ----------
@@ -111,18 +96,6 @@ package body LSP.JSON_Streams is
       raise Program_Error;
    end Read;
 
-   -----------------------
-   -- Set_JSON_Document --
-   -----------------------
-
-   procedure Set_JSON_Document
-     (Self  : not null access JSON_Stream'Class;
-      Input : not null Magic.Text_Streams.Input_Text_Stream_Access) is
-   begin
-      Self.Writable := False;  --  Read-only stream
-      Self.R.Set_Stream (Input);
-   end Set_JSON_Document;
-
    ----------------
    -- Set_Stream --
    ----------------
@@ -131,6 +104,7 @@ package body LSP.JSON_Streams is
      (Self   : in out JSON_Stream'Class;
       Stream : not null Magic.Text_Streams.Output_Text_Stream_Access) is
    begin
+      pragma Assert (Self.R = null);
       Self.W.Writer.Set_Stream (Stream);
       Self.W.Writer.Start_Document;
    end Set_Stream;
@@ -191,7 +165,7 @@ package body LSP.JSON_Streams is
 
    procedure Start_Array (Self : not null access JSON_Stream'Class) is
    begin
-      pragma Assert (Self.Writable);
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.Start_Array;
    end Start_Array;
@@ -202,7 +176,7 @@ package body LSP.JSON_Streams is
 
    procedure Start_Object (Self : not null access JSON_Stream'Class) is
    begin
-      pragma Assert (Self.Writable);
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.Start_Object;
    end Start_Object;
@@ -251,6 +225,7 @@ package body LSP.JSON_Streams is
     (Self : in out JSON_Stream'Class;
      Item : Boolean) is
    begin
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.Boolean_Value (Item);
    end Write_Boolean;
@@ -263,6 +238,7 @@ package body LSP.JSON_Streams is
     (Self : in out JSON_Stream'Class;
      Item : Interfaces.Integer_64) is
    begin
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.Integer_Value (Item);
    end Write_Integer;
@@ -273,6 +249,7 @@ package body LSP.JSON_Streams is
 
    procedure Write_Null (Self : in out JSON_Stream'Class) is
    begin
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.Null_Value;
    end Write_Null;
@@ -285,6 +262,7 @@ package body LSP.JSON_Streams is
     (Self : in out JSON_Stream'Class;
      Item : String) is
    begin
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value
         (Magic.Strings.Conversions.To_Magic_String (Item));
@@ -298,6 +276,7 @@ package body LSP.JSON_Streams is
     (Self : in out JSON_Stream'Class;
      Item : LSP.Types.LSP_String) is
    begin
+      pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value
         (Magic.Strings.Conversions.To_Magic_String

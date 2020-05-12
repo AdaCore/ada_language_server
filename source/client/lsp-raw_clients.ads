@@ -19,6 +19,8 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
+with Magic.Stream_Element_Buffers;
+
 with Spawn.Environments;
 with Spawn.Processes;
 with Spawn.String_Vectors;
@@ -87,6 +89,12 @@ package LSP.Raw_Clients is
    procedure Send_Message
      (Self : in out Raw_Client'Class;
       Text : Ada.Strings.Unbounded.Unbounded_String);
+   --  Send a request to LSP server. Text should contain valid JSON in
+   --  UTF-8 encoding.
+
+   procedure Send_Buffer
+     (Self : in out Raw_Client'Class;
+      Text : Magic.Stream_Element_Buffers.Stream_Element_Buffer);
    --  Send a request to LSP server. Text should contain valid JSON in
    --  UTF-8 encoding.
 
