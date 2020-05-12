@@ -355,7 +355,7 @@ package body LSP.Types is
       pragma Assert (JS.R.Is_Start_Array);
       JS.R.Read_Next;
 
-      while JS.R.Is_End_Array loop
+      while not JS.R.Is_End_Array loop
          declare
             Item : LSP_String;
          begin

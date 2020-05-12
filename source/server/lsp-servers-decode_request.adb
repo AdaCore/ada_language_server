@@ -18,7 +18,7 @@
 with Ada.Tags; use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
-with Magic.JSON.Streams.Readers;
+with Magic.JSON.Streams.Readers.Simple;
 
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
@@ -34,12 +34,14 @@ is
       Parameters  => LSP.JSON_Streams.JSON_Stream,
       Constructor => LSP.Messages.Server_Requests.Decode);
 
-   JS  : aliased LSP.JSON_Streams.JSON_Stream (Is_Server_Side => True);
+   R   : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+   JS  : aliased LSP.JSON_Streams.JSON_Stream
+     (Is_Server_Side => True, R => R'Unchecked_Access);
    Tag : constant Ada.Tags.Tag :=
      LSP.Messages.Server_Requests.Method_To_Tag (Method);
 
 begin
-   JS.Set_JSON_Document (Document);
+   R.Set_Stream (Document);
    JS.R.Read_Next;
    pragma Assert (JS.R.Is_Start_Document);
    JS.R.Read_Next;

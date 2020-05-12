@@ -27,15 +27,16 @@ with Interfaces;
 
 with Magic.Text_Streams;
 with Magic.JSON.Streams.Readers;
-with Magic.JSON.Streams.Readers.Simple;
 
 limited with LSP.Types;
 
 package LSP.JSON_Streams is
 --   pragma Elaborate_Body;
 
-   type JSON_Stream (Is_Server_Side : Boolean := False) is
-     limited new Ada.Streams.Root_Stream_Type with private;
+   type JSON_Stream
+     (Is_Server_Side : Boolean := False;
+      R : access Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+       is limited new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
    --  To support JSON serialization user provides Read/Write streaming
@@ -84,16 +85,6 @@ package LSP.JSON_Streams is
    procedure End_Document (Self : in out JSON_Stream'Class);
    --  Complete writting to the JSON stream
 
-   procedure Set_JSON_Document
-    (Self  : not null access JSON_Stream'Class;
-     Input : not null Magic.Text_Streams.Input_Text_Stream_Access);
-   --  Assign JSON document for reading from the stream
-
-   function R
-     (Self : not null access JSON_Stream'Class)
-      return not null access
-        Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class;
-
    procedure Skip_Value (Self : in out JSON_Stream'Class);
    --  Read and discard one value from JSON
 
@@ -127,11 +118,11 @@ private
       Key    : Magic.Strings.Magic_String;
    end record;
 
-   type JSON_Stream (Is_Server_Side : Boolean := False) is
-     limited new Ada.Streams.Root_Stream_Type with
+   type JSON_Stream
+     (Is_Server_Side : Boolean := False;
+      R : access Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+   is limited new Ada.Streams.Root_Stream_Type with
    record
-      Writable : Boolean := True;  --  True means stream to write
-      R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
       W : Write_Stream;
    end record;
 
