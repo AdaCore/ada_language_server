@@ -4,6 +4,7 @@ set -e -x
 
 INSTALL_DIR=$PWD/../gnat
 export PATH=$INSTALL_DIR/bin:$PATH
+export ADA_PROJECT_PATH=$PWD/libadalang-tools/src:$PWD/gnatcoll-texts/gnat
 
 function download_gnat()
 {
@@ -18,6 +19,11 @@ function download_gnat()
     $INSTALL_DIR/bin/gprinstall --uninstall gnatcoll
 }
 
+function clone_dependencies() {
+    git clone --depth=1 https://github.com/AdaCore/libadalang-tools.git
+    git clone --depth=1 https://github.com/godunko/gnatcoll-texts.git
+}
+
 function linux_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
@@ -28,6 +34,7 @@ function linux_before_install()
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
         | tar xzf - -C $INSTALL_DIR
+    clone_dependencies
     sudo apt-get update
     sudo apt-get -y install chrpath
 }
@@ -59,6 +66,7 @@ function osx_before_install()
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-osx.tar.gz \
         | tar xzf - -C $INSTALL_DIR
+    clone_dependencies
 }
 
 function drop_rpath ()
