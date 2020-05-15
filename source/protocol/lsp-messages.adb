@@ -23,6 +23,7 @@ with Interfaces;
 
 with Magic.JSON.Streams.Readers;
 with Magic.Strings.Conversions;
+with Magic.JSON.Streams.Readers.Look_Ahead;
 
 with LSP.JSON_Streams;
 with LSP.Message_IO;
@@ -41,6 +42,12 @@ package body LSP.Messages is
      (T           => LSP.Commands.Command,
       Parameters  => LSP.JSON_Streams.JSON_Stream'Class,
       Constructor => LSP.Commands.Create);
+
+   procedure Read_Tag
+     (JS  : in out LSP.JSON_Streams.JSON_Stream'Class;
+      Tag : out Ada.Tags.Tag);
+   --  Read `Command` LSP object from JS stream, look for `command` Tag
+   --  and find corresponding Ada.Tags.Tag.
 
    procedure Read_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1651,38 +1658,49 @@ package body LSP.Messages is
       Tag : Ada.Tags.Tag;
       JS  : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+        .JSON_Look_Ahead_Reader (JS.R);
+      Nested     : aliased LSP.JSON_Streams.JSON_Stream
+        (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
+      Read_Tag (Nested, Tag);
+      Look_Ahead.Rewind;  --  Rewind stream just after Start_Object
 
-      while not JS.R.Is_End_Object loop
-         pragma Assert (JS.R.Is_Key_Name);
+      while Look_Ahead.Is_Key_Name loop
+         pragma Assert (Look_Ahead.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+              Magic.Strings.Conversions.To_UTF_8_String
+                (Look_Ahead.Key_Name);
          begin
-            JS.R.Read_Next;
+            Look_Ahead.Read_Next;
 
             if Key = "command" then
-               LSP_String'Read (S, V.command);
-               Tag := Ada.Tags.Internal_Tag
-                 (LSP.Types.To_UTF_8_String (V.command));
+               LSP_String'Read (Nested'Access, V.command);
             elsif Key = "title" then
-               LSP_String'Read (S, V.title);
+               LSP_String'Read (Nested'Access, V.title);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
-                  Optional_Any_Vector'Read (S, V.arguments);
+                  Optional_Any_Vector'Read (Nested'Access, V.arguments);
                else
-                  --  FIXME: This doesn't work if command hasn't been got yet
                   V :=
                     (Is_Unknown => False,
                      title      => V.title,
                      Custom     => <>);
 
-                  V.Custom.Set (Create_Command (Tag, JS'Access));
+                  pragma Assert (Look_Ahead.Is_Start_Array);
+                  Look_Ahead.Read_Next;
+
+                  V.Custom.Set (Create_Command (Tag, Nested'Access));
+
+                  pragma Assert (Look_Ahead.Is_End_Array);
+                  Look_Ahead.Read_Next;
                end if;
             else
-               JS.Skip_Value;
+               Nested.Skip_Value;
             end if;
          end;
       end loop;
@@ -1797,30 +1815,35 @@ package body LSP.Messages is
       Tag : Ada.Tags.Tag;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+        .JSON_Look_Ahead_Reader (JS.R);
+      Nested     : aliased LSP.JSON_Streams.JSON_Stream
+        (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
 
-      while not JS.R.Is_End_Object loop
-         pragma Assert (JS.R.Is_Key_Name);
+      Read_Tag (Nested, Tag);
+      Look_Ahead.Rewind;  --  Rewind stream just after Start_Object
+
+      while not Look_Ahead.Is_End_Object loop
+         pragma Assert (Look_Ahead.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
          begin
-            JS.R.Read_Next;
+            Look_Ahead.Read_Next;
 
             if Key = "workDoneToken" then
-               Optional_ProgressToken'Read (S, V.Base.workDoneToken);
+               Optional_ProgressToken'Read
+                 (Nested'Access, V.Base.workDoneToken);
             elsif Key = "command" then
-               LSP_String'Read (S, V.command);
-               Tag := Ada.Tags.Internal_Tag
-                 (LSP.Types.To_UTF_8_String (V.command));
+               LSP_String'Read (Nested'Access, V.command);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
-                  Optional_Any_Vector'Read (S, V.arguments);
+                  Optional_Any_Vector'Read (Nested'Access, V.arguments);
                else
-                  --  FIXME: This doesn't work if command hasn't been got yet
-                  --
                   --  Overwrite discriminant with Is_Unknown => False
                   V :=
                     (Is_Unknown => False,
@@ -1828,16 +1851,16 @@ package body LSP.Messages is
                      command    => V.command,
                      Custom     => <>);
 
-                  pragma Assert (JS.R.Is_Start_Array);
-                  JS.R.Read_Next;
+                  pragma Assert (Look_Ahead.Is_Start_Array);
+                  Look_Ahead.Read_Next;
 
-                  V.Custom.Set (Create_Command (Tag, JS'Access));
+                  V.Custom.Set (Create_Command (Tag, Nested'Access));
 
-                  pragma Assert (JS.R.Is_End_Array);
-                  JS.R.Read_Next;
+                  pragma Assert (Look_Ahead.Is_End_Array);
+                  Look_Ahead.Read_Next;
                end if;
             else
-               JS.Skip_Value;
+               Nested.Skip_Value;
             end if;
          end;
       end loop;
@@ -1909,40 +1932,57 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+        .JSON_Look_Ahead_Reader (JS.R);
+      Nested     : aliased LSP.JSON_Streams.JSON_Stream
+        (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
-      pragma Assert (JS.R.Is_Start_Array);
-      JS.R.Read_Next;
+      pragma Assert (Look_Ahead.Is_Start_Array);
+      Look_Ahead.Read_Next;
 
-      if JS.R.Is_End_Array then
-         JS.R.Read_Next;
+      if Look_Ahead.Is_End_Array then
+         Look_Ahead.Read_Next;
          V := (Kind => Empty_Vector_Kind);
          return;
       end if;
 
-      pragma Assert (JS.R.Is_Start_Object);
-      JS.R.Read_Next;
-      pragma Assert (JS.R.Is_Key_Name);
-      declare
-         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
-      begin
-         JS.R.Read_Next;
+      pragma Assert (Look_Ahead.Is_Start_Object);
+      Look_Ahead.Read_Next;
 
-         if Key in "originSelectionRange" | "targetUri" | "targetRange"
-           | "targetSelectionRange"
-         then
-            V := (Kind => LocationLink_Vector_Kind, LocationLinks => <>);
-            --  LocationLink_Vector'Read (S, V.LocationLinks);
-         elsif Key in "uri" | "range" then
-            V := (Kind => Location_Vector_Kind, Locations => <>);
-            --  Location_Vector'Read (S, V.Locations);
-         else
-            --  Go to next fliend and try again
-            null;
-         end if;
-      end;
+      while Look_Ahead.Is_Key_Name loop
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+         begin
+            Look_Ahead.Read_Next;
 
-      raise Program_Error with "FIXME";
+            if Key in "originSelectionRange" | "targetUri" | "targetRange"
+              | "targetSelectionRange"
+            then
+               V := (Kind => LocationLink_Vector_Kind, LocationLinks => <>);
+               Look_Ahead.Rewind;  --  Rewind to Start_Array and read
+               LocationLink_Vector'Read
+                 (Nested'Unchecked_Access, V.LocationLinks);
+
+               return;
+            elsif Key in "uri" | "range" then
+               V := (Kind => Location_Vector_Kind, Locations => <>);
+               Look_Ahead.Rewind;  --  Rewind to Start_Array and read
+               Location_Vector'Read (Nested'Unchecked_Access, V.Locations);
+
+               return;
+            else
+               --  Go to next field and try again
+               Nested.Skip_Value;
+            end if;
+         end;
+      end loop;
+
+      --  We have read a first element of JSON array, but no known filed was
+      --  found. We are unable to select if this is a vector of Location or
+      --  vector of LocationLink. So just raise an error.
+
+      raise Constraint_Error with "Unexpected JSON object";
    end Read_Location_Or_Link_Vector;
 
    -----------------------
@@ -2003,6 +2043,57 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out MarkupContent_Or_MarkedString_Vector)
    is
+      procedure Read_Object (JS : LSP.JSON_Streams.JSON_Stream'Class);
+
+      -----------------
+      -- Read_Object --
+      -----------------
+
+      procedure Read_Object (JS : LSP.JSON_Streams.JSON_Stream'Class) is
+         Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+           .JSON_Look_Ahead_Reader (JS.R);
+         Nested     : aliased LSP.JSON_Streams.JSON_Stream
+           (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
+      begin
+         pragma Assert (Look_Ahead.Is_Start_Object);
+         Look_Ahead.Read_Next;
+
+         while Look_Ahead.Is_Key_Name loop
+            declare
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 Magic.Strings.Conversions.To_UTF_8_String
+                   (Look_Ahead.Key_Name);
+            begin
+               Look_Ahead.Read_Next;
+
+               if Key = "kind" then
+                  V := (Is_MarkupContent => True,
+                        MarkupContent    => <>);
+                  Look_Ahead.Rewind;  --  Rewind to Start_Object and read
+                  MarkupContent'Read
+                    (Nested'Unchecked_Access, V.MarkupContent);
+
+                  return;
+               elsif Key = "language" then
+                  declare
+                     Item : MarkedString;
+                  begin
+                     V := (Is_MarkupContent => False,
+                           Vector           => <>);
+                     Look_Ahead.Rewind;  --  Rewind to Start_Object and read
+                     MarkedString'Read (Nested'Unchecked_Access, Item);
+                     V.Vector.Append (Item);
+
+                     return;
+                  end;
+               else
+                  --  Go to next field and try again
+                  Nested.Skip_Value;
+               end if;
+            end;
+         end loop;
+      end Read_Object;
+
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
@@ -2017,25 +2108,12 @@ package body LSP.Messages is
                                (Magic.Strings.Conversions.To_UTF_8_String
                                   (JS.R.String_Value))));
             JS.R.Read_Next;
-      when Magic.JSON.Streams.Readers.Start_Array =>
+         when Magic.JSON.Streams.Readers.Start_Array =>
             V := (Is_MarkupContent => False,
                   Vector           => <>);
             MarkedString_Vector'Read (S, V.Vector);
-      when Magic.JSON.Streams.Readers.Start_Object =>
-            --  if Value.Has_Field ("kind") then
-            V := (Is_MarkupContent => True,
-                  MarkupContent    => <>);
-            MarkupContent'Read (S, V.MarkupContent);
-      --  else
-      --     declare
-      --        Item : MarkedString;
-      --     begin
-      --        V := (Is_MarkupContent => False,
-      --              Vector           => <>);
-      --        MarkedString'Read (S, Item);
-      --        V.Vector.Append (Item);
-      --     end;
-      --  end if;
+         when Magic.JSON.Streams.Readers.Start_Object =>
+            Read_Object (JS);
          when others =>
             JS.Skip_Value;
       end case;
@@ -2174,20 +2252,91 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+        .JSON_Look_Ahead_Reader (JS.R);
+      Nested     : aliased LSP.JSON_Streams.JSON_Stream
+        (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
-      case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Start_Array =>
-            --  FIXME:
-            --  if GNATCOLL.JSON.Get (Vector, 1).Has_Field ("range") then
-            --     V := (Is_Tree => True, Tree => <>);
-            --     DocumentSymbol_Tree'Read (S, V.Tree);
-            V := (Is_Tree => False, Vector => <>);
-            SymbolInformation_Vector'Read (S, V.Vector);
-         when others =>
-            V := (Is_Tree => False, Vector => <>);
-            JS.Skip_Value;
-      end case;
+      if not JS.R.Is_Start_Array then
+         V := (Is_Tree => False, Vector => <>);
+         JS.Skip_Value;
+      end if;
+
+      Look_Ahead.Read_Next;
+      if Look_Ahead.Is_End_Array then
+         Look_Ahead.Read_Next;
+         V := (Is_Tree => False, Vector => <>);
+         return;
+      end if;
+
+      pragma Assert (Look_Ahead.Is_Start_Object);
+      Look_Ahead.Read_Next;
+
+      while Look_Ahead.Is_Key_Name loop
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+         begin
+            Look_Ahead.Read_Next;
+
+            if Key in "detail" | "range" | "selectionRange" | "children" then
+               V := (Is_Tree => True, Tree => <>);
+               Look_Ahead.Rewind;  --  Rewind to Start_Array and read
+               DocumentSymbol_Tree'Read (Nested'Unchecked_Access, V.Tree);
+
+               return;
+            elsif Key in "location" | "containerName" then
+               V := (Is_Tree => False, Vector => <>);
+               Look_Ahead.Rewind;  --  Rewind to Start_Array and read
+               SymbolInformation_Vector'Read
+                 (Nested'Unchecked_Access, V.Vector);
+
+               return;
+            else
+               --  Go to next field and try again
+               Nested.Skip_Value;
+            end if;
+         end;
+      end loop;
+
+      --  We have read a first element of JSON array, but no known filed was
+      --  found. We are unable to select if this is a vector of DocumentSymbol
+      --  or vector of SymbolInformation. So just raise an error.
+
+      raise Constraint_Error with "Unexpected JSON object";
    end Read_Symbol_Vector;
+
+   --------------
+   -- Read_Tag --
+   --------------
+
+   procedure Read_Tag
+     (JS  : in out LSP.JSON_Streams.JSON_Stream'Class;
+      Tag : out Ada.Tags.Tag)
+   is
+      Command : LSP_String;
+   begin
+      Tag := Ada.Tags.No_Tag;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+
+            if Key = "command" then
+               LSP_String'Read (JS'Access, Command);
+               Tag := Ada.Tags.Internal_Tag
+                 (LSP.Types.To_UTF_8_String (Command));
+               exit;
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+   end Read_Tag;
 
    ------------------------------------
    -- Get_TextDocumentPositionParams --

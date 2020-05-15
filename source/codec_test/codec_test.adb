@@ -20,24 +20,28 @@ with LSP.Messages.Client_Responses;
 with LSP.Messages.Server_Responses;
 with LSP.JSON_Streams;
 
-with Ada.Characters.Latin_1;
 with Ada.Command_Line;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Strings.Fixed;
 with Ada.Strings.Hash;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with Ada.Streams.Stream_IO;
 
 with GNATCOLL.JSON;
 
+with Magic.Stream_Element_Buffers.Conversions;
 with Magic.Text_Streams.Memory;
+with Magic.Stream_Element_Buffers;
+with Magic.JSON.Streams.Readers.Simple;
+with Memory_Text_Streams;
 
 procedure Codec_Test is
 
    type Test_Access is access function
-     (Input : GNATCOLL.JSON.JSON_Value) return GNATCOLL.JSON.JSON_Value;
+     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
+      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
    --  A function that converts Input to an Ada type and then converts it back
-   --  to JSON value.
+   --  to Stream_Element_Buffer.
 
    procedure Process_File
      (File_Name : String;
@@ -46,7 +50,8 @@ procedure Codec_Test is
    --  an object of given type, then serialize it tab and compare with origin.
    --  It prints found differences and set failure exit status if test fails.
 
-   function Read_File (File_Name : String) return Unbounded_String;
+   function Read_File (File_Name : String)
+      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
    --  Read content of the file and return it as a string
 
    procedure Register_Tests;
@@ -57,8 +62,9 @@ procedure Codec_Test is
 
    generic
       type Response is new LSP.Messages.ResponseMessage with private;
-   function Generic_Response_Test (Input : GNATCOLL.JSON.JSON_Value)
-     return GNATCOLL.JSON.JSON_Value;
+   function Generic_Response_Test
+     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
+      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
    --  Generic codec for a response.
 
    package Test_Maps is new Ada.Containers.Indefinite_Hashed_Maps
@@ -75,27 +81,32 @@ procedure Codec_Test is
    ---------------------------
 
    function Generic_Response_Test
-     (Input : GNATCOLL.JSON.JSON_Value) return GNATCOLL.JSON.JSON_Value
+     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
+      return Magic.Stream_Element_Buffers.Stream_Element_Buffer
    is
-      Input_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-      JSON_Array : GNATCOLL.JSON.JSON_Array;
+      Text_Input : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
+      Reader     : aliased Magic.JSON.Streams.Readers
+        .Simple.JSON_Simple_Reader;
+      In_JS      : aliased LSP.JSON_Streams.JSON_Stream (False, Reader'Access);
    begin
-      GNATCOLL.JSON.Append (JSON_Array, Input);
-      Input_Stream.Set_JSON_Document (JSON_Array);
+      Text_Input.Buffer := Input;
+      Reader.Set_Stream (Text_Input'Unchecked_Access);
+      Reader.Read_Next;
+      pragma Assert (Reader.Is_Start_Document);
+      Reader.Read_Next;
+      pragma Assert (Reader.Is_Start_Object);
 
       declare
-         Output_Stream : aliased LSP.JSON_Streams.JSON_Stream;
-         Output        : aliased Magic.Text_Streams.Memory
-           .Memory_UTF8_Output_Stream;
+         Out_JS : aliased LSP.JSON_Streams.JSON_Stream;
+         Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
 
          Object : Response (Is_Error => False);
       begin
-         Output_Stream.Set_Stream (Output'Unchecked_Access);
-         Response'Read (Input_Stream'Access, Object);
-         Response'Write (Output_Stream'Access, Object);
+         Out_JS.Set_Stream (Output'Unchecked_Access);
+         Response'Read (In_JS'Access, Object);
+         Response'Write (Out_JS'Access, Object);
 
---         return GNATCOLL.JSON.Get (Output_Stream.Get_JSON_Document, 1);
-         return GNATCOLL.JSON.JSON_Null;
+         return Output.Buffer;
       end;
    end Generic_Response_Test;
 
@@ -231,38 +242,60 @@ procedure Codec_Test is
      (File_Name : String;
       Type_Name : String)
    is
-      Input : constant GNATCOLL.JSON.JSON_Value :=
-        GNATCOLL.JSON.Read (Read_File (File_Name), File_Name);
-      Output : GNATCOLL.JSON.JSON_Value;
-   begin
-      Output := Test_Map (Type_Name).all (Input);
+      In_Buffer : constant Magic.Stream_Element_Buffers.Stream_Element_Buffer
+        := Read_File (File_Name);
 
-      if not Compare (Input, Output) then
-         Ada.Text_IO.Put_Line ("Test FAILED: " & File_Name & " " & Type_Name);
-         Ada.Text_IO.Put_Line (Output.Write);
-         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      end if;
+      Out_Buffer : Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+   begin
+      Out_Buffer := Test_Map (Type_Name).all (In_Buffer);
+
+      declare
+         Input : constant GNATCOLL.JSON.JSON_Value :=
+           GNATCOLL.JSON.Read
+             (Magic.Stream_Element_Buffers.Conversions.Unchecked_To_String
+                (In_Buffer),  File_Name);
+
+         Output : constant GNATCOLL.JSON.JSON_Value :=
+           GNATCOLL.JSON.Read
+             (Magic.Stream_Element_Buffers.Conversions.Unchecked_To_String
+                (Out_Buffer));
+      begin
+         if not Compare (Input, Output) then
+            Ada.Text_IO.Put_Line
+              ("Test FAILED: " & File_Name & " " & Type_Name);
+            Ada.Text_IO.Put_Line (Output.Write);
+            Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+         end if;
+      end;
    end Process_File;
 
    ---------------
    -- Read_File --
    ---------------
 
-   function Read_File (File_Name : String) return Unbounded_String is
-      Input  : Ada.Text_IO.File_Type;
-      Result : Unbounded_String;
+   function Read_File (File_Name : String)
+      return Magic.Stream_Element_Buffers.Stream_Element_Buffer
+   is
+      use type Ada.Streams.Stream_Element_Count;
+
+      Input  : Ada.Streams.Stream_IO.File_Type;
+      Result : Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+      Data   : Ada.Streams.Stream_Element_Array (1 .. 256);
+      Last   : Ada.Streams.Stream_Element_Count;
    begin
-      Ada.Text_IO.Open (Input, Ada.Text_IO.In_File, File_Name, "wcem=8");
+      Ada.Streams.Stream_IO.Open
+        (Input, Ada.Streams.Stream_IO.In_File, File_Name);
 
-      while not Ada.Text_IO.End_Of_File (Input) loop
-         if Length (Result) > 0 then
-            Append (Result, Ada.Characters.Latin_1.LF);
-         end if;
+      loop
+         Ada.Streams.Stream_IO.Read (Input, Data, Last);
+         exit when Last = 0;
 
-         Append (Result, Ada.Text_IO.Get_Line (Input));
+         for J of Data (1 .. Last) loop
+            Result.Append (J);
+         end loop;
       end loop;
 
-      Ada.Text_IO.Close (Input);
+      Ada.Streams.Stream_IO.Close (Input);
 
       return Result;
    end Read_File;

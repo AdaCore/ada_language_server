@@ -72,7 +72,7 @@ all: coverage-instrument
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
-#	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
