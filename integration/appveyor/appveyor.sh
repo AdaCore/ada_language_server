@@ -9,7 +9,9 @@ export PATH=$ADALIB_DIR/bin:\
 /c/GNAT/bin:\
 /mingw64/bin:\
 $PATH
-export ADA_PROJECT_PATH=$ADALIB_DIR/share/gpr
+export ADA_PROJECT_PATH=$ADALIB_DIR/share/gpr:\
+$ADALIB_DIR/libadalang-tools/src:\
+$ADALIB_DIR/gnatcoll-texts/gnat
 export LIBRARY_TYPE=relocatable
 export CPATH=/mingw64/include
 export LIBRARY_PATH=/mingw64/lib
@@ -21,6 +23,8 @@ function do_install()
   curl -q -L -o libadalang-stable-windows.zip \
     https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-windows.zip
   7z x libadalang-stable-windows.zip -oadalib
+  git clone --depth=1 https://github.com/AdaCore/libadalang-tools.git $ADALIB_DIR/libadalang-tools
+  git clone --depth=1 https://github.com/godunko/gnatcoll-texts.git $ADALIB_DIR/gnatcoll-texts
 }
 
 function do_build()
