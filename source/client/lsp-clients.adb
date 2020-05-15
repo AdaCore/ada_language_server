@@ -573,6 +573,7 @@ package body LSP.Clients is
          use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
 
          R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+         JS : aliased LSP.JSON_Streams.JSON_Stream (False, R'Access);
 
       begin
          R.Set_Stream (Memory'Unchecked_Access);
@@ -615,9 +616,9 @@ package body LSP.Clients is
                   R.Read_Next;
                elsif Key = "error" then
                   Is_Error := True;
-                  LSP.JSON_Streams.Skip_Value (R'Access);
+                  JS.Skip_Value;
                else
-                  LSP.JSON_Streams.Skip_Value (R'Access);
+                  JS.Skip_Value;
                end if;
             end;
          end loop;
