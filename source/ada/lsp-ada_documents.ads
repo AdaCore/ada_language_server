@@ -63,6 +63,12 @@ package LSP.Ada_Documents is
    function Versioned_Identifier
      (Self : Document) return LSP.Messages.VersionedTextDocumentIdentifier;
 
+   function Unit
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit;
+   --  Return the analysis unit for Self in the given context
+
    --------------
    -- Requests --
    --------------

@@ -59,6 +59,10 @@ package LSP.Ada_Contexts is
    function Id (Self : Context) return LSP.Types.LSP_String;
    --  Return unique identifier of the context.
 
+   function Analysis_Units
+     (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
+   --  Return the analysis units for all Ada sources known to this context
+
    procedure Reload (Self : in out Context);
    --  Reload the current context. This will invalidate and destroy any
    --  Libadalang related data, and recreate it from scratch.

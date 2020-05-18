@@ -98,6 +98,8 @@ package body LSP.Ada_Handlers is
 
    function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
      (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
+   function From_File (File : Virtual_File) return LSP.Messages.DocumentUri is
+     (To_LSP_String (URIs.Conversions.From_File (File.Display_Full_Name)));
    --  Utility conversion function
 
    procedure Show_Message
@@ -585,6 +587,8 @@ package body LSP.Ada_Handlers is
       end if;
 
       Response.result.capabilities.alsCalledByProvider := True;
+      Response.result.capabilities.alsShowDepsProvider := True;
+
       Response.result.capabilities.alsReferenceKinds :=
         (Is_Set => True,
          Value  => (Is_Server_Side => True, As_Flags => (others => True)));
@@ -1985,6 +1989,152 @@ package body LSP.Ada_Handlers is
       end loop;
       return Response;
    end On_ALS_Called_By_Request;
+
+   ----------------------------------
+   -- On_ALS_Show_Dependencies_Request --
+   ----------------------------------
+
+   overriding function On_ALS_Show_Dependencies_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+   is
+      use Libadalang.Analysis;
+      use LSP.Messages;
+
+      Params   : LSP.Messages.ALS_ShowDependenciesParams renames
+        Request.params;
+      Response : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+        (Is_Error => False);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Params.textDocument.uri, Force => False);
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Params.textDocument.uri);
+      Unit     : constant Libadalang.Analysis.Analysis_Unit :=
+        Document.Unit (Context.all);
+      Root     : constant Ada_Node := Unit.Root;
+
+      function Get_Importing_Units
+        (Unit : Compilation_Unit'Class)
+         return Libadalang.Analysis.Analysis_Unit_Array;
+
+      -------------------------
+      -- Get_Importing_Units --
+      -------------------------
+
+      function Get_Importing_Units
+        (Unit : Compilation_Unit'Class)
+         return Libadalang.Analysis.Analysis_Unit_Array
+      is
+         Nb_Units     : Natural := 0;
+      begin
+         for Context of Self.Contexts_For_URI (Params.textDocument.uri) loop
+            Nb_Units := Nb_Units + Context.Analysis_Units'Length;
+         end loop;
+
+         declare
+            Units : Libadalang.Analysis.Analysis_Unit_Array (1 .. Nb_Units);
+            Index : Natural := Units'First;
+            Last  : Natural := Index;
+         begin
+            for Context of Self.Contexts_For_URI (Params.textDocument.uri) loop
+               declare
+                  Context_Units : constant
+                    Libadalang.Analysis.Analysis_Unit_Array :=
+                      Context.Analysis_Units;
+               begin
+                  Last := Index + Context_Units'Length - 1;
+                  Units (Index ..  Last) := Context_Units;
+                  Index := Last + 1;
+               end;
+            end loop;
+
+            return Unit.P_Filter_Is_Imported_By
+              (Units      => Units,
+               Transitive => True);
+         end;
+      end Get_Importing_Units;
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Analysis_Unit_Array);
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Compilation_Unit_Array);
+
+      ------------------
+      -- Append_Units --
+      ------------------
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Analysis_Unit_Array) is
+      begin
+         for Unit of Units loop
+            Response.result.Append
+              (LSP.Messages.ALS_Unit_Description'
+                 (uri        => From_File
+                      (GNATCOLL.VFS.Create (+Unit.Get_Filename)),
+                  projectUri => From_File (Self.Root)));
+         end loop;
+      end Append_Units;
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Compilation_Unit_Array) is
+      begin
+         for Unit of Units loop
+            Response.result.Append
+              (LSP.Messages.ALS_Unit_Description'
+                 (uri        => From_File
+                      (GNATCOLL.VFS.Create (+Unit.Unit.Get_Filename)),
+                  projectUri => From_File (Self.Root)));
+         end loop;
+      end Append_Units;
+
+   begin
+
+      case Root.Kind is
+         when Libadalang.Common.Ada_Compilation_Unit_Range =>
+            declare
+               Comp_Unit    : constant Compilation_Unit :=
+                                As_Compilation_Unit (Root);
+
+            begin
+               if Params.kind = LSP.Messages.Show_Imported then
+                  declare
+                     Units : constant Compilation_Unit_Array :=
+                               Comp_Unit.P_Withed_Units;
+                  begin
+                     Append_Units (Units);
+                  end;
+               else
+                  declare
+                     Units : constant Libadalang.Analysis.Analysis_Unit_Array
+                       := Get_Importing_Units (Comp_Unit);
+                  begin
+                     Append_Units (Units);
+                  end;
+               end if;
+            end;
+
+         when Libadalang.Common.Ada_Compilation_Unit_List_Range =>
+            declare
+               Comp_Unit_List : constant Compilation_Unit_List :=
+                                As_Compilation_Unit_List (Root);
+            begin
+               for Comp_Unit of Comp_Unit_List loop
+                  if Params.kind = LSP.Messages.Show_Imported then
+                     Append_Units
+                       (Comp_Unit.P_Withed_Units);
+                  else
+                     Append_Units
+                       (Get_Importing_Units (Comp_Unit));
+                  end if;
+               end loop;
+            end;
+         when others =>
+            null;
+      end case;
+
+      return Response;
+   end On_ALS_Show_Dependencies_Request;
 
    --------------------------
    -- On_ALS_Debug_Request --

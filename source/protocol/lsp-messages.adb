@@ -709,6 +709,31 @@ package body LSP.Messages is
       V : out LSP.Messages.ALS_Subprogram_And_References)
       renames LSP.Message_IO.Read_ALS_Subprogram_And_References;
 
+   procedure Read_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_Unit_Description)
+      renames LSP.Message_IO.Read_ALS_Unit_Description;
+
+   procedure Read_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesKind)
+     renames LSP.Message_IO.Read_ALS_ShowDependenciesKind;
+
+   procedure Write_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesKind)
+     renames LSP.Message_IO.Write_ALS_ShowDependenciesKind;
+
+   procedure Read_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesParams)
+     renames LSP.Message_IO.Read_ALS_ShowDependenciesParams;
+
+   procedure Write_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesParams)
+   renames LSP.Message_IO.Write_ALS_ShowDependenciesParams;
+
    procedure Write_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.RequestMessage)
@@ -1368,6 +1393,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Subprogram_And_References)
       renames LSP.Message_IO.Write_ALS_Subprogram_And_References;
+
+   procedure Write_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_Unit_Description)
+      renames LSP.Message_IO.Write_ALS_Unit_Description;
 
    --------------------------------
    -- Get_WorkDoneProgressParams --

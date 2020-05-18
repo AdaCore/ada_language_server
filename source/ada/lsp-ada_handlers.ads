@@ -300,6 +300,11 @@ private
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response;
 
+   overriding function On_ALS_Show_Dependencies_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response;
+
    overriding function On_ALS_Debug_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Debug_Request)

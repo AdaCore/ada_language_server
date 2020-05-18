@@ -99,12 +99,6 @@ package body LSP.Ada_Documents is
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
 
-   function Unit
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context)
-      return Libadalang.Analysis.Analysis_Unit;
-   --  Return the analysis unit for Self in the given context
-
    function To_Completion_Kind
      (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
    is

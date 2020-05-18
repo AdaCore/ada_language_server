@@ -2474,6 +2474,8 @@ package body LSP.Message_IO is
       Optional_workspace_Options'Read (S, V.workspace);
       JS.Key ("alsCalledByProvider");
       Optional_Boolean'Read (S, V.alsCalledByProvider);
+      JS.Key ("alsShowDepsProvider");
+      Optional_Boolean'Read (S, V.alsShowDepsProvider);
       JS.Key ("alsReferenceKinds");
       Optional_AlsReferenceKind_Set'Read (S, V.alsReferenceKinds);
       JS.End_Object;
@@ -2537,6 +2539,8 @@ package body LSP.Message_IO is
       Optional_workspace_Options'Write (S, V.workspace);
       JS.Key ("alsCalledByProvider");
       Optional_Boolean'Write (S, V.alsCalledByProvider);
+      JS.Key ("alsShowDepsProvider");
+      Optional_Boolean'Write (S, V.alsShowDepsProvider);
       JS.Key ("alsReferenceKinds");
       Optional_AlsReferenceKind_Set'Write (S, V.alsReferenceKinds);
       JS.End_Object;
@@ -4497,5 +4501,87 @@ package body LSP.Message_IO is
       Location_Vector'Write (S, V.refs);
       JS.End_Object;
    end Write_ALS_Subprogram_And_References;
+
+   procedure Read_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := ALS_ShowDependenciesKind'Val (JS.Read.Get - 1);
+   end Read_ALS_ShowDependenciesKind;
+
+   procedure Write_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write
+        (GNATCOLL.JSON.Create
+           (Integer'(ALS_ShowDependenciesKind'Pos (V)) + 1));
+   end Write_ALS_ShowDependenciesKind;
+
+   procedure Read_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Read (S, V.textDocument);
+      JS.Key ("kind");
+      ALS_ShowDependenciesKind'Read (S, V.kind);
+      JS.End_Object;
+   end Read_ALS_ShowDependenciesParams;
+
+   procedure Write_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("kind");
+      ALS_ShowDependenciesKind'Write (S, V.kind);
+      JS.End_Object;
+   end Write_ALS_ShowDependenciesParams;
+
+   procedure Read_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Unit_Description)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("uri");
+      LSP.Types.Read (S, V.uri);
+      JS.Key ("projectUri");
+      LSP.Types.Read (S, V.projectUri);
+      JS.End_Object;
+   end Read_ALS_Unit_Description;
+
+   procedure Write_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Unit_Description)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("projectUri");
+      LSP.Types.Write (S, V.projectUri);
+      JS.End_Object;
+   end Write_ALS_Unit_Description;
 
 end LSP.Message_IO;
