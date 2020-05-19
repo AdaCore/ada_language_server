@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,38 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
-with "lal_tools";
+--  This package provides basic utilities for types.
 
-with "lsp";
+package LSP.Types.Utils is
 
-project LSP_Server is
+   function Split_Lines (Text : LSP_String) return LSP_String_Vector;
 
-   VERSION := external ("VERSION", "latest");
+   function Lenght_Of_UTF8_Symbol (First : Character) return Positive;
+   --  Return lenght of a UTF8 symbol based on the symbol first byte
 
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada",
-      "../source/memory");
-
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
-
-   package Compiler is
-      for Default_Switches ("Ada") use LSP.Ada_Switches;
-      for Switches ("lsp-ada_driver.adb") use
-        LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
-      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
-   end Compiler;
-
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+end LSP.Types.Utils;
