@@ -16,9 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Conversions;
+with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Latin_1;
+with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
+
+with GNAT.Strings;
+
 with GNATCOLL.Utils;
 
 with Langkit_Support.Slocs;
@@ -31,8 +36,19 @@ with Libadalang.Iterators;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Common;
 with LSP.Lal_Utils;
+with LSP.Types.Utils;
+
+with Pp.Actions;
+with Pp.Command_Lines;
+with Pp.Scanner;
+with Utils.Char_Vectors;
+with Utils.Command_Lines;
 
 package body LSP.Ada_Documents is
+
+   Lal_PP_Output : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.LAL_PP_OUTPUT_ON_FORMATTING",
+                             GNATCOLL.Traces.Off);
 
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
@@ -226,6 +242,473 @@ package body LSP.Ada_Documents is
       end loop;
       Self.Trace.Trace ("Done applying changes for document " & File);
    end Apply_Changes;
+
+   ----------
+   -- Diff --
+   ----------
+
+   procedure Diff
+     (Self     : Document;
+      New_Text : LSP.Types.LSP_String;
+      Old_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
+      New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
+      Edit     : out LSP.Messages.TextEdit_Vector)
+   is
+      use LSP.Types;
+      use LSP.Messages;
+      use type Ada.Containers.Count_Type;
+
+      Old_First_Line : Natural;
+      New_First_Line : Natural;
+
+      Old_Lines, New_Lines   : LSP_String_Vector;
+      Old_Length, New_Length : Natural;
+
+   begin
+      Old_Lines := LSP.Types.Utils.Split_Lines (Self.Text);
+      New_Lines := LSP.Types.Utils.Split_Lines (New_Text);
+
+      if Old_Span = Empty_Span then
+         Old_First_Line := 1;
+         Old_Length     := Natural (Length (Old_Lines));
+
+      else
+         Old_First_Line := Natural (Old_Span.first.line + 1);
+         Old_Length := Natural (Old_Span.last.line - Old_Span.first.line + 1);
+      end if;
+
+      if New_Span = Empty_Span then
+         New_First_Line := 1;
+         New_Length     := Natural (Length (New_Lines));
+      else
+         New_First_Line := Natural (New_Span.first.line + 1);
+         New_Length := Natural (New_Span.last.line - New_Span.first.line + 1);
+      end if;
+
+      declare
+         type LCS_Line is array  (Natural range 0 .. New_Length) of Integer;
+         type LCS_Array is array (Natural range 0 .. Old_Length) of LCS_Line;
+
+         LCS    : LCS_Array;
+         Match  : Integer;
+         Delete : Integer;
+         Insert : Integer;
+
+         Old_Index : Natural := Old_Length;
+         New_Index : Natural := New_Length;
+
+         Old_Line_Number : Line_Number;
+         --  needed to determine which line number in the old buffer is
+         --  changed, deleted or before which new lines are inserted
+
+         Changed_Block_Text : LSP_String;
+         Changed_Block_Span : LSP.Messages.Span := ((0, 0), (0, 0));
+
+         procedure Prepare
+           (To_Line   : Line_Number;
+            To_Column : UTF_16_Index;
+            Text : LSP_String);
+         --  Store imformation for Text_Etid in New_String and Span
+
+         procedure Add (From_Line : Line_Number);
+         --  Add prepared New_String and Span into Text_Edit
+
+         -------------
+         -- Prepare --
+         -------------
+
+         procedure Prepare
+           (To_Line   : Line_Number;
+            To_Column : UTF_16_Index;
+            Text      : LSP_String) is
+         begin
+            if Changed_Block_Span.last = (0, 0) then
+               --  it is the first portion of a changed block so store
+               --  last position of the changes
+               Changed_Block_Span.last := (To_Line, To_Column);
+            end if;
+
+            --  accumulating new text for the changed block
+            Changed_Block_Text := Text & Changed_Block_Text;
+         end Prepare;
+
+         ---------
+         -- Add --
+         ---------
+
+         procedure Add (From_Line : Line_Number) is
+         begin
+            if Changed_Block_Span.last = (0, 0) then
+               --  No information for Text_Edit
+               return;
+            end if;
+
+            Changed_Block_Span.first :=
+              (line      => From_Line,
+               character => 0);
+
+            LSP.Messages.Prepend
+              (Edit, LSP.Messages.TextEdit'
+                 (span    => Changed_Block_Span,
+                  newText => Changed_Block_Text));
+
+            --  clearing
+            Changed_Block_Text := Empty_LSP_String;
+            Changed_Block_Span := ((0, 0), (0, 0));
+         end Add;
+
+      begin
+         --  prepare LCS
+
+         --  default values for line 0
+         for Index in 0 .. Old_Length loop
+            LCS (Index)(0) := -5 * Index;
+         end loop;
+
+         --  default values for first columns
+         for Index in 0 .. New_Length loop
+            LCS (0)(Index) := -5 * Index;
+         end loop;
+
+         --  calculate LCS
+         for Row in 1 .. Old_Length loop
+            for Column in 1 .. New_Length loop
+               Match := LCS (Row - 1)(Column - 1) +
+                 (if Old_Lines (Old_First_Line + Row - 1) =
+                      New_Lines (New_First_Line + Column - 1)
+                  then 10   --  +10 is the 'weight' for equal lines
+                  else -1); --  and -1 for the different
+
+               Delete := LCS (Row - 1)(Column) - 5;
+               Insert := LCS (Row)(Column - 1) - 5;
+
+               LCS (Row)(Column) := Integer'Max (Match, Insert);
+               LCS (Row)(Column) := Integer'Max (LCS (Row)(Column), Delete);
+            end loop;
+         end loop;
+
+         --  iterate over LCS and create Text_Edit
+
+         Old_Line_Number := Line_Number (Old_First_Line + Old_Length - 1);
+
+         while Old_Index > 0
+           and then New_Index > 0
+         loop
+            if LCS (Old_Index)(New_Index) =
+              LCS (Old_Index - 1)(New_Index - 1) +
+              (if Old_Lines (Old_First_Line + Old_Index - 1) =
+                   New_Lines (New_First_Line + New_Index - 1)
+               then 10
+               else -1)
+            then
+               --  both has lines
+               if New_Lines.Element (New_First_Line + New_Index - 1) =
+                 Old_Lines.Element (Old_First_Line + Old_Index - 1)
+               then
+                  --  lines are equal, add Text_Edit after current line
+                  --  if any is already prepared
+                  Add (Old_Line_Number);
+               else
+                  --  lines are different, change old line by new one,
+                  --  we deleted whole line so 'To' position will be
+                  --  the beginning of the next line
+                  Prepare
+                    (Old_Line_Number, 0,
+                     New_Lines.Element (New_First_Line + New_Index - 1));
+               end if;
+
+               --  move lines cursor backward
+               Old_Line_Number := Old_Line_Number - 1;
+
+               New_Index := New_Index - 1;
+               Old_Index := Old_Index - 1;
+
+            elsif LCS (Old_Index)(New_Index) =
+              LCS (Old_Index - 1)(New_Index) - 5
+            then
+               --  line has been deleted, move lines cursor backward
+               Prepare (Old_Line_Number, 0, Empty_LSP_String);
+
+               Old_Line_Number := Old_Line_Number - 1;
+               Old_Index       := Old_Index - 1;
+
+            elsif LCS (Old_Index)(New_Index) =
+              LCS (Old_Index)(New_Index - 1) - 5
+            then
+               --  line has been inserted
+               --  insert Text_Edit information with insertion after
+               --  current line, do not move lines cursor because it is
+               --  additional line not present in the old document
+               Prepare
+                 (Old_Line_Number, 0,
+                  New_Lines.Element (New_First_Line + New_Index - 1));
+
+               New_Index := New_Index - 1;
+            end if;
+         end loop;
+
+         while Old_Index > 0 loop
+            --  deleted
+            Prepare (Old_Line_Number, 0, Empty_LSP_String);
+
+            Old_Line_Number := Old_Line_Number - 1;
+            Old_Index       := Old_Index - 1;
+         end loop;
+
+         while New_Index > 0 loop
+            --  inserted
+            Prepare
+              (Old_Line_Number, 0,
+               New_Lines.Element (New_First_Line + New_Index - 1));
+
+            New_Index := New_Index - 1;
+         end loop;
+
+         Add (Old_Line_Number);
+      end;
+   end Diff;
+
+   ----------------
+   -- Formatting --
+   ----------------
+
+   function Formatting
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector)
+      return Boolean
+   is
+      use Utils.Char_Vectors;
+      use Utils.Char_Vectors.Char_Vectors;
+      use LSP.Types;
+      use LSP.Messages;
+
+      Cmd_Text  : GNAT.Strings.String_List_Access;
+      Cmd       : Utils.Command_Lines.Command_Line
+        (Pp.Command_Lines.Descriptor'Access);
+
+      Input     : Char_Vector;
+      Output    : Char_Vector;
+      In_Range  : Char_Subrange;
+      Out_Range : Char_Subrange;
+      Out_Span  : LSP.Messages.Span;
+
+      Messages  : Pp.Scanner.Source_Message_Vector;
+
+      Tab_Size : constant String := LSP.Types.LSP_Number'Image
+        (Options.tabSize);
+
+      function Get_Range
+        (Span : LSP.Messages.Span)
+         return Utils.Char_Vectors.Char_Subrange;
+      --  Convert Span to Char_Subrange
+
+      function Get_Range
+        (Index         : Natural;
+         From_Index    : Natural := 1;
+         From_Position : LSP.Messages.Position := (0, 0))
+         return LSP.Messages.Position;
+      --  Convert UTF-8 Index to Position in UTF-16 string
+      --  From_Index and corresponding From_Position are used when we know
+      --  some 'start' point to avoid scanning from the beginning of
+      --  the buffer
+
+      ---------------
+      -- Get_Range --
+      ---------------
+
+      function Get_Range
+        (Span : LSP.Messages.Span)
+         return Utils.Char_Vectors.Char_Subrange
+      is
+         Line   : Line_Number  := 0;
+         Char   : UTF_16_Index := 0;
+         Result : Utils.Char_Vectors.Char_Subrange := (1, 1);
+      begin
+         if Span.first.line > 0 then
+            --  iterating over symbols to find the beginning
+            --  of the needed line
+            for Index in 1 .. Natural (Length (Input)) loop
+               Result.First := Index;
+
+               if Input.Element (Index) = Ada.Characters.Latin_1.LF then
+                  Line := Line + 1;
+
+                  if Line = Span.first.line then
+                     --  skip '\n'
+                     Result.First := Result.First + 1;
+                     exit;
+                  end if;
+               end if;
+            end loop;
+         end if;
+
+         --  looking for a start symbol from the beginning of the line
+         while Result.First <= Natural (Length (Input))
+           and then Char < Span.first.character
+         loop
+            Char := Char + 1;
+
+            Result.First := Result.First +
+              LSP.Types.Utils.Lenght_Of_UTF8_Symbol
+                (Input.Element (Result.First));
+         end loop;
+
+         if Line = Span.last.line then
+            --  continue from the 'start' symbol
+            Result.Last := Result.First;
+
+         else
+            --  set Char to 0 because we will start from the beginning
+            --  of the new line
+            Char := 0;
+
+            --  continue iterating from the founded 'start' symbol e.g.
+            --  from the 'start' line
+
+            for Index in Result.First .. Natural (Length (Input)) loop
+               Result.Last := Index;
+
+               if Input.Element (Index) = Ada.Characters.Latin_1.LF then
+                  Line := Line + 1;
+
+                  if Line = Span.last.line then
+                     --  skip '\n'
+                     Result.Last := Result.Last + 1;
+                     exit;
+                  end if;
+               end if;
+            end loop;
+         end if;
+
+         --  looking for a last symbol
+         while Result.Last <= Natural (Length (Input))
+           and then Char < Span.last.character
+         loop
+            Result.Last := Result.Last +
+              LSP.Types.Utils.Lenght_Of_UTF8_Symbol
+                (Input.Element (Result.Last));
+
+            Char := Char + 1;
+         end loop;
+
+         return Result;
+      end Get_Range;
+
+      ---------------
+      -- Get_Range --
+      ---------------
+
+      function Get_Range
+        (Index         : Natural;
+         From_Index    : Natural := 1;
+         From_Position : LSP.Messages.Position := (0, 0))
+         return LSP.Messages.Position
+      is
+         Current : Natural := From_Index;
+         Result  : LSP.Messages.Position := From_Position;
+      begin
+         while Current < Natural (Length (Output))
+           and then Current < Index
+         loop
+            if Output.Element (Current) = Ada.Characters.Latin_1.LF then
+               --  new line
+               Result.line      := Result.line + 1;
+               Result.character := 0;
+               Current          := Current + 1;
+
+            else
+               --  goto to the beginning of the next UTF-8 character
+               Current := Current + LSP.Types.Utils.Lenght_Of_UTF8_Symbol
+                 (Output.Element (Current));
+
+               --  one more symbol has been passed
+               Result.character := Result.character + 1;
+            end if;
+         end loop;
+
+         return Result;
+      end Get_Range;
+
+   begin
+      Cmd_Text := new GNAT.Strings.String_List
+        (1 .. (if Options.insertSpaces then 3 else 2));
+
+      Cmd_Text (1) := new String'("-W8"); -- UTF-8 encoding
+      Cmd_Text (2) := new String'
+        ("-i" & Tab_Size (Tab_Size'First + 1 .. Tab_Size'Last)); -- Identation
+      if Options.insertSpaces then
+         Cmd_Text (3) := new String'("-notab");
+      end if;
+
+      Utils.Command_Lines.Parse
+        (Cmd_Text,
+         Cmd,
+         Phase              => Utils.Command_Lines.Cmd_Line_1,
+         Callback           => Utils.Command_Lines.Null_Callback'Access,
+         Collect_File_Names => False,
+         Ignore_Errors      => True);
+
+      GNAT.Strings.Free (Cmd_Text);
+
+      declare
+         S : constant String := Ada.Strings.Unbounded.To_String
+           (LSP.Types.To_UTF_8_Unbounded_String (Self.Text));
+      begin
+         Input.Append (S);
+      end;
+
+      if Span = LSP.Messages.Empty_Span then
+         In_Range := Input.Full_Range;
+      else
+         In_Range := Get_Range (Span);
+      end if;
+
+      Pp.Actions.Format_Vector
+        (Cmd       => Cmd,
+         Input     => Input,
+         Node      => Self.Unit (Context).Root,
+         In_Range  => In_Range,
+         Output    => Output,
+         Out_Range => Out_Range,
+         Messages  => Messages);
+
+      if not Messages.Is_Empty then
+         return False;
+      end if;
+
+      declare
+         S : constant String := Output.To_Array;
+      begin
+         if Lal_PP_Output.Is_Active then
+            Lal_PP_Output.Trace (S);
+         end if;
+
+         --  it seems that Format_Vector does not set Out_Range properly, so
+         --  using full diff for now
+         Out_Range.First := 1;
+
+         if Span = LSP.Messages.Empty_Span
+           or else Out_Range.First < In_Range.First
+         then
+            --  diff for the whole document
+            Diff (Self, LSP.Types.To_LSP_String (S), Edit => Edit);
+
+         else
+            --  diff for a part of the document
+
+            Out_Span.first := Span.first;
+            Out_Span.last  := Get_Range
+              (Out_Range.Last, In_Range.First, Span.first);
+
+            Diff (Self, LSP.Types.To_LSP_String (S), Span, Out_Span, Edit);
+         end if;
+      end;
+
+      return True;
+   end Formatting;
 
    ----------------
    -- Get_Errors --

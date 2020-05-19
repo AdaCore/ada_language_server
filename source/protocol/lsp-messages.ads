@@ -315,6 +315,8 @@ package LSP.Messages is
       V : Span);
    for Span'Write use Write_Span;
 
+   Empty_Span : constant Span := ((0, 0), (0, 0));
+
    package Optional_Spans is new LSP.Generic_Optional (Span);
    type Optional_Span is new Optional_Spans.Optional_Type;
 

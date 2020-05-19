@@ -110,6 +110,15 @@ package LSP.Ada_Documents is
    --  Populate Result with code folding blocks in the document. If Lines_Only
    --  is True does not return characters positions in lines.
 
+   function Formatting
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector)
+      return Boolean;
+   --  Format whole document, Return False on error
+
    -----------------------
    -- Document_Provider --
    -----------------------
@@ -154,6 +163,17 @@ private
       --  given in line/column coordinates without having to scan the whole
       --  text from the beginning.
    end record;
+
+   procedure Diff
+     (Self     : Document;
+      New_Text : LSP.Types.LSP_String;
+      Old_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
+      New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
+      Edit     : out LSP.Messages.TextEdit_Vector);
+   --  Create a diff between document Text and New_Text and return Text_Edit
+   --  based on Needleman-Wunsch algorithm
+   --  Old_Span and New_Span are used when we need to compare certain
+   --  old/new lines instead of whole buffers
 
    function URI (Self : Document) return LSP.Messages.DocumentUri is
      (Self.URI);
