@@ -82,7 +82,7 @@
                               "character": 21
                             }
                           },
-                          "message": "Expected '(', got '''"
+                          "message": "Expected '[', got '''"
                         },
                         {
                           "range": {
@@ -115,9 +115,9 @@
             "wait":[
                {
                "params": {
-                  "uri": "$URI{aaa.ads}", 
+                  "uri": "$URI{aaa.ads}",
                   "diagnostics": []
-               }, 
+               },
                "method": "textDocument/publishDiagnostics"
               }
            ]
