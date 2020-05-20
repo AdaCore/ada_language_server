@@ -101,7 +101,7 @@ package body Spawn.Processes.Windows is
          while J <= S'Last loop
             N := 0;
 
-            while J <= S'Last and S (J) = '\' loop
+            while J <= S'Last and then S (J) = '\' loop
                J := J + 1;
                N := N + 1;
             end loop;
