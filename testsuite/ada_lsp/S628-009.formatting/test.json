@@ -1,0 +1,150 @@
+[
+   {
+      "comment": [
+         "Test formatting request"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 20634,
+               "capabilities": {
+                  "textDocument": {
+                     "formatting": {
+                        "dynamicRegistration": true
+                     }
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "documentFormattingProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{hello.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Text_IO;\n\npackage body A is\n\n   -----------\n   -- Print --\n   -----------\n\n   procedure Print is B : Boolean := True; begin Ada.Text_IO.Put_Line (\"A\");\n      if B\n      then\n         null;\n      end if;\n   end Print;\n\n   -----------\n   -- Print --\n   -----------\n\n   procedure Print (Value : String) is\n   begin\n      Ada.Text_IO.Put_Line (Value);\n   end Print;\n\nend A;\n",
+                  "version": 0,
+                  "uri": "$URI{a.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a.adb}"
+               },
+               "options": {
+                  "trimTrailingWhitespace": true,
+                  "insertSpaces": true,
+                  "tabSize": 3,
+                  "trimFinalNewlines": true,
+                  "insertFinalNewline": false
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/formatting"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "newText": "   procedure Print is\n      B : Boolean := True;\n   begin\n      Ada.Text_IO.Put_Line (\"A\");\n      if B then\n",
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 11,
+                           "character": 0
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
