@@ -1,0 +1,286 @@
+[
+   {
+      "comment": [
+          "This test checks that aggregate completion works fine with derived ",
+          "types"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 30170,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  "("
+                              ],
+                              "resolveProvider": false
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "documentSymbolProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {
+                              "commands": [
+                                  "als-named-parameters"
+                              ]
+                          },
+                          "alsCalledByProvider": true,
+                          "alsReferenceKinds": [
+                              "reference",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child"
+                          ]
+                      }
+                  }
+              }
+          ]
+
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\n\n   type Base_Rec (Disc : Integer) is tagged record\n      case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n      end case;\n   end record;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n   end record;\n\n   Obj : Derived_Rec :=\nbegin\n   null;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   type Base_Rec (Disc : Integer) is tagged record\n      case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n      end case;\n   end record;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n   end record;\n\n   Obj : Derived_Rec := \nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "procedure Main is\n\n   type Base_Rec (Disc : Integer) is tagged record\n      case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n      end case;\n   end record;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n   end record;\n\n   Obj : Derived_Rec := (\nbegin\n   null;\nend Main;\n"
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 17,
+                  "character": 25
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "insertText": "Disc => 1, A => ${2:A : Integer}, D => ${3:D : Integer})$0",
+                        "kind": 15,
+                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "label": "Aggregate when Disc => 1",
+                        "additionalTextEdits": [],
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "insertText": "Disc => 2, Z => ${5:Z : Integer}, D => ${6:D : Integer})$0",
+                        "kind": 15,
+                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "label": "Aggregate when Disc => 2",
+                        "additionalTextEdits": [],
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "insertText": "Disc => ${7:others}, B => ${8:B : Integer}, D => ${9:D : Integer})$0",
+                        "kind": 15,
+                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "label": "Aggregate when Disc => others",
+                        "additionalTextEdits": [],
+                        "insertTextFormat": 2
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
