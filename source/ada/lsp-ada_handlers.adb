@@ -528,6 +528,17 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.referencesProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
+      Response.result.capabilities.documentFormattingProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
+
+      --  lalpp does not support range formatting for now
+      --  do not set the option
+      --
+      --  Response.result.capabilities.documentRangeFormattingProvider :=
+      --    (Is_Set => True,
+      --     Value  => (workDoneProgress => (Is_Set => False)));
+
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
@@ -2832,15 +2843,29 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Formatting_Request)
       return LSP.Messages.Server_Responses.Formatting_Response
    is
-      pragma Unreferenced (Self, Request);
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Request.params.textDocument.uri);
+
       Response : LSP.Messages.Server_Responses.Formatting_Response
-        (Is_Error => True);
+        (Is_Error => False);
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      if not Document.Formatting
+        (Context.all, LSP.Messages.Empty_Span, Request.params.options,
+         Response.result)
+      then
+         return Response : LSP.Messages.Server_Responses.Formatting_Response
+           (Is_Error => True)
+         do
+            Response.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Internal error",
+                data => <>));
+         end return;
+      end if;
+
       return Response;
    end On_Formatting_Request;
 
@@ -2853,15 +2878,29 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
       return LSP.Messages.Server_Responses.Range_Formatting_Response
    is
-      pragma Unreferenced (Self, Request);
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Request.params.textDocument.uri);
+
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response
-        (Is_Error => True);
+        (Is_Error => False);
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      if not Document.Formatting
+        (Context.all,
+         Request.params.span, Request.params.options, Response.result)
+      then
+         return Response : LSP.Messages.Server_Responses.
+           Range_Formatting_Response (Is_Error => True)
+         do
+            Response.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Internal error",
+                data => <>));
+         end return;
+      end if;
+
       return Response;
    end On_Range_Formatting_Request;
 
