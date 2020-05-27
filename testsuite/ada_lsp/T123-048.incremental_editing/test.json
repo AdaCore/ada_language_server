@@ -267,10 +267,11 @@
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "reference",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
+                        "access", 
+                        "write", 
+                        "call", 
+                        "dispatching call", 
+                        "parent", 
                         "child"
                      ],
                      "hoverProvider": true,

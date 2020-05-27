@@ -13,10 +13,11 @@ extra field to the `Location` type:
 
 ```typescript
 
-export type AlsReferenceKind = 'write' | 'call' | 'dispatching call' | 'parent' | 'child';
+export type AlsReferenceKind = 'write' | 'access' | 'call' | 'dispatching call' | 'parent' | 'child';
 
 export namespace AlsReferenceKind {
    export const Write            : AlsReferenceKind = 'write';
+   export const Access           : AlsReferenceKind = 'access';
    export const Static_Call      : AlsReferenceKind = 'call';
    export const Dispatching_Call : AlsReferenceKind = 'dispatching call';
    export const Parent           : AlsReferenceKind = 'parent';
