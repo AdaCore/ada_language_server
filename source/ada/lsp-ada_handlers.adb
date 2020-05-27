@@ -23,6 +23,7 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.Unchecked_Deallocation;
+with Ada.Wide_Wide_Characters.Handling;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNAT.Strings;
@@ -1727,6 +1728,33 @@ package body LSP.Ada_Handlers is
             and then Node.Parent.Parent.Kind in Ada_Derived_Type_Def_Range));
       --  Return True if the node belongs to derived type declaration.
 
+      function Is_Access_Ref (Node : Ada_Node) return Boolean;
+
+      -------------------
+      -- Is_Access_Ref --
+      -------------------
+
+      function Is_Access_Ref (Node : Ada_Node) return Boolean is
+      begin
+         if not Node.Parent.Is_Null and then Node.Parent.Kind in Ada_Name then
+            declare
+               Sibling : constant Ada_Node := Node.Next_Sibling;
+               Text    : constant Wide_Wide_String :=
+                 (if Sibling.Is_Null
+                  then ""
+                  else Ada.Wide_Wide_Characters.Handling.To_Lower
+                    (Sibling.Text));
+            begin
+               return
+                 Text = "access"
+                 or else Text = "unrestricted_access"
+                 or else Text = "unchecked_access"
+                 or else Text = "address";
+            end;
+         end if;
+         return False;
+      end Is_Access_Ref;
+
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
@@ -1741,6 +1769,14 @@ package body LSP.Ada_Handlers is
       begin
          begin
             Result.As_Flags (LSP.Messages.Write) := Id.P_Is_Write_Reference;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Log (Self.Trace, E);
+         end;
+
+         begin
+            Result.As_Flags (LSP.Messages.Access_Ref) :=
+              Is_Access_Ref (Id.As_Ada_Node);
          exception
             when E : Libadalang.Common.Property_Error =>
                Log (Self.Trace, E);

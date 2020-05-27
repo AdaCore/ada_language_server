@@ -351,10 +351,11 @@ package LSP.Messages is
 
    --  reference_kinds ALS extension:
    --
-   --  export type AlsReferenceKind = 'w' | 'c' | 'd' | 'p' | 'h';
+   --  export type AlsReferenceKind = 'w' | 'a' | 'c' | 'd' | 'p' | 'h';
    --
    --  export namespace AlsReferenceKind {
    --     export const Write            : AlsReferenceKind = 'write';
+   --     export const Access           : AlsReferenceKind = 'access';
    --     export const Static_Call      : AlsReferenceKind = 'call';
    --     export const Dispatching_Call : AlsReferenceKind = 'dispatching call';
    --     export const Parent           : AlsReferenceKind = 'parent';
@@ -362,7 +363,7 @@ package LSP.Messages is
    --  }
 
    type AlsReferenceKind is
-     (Simple, Write, Static_Call, Dispatching_Call, Parent, Child);
+     (Simple, Access_Ref, Write, Static_Call, Dispatching_Call, Parent, Child);
 
    procedure Read_AlsReferenceKind
      (S : access Ada.Streams.Root_Stream_Type'Class;

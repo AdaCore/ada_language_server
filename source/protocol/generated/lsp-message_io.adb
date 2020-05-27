@@ -238,6 +238,8 @@ package body LSP.Message_IO is
    begin
       if Text = "reference" then
          V := Simple;
+      elsif Text = "access" then
+         V := Access_Ref;
       elsif Text = "write" then
          V := Write;
       elsif Text = "call" then
@@ -271,6 +273,8 @@ package body LSP.Message_IO is
          case Value is
             when Simple =>
                return "reference";
+            when Access_Ref =>
+               return "access";
             when Write =>
                return "write";
             when Static_Call =>

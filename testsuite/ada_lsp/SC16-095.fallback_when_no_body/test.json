@@ -52,6 +52,7 @@
                      "typeDefinitionProvider": true,
                       "alsReferenceKinds": [
                         "reference",
+                         "access",
                         "write",
                         "call",
                         "dispatching call", "parent", "child"
