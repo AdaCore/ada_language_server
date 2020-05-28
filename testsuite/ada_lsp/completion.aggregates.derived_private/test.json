@@ -1,0 +1,209 @@
+[
+   {
+      "comment": [
+          "This test checks that aggregate completion works fine ",
+          "on derived types with a private base type"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 7266,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\n\n   package My_Package is\n\n      type Base_Rec (Disc : Integer) is tagged private;\n\n   private\n\n      type Base_Rec (Disc : Integer) is tagged record\n         case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n         end case;\n      end record;\n   end My_Package;\n\n   use My_Package;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n      X : Float;\n   end record;\n\n   Obj : Derived_Rec :=\n   begin\n   null;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/documentSymbol"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "(",
+                     "range": {
+                        "start": {
+                           "line": 27,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 27,
+                           "character": 23
+                        }
+                     }
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 27,
+                  "character": 24
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

@@ -1924,33 +1924,39 @@ package body LSP.Ada_Documents is
          Idx                : Natural;
          Use_Named_Notation : Boolean) return LSP_String
       is
-         Snippet : LSP_String;
+         Snippet    : LSP_String;
+         Param_Ids  : constant Defining_Name_List :=
+           (case Param.Kind is
+               when Ada_Component_Decl_Range =>
+                 As_Component_Decl (Param).F_Ids,
+               when Ada_Discriminant_Spec    =>
+                 As_Discriminant_Spec (Param).F_Ids,
+               when others                   => No_Defining_Name_List);
+         Param_Type : constant Type_Expr :=
+           (case Param.Kind is
+               when Ada_Component_Decl_Range =>
+                 As_Component_Decl (Param).F_Component_Def.F_Type_Expr,
+               when Ada_Discriminant_Spec    =>
+                 As_Discriminant_Spec (Param).F_Type_Expr,
+               when others                   => No_Type_Expr);
       begin
-         case Param.Kind is
-            when Ada_Component_Decl_Range =>
+         for Id of Param_Ids loop
+            if Use_Named_Notation then
+               Snippet := Snippet & To_LSP_String
+                 (Langkit_Support.Text.To_UTF8 (Id.Text)
+                  & " => ");
+            end if;
 
-               for Id of As_Component_Decl (Param).F_Ids loop
-                  if Use_Named_Notation then
-                     Snippet := Snippet & To_LSP_String
-                       (Langkit_Support.Text.To_UTF8 (Id.Text)
-                        & " => ");
-                  end if;
-
-                  Snippet := Snippet & To_LSP_String
-                    ("${"
-                     & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-                     & ":"
-                     & Langkit_Support.Text.To_UTF8 (Id.Text)
-                     & " : "
-                     & Langkit_Support.Text.To_UTF8
-                       (As_Component_Decl
-                            (Param).F_Component_Def.F_Type_Expr.Text)
-                     & "}, ");
-               end loop;
-
-            when others =>
-               return LSP.Types.Empty_LSP_String;
-         end case;
+            Snippet := Snippet & To_LSP_String
+              ("${"
+               & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
+               & ":"
+               & Langkit_Support.Text.To_UTF8 (Id.Text)
+               & " : "
+               & Langkit_Support.Text.To_UTF8
+                 (Param_Type.Text)
+               & "}, ");
+         end loop;
 
          return Snippet;
       end Get_Snippet_For_Component;
@@ -2084,8 +2090,9 @@ package body LSP.Ada_Documents is
             Idx           : Positive := 1;
             Nb_Components : Natural := 0;
             Insert_Text   : LSP_String;
+            Base_Type     : constant Base_Type_Decl := Aggr_Type.P_Base_Type
+              (Origin => Node);
          begin
-
             for Shape of Shapes loop
                declare
                   Discriminants : constant Discriminant_Values_Array :=
@@ -2114,9 +2121,51 @@ package body LSP.Ada_Documents is
                        + As_Component_Decl (Comp).F_Ids.Children_Count;
                   end loop;
 
+                  Nb_Components := Nb_Components + Discriminants'Length;
+
+                  --  Use the named notation if we need to specify only one
+                  --  component (otherwise it won't compile) or if the number
+                  --  of components is greater or equal than the theshold.
                   Use_Named_Notation := Named_Notation_Threshold > 0
-                    and then (Discriminants'Length + Nb_Components)
-                        >= Named_Notation_Threshold;
+                    and then
+                      (Nb_Components = 1
+                          or else Nb_Components >= Named_Notation_Threshold);
+
+                  --  If we are dealing with a derived type that does not have
+                  --  access to its parent full view, we should use the
+                  --  extension aggregate notation (see RM 4.3.2 for more
+                  --  info).
+                  if not Base_Type.Is_Null and then Base_Type.P_Is_Private then
+                     Insert_Text := LSP.Types.To_LSP_String
+                       (Langkit_Support.Text.To_UTF8 (Base_Type.F_Name.Text))
+                       & " with ";
+
+                     declare
+                        Base_Discs : constant Base_Formal_Param_Decl_Array :=
+                          Base_Type.P_Discriminants_List;
+                     begin
+                        --  Take into account the base type discriminants to
+                        --  know if we should use the named notation or not.
+
+                        Nb_Components := Nb_Components + Base_Discs'Length;
+
+                        Use_Named_Notation := Named_Notation_Threshold > 0
+                          and then
+                            (Nb_Components = 1
+                                    or else Nb_Components
+                                    >= Named_Notation_Threshold);
+
+                        for Disc of Base_Discs loop
+                           Insert_Text := Insert_Text
+                             & Get_Snippet_For_Component
+                             (Param              => Disc,
+                              Idx                => Idx,
+                              Use_Named_Notation => Use_Named_Notation);
+
+                           Idx := Idx + 1;
+                        end loop;
+                     end;
+                  end if;
 
                   --  Compute the snippets for the record discriminants, if any
                   for Disc of Discriminants loop
