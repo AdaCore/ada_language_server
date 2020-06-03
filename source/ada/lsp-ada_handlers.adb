@@ -58,9 +58,8 @@ package body LSP.Ada_Handlers is
 
    Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
-                             GNATCOLL.Traces.Off);
+                             GNATCOLL.Traces.On);
    --  Trace to activate the support for incremental text changes.
-   --  This will be made active by default once it's been field-tested.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
