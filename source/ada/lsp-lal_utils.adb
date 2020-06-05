@@ -21,8 +21,11 @@ with Ada.Strings.Wide_Wide_Fixed;
 with LSP.Types;         use LSP.Types;
 
 with Libadalang.Common; use Libadalang.Common;
+with Libadalang.Lexer;
+with Langkit_Support.Diagnostics;
 
 with Langkit_Support;
+with Pp.Actions;
 
 package body LSP.Lal_Utils is
 
@@ -707,5 +710,221 @@ package body LSP.Lal_Utils is
       --  TODO: sort?
       return Result;
    end Find_All_Calls;
+
+   -------------------------
+   -- To_Unbounded_String --
+   -------------------------
+
+   function To_Unbounded_String
+     (Input : Utils.Char_Vectors.Char_Vector)
+      return Ada.Strings.Unbounded.Unbounded_String is
+   begin
+      return Result : Ada.Strings.Unbounded.Unbounded_String do
+         for Char of Input loop
+            Ada.Strings.Unbounded.Append (Result, Char);
+         end loop;
+      end return;
+   end To_Unbounded_String;
+
+   -------------------
+   -- Format_Vector --
+   -------------------
+
+   procedure Format_Vector
+     (Cmd       : Utils.Command_Lines.Command_Line;
+      Input     : Utils.Char_Vectors.Char_Vector;
+      Node      : Ada_Node;
+      In_Sloc   : Langkit_Support.Slocs.Source_Location_Range;
+      Output    : out Utils.Char_Vectors.Char_Vector;
+      Out_Sloc  : out Langkit_Support.Slocs.Source_Location_Range;
+      Messages  : out Pp.Scanner.Source_Message_Vector)
+   is
+      use type Langkit_Support.Slocs.Source_Location_Range;
+
+      procedure Tokenize_Output;
+      --  Split Output document into tokens and store them into TDH
+
+      procedure Synchronize_Tokens
+        (In_Stop   : Token_Reference;
+         Out_Stop  : out Libadalang.Common.Token_Data_Handlers.Token_Index;
+         In_Start  : Token_Reference;
+         Out_Start : Libadalang.Common.Token_Data_Handlers.Token_Index;
+         Ok        : out Boolean);
+      --  Find a token in Output document that corresponds to Is_Stop token in
+      --  the Input document. Store token index into Out_Stop. To do this
+      --  start scanning both token chains starting from In_Start (for Input)
+      --  and Out_Start (for Output document). If no corresponding token found
+      --  return Ok = False.
+
+      function Lookup_Token
+        (Sloc : Langkit_Support.Slocs.Source_Location) return Token_Reference;
+      --  Like Node.Unit.Lookup_Token, but skip Trivia
+
+      TDH     : Libadalang.Common.Token_Data_Handlers.Token_Data_Handler;
+      Diags   : Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+      Symbols : Libadalang.Common.Symbols.Symbol_Table :=
+        Libadalang.Common.Symbols.Create_Symbol_Table;
+
+      ------------------
+      -- Lookup_Token --
+      ------------------
+
+      function Lookup_Token
+        (Sloc : Langkit_Support.Slocs.Source_Location) return Token_Reference
+      is
+         Result : Token_Reference := Node.Unit.Lookup_Token (Sloc);
+      begin
+         if Is_Trivia (Result) then
+            Result := Previous (Result, Exclude_Trivia => True);
+         end if;
+
+         return Result;
+      end Lookup_Token;
+
+      ------------------------
+      -- Synchronize_Tokens --
+      ------------------------
+
+      procedure Synchronize_Tokens
+        (In_Stop   : Token_Reference;
+         Out_Stop  : out Libadalang.Common.Token_Data_Handlers.Token_Index;
+         In_Start  : Token_Reference;
+         Out_Start : Libadalang.Common.Token_Data_Handlers.Token_Index;
+         Ok        : out Boolean)
+      is
+         procedure Find_Next_Token
+           (Kind  : Token_Kind;
+            Index : in out Libadalang.Common.Token_Data_Handlers.Token_Index;
+            Ok    : out Boolean);
+         --  Find nearest token of a given Kind in the Output document starting
+         --  from Index. Set Ok to False in no such token found and don't
+         --  update Index in this case.
+
+         ---------------------
+         -- Find_Next_Token --
+         ---------------------
+
+         procedure Find_Next_Token
+           (Kind  : Token_Kind;
+            Index : in out Libadalang.Common.Token_Data_Handlers.Token_Index;
+            Ok    : out Boolean)
+         is
+            use type Libadalang.Common.Token_Data_Handlers.Token_Index;
+            Max_Look_Ahead : constant := 4;  --  How far search for the token
+
+            Next_Kind : Token_Kind;
+         begin
+            Ok := False;
+
+            for J in Index + 1 .. Index + Max_Look_Ahead loop
+               Next_Kind := Libadalang.Common.To_Token_Kind
+                 (Libadalang.Common.Token_Data_Handlers.Get_Token
+                    (TDH, J).Kind);
+
+               if Next_Kind = Kind then
+                  Ok := True;
+                  Index := J;
+                  exit;
+               end if;
+            end loop;
+         end Find_Next_Token;
+
+         Input : Token_Reference;
+      begin
+         Input := In_Start;
+         Out_Stop := Out_Start;
+         Ok := True;  --  Now Out_Stop is synchronized with Input
+
+         while Input /= In_Stop loop
+            Input := Next (Input, Exclude_Trivia => True);
+            Find_Next_Token (Kind (Data (Input)), Out_Stop, Ok);
+         end loop;
+      end Synchronize_Tokens;
+
+      ---------------------
+      -- Tokenize_Output --
+      ---------------------
+
+      procedure Tokenize_Output is
+         Input : constant Libadalang.Lexer.Lexer_Input :=
+           (Kind     => Libadalang.Common.Bytes_Buffer,
+            Charset  => Ada.Strings.Unbounded.To_Unbounded_String ("utf-8"),
+            Read_BOM => False,
+            Bytes    => To_Unbounded_String (Output));
+
+      begin
+         Libadalang.Common.Token_Data_Handlers.Initialize (TDH, Symbols);
+         Libadalang.Lexer.Extract_Tokens
+           (Input,
+            TDH         => TDH,
+            Diagnostics => Diags,
+            With_Trivia => True);
+      end Tokenize_Output;
+
+      use type Langkit_Support.Slocs.Line_Number;
+
+      From : Token_Reference;
+      --  Nearest to range start token (in Input document)
+      To   : Token_Reference;
+      --  Nearest to range end token (in Input document)
+      From_Index : Libadalang.Common.Token_Data_Handlers.Token_Index;
+      --  Corresponding From-token in Output document
+      To_Index : Libadalang.Common.Token_Data_Handlers.Token_Index;
+      --  Corresponding To-token in Output document
+      Ignore : Utils.Char_Vectors.Char_Subrange;
+      Ok : Boolean;
+   begin
+      --  it seems that Format_Vector does not use In_/Out_Range properly, so
+      --  using full text for now
+      Pp.Actions.Format_Vector
+        (Cmd, Input, Node, Input.Full_Range, Output, Ignore, Messages);
+
+      if In_Sloc = Langkit_Support.Slocs.No_Source_Location_Range then
+         --  Return full range of Output
+         Out_Sloc := In_Sloc;
+         return;
+      elsif Node.Unit.Token_Count = 0 then  --  Ignore a cornercase for now
+         Out_Sloc := Langkit_Support.Slocs.No_Source_Location_Range;
+         return;
+      end if;
+
+      Tokenize_Output;  --  Fill TDH
+      From := Lookup_Token (Langkit_Support.Slocs.Start_Sloc (In_Sloc));
+      To := Lookup_Token (Langkit_Support.Slocs.End_Sloc (In_Sloc));
+
+      Synchronize_Tokens
+        (In_Stop   => From,
+         Out_Stop  => From_Index,
+         In_Start  => Node.Unit.First_Token,
+         Out_Start => Libadalang.Common.Token_Data_Handlers.First_Token_Index,
+         Ok        => Ok);
+
+      if Ok then
+         Synchronize_Tokens
+           (In_Stop   => To,
+            Out_Stop  => To_Index,
+            In_Start  => From,
+            Out_Start => From_Index,
+            Ok        => Ok);
+      end if;
+
+      if Ok then
+         Out_Sloc.Start_Line := Libadalang.Common.Token_Data_Handlers.Get_Token
+           (TDH, From_Index).Sloc_Range.Start_Line
+           + In_Sloc.Start_Line
+           - Sloc_Range (Data (From)).Start_Line;
+
+         Out_Sloc.End_Line := Libadalang.Common.Token_Data_Handlers.Get_Token
+           (TDH, To_Index).Sloc_Range.End_Line
+           + In_Sloc.End_Line
+           - Sloc_Range (Data (To)).End_Line;
+
+         Out_Sloc.Start_Column := 1;
+         Out_Sloc.End_Column := 1;
+      end if;
+
+      Libadalang.Common.Token_Data_Handlers.Free (TDH);
+      Libadalang.Common.Symbols.Destroy (Symbols);
+   end Format_Vector;
 
 end LSP.Lal_Utils;

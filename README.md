@@ -109,8 +109,8 @@ The `ada_language_server` doesn't require/understand any command line options.
 | `documentLink/resolve`                |                    |
 | `textDocument/documentColor`          |                    |
 | `textDocument/colorPresentation`      |                    |
-| `textDocument/formatting`             |                    |
-| `textDocument/rangeFormatting`        |                    |
+| `textDocument/formatting`             | :white_check_mark: |
+| `textDocument/rangeFormatting`        | :white_check_mark: |
 | `textDocument/onTypeFormatting`       |                    |
 | `textDocument/rename`                 | :white_check_mark: |
 | `textDocument/prepareRename`          |                    |

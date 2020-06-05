@@ -525,14 +525,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
-
-      --  lalpp does not support range formatting for now
-      --  do not set the option
-      --
-      --  Response.result.capabilities.documentRangeFormattingProvider :=
-      --    (Is_Set => True,
-      --     Value  => (workDoneProgress => (Is_Set => False)));
-
+      Response.result.capabilities.documentRangeFormattingProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
