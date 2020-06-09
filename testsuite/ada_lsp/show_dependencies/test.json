@@ -183,7 +183,8 @@
                "textDocument": {
                   "uri": "$URI{package_2.ads}"
                },
-               "kind": 2
+                "kind": 2,
+                "showImplicit": false
             },
             "jsonrpc": "2.0",
             "id": 2,

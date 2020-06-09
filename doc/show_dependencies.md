@@ -25,6 +25,7 @@ export namespace ALS_ShowDependenciesKind {
 interface ALS_ShowDependenciesParams {
    textDocument : TextDocumentIdentifier; /* The queried unit */
    kind         : ALS_ShowDependenciesKind; /* The dependencies query kind */
+   showImplicit : boolean; /* True if implicit dependencies should be returned */
 }
 
 interface ALS_Unit_Description {
