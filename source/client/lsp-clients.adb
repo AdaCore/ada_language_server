@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------------
 
 with Memory_Text_Streams;
-with Magic.JSON.Streams.Readers.Simple;
-with Magic.Strings.Conversions;
-with Magic.Text_Streams.Memory;
+with VSS.JSON.Streams.Readers.Simple;
+with VSS.Strings.Conversions;
+with VSS.Text_Streams.Memory;
 
 with LSP.Client_Notification_Receivers;
 with LSP.Clients.Request_Handlers;
@@ -570,9 +570,9 @@ package body LSP.Clients is
          Method   : out LSP.Types.Optional_String;
          Is_Error : in out Boolean)
       is
-         use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
+         use all type VSS.JSON.Streams.Readers.JSON_Event_Kind;
 
-         R : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+         R : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
          JS : aliased LSP.JSON_Streams.JSON_Stream (False, R'Access);
 
       begin
@@ -586,7 +586,7 @@ package body LSP.Clients is
             pragma Assert (R.Is_Key_Name);
             declare
                Key : constant String :=
-                 Magic.Strings.Conversions.To_UTF_8_String (R.Key_Name);
+                 VSS.Strings.Conversions.To_UTF_8_String (R.Key_Name);
             begin
                R.Read_Next;
 
@@ -596,7 +596,7 @@ package body LSP.Clients is
                         Id :=
                           (Is_Number => False,
                            String    => LSP.Types.To_LSP_String
-                             (Magic.Strings.Conversions.To_UTF_8_String
+                             (VSS.Strings.Conversions.To_UTF_8_String
                                   (R.String_Value)));
                      when Number_Value =>
                         Id :=
@@ -611,7 +611,7 @@ package body LSP.Clients is
                   pragma Assert (R.Is_String_Value);
                   Method := (Is_Set => True,
                              Value  => LSP.Types.To_LSP_String
-                               (Magic.Strings.Conversions.To_UTF_8_String
+                               (VSS.Strings.Conversions.To_UTF_8_String
                                   (R.String_Value)));
                   R.Read_Next;
                elsif Key = "error" then
@@ -626,7 +626,7 @@ package body LSP.Clients is
          Memory.Current := 1;
       end Look_Ahead;
 
-      Reader : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+      Reader : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
       Stream : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => Reader'Unchecked_Access);
       Id     : LSP.Types.LSP_Number_Or_String;
@@ -719,7 +719,7 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";
@@ -742,7 +742,7 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Request := Self.Allocate_Request_Id.Number;
@@ -818,7 +818,7 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";

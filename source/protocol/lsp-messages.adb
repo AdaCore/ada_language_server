@@ -21,9 +21,9 @@ with Ada.Strings.Wide_Unbounded;
 
 with Interfaces;
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
-with Magic.JSON.Streams.Readers.Look_Ahead;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
+with VSS.JSON.Streams.Readers.Look_Ahead;
 
 with LSP.JSON_Streams;
 with LSP.Message_IO;
@@ -1594,7 +1594,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -1659,7 +1659,7 @@ package body LSP.Messages is
       JS  : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
         .JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
@@ -1673,7 +1673,7 @@ package body LSP.Messages is
          pragma Assert (Look_Ahead.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String
+              VSS.Strings.Conversions.To_UTF_8_String
                 (Look_Ahead.Key_Name);
          begin
             Look_Ahead.Read_Next;
@@ -1761,7 +1761,7 @@ package body LSP.Messages is
             pragma Assert (JS.R.Is_Key_Name);
             declare
                Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
             begin
                JS.R.Read_Next;
 
@@ -1816,7 +1816,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
         .JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
@@ -1831,7 +1831,7 @@ package body LSP.Messages is
          pragma Assert (Look_Ahead.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
          begin
             Look_Ahead.Read_Next;
 
@@ -1886,7 +1886,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -1932,7 +1932,7 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
         .JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
@@ -1952,7 +1952,7 @@ package body LSP.Messages is
       while Look_Ahead.Is_Key_Name loop
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
          begin
             Look_Ahead.Read_Next;
 
@@ -1997,14 +1997,14 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
                   Value => To_LSP_String
-                    (Magic.Strings.Conversions.To_UTF_8_String
+                    (VSS.Strings.Conversions.To_UTF_8_String
                        (JS.R.String_Value)));
 
             JS.R.Read_Next;
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
             V := (Is_String => False, others => <>);
 
             JS.R.Read_Next;
@@ -2013,7 +2013,7 @@ package body LSP.Messages is
                pragma Assert (JS.R.Is_Key_Name);
                declare
                   Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                    Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                    VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
                begin
                   JS.R.Read_Next;
 
@@ -2050,7 +2050,7 @@ package body LSP.Messages is
       -----------------
 
       procedure Read_Object (JS : LSP.JSON_Streams.JSON_Stream'Class) is
-         Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+         Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
            .JSON_Look_Ahead_Reader (JS.R);
          Nested     : aliased LSP.JSON_Streams.JSON_Stream
            (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
@@ -2061,7 +2061,7 @@ package body LSP.Messages is
          while Look_Ahead.Is_Key_Name loop
             declare
                Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 Magic.Strings.Conversions.To_UTF_8_String
+                 VSS.Strings.Conversions.To_UTF_8_String
                    (Look_Ahead.Key_Name);
             begin
                Look_Ahead.Read_Next;
@@ -2098,21 +2098,21 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
 
             V := (Is_MarkupContent => False,
                   Vector           => <>);
             V.Vector.Append
               (MarkedString'(Is_String => True,
                              value     => To_LSP_String
-                               (Magic.Strings.Conversions.To_UTF_8_String
+                               (VSS.Strings.Conversions.To_UTF_8_String
                                   (JS.R.String_Value))));
             JS.R.Read_Next;
-         when Magic.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Streams.Readers.Start_Array =>
             V := (Is_MarkupContent => False,
                   Vector           => <>);
             MarkedString_Vector'Read (S, V.Vector);
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
             Read_Object (JS);
          when others =>
             JS.Skip_Value;
@@ -2131,13 +2131,13 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Null_Value =>
             V := (False, False);
             JS.R.Read_Next;
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
             V := (True, False, others => <>);
             TextDocumentSyncOptions'Read (S, V.Options);
-         when Magic.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Streams.Readers.Number_Value =>
             V := (True, True, others => <>);
             TextDocumentSyncKind'Read (S, V.Value);
          when others =>
@@ -2157,13 +2157,13 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
                   String    => To_LSP_String
-                    (Magic.Strings.Conversions.To_UTF_8_String
+                    (VSS.Strings.Conversions.To_UTF_8_String
                        (JS.R.String_Value)));
             JS.R.Read_Next;
-         when Magic.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Streams.Readers.Start_Array =>
             JS.R.Read_Next;
             UTF_16_Index'Read (S, V.From);
             UTF_16_Index'Read (S, V.Till);
@@ -2186,11 +2186,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Boolean => True,
                   Bool       => JS.R.Boolean_Value);
             JS.R.Read_Next;
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
             V := (Is_Boolean => False,
                   Options    => (Is_Set => True, Value => <>));
 
@@ -2214,14 +2214,14 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
                   String    => To_LSP_String
-                    (Magic.Strings.Conversions.To_UTF_8_String
+                    (VSS.Strings.Conversions.To_UTF_8_String
                        (JS.R.String_Value)));
             JS.R.Read_Next;
 
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
             V := (Is_String => False, Content => <>);
             MarkupContent'Read (S, V.Content);
          when others =>
@@ -2252,7 +2252,7 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Look_Ahead : aliased Magic.JSON.Streams.Readers.Look_Ahead
+      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
         .JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
@@ -2275,7 +2275,7 @@ package body LSP.Messages is
       while Look_Ahead.Is_Key_Name loop
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
          begin
             Look_Ahead.Read_Next;
 
@@ -2322,7 +2322,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -2378,7 +2378,7 @@ package body LSP.Messages is
       Mask   : Integer := 4;
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Streams.Readers.Number_Value =>
             Result := Integer (JS.R.Number_Value.Integer_Value);
 
             for J in reverse WatchKind loop
@@ -2414,7 +2414,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -2436,7 +2436,7 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceEdit)
    is
-      procedure Each (Name : Magic.Strings.Magic_String);
+      procedure Each (Name : VSS.Strings.Virtual_String);
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -2445,9 +2445,9 @@ package body LSP.Messages is
       -- Each --
       ----------
 
-      procedure Each (Name : Magic.Strings.Magic_String) is
+      procedure Each (Name : VSS.Strings.Virtual_String) is
          Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           Magic.Strings.Conversions.To_UTF_8_String (Name);
+           VSS.Strings.Conversions.To_UTF_8_String (Name);
          Vector : TextEdit_Vector;
       begin
          JS.R.Read_Next;  --  Skip Key
@@ -2476,7 +2476,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -3015,7 +3015,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 
@@ -3097,7 +3097,7 @@ package body LSP.Messages is
             pragma Assert (JS.R.Is_Key_Name);
             declare
                Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
             begin
                JS.R.Read_Next;
 
@@ -3127,7 +3127,7 @@ package body LSP.Messages is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 

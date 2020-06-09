@@ -2,8 +2,8 @@
 with Ada.Strings.UTF_Encoding;
 with Interfaces;
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
@@ -27,7 +27,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
@@ -75,7 +75,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
@@ -119,7 +119,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "id" then
@@ -159,7 +159,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "line" then
@@ -203,7 +203,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "start" then
@@ -241,7 +241,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "" then
@@ -312,7 +312,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "reference" then
@@ -385,7 +385,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -433,7 +433,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "originSelectionRange" then
@@ -531,7 +531,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "location" then
@@ -575,7 +575,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -639,7 +639,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -683,7 +683,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -723,7 +723,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -767,7 +767,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -811,7 +811,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -863,7 +863,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -907,7 +907,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -941,7 +941,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "create" then
@@ -992,7 +992,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "abort" then
@@ -1053,7 +1053,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "documentChanges" then
@@ -1122,7 +1122,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -1183,7 +1183,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1227,7 +1227,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "applyEdit" then
@@ -1289,7 +1289,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "plaintext" then
@@ -1342,7 +1342,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -1386,7 +1386,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "includeText" then
@@ -1426,7 +1426,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1499,7 +1499,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -1539,7 +1539,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "snippetSupport" then
@@ -1620,7 +1620,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -1660,7 +1660,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1712,7 +1712,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1756,7 +1756,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "labelOffsetSupport" then
@@ -1796,7 +1796,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "documentationFormat" then
@@ -1840,7 +1840,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1888,7 +1888,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1936,7 +1936,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1980,7 +1980,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -2020,7 +2020,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "codeActionKind" then
@@ -2060,7 +2060,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2108,7 +2108,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2152,7 +2152,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2196,7 +2196,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -2236,7 +2236,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "relatedInformation" then
@@ -2284,7 +2284,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2332,7 +2332,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "synchronization" then
@@ -2456,7 +2456,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -2496,7 +2496,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workspace" then
@@ -2544,7 +2544,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -2588,7 +2588,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "token" then
@@ -2628,7 +2628,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "name" then
@@ -2666,7 +2666,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       if Text = "off" then
@@ -2744,7 +2744,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "openClose" then
@@ -2800,7 +2800,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -2852,7 +2852,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -2900,7 +2900,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -2948,7 +2948,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -2992,7 +2992,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -3036,7 +3036,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -3084,7 +3084,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -3128,7 +3128,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -3172,7 +3172,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -3216,7 +3216,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "supported" then
@@ -3260,7 +3260,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workspaceFolders" then
@@ -3300,7 +3300,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocumentSync" then
@@ -3353,10 +3353,10 @@ package body LSP.Message_IO is
                Optional_workspace_Options'Read (S, V.workspace);
             elsif Key = "alsCalledByProvider" then
                Optional_Boolean'Read (S, V.alsCalledByProvider);
-            elsif Key = "alsReferenceKinds" then
-               Optional_AlsReferenceKind_Set'Read (S, V.alsReferenceKinds);
             elsif Key = "alsShowDepsProvider" then
                Optional_Boolean'Read (S, V.alsShowDepsProvider);
+            elsif Key = "alsReferenceKinds" then
+               Optional_AlsReferenceKind_Set'Read (S, V.alsReferenceKinds);
             else
                JS.Skip_Value;
             end if;
@@ -3444,7 +3444,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "capabilities" then
@@ -3490,7 +3490,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "" then
@@ -3551,7 +3551,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -3595,7 +3595,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -3643,7 +3643,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -3687,7 +3687,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "settings" then
@@ -3727,7 +3727,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -3767,7 +3767,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -3815,7 +3815,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -3880,7 +3880,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -3924,7 +3924,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -3985,7 +3985,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -4054,7 +4054,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -4150,7 +4150,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "isIncomplete" then
@@ -4193,7 +4193,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "contents" then
@@ -4237,7 +4237,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -4281,7 +4281,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -4329,7 +4329,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "signatures" then
@@ -4377,7 +4377,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "includeDeclaration" then
@@ -4416,7 +4416,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -4493,7 +4493,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -4537,7 +4537,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4585,7 +4585,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "name" then
@@ -4645,7 +4645,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4693,7 +4693,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "diagnostics" then
@@ -4737,7 +4737,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4793,7 +4793,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "tabSize" then
@@ -4848,7 +4848,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4896,7 +4896,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4948,7 +4948,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -5000,7 +5000,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -5052,7 +5052,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -5096,7 +5096,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "applied" then
@@ -5139,7 +5139,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -5195,7 +5195,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -5247,7 +5247,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -5291,7 +5291,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "added" then
@@ -5335,7 +5335,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "event" then
@@ -5375,7 +5375,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "scopeUri" then
@@ -5419,7 +5419,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "items" then
@@ -5459,7 +5459,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "globPattern" then
@@ -5503,7 +5503,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "watchers" then
@@ -5564,7 +5564,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "triggerKind" then
@@ -5608,7 +5608,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -5664,7 +5664,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "red" then
@@ -5716,7 +5716,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -5760,7 +5760,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -5816,7 +5816,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -5864,7 +5864,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -5912,7 +5912,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "startLine" then
@@ -5968,7 +5968,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -6016,7 +6016,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -6068,7 +6068,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -6108,7 +6108,7 @@ package body LSP.Message_IO is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "location" then
@@ -6149,7 +6149,8 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      V := ALS_ShowDependenciesKind'Val (JS.Read.Get - 1);
+      V := ALS_ShowDependenciesKind'Val (JS.R.Number_Value.Integer_Value - 1);
+      JS.R.Read_Next;
    end Read_ALS_ShowDependenciesKind;
 
    procedure Write_ALS_ShowDependenciesKind
@@ -6159,9 +6160,7 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(ALS_ShowDependenciesKind'Pos (V)) + 1));
+      JS.Write_Integer ((ALS_ShowDependenciesKind'Pos (V)) + 1);
    end Write_ALS_ShowDependenciesKind;
 
    procedure Read_ALS_ShowDependenciesParams
@@ -6171,13 +6170,28 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("kind");
-      ALS_ShowDependenciesKind'Read (S, V.kind);
-      Read_Boolean (JS, +"showImplicit", V.showImplicit);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "textDocument" then
+               TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "kind" then
+               ALS_ShowDependenciesKind'Read (S, V.kind);
+            elsif Key = "showImplicit" then
+               LSP.Types.Read_Boolean (JS, V.showImplicit);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_ALS_ShowDependenciesParams;
 
    procedure Write_ALS_ShowDependenciesParams
@@ -6203,12 +6217,26 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      LSP.Types.Read (S, V.uri);
-      JS.Key ("projectUri");
-      LSP.Types.Read (S, V.projectUri);
-      JS.End_Object;
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "uri" then
+               DocumentUri'Read (S, V.uri);
+            elsif Key = "projectUri" then
+               DocumentUri'Read (S, V.projectUri);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
    end Read_ALS_Unit_Description;
 
    procedure Write_ALS_Unit_Description
@@ -6220,9 +6248,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      DocumentUri'Write (S, V.uri);
       JS.Key ("projectUri");
-      LSP.Types.Write (S, V.projectUri);
+      DocumentUri'Write (S, V.projectUri);
       JS.End_Object;
    end Write_ALS_Unit_Description;
 

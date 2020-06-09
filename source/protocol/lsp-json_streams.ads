@@ -18,15 +18,15 @@
 --  This package provides an Ada stream type to serialize Ada object into JSON.
 --
 
-private with Magic.JSON.Streams.Writers;
-private with Magic.Strings;
+private with VSS.JSON.Streams.Writers;
+private with VSS.Strings;
 
 with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
 with Interfaces;
 
-with Magic.Text_Streams;
-with Magic.JSON.Streams.Readers;
+with VSS.Text_Streams;
+with VSS.JSON.Streams.Readers;
 
 limited with LSP.Types;
 
@@ -35,7 +35,7 @@ package LSP.JSON_Streams is
 
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+      R : access VSS.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
        is limited new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
@@ -78,7 +78,7 @@ package LSP.JSON_Streams is
 
    procedure Set_Stream
      (Self   : in out JSON_Stream'Class;
-      Stream : not null Magic.Text_Streams.Output_Text_Stream_Access);
+      Stream : not null VSS.Text_Streams.Output_Text_Stream_Access);
    --  Assign output text stream to retrieve resulting JSON document after
    --  writting to the JSON stream
 
@@ -114,13 +114,13 @@ package LSP.JSON_Streams is
 private
 
    type Write_Stream is limited record
-      Writer : Magic.JSON.Streams.Writers.JSON_Simple_Writer;
-      Key    : Magic.Strings.Magic_String;
+      Writer : VSS.JSON.Streams.Writers.JSON_Simple_Writer;
+      Key    : VSS.Strings.Virtual_String;
    end record;
 
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access Magic.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+      R : access VSS.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
    is limited new Ada.Streams.Root_Stream_Type with
    record
       W : Write_Stream;

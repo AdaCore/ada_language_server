@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-package body Magic.JSON.Streams.Readers.Look_Ahead is
+package body VSS.JSON.Streams.Readers.Look_Ahead is
 
    function Current_Event
      (Self : JSON_Look_Ahead_Reader'Class) return JSON_Event;
@@ -116,7 +116,7 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
    -------------------
 
    overriding function Error_Message
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String
    is
       pragma Unreferenced (Self);
    begin
@@ -143,7 +143,7 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
    --------------
 
    overriding function Key_Name
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String is
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String is
    begin
       if Self.Save_Mode or else Self.Index > Self.Data.Last_Index then
          return Self.Parent.Key_Name;
@@ -157,7 +157,7 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
    ------------------
 
    overriding function Number_Value
-     (Self : JSON_Look_Ahead_Reader) return Magic.JSON.JSON_Number is
+     (Self : JSON_Look_Ahead_Reader) return VSS.JSON.JSON_Number is
    begin
       if Self.Save_Mode or else Self.Index > Self.Data.Last_Index then
          return Self.Parent.Number_Value;
@@ -172,7 +172,7 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
 
    overriding procedure Raise_Error
      (Self    : in out JSON_Look_Ahead_Reader;
-      Message :        Magic.Strings.Magic_String)
+      Message : VSS.Strings.Virtual_String)
    is
       pragma Unreferenced (Self, Message);
    begin
@@ -256,7 +256,7 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
    ------------------
 
    overriding function String_Value
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String is
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String is
    begin
       if Self.Save_Mode or else Self.Index > Self.Data.Last_Index then
          return Self.Parent.String_Value;
@@ -265,4 +265,4 @@ package body Magic.JSON.Streams.Readers.Look_Ahead is
       end if;
    end String_Value;
 
-end Magic.JSON.Streams.Readers.Look_Ahead;
+end VSS.JSON.Streams.Readers.Look_Ahead;

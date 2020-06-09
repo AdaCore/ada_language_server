@@ -18,14 +18,14 @@
 with Ada.Tags; use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
-with Magic.JSON.Streams.Readers.Simple;
+with VSS.JSON.Streams.Readers.Simple;
 
 with LSP.JSON_Streams;
 with LSP.Types; use LSP.Types;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
-   (Document : Magic.Text_Streams.Input_Text_Stream_Access;
+   (Document : VSS.Text_Streams.Input_Text_Stream_Access;
     Method   : LSP.Types.LSP_String)
     return LSP.Messages.Server_Notifications.Server_Notification'Class
 is
@@ -35,7 +35,7 @@ is
       Parameters  => LSP.JSON_Streams.JSON_Stream,
       Constructor => LSP.Messages.Server_Notifications.Decode);
 
-   R   : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+   R   : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
    JS  : aliased LSP.JSON_Streams.JSON_Stream
      (Is_Server_Side => True, R => R'Unchecked_Access);
    Tag : constant Ada.Tags.Tag :=

@@ -29,17 +29,17 @@ with Ada.Streams.Stream_IO;
 
 with GNATCOLL.JSON;
 
-with Magic.Stream_Element_Buffers.Conversions;
-with Magic.Text_Streams.Memory;
-with Magic.Stream_Element_Buffers;
-with Magic.JSON.Streams.Readers.Simple;
+with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Text_Streams.Memory;
+with VSS.Stream_Element_Buffers;
+with VSS.JSON.Streams.Readers.Simple;
 with Memory_Text_Streams;
 
 procedure Codec_Test is
 
    type Test_Access is access function
-     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
-      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
+      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
    --  A function that converts Input to an Ada type and then converts it back
    --  to Stream_Element_Buffer.
 
@@ -51,7 +51,7 @@ procedure Codec_Test is
    --  It prints found differences and set failure exit status if test fails.
 
    function Read_File (File_Name : String)
-      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
    --  Read content of the file and return it as a string
 
    procedure Register_Tests;
@@ -63,8 +63,8 @@ procedure Codec_Test is
    generic
       type Response is new LSP.Messages.ResponseMessage with private;
    function Generic_Response_Test
-     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
-      return Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
+      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
    --  Generic codec for a response.
 
    package Test_Maps is new Ada.Containers.Indefinite_Hashed_Maps
@@ -81,11 +81,11 @@ procedure Codec_Test is
    ---------------------------
 
    function Generic_Response_Test
-     (Input : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
-      return Magic.Stream_Element_Buffers.Stream_Element_Buffer
+     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
+      return VSS.Stream_Element_Buffers.Stream_Element_Buffer
    is
       Text_Input : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
-      Reader     : aliased Magic.JSON.Streams.Readers
+      Reader     : aliased VSS.JSON.Streams.Readers
         .Simple.JSON_Simple_Reader;
       In_JS      : aliased LSP.JSON_Streams.JSON_Stream (False, Reader'Access);
    begin
@@ -98,7 +98,7 @@ procedure Codec_Test is
 
       declare
          Out_JS : aliased LSP.JSON_Streams.JSON_Stream;
-         Output : aliased Magic.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+         Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
 
          Object : Response (Is_Error => False);
       begin
@@ -242,22 +242,22 @@ procedure Codec_Test is
      (File_Name : String;
       Type_Name : String)
    is
-      In_Buffer : constant Magic.Stream_Element_Buffers.Stream_Element_Buffer
+      In_Buffer : constant VSS.Stream_Element_Buffers.Stream_Element_Buffer
         := Read_File (File_Name);
 
-      Out_Buffer : Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+      Out_Buffer : VSS.Stream_Element_Buffers.Stream_Element_Buffer;
    begin
       Out_Buffer := Test_Map (Type_Name).all (In_Buffer);
 
       declare
          Input : constant GNATCOLL.JSON.JSON_Value :=
            GNATCOLL.JSON.Read
-             (Magic.Stream_Element_Buffers.Conversions.Unchecked_To_String
+             (VSS.Stream_Element_Buffers.Conversions.Unchecked_To_String
                 (In_Buffer),  File_Name);
 
          Output : constant GNATCOLL.JSON.JSON_Value :=
            GNATCOLL.JSON.Read
-             (Magic.Stream_Element_Buffers.Conversions.Unchecked_To_String
+             (VSS.Stream_Element_Buffers.Conversions.Unchecked_To_String
                 (Out_Buffer));
       begin
          if not Compare (Input, Output) then
@@ -274,12 +274,12 @@ procedure Codec_Test is
    ---------------
 
    function Read_File (File_Name : String)
-      return Magic.Stream_Element_Buffers.Stream_Element_Buffer
+      return VSS.Stream_Element_Buffers.Stream_Element_Buffer
    is
       use type Ada.Streams.Stream_Element_Count;
 
       Input  : Ada.Streams.Stream_IO.File_Type;
-      Result : Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+      Result : VSS.Stream_Element_Buffers.Stream_Element_Buffer;
       Data   : Ada.Streams.Stream_Element_Array (1 .. 256);
       Last   : Ada.Streams.Stream_Element_Count;
    begin

@@ -15,12 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Magic.Text_Streams;
+with VSS.Text_Streams;
 with LSP.Messages.Server_Requests;
 
 private
 function LSP.Servers.Decode_Request
-  (Document : Magic.Text_Streams.Input_Text_Stream_Access;
+  (Document : VSS.Text_Streams.Input_Text_Stream_Access;
    Method   : LSP.Types.LSP_String)
    return LSP.Messages.Server_Requests.Server_Request'Class;
 --  Decode the request present in the input document. Document is a JSON

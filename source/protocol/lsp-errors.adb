@@ -20,8 +20,8 @@ with Interfaces;
 
 with LSP.JSON_Streams;
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 package body LSP.Errors is
    use type Interfaces.Integer_64;
@@ -62,7 +62,7 @@ package body LSP.Errors is
       while not JS.R.Is_End_Object loop
          declare
             Key : constant String :=
-              Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+              VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 

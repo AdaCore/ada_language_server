@@ -7381,7 +7381,7 @@ package LSP.Messages is
    type ALS_ShowDependenciesParams is record
       textDocument : TextDocumentIdentifier;
       kind         : ALS_ShowDependenciesKind;
-      showImplicit : Boolean;
+      showImplicit : Boolean := False;
    end record;
 
    procedure Read_ALS_ShowDependenciesParams
