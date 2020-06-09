@@ -10,6 +10,7 @@ function download_gnat()
 {
     if [ ! -f $GNAT_INSTALLER ]; then
         mkdir -p `dirname $GNAT_INSTALLER`
+        rm -rfv `dirname $GNAT_INSTALLER`/*
         # Use --progress=dot:giga to ensure travis doesn't give up for lack of progress
         wget --progress=dot:giga -O $GNAT_INSTALLER $1
     fi
@@ -27,10 +28,10 @@ function clone_dependencies() {
 function linux_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
-    GNAT_INSTALLER=$HOME/cache/gnat-install
+    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200429-x86_64-linux-bin
 
-    download_gnat https://community.download.adacore.com/v1/0cd3e2a668332613b522d9612ffa27ef3eb0815b\
-?filename=gnat-community-2019-20190517-x86_64-linux-bin
+    download_gnat https://community.download.adacore.com/v1/4d99b7b2f212c8efdab2ba8ede474bb9fa15888d\
+?filename=gnat-2020-20200429-x86_64-linux-bin
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
         | tar xzf - -C $INSTALL_DIR
@@ -59,10 +60,10 @@ function linux_script()
 function osx_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
-    GNAT_INSTALLER=$HOME/cache/gnat-community-2019-20190517-x86_64-darwin-bin.dmg
+    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200429-x86_64-darwin-bin.dmg
 
-    download_gnat https://community.download.adacore.com/v1/5a7801fc686e86de838cfaf7071170152d81254d\
-?filename=gnat-community-2019-20190517-x86_64-darwin-bin.dmg
+    download_gnat https://community.download.adacore.com/v1/4470dd195aec672d7c2f2a2bac3dcf6e59bbb26c\
+?filename=gnat-2020-20200429-x86_64-darwin-bin.dmg
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-osx.tar.gz \
         | tar xzf - -C $INSTALL_DIR
@@ -93,8 +94,8 @@ function osx_copy_dylibs()
         $LIB/xmlada/xmlada_sax.relocatable/libxmlada_sax \
         $LIB/xmlada/xmlada_input.relocatable/libxmlada_input_sources \
         $LIB/xmlada/xmlada_unicode.relocatable/libxmlada_unicode \
-        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnat-2019 \
-        $LIB/gcc/x86_64-apple-darwin*/8.3.1/adalib/libgnarl-2019 \
+        $LIB/gcc/x86_64-apple-darwin*/8.4.1/rts-native/adalib/libgnat-2020 \
+        $LIB/gcc/x86_64-apple-darwin*/8.4.1/rts-native/adalib/libgnarl-2020 \
         /usr/local/opt/gmp/lib/libgmp.10
     do
         cp -v $J.dylib $DIR

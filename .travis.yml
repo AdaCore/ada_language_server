@@ -2,6 +2,8 @@ os:
   - linux
   - osx
 
+osx_image: xcode11.4
+
 language: generic
 
 before_install:

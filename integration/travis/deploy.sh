@@ -12,12 +12,12 @@ function linux_deploy()
 
     cp --dereference $LIB/lib{adalang,langkit_support}.so $DIR
     cp --dereference $LIB/libgnatcoll{_gmp,_iconv,}.so.0 $DIR
-    cp --dereference $LIB/libxmlada_{dom,input_sources,sax,schema,unicode}.so.2019 $DIR
+    cp --dereference $LIB/libxmlada_{dom,input_sources,sax,schema,unicode}.so.2020 $DIR
     cp --dereference $LIB/libgpr.so $DIR
 
     chrpath -r '$ORIGIN/' $DIR/*
 
-    cp $LIB/gcc/x86_64-pc-linux-gnu/8.3.1/adalib/lib{gnat,gnarl}-2019.so $DIR
+    cp $LIB/gcc/x86_64-pc-linux-gnu/9.3.1/adalib/lib{gnat,gnarl}-2020.so $DIR
 
     mkdir upload
     tar czvf upload/$PLATFORM-$TAG-dbg.tar.gz -C integration/vscode/ada/ $PLATFORM
