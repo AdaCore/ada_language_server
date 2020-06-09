@@ -18,8 +18,8 @@
 with LSP.Messages.Common_Writers;
 with LSP.Types;
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 package body LSP.Generic_Requests is
 
@@ -54,7 +54,7 @@ package body LSP.Generic_Requests is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 

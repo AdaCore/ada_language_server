@@ -17,25 +17,25 @@
 
 with Ada.Streams;
 
-with Magic.Characters;
-with Magic.Stream_Element_Buffers;
-with Magic.Strings;
-with Magic.Text_Streams;
+with VSS.Characters;
+with VSS.Stream_Element_Buffers;
+with VSS.Strings;
+with VSS.Text_Streams;
 
 package Memory_Text_Streams is
 
    type Memory_UTF8_Input_Stream is
-   limited new Magic.Text_Streams.Input_Text_Stream with record
-      Buffer      : Magic.Stream_Element_Buffers.Stream_Element_Buffer;
+   limited new VSS.Text_Streams.Input_Text_Stream with record
+      Buffer      : VSS.Stream_Element_Buffers.Stream_Element_Buffer;
       Current     : Ada.Streams.Stream_Element_Count := 1;
       Skip        : Boolean := False;
       Incremental : Boolean := False;
-      Diagnosis   : Magic.Strings.Magic_String;
+      Diagnosis   : VSS.Strings.Virtual_String;
    end record;
 
    overriding procedure Get
      (Self    : in out Memory_UTF8_Input_Stream;
-      Item    : out Magic.Characters.Magic_Character;
+      Item    : out VSS.Characters.Virtual_Character;
       Success : in out Boolean);
 
    overriding function Is_End_Of_Data
@@ -48,7 +48,7 @@ package Memory_Text_Streams is
      (Self : Memory_UTF8_Input_Stream) return Boolean;
 
    overriding function Error_Message
-     (Self : Memory_UTF8_Input_Stream) return Magic.Strings.Magic_String;
+     (Self : Memory_UTF8_Input_Stream) return VSS.Strings.Virtual_String;
 
    procedure Set_Incremental
      (Self : in out Memory_UTF8_Input_Stream'Class;

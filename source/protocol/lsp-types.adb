@@ -22,11 +22,11 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Interfaces;
 
 with LSP.JSON_Streams;
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 package body LSP.Types is
-   use type Magic.JSON.Streams.Readers.JSON_Event_Kind;
+   use type VSS.JSON.Streams.Readers.JSON_Event_Kind;
 
    Chunk_Size    : constant := 512;
    --  When processing strings in chunks, this is the size of the chunk
@@ -78,7 +78,7 @@ package body LSP.Types is
    begin
       pragma Assert (JS.R.Is_String_Value);
       V := To_LSP_String
-        (Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value));
+        (VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value));
       JS.R.Read_Next;
    end Read;
 
@@ -92,7 +92,7 @@ package body LSP.Types is
    begin
       pragma Assert (Stream.R.Is_String_Value);
       Item := To_LSP_String
-        (Magic.Strings.Conversions.To_UTF_8_String (Stream.R.String_Value));
+        (VSS.Strings.Conversions.To_UTF_8_String (Stream.R.String_Value));
       Stream.R.Read_Next;
    end Read_String;
 
@@ -116,17 +116,17 @@ package body LSP.Types is
       function Read_Value return GNATCOLL.JSON.JSON_Value is
       begin
          case JS.R.Event_Kind is
-            when Magic.JSON.Streams.Readers.No_Token |
-                 Magic.JSON.Streams.Readers.Invalid |
-                 Magic.JSON.Streams.Readers.Start_Document |
-                 Magic.JSON.Streams.Readers.End_Document |
-                 Magic.JSON.Streams.Readers.End_Array |
-                 Magic.JSON.Streams.Readers.End_Object |
-                 Magic.JSON.Streams.Readers.Key_Name =>
+            when VSS.JSON.Streams.Readers.No_Token |
+                 VSS.JSON.Streams.Readers.Invalid |
+                 VSS.JSON.Streams.Readers.Start_Document |
+                 VSS.JSON.Streams.Readers.End_Document |
+                 VSS.JSON.Streams.Readers.End_Array |
+                 VSS.JSON.Streams.Readers.End_Object |
+                 VSS.JSON.Streams.Readers.Key_Name =>
 
                raise Program_Error;
 
-            when Magic.JSON.Streams.Readers.Start_Array =>
+            when VSS.JSON.Streams.Readers.Start_Array =>
 
                return Result : constant GNATCOLL.JSON.JSON_Value :=
                  GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array)
@@ -140,7 +140,7 @@ package body LSP.Types is
                   JS.R.Read_Next;
                end return;
 
-            when Magic.JSON.Streams.Readers.Start_Object =>
+            when VSS.JSON.Streams.Readers.Start_Object =>
 
                return Result : constant GNATCOLL.JSON.JSON_Value :=
                  GNATCOLL.JSON.Create_Object
@@ -152,7 +152,7 @@ package body LSP.Types is
 
                      declare
                         Key : constant String :=
-                          Magic.Strings.Conversions.To_UTF_8_String
+                          VSS.Strings.Conversions.To_UTF_8_String
                             (JS.R.Key_Name);
                      begin
                         JS.R.Read_Next;
@@ -163,11 +163,11 @@ package body LSP.Types is
                   JS.R.Read_Next;
                end return;
 
-            when Magic.JSON.Streams.Readers.String_Value =>
+            when VSS.JSON.Streams.Readers.String_Value =>
 
                declare
                   Value : constant String :=
-                    Magic.Strings.Conversions.To_UTF_8_String
+                    VSS.Strings.Conversions.To_UTF_8_String
                       (JS.R.String_Value);
                begin
                   JS.R.Read_Next;
@@ -175,19 +175,19 @@ package body LSP.Types is
                   return GNATCOLL.JSON.Create (Value);
                end;
 
-            when Magic.JSON.Streams.Readers.Number_Value =>
+            when VSS.JSON.Streams.Readers.Number_Value =>
 
                declare
-                  Value : constant Magic.JSON.JSON_Number :=
+                  Value : constant VSS.JSON.JSON_Number :=
                     JS.R.Number_Value;
                begin
                   JS.R.Read_Next;
 
                   case Value.Kind is
-                     when Magic.JSON.JSON_Integer =>
+                     when VSS.JSON.JSON_Integer =>
                         return GNATCOLL.JSON.Create
                           (Long_Long_Integer (Value.Integer_Value));
-                     when Magic.JSON.JSON_Float =>
+                     when VSS.JSON.JSON_Float =>
                         return GNATCOLL.JSON.Create
                           (Long_Float (Value.Float_Value));
                      when others =>
@@ -195,7 +195,7 @@ package body LSP.Types is
                   end case;
                end;
 
-            when Magic.JSON.Streams.Readers.Boolean_Value =>
+            when VSS.JSON.Streams.Readers.Boolean_Value =>
 
                declare
                   Value : constant Boolean := (JS.R.Boolean_Value);
@@ -205,7 +205,7 @@ package body LSP.Types is
                   return GNATCOLL.JSON.Create (Value);
                end;
 
-            when Magic.JSON.Streams.Readers.Null_Value =>
+            when VSS.JSON.Streams.Readers.Null_Value =>
                JS.R.Read_Next;
 
                return GNATCOLL.JSON.JSON_Null;
@@ -214,22 +214,22 @@ package body LSP.Types is
       end Read_Value;
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.No_Token |
-              Magic.JSON.Streams.Readers.Invalid |
-              Magic.JSON.Streams.Readers.Start_Document |
-              Magic.JSON.Streams.Readers.End_Document |
-              Magic.JSON.Streams.Readers.End_Array |
-              Magic.JSON.Streams.Readers.End_Object |
-              Magic.JSON.Streams.Readers.Key_Name =>
+         when VSS.JSON.Streams.Readers.No_Token |
+              VSS.JSON.Streams.Readers.Invalid |
+              VSS.JSON.Streams.Readers.Start_Document |
+              VSS.JSON.Streams.Readers.End_Document |
+              VSS.JSON.Streams.Readers.End_Array |
+              VSS.JSON.Streams.Readers.End_Object |
+              VSS.JSON.Streams.Readers.Key_Name =>
 
             raise Program_Error;
 
-         when Magic.JSON.Streams.Readers.Start_Array |
-              Magic.JSON.Streams.Readers.Start_Object |
-              Magic.JSON.Streams.Readers.String_Value |
-              Magic.JSON.Streams.Readers.Number_Value |
-              Magic.JSON.Streams.Readers.Boolean_Value |
-              Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Start_Array |
+              VSS.JSON.Streams.Readers.Start_Object |
+              VSS.JSON.Streams.Readers.String_Value |
+              VSS.JSON.Streams.Readers.Number_Value |
+              VSS.JSON.Streams.Readers.Boolean_Value |
+              VSS.JSON.Streams.Readers.Null_Value =>
 
             V := (Read_Value with null record);
       end case;
@@ -244,12 +244,12 @@ package body LSP.Types is
      Item   : out Boolean) is
    begin
       case Stream.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Streams.Readers.Boolean_Value =>
 
             Item := Stream.R.Boolean_Value;
             Stream.R.Read_Next;
 
-         when Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Null_Value =>
 
             Item := False;
             Stream.R.Read_Next;
@@ -275,11 +275,11 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
 
             declare
                Value : constant String :=
-                 Magic.Strings.Conversions.To_UTF_8_String
+                 VSS.Strings.Conversions.To_UTF_8_String
                    (JS.R.String_Value);
             begin
                V := (Is_Boolean => False,
@@ -287,7 +287,7 @@ package body LSP.Types is
                JS.R.Read_Next;
             end;
 
-         when Magic.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Boolean => True,
                   Boolean    => JS.R.Boolean_Value);
             JS.R.Read_Next;
@@ -313,23 +313,23 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Null_Value =>
 
             V := (Is_Number => False,
                   String    => Empty_LSP_String);
 
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
 
             declare
                Value : constant String :=
-                 Magic.Strings.Conversions.To_UTF_8_String
+                 VSS.Strings.Conversions.To_UTF_8_String
                    (JS.R.String_Value);
             begin
                V := (Is_Number => False,
                      String    => To_LSP_String (Value));
             end;
 
-         when Magic.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Streams.Readers.Number_Value =>
             V := (Is_Number => True,
                   Number    => LSP_Number (JS.R.Number_Value.Integer_Value));
 
@@ -380,11 +380,11 @@ package body LSP.Types is
 
    begin
       case JS.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Null_Value =>
             V := (Is_Set => False);
             JS.R.Read_Next;
 
-         when Magic.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Set => True,
                   Value  => JS.R.Boolean_Value);
             JS.R.Read_Next;
@@ -423,15 +423,15 @@ package body LSP.Types is
       Item   : out LSP.Types.Optional_String) is
    begin
       case Stream.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.Null_Value =>
 
             Item := (Is_Set => False);
 
-         when Magic.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Streams.Readers.String_Value =>
 
             declare
                Value : constant String :=
-                 Magic.Strings.Conversions.To_UTF_8_String
+                 VSS.Strings.Conversions.To_UTF_8_String
                    (Stream.R.String_Value);
             begin
                Item := (Is_Set => True,

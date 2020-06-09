@@ -15,8 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 with LSP.Types;
 with LSP.Messages.Common_Writers;
@@ -53,7 +53,7 @@ package body LSP.Generic_Notifications is
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
 

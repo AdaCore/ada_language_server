@@ -22,7 +22,7 @@ with Ada.Text_IO;
 
 with GNAT.OS_Lib;
 
-with Magic.Stream_Element_Buffers.Conversions;
+with VSS.Stream_Element_Buffers.Conversions;
 
 with Spawn.Processes; use Spawn.Processes;
 
@@ -87,7 +87,7 @@ package body LSP.Raw_Clients is
 
    procedure Send_Buffer
      (Self : in out Raw_Client'Class;
-      Text : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
+      Text : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
    is
       Image   : constant String := Ada.Streams.Stream_Element_Count'Image
         (Text.Length);
@@ -98,7 +98,7 @@ package body LSP.Raw_Clients is
       Ada.Strings.Unbounded.Append (Self.To_Write, Header);
       Ada.Strings.Unbounded.Append
         (Self.To_Write,
-         Magic.Stream_Element_Buffers.Conversions.Unchecked_To_String (Text));
+         VSS.Stream_Element_Buffers.Conversions.Unchecked_To_String (Text));
 
       if Self.Standard_Input_Available then
          Self.Listener.Standard_Input_Available;

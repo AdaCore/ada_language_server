@@ -36,10 +36,10 @@ with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with Libadalang.Common;         use Libadalang.Common;
 
-with Magic.JSON.Streams.Readers.Simple;
-with Magic.Stream_Element_Buffers;
-with Magic.Strings.Conversions;
-with Magic.Text_Streams.Memory;
+with VSS.JSON.Streams.Readers.Simple;
+with VSS.Stream_Element_Buffers;
+with VSS.Strings.Conversions;
+with VSS.Text_Streams.Memory;
 with Memory_Text_Streams;
 
 package body LSP.Servers is
@@ -310,9 +310,9 @@ package body LSP.Servers is
             Method     : out LSP.Types.Optional_String;
             Error      : out LSP.Messages.Optional_ResponseError)
          is
-            use all type Magic.JSON.Streams.Readers.JSON_Event_Kind;
+            use all type VSS.JSON.Streams.Readers.JSON_Event_Kind;
 
-            R  : aliased Magic.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+            R  : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
             JS : aliased LSP.JSON_Streams.JSON_Stream
               (True, R'Unchecked_Access);
 
@@ -327,7 +327,7 @@ package body LSP.Servers is
                pragma Assert (JS.R.Is_Key_Name);
                declare
                   Key : constant String :=
-                    Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                    VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
                begin
                   JS.R.Read_Next;
 
@@ -337,7 +337,7 @@ package body LSP.Servers is
                            Request_Id :=
                              (Is_Number => False,
                               String    => LSP.Types.To_LSP_String
-                                (Magic.Strings.Conversions.To_UTF_8_String
+                                (VSS.Strings.Conversions.To_UTF_8_String
                                      (JS.R.String_Value)));
                         when Number_Value =>
                            Request_Id :=
@@ -351,14 +351,14 @@ package body LSP.Servers is
                   elsif Key = "jsonrpc" then
                      pragma Assert (JS.R.Is_String_Value);
                      Version := LSP.Types.To_LSP_String
-                       (Magic.Strings.Conversions.To_UTF_8_String
+                       (VSS.Strings.Conversions.To_UTF_8_String
                           (JS.R.String_Value));
                      JS.R.Read_Next;
                   elsif Key = "method" then
                      pragma Assert (JS.R.Is_String_Value);
                      Method := (Is_Set => True,
                                 Value  => LSP.Types.To_LSP_String
-                                  (Magic.Strings.Conversions.To_UTF_8_String
+                                  (VSS.Strings.Conversions.To_UTF_8_String
                                      (JS.R.String_Value)));
                      JS.R.Read_Next;
                   elsif Key = "error" then
@@ -957,13 +957,13 @@ package body LSP.Servers is
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : Magic.Stream_Element_Buffers.Stream_Element_Buffer);
+         Vector : VSS.Stream_Element_Buffers.Stream_Element_Buffer);
       --  Format Vector into a protocol string including the header,
       --  and send it to Stream.
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : Magic.Stream_Element_Buffers.Stream_Element_Buffer)
+         Vector : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
       is
          Image  : constant String := Ada.Streams.Stream_Element_Count'Image
            (Vector.Length);
@@ -971,7 +971,7 @@ package body LSP.Servers is
            & New_Line & New_Line;
       begin
          String'Write (Stream, Header);
-         Magic.Stream_Element_Buffers.Stream_Element_Buffer'Write
+         VSS.Stream_Element_Buffers.Stream_Element_Buffer'Write
            (Stream, Vector);
 
 --         if Server.Out_Trace.Is_Active then
@@ -991,7 +991,7 @@ package body LSP.Servers is
 
             declare
                Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True, null);
-               Output     : aliased Magic.Text_Streams.Memory
+               Output     : aliased VSS.Text_Streams.Memory
                  .Memory_UTF8_Output_Stream;
             begin
                Out_Stream.Set_Stream (Output'Unchecked_Access);

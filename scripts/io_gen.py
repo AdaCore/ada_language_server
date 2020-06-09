@@ -225,8 +225,8 @@ body_header = """--  Automatically generated, do not edit.
 with Ada.Strings.UTF_Encoding;
 with Interfaces;
 
-with Magic.JSON.Streams.Readers;
-with Magic.Strings.Conversions;
+with VSS.JSON.Streams.Readers;
+with VSS.Strings.Conversions;
 
 with LSP.JSON_Streams;
 with LSP.Messages;                 use LSP.Messages;
@@ -294,7 +294,7 @@ io_pos_enum = {
 io_string_enum_header = {
     'Read': """
       Text : constant Standard.String :=
-        Magic.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
       """,
@@ -344,7 +344,7 @@ read_prolog = {
          pragma Assert (JS.R.Is_Key_Name);
          declare
             Key : constant String :=
-               Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             """,
@@ -380,6 +380,7 @@ enum_as_string = [
 reserver_named = \
    {
     "abortapplying": "abort",
+    "access_ref": "access",
     "first": "start",
     "last": "end",
     "loc": "location",    # for ALS_Subprogram_And_References

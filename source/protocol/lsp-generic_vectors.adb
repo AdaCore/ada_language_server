@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Magic.JSON.Streams.Readers;
+with VSS.JSON.Streams.Readers;
 
 with LSP.JSON_Streams;
 

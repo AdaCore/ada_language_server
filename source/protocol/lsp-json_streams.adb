@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 
-with Magic.Strings.Conversions;
+with VSS.Strings.Conversions;
 with LSP.Types;
 
 package body LSP.JSON_Streams is
@@ -36,7 +36,7 @@ package body LSP.JSON_Streams is
    begin
       pragma Assert (Self.R = null);
       Self.W.Writer.End_Array;
-      Self.W.Key := Magic.Strings.Empty_Magic_String;
+      Self.W.Key := VSS.Strings.Empty_Magic_String;
    end End_Array;
 
    ------------------
@@ -57,7 +57,7 @@ package body LSP.JSON_Streams is
    begin
       pragma Assert (Self.R = null);
       Self.W.Writer.End_Object;
-      Self.W.Key := Magic.Strings.Empty_Magic_String;
+      Self.W.Key := VSS.Strings.Empty_Magic_String;
    end End_Object;
 
    ---------
@@ -69,7 +69,7 @@ package body LSP.JSON_Streams is
       Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String) is
    begin
       pragma Assert (Self.R = null);
-      Self.W.Key := Magic.Strings.Conversions.To_Magic_String
+      Self.W.Key := VSS.Strings.Conversions.To_Magic_String
         (To_UTF_8_String (Key));
    end Key;
 
@@ -102,7 +102,7 @@ package body LSP.JSON_Streams is
 
    procedure Set_Stream
      (Self   : in out JSON_Stream'Class;
-      Stream : not null Magic.Text_Streams.Output_Text_Stream_Access) is
+      Stream : not null VSS.Text_Streams.Output_Text_Stream_Access) is
    begin
       pragma Assert (Self.R = null);
       Self.W.Writer.Set_Stream (Stream);
@@ -116,17 +116,17 @@ package body LSP.JSON_Streams is
    procedure Skip_Value (Self : in out JSON_Stream'Class) is
    begin
       case Self.R.Event_Kind is
-         when Magic.JSON.Streams.Readers.No_Token |
-              Magic.JSON.Streams.Readers.Invalid |
-              Magic.JSON.Streams.Readers.Start_Document |
-              Magic.JSON.Streams.Readers.End_Document |
-              Magic.JSON.Streams.Readers.End_Array |
-              Magic.JSON.Streams.Readers.End_Object |
-              Magic.JSON.Streams.Readers.Key_Name =>
+         when VSS.JSON.Streams.Readers.No_Token |
+              VSS.JSON.Streams.Readers.Invalid |
+              VSS.JSON.Streams.Readers.Start_Document |
+              VSS.JSON.Streams.Readers.End_Document |
+              VSS.JSON.Streams.Readers.End_Array |
+              VSS.JSON.Streams.Readers.End_Object |
+              VSS.JSON.Streams.Readers.Key_Name =>
 
             raise Program_Error;
 
-         when Magic.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Streams.Readers.Start_Array =>
 
             Self.R.Read_Next;
 
@@ -136,7 +136,7 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when Magic.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Streams.Readers.Start_Object =>
 
             Self.R.Read_Next;
 
@@ -149,10 +149,10 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when Magic.JSON.Streams.Readers.String_Value
-            | Magic.JSON.Streams.Readers.Number_Value
-            | Magic.JSON.Streams.Readers.Boolean_Value
-            | Magic.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Streams.Readers.String_Value
+            | VSS.JSON.Streams.Readers.Number_Value
+            | VSS.JSON.Streams.Readers.Boolean_Value
+            | VSS.JSON.Streams.Readers.Null_Value =>
 
             Self.R.Read_Next;
 
@@ -202,7 +202,7 @@ package body LSP.JSON_Streams is
    begin
       if not Self.Key.Is_Empty then
          Self.Writer.Key_Name (Self.Key);
-         Self.Key := Magic.Strings.Empty_Magic_String;
+         Self.Key := VSS.Strings.Empty_Magic_String;
       end if;
    end Write_Key;
 
@@ -265,7 +265,7 @@ package body LSP.JSON_Streams is
       pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value
-        (Magic.Strings.Conversions.To_Magic_String (Item));
+        (VSS.Strings.Conversions.To_Magic_String (Item));
    end Write_String;
 
    ------------------
@@ -279,7 +279,7 @@ package body LSP.JSON_Streams is
       pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value
-        (Magic.Strings.Conversions.To_Magic_String
+        (VSS.Strings.Conversions.To_Magic_String
            (LSP.Types.To_UTF_8_String (Item)));
    end Write_String;
 

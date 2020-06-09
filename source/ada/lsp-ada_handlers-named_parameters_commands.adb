@@ -18,7 +18,7 @@
 with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
-with Magic.Strings.Conversions;
+with VSS.Strings.Conversions;
 
 with LSP.Lal_Utils;
 with Libadalang.Analysis;
@@ -50,7 +50,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
             pragma Assert (JS.R.Is_Key_Name);
             declare
                Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 Magic.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
             begin
                JS.R.Read_Next;
 

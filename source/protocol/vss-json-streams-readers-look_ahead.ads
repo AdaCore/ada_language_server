@@ -17,7 +17,7 @@
 
 private with Ada.Containers.Vectors;
 
-package Magic.JSON.Streams.Readers.Look_Ahead is
+package VSS.JSON.Streams.Readers.Look_Ahead is
 
    type JSON_Look_Ahead_Reader
      (Parent : not null access JSON_Stream_Reader'Class)
@@ -41,11 +41,11 @@ private
               Null_Value =>
             null;
          when Key_Name =>
-            Key_Name : Magic.Strings.Magic_String;
+            Key_Name : VSS.Strings.Virtual_String;
          when String_Value =>
-            String_Value : Magic.Strings.Magic_String;
+            String_Value : VSS.Strings.Virtual_String;
          when Number_Value =>
-            Number_Value : Magic.JSON.JSON_Number;
+            Number_Value : VSS.JSON.JSON_Number;
          when Boolean_Value =>
             Boolean_Value : Boolean;
       end case;
@@ -73,23 +73,23 @@ private
      (Self : JSON_Look_Ahead_Reader) return JSON_Reader_Error;
 
    overriding function Error_Message
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String;
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String;
 
    overriding procedure Raise_Error
      (Self    : in out JSON_Look_Ahead_Reader;
-      Message : Magic.Strings.Magic_String);
+      Message : VSS.Strings.Virtual_String);
 
    overriding function Event_Kind
      (Self : JSON_Look_Ahead_Reader) return JSON_Event_Kind;
 
    overriding function Key_Name
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String;
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String;
 
    overriding function String_Value
-     (Self : JSON_Look_Ahead_Reader) return Magic.Strings.Magic_String;
+     (Self : JSON_Look_Ahead_Reader) return VSS.Strings.Virtual_String;
 
    overriding function Number_Value
-     (Self : JSON_Look_Ahead_Reader) return Magic.JSON.JSON_Number;
+     (Self : JSON_Look_Ahead_Reader) return VSS.JSON.JSON_Number;
 
    overriding function Boolean_Value
      (Self : JSON_Look_Ahead_Reader) return Boolean;
@@ -103,4 +103,4 @@ private
    overriding procedure Skip_Current_Value
      (Self : in out JSON_Look_Ahead_Reader);
 
-end Magic.JSON.Streams.Readers.Look_Ahead;
+end VSS.JSON.Streams.Readers.Look_Ahead;

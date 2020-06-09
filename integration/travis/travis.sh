@@ -4,7 +4,7 @@ set -e -x
 
 INSTALL_DIR=$PWD/../gnat
 export PATH=$INSTALL_DIR/bin:$PATH
-export ADA_PROJECT_PATH=$PWD/libadalang-tools/src:$PWD/gnatcoll-texts/gnat
+export ADA_PROJECT_PATH=$PWD/libadalang-tools/src:$PWD/VSS/gnat
 
 function download_gnat()
 {
@@ -22,7 +22,7 @@ function download_gnat()
 
 function clone_dependencies() {
     git clone --depth=1 https://github.com/AdaCore/libadalang-tools.git
-    git clone --depth=1 https://github.com/godunko/gnatcoll-texts.git
+    git clone --depth=1 https://github.com/AdaCore/VSS.git
 }
 
 function linux_before_install()
