@@ -1060,4 +1060,28 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Subprogram_And_References);
 
+   procedure Read_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_ShowDependenciesKind);
+
+   procedure Write_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_ShowDependenciesKind);
+
+   procedure Read_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_ShowDependenciesParams);
+
+   procedure Write_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_ShowDependenciesParams);
+
+   procedure Read_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_Unit_Description);
+
+   procedure Write_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_Unit_Description);
+
 end LSP.Message_IO;

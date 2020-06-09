@@ -345,6 +345,19 @@ package LSP.Messages.Server_Requests is
      (Self    : ALS_Called_By_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package ALS_Show_Dependencies_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        ALS_ShowDependenciesParams,
+        Server_Request_Receiver'Class);
+
+   type ALS_Show_Dependencies_Request is
+     new ALS_Show_Dependencies_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : ALS_Show_Dependencies_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package ALS_Debug_Requests is
      new LSP.Generic_Requests
        (Server_Request,

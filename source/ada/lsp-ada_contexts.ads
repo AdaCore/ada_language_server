@@ -143,6 +143,10 @@ package LSP.Ada_Contexts is
    function List_Files (Self : Context) return File_Sets.Set;
    --  Return the list of files known to this context.
 
+   function Analysis_Units
+     (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
+   --  Return the analysis units for all Ada sources known to this context
+
    procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.

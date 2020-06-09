@@ -102,8 +102,8 @@ package LSP.Server_Request_Handlers is
    function On_Color_Presentation_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
-      return LSP.Messages.Server_Responses.ColorPresentation_Response
-      is abstract;
+      return LSP.Messages.Server_Responses.ColorPresentation_Response is
+      abstract;
 
    function On_Folding_Range_Request
      (Self    : access Server_Request_Handler;
@@ -118,8 +118,8 @@ package LSP.Server_Request_Handlers is
    function On_Range_Formatting_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
-      return LSP.Messages.Server_Responses.Range_Formatting_Response
-      is abstract;
+      return LSP.Messages.Server_Responses.Range_Formatting_Response is
+      abstract;
 
    function On_Selection_Range_Request
      (Self    : access Server_Request_Handler;
@@ -140,6 +140,12 @@ package LSP.Server_Request_Handlers is
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response is abstract;
+
+   function On_ALS_Show_Dependencies_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response is
+      abstract;
 
    function On_ALS_Debug_Request
      (Self    : access Server_Request_Handler;

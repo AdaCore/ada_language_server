@@ -26,6 +26,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Strings;
 
 with GNATCOLL.Utils;
+with GNATCOLL.VFS;        use GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -751,6 +752,143 @@ package body LSP.Ada_Documents is
 
       return True;
    end Formatting;
+
+   ------------------------
+   -- Get_Imported_Units --
+   ------------------------
+
+   procedure Get_Imported_Units
+     (Self          : Document;
+      Context       : LSP.Ada_Contexts.Context;
+      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Show_Implicit : Boolean;
+      Result        : out LSP.Messages.ALS_Unit_Description_Vector)
+   is
+      use LSP.Messages;
+
+      Unit     : constant Libadalang.Analysis.Analysis_Unit :=
+        LSP.Ada_Documents.Unit (Self    => Self,
+                                Context => Context);
+      Root     : constant Ada_Node := Unit.Root;
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Compilation_Unit_Array);
+
+      ------------------
+      -- Append_Units --
+      ------------------
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Compilation_Unit_Array) is
+      begin
+         for Unit of Units loop
+            Result.Append
+              (LSP.Messages.ALS_Unit_Description'
+                 (uri        => LSP.Common.From_File
+                      (GNATCOLL.VFS.Create (+Unit.Unit.Get_Filename)),
+                  projectUri => LSP.Common.From_File (Project_Path)));
+         end loop;
+      end Append_Units;
+
+   begin
+
+      case Root.Kind is
+         when Libadalang.Common.Ada_Compilation_Unit_Range =>
+            declare
+               Comp_Unit    : constant Compilation_Unit :=
+                 As_Compilation_Unit (Root);
+               Units        : constant Compilation_Unit_Array :=
+                 (if Show_Implicit then
+                     Comp_Unit.P_Unit_Dependencies
+                  else
+                     Comp_Unit.P_Withed_Units);
+            begin
+               Append_Units (Units);
+            end;
+
+         when Libadalang.Common.Ada_Compilation_Unit_List_Range =>
+            declare
+               Comp_Unit_List : constant Compilation_Unit_List :=
+                 As_Compilation_Unit_List (Root);
+            begin
+               for Comp_Unit of Comp_Unit_List loop
+                  Append_Units
+                    (if Show_Implicit then
+                        Comp_Unit.P_Withed_Units
+                     else
+                        Comp_Unit.P_Unit_Dependencies);
+               end loop;
+            end;
+         when others =>
+            null;
+      end case;
+   end Get_Imported_Units;
+
+   -------------------------
+   -- Get_Importing_Units --
+   -------------------------
+
+   procedure Get_Importing_Units
+     (Self          : Document;
+      Context       : LSP.Ada_Contexts.Context;
+      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Show_Implicit : Boolean;
+      Result        : out LSP.Messages.ALS_Unit_Description_Vector)
+   is
+
+      Root : constant Ada_Node := Self.Unit (Context).Root;
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Analysis_Unit_Array);
+
+      ------------------
+      -- Append_Units --
+      ------------------
+
+      procedure Append_Units
+        (Units : Libadalang.Analysis.Analysis_Unit_Array) is
+      begin
+         for Unit of Units loop
+            Result.Append
+              (LSP.Messages.ALS_Unit_Description'
+                 (uri        => LSP.Common.From_File
+                      (GNATCOLL.VFS.Create (+Unit.Get_Filename)),
+                  projectUri => LSP.Common.From_File (Project_Path)));
+         end loop;
+      end Append_Units;
+
+   begin
+
+      case Root.Kind is
+         when Libadalang.Common.Ada_Compilation_Unit_Range =>
+            declare
+               Comp_Unit : constant Compilation_Unit :=
+                 As_Compilation_Unit (Root);
+               Importing_Units  : constant
+                 Libadalang.Analysis.Analysis_Unit_Array :=
+                   Comp_Unit.P_Filter_Is_Imported_By
+                     (Units      => Context.Analysis_Units,
+                      Transitive => Show_Implicit);
+            begin
+               Append_Units (Importing_Units);
+            end;
+
+         when Libadalang.Common.Ada_Compilation_Unit_List_Range =>
+            declare
+               Comp_Unit_List : constant Compilation_Unit_List :=
+                 As_Compilation_Unit_List (Root);
+            begin
+               for Comp_Unit of Comp_Unit_List loop
+                  Append_Units
+                    (Comp_Unit.P_Filter_Is_Imported_By
+                       (Units      => Context.Analysis_Units,
+                        Transitive => Show_Implicit));
+               end loop;
+            end;
+         when others =>
+            null;
+      end case;
+   end Get_Importing_Units;
 
    ----------------
    -- Get_Errors --

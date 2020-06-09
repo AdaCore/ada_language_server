@@ -204,6 +204,20 @@ package body LSP.Message_Loggers is
          & Image (Value.params));
    end On_ALS_Called_By_Request;
 
+   ----------------------------------
+   -- On_ALS_Show_Dependencies_Request --
+   ----------------------------------
+
+   overriding procedure On_ALS_Show_Dependencies_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request) is
+   begin
+      Self.Trace.Trace
+        ("ALS_Show_Dependencies_Request: "
+         & Image (Value)
+         & Image (Value.params.textDocument));
+   end On_ALS_Show_Dependencies_Request;
+
    -------------------------------
    -- On_ALS_Called_By_Response --
    -------------------------------
@@ -225,6 +239,28 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_ALS_Called_By_Response;
+
+   -----------------------------------
+   -- On_ALS_ShowDependencies_Response --
+   -----------------------------------
+
+   overriding procedure On_ALS_ShowDependencies_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("ALS_ShowDependencies_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("ALS_ShowDependencies_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_ALS_ShowDependencies_Response;
 
    --------------------------
    -- On_ALS_Debug_Request --

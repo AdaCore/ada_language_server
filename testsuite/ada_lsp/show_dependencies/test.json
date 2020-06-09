@@ -1,0 +1,291 @@
+[
+   {
+      "comment": [
+          "This test checks that the custom textDocument/alsShowDependencies ",
+          "works fine on a simple project."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 14208,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  "("
+                              ],
+                              "resolveProvider": false
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "documentSymbolProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "documentFormattingProvider": true,
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {
+                              "commands": [
+                                  "als-named-parameters"
+                              ]
+                          },
+                          "alsCalledByProvider": true,
+                          "alsShowDepsProvider": true,
+                          "alsReferenceKinds": [
+                              "reference",
+                              "access",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child"
+                          ]
+                      }
+                  }
+              }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package Package_2 is\n\n   procedure Do_Something is null;\n\nend Package_2;\n",
+                  "version": 0,
+                  "uri": "$URI{package_2.ads}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Package_1;\nwith Package_2;\n\nprocedure Main is\nbegin\n   Package_1.Do_Something;\n   Package_2.Do_Something;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{package_2.ads}"
+               },
+               "kind": 2
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/alsShowDependencies"
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "uri": "$URI{main.adb}",
+                     "projectUri": "$URI{.}"
+                  },
+                  {
+                     "uri": "$URI{package_1.adb}",
+                     "projectUri": "$URI{.}"
+                  },
+                  {
+                     "uri": "$URI{package_2.ads}",
+                     "projectUri": "$URI{.}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "kind": 1
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/alsShowDependencies"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "uri": "$URI{package_1.ads}",
+                     "projectUri": "$URI{.}"
+                  },
+                  {
+                     "uri": "$URI{package_2.ads}",
+                     "projectUri": "$URI{.}"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{package_2.ads}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

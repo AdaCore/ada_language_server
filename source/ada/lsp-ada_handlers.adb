@@ -49,8 +49,6 @@ with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 
-with URIs;
-
 package body LSP.Ada_Handlers is
 
    type Cancel_Countdown is mod 128;
@@ -95,10 +93,6 @@ package body LSP.Ada_Handlers is
    --  If node at given Position is a name, then resolve it.
    --  Send a message in case of a possible imprecise result.
    --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
-
-   function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
-     (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
-   --  Utility conversion function
 
    procedure Show_Message
      (Self : access Message_Handler;
@@ -585,6 +579,8 @@ package body LSP.Ada_Handlers is
       end if;
 
       Response.result.capabilities.alsCalledByProvider := True;
+      Response.result.capabilities.alsShowDepsProvider := True;
+
       Response.result.capabilities.alsReferenceKinds :=
         (Is_Set => True,
          Value  => (Is_Server_Side => True, As_Flags => (others => True)));
@@ -2020,6 +2016,53 @@ package body LSP.Ada_Handlers is
       end loop;
       return Response;
    end On_ALS_Called_By_Request;
+
+   ----------------------------------
+   -- On_ALS_Show_Dependencies_Request --
+   ----------------------------------
+
+   overriding function On_ALS_Show_Dependencies_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+   is
+      use LSP.Messages;
+
+      Params   : LSP.Messages.ALS_ShowDependenciesParams renames
+        Request.params;
+      Response : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+        (Is_Error => False);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Params.textDocument.uri, Force => False);
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Params.textDocument.uri);
+
+   begin
+      case Params.kind is
+         when LSP.Messages.Show_Imported =>
+            Document.Get_Imported_Units
+              (Context       => Context.all,
+               Project_Path  => Self.Root,
+               Show_Implicit => Params.showImplicit,
+               Result        => Response.result);
+
+         when LSP.Messages.Show_Importing => null;
+            declare
+               Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+                 Self.Contexts_For_URI (Params.textDocument.uri);
+            begin
+               for Context of Contexts loop
+                  Document.Get_Importing_Units
+                    (Context       => Context.all,
+                     Project_Path  => Self.Root,
+                     Show_Implicit => Params.showImplicit,
+                     Result        => Response.result);
+               end loop;
+            end;
+      end case;
+
+      return Response;
+   end On_ALS_Show_Dependencies_Request;
 
    --------------------------
    -- On_ALS_Debug_Request --
