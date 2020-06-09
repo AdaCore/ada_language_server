@@ -4179,6 +4179,7 @@ package LSP.Messages is
 
       --  ALS-specific capabilities
       alsCalledByProvider : Optional_Boolean;
+      alsShowDepsProvider : Optional_Boolean;
       alsReferenceKinds   : Optional_AlsReferenceKind_Set;
    end record;
 
@@ -7380,6 +7381,57 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : ALSDebugParams);
    for ALSDebugParams'Write use Write_ALSDebugParams;
+
+   type ALS_ShowDependenciesKind is (Show_Imported, Show_Importing);
+
+   procedure Read_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesKind);
+   for ALS_ShowDependenciesKind'Read use Read_ALS_ShowDependenciesKind;
+
+   procedure Write_ALS_ShowDependenciesKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesKind);
+   for ALS_ShowDependenciesKind'Write use Write_ALS_ShowDependenciesKind;
+
+   type ALS_ShowDependenciesParams is record
+      textDocument : TextDocumentIdentifier;
+      kind         : ALS_ShowDependenciesKind;
+      showImplicit : Boolean;
+   end record;
+
+   procedure Read_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_ShowDependenciesParams);
+   for ALS_ShowDependenciesParams'Read use Read_ALS_ShowDependenciesParams;
+
+   procedure Write_ALS_ShowDependenciesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_ShowDependenciesParams);
+   for ALS_ShowDependenciesParams'Write use Write_ALS_ShowDependenciesParams;
+
+   type ALS_Unit_Description is record
+      uri        : DocumentUri;
+      projectUri : DocumentUri;
+   end record;
+
+   procedure Read_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Unit_Description);
+   for ALS_Unit_Description'Read use
+     Read_ALS_Unit_Description;
+
+   procedure Write_ALS_Unit_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Unit_Description);
+   for ALS_Unit_Description'Write use
+     Write_ALS_Unit_Description;
+
+   package ALS_Unit_Description_Vectors is new LSP.Generic_Vectors
+     (ALS_Unit_Description, Write_Empty => LSP.Write_Array);
+
+   type ALS_Unit_Description_Vector is
+     new ALS_Unit_Description_Vectors.Vector with null record;
 
 private
 

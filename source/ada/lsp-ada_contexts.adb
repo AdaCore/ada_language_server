@@ -33,10 +33,6 @@ package body LSP.Ada_Contexts is
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
 
-   function Analysis_Units
-     (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
-   --  Return the analysis units for all Ada sources known to this context
-
    function Find_All_References_In_Hierarchy
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;

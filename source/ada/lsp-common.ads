@@ -19,9 +19,12 @@
 
 with Ada.Exceptions;
 with GNATCOLL.Traces;
+with GNATCOLL.VFS;        use GNATCOLL.VFS;
+
 with LSP.Messages;
 with LSP.Types;           use LSP.Types;
 with Libadalang.Analysis; use Libadalang.Analysis;
+with URIs;
 
 package LSP.Common is
 
@@ -32,6 +35,12 @@ package LSP.Common is
      (Is_Server_Side => True,
       As_Flags => (LSP.Messages.Child => True, others => False));
    --  Convenient constants
+
+   function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
+     (Create (+(URIs.Conversions.To_File (To_UTF_8_String (URI)))));
+   function From_File (File : Virtual_File) return LSP.Messages.DocumentUri is
+     (To_LSP_String (URIs.Conversions.From_File (File.Display_Full_Name)));
+   --  Utility conversion function
 
    procedure Log
      (Trace   : GNATCOLL.Traces.Trace_Handle;

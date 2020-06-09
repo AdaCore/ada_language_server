@@ -25,6 +25,7 @@ with Libadalang.Analysis;
 limited with LSP.Ada_Contexts;
 
 with GNATCOLL.Traces;
+with GNATCOLL.VFS;
 
 package LSP.Ada_Documents is
 
@@ -124,6 +125,26 @@ package LSP.Ada_Documents is
       Edit     : out LSP.Messages.TextEdit_Vector)
       return Boolean;
    --  Format whole document, Return False on error
+
+   procedure Get_Imported_Units
+     (Self          : Document;
+      Context       : LSP.Ada_Contexts.Context;
+      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Show_Implicit : Boolean;
+      Result        : out LSP.Messages.ALS_Unit_Description_Vector);
+   --  Return all the units that import the document's unit.
+   --  If Show_Implicit is True, units that import implicitly on the document's
+   --  unit are also returned.
+
+   procedure Get_Importing_Units
+     (Self          : Document;
+      Context       : LSP.Ada_Contexts.Context;
+      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Show_Implicit : Boolean;
+      Result        : out LSP.Messages.ALS_Unit_Description_Vector);
+   --  Return the units that import the document's unit among the given list.
+   --  If Show_Implicit is True, units that depend on the document's unit in
+   --  an implicit way will also be returned.
 
    -----------------------
    -- Document_Provider --

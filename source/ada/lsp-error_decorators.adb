@@ -424,7 +424,27 @@ package body LSP.Error_Decorators is
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response
-        renames ALS_Called_By_Request;
+      renames ALS_Called_By_Request;
+
+   ----------------------------------
+   -- On_ALS_Show_Dependencies_Request --
+   ----------------------------------
+
+   function ALS_Show_Dependencies_Request is new Generic_Request
+     (Request    =>
+         LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request,
+      Response   =>
+         LSP.Messages.Server_Responses.ALS_ShowDependencies_Response,
+      Handler    =>
+         LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request =>
+         LSP.Server_Request_Handlers.On_ALS_Show_Dependencies_Request);
+
+   overriding function On_ALS_Show_Dependencies_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+      renames ALS_Show_Dependencies_Request;
 
    --------------------------
    -- On_ALS_Debug_Request --

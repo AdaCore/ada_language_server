@@ -207,6 +207,9 @@ types_to_print = {
     'SelectionRangeParams',
     'SelectionRange',
     'ALS_Subprogram_And_References',
+    'ALS_ShowDependenciesKind',
+    'ALS_Unit_Description',
+    'ALS_ShowDependenciesParams',
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
     }
