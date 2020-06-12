@@ -19,11 +19,16 @@ with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Unchecked_Deallocation;
 with Interfaces;
 
-with LSP.JSON_Streams;
 with VSS.JSON.Streams.Readers;
+with VSS.Characters;
 with VSS.Strings.Conversions;
+with VSS.Strings.Iterators.Characters;
+with VSS.Unicode;
+
+with LSP.JSON_Streams;
 
 package body LSP.Types is
    use type VSS.JSON.Streams.Readers.JSON_Event_Kind;
@@ -438,12 +443,85 @@ package body LSP.Types is
    -------------------
 
    function To_LSP_String
-     (Item : VSS.Strings.Virtual_String) return LSP_String is
+     (Item : VSS.Strings.Virtual_String) return LSP_String
+   is
+      --  It is temporary conversion function to process data without use of
+      --  primary stack, thus to prevent crashes on conversion of big data.
+      --  It takes into account that content of Virtual_String is always valid,
+      --  there are no any checks for invalid ranges of code points here.
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+          (Wide_String, Ada.Strings.Wide_Unbounded.Wide_String_Access);
+
+      High_Surrogate_First : constant := 16#D800#;
+      Low_Surrogate_First  : constant := 16#DC00#;
+
+      High_Surrogate_First_Store : constant
+        := High_Surrogate_First - 16#1_0000# / 16#400#;
+      --  Code point is converted to surrogate pair as:
+      --
+      --  S (J)     := HB + (C - 0x10000) >> 10
+      --  S (J + 1) := LB + (C - 0x10000) & 0x3FF
+      --
+      --  to optimize implementation they are rewritten as:
+      --
+      --  S (J + 1) := LB + C & 0x3FF
+      --  S (J)     := (HB - 0x10000 >> 10) + C >> 10
+      --               ^^^^^^^^^^^^^^^^^^^^
+      --  This constant represents constant part of the expression.
+
+      Aux      : Ada.Strings.Wide_Unbounded.Wide_String_Access :=
+        new Wide_String (1 .. Natural (Item.Character_Length) * 2);
+      --  Abstract character can occupi up to two code units in UTF-16
+      --  encoding. Reserve enought space to avoid reallocations.
+      Last     : Natural := 0;
+      Position : VSS.Strings.Iterators.Characters.Character_Iterator :=
+        Item.First_Character;
+
    begin
-      return
-        To_Unbounded_Wide_String
-          (Ada.Strings.UTF_Encoding.Wide_Strings.Decode
-             (VSS.Strings.Conversions.To_UTF_8_String (Item)));
+      if not Position.Has_Element then
+         Free (Aux);
+
+         return Empty_LSP_String;
+      end if;
+
+      loop
+         declare
+            use type VSS.Unicode.Code_Point;
+
+            C : constant VSS.Unicode.Code_Point :=
+              VSS.Characters.Virtual_Character'Pos (Position.Element);
+
+         begin
+            if C <= 16#FFFF# then
+               Last := Last + 1;
+               Aux (Last) := Wide_Character'Val (C);
+
+            else
+               Last := Last + 1;
+               Aux (Last) :=
+                 Wide_Character'Val
+                   (High_Surrogate_First_Store + C / 16#400#);
+               Last := Last + 1;
+               Aux (Last) :=
+                 Wide_Character'Val (Low_Surrogate_First + C mod 16#400#);
+            end if;
+
+            exit when not Position.Forward;
+         end;
+      end loop;
+
+      return Result : LSP_String do
+         Set_Unbounded_Wide_String (Result, Aux (1 .. Last));
+         Free (Aux);
+      end return;
+
+   exception
+      when others =>
+         Free (Aux);
+
+         raise;
    end To_LSP_String;
 
    -------------------
