@@ -652,11 +652,104 @@ package body LSP.Types is
    -----------------------
 
    function To_Virtual_String
-     (Item : LSP_String) return VSS.Strings.Virtual_String is
+     (Item : LSP_String) return VSS.Strings.Virtual_String
+   is
+      High_Surrogate_First  : constant := 16#D800#;
+      Low_Surrogate_First   : constant := 16#DC00#;
+      Surrogate_Kind_Mask   : constant := 16#FC00#;
+      Masked_High_Surrogate : constant := 16#D800#;
+
+      UCS4_Fixup : constant
+        := High_Surrogate_First * 16#400# + Low_Surrogate_First - 16#1_0000#;
+      --  When code point is encoded as pair of surrogates its value computed
+      --  as:
+      --
+      --    C := (S (J) - HB) << 10 + S (J + 1) - LB + 0x10000
+      --
+      --  to optimize number of computations this expression is transformed to
+      --
+      --    C := S (J) << 10 + S (J + 1) - (HB << 10 + LB - 0x10000)
+      --                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+      --  This constant represents constant part of the expression.
+
+      Aux   : Ada.Strings.Unbounded.String_Access :=
+        new String (1 .. Length (Item) * 4);
+      Last  : Natural := 0;
+      Index : Positive := 1;
+
    begin
-      return
-        VSS.Strings.Conversions.To_Magic_String
-          (LSP.Types.To_UTF_8_String (Item));
+      while Index <= Length (Item) loop
+         declare
+            use type VSS.Unicode.Code_Point;
+
+            C : VSS.Unicode.Code_Point :=
+              Wide_Character'Pos (Element (Item, Index));
+
+         begin
+            Index := Index + 1;
+
+            if (C and Surrogate_Kind_Mask) = Masked_High_Surrogate then
+               C :=
+                 C * 16#400#
+                 + Wide_Character'Pos (Element (Item, Index))
+                 - UCS4_Fixup;
+               Index := Index + 1;
+            end if;
+
+            case C is
+               when 16#0000# .. 16#007F# =>
+                  Last := Last + 1;
+                  Aux (Last) := Character'Val (C);
+
+               when 16#0080# .. 16#07FF# =>
+                  Last := Last + 1;
+                  Aux (Last) := Character'Val (2#11000000# or (C / 16#40#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val (2#10000000# or (C and 2#00111111#));
+
+               when 16#0800# .. 16#FFFF# =>
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val (2#11100000# or (C / 16#1000#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val
+                      (2#10000000# or ((C / 16#40#) and 2#00111111#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val (2#10000000# or (C and 2#00111111#));
+
+               when 16#01_0000# .. 16#10_FFFF# =>
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val (2#11110000# or (C / 16#4_0000#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val
+                      (2#10000000# or ((C / 16#1000#) and 2#00111111#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val
+                      (2#10000000# or ((C / 16#40#) and 2#00111111#));
+                  Last := Last + 1;
+                  Aux (Last) :=
+                    Character'Val (2#10000000# or (C and 2#00111111#));
+            end case;
+         end;
+      end loop;
+
+      return Result : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.Conversions.To_Magic_String (Aux (1 .. Last))
+      do
+         Free (Aux);
+      end return;
+
+   exception
+      when others =>
+         Free (Aux);
+
+         raise;
    end To_Virtual_String;
 
    -----------
