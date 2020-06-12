@@ -17,6 +17,8 @@
 
 with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
+with GNAT.Strings;
+
 with GNATCOLL.JSON;
 with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
@@ -27,6 +29,8 @@ with LSP.Lal_Utils;               use LSP.Lal_Utils;
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Project_Provider;
 with Langkit_Support.Slocs;
+
+with Utils.Command_Lines.Common;
 
 package body LSP.Ada_Contexts is
 
@@ -556,6 +560,8 @@ package body LSP.Ada_Contexts is
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
+      procedure Pretty_Printer_Setup;
+      --  Setup PP_Options object
 
       -------------------------
       -- Update_Source_Files --
@@ -597,6 +603,34 @@ package body LSP.Ada_Contexts is
          end loop;
       end Update_Source_Files;
 
+      --------------------------
+      -- Pretty_Printer_Setup --
+      --------------------------
+
+      procedure Pretty_Printer_Setup is
+         Options : GNAT.Strings.String_List_Access;
+         Default : Boolean;
+      begin
+         Root.Switches
+           (In_Pkg           => "Pretty_Printer",
+            File             => GNATCOLL.VFS.No_File,
+            Language         => "ada",
+            Value            => Options,
+            Is_Default_Value => Default);
+
+         --  Initialize an empty gnatpp command line object
+         Utils.Command_Lines.Parse
+           (Options,
+            Self.PP_Options,
+            Phase              => Utils.Command_Lines.Cmd_Line_1,
+            Callback           => null,
+            Collect_File_Names => False,
+            Ignore_Errors      => True);
+
+         GNAT.Strings.Free (Options);
+         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
+         --  Set UTF-8 encoding
+      end Pretty_Printer_Setup;
    begin
       Self.Id := LSP.Types.To_LSP_String (Root.Name);
 
@@ -611,6 +645,7 @@ package body LSP.Ada_Contexts is
 
       Self.Reload;
       Update_Source_Files;
+      Pretty_Printer_Setup;
    end Load_Project;
 
    ------------
@@ -625,6 +660,36 @@ package body LSP.Ada_Contexts is
          Charset       => Self.Get_Charset);
    end Reload;
 
+   ------------
+   -- Format --
+   ------------
+
+   procedure Format
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Success  : out Boolean)
+   is
+   begin
+      Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.Indentation,
+         Natural (Options.tabSize));
+
+      Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.No_Tab,
+         Options.insertSpaces);
+
+      Success := Document.Formatting
+        (Context => Self,
+         Span    => Span,
+         Cmd     => Self.PP_Options,
+         Edit    => Edit);
+   end Format;
+
    ----------
    -- Free --
    ----------
@@ -632,6 +697,8 @@ package body LSP.Ada_Contexts is
    procedure Free (Self : in out Context) is
    begin
       Self.Source_Files.Clear;
+      --  Destroy GnatPP command line
+      Utils.Command_Lines.Clear (Self.PP_Options);
    end Free;
 
    -----------------

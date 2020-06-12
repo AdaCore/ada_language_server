@@ -1,0 +1,111 @@
+[
+    {
+        "comment": [
+           "Check that formatting request takes switches from a project file into account"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0,
+                      "result":{
+                          "capabilities":{
+                              "textDocumentSync":2,
+                              "documentFormattingProvider":true
+                          }
+                      }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is begin    null;\nend Main;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"format",
+                "method":"textDocument/formatting",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "options": {
+                        "tabSize": 4,
+                        "insertSpaces": true
+                    }
+                }
+            },
+            "wait":[{
+                "id": "format",
+                "result": [
+                    {
+                        "range": {
+                            "start": {
+                                "line": 0,
+                                "character": 0
+                            },
+                            "end": {
+                                "line": 2,
+                                "character": 0
+                            }
+                        },
+                        "newText": "PROCEDURE Main IS\nBEGIN\n    NULL;\nEND Main;\n"
+                    }
+                ]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

@@ -6105,8 +6105,8 @@ package LSP.Messages is
    --}
    --```
    type FormattingOptions is record
-      tabSize: LSP_Number;
-      insertSpaces: Boolean;
+      tabSize: LSP_Number := 3;  --  Safety net defaults
+      insertSpaces: Boolean := True;
       trimTrailingWhitespace: Optional_Boolean;
       insertFinalNewline: Optional_Boolean;
       trimFinalNewlines: Optional_Boolean;
