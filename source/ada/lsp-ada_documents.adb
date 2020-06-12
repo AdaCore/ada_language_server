@@ -39,10 +39,8 @@ with LSP.Common;
 with LSP.Lal_Utils;
 with LSP.Types.Utils;
 
-with Pp.Command_Lines;
 with Pp.Scanner;
 with Utils.Char_Vectors;
-with Utils.Command_Lines;
 
 package body LSP.Ada_Documents is
 
@@ -505,7 +503,7 @@ package body LSP.Ada_Documents is
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
       Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
+      Cmd      : Pp.Command_Lines.Cmd_Line;
       Edit     : out LSP.Messages.TextEdit_Vector)
       return Boolean
    is
@@ -513,18 +511,11 @@ package body LSP.Ada_Documents is
       use Utils.Char_Vectors.Char_Vectors;
       use LSP.Messages;
 
-      Cmd_Text  : GNAT.Strings.String_List_Access;
-      Cmd       : Utils.Command_Lines.Command_Line
-        (Pp.Command_Lines.Descriptor'Access);
-
       Input     : Char_Vector;
       Output    : Char_Vector;
       Out_Span  : LSP.Messages.Span;
 
       Messages  : Pp.Scanner.Source_Message_Vector;
-
-      Tab_Size : constant String := LSP.Types.LSP_Number'Image
-        (Options.tabSize);
 
       use Langkit_Support.Slocs;
       use type LSP.Types.Line_Number;
@@ -544,36 +535,16 @@ package body LSP.Ada_Documents is
             return Self.Formatting
               (Context => Context,
                Span    => ((Span.first.line, 0), Span.last),
-               Options => Options,
+               Cmd     => Cmd,
                Edit    => Edit);
          elsif Span.last.character /= 0 then
             return Self.Formatting
               (Context => Context,
                Span    => (Span.first, (Span.last.line + 1, 0)),
-               Options => Options,
+               Cmd     => Cmd,
                Edit    => Edit);
          end if;
       end if;
-
-      Cmd_Text := new GNAT.Strings.String_List
-        (1 .. (if Options.insertSpaces then 3 else 2));
-
-      Cmd_Text (1) := new String'("-W8"); -- UTF-8 encoding
-      Cmd_Text (2) := new String'
-        ("-i" & Tab_Size (Tab_Size'First + 1 .. Tab_Size'Last)); -- Identation
-      if Options.insertSpaces then
-         Cmd_Text (3) := new String'("-notab");
-      end if;
-
-      Utils.Command_Lines.Parse
-        (Cmd_Text,
-         Cmd,
-         Phase              => Utils.Command_Lines.Cmd_Line_1,
-         Callback           => Utils.Command_Lines.Null_Callback'Access,
-         Collect_File_Names => False,
-         Ignore_Errors      => True);
-
-      GNAT.Strings.Free (Cmd_Text);
 
       declare
          S : GNAT.Strings.String_Access :=

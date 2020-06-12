@@ -49,6 +49,8 @@ with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 
+with Utils.Command_Lines.Common;
+
 package body LSP.Ada_Handlers is
 
    type Cancel_Countdown is mod 128;
@@ -179,6 +181,10 @@ package body LSP.Ada_Handlers is
       Charset  : String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
+
+   procedure Set_PP_Options
+     (Self    : in out Message_Handler'Class;
+      Options : LSP.Messages.FormattingOptions);
 
    ----------------------
    -- Contexts_For_URI --
@@ -505,7 +511,8 @@ package body LSP.Ada_Handlers is
         Value.capabilities.textDocument.codeAction;
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
-      Root     : LSP.Types.LSP_String;
+      Root        : LSP.Types.LSP_String;
+      No_Argument : aliased GNAT.OS_Lib.Argument_List := (1 .. 0 => <>);
    begin
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
@@ -631,6 +638,17 @@ package body LSP.Ada_Handlers is
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+
+      Utils.Command_Lines.Parse
+        (No_Argument'Unchecked_Access,
+         Self.PP_Options,
+         Phase              => Utils.Command_Lines.Cmd_Line_1,
+         Callback           => null,
+         Collect_File_Names => False,
+         Ignore_Errors      => False);
+
+      Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
+      --  Set UTF-8 encoding
 
       return Response;
    end On_Initialize_Request;
@@ -2917,6 +2935,26 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Completion_Request;
 
+   --------------------
+   -- Set_PP_Options --
+   --------------------
+
+   procedure Set_PP_Options
+     (Self    : in out Message_Handler'Class;
+      Options : LSP.Messages.FormattingOptions) is
+   begin
+      Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.Indentation,
+         Natural (Options.tabSize));
+
+      Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.No_Tab,
+         Options.insertSpaces);
+
+   end Set_PP_Options;
+
    ---------------------------
    -- On_Formatting_Request --
    ---------------------------
@@ -2934,8 +2972,10 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Formatting_Response
         (Is_Error => False);
    begin
+      Self.Set_PP_Options (Request.params.options);
+
       if not Document.Formatting
-        (Context.all, LSP.Messages.Empty_Span, Request.params.options,
+        (Context.all, LSP.Messages.Empty_Span, Self.PP_Options,
          Response.result)
       then
          return Response : LSP.Messages.Server_Responses.Formatting_Response
@@ -2969,9 +3009,10 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response
         (Is_Error => False);
    begin
+      Self.Set_PP_Options (Request.params.options);
+
       if not Document.Formatting
-        (Context.all,
-         Request.params.span, Request.params.options, Response.result)
+        (Context.all, Request.params.span, Self.PP_Options, Response.result)
       then
          return Response : LSP.Messages.Server_Responses.
            Range_Formatting_Response (Is_Error => True)
