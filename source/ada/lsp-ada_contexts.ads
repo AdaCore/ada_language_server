@@ -27,6 +27,9 @@ with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
 
+with Utils.Command_Lines;
+with Pp.Command_Lines;
+
 with LSP.Common; use LSP.Common;
 with LSP.Messages;
 with LSP.Ada_Documents;
@@ -83,6 +86,14 @@ package LSP.Ada_Contexts is
    --  Return the node at the given location.
    --  If Document is not null, get the location from the document, otherwise
    --  get it from the file.
+
+   procedure Format
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Success  : out Boolean);
 
    function Find_All_References
      (Self              : Context;
@@ -189,6 +200,10 @@ private
 
       Source_Files   : File_Sets.Set;
       --  Cache for the list of Ada source files in the loaded project tree.
+
+      PP_Options : Utils.Command_Lines.Command_Line
+                    (Pp.Command_Lines.Descriptor'Access);
+      --  Object to keep gnatpp options
    end record;
 
    function LAL_Context

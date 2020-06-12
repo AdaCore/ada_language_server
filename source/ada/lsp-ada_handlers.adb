@@ -2942,8 +2942,10 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Formatting_Request)
       return LSP.Messages.Server_Responses.Formatting_Response
    is
+      Success  : Boolean;
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Request.params.textDocument.uri);
 
@@ -2962,10 +2964,14 @@ package body LSP.Ada_Handlers is
          end return;
       end if;
 
-      if not Document.Formatting
-        (Context.all, LSP.Messages.Empty_Span, Request.params.options,
-         Response.result)
-      then
+      Context.Format
+        (Document,
+         LSP.Messages.Empty_Span,
+         Request.params.options,
+         Response.result,
+         Success);
+
+      if not Success then
          return Response : LSP.Messages.Server_Responses.Formatting_Response
            (Is_Error => True)
          do
@@ -2989,8 +2995,10 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
       return LSP.Messages.Server_Responses.Range_Formatting_Response
    is
+      Success  : Boolean;
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Request.params.textDocument.uri);
 
@@ -3009,10 +3017,14 @@ package body LSP.Ada_Handlers is
          end return;
       end if;
 
-      if not Document.Formatting
-        (Context.all,
-         Request.params.span, Request.params.options, Response.result)
-      then
+      Context.Format
+        (Document,
+         Request.params.span,
+         Request.params.options,
+         Response.result,
+         Success);
+
+      if not Success then
          return Response : LSP.Messages.Server_Responses.
            Range_Formatting_Response (Is_Error => True)
          do

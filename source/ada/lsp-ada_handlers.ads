@@ -24,6 +24,7 @@ with Ada.Containers.Hashed_Sets;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
+
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
