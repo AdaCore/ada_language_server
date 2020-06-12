@@ -22,6 +22,8 @@ with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with GNATCOLL.JSON;
+with VSS.Strings;
+
 with LSP.Generic_Optional;
 
 limited with LSP.JSON_Streams;
@@ -110,6 +112,8 @@ package LSP.Types is
    --  Convert given UTF-8 string into LSP_String
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
+   function To_LSP_String
+     (Item : VSS.Strings.Virtual_String) return LSP_String;
 
    function To_UTF_8_String (Value : LSP_String)
      return Ada.Strings.UTF_Encoding.UTF_8_String;
@@ -269,11 +273,6 @@ package LSP.Types is
                     Document_Link_Registration_Option,
       Document_On_Type_Formatting_Registration_Option,
                   Execute_Command_Registration_Option);
-
-   procedure Read_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Item   : out LSP.Types.LSP_String);
-   --  Read string from the JSON stream under given Key
 
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;

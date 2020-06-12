@@ -1999,9 +1999,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  Value => To_LSP_String
-                    (VSS.Strings.Conversions.To_UTF_8_String
-                       (JS.R.String_Value)));
+                  Value     => To_LSP_String (JS.R.String_Value));
 
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Object =>
@@ -2104,9 +2102,7 @@ package body LSP.Messages is
                   Vector           => <>);
             V.Vector.Append
               (MarkedString'(Is_String => True,
-                             value     => To_LSP_String
-                               (VSS.Strings.Conversions.To_UTF_8_String
-                                  (JS.R.String_Value))));
+                             value     => To_LSP_String (JS.R.String_Value)));
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Array =>
             V := (Is_MarkupContent => False,
@@ -2159,9 +2155,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  String    => To_LSP_String
-                    (VSS.Strings.Conversions.To_UTF_8_String
-                       (JS.R.String_Value)));
+                  String    => To_LSP_String (JS.R.String_Value));
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Array =>
             JS.R.Read_Next;
@@ -2216,9 +2210,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  String    => To_LSP_String
-                    (VSS.Strings.Conversions.To_UTF_8_String
-                       (JS.R.String_Value)));
+                  String    => To_LSP_String (JS.R.String_Value));
             JS.R.Read_Next;
 
          when VSS.JSON.Streams.Readers.Start_Object =>
