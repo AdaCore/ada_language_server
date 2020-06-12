@@ -86,7 +86,7 @@ types_to_print = {
     #  'Text_Progress_Params',
     'ProgramInfo',
     'Trace_Kind',
-    #  'InitializeParams',
+    'InitializeParams',
     #  'WorkDoneProgressOptions',
     'TextDocumentSyncKind',
     'TextDocumentSyncOptions',

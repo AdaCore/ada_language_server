@@ -895,10 +895,21 @@ package body LSP.Message_Loggers is
       Value : LSP.Messages.Server_Requests.Initialize_Request)
    is
    begin
-      Self.Trace.Trace
-        ("Initialize_Request: "
-         & Image (Value)
-         & (+Value.params.rootPath));
+      if Value.params.rootPath.Is_Set
+        and then Value.params.rootPath.Value.Is_Set
+      then
+         Self.Trace.Trace
+           ("Initialize_Request: "
+            & Image (Value)
+            & (+Value.params.rootPath.Value.Value));
+      elsif Value.params.rootPath.Is_Set then
+         Self.Trace.Trace
+           ("Initialize_Request: "
+            & Image (Value)
+            & " null");
+      else
+         Self.Trace.Trace ("Initialize_Request: " & Image (Value));
+      end if;
    end On_Initialize_Request;
 
    ----------------------------

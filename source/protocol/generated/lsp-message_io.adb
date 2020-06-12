@@ -2709,6 +2709,74 @@ package body LSP.Message_IO is
       JS.Write_String (To_String (V));
    end Write_Trace_Kind;
 
+   procedure Read_InitializeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InitializeParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "processId" then
+               Optional_Number'Read (S, V.processId);
+            elsif Key = "clientInfo" then
+               Optional_ProgramInfo'Read (S, V.clientInfo);
+            elsif Key = "rootPath" then
+               Optional_Nullable_String'Read (S, V.rootPath);
+            elsif Key = "rootUri" then
+               Nullable_String'Read (S, V.rootUri);
+            elsif Key = "capabilities" then
+               ClientCapabilities'Read (S, V.capabilities);
+            elsif Key = "trace" then
+               Optional_Trace_Kind'Read (S, V.trace);
+            elsif Key = "workspaceFolders" then
+               Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_InitializeParams;
+
+   procedure Write_InitializeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InitializeParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.Key ("processId");
+      Optional_Number'Write (S, V.processId);
+      JS.Key ("clientInfo");
+      Optional_ProgramInfo'Write (S, V.clientInfo);
+      JS.Key ("rootPath");
+      Optional_Nullable_String'Write (S, V.rootPath);
+      JS.Key ("rootUri");
+      Nullable_String'Write (S, V.rootUri);
+      JS.Key ("capabilities");
+      ClientCapabilities'Write (S, V.capabilities);
+      JS.Key ("trace");
+      Optional_Trace_Kind'Write (S, V.trace);
+      JS.Key ("workspaceFolders");
+      Optional_WorkspaceFolder_Vector'Write (S, V.workspaceFolders);
+      JS.End_Object;
+   end Write_InitializeParams;
+
    procedure Read_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TextDocumentSyncKind)

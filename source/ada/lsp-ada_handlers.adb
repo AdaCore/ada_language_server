@@ -617,11 +617,13 @@ package body LSP.Ada_Handlers is
          Self.Completion_Snippets_Enabled := True;
       end if;
 
-      if not LSP.Types.Is_Empty (Value.rootUri) then
-         Root := URI_To_File (Value.rootUri);
-      else
+      if Value.rootUri.Is_Set
+        and then not LSP.Types.Is_Empty (Value.rootUri.Value)
+      then
+         Root := URI_To_File (Value.rootUri.Value);
+      elsif Value.rootPath.Is_Set and then Value.rootPath.Value.Is_Set then
          --  URI isn't provided, rollback to deprecated rootPath
-         Root := Value.rootPath;
+         Root := Value.rootPath.Value.Value;
       end if;
 
       --  Some clients - notably VS Code as of version 33, when opening a file

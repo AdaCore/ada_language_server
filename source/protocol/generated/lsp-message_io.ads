@@ -476,6 +476,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.Trace_Kind);
 
+   procedure Read_InitializeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.InitializeParams);
+
+   procedure Write_InitializeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.InitializeParams);
+
    procedure Read_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.TextDocumentSyncKind);

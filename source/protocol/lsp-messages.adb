@@ -1867,52 +1867,7 @@ package body LSP.Messages is
    procedure Read_InitializeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out InitializeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      pragma Assert (JS.R.Is_Start_Object);
-      JS.R.Read_Next;
-
-      while not JS.R.Is_End_Object loop
-         pragma Assert (JS.R.Is_Key_Name);
-         declare
-            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
-         begin
-            JS.R.Read_Next;
-
-            if Key = "workDoneToken" then
-               Optional_ProgressToken'Read (S, V.workDoneToken);
-            elsif Key = "processId" then
-               Optional_Number'Read (S, V.processId);
-            elsif Key = "clientInfo" then
-               Optional_ProgramInfo'Read (S, V.clientInfo);
-            elsif Key = "rootPath" then
-               if JS.R.Is_String_Value then
-                  LSP_String'Read (S, V.rootPath);
-               else
-                  JS.Skip_Value;
-               end if;
-            elsif Key = "rootUri" then
-               if JS.R.Is_String_Value then
-                  DocumentUri'Read (S, V.rootUri);
-               else
-                  JS.Skip_Value;
-               end if;
-            elsif Key = "capabilities" then
-               ClientCapabilities'Read (S, V.capabilities);
-            elsif Key = "trace" then
-               Optional_Trace_Kind'Read (S, V.trace);
-            elsif Key = "workspaceFolders" then
-               Optional_WorkspaceFolder_Vector'Read (S, V.workspaceFolders);
-            else
-               JS.Skip_Value;
-            end if;
-         end;
-      end loop;
-      JS.R.Read_Next;
-   end Read_InitializeParams;
+      renames LSP.Message_IO.Read_InitializeParams;
 
    ----------------------------------
    -- Read_Location_Or_Link_Vector --
@@ -2648,31 +2603,7 @@ package body LSP.Messages is
    procedure Write_InitializeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : InitializeParams)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Write (S, V.workDoneToken);
-      JS.Key ("processId");
-      Optional_Number'Write (S, V.processId);
-      JS.Key ("clientInfo");
-      Optional_ProgramInfo'Write (S, V.clientInfo);
-
-      if not LSP.Types.Is_Empty (V.rootPath) then
-         Write_String (JS, +"rootPath", V.rootPath);
-      end if;
-
-      Write_String (JS, +"rootUri", V.rootUri);
-      JS.Key ("capabilities");
-      LSP.Messages.ClientCapabilities'Write (S, V.capabilities);
-      JS.Key ("trace");
-      Optional_Trace_Kind'Write (S, V.trace);
-      JS.Key ("workspaceFolders");
-      Optional_WorkspaceFolder_Vector'Write (S, V.workspaceFolders);
-      JS.End_Object;
-   end Write_InitializeParams;
+      renames LSP.Message_IO.Write_InitializeParams;
 
    -----------------------------------
    -- Write_Location_Or_Link_Vector --
