@@ -30,14 +30,6 @@ with LSP.Message_IO;
 
 package body LSP.Messages is
 
-   procedure Write_Optional_Number
-    (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key        : LSP.Types.LSP_String;
-     Item       : LSP.Types.Optional_Number;
-     Write_Null : Boolean := False);
-   --  If Item has a value write its value into Key. Otherwise if Write_Null,
-   --  then write 'null' into Key. Otherwise do nothing.
-
    function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
      (T           => LSP.Commands.Command,
       Parameters  => LSP.JSON_Streams.JSON_Stream'Class,
@@ -2741,24 +2733,6 @@ package body LSP.Messages is
       end if;
    end Write_MarkupContent_Or_MarkedString_Vector;
 
-   ---------------------------
-   -- Write_Optional_Number --
-   ---------------------------
-
-   procedure Write_Optional_Number
-    (Stream     : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key        : LSP.Types.LSP_String;
-     Item       : LSP.Types.Optional_Number;
-     Write_Null : Boolean := False) is
-   begin
-      if Item.Is_Set then
-         Write_Number (Stream, Key, Item.Value);
-      elsif Write_Null then
-         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write_Null;
-      end if;
-   end Write_Optional_Number;
-
    --------------------------------------------
    -- Write_Optional_TextDocumentSyncOptions --
    --------------------------------------------
@@ -2918,16 +2892,7 @@ package body LSP.Messages is
    procedure Write_VersionedTextDocumentIdentifier
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : VersionedTextDocumentIdentifier)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      DocumentUri'Write (S, V.uri);
-      Write_Optional_Number (JS, +"version", V.version, Write_Null => True);
-      JS.End_Object;
-   end Write_VersionedTextDocumentIdentifier;
+      renames LSP.Message_IO.Write_VersionedTextDocumentIdentifier;
 
    -------------------------
    -- Write_WatchKind_Set --
