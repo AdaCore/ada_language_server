@@ -70,9 +70,7 @@
             },
             "wait":[{
                 "id": "hover",
-                "result": {
-                    "contents": []
-                }
+                "result": null
             }]
         }
     },  {

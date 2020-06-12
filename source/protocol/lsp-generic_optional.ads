@@ -22,6 +22,10 @@ with Ada.Streams;
 generic
    type Element_Type is private;
    --  Value type
+   Write_Unset_As_Null : Boolean := False;
+   --  Some TypeScript types are expressed as  `TypeX | null`. Set this to
+   --  True to represent such types as an optional type. The `Write` procedure
+   --  will encode unset value as `null` JSON value.
 package LSP.Generic_Optional is
 
    type Optional_Type (Is_Set : Boolean := False) is record

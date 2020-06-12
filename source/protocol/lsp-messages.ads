@@ -5272,6 +5272,10 @@ package LSP.Messages is
    for Hover'Read use Read_Hover;
    for Hover'Write use Write_Hover;
 
+   package Optional_Hovers is
+     new LSP.Generic_Optional (Hover, Write_Unset_As_Null => True);
+   type Optional_Hover is new Optional_Hovers.Optional_Type;
+
    --```typescript
    --/**
    -- * Signature help represents the signature of something
