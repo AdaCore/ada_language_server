@@ -50,7 +50,7 @@ package LSP.Messages.Server_Responses is
 
    package Hover_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
-      T               => Hover);
+      T               => Optional_Hover);
 
    type Hover_Response is new Hover_Responses.Response with null record;
 

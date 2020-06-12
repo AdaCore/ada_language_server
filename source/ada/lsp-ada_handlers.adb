@@ -1630,8 +1630,9 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Append the whole declaration text to the response
+      Response.result := (Is_Set => True, others => <>);
 
-      Response.result.contents.Vector.Append
+      Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => False,
             value     => Decl_Text,
@@ -1656,7 +1657,7 @@ package body LSP.Ada_Handlers is
          Location_Text := Location_Text & " in project " & C.Id;
       end if;
 
-      Response.result.contents.Vector.Append
+      Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => True,
             value     => Location_Text));
@@ -1670,7 +1671,7 @@ package body LSP.Ada_Handlers is
                 (Decl).Doc.To_String));
 
       if Comments_Text /= Empty_LSP_String then
-         Response.result.contents.Vector.Append
+         Response.result.Value.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
                value     => Comments_Text));

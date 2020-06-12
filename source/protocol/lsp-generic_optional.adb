@@ -61,10 +61,15 @@ package body LSP.Generic_Optional is
 
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_Type) is
+      V : Optional_Type)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_Set then
          Element_Type'Write (S, V.Value);
+      elsif Write_Unset_As_Null then
+         JS.Write_Null;
       end if;
    end Write;
 

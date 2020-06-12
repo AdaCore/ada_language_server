@@ -453,9 +453,7 @@
          "wait": [
             {
                "id": 6,
-               "result": {
-                  "contents": []
-               }
+               "result": null
             }
          ]
       }
