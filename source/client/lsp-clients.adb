@@ -595,9 +595,8 @@ package body LSP.Clients is
                      when String_Value =>
                         Id :=
                           (Is_Number => False,
-                           String    => LSP.Types.To_LSP_String
-                             (VSS.Strings.Conversions.To_UTF_8_String
-                                  (R.String_Value)));
+                           String    =>
+                              LSP.Types.To_LSP_String (R.String_Value));
                      when Number_Value =>
                         Id :=
                           (Is_Number => True,
@@ -610,9 +609,8 @@ package body LSP.Clients is
                elsif Key = "method" then
                   pragma Assert (R.Is_String_Value);
                   Method := (Is_Set => True,
-                             Value  => LSP.Types.To_LSP_String
-                               (VSS.Strings.Conversions.To_UTF_8_String
-                                  (R.String_Value)));
+                             Value  =>
+                               LSP.Types.To_LSP_String (R.String_Value));
                   R.Read_Next;
                elsif Key = "error" then
                   Is_Error := True;

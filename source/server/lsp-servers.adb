@@ -336,9 +336,8 @@ package body LSP.Servers is
                         when String_Value =>
                            Request_Id :=
                              (Is_Number => False,
-                              String    => LSP.Types.To_LSP_String
-                                (VSS.Strings.Conversions.To_UTF_8_String
-                                     (JS.R.String_Value)));
+                              String    =>
+                                 LSP.Types.To_LSP_String (JS.R.String_Value));
                         when Number_Value =>
                            Request_Id :=
                              (Is_Number => True,
@@ -348,19 +347,19 @@ package body LSP.Servers is
                            raise Constraint_Error;
                      end case;
                      JS.R.Read_Next;
+
                   elsif Key = "jsonrpc" then
                      pragma Assert (JS.R.Is_String_Value);
-                     Version := LSP.Types.To_LSP_String
-                       (VSS.Strings.Conversions.To_UTF_8_String
-                          (JS.R.String_Value));
+                     Version := LSP.Types.To_LSP_String (JS.R.String_Value);
                      JS.R.Read_Next;
+
                   elsif Key = "method" then
                      pragma Assert (JS.R.Is_String_Value);
                      Method := (Is_Set => True,
-                                Value  => LSP.Types.To_LSP_String
-                                  (VSS.Strings.Conversions.To_UTF_8_String
-                                     (JS.R.String_Value)));
+                                Value  =>
+                                  LSP.Types.To_LSP_String (JS.R.String_Value));
                      JS.R.Read_Next;
+
                   elsif Key = "error" then
                      LSP.Messages.Optional_ResponseError'Read
                        (JS'Access, Error);

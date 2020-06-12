@@ -77,24 +77,9 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       pragma Assert (JS.R.Is_String_Value);
-      V := To_LSP_String
-        (VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value));
+      V := To_LSP_String (JS.R.String_Value);
       JS.R.Read_Next;
    end Read;
-
-   -----------------
-   -- Read_String --
-   -----------------
-
-   procedure Read_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Item   : out LSP.Types.LSP_String) is
-   begin
-      pragma Assert (Stream.R.Is_String_Value);
-      Item := To_LSP_String
-        (VSS.Strings.Conversions.To_UTF_8_String (Stream.R.String_Value));
-      Stream.R.Read_Next;
-   end Read_String;
 
    --------------
    -- Read_Any --
@@ -276,16 +261,9 @@ package body LSP.Types is
    begin
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
-
-            declare
-               Value : constant String :=
-                 VSS.Strings.Conversions.To_UTF_8_String
-                   (JS.R.String_Value);
-            begin
-               V := (Is_Boolean => False,
-                     String     => To_LSP_String (Value));
-               JS.R.Read_Next;
-            end;
+            V := (Is_Boolean => False,
+                  String     => To_LSP_String (JS.R.String_Value));
+            JS.R.Read_Next;
 
          when VSS.JSON.Streams.Readers.Boolean_Value =>
             V := (Is_Boolean => True,
@@ -319,15 +297,8 @@ package body LSP.Types is
                   String    => Empty_LSP_String);
 
          when VSS.JSON.Streams.Readers.String_Value =>
-
-            declare
-               Value : constant String :=
-                 VSS.Strings.Conversions.To_UTF_8_String
-                   (JS.R.String_Value);
-            begin
-               V := (Is_Number => False,
-                     String    => To_LSP_String (Value));
-            end;
+            V := (Is_Number => False,
+                  String    => To_LSP_String (JS.R.String_Value));
 
          when VSS.JSON.Streams.Readers.Number_Value =>
             V := (Is_Number => True,
@@ -428,15 +399,8 @@ package body LSP.Types is
             Item := (Is_Set => False);
 
          when VSS.JSON.Streams.Readers.String_Value =>
-
-            declare
-               Value : constant String :=
-                 VSS.Strings.Conversions.To_UTF_8_String
-                   (Stream.R.String_Value);
-            begin
-               Item := (Is_Set => True,
-                        Value  => To_LSP_String (Value));
-            end;
+            Item := (Is_Set => True,
+                     Value  => To_LSP_String (Stream.R.String_Value));
 
          when others =>
             raise Constraint_Error;
@@ -468,6 +432,19 @@ package body LSP.Types is
          return To_Lower (Value (1 .. Prefix'Length)) = To_Lower (Prefix);
       end if;
    end Starts_With;
+
+   -------------------
+   -- To_LSP_String --
+   -------------------
+
+   function To_LSP_String
+     (Item : VSS.Strings.Virtual_String) return LSP_String is
+   begin
+      return
+        To_Unbounded_Wide_String
+          (Ada.Strings.UTF_Encoding.Wide_Strings.Decode
+             (VSS.Strings.Conversions.To_UTF_8_String (Item)));
+   end To_LSP_String;
 
    -------------------
    -- To_LSP_String --
