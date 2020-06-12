@@ -3199,6 +3199,18 @@ package LSP.Messages is
    type Optional_Trace_Kind is
      new Optional_Trace_Kind_Package.Optional_Type;
 
+   package Nullable_Strings is new LSP.Generic_Optional
+       (LSP_String, Write_Unset_As_Null => True);
+
+   type Nullable_String is new Nullable_Strings.Optional_Type;
+   --  A type corresponding to `string | null` in TypeScript
+
+   package Optional_Nullable_Strings is
+     new LSP.Generic_Optional (Nullable_String);
+
+   type Optional_Nullable_String is
+     new Optional_Nullable_Strings.Optional_Type;
+
    --```typescript
    --interface InitializeParams extends WorkDoneProgressParams {
    --	/**
@@ -3269,8 +3281,8 @@ package LSP.Messages is
    type InitializeParams is new WorkDoneProgressParams with record
       processId: Optional_Number;
       clientInfo: Optional_ProgramInfo;
-      rootPath: LSP_String;
-      rootUri: DocumentUri;  --  or null???
+      rootPath: Optional_Nullable_String;
+      rootUri: Nullable_String;
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
       trace: Optional_Trace_Kind;
