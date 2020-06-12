@@ -815,8 +815,12 @@ package LSP.Messages is
    --	version: number | null;
    --}
    --```
+   package Nullable_Numbers is new LSP.Generic_Optional
+     (LSP_Number, Write_Unset_As_Null => True);
+   type Nullable_Number is new Nullable_Numbers.Optional_Type;
+
    type VersionedTextDocumentIdentifier is new TextDocumentIdentifier with record
-      version: Optional_Number;
+      version: Nullable_Number;
    end record;
 
    procedure Read_VersionedTextDocumentIdentifier

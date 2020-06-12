@@ -729,7 +729,7 @@ package body LSP.Message_IO is
             if Key = "uri" then
                DocumentUri'Read (S, V.uri);
             elsif Key = "version" then
-               Optional_Number'Read (S, V.version);
+               Nullable_Number'Read (S, V.version);
             else
                JS.Skip_Value;
             end if;
@@ -749,7 +749,7 @@ package body LSP.Message_IO is
       JS.Key ("uri");
       DocumentUri'Write (S, V.uri);
       JS.Key ("version");
-      Optional_Number'Write (S, V.version);
+      Nullable_Number'Write (S, V.version);
       JS.End_Object;
    end Write_VersionedTextDocumentIdentifier;
 

@@ -57,7 +57,7 @@ package LSP.Ada_Documents is
 
    procedure Apply_Changes
      (Self    : aliased in out Document;
-      Version : LSP.Types.Optional_Number;
+      Version : LSP.Messages.Nullable_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
 

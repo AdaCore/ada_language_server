@@ -455,7 +455,7 @@ def print_components(file, kind, node, no_components):
 
     for x in get_components(node):
         name = x.p_defining_name.token_start.text
-        tp = x.f_component_def.f_type_expr.f_name.full_name
+        tp = x.f_component_def.f_type_expr.f_name.text
         txt = write_format(tp, kind).format(key=get_key(name),
                                             kind=kind,
                                             name=name,
