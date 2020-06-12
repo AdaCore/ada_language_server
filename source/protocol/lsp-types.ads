@@ -126,6 +126,10 @@ package LSP.Types is
      return GNATCOLL.JSON.UTF8_Unbounded_String;
    --  Same as To_UTF_8_String above, but returns an Unbounded_String.
 
+   function To_Virtual_String
+     (Item : LSP_String) return VSS.Strings.Virtual_String;
+   --  Converts LSP_String to Virtual_String.
+
    function Is_Empty (Text : LSP_String) return Boolean;
    --  Check if given Text is an empty string
 

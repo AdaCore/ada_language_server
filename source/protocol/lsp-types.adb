@@ -569,6 +569,18 @@ package body LSP.Types is
       return Res;
    end To_UTF_8_Unbounded_String;
 
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Item : LSP_String) return VSS.Strings.Virtual_String is
+   begin
+      return
+        VSS.Strings.Conversions.To_Magic_String
+          (LSP.Types.To_UTF_8_String (Item));
+   end To_Virtual_String;
+
    -----------
    -- Write --
    -----------

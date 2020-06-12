@@ -278,9 +278,7 @@ package body LSP.JSON_Streams is
    begin
       pragma Assert (Self.R = null);
       Write_Key (Self.W);
-      Self.W.Writer.String_Value
-        (VSS.Strings.Conversions.To_Magic_String
-           (LSP.Types.To_UTF_8_String (Item)));
+      Self.W.Writer.String_Value (LSP.Types.To_Virtual_String (Item));
    end Write_String;
 
 end LSP.JSON_Streams;
