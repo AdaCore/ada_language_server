@@ -27,8 +27,6 @@ limited with LSP.Ada_Contexts;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
-with Pp.Command_Lines;
-
 package LSP.Ada_Documents is
 
    MAX_NB_DIAGNOSTICS : constant := 2;
@@ -123,7 +121,7 @@ package LSP.Ada_Documents is
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
       Span     : LSP.Messages.Span;
-      Cmd      : Pp.Command_Lines.Cmd_Line;
+      Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector)
       return Boolean;
    --  Format whole document, Return False on error
