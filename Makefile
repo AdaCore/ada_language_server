@@ -28,7 +28,7 @@ BUILD_MODE=dev
 # Whether to enable coverage (empty for no, any other value for yes)
 COVERAGE=
 COVERAGE_INSTR=gnatcov instrument --level stmt $(LIBRARY_FLAGS) \
-	--dump-trigger=atexit
+	--dump-trigger=atexit --no-subprojects
 
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
