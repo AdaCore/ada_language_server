@@ -19,7 +19,6 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Strings.Unbounded;
 
 with GNATCOLL.VFS;
 with GNATCOLL.Traces;
@@ -33,10 +32,6 @@ with Libadalang.Common;
 
 with Langkit_Support.Text;
 with Langkit_Support.Slocs;
-
-with Utils.Command_Lines;
-with Utils.Char_Vectors;
-with Pp.Scanner;
 
 package LSP.Lal_Utils is
 
@@ -160,20 +155,5 @@ package LSP.Lal_Utils is
    --  Return True if the Token text contains Pattern and set position in Span.
    --  Checks whether the Token's Pattern is delimited by word delimiters
    --  if As_Word is True.
-
-   function To_Unbounded_String
-     (Input : Utils.Char_Vectors.Char_Vector)
-       return Ada.Strings.Unbounded.Unbounded_String;
-   --  Convert Input to unbounded string.
-
-   procedure Format_Vector
-     (Cmd      : Utils.Command_Lines.Command_Line;
-      Input    : Utils.Char_Vectors.Char_Vector;
-      Node     : Ada_Node;
-      In_Sloc  : Langkit_Support.Slocs.Source_Location_Range;
-      Output   : out Utils.Char_Vectors.Char_Vector;
-      Out_Sloc : out Langkit_Support.Slocs.Source_Location_Range;
-      Messages : out Pp.Scanner.Source_Message_Vector);
-   --  A wrapper around Pp.Actions.Format_Vector that populates Out_Range,
 
 end LSP.Lal_Utils;
