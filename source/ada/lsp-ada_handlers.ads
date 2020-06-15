@@ -24,10 +24,6 @@ with Ada.Containers.Hashed_Sets;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
-
-with Utils.Command_Lines;
-with Pp.Command_Lines;
-
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
@@ -183,10 +179,6 @@ private
 
       Project_Dirs_Loaded : LSP.Ada_Contexts.File_Sets.Set;
       --  The directories to load in the "implicit project"
-
-      PP_Options : Utils.Command_Lines.Command_Line
-                    (Pp.Command_Lines.Descriptor'Access);
-      --  Object to keep gnatpp options
    end record;
 
    overriding procedure Before_Work
