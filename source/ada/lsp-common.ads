@@ -18,12 +18,13 @@
 --  A place for commonly used utilities, such as trace or debug functions.
 
 with Ada.Exceptions;
+with GNAT.OS_Lib;
 with GNATCOLL.Traces;
-with GNATCOLL.VFS;        use GNATCOLL.VFS;
+with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
 with LSP.Messages;
-with LSP.Types;           use LSP.Types;
-with Libadalang.Analysis; use Libadalang.Analysis;
+with LSP.Types;             use LSP.Types;
+with Libadalang.Analysis;   use Libadalang.Analysis;
 with URIs;
 
 package LSP.Common is
@@ -47,6 +48,11 @@ package LSP.Common is
       E       : Ada.Exceptions.Exception_Occurrence;
       Message : String := "");
    --  Log an exception in the given traces, with an optional message
+
+   function Get_Output
+     (Exe  : Virtual_File;
+      Args : GNAT.OS_Lib.Argument_List) return String;
+   --  Run the given command line and return the output.
 
    function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String;
    --  Return a pretty printed version of the declaration's text to be

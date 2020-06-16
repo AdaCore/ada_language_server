@@ -36,6 +36,7 @@ with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Predefined_Completion;
 with LSP.Common;
 with LSP.Lal_Utils;
 with LSP.Types.Utils;
@@ -111,6 +112,12 @@ package body LSP.Ada_Documents is
    --  Named_Notation_Threshold defines the number of parameters/components at
    --  which point named notation is used for subprogram/aggregate completion
    --  snippets.
+
+   procedure Get_Keywords_Completion
+     (Node   : Libadalang.Analysis.Ada_Node;
+      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Result : out LSP.Messages.CompletionList);
+   --  Get completion for keywords, filtering them with the given Prefix.
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
@@ -2217,6 +2224,39 @@ package body LSP.Ada_Documents is
       end if;
    end Get_Aggregate_Completion;
 
+   -----------------------------
+   -- Get_Keywords_Completion --
+   -----------------------------
+
+   procedure Get_Keywords_Completion
+     (Node   : Libadalang.Analysis.Ada_Node;
+      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Result : out LSP.Messages.CompletionList)
+   is
+      Keywords : constant Unbounded_Text_Type_Array := Node.P_Valid_Keywords;
+      Item     : LSP.Messages.CompletionItem;
+   begin
+      for Keyword of Keywords loop
+         declare
+            Label : constant Langkit_Support.Text.Text_Type :=
+              Langkit_Support.Text.To_Text (Keyword);
+         begin
+            if LSP.Types.Starts_With
+              (Text           => To_LSP_String (Label),
+               Prefix         => Prefix,
+               Case_Sensitive => False)
+            then
+               Item.label := To_LSP_String (Label);
+               Item.insertTextFormat := (True, LSP.Messages.PlainText);
+               Item.insertText := (True, Item.label);
+               Item.kind := (True, LSP.Messages.Keyword);
+
+               Result.items.Append (Item);
+            end if;
+         end;
+      end loop;
+   end Get_Keywords_Completion;
+
    ------------------------
    -- Get_Completions_At --
    ------------------------
@@ -2255,10 +2295,7 @@ package body LSP.Ada_Documents is
 
       function Should_Use_Snippets return Boolean
       is
-        (Snippets_Enabled
-                and then not In_End_Label
-                and then (Sibling.Is_Null
-                                 or else Sibling.Kind not in Ada_Assoc_List));
+        (Snippets_Enabled and then not In_End_Label and then Sibling.Is_Null);
       --  Return True if snippets should be enabled.
       --  Snippets should not be used in the following cases:
       --
@@ -2266,10 +2303,12 @@ package body LSP.Ada_Documents is
       --
       --    . When the queried node is within an end label
       --
-      --    . An Assoc_List node is present next to the queried node (e.g:
-      --      when modifying the name of the subprogram that is being called
-      --      in a subprogram call, if there are some parameters).
+      --    . When the queried node has a sibling: this is to avoid proposing
+      --      snippets when a list of parameters is already present on the
+      --      right of the completion point for instance.
 
+      Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        Langkit_Support.Text.To_UTF8 (Node.Text);
    begin
       Context.Trace.Trace ("In Get_Completions_At");
 
@@ -2327,10 +2366,41 @@ package body LSP.Ada_Documents is
          return;
       end if;
 
+      --  Get completion for aspects if we are within an aspect association
+      --  node and return immediatly since we only expect aspects here.
+      if not Node.Parent.Is_Null
+        and then Node.Parent.Kind in Ada_Aspect_Assoc_Range
+      then
+         LSP.Predefined_Completion.Get_Aspects
+           (Prefix => Prefix,
+            Result => Result.items);
+         return;
+      end if;
+
+      --  Get completion for pragmas if we are within an pragma node and return
+      --  immediately, since we don't want to propose other items than pragmas
+      --  when wthin a pragma node.
+      if not Node.Parent.Is_Null
+        and then Node.Parent.Kind in Ada_Pragma_Node_Range
+      then
+         LSP.Predefined_Completion.Get_Pragmas
+           (Prefix => Prefix,
+            Result => Result.items);
+         return;
+      end if;
+
+      --  Get keyword completion
+      if not In_End_Label then
+         Get_Keywords_Completion
+           (Node   => Node,
+            Prefix => Prefix,
+            Result => Result);
+      end if;
+
       declare
-         Raw_Completions : constant Completion_Item_Array :=
+         Raw_Completions     : constant Completion_Item_Array :=
            Node.P_Complete;
-         BD : Basic_Decl;
+         BD                  : Basic_Decl;
       begin
          Context.Trace.Trace
            ("Number of LAL completions : " & Raw_Completions'Length'Image);

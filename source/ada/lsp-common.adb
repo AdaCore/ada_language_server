@@ -17,6 +17,7 @@
 
 with Ada.Characters.Handling;
 with Ada.Exceptions;           use Ada.Exceptions;
+with GNAT.Expect.TTY;
 with GNAT.Strings;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
@@ -47,6 +48,43 @@ package body LSP.Common is
       Trace.Trace (Exception_Name (E) & ": " & Exception_Message (E)
                    & ASCII.LF & Symbolic_Traceback (E));
    end Log;
+
+   ----------------
+   -- Get_Output --
+   ----------------
+
+   function Get_Output
+     (Exe  : Virtual_File;
+      Args : GNAT.OS_Lib.Argument_List) return String
+   is
+   begin
+      if Exe = No_File then
+         return "";
+      end if;
+
+      declare
+         Fd : aliased GNAT.Expect.TTY.TTY_Process_Descriptor;
+      begin
+         GNAT.Expect.Non_Blocking_Spawn
+           (Descriptor  => Fd,
+            Command     => Exe.Display_Full_Name,
+            Buffer_Size => 0,
+            Args        => Args,
+            Err_To_Out  => True);
+         declare
+            S : constant String :=
+              GNATCOLL.Utils.Get_Command_Output (Fd'Access);
+         begin
+            GNAT.Expect.TTY.Close (Fd);
+
+            return S;
+         end;
+      exception
+         when GNAT.Expect.Process_Died =>
+            GNAT.Expect.TTY.Close (Fd);
+            return "";
+      end;
+   end Get_Output;
 
    -----------------------------
    -- Get_Hover_Text_For_Node --

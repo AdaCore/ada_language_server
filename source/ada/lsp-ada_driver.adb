@@ -38,6 +38,7 @@ with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
 with LSP.Memory_Statistics;
+with LSP.Predefined_Completion;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -217,6 +218,9 @@ begin
       GNATCOLL.Memory.Configure
         (Activate_Monitor => True);
    end if;
+
+   --  Load predefined completion items
+   LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
 
    Server.Initialize (Stream'Unchecked_Access);
    begin
