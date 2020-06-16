@@ -356,35 +356,115 @@
    },
    {
       "send": {
-         "request": {
-            "params": {
-               "position": {
-                  "line": 11,
-                  "character": 4
-               },
-               "textDocument": {
-                  "uri": "$URI{src/main.adb}"
-               }
-            },
-            "jsonrpc": "2.0",
-            "id": 6,
-            "method": "textDocument/completion"
-         },
-         "wait": [
-            {
-               "id": 6,
-               "result": {
-                  "isIncomplete": false,
-                   "items": [
-                       {
-                           "label": "A",
-                           "kind": 6,
-                           "detail": "A : Integer := 3;",
-                           "documentation": "at main.adb (10:4)",
-                           "additionalTextEdits": [
-                           ]
-                       },
-                       {
+          "request": {
+              "params": {
+                  "position": {
+                      "line": 11,
+                      "character": 4
+                  },
+                  "textDocument": {
+                      "uri": "$URI{src/main.adb}"
+                  }
+              },
+              "jsonrpc": "2.0",
+              "id": 6,
+              "method": "textDocument/completion"
+          },
+          "wait": [
+              {
+                  "id": 6,
+                  "result": {
+                      "isIncomplete": false,
+                      "items": [
+                          {
+                              "label": "abort",
+                              "kind": 14,
+                              "insertText": "abort",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "abs",
+                              "kind": 14,
+                              "insertText": "abs",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "abstract",
+                              "kind": 14,
+                              "insertText": "abstract",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "accept",
+                              "kind": 14,
+                              "insertText": "accept",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "access",
+                              "kind": 14,
+                              "insertText": "access",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "aliased",
+                              "kind": 14,
+                              "insertText": "aliased",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "all",
+                              "kind": 14,
+                              "insertText": "all",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "and",
+                              "kind": 14,
+                              "insertText": "and",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "array",
+                              "kind": 14,
+                              "insertText": "array",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "at",
+                              "kind": 14,
+                              "insertText": "at",
+                              "insertTextFormat": 1,
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "A",
+                              "kind": 6,
+                              "detail": "A : Integer := 3;",
+                              "documentation": "at main.adb (10:4)",
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
                            "label": "Add",
                            "kind": 3,
                            "detail": "function Add (A, B : Integer) return Integer",
@@ -402,7 +482,8 @@
                            "additionalTextEdits": [
                            ]
                        }
-                   ]
+
+                      ]
                }
             }
          ]

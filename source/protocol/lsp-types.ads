@@ -140,6 +140,12 @@ package LSP.Types is
       Case_Sensitive : Boolean := True) return Boolean;
    --  Check if Text starts with given prefix
 
+   function Ends_With
+     (Text           : LSP_String;
+      Suffix         : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Case_Sensitive : Boolean := True) return Boolean;
+   --  Check if Text starts with given suffix
+
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash
         (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Text)));

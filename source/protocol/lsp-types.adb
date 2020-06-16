@@ -470,6 +470,32 @@ package body LSP.Types is
       end if;
    end Starts_With;
 
+   ---------------
+   -- Ends_With --
+   ---------------
+
+   function Ends_With
+     (Text           : LSP_String;
+      Suffix         : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Case_Sensitive : Boolean := True) return Boolean
+   is
+      use Ada.Characters.Handling;
+
+      Value : constant String := To_UTF_8_String (Text);
+   begin
+      if Value'Length < Suffix'Length then
+         return False;
+      end if;
+
+      if Case_Sensitive then
+         return Value (Value'Last - Suffix'Length + 1 .. Value'Last) = Suffix;
+      else
+         return To_Lower
+           (Value (Value'Last - Suffix'Length + 1 .. Value'Last))
+             = To_Lower (Suffix);
+      end if;
+   end Ends_With;
+
    -------------------
    -- To_LSP_String --
    -------------------

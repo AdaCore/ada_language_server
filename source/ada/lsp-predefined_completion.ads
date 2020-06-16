@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2020, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,39 +15,31 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "libadalang";
-with "lal_tools.gpr";
+with Ada.Strings.UTF_Encoding;
+with GNATCOLL.Traces; use GNATCOLL.Traces;
 
-with "lsp";
+with LSP.Messages;    use LSP.Messages;
 
-project LSP_Server is
+package LSP.Predefined_Completion is
 
-   VERSION := external ("VERSION", "latest");
+   procedure Load_Predefined_Completion_Db (Trace : Trace_Handle);
+   --  Load all the predefined completiom items
+   --  (aspects, pragmas and attributes) from the database associated with
+   --  the user's compiler version.
 
-   for Source_Dirs use
-     ("../source/server",
-      "../source/server/generated",
-      "../source/ada",
-      "../source/ada/generated",
-      "../source/memory");
+   procedure Get_Aspects
+     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Result  : in out CompletionItem_Vector);
+   --  Return completion for aspects, filtering the results using Prefix.
 
-   for Object_Dir use "../.obj/server";
-   for Main use ("lsp-ada_driver.adb");
+   procedure Get_Attributes
+     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Result  : in out CompletionItem_Vector);
+   --  Return completion for attributes, filtering the results using Prefix.
 
-   package Compiler is
-      for Default_Switches ("Ada") use LSP.Ada_Switches;
-      for Switches ("lsp-ada_driver.adb") use
-        LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
-      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
-   end Compiler;
+   procedure Get_Pragmas
+     (Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Result  : in out CompletionItem_Vector);
+   --  Return completion for pragmas, filtering the results using Prefix.
 
-
-   package Binder is
-      for Switches ("ada") use ("-E");
-   end Binder;
-
-   package Builder is
-      for Executable ("lsp-ada_driver") use "ada_language_server";
-   end Builder;
-
-end LSP_Server;
+end LSP.Predefined_Completion;
