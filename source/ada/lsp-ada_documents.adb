@@ -2236,9 +2236,33 @@ package body LSP.Ada_Documents is
         Self.Get_Node_At (Context, Real_Pos);
       --  Get the corresponding LAL node
 
+      Sibling  : Libadalang.Analysis.Ada_Node;
+
       In_End_Label : Boolean := False;
       --  Set to True if we are completing an end label
       --  (e.g: end <Subp_Name>);
+
+      -------------------------
+      -- Should_Use_Snippets --
+      -------------------------
+
+      function Should_Use_Snippets return Boolean
+      is
+        (Snippets_Enabled
+                and then not In_End_Label
+                and then (Sibling.Is_Null
+                                 or else Sibling.Kind not in Ada_Assoc_List));
+      --  Return True if snippets should be enabled.
+      --  Snippets should not be used in the following cases:
+      --
+      --    . The Snippets_Enabled parameter if set to False
+      --
+      --    . When the queried node is within an end label
+      --
+      --    . An Assoc_List node is present next to the queried node (e.g:
+      --      when modifying the name of the subprogram that is being called
+      --      in a subprogram call, if there are some parameters).
+
    begin
       Context.Trace.Trace ("In Get_Completions_At");
 
@@ -2266,6 +2290,8 @@ package body LSP.Ada_Documents is
         ("Getting completions, Pos = ("
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
+
+      Sibling := Node.Next_Sibling;
 
       --  Check if we are completing an end label. If it's the case, we want
       --  to disable snippets since end labels don't expect any parameters.
@@ -2319,8 +2345,7 @@ package body LSP.Ada_Documents is
                              (Context                  => Context,
                               BD                       => BD,
                               DN                       => DN,
-                              Snippets_Enabled         => Snippets_Enabled and
-                                not In_End_Label,
+                              Snippets_Enabled         => Should_Use_Snippets,
                               Named_Notation_Threshold =>
                                 Named_Notation_Threshold,
                               Is_Dot_Call              => Is_Dot_Call (CI)));
