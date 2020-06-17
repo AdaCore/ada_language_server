@@ -1,0 +1,8 @@
+project Hello is
+
+   for Source_Dirs use (".");
+   for Object_Dir use "obj";
+   for Main use ("main.adb");
+   
+end Hello;
+

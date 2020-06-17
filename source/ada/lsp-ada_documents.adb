@@ -661,6 +661,7 @@ package body LSP.Ada_Documents is
          return Result;
       end Get_Range;
 
+      S : GNAT.Strings.String_Access;
    begin
       Cmd_Text := new GNAT.Strings.String_List
         (1 .. (if Options.insertSpaces then 3 else 2));
@@ -682,19 +683,11 @@ package body LSP.Ada_Documents is
 
       GNAT.Strings.Free (Cmd_Text);
 
-      declare
-         S : GNAT.Strings.String_Access :=
-           new String'(Ada.Strings.Unbounded.To_String
-                       (LSP.Types.To_UTF_8_Unbounded_String (Self.Text)));
-      begin
-         Input.Append (S.all);
-         GNAT.Strings.Free (S);
-
-      exception
-         when others =>
-            GNAT.Strings.Free (S);
-            raise;
-      end;
+      S := new String'
+        (Ada.Strings.Unbounded.To_String
+           (LSP.Types.To_UTF_8_Unbounded_String (Self.Text)));
+      Input.Append (S.all);
+      GNAT.Strings.Free (S);
 
       if Span = LSP.Messages.Empty_Span then
          In_Range := Input.Full_Range;
@@ -715,42 +708,38 @@ package body LSP.Ada_Documents is
          return False;
       end if;
 
-      declare
-         S : GNAT.Strings.String_Access := new String'(Output.To_Array);
-      begin
-         if Lal_PP_Output.Is_Active then
-            Lal_PP_Output.Trace (S.all);
-         end if;
+      S := new String'(Output.To_Array);
+      if Lal_PP_Output.Is_Active then
+         Lal_PP_Output.Trace (S.all);
+      end if;
 
-         --  it seems that Format_Vector does not set Out_Range properly, so
-         --  using full diff for now
-         Out_Range.First := 1;
+      --  it seems that Format_Vector does not set Out_Range properly, so
+      --  using full diff for now
+      Out_Range.First := 1;
 
-         if Span = LSP.Messages.Empty_Span
-           or else Out_Range.First < In_Range.First
-         then
-            --  diff for the whole document
-            Diff (Self, LSP.Types.To_LSP_String (S.all), Edit => Edit);
+      if Span = LSP.Messages.Empty_Span
+        or else Out_Range.First < In_Range.First
+      then
+         --  diff for the whole document
+         Diff (Self, LSP.Types.To_LSP_String (S.all), Edit => Edit);
 
-         else
-            --  diff for a part of the document
+      else
+         --  diff for a part of the document
 
-            Out_Span.first := Span.first;
-            Out_Span.last  := Get_Range
-              (Out_Range.Last, In_Range.First, Span.first);
+         Out_Span.first := Span.first;
+         Out_Span.last  := Get_Range
+           (Out_Range.Last, In_Range.First, Span.first);
 
-            Diff (Self, LSP.Types.To_LSP_String (S.all), Span, Out_Span, Edit);
-         end if;
+         Diff (Self, LSP.Types.To_LSP_String (S.all), Span, Out_Span, Edit);
+      end if;
 
-         GNAT.Strings.Free (S);
-
-      exception
-         when others =>
-            GNAT.Strings.Free (S);
-            raise;
-      end;
-
+      GNAT.Strings.Free (S);
       return True;
+
+   exception
+      when others =>
+         GNAT.Strings.Free (S);
+         return False;
    end Formatting;
 
    ------------------------
@@ -924,6 +913,18 @@ package body LSP.Ada_Documents is
          end loop;
       end if;
    end Get_Errors;
+
+   ---------------------
+   -- Has_Diagnostics --
+   ---------------------
+
+   function Has_Diagnostics
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Boolean is
+   begin
+      return Self.Unit (Context).Has_Diagnostics;
+   end Has_Diagnostics;
 
    --------------------------
    -- Get_Symbol_Hierarchy --
