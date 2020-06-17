@@ -76,6 +76,12 @@ package LSP.Ada_Documents is
       Errors  : out LSP.Messages.Diagnostic_Vector);
    --  Get errors found during document parsing.
 
+   function Has_Diagnostics
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return Boolean;
+   --  Returns True when errors found during document parsing.
+
    procedure Get_Symbols
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
@@ -124,7 +130,7 @@ package LSP.Ada_Documents is
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector)
       return Boolean;
-   --  Format whole document, Return False on error
+   --  Format document or its part defined in Span
 
    procedure Get_Imported_Units
      (Self          : Document;

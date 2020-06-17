@@ -2939,6 +2939,18 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Formatting_Response
         (Is_Error => False);
    begin
+      if Document.Has_Diagnostics (Context.all) then
+         return Response : LSP.Messages.Server_Responses.Formatting_Response
+           (Is_Error => True)
+         do
+            Response.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Incorrect code can't be formatted",
+                data => <>));
+         end return;
+      end if;
+
       if not Document.Formatting
         (Context.all, LSP.Messages.Empty_Span, Request.params.options,
          Response.result)
@@ -2974,6 +2986,18 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response
         (Is_Error => False);
    begin
+      if Document.Has_Diagnostics (Context.all) then
+         return Response : LSP.Messages.Server_Responses.
+           Range_Formatting_Response (Is_Error => True)
+         do
+            Response.error :=
+              (True,
+               (code => LSP.Errors.InternalError,
+                message => +"Incorrect code can't be formatted",
+                data => <>));
+         end return;
+      end if;
+
       if not Document.Formatting
         (Context.all,
          Request.params.span, Request.params.options, Response.result)
