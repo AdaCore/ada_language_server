@@ -54,7 +54,7 @@ LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) \
 BUILD_FLAGS=$(LIBRARY_FLAGS)
 
 ifneq ($(COVERAGE),)
-	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS) \
+	COVERAGE_FLAGS=\
 		--implicit-with=gnatcov_rts_full \
 		--src-subdirs=gnatcov-instr \
 		-XALS_WARN_ERRORS=false \
@@ -66,9 +66,9 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
-	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
+	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) $(COVERAGE_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
-	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/codec_test.gpr -p $(BUILD_FLAGS) $(COVERAGE_FLAGS)
 
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
