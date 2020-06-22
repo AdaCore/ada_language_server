@@ -57,7 +57,9 @@ endif
 
 BUILD_FLAGS=$(LIBRARY_FLAGS)
 
-ifneq ($(COVERAGE),)
+ifeq ($(COVERAGE),)
+	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS)
+else
 	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS) \
 		--implicit-with=gnatcov_rts_full \
 		--src-subdirs=gnatcov-instr \
