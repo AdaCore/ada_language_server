@@ -1513,7 +1513,10 @@ package body LSP.Ada_Handlers is
    begin
       if Document /= null then
          Document.Get_Folding_Blocks
-           (Context.all, Self.Line_Folding_Only, Result);
+           (Context.all,
+            Self.Line_Folding_Only,
+            Self.Options.Folding.Comments,
+            Result);
 
          return Response : LSP.Messages.Server_Responses.FoldingRange_Response
            (Is_Error => False)
@@ -2446,7 +2449,7 @@ package body LSP.Ada_Handlers is
                      Response.result.changes.Insert (Location.uri, Empty);
 
                      --  Process comments if it is needed
-                     if Self.Refactoring.Renaming.In_Comments then
+                     if Self.Options.Refactoring.Renaming.In_Comments then
                         Process_Comments (Node.As_Ada_Node, Location.uri);
                      end if;
                   end if;
@@ -2495,6 +2498,7 @@ package body LSP.Ada_Handlers is
       enableIndexing         : constant String := "enableIndexing";
       renameInComments       : constant String := "renameInComments";
       namedNotationThreshold : constant String := "namedNotationThreshold";
+      foldComments           : constant String := "foldComments";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -2538,8 +2542,12 @@ package body LSP.Ada_Handlers is
          --  Retrieve the different textDocument/rename options if specified
 
          if Ada.Has_Field (renameInComments) then
-            Self.Refactoring.Renaming.In_Comments :=
+            Self.Options.Refactoring.Renaming.In_Comments :=
               Ada.Get (renameInComments);
+         end if;
+
+         if Ada.Has_Field (foldComments) then
+            Self.Options.Folding.Comments := Ada.Get (foldComments);
          end if;
 
          --  Retrieve the number of parameters / components at which point

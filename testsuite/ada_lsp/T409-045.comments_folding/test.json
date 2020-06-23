@@ -1,0 +1,184 @@
+[
+   {
+      "comment": [
+         "Test whether foldComment setting is taken into account"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 18560,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{p.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "\nprocedure Main is\n   procedure C_Function\n   with Convention => C,\n        Import     => True,\n        Link_Name  => \"c_function\";\n\nbegin\n\n   -----------------------\n   -- test comment here --\n   -----------------------\n\n   C_Function;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "foldComments": false
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/foldingRange"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                 {
+                   "startLine": 1,
+                   "endLine": 14,
+                   "kind": "region"
+                 },
+                 {
+                  "startLine": 2,
+                  "endLine": 5,
+                  "kind": "region"
+                 },
+                 {
+                  "startLine": 3,
+                  "endLine": 5,
+                  "kind": "region"
+                 }
+               ]
+            }
+
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
