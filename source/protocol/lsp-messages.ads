@@ -3199,12 +3199,6 @@ package LSP.Messages is
    type Optional_Trace_Kind is
      new Optional_Trace_Kind_Package.Optional_Type;
 
-   package Nullable_Strings is new LSP.Generic_Optional
-       (LSP_String, Write_Unset_As_Null => True);
-
-   type Nullable_String is new Nullable_Strings.Optional_Type;
-   --  A type corresponding to `string | null` in TypeScript
-
    package Optional_Nullable_Strings is
      new LSP.Generic_Optional (Nullable_String);
 
@@ -3794,7 +3788,7 @@ package LSP.Messages is
    --}
    --```
    type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
-      firstTriggerCharacter: LSP.Types.LSP_String;
+      firstTriggerCharacter: LSP_String;
       moreTriggerCharacter: Optional_LSP_String_Vector;
    end record;
 

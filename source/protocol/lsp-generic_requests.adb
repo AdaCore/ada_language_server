@@ -59,7 +59,7 @@ package body LSP.Generic_Requests is
             JS.R.Read_Next;
 
             if Key = "jsonrpc" then
-               LSP.Types.LSP_String'Read (S, V.jsonrpc);
+               LSP.Types.Read (S, V.jsonrpc);
             elsif Key = "id" then
                LSP.Types.LSP_Number_Or_String'Read (S, V.id);
             elsif Key = "params" then
