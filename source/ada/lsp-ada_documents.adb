@@ -1142,6 +1142,7 @@ package body LSP.Ada_Documents is
      (Self       : Document;
       Context    : LSP.Ada_Contexts.Context;
       Lines_Only : Boolean;
+      Comments   : Boolean;
       Result     : out LSP.Messages.FoldingRange_Vector)
    is
       use Libadalang.Common;
@@ -1336,6 +1337,11 @@ package body LSP.Ada_Documents is
 
    begin
       Traverse (Self.Unit (Context).Root, Parse'Access);
+
+      if not Comments then
+         --  do not process comments
+         return;
+      end if;
 
       --  Looking for comments
       foldingRange.kind := (Is_Set => False);

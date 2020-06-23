@@ -67,6 +67,20 @@ private
       Renaming : Renaming_Options;
    end record;
 
+   -- Options for folding --
+   type Folding_Options is record
+      Comments : Boolean := True;
+   end record;
+
+   -- Options holder --
+   type Options_Holder is record
+      Refactoring : Refactoring_Options;
+      --  Configuration options for refactoring
+
+      Folding : Folding_Options;
+      --  folding options
+   end record;
+
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
 
    --  Container for documents indexed by URI
@@ -140,8 +154,7 @@ private
       --      * Indexing_Required is set to False when Index_Files has
       --        completed
 
-      Refactoring : Refactoring_Options;
-      --  Configuration options for refactoring
+      Options : Options_Holder;
 
       Open_Documents : Document_Maps.Map;
       --  The documents that are currently open

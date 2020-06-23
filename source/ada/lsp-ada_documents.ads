@@ -119,6 +119,7 @@ package LSP.Ada_Documents is
      (Self       : Document;
       Context    : LSP.Ada_Contexts.Context;
       Lines_Only : Boolean;
+      Comments   : Boolean;
       Result     : out LSP.Messages.FoldingRange_Vector);
    --  Populate Result with code folding blocks in the document. If Lines_Only
    --  is True does not return characters positions in lines.
