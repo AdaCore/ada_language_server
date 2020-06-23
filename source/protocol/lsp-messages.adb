@@ -1528,7 +1528,7 @@ package body LSP.Messages is
             declare
                Item : LSP_String;
             begin
-               LSP_String'Read (S, Item);
+               LSP.Types.Read (S, Item);
                V.As_Strings.Append (Item);
             end;
          end if;
@@ -1599,16 +1599,16 @@ package body LSP.Messages is
                      V.command.Value.title := V.title;
                      V.title := Empty_LSP_String;
                   end if;
-                  LSP_String'Read (S, V.command.Value.command);
+                  LSP.Types.Read (S, V.command.Value.command);
                else
                   Optional_Command'Read (S, V.command);
                   Is_CodeAction := True;
                end if;
             elsif Key = "title" then
                if V.command.Is_Set and not Is_CodeAction then
-                  LSP_String'Read (S, V.command.Value.title);
+                  LSP.Types.Read (S, V.command.Value.title);
                else
-                  LSP_String'Read (S, V.title);
+                  LSP.Types.Read (S, V.title);
                end if;
             elsif Key = "arguments" then
                --  "arguments" field is part of Command
@@ -1671,9 +1671,9 @@ package body LSP.Messages is
             Look_Ahead.Read_Next;
 
             if Key = "command" then
-               LSP_String'Read (Nested'Access, V.command);
+               LSP.Types.Read (Nested'Access, V.command);
             elsif Key = "title" then
-               LSP_String'Read (Nested'Access, V.title);
+               LSP.Types.Read (Nested'Access, V.title);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
                   Optional_Any_Vector'Read (Nested'Access, V.arguments);
@@ -1758,7 +1758,7 @@ package body LSP.Messages is
                JS.R.Read_Next;
 
                if Key = "name" then
-                  LSP_String'Read (S, Item.name);
+                  LSP.Types.Read (S, Item.name);
                elsif Key = "detail" then
                   Optional_String'Read (S, Item.detail);
                elsif Key = "kind" then
@@ -1831,7 +1831,7 @@ package body LSP.Messages is
                Optional_ProgressToken'Read
                  (Nested'Access, V.Base.workDoneToken);
             elsif Key = "command" then
-               LSP_String'Read (Nested'Access, V.command);
+               LSP.Types.Read (Nested'Access, V.command);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
                   Optional_Any_Vector'Read (Nested'Access, V.arguments);
@@ -1963,9 +1963,9 @@ package body LSP.Messages is
                   JS.R.Read_Next;
 
                   if Key = "language" then
-                     LSP_String'Read (S, V.language);
+                     LSP.Types.Read (S, V.language);
                   elsif Key = "value" then
-                     LSP_String'Read (S, V.value);
+                     LSP.Types.Read (S, V.value);
                   else
                      JS.Skip_Value;
                   end if;
@@ -2266,7 +2266,7 @@ package body LSP.Messages is
             JS.R.Read_Next;
 
             if Key = "command" then
-               LSP_String'Read (JS'Access, Command);
+               LSP.Types.Read (JS'Access, Command);
                Tag := Ada.Tags.Internal_Tag
                  (LSP.Types.To_UTF_8_String (Command));
                exit;
@@ -2990,9 +2990,9 @@ package body LSP.Messages is
                JS.R.Read_Next;
 
                if Key = "kind" then
-                  LSP_String'Read (S, kind);
+                  LSP.Types.Read (S, kind);
                elsif Key = "title" then
-                  LSP_String'Read (S, title);
+                  LSP.Types.Read (S, title);
                elsif Key = "cancellable" then
                   Optional_Boolean'Read (S, cancellable);
                elsif Key = "message" then

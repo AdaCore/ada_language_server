@@ -261,6 +261,14 @@ io_footer = """\
 """
 
 write_component = {
+    "LSP_String": """\
+      JS.Key ("{key}");
+      LSP.Types.Write (S, V.{name});
+""",
+    "DocumentUri": """\
+      JS.Key ("{key}");
+      LSP.Types.Write (S, V.{name});
+""",
     "Boolean": """\
       {kind}_Boolean (JS, +"{key}", V.{name});
 """,
@@ -271,6 +279,12 @@ write_component = {
 }
 
 read_component = {
+    "LSP_String": """if Key = "{key}" then
+               LSP.Types.Read (S, V.{name});
+            els""",
+    "DocumentUri": """if Key = "{key}" then
+               LSP.Types.Read (S, V.{name});
+            els""",
     "Boolean": """if Key = "{key}" then
                LSP.Types.Read_Boolean (JS, V.{name});
             els""",

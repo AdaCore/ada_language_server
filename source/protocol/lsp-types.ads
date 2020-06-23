@@ -73,14 +73,15 @@ package LSP.Types is
       V : out LSP.Types.LSP_String);
    --  Read string from the stream
 
-   for LSP_String'Read use Read;
-
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String);
    --  Write string to the stream
 
-   for LSP_String'Write use Write;
+   --  Now we don't put 'Read/'Write clauses on LSP_String to be able to
+   --  switch the LSP_String to the Virtual_String in the future.
+   --   for LSP_String'Read use Read;
+   --   for LSP_String'Write use Write;
 
    Empty_LSP_String : constant LSP_String :=
      LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
@@ -261,8 +262,48 @@ package LSP.Types is
    -- Optional_String --
    ---------------------
 
-   package Optional_Strings is new LSP.Generic_Optional (LSP_String);
-   type Optional_String is new Optional_Strings.Optional_Type;
+   type Optional_String (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when True =>
+            Value : LSP_String;
+         when False =>
+            null;
+      end case;
+   end record;
+
+   procedure Read_Optional_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out LSP.Types.Optional_String);
+   --  Read optional string from the JSON stream
+
+   procedure Write_Optional_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : LSP.Types.Optional_String);
+
+   for Optional_String'Read use Read_Optional_String;
+   for Optional_String'Write use Write_Optional_String;
+
+   type Nullable_String (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when True =>
+            Value : LSP_String;
+         when False =>
+            null;
+      end case;
+   end record;
+   --  A type corresponding to `string | null` in TypeScript
+
+   procedure Read_Nullable_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out Nullable_String);
+   --  Read Nullable string from the JSON stream
+
+   procedure Write_Nullable_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : Nullable_String);
+
+   for Nullable_String'Read use Read_Nullable_String;
+   for Nullable_String'Write use Write_Nullable_String;
 
    subtype MessageActionItem_Vector is LSP_String_Vector;
 
@@ -287,11 +328,6 @@ package LSP.Types is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_Number);
-
-   procedure Read_Optional_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Item   : out LSP.Types.Optional_String);
-   --  Read optional string from the JSON stream
 
    --  procedure Read_Number_Or_String
    --   (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;

@@ -79,7 +79,7 @@ package body LSP.Errors is
                end loop;
 
             elsif Key = "message" then
-               LSP.Types.LSP_String'Read (S, V.message);
+               LSP.Types.Read (S, V.message);
 
             elsif Key = "data" then
                LSP.Types.LSP_Any'Read (S, V.data);
