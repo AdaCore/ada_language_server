@@ -2277,7 +2277,9 @@ package body LSP.Ada_Documents is
       --  the DottedName rather than the Id so as to get the proper completions
       --  (all elements in the "Ada" namespace).
 
-      while Node.Kind in Ada_Single_Tok_Node | Ada_Dotted_Name loop
+      while not Node.Is_Null
+        and then Node.Kind in Ada_Single_Tok_Node | Ada_Dotted_Name
+      loop
          if Node.Parent.Kind = Ada_Dotted_Name
            and then Node.Parent.As_Dotted_Name.F_Suffix = Node
          then
@@ -2286,6 +2288,13 @@ package body LSP.Ada_Documents is
             exit;
          end if;
       end loop;
+
+      --  Return immediately if we are dealing with a null node or if there
+      --  is a syntax error.
+
+      if Node.Is_Null or else Node.Kind in Ada_Error_Decl_Range then
+         return;
+      end if;
 
       Context.Trace.Trace
         ("Getting completions, Pos = ("
