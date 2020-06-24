@@ -130,7 +130,8 @@
                   "ada": {
                      "scenarioVariables": {},
                      "enableDiagnostics": false,
-                     "defaultCharset": "ISO-8859-1"
+                      "defaultCharset": "ISO-8859-1",
+                      "enableIndexing": false
                   }
                }
             },

@@ -2801,9 +2801,11 @@ package body LSP.Ada_Handlers is
       end Emit_Progress_End;
 
       Index           : Natural := 1;
-      Total           : constant Natural := Self.Contexts.Total_Source_Files;
+      Total           : constant Natural := Self.Contexts.Total_Source_Files
+        + Natural (Self.Project_Predefined_Sources.Length);
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
+      Runtime_Indexed : Boolean := False;
    begin
       --  Prevent work if the indexing has been explicitly disabled or
       --  if we have other messages to process.
@@ -2834,6 +2836,36 @@ package body LSP.Ada_Handlers is
                return;
             end if;
          end loop;
+
+         --  Index the runtime files if not already done.
+         --  Call Populate_Lexical_Env on them so that all runtime packages
+         --  are available for completion at startup.
+
+         if not Runtime_Indexed then
+            for F of Self.Project_Predefined_Sources loop
+               Current_Percent := (Index * 100) / Total;
+
+               --  If the value of the indexing increased by at least one
+               --  percent, emit one progress report.
+               if Current_Percent > Last_Percent then
+                  Emit_Progress_Report (Current_Percent);
+                  Last_Percent := Current_Percent;
+               end if;
+
+               Context.Index_File (F, Populate_Lexical_Env => True);
+               Index := Index + 1;
+
+               --  Check whether another request is pending. If so, pause the
+               --  indexing; it will be resumed later as part of After_Request.
+               --  if Self.Server.Input_Queue_Length > 0 then
+               if Self.Server.Has_Pending_Work then
+                  Emit_Progress_End;
+                  return;
+               end if;
+            end loop;
+
+            Runtime_Indexed := True;
+         end if;
       end loop;
 
       Emit_Progress_End;
