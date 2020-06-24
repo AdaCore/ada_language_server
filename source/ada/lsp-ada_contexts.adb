@@ -781,11 +781,19 @@ package body LSP.Ada_Contexts is
    -- Index_File --
    ----------------
 
-   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File) is
-      Ignored : Libadalang.Analysis.Analysis_Unit;
+   procedure Index_File
+     (Self                 : Context;
+      File                 : GNATCOLL.VFS.Virtual_File;
+      Populate_Lexical_Env : Boolean := False)
+   is
+      Unit : Libadalang.Analysis.Analysis_Unit;
    begin
-      Ignored := Self.LAL_Context.Get_From_File
+      Unit := Self.LAL_Context.Get_From_File
         (File.Display_Full_Name, Charset => Self.Get_Charset);
+
+      if Populate_Lexical_Env then
+         Libadalang.Analysis.Populate_Lexical_Env (Unit);
+      end if;
    end Index_File;
 
    --------------------
