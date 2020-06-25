@@ -960,6 +960,10 @@ package body LSP.Servers is
       --  Format Vector into a protocol string including the header,
       --  and send it to Stream.
 
+      --------------------
+      -- Write_JSON_RPC --
+      --------------------
+
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
          Vector : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
@@ -968,15 +972,28 @@ package body LSP.Servers is
            (Vector.Length);
          Header : constant String := "Content-Length:" & Image
            & New_Line & New_Line;
+
       begin
          String'Write (Stream, Header);
          VSS.Stream_Element_Buffers.Stream_Element_Buffer'Write
            (Stream, Vector);
 
---         if Server.Out_Trace.Is_Active then
-            --  Avoid expensive convertion to string when trace is off
---            Server.Out_Trace.Trace (To_String (Vector));
---         end if;
+         if Server.Out_Trace.Is_Active then
+            declare
+               Aux  : Ada.Strings.Unbounded.String_Access :=
+                 new String (1 .. Integer (Vector.Length));
+               Last : Natural := 0;
+
+            begin
+               for E in Vector.Each_Stream_Element loop
+                  Last := Last + 1;
+                  Aux (Last) := Character'Val (E.Element);
+               end loop;
+
+               Server.Out_Trace.Trace (Aux (Aux'First .. Last));
+               Free (Aux);
+            end;
+         end if;
       end Write_JSON_RPC;
 
    begin
@@ -1002,6 +1019,7 @@ package body LSP.Servers is
 
                --  Send the output to the stream
                Write_JSON_RPC (Stream, Output.Buffer);
+
             exception
                when E : others =>
                   --  Catch-all case: make sure no exception in output writing
