@@ -24,6 +24,10 @@ with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
 
+pragma Warnings (Off, "is an internal GNAT unit");
+with System.Soft_Links;
+with System.Secondary_Stack;
+
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
 with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
@@ -272,4 +276,13 @@ begin
 
    Server.Finalize;
    Handler.Cleanup;
+
+   --  Clean secondary stack up
+   declare
+      Stack : System.Secondary_Stack.SS_Stack_Ptr :=
+        System.Soft_Links.Get_Sec_Stack.all;
+   begin
+      System.Secondary_Stack.SS_Free (Stack);
+      System.Soft_Links.Set_Sec_Stack (Stack);
+   end;
 end LSP.Ada_Driver;
