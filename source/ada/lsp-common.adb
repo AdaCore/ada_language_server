@@ -92,25 +92,6 @@ package body LSP.Common is
                --  relevant information is already visible to the user.
                return;
 
-            when Ada_For_Loop_Var_Decl =>
-
-               --  Return the first line of the enclosing for loop when
-               --  hovering a for loop variable declaration.
-               declare
-                  Parent_Text : constant String := Langkit_Support.Text.To_UTF8
-                    (As_For_Loop_Var_Decl (Node).P_Semantic_Parent.Text);
-                  End_Idx     : Natural := Parent_Text'First;
-               begin
-                  Skip_To_String
-                    (Str       => Parent_Text,
-                     Index     => End_Idx,
-                     Substring => "loop");
-
-                  Result := To_LSP_String
-                    (Parent_Text (Parent_Text'First .. End_Idx + 4));
-                  return;
-               end;
-
             when others =>
                declare
                   Idx : Integer;
@@ -271,19 +252,9 @@ package body LSP.Common is
 
       procedure Get_Loop_Var_Hover_Text is
          Parent_Text : constant String := Langkit_Support.Text.To_UTF8
-           (As_For_Loop_Var_Decl (Node).P_Semantic_Parent.Text);
-         End_Idx     : Natural := Parent_Text'First;
+           (Node.Parent.Text);
       begin
-         --  Return the first line of the enclosing for loop when
-         --  hovering a for loop variable declaration.
-
-         Skip_To_String
-           (Str       => Parent_Text,
-            Index     => End_Idx,
-            Substring => "loop");
-
-         Result := To_LSP_String
-           (Parent_Text (Parent_Text'First .. End_Idx + 4));
+         Result := To_LSP_String (Parent_Text);
       end Get_Loop_Var_Hover_Text;
 
       ---------------------------
