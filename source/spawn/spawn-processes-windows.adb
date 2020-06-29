@@ -454,19 +454,30 @@ package body Spawn.Processes.Windows is
       Min   : constant Ada.Streams.Stream_Element_Offset :=
         Ada.Streams.Stream_Element_Offset'Min
           (Internal.Stream_Element_Buffer'Length, Data'Length);
-   begin
-      Last := Data'First - 1;
 
+   begin
       if Count = 0 then
          --  Buffer isn't busy, we can write
          Last := Data'First + Min - 1;
          Pipe.Buffer (1 .. Min) := Data (Data'First .. Last);
          Pipe.Last := Min;
 
+         if Last < Data'Last then
+            --  Only part of the data has been buffered, request notification
+            --  after completion of the IO operation.
+
+            Pipe.Last := Pipe.Last + Internal.Stream_Element_Buffer'Last;
+         end if;
+
          On_No_Data.all;
+
       elsif Count in Internal.Stream_Element_Buffer'Range then
          --  Buffer is busy, mark stdin as 'send notification'
          Pipe.Last := Pipe.Last + Internal.Stream_Element_Buffer'Last;
+         Last := Data'First - 1;
+      else
+         --  Buffer is busy and the 'send notification' mark has been set
+         Last := Data'First - 1;
       end if;
    end Do_Write;
 
@@ -485,7 +496,11 @@ package body Spawn.Processes.Windows is
 
       Self : Process'Class renames
         Process'Class (lpOverlapped.Process.all);
+
       Last : Ada.Streams.Stream_Element_Count := lpOverlapped.Last;
+
+      Transfered : constant Ada.Streams.Stream_Element_Count :=
+        Ada.Streams.Stream_Element_Count (dwNumberOfBytesTransfered);
    begin
       if dwErrorCode /= 0 then
          if not (Self.Status = Not_Running
@@ -501,20 +516,21 @@ package body Spawn.Processes.Windows is
          when Stdin =>
             lpOverlapped.Last := 0;
 
-            if Last not in Internal.Stream_Element_Buffer'Range then
+            if Last in Internal.Stream_Element_Buffer'Range then
+               pragma Assert (Last = Transfered);
+            else
                Last := Last - Internal.Stream_Element_Buffer'Last;
+               pragma Assert (Last = Transfered);
                Self.Listener.Standard_Input_Available;
             end if;
+            --  FIXME: what shall we do if Last /= Transfered?
 
          when Stderr =>
-            lpOverlapped.Last := Ada.Streams.Stream_Element_Count
-              (dwNumberOfBytesTransfered);
-
+            lpOverlapped.Last := Transfered;
             Self.Listener.Standard_Error_Available;
-         when Stdout =>
-            lpOverlapped.Last := Ada.Streams.Stream_Element_Count
-              (dwNumberOfBytesTransfered);
 
+         when Stdout =>
+            lpOverlapped.Last := Transfered;
             Self.Listener.Standard_Output_Available;
       end case;
    end IO_Callback;

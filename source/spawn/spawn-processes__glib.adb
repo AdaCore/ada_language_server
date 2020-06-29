@@ -599,19 +599,22 @@ package body Spawn.Processes is
 
       In_Callback : constant Boolean :=
         Pipe.Event /= Glib.Main.No_Source_Id;
+
    begin
+      Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
+
       case Status is
          when Glib.IOChannel.G_Io_Status_Normal =>
-            Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
+            null;
 
          when Glib.IOChannel.G_Io_Status_Again =>
-            --  No space in the buffer to write, so start watching again
-            pragma Assert (Count = 0);
-            Last := Data'First - 1;
+            --  There is no enough space in the buffer to write, so start
+            --  watching again
 
             if In_Callback then
                --  Ask IO_Callback to continue watching
                Pipe.Watch := True;
+
             else
                --  Start watching here
                Pipe.Event := IO_Watch

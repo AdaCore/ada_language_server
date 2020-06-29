@@ -46,7 +46,15 @@ package Spawn.Internal is
       Handle       : Windows_API.HANDLE := System.Win32.INVALID_HANDLE_VALUE;
       Buffer       : Stream_Element_Buffer;
       Last         : Ada.Streams.Stream_Element_Count := 0 with Atomic;
-      --  Last could be > Buffer'Last for Stdin that means 'send notification'
+      --  If Last = 0 that meens the Buffer is free and no I/O operation in
+      --  progress.
+      --  If Last in Buffer'Range that means a I/O operation in progress
+      --  (we are writting Buffer (1 .. Last) or we have filled it during the
+      --  low-level read).
+      --  For Stdin, when Last > Buffer'Last that means write operation in
+      --  progress (for Buffer (1 .. Last-Buffer'Length)) and we should send a
+      --  notification on complete.
+
    end record;
 
    type Pipe_Array is array (Pipe_Kinds) of aliased Context;

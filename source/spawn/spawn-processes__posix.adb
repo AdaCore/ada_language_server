@@ -276,21 +276,26 @@ package body Spawn.Processes is
       use type Ada.Streams.Stream_Element_Offset;
       use type Interfaces.C.int;
       use type Interfaces.C.size_t;
+
       Count : constant Interfaces.C.size_t :=
         Posix.write (Self.pipe (Stdin), Data, Data'Length);
+
    begin
+      Last := Data'First - 1;
+
       if Count = Interfaces.C.size_t'Last then
-         if Errno in Posix.EAGAIN | Posix.EINTR then
-            Last := Data'First - 1;
-            Monitor.Enqueue
-              ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
-         else
+         if Errno not in Posix.EAGAIN | Posix.EINTR then
             raise Program_Error with
               "write error: " & GNAT.OS_Lib.Errno_Message;
          end if;
 
       else
          Last := Data'First + Ada.Streams.Stream_Element_Offset (Count) - 1;
+      end if;
+
+      if Count /= Data'Length then
+         Monitor.Enqueue
+           ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdin));
       end if;
    end Write_Standard_Input;
 

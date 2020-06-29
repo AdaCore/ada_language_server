@@ -121,8 +121,11 @@ package Spawn.Processes is
      (Self : in out Process'Class;
       Data : Ada.Streams.Stream_Element_Array;
       Last : out Ada.Streams.Stream_Element_Offset);
-   --  Do nothing if Self.Status /= Running. If no data was written you will
-   --  get Standard_Input_Available notification latter.
+   --  Do nothing if Self.Status /= Running. Last is set to index of the last
+   --  element to be written. If Last < Data'Last it means incomplete
+   --  operation, Standard_Input_Available notification will be called once
+   --  operation can be continued. Application is responsible to call this
+   --  subprogram again for remaining data.
 
    procedure Close_Standard_Output (Self : in out Process'Class);
    --  Do nothing if Self.Status /= Running
