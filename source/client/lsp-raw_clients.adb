@@ -214,19 +214,21 @@ package body LSP.Raw_Clients is
               (1 .. Ada.Streams.Stream_Element_Count (Size))
                 with Import, Address => Slice'Address;
             Last  : Natural;
+
          begin
             Client.Server.Write_Standard_Input
               (Raw, Ada.Streams.Stream_Element_Count (Last));
 
-            if Last = 0 then
+            Client.Written := Client.Written + Last;
+            Rest_Length := Rest_Length - Last;
+
+            if Last /= Natural (Raw'Last) then
                --  Standard_Input is busy now. Let's wait for the next call of
                --  Standard_Input_Available
                Client.Standard_Input_Available := False;
+
                return;
             end if;
-
-            Client.Written := Client.Written + Last;
-            Rest_Length := Rest_Length - Last;
          end;
       end loop;
 
