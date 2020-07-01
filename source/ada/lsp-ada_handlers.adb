@@ -1737,7 +1737,15 @@ package body LSP.Ada_Handlers is
 
       function Is_Access_Ref (Node : Ada_Node) return Boolean is
       begin
-         if not Node.Parent.Is_Null and then Node.Parent.Kind in Ada_Name then
+         if Node.Parent.Is_Null then
+            return False;
+         end if;
+
+         if Node.Parent.Kind = Ada_Dotted_Name then
+            return Is_Access_Ref (Node.Parent);
+         end if;
+
+         if Node.Parent.Kind in Ada_Name then
             declare
                Sibling : constant Ada_Node := Node.Next_Sibling;
                Text    : constant Wide_Wide_String :=
