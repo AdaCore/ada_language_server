@@ -1,0 +1,273 @@
+[
+   {
+      "comment": [
+          "This test checks that the access references kind are properly",
+          "flagged even when in dotted names"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 15643,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItemKind": {}
+                     },
+                     "documentLink": {},
+                     "formatting": {},
+                     "documentHighlight": {},
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "codeLens": {},
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": false,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call","parent","child"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "declarationProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "enableIndexing": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Text_IO;\n\nprocedure Foo is\n   type My_Rec is record\n      My_Int : Integer;\n   end record;\n\n   Rec : My_Rec := (My_Int => 1);\n\n   procedure Bar (I : access Integer);\n\n   ---------\n   -- Bar --\n   ---------\n\n   procedure Bar (I : access Integer) is\n   begin\n      I.all := 42;\n   end Bar;\nbegin\n   Ada.Text_IO.Put_Line (Rec.My_Int'Image);\n   Bar (Rec.My_Int'Unrestricted_Access);\n   Ada.Text_IO.Put_Line (Rec.My_Int'Image);\nend Foo;",
+                  "version": 0,
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+      {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 6
+               },
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/references"
+         },
+         "wait": [
+  {
+    "id": 2,
+    "result": [
+      {
+        "uri": "$URI{foo.adb}",
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 6
+          },
+          "end": {
+            "line": 4,
+            "character": 12
+          }
+        },
+        "alsKind": [
+          "reference"
+        ]
+      },
+      {
+        "uri": "$URI{foo.adb}",
+        "range": {
+          "start": {
+            "line": 7,
+            "character": 20
+          },
+          "end": {
+            "line": 7,
+            "character": 26
+          }
+        },
+        "alsKind": [
+          "reference"
+        ]
+      },
+      {
+        "uri": "$URI{foo.adb}",
+        "range": {
+          "start": {
+            "line": 20,
+            "character": 29
+          },
+          "end": {
+            "line": 20,
+            "character": 35
+          }
+        },
+        "alsKind": [
+          "reference"
+        ]
+      },
+      {
+        "uri": "$URI{foo.adb}",
+        "range": {
+          "start": {
+            "line": 21,
+            "character": 12
+          },
+          "end": {
+            "line": 21,
+            "character": 18
+          }
+        },
+        "alsKind": [
+          "access",
+          "write"
+        ]
+      },
+      {
+        "uri": "$URI{foo.adb}",
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 29
+          },
+          "end": {
+            "line": 22,
+            "character": 35
+          }
+        },
+        "alsKind": [
+          "reference"
+        ]
+      }
+    ]
+  }
+]
+}
+},
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
+
