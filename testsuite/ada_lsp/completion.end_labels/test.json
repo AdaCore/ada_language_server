@@ -246,36 +246,41 @@
                "id": 3,
                "result": {
                   "isIncomplete": false,
-                  "items": [
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 6,
-                        "documentation": "",
-                        "detail": "A, B : Integer",
-                        "label": "A"
-                     },
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 6,
-                        "documentation": "",
-                        "detail": "A, B : Integer",
-                        "label": "A"
-                     },
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 3,
-                        "documentation": "",
-                        "detail": "function Add (A, B : Integer) return Integer",
-                        "label": "Add"
-                     },
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 9,
-                        "documentation": "",
-                        "detail": "package ASCII ",
-                        "label": "ASCII"
-                     }
-                  ]
+                   "items": [
+                       {
+                           "label": "A",
+                           "kind": 6,
+                           "detail": "A, B : Integer",
+                           "documentation": "at main.adb (3:18)",
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "A",
+                           "kind": 6,
+                           "detail": "A, B : Integer",
+                           "documentation": "at main.adb (3:18)",
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "Add",
+                           "kind": 3,
+                           "detail": "function Add (A, B : Integer) return Integer",
+                           "documentation": "at main.adb (3:4)",
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "ASCII",
+                           "kind": 9,
+                           "detail": "package ASCII ",
+                           "documentation": "at __standard (23:3)",
+                           "additionalTextEdits": [
+                           ]
+                       }
+                   ]
+
                }
             }
          ]

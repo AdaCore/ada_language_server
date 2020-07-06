@@ -201,7 +201,7 @@
                      {
                         "additionalTextEdits": [],
                         "kind": 3,
-                        "documentation": "",
+                        "documentation": "at parent-children.ads (7:4)",
                         "detail": "procedure Do_Someting (D : Children.Child) is null",
                         "label": "Do_Someting"
                      }

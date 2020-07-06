@@ -1686,16 +1686,20 @@ package body LSP.Ada_Documents is
      (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
    is
       use Libadalang.Common;
+
+      Result : LSP.Types.LSP_String;
    begin
 
       --  If the basic declaration is an enum literal, display the whole
       --  enumeration type declaration instead.
       if BD.Kind in Ada_Enum_Literal_Decl then
-         return LSP.Common.Get_Hover_Text
+         Result := LSP.Common.Get_Hover_Text
            (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
       else
-         return LSP.Common.Get_Hover_Text (BD);
+         Result := LSP.Common.Get_Hover_Text (BD);
       end if;
+
+      return Result;
    end Compute_Completion_Detail;
 
    -----------------------------
@@ -1716,6 +1720,9 @@ package body LSP.Ada_Documents is
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
+      Decl_Unit_File : Virtual_File;
+      Doc_Text       : LSP_String;
+      Loc_Text       : LSP_String;
    begin
       Item.label := To_LSP_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
@@ -1726,15 +1733,37 @@ package body LSP.Ada_Documents is
       --  Get_Documentation on unsupported docstrings, so
       --  add an exception handler to catch them and recover.
       begin
+         Doc_Text := To_LSP_String
+           (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
+              Encode
+                (Libadalang.Doc_Utils.Get_Documentation
+                     (BD).Doc.To_String));
+
+         --  Append the declaration's location.
+         --  In addition, append the project's name if we are dealing with an
+         --  aggregate project.
+
+         Decl_Unit_File := GNATCOLL.VFS.Create (+BD.Unit.Get_Filename);
+
+         if Doc_Text /= Empty_LSP_String then
+            Loc_Text := To_LSP_String (ASCII.LF & ASCII.LF);
+         end if;
+
+         Loc_Text := To_LSP_String
+           ("at " & Decl_Unit_File.Display_Base_Name & " ("
+            & GNATCOLL.Utils.Image
+              (Integer (BD.Sloc_Range.Start_Line), Min_Width => 1)
+            & ":"
+            & GNATCOLL.Utils.Image
+              (Integer (BD.Sloc_Range.Start_Column), Min_Width => 1)
+            & ")") & Loc_Text;
+
          Item.documentation :=
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
               (Is_String => True,
-               String    => To_LSP_String
-                 (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
-                      Encode
-                    (Libadalang.Doc_Utils.Get_Documentation
-                         (BD).Doc.To_String))));
+               String    => Loc_Text & Doc_Text));
+
       exception
          when E : Libadalang.Common.Property_Error =>
             LSP.Common.Log (Context.Trace, E);
@@ -2304,7 +2333,7 @@ package body LSP.Ada_Documents is
          BD : Basic_Decl;
       begin
          Context.Trace.Trace
-           ("Number of raw completions : " & Raw_Completions'Length'Image);
+           ("Number of LAL completions : " & Raw_Completions'Length'Image);
 
          for CI of Raw_Completions loop
             BD := Decl (CI).As_Basic_Decl;
@@ -2323,10 +2352,6 @@ package body LSP.Ada_Documents is
                           Prefix         => Prefix,
                           Case_Sensitive => False)
                      then
-                        Context.Trace.Trace
-                          ("Calling Get_Documentation on Node = "
-                           & Image (BD));
-
                         Result.items.Append
                           (Compute_Completion_Item
                              (Context                  => Context,
