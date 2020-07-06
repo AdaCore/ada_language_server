@@ -228,24 +228,27 @@
                "id": 4,
                "result": {
                   "isIncomplete": false,
-                  "items": [
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 5,
-                        "documentation": "",
-                        "detail": "A : Integer;",
-                        "label": "A"
-                     },
-                     {
-                        "insertText": "Do_Nothing (${1:A : Integer})$0",
-                        "kind": 3,
-                        "documentation": "",
-                        "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer) is null",
-                        "label": "Do_Nothing",
-                        "additionalTextEdits": [],
-                        "insertTextFormat": 2
-                     }
-                  ]
+                   "items": [
+                       {
+                           "label": "A",
+                           "kind": 5,
+                           "detail": "A : Integer;",
+                           "documentation": "at bar.ads (4:7)",
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "Do_Nothing",
+                           "kind": 3,
+                           "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer) is null",
+                           "documentation": "at bar.ads (7:4)",
+                           "insertText": "Do_Nothing (${1:A : Integer})$0",
+                           "insertTextFormat": 2,
+                           "additionalTextEdits": [
+                           ]
+                       }
+                   ]
+
                }
             }
          ]
@@ -372,31 +375,34 @@
                "id": 6,
                "result": {
                   "isIncomplete": false,
-                  "items": [
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 6,
-                        "documentation": "",
-                        "detail": "A : Integer := 3;",
-                        "label": "A"
-                     },
-                     {
-                        "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
-                        "kind": 3,
-                        "documentation": "",
-                        "detail": "function Add (A, B : Integer) return Integer",
-                        "label": "Add",
-                        "additionalTextEdits": [],
-                        "insertTextFormat": 2
-                     },
-                     {
-                        "additionalTextEdits": [],
-                        "kind": 9,
-                        "documentation": "",
-                        "detail": "package ASCII ",
-                        "label": "ASCII"
-                     }
-                  ]
+                   "items": [
+                       {
+                           "label": "A",
+                           "kind": 6,
+                           "detail": "A : Integer := 3;",
+                           "documentation": "at main.adb (10:4)",
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "Add",
+                           "kind": 3,
+                           "detail": "function Add (A, B : Integer) return Integer",
+                           "documentation": "at main.adb (6:4)",
+                           "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
+                           "insertTextFormat": 2,
+                           "additionalTextEdits": [
+                           ]
+                       },
+                       {
+                           "label": "ASCII",
+                           "kind": 9,
+                           "detail": "package ASCII ",
+                           "documentation": "at __standard (23:3)",
+                           "additionalTextEdits": [
+                           ]
+                       }
+                   ]
                }
             }
          ]
