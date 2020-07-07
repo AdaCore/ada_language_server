@@ -158,22 +158,13 @@ package LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
 
-   procedure Index_File
-     (Self                 : Context;
-      File                 : GNATCOLL.VFS.Virtual_File;
-      Populate_Lexical_Env : Boolean := False);
+   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
-   --  If Populate_Lexical_Env is True, Libadalang's Populate_Lexical_Env
-   --  subprogram will be called: all the symbols declared in this file will
-   --  then be available in the cache, aking these symbols to be available for
-   --  completion and speeding up queries that rely on the cache (e.g: Find all
-   --  references).
 
    procedure Index_Document
      (Self : Context; Document : LSP.Ada_Documents.Document);
-   --  Index/reindex the given document in this context.
-   --  This calls Populate_Lexical_Env on the document's file.
+   --  Index/reindex the given document in this context
 
    procedure Append_Declarations
      (Self      : Context;
