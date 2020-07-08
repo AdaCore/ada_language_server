@@ -1131,10 +1131,10 @@ package body LSP.Servers is
             begin
                Output_Queue.Enqueue (Response);
                --  Response will be deleted by Output_Task
-               Server.Destroy_Queue.Enqueue (Message);
-               --  Request will be deleted by Input_Task
             end;
             Server_Backend.After_Work (Message.all);
+            Server.Destroy_Queue.Enqueue (Message);
+            --  Request will be deleted by Input_Task
 
          exception
             --  If we reach this exception handler, this means an exception
