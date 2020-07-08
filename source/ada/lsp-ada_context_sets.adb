@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -118,7 +118,7 @@ package body LSP.Ada_Context_Sets is
    begin
       Self.Contexts.Prepend (Item);
       Self.Map.Insert (Item.Id, Item);
-      Self.Total := Self.Total + Natural (Item.List_Files.Length);
+      Self.Total := Self.Total + Item.File_Count;
    end Prepend;
 
    -------------------------
@@ -131,7 +131,7 @@ package body LSP.Ada_Context_Sets is
 
       for C of Self.Contexts loop
          C.Reload;
-         Self.Total := Self.Total + Natural (C.List_Files.Length);
+         Self.Total := Self.Total + C.File_Count;
       end loop;
    end Reload_All_Contexts;
 

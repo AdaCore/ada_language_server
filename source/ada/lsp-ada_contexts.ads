@@ -17,8 +17,6 @@
 --
 --  This package provides a context of Ada Language server.
 
-with Ada.Containers.Ordered_Sets;
-
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -33,6 +31,7 @@ with Pp.Command_Lines;
 
 with LSP.Messages;
 with LSP.Ada_Documents;
+with LSP.Ada_File_Sets; use LSP.Ada_File_Sets;
 with LSP.Types;
 
 package LSP.Ada_Contexts is
@@ -41,11 +40,6 @@ package LSP.Ada_Contexts is
      tagged limited private;
    --  A context contains a non-aggregate project tree and its associated
    --  libadalang context.
-
-   package File_Sets is new Ada.Containers.Ordered_Sets
-     (Element_Type        => GNATCOLL.VFS.Virtual_File,
-      "<"                 => GNATCOLL.VFS."<",
-      "="                 => GNATCOLL.VFS."=");
 
    procedure Initialize (Self : in out Context);
    --  Initialize the context
@@ -156,8 +150,12 @@ package LSP.Ada_Contexts is
       File : GNATCOLL.VFS.Virtual_File) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
-   function List_Files (Self : Context) return File_Sets.Set;
+   function List_Files (Self : Context)
+     return File_Sets.Set_Iterator_Interfaces.Reversible_Iterator'Class;
    --  Return the list of files known to this context.
+
+   function File_Count (Self : Context) return Natural;
+   --  Return number of files known to this context.
 
    function Analysis_Units
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
@@ -215,7 +213,11 @@ private
      (Self : Context) return Libadalang.Analysis.Analysis_Context is
      (Self.LAL_Context);
 
-   function List_Files (Self : Context) return File_Sets.Set
-   is (Self.Source_Files);
+   function List_Files (Self : Context)
+     return File_Sets.Set_Iterator_Interfaces.Reversible_Iterator'Class
+       is (Self.Source_Files.Iterate);
+
+   function File_Count (Self : Context) return Natural
+       is (Natural (Self.Source_Files.Length));
 
 end LSP.Ada_Contexts;

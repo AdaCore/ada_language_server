@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -33,6 +33,7 @@ with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
+with LSP.Ada_File_Sets;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
@@ -2842,7 +2843,7 @@ package body LSP.Ada_Handlers is
       Emit_Progress_Begin;
 
       for Context of Self.Contexts.Each_Context loop
-         for F of Context.List_Files loop
+         for F in Context.List_Files loop
             Current_Percent := (Index * 100) / Total;
             --  If the value of the indexing increased by at least one percent,
             --  emit one progress report.
@@ -2851,7 +2852,7 @@ package body LSP.Ada_Handlers is
                Last_Percent := Current_Percent;
             end if;
 
-            Context.Index_File (F);
+            Context.Index_File (LSP.Ada_File_Sets.File_Sets.Element (F));
             Index := Index + 1;
 
             --  Check whether another request is pending. If so, pause the

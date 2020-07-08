@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -191,7 +191,7 @@ private
       Implicit_Project_Loaded : Boolean := False;
       --  Whether we are loading the implicit project
 
-      Project_Dirs_Loaded : LSP.Ada_Contexts.File_Sets.Set;
+      Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
    end record;
 
