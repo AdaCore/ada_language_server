@@ -30,7 +30,7 @@ class ALSTestDriver(TestDriver):
         self.add_fragment(dag, 'prepare')
         self.add_fragment(dag, 'run', after=['prepare'])
 
-    def prepare(self, previous_values):
+    def prepare(self, previous_values, slot):
         """
         Create the working directory to be a copy of the test directory.
         """
@@ -88,6 +88,10 @@ class ALSTestDriver(TestDriver):
             'run_args': kwargs,
             'status': process.status,
             'output': Log(process.out)})
-        self.result.out += process.out
+
+        if self.result.out is None:
+            self.result.out = process.out
+        else:
+            self.result.out += process.out
 
         return process

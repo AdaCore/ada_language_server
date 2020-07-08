@@ -31,19 +31,19 @@ class ALSTestsuite(Testsuite):
     TEST_SUBDIR = '.'
     TEST_BLACKLIST = {'drivers', 'out', 'spawn'}
 
-    def add_options(self):
-        self.main.argument_parser.add_argument(
+    def add_options(self, parser):
+        parser.add_argument(
             "--build",
             default="",
             action="store",
             help="Ignored, here for compatibility purposes")
-        self.main.argument_parser.add_argument(
+        parser.add_argument(
             "--gnatcov",
             help="If provided, compute the source code coverage of testcases"
                  " on ALS. This requires GNATcoverage working with"
                  " instrumentation. The argument passed must be a directory"
                  " that contains all SID files.")
-        self.main.argument_parser.add_argument(
+        parser.add_argument(
             "--valgrind_memcheck", action="store_true",
             help="Runs the Ada Language Server under valgrind, in memory"
                  " check mode. This requires valgrind on the PATH.")
@@ -71,7 +71,7 @@ class ALSTestsuite(Testsuite):
                 if result.endswith('.exe') else
                 result)
 
-    def tear_up(self):
+    def set_up(self):
         # Root directory for the "ada_language_server" repository
         self.env.repo_base = os.path.abspath(os.path.join(
             os.path.dirname(__file__), '..'))
@@ -110,40 +110,11 @@ class ALSTestsuite(Testsuite):
 
         super(ALSTestsuite, self).tear_down()
 
-    def get_test_list(self, sublist):
-        results = []
-
-        blacklist = {os.path.abspath(os.path.join(self.test_dir, item))
-                     for item in self.TEST_BLACKLIST}
-        ada_lsp_dir = os.path.abspath(os.path.join(self.test_dir, 'ada_lsp'))
-
-        for dirpath, dirnames, filenames in os.walk(self.test_dir):
-            dirpath = os.path.abspath(dirpath)
-
-            # Ignore paths in the blacklist
-            if any(dirpath.startswith(item) for item in blacklist):
-                continue
-
-            # Warn about ada_lsp sub-directories that have no test.yaml file
-            if 'test.yaml' in filenames:
-                results.append(os.path.relpath(
-                    os.path.join(dirpath, 'test.yaml'),
-                    self.test_dir))
-
-            elif os.path.dirname(dirpath) == ada_lsp_dir:
-                print ("No test.yaml in {}".format(dirpath))
-                logging.warn('No test.yaml in %s', dirpath)
-
-        # If requested, keep only testcases that match one sublist item
-        if sublist:
-            logging.info('Filtering tests: %s', sublist)
-            results = [t for t in results
-                       if any(s in t for s in sublist)]
-
-        logging.info('Found %s tests', len(results))
-        logging.debug('tests:%s', '\n'.join('  ' + r for r in results))
-        return results
+    @property
+    def test_driver_map(self):
+        return {'ada_lsp': JsonTestDriver,
+                'codecs': CodecsTestDriver}
 
     @property
     def default_driver(self):
-        return 'default'
+        return 'ada_lsp'

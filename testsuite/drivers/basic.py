@@ -14,7 +14,7 @@ class JsonTestDriver(ALSTestDriver):
           - a number of test drivers, in .json files.
     """
 
-    def run(self, previous_values):
+    def run(self, previous_values, slot):
         # Check whether the test should be skipped
         if self.should_skip():
             return False
