@@ -127,7 +127,7 @@ vscode-test:
 
 check: all
 	set -e; \
-        if [ `python -c "import sys;print 'e3' in sys.modules"` = "True" ]; then\
+        if [ `python -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
            (cd testsuite ; sh run.sh ) ; \
         else \
            for a in $(TD)/*/*.json; do \
