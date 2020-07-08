@@ -937,7 +937,9 @@ package body LSP.Ada_Documents is
          Next             : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
          New_Nested_Level : Integer := Nested_Level;
       begin
-         if Node = No_Ada_Node then
+         if Node = No_Ada_Node
+           or else Node.Kind in Libadalang.Common.Ada_Expr
+         then
             return;
          end if;
 
