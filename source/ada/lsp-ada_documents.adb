@@ -268,6 +268,30 @@ package body LSP.Ada_Documents is
       Self.Trace.Trace ("Done applying changes for document " & File);
    end Apply_Changes;
 
+   -----------------
+   -- Get_Text_At --
+   -----------------
+
+   function Get_Text_At
+     (Self      : Document;
+      Start_Pos : LSP.Messages.Position;
+      End_Pos   : LSP.Messages.Position) return String
+   is
+      use LSP.Types;
+
+      Start_Index  : constant Natural :=
+        Self.Line_To_Index.Element
+          (Natural (Start_Pos.line))
+            + Natural (Start_Pos.character);
+      End_Index    : constant Natural :=
+        Self.Line_To_Index.Element
+          (Natural (End_Pos.line))
+            + Natural (End_Pos.character);
+   begin
+      return To_UTF_8_String
+        (Unbounded_Slice (Self.Text, Start_Index, End_Index));
+   end Get_Text_At;
+
    ----------
    -- Diff --
    ----------
@@ -2336,10 +2360,9 @@ package body LSP.Ada_Documents is
          end if;
       end loop;
 
-      --  Return immediately if we are dealing with a null node or if there
-      --  is a syntax error.
+      --  Return immediately if we are dealing with a null node
 
-      if Node.Is_Null or else Node.Kind in Ada_Error_Decl_Range then
+      if Node.Is_Null then
          return;
       end if;
 
@@ -2391,12 +2414,40 @@ package body LSP.Ada_Documents is
          return;
       end if;
 
-      --  Get keyword completion
-      if not In_End_Label then
-         Get_Keywords_Completion
-           (Node   => Node,
-            Prefix => Prefix,
-            Result => Result);
+      declare
+         Previous_Char : constant String :=
+           (if Position.character > 1 then
+               Self.Get_Text_At
+              (Start_Pos => LSP.Messages.Position'
+                   (line      => Position.line,
+                    character => Position.character - 2),
+               End_Pos   => LSP.Messages.Position'
+                 (line      => Position.line,
+                  character => Position.character - 2))
+            else
+               "");
+      begin
+         --  Propose keyword completion if we are not within and end label
+         --  and if there is no previous character of if it's a whitespace (we
+         --  don't want to propose keywords after typing '(' to feed subprogram
+         --  parameters for instance).
+
+         if not In_End_Label
+           and then (Previous_Char = ""
+                     or else GNATCOLL.Utils.Is_Whitespace
+                       (Previous_Char (Previous_Char'Last)))
+         then
+            Get_Keywords_Completion
+              (Node   => Node,
+               Prefix => Prefix,
+               Result => Result);
+         end if;
+      end;
+
+      --  Return without asing Libadalang for completion results we are dealing
+      --  with a syntax error.
+      if Node.Kind in Ada_Error_Decl_Range then
+         return;
       end if;
 
       declare
