@@ -34,6 +34,7 @@ with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Ada_Id_Iterators;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
@@ -1837,24 +1838,25 @@ package body LSP.Ada_Handlers is
          end if;
 
          declare
-            Count          : Cancel_Countdown := 0;
-            This_Imprecise : Boolean;
-            References     : constant Base_Id_Array :=
-              C.Find_All_References (Definition, This_Imprecise);
+            Count      : Cancel_Countdown := 0;
+            References : constant LSP.Ada_Id_Iterators.Base_Id_Iterators
+              .Forward_Iterator'Class := C.Find_All_References (Definition);
          begin
-            Imprecise := Imprecise or This_Imprecise;
 
-            for Node of References loop
-               if not Is_End_Label (Node.As_Ada_Node) then
+            for Node in References loop
+               Imprecise := Imprecise
+                 or Node.Kind = Libadalang.Common.Imprecise;
+
+               if not Is_End_Label (Node.Element.As_Ada_Node) then
                   Count := Count - 1;
 
                   Append_Location
                     (Response.result,
-                     Node,
-                     Get_Reference_Kind (Node.As_Ada_Node));
+                     Node.Element,
+                     Get_Reference_Kind (Node.Element.As_Ada_Node));
                end if;
 
-               exit when Count = 0  and then Request.Canceled;
+               exit when Count = 0 and then Request.Canceled;
             end loop;
 
             if Value.context.includeDeclaration then

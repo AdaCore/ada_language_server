@@ -212,6 +212,28 @@ package body LSP.Ada_Contexts is
          return (1 .. 0 => <>);
    end Find_All_References;
 
+   -------------------------
+   -- Find_All_References --
+   -------------------------
+
+   function Find_All_References
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+        return LSP.Ada_Id_Iterators.Base_Id_Iterators.Forward_Iterator'Class
+   is
+      use Libadalang.Analysis;
+
+      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
+        Self.Analysis_Units;
+   begin
+      return LSP.Ada_Id_Iterators.Ref_Result_Array_Iterator
+        (Definition.P_Find_All_References (Units));
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Log (Self.Trace, E, "in Find_All_References");
+         return LSP.Ada_Id_Iterators.Empty_Base_Id_Iterator;
+   end Find_All_References;
+
    ------------------------
    -- Find_All_Overrides --
    ------------------------

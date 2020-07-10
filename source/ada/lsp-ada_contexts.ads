@@ -30,6 +30,7 @@ with Libadalang.Analysis;
 with Utils.Command_Lines;
 with Pp.Command_Lines;
 
+with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
 with LSP.Messages;
 with LSP.Ada_Documents;
@@ -94,6 +95,11 @@ package LSP.Ada_Contexts is
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
       Success  : out Boolean);
+
+   function Find_All_References
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name)
+      return LSP.Ada_Id_Iterators.Base_Id_Iterators.Forward_Iterator'Class;
 
    function Find_All_References
      (Self              : Context;
