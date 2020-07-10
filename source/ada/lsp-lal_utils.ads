@@ -24,7 +24,6 @@ with GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with LSP.Ada_Contexts;
-with LSP.Common;       use LSP.Common;
 with LSP.Messages;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
@@ -106,11 +105,6 @@ package LSP.Lal_Utils is
      (Value : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Messages.Span;
    --  Convert Source_Location_Range to Span
-
-   function To_Base_Id_Array
-     (Basic_Decls : Basic_Decl_Array) return Base_Id_Array;
-   --  Convert the given Basic_Decl_Array into a Base_Id_Array by retrieving
-   --  the defining names of all the given declarations.
 
    function Is_Definition_Without_Separate_Implementation
      (Definition : Defining_Name) return Boolean;
