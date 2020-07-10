@@ -57,6 +57,12 @@ package LSP.Ada_Documents is
    function Text (Self : Document) return LSP.Types.LSP_String;
    --  Return the text associated with Self
 
+   function Get_Text_At
+     (Self      : Document;
+      Start_Pos : LSP.Messages.Position;
+      End_Pos   : LSP.Messages.Position) return String;
+   --  Return the text in the specified range.
+
    procedure Apply_Changes
      (Self    : aliased in out Document;
       Version : LSP.Messages.Nullable_Number;
