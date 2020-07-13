@@ -103,16 +103,8 @@ package LSP.Ada_Contexts is
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
-
-   function Find_All_References
-     (Self              : Context;
-      Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array;
    --  Finds all references to a given defining name in all units of the
    --  context.
-   --  Imprecise_Results is set to True if we don't know whether the results
-   --  are precise.
 
    function Find_All_Overrides
      (Self              : Context;
@@ -145,11 +137,14 @@ package LSP.Ada_Contexts is
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.
 
-   function Get_References_For_Renaming
+   procedure Get_References_For_Renaming
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array;
+      Imprecise_Results : out Boolean;
+      Callback          : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
    --  Get all the references to a given defining name in all units for
    --  renaming purposes: for instance, when called on a tagged type primitive
    --  definition, references to the base subprograms it inherits and to the
