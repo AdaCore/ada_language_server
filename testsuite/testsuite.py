@@ -22,14 +22,6 @@ VALGRIND_OPTIONS = [
 
 
 class ALSTestsuite(Testsuite):
-    DRIVERS = {'default': JsonTestDriver,
-               'codecs': CodecsTestDriver}
-
-    # We don't have a "tests" directory but on the other hand we don't want to
-    # consider every directory. So start with the whole testsuite directory,
-    # and then discard specific items we find there.
-    TEST_SUBDIR = '.'
-    TEST_BLACKLIST = {'drivers', 'out', 'spawn'}
 
     def add_options(self, parser):
         parser.add_argument(
