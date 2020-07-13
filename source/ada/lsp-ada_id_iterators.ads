@@ -17,6 +17,8 @@
 --
 --  This package provides iterators over Libadalang Base_Id nodes.
 
+with GNATCOLL.Traces;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -30,5 +32,25 @@ package LSP.Ada_Id_Iterators is
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
    --  Iterate over Definition.P_Find_All_References result
+
+   procedure Find_All_Param_References_In_Hierarchy
+     (Param      : Libadalang.Analysis.Param_Spec;
+      Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
+      Units      : Libadalang.Analysis.Analysis_Unit_Array;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
+   --  Recursive function that returns all the references of the given
+   --  parameter's name in the hierarchy.
+
+   procedure Find_All_Subp_References_In_Hierarchy
+     (Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
+      Trace      : GNATCOLL.Traces.Trace_Handle;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
+   --  Return all the references of Decl in the given hierarchy
 
 end LSP.Ada_Id_Iterators;

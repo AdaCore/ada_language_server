@@ -2264,14 +2264,64 @@ package body LSP.Ada_Handlers is
 
          Definition : Defining_Name;
          Imprecise  : Boolean;
-
          Empty      : LSP.Messages.TextEdit_Vector;
+         Count      : Cancel_Countdown := 0;
 
          procedure Process_Comments
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri);
          --  Iterate over all comments and include them in the response when
          --  they contain a renamed word
+
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+
+         --------------
+         -- Callback --
+         --------------
+
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            Location : constant LSP.Messages.Location :=
+              Get_Node_Location (Node.As_Ada_Node);
+            Item     : constant LSP.Messages.TextEdit :=
+              (span    => Location.span,
+               newText => Value.newName);
+         begin
+            if not Response.result.changes.Contains (Location.uri) then
+               --  We haven't touched this document yet, create an empty
+               --  change list
+               Response.result.changes.Insert (Location.uri, Empty);
+
+               --  Process comments if it is needed
+               if Self.Options.Refactoring.Renaming.In_Comments then
+                  Process_Comments (Node.As_Ada_Node, Location.uri);
+               end if;
+            end if;
+
+            --  When iterating over all contexts (and therefore all
+            --  projects), it's possible to encounter the same
+            --  definitions more than once, so verify that the result
+            --  is not already recorded before adding it.
+            if not Response.result.changes
+              (Location.uri).Contains (Item)
+            then
+               Response.result.changes (Location.uri).Append (Item);
+            end if;
+
+            Cancel := Count = 0 and then Request.Canceled;
+
+            Count := Count - 1;
+
+            if Kind = Libadalang.Common.Imprecise then
+               Imprecise := True;
+            end if;
+         end Callback;
 
          -----------------------
          --  Process_Comments --
@@ -2436,55 +2486,18 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         declare
-            Count      : Cancel_Countdown := 0;
-            References : constant Base_Id_Array :=
-                           C.Get_References_For_Renaming
-                             (Definition,
-                              Imprecise_Results => Imprecise);
-         begin
-            if Imprecise then
-               Self.Show_Message
-                 ("References are not precise: renamed cancelled",
-                  LSP.Messages.Warning);
-               return;
-            end if;
+         C.Get_References_For_Renaming
+           (Definition        => Definition,
+            Imprecise_Results => Imprecise,
+            Callback          => Callback'Access);
 
-            for Node of References loop
-               declare
-                  Location : constant LSP.Messages.Location :=
-                    Get_Node_Location (Node => Node.As_Ada_Node);
-                  Item : constant LSP.Messages.TextEdit :=
-                    (span    => Location.span,
-                     newText => Value.newName);
-               begin
-                  if not Response.result.changes.Contains (Location.uri) then
-                     --  We haven't touched this document yet, create an empty
-                     --  change list
-                     Response.result.changes.Insert (Location.uri, Empty);
+         if Imprecise then
+            Self.Show_Message
+              ("References are not precise: renamed cancelled",
+               LSP.Messages.Warning);
+            return;
+         end if;
 
-                     --  Process comments if it is needed
-                     if Self.Options.Refactoring.Renaming.In_Comments then
-                        Process_Comments (Node.As_Ada_Node, Location.uri);
-                     end if;
-                  end if;
-
-                  --  When iterating over all contexts (and therefore all
-                  --  projects), it's possible to encounter the same
-                  --  definitions more than once, so verify that the result
-                  --  is not already recorded before adding it.
-                  if not Response.result.changes
-                    (Location.uri).Contains (Item)
-                  then
-                     Response.result.changes (Location.uri).Append (Item);
-                  end if;
-
-                  exit when Count = 0 and then Request.Canceled;
-
-                  Count := Count - 1;
-               end;
-            end loop;
-         end;
       end Process_Context;
 
    begin

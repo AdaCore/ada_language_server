@@ -38,16 +38,17 @@ package body LSP.Ada_Contexts is
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
 
-   function Find_All_References_In_Hierarchy
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array;
-   --  When called on a tagged type primitive declaration, return all the
+   procedure Find_All_References_In_Hierarchy
+     (Self       : Context;
+      Decl       : Libadalang.Analysis.Basic_Decl;
+      Imprecise  : in out Boolean;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
+   --  When called on a tagged type primitive declaration, iterate ovet all the
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
-   --  Imprecise_Results is set to True if we don't know whether the results
-   --  are precise.
 
    -------------------------
    -- Append_Declarations --
@@ -182,41 +183,6 @@ package body LSP.Ada_Contexts is
    -- Find_All_References --
    -------------------------
 
-   function Find_All_References
-     (Self              : Context;
-      Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array
-   is
-      use Libadalang.Analysis;
-
-      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
-        Self.Analysis_Units;
-   begin
-      Imprecise_Results := False;
-
-      declare
-         Refs : constant Ref_Result_Array :=
-           Definition.P_Find_All_References (Units);
-         R    : Base_Id_Array (Refs'Range);
-      begin
-         for I in Refs'Range loop
-            R (I) := Ref (Refs (I)).As_Base_Id;
-            Imprecise_Results := Imprecise_Results
-              or Kind (Refs (I)) = Imprecise;
-         end loop;
-         return R;
-      end;
-   exception
-      when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Find_All_References (imprecise)");
-         return (1 .. 0 => <>);
-   end Find_All_References;
-
-   -------------------------
-   -- Find_All_References --
-   -------------------------
-
    procedure Find_All_References
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
@@ -324,180 +290,94 @@ package body LSP.Ada_Contexts is
    -- Find_All_References_In_Hierarchy --
    --------------------------------------
 
-   function Find_All_References_In_Hierarchy
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array
+   procedure Find_All_References_In_Hierarchy
+     (Self       : Context;
+      Decl       : Libadalang.Analysis.Basic_Decl;
+      Imprecise  : in out Boolean;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
    is
-      use Libadalang.Analysis;
+      use type Libadalang.Analysis.Basic_Decl_Array;
 
-      function Find_All_Subp_References_In_Hierarchy
-        (Hierarchy : Basic_Decl_Array) return Base_Id_Array;
-      --  Return all the references of Decl in the given hierarchy
+      Is_Param : constant Boolean :=
+        Decl.Kind in Libadalang.Common.Ada_Param_Spec_Range;
 
-      function Find_All_Param_References_In_Hierarchy
-        (Param     : Param_Spec;
-         Hierarchy : Basic_Decl_Array;
-         Idx       : Positive) return Base_Id_Array;
-      --  Recursive function that returns all the references of the given
-      --  parameter's name in the hierarchy.
+      Parents   : constant Libadalang.Analysis.Ada_Node_Array := Decl.Parents;
 
-      -------------------------------------------
-      -- Find_All_Subp_References_In_Hierarchy --
-      -------------------------------------------
-
-      function Find_All_Subp_References_In_Hierarchy
-        (Hierarchy : Basic_Decl_Array) return Base_Id_Array
-      is
-         References       : Base_Id_Array
-           (1 .. Hierarchy'Length * 3);
-         Subp_Body_Name   : Defining_Name;
-         Subp_Body_Node   : Subp_Body;
-         Last             : Positive := References'First;
-      begin
-
-         for Subp_Decl of Hierarchy loop
-            References (Last) := Subp_Decl.P_Defining_Name.F_Name.As_Base_Id;
-            Last := Last + 1;
-
-            --  Try to get the corresponding body
-            Subp_Body_Name := Lal_Utils.Find_Next_Part
-              (Subp_Decl.P_Defining_Name, Self.Trace);
-
-            --  If there is a body, append the body's begin and end labels
-            --  to the result.
-            if not Subp_Body_Name.Is_Null then
-               References (Last) := Subp_Body_Name.F_Name.As_Base_Id;
-
-               Subp_Body_Node := Subp_Body_Name.Parent.Parent.As_Subp_Body;
-               References (Last + 1) :=
-                 Subp_Body_Node.F_End_Name.F_Name.As_Base_Id;
-
-               Last := Last + 2;
-            end if;
-         end loop;
-
-         return References (References'First .. Last - 1);
-      end Find_All_Subp_References_In_Hierarchy;
-
-      --------------------------------------------
-      -- Find_All_Param_References_In_Hierarchy --
-      --------------------------------------------
-
-      function Find_All_Param_References_In_Hierarchy
-        (Param     : Param_Spec;
-         Hierarchy : Basic_Decl_Array;
-         Idx       : Positive) return Base_Id_Array
-      is
-         Param_Name_Id : constant Defining_Name :=
-                           Param.F_Ids.List_Child (1);
-         Subp_Decl     : Basic_Subp_Decl;
-      begin
-
-         if Idx > Hierarchy'Last then
-            return (1 .. 0 => No_Base_Id);
-         end if;
-
-         Subp_Decl := Hierarchy (Idx).As_Basic_Subp_Decl;
-
-         --  Iterate on all the parameters of the subprogram and find the
-         --  parameter with the same name
-         for Param of Subp_Decl.P_Subp_Decl_Spec.P_Params loop
-            if Param_Name_Id.Text = Param.F_Ids.List_Child (1).Text then
-
-               --  Return all the references to the parameter and call this
-               --  function recursively to do the same thing on the next
-               --  subprogram of the hierarchy.
-               return
-                 Param.F_Ids.List_Child (1).F_Name.As_Base_Id
-                 & Self.Find_All_References
-                      (Definition        => Param.F_Ids.List_Child (1),
-                       Imprecise_Results => Imprecise_Results)
-                 & Find_All_Param_References_In_Hierarchy
-                 (Param     => Param,
-                  Hierarchy => Hierarchy,
-                  Idx       => Idx + 1);
-            end if;
-         end loop;
-
-         return (1 .. 0 => No_Base_Id);
-      end Find_All_Param_References_In_Hierarchy;
-
-   begin
-      Imprecise_Results := False;
-
-      if Decl.Is_Null then
-         return (1 .. 0 => <>);
-      end if;
-
-      declare
-         Is_Param         : constant Boolean :=
-                              Decl.Kind in Ada_Param_Spec_Range;
-         Parents          : constant Ada_Node_Array := Decl.Parents;
-         Subp_Decl        : constant Basic_Decl :=
-                              (if Is_Param then
-                                  Parents (Parents'First + 4).As_Basic_Decl
-                               else
-                                  Decl);
-         Overriding_Decls : constant Basic_Decl_Array :=
-                                   Self.Find_All_Overrides
-                                     (Subp_Decl,
-                                      Imprecise_Results => Imprecise_Results);
-         Base_Decls       : constant Basic_Decl_Array :=
-                                   Self.Find_All_Base_Declarations
-                                     (Subp_Decl,
-                                      Imprecise_Results => Imprecise_Results);
-         Hierarchy        : constant Basic_Decl_Array :=
-                                   Overriding_Decls & Base_Decls;
-      begin
-         if Is_Param then
-            return Find_All_Param_References_In_Hierarchy
-              (Param     => Decl.As_Param_Spec,
-               Hierarchy => Hierarchy,
-               Idx       => Hierarchy'First);
+      Subp_Decl : constant Libadalang.Analysis.Basic_Decl :=
+        (if Is_Param then
+            Parents (Parents'First + 4).As_Basic_Decl
          else
-            return Find_All_Subp_References_In_Hierarchy (Hierarchy);
-         end if;
-      end;
+            Decl);
+
+      Overriding_Decls : constant Libadalang.Analysis.Basic_Decl_Array :=
+        Self.Find_All_Overrides
+          (Subp_Decl,
+           Imprecise_Results => Imprecise);
+
+      Base_Decls       : constant Libadalang.Analysis.Basic_Decl_Array :=
+        Self.Find_All_Base_Declarations
+          (Subp_Decl,
+           Imprecise_Results => Imprecise);
+
+      Hierarchy        : constant Libadalang.Analysis.Basic_Decl_Array :=
+        Overriding_Decls & Base_Decls;
+   begin
+      if Is_Param then
+         LSP.Ada_Id_Iterators.Find_All_Param_References_In_Hierarchy
+           (Param     => Decl.As_Param_Spec,
+            Hierarchy => Hierarchy,
+            Units     => Self.Analysis_Units,
+            Callback  => Callback);
+      else
+         LSP.Ada_Id_Iterators.Find_All_Subp_References_In_Hierarchy
+           (Hierarchy => Hierarchy,
+            Trace     => Self.Trace,
+            Callback  => Callback);
+      end if;
    end Find_All_References_In_Hierarchy;
 
    ---------------------------------
    -- Get_References_For_Renaming --
    ---------------------------------
 
-   function Get_References_For_Renaming
+   procedure Get_References_For_Renaming
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array
+      Imprecise_Results : out Boolean;
+      Callback          : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
    is
-      use Libadalang.Analysis;
-
-      Imprecise_For_Refs       : Boolean;
-      Imprecise_For_Hierarchy  : Boolean;
-      Decl                     : constant Basic_Decl :=
+      Cancel : Boolean := False;
+      Decl   : constant Libadalang.Analysis.Basic_Decl :=
          Definition.P_Basic_Decl;
-      References               : constant Base_Id_Array :=
-         Self.Find_All_References (Definition, Imprecise_For_Refs)
 
-         --  Append Definition itself so that it is also renamed
-         & Definition.P_Relative_Name.As_Base_Id
-
-         --  Append the references in overriding and base declaractions in case
-         --  we are dealing with tagged type primitives or a parameter of a
-         --  tagged type primitive.
-         & Self.Find_All_References_In_Hierarchy
-            (Decl,
-             Imprecise_Results => Imprecise_For_Hierarchy);
    begin
-      Imprecise_Results := Imprecise_For_Refs or Imprecise_For_Hierarchy;
-
-      if Imprecise_Results then
-         return (1 .. 0 => <>);
+      if Decl.Is_Null then
+         return;
       end if;
 
-      return References;
+      Self.Find_All_References (Definition, Callback);
+
+      --  Append Definition itself so that it is also renamed
+      Callback
+        (Base_Id => Definition.P_Relative_Name.As_Base_Id,
+         Kind    => Libadalang.Common.Precise,
+         Cancel  => Cancel);
+
+      if Cancel then
+         return;
+      end if;
+
+      --  Append the references in overriding and base declaractions in case
+      --  we are dealing with tagged type primitives or a parameter of a
+      --  tagged type primitive.
+      Self.Find_All_References_In_Hierarchy
+        (Decl, Imprecise_Results, Callback);
    end Get_References_For_Renaming;
 
    --------------------
