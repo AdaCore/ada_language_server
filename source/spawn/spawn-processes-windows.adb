@@ -184,6 +184,7 @@ package body Spawn.Processes.Windows is
 
       Count : constant Ada.Streams.Stream_Element_Offset :=
         Self.pipe (Kind).Last;
+
    begin
       if Count = 0 then
          Last := Data'First - 1;
@@ -453,7 +454,7 @@ package body Spawn.Processes.Windows is
       Count : constant Ada.Streams.Stream_Element_Offset := Pipe.Last;
       Min   : constant Ada.Streams.Stream_Element_Offset :=
         Ada.Streams.Stream_Element_Offset'Min
-          (Internal.Stream_Element_Buffer'Length, Data'Length);
+          (Pipe.Buffer'Length, Data'Length);
 
    begin
       if Count = 0 then
@@ -466,14 +467,14 @@ package body Spawn.Processes.Windows is
             --  Only part of the data has been buffered, request notification
             --  after completion of the IO operation.
 
-            Pipe.Last := Pipe.Last + Internal.Stream_Element_Buffer'Last;
+            Pipe.Last := Pipe.Last + Spawn.Internal.Buffer_Size;
          end if;
 
          On_No_Data.all;
 
       elsif Count in Internal.Stream_Element_Buffer'Range then
          --  Buffer is busy, mark stdin as 'send notification'
-         Pipe.Last := Pipe.Last + Internal.Stream_Element_Buffer'Last;
+         Pipe.Last := Pipe.Last + Spawn.Internal.Buffer_Size;
          Last := Data'First - 1;
       else
          --  Buffer is busy and the 'send notification' mark has been set
@@ -516,11 +517,13 @@ package body Spawn.Processes.Windows is
          when Stdin =>
             lpOverlapped.Last := 0;
 
-            if Last in Internal.Stream_Element_Buffer'Range then
+            if Last in lpOverlapped.Buffer'Range then
                pragma Assert (Last = Transfered);
+
             else
-               Last := Last - Internal.Stream_Element_Buffer'Last;
+               Last := Last - Spawn.Internal.Buffer_Size;
                pragma Assert (Last = Transfered);
+
                Self.Listener.Standard_Input_Available;
             end if;
             --  FIXME: what shall we do if Last /= Transfered?

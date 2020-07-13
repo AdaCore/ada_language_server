@@ -38,8 +38,10 @@ private package Spawn.Internal is
 
    type Process;
 
+   Buffer_Size : constant Ada.Streams.Stream_Element_Count := 512;
+
    subtype Stream_Element_Buffer is
-     Ada.Streams.Stream_Element_Array (1 .. 512);
+     Ada.Streams.Stream_Element_Array (1 .. Buffer_Size);
 
    type Pipe_Kinds is (Stdin, Stdout, Stderr);
 
