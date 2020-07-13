@@ -34,7 +34,6 @@ with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Id_Iterators;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
@@ -1829,7 +1828,34 @@ package body LSP.Ada_Handlers is
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+
+         Count : Cancel_Countdown := 0;
+
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean) is
+         begin
+            Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
+
+            if not Is_End_Label (Node.As_Ada_Node) then
+               Count := Count - 1;
+
+               Append_Location
+                 (Response.result,
+                  Node,
+                  Get_Reference_Kind (Node.As_Ada_Node));
+            end if;
+
+            Cancel := Count = 0 and then Request.Canceled;
+         end Callback;
+
          Definition : Defining_Name;
+
       begin
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
@@ -1837,35 +1863,14 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         declare
-            Count      : Cancel_Countdown := 0;
-            References : constant LSP.Ada_Id_Iterators.Base_Id_Iterators
-              .Forward_Iterator'Class := C.Find_All_References (Definition);
-         begin
+         C.Find_All_References (Definition, Callback'Access);
 
-            for Node in References loop
-               Imprecise := Imprecise
-                 or Node.Kind = Libadalang.Common.Imprecise;
-
-               if not Is_End_Label (Node.Element.As_Ada_Node) then
-                  Count := Count - 1;
-
-                  Append_Location
-                    (Response.result,
-                     Node.Element,
-                     Get_Reference_Kind (Node.Element.As_Ada_Node));
-               end if;
-
-               exit when Count = 0 and then Request.Canceled;
-            end loop;
-
-            if Value.context.includeDeclaration then
-               Append_Location
-                 (Response.result,
-                  Definition,
-                  Get_Reference_Kind (Definition.As_Ada_Node));
-            end if;
-         end;
+         if Value.context.includeDeclaration then
+            Append_Location
+              (Response.result,
+               Definition,
+               Get_Reference_Kind (Definition.As_Ada_Node));
+         end if;
       end Process_Context;
 
    begin

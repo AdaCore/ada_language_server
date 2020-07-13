@@ -15,119 +15,30 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Finalization;
-with Ada.Unchecked_Deallocation;
-
 package body LSP.Ada_Id_Iterators is
 
-   type Ref_Result_Array_Access is
-     access all Libadalang.Analysis.Ref_Result_Array;
+   -------------------------
+   -- Find_All_References --
+   -------------------------
 
-   type Ref_Result_Iterator is limited new Ada.Finalization.Limited_Controlled
-     and Base_Id_Iterators.Forward_Iterator with
-   record
-      This  : access Ref_Result_Iterator;
-      Data  : Ref_Result_Array_Access;
-      Index : Natural;
-   end record;
-
-   overriding procedure Finalize (Self : in out Ref_Result_Iterator);
-
-   overriding function First
-     (Self : Ref_Result_Iterator) return Base_Id_Cursor;
-
-   overriding function Next
-     (Self : Ref_Result_Iterator;
-      Prev : Base_Id_Cursor) return Base_Id_Cursor;
-
-   type Empty_Iterator is
-     limited new Base_Id_Iterators.Forward_Iterator with null record;
-
-   overriding function First
-     (Self : Empty_Iterator) return Base_Id_Cursor is
-       (others => <>);
-
-   overriding function Next
-     (Self   : Empty_Iterator;
-      Ignore : Base_Id_Cursor) return Base_Id_Cursor is
-       (others => <>);
-
-   ----------------------------
-   -- Empty_Base_Id_Iterator --
-   ----------------------------
-
-   function Empty_Base_Id_Iterator
-     return Base_Id_Iterators.Forward_Iterator'Class is
-   begin
-      return Result : Empty_Iterator;
-   end Empty_Base_Id_Iterator;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   overriding procedure Finalize (Self : in out Ref_Result_Iterator) is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Libadalang.Analysis.Ref_Result_Array, Ref_Result_Array_Access);
-   begin
-      Free (Self.Data);
-   end Finalize;
-
-   -----------
-   -- First --
-   -----------
-
-   overriding function First
-     (Self : Ref_Result_Iterator) return Base_Id_Cursor
+   procedure Find_All_References
+     (Definition : Libadalang.Analysis.Defining_Name;
+      Units      : Libadalang.Analysis.Analysis_Unit_Array;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
    is
-      use Libadalang.Analysis;
+      Cancel : Boolean := False;
    begin
-      if Self.Data'Length > 0 then
-         Self.This.Index := Self.Data'First;
-         return (Element => Ref (Self.Data (Self.Index)).As_Base_Id,
-                 Kind    => Kind (Self.Data (Self.Index)));
-      else
-         return (others => <>);
-      end if;
-   end First;
+      for Item of Definition.P_Find_All_References (Units) loop
+         Callback
+           (Base_Id => Libadalang.Analysis.Ref (Item).As_Base_Id,
+            Kind    => Libadalang.Analysis.Kind (Item),
+            Cancel  => Cancel);
 
-   ----------
-   -- Next --
-   ----------
-
-   overriding function Next
-     (Self : Ref_Result_Iterator;
-      Prev : Base_Id_Cursor) return Base_Id_Cursor
-   is
-      use Libadalang.Analysis;
-   begin
-      if Ref (Self.Data (Self.Index)).As_Base_Id = Prev.Element then
-         Self.This.Index := Self.This.Index + 1;
-
-         if Self.Index in Self.Data'Range then
-            return (Element => Ref (Self.Data (Self.Index)).As_Base_Id,
-                    Kind    => Kind (Self.Data (Self.Index)));
-         else
-            return (others => <>);
-         end if;
-      else
-         raise Program_Error;
-      end if;
-   end Next;
-
-   -------------------------------
-   -- Ref_Result_Array_Iterator --
-   -------------------------------
-
-   function Ref_Result_Array_Iterator
-     (Vector : Libadalang.Analysis.Ref_Result_Array)
-      return Base_Id_Iterators.Forward_Iterator'Class is
-   begin
-      return Result : aliased Ref_Result_Iterator do
-         Result.This := Result'Unchecked_Access;
-         Result.Index := 0;
-         Result.Data := new Libadalang.Analysis.Ref_Result_Array'(Vector);
-      end return;
-   end Ref_Result_Array_Iterator;
+         exit when Cancel;
+      end loop;
+   end Find_All_References;
 
 end LSP.Ada_Id_Iterators;

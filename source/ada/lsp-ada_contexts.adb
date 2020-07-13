@@ -24,6 +24,7 @@ with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
 with URIs;
+with LSP.Ada_Id_Iterators;
 with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
 with Libadalang.Common;           use Libadalang.Common;
@@ -216,22 +217,21 @@ package body LSP.Ada_Contexts is
    -- Find_All_References --
    -------------------------
 
-   function Find_All_References
+   procedure Find_All_References
      (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-        return LSP.Ada_Id_Iterators.Base_Id_Iterators.Forward_Iterator'Class
+      Definition : Libadalang.Analysis.Defining_Name;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
    is
-      use Libadalang.Analysis;
-
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
-      return LSP.Ada_Id_Iterators.Ref_Result_Array_Iterator
-        (Definition.P_Find_All_References (Units));
+      LSP.Ada_Id_Iterators.Find_All_References (Definition, Units, Callback);
    exception
       when E : Libadalang.Common.Property_Error =>
          Log (Self.Trace, E, "in Find_All_References");
-         return LSP.Ada_Id_Iterators.Empty_Base_Id_Iterator;
    end Find_All_References;
 
    ------------------------
