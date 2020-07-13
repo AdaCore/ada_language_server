@@ -401,13 +401,23 @@ package body Spawn.Processes is
 
       procedure On_No_Data is
          use type Windows_API.BOOL;
+         use type Ada.Streams.Stream_Element_Offset;
+
          Ok   : Windows_API.BOOL;
          Pipe : Context renames Self.pipe (Stdin);
+
       begin
+         pragma Assert (Pipe.Last /= 0);
+
          Ok := Read_Write_Ex.WriteFileEx
            (hFile                 => Pipe.Handle,
             lpBuffer              => Pipe.Buffer,
-            nNumberOfBytesToWrite => Windows_API.DWORD (Pipe.Last),
+            nNumberOfBytesToWrite =>
+              Windows_API.DWORD
+                (Pipe.Last
+                 - (if Pipe.Last in Pipe.Buffer'Range
+                    then 0
+                    else Spawn.Internal.Buffer_Size)),
             lpOverlapped          => Pipe'Access,
             lpCompletionRoutine   => Standard_Input_Callback'Access);
 
