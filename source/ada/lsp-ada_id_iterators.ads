@@ -17,33 +17,18 @@
 --
 --  This package provides iterators over Libadalang Base_Id nodes.
 
-with Ada.Iterator_Interfaces;
-
 with Libadalang.Analysis;
 with Libadalang.Common;
 
 package LSP.Ada_Id_Iterators is
 
-   use type Libadalang.Analysis.Base_Id;
-
-   type Base_Id_Cursor is record
-      Element : Libadalang.Analysis.Base_Id := Libadalang.Analysis.No_Base_Id;
-      Kind    : Libadalang.Common.Ref_Result_Kind := Libadalang.Common.Noref;
-   end record;
-
-   function Has_Element (Self : Base_Id_Cursor) return Boolean
-     is (Self.Element /= Libadalang.Analysis.No_Base_Id);
-
-   package Base_Id_Iterators is new Ada.Iterator_Interfaces
-     (Base_Id_Cursor, Has_Element);
-
-   function Empty_Base_Id_Iterator
-     return Base_Id_Iterators.Forward_Iterator'Class;
-   --  Return an iterator without any elements inside
-
-   function Ref_Result_Array_Iterator
-     (Vector : Libadalang.Analysis.Ref_Result_Array)
-       return Base_Id_Iterators.Forward_Iterator'Class;
-   --  Return an iterator over elements inside given Ref_Result_Array
+   procedure Find_All_References
+     (Definition : Libadalang.Analysis.Defining_Name;
+      Units      : Libadalang.Analysis.Analysis_Unit_Array;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
+   --  Iterate over Definition.P_Find_All_References result
 
 end LSP.Ada_Id_Iterators;

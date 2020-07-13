@@ -26,11 +26,11 @@ with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 with Utils.Command_Lines;
 with Pp.Command_Lines;
 
-with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
 with LSP.Messages;
 with LSP.Ada_Documents;
@@ -96,10 +96,13 @@ package LSP.Ada_Contexts is
       Edit     : out LSP.Messages.TextEdit_Vector;
       Success  : out Boolean);
 
-   function Find_All_References
+   procedure Find_All_References
      (Self       : Context;
-      Definition : Libadalang.Analysis.Defining_Name)
-      return LSP.Ada_Id_Iterators.Base_Id_Iterators.Forward_Iterator'Class;
+      Definition : Libadalang.Analysis.Defining_Name;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
 
    function Find_All_References
      (Self              : Context;
