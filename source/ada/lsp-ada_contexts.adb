@@ -25,6 +25,7 @@ with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
 with URIs;
 with LSP.Ada_Id_Iterators;
+with LSP.Common;                  use LSP.Common;
 with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
 with Libadalang.Common;           use Libadalang.Common;
@@ -384,35 +385,30 @@ package body LSP.Ada_Contexts is
    -- Find_All_Calls --
    --------------------
 
-   function Find_All_Calls
-     (Self              : Context;
-      Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean)
-      return Base_Id_Array
+   procedure Find_All_Calls
+     (Self       : Context;
+      Definition : Libadalang.Analysis.Defining_Name;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
    is
-      use Libadalang.Analysis;
+      Cancel : Boolean := False;
 
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
-      Imprecise_Results := False;
+      for Item of Definition.P_Find_All_Calls (Units) loop
+         Callback
+           (Base_Id => Libadalang.Analysis.Ref (Item).As_Base_Id,
+            Kind    => Libadalang.Analysis.Kind (Item),
+            Cancel  => Cancel);
 
-      declare
-         Refs    : constant Ref_Result_Array
-           := Definition.P_Find_All_Calls (Units);
-         R       : Base_Id_Array (Refs'Range);
-      begin
-         for I in Refs'Range loop
-            R (I) := Ref (Refs (I)).As_Base_Id;
-            Imprecise_Results := Imprecise_Results
-              or Kind (Refs (I)) = Imprecise;
-         end loop;
-         return R;
-      end;
+         exit when Cancel;
+      end loop;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Is_Called_By (imprecise)");
-         return (1 .. 0 => <>);
+         Log (Self.Trace, E, "in Is_Called_By");
    end Find_All_Calls;
 
    -----------------
