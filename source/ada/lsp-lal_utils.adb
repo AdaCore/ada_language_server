@@ -653,29 +653,37 @@ package body LSP.Lal_Utils is
    is
       use References_By_Subprogram;
       use References_List;
+
+      procedure Callback
+        (Ref    : Libadalang.Analysis.Base_Id;
+         Kind   : Libadalang.Common.Ref_Result_Kind;
+         Cancel : in out Boolean);
+
       Result     : Map;
-      Containing : Defining_Name;
 
-      --  Obtain all the references
-      Refs      : constant Base_Id_Array := Context.Find_All_Calls
-        (Definition, Imprecise_Results);
-   begin
-      --  Go through all references to Name, organising them by containing
-      --  subprogram.
+      --------------
+      -- Callback --
+      --------------
 
-      for Ref of Refs loop
+      procedure Callback
+        (Ref     : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean)
+      is
+         pragma Unreferenced (Cancel);
+         Containing : Defining_Name;
+      begin
+         if Kind = Libadalang.Common.Imprecise then
+            Imprecise_Results := True;
+         end if;
+
          --  We have a reference, and this a call: find the containing
          --  subprogram or task
          Containing := Containing_Entity (Ref.As_Ada_Node);
 
          if Containing /= No_Defining_Name then
             if Result.Contains (Containing) then
-               declare
-                  L : List := Result.Element (Containing);
-               begin
-                  L.Append (Ref);
-                  Result.Replace (Containing, L);
-               end;
+               Result (Containing).Append (Ref);
             else
                declare
                   L : List;
@@ -685,9 +693,17 @@ package body LSP.Lal_Utils is
                end;
             end if;
          end if;
-      end loop;
+      end Callback;
 
-      --  TODO: sort?
+   begin
+      Imprecise_Results := False;
+
+      --  Go through all references to Definition, organising them by
+      --  containing subprogram.
+
+      --  Obtain all the references
+      Context.Find_All_Calls (Definition, Callback'Access);
+
       return Result;
    end Find_All_Calls;
 
