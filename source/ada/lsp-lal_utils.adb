@@ -691,4 +691,61 @@ package body LSP.Lal_Utils is
       return Result;
    end Find_All_Calls;
 
+   --------------------
+   -- List_Bodies_Of --
+   --------------------
+
+   function List_Bodies_Of
+     (Definition         : Defining_Name;
+      Trace              : GNATCOLL.Traces.Trace_Handle;
+      Imprecise_Results  : out Boolean)
+      return Bodies_List.List
+   is
+      List       : Bodies_List.List;
+      Next_Part  : Defining_Name;
+      Loop_Count : Natural := 0;
+      Parents    : constant Ada_Node_Array := Definition.Parents;
+   begin
+      Imprecise_Results := False;
+      --  If this happens to be the definition of a subprogram that
+      --  does not call for a body, let's consider that this *is* the
+      --  implementation. Return this, and do not attempt to look
+      --  for secondary implementations in this case.
+      if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
+        Libadalang.Common.Ada_Null_Subp_Decl     --  "is null" procedure?
+          | Libadalang.Common.Ada_Expr_Function  --  expression function?
+      then
+         List.Append (Definition);
+         return List;
+      end if;
+
+      --  If the definition that we found is a body, add this to the list
+      if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
+        Libadalang.Common.Ada_Subp_Body
+      then
+         List.Append (Definition);
+      end if;
+
+      Next_Part := Definition;
+
+      --  Now that we have a definition, list all the implementations for
+      --  this definition. We do this by iterating on Find_Next_Part
+      loop
+         --  Safety net, don't rely on the results making sense, since
+         --  the code might be invalid.
+         Next_Part := Find_Next_Part (Next_Part, Trace);
+
+         exit when Next_Part = No_Defining_Name;
+
+         List.Append (Next_Part);
+
+         Loop_Count := Loop_Count + 1;
+         if Loop_Count > 5 then
+            Imprecise_Results := True;
+            exit;
+         end if;
+      end loop;
+      return List;
+   end List_Bodies_Of;
+
 end LSP.Lal_Utils;
