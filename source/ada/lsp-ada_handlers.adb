@@ -997,66 +997,32 @@ package body LSP.Ada_Handlers is
          Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
            (C.Get_Node_At (Document, Position));
 
-         procedure List_Bodies_Of
-           (Definition : Defining_Name;
-            Kind       : LSP.Messages.AlsReferenceKind_Set);
-         --  List all the bodies of Definition, with the given kind as label
+         procedure Update_Response
+           (Bodies : Bodies_List.List;
+            Kind   : LSP.Messages.AlsReferenceKind_Set);
+         --  Utility function to update response with the bodies
 
-         --------------------
-         -- List_Bodies_Of --
-         --------------------
+         ---------------------
+         -- Update_Response --
+         ---------------------
 
-         procedure List_Bodies_Of
-           (Definition : Defining_Name;
-            Kind       : LSP.Messages.AlsReferenceKind_Set)
+         procedure Update_Response
+           (Bodies : Bodies_List.List;
+            Kind   : LSP.Messages.AlsReferenceKind_Set)
          is
-            Next_Part  : Defining_Name;
-            Loop_Count : Natural := 0;
-            Parents    : constant Ada_Node_Array := Definition.Parents;
          begin
-            --  If this happens to be the definition of a subprogram that
-            --  does not call for a body, let's consider that this *is* the
-            --  implementation. Return this, and do not attempt to look
-            --  for secondary implementations in this case.
-            if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
-              Libadalang.Common.Ada_Null_Subp_Decl     --  "is null" procedure?
-                | Libadalang.Common.Ada_Expr_Function  --  expression function?
-            then
-               Append_Location (Response.result, Definition, Kind);
-               return;
-            end if;
-
-            --  If the definition that we found is a body, add this to the list
-            if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
-              Libadalang.Common.Ada_Subp_Body
-            then
-               Append_Location (Response.result, Definition, Kind);
-            end if;
-
-            Next_Part := Definition;
-
-            --  Now that we have a definition, list all the implementations for
-            --  this definition. We do this by iterating on Find_Next_Part
-            loop
-               --  Safety net, don't rely on the results making sense, since
-               --  the code might be invalid.
-               Next_Part := Find_Next_Part (Next_Part, Self.Trace);
-
-               exit when Next_Part = No_Defining_Name;
-
-               Append_Location (Response.result, Next_Part, Kind);
-
-               Loop_Count := Loop_Count + 1;
-               if Loop_Count > 5 then
-                  Imprecise := True;
-                  exit;
-               end if;
+            for E of Bodies loop
+               Append_Location
+                 (Response.result,
+                  E,
+                  Kind);
             end loop;
-         end List_Bodies_Of;
+         end Update_Response;
 
-         Definition     : Defining_Name;
-         This_Imprecise : Boolean;
-         Decl           : Basic_Decl;
+         Definition         : Defining_Name;
+         This_Imprecise     : Boolean;
+         Find_All_Imprecise : Boolean;
+         Decl               : Basic_Decl;
 
       begin
          if Name_Node = No_Name then
@@ -1073,20 +1039,33 @@ package body LSP.Ada_Handlers is
          end if;
 
          --  First list the bodies of this definition
-         List_Bodies_Of (Definition, LSP.Messages.Empty_Set);
+         Update_Response
+           (List_Bodies_Of (Definition, Self.Trace, This_Imprecise),
+            LSP.Messages.Empty_Set);
+         Imprecise := Imprecise or This_Imprecise;
 
          --  Then list the bodies of the parent implementations
          Decl := Definition.P_Basic_Decl;
-         for Subp of C.Find_All_Base_Declarations (Decl, This_Imprecise) loop
-            List_Bodies_Of (Subp.P_Defining_Name, Is_Parent);
+         for Subp of C.Find_All_Base_Declarations (Decl, Find_All_Imprecise)
+         loop
+            Update_Response
+              (List_Bodies_Of
+                 (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+               Is_Parent);
+            Imprecise := Imprecise or This_Imprecise;
          end loop;
-         Imprecise := Imprecise or This_Imprecise;
+         Imprecise := Imprecise or Find_All_Imprecise;
 
          --  And finally the bodies of child implementations
-         for Subp of C.Find_All_Overrides (Decl, This_Imprecise) loop
-            List_Bodies_Of (Subp.P_Defining_Name, Is_Child);
+         for Subp of C.Find_All_Overrides (Decl, Find_All_Imprecise) loop
+            Update_Response
+              (List_Bodies_Of
+                 (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+               Is_Child);
+            Imprecise := Imprecise or This_Imprecise;
          end loop;
-         Imprecise := Imprecise or This_Imprecise;
+         Imprecise := Imprecise or Find_All_Imprecise;
+
       end Resolve_In_Context;
 
    begin

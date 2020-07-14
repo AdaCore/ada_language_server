@@ -150,4 +150,16 @@ package LSP.Lal_Utils is
    --  Checks whether the Token's Pattern is delimited by word delimiters
    --  if As_Word is True.
 
+   package Bodies_List is new Ada.Containers.Doubly_Linked_Lists
+     (Defining_Name);
+
+   function List_Bodies_Of
+     (Definition : Defining_Name;
+      Trace      : GNATCOLL.Traces.Trace_Handle;
+      Imprecise_Results  : out Boolean)
+      return Bodies_List.List;
+   --  List all the bodies of Definition. This does not list the bodies of the
+   --  parent. It sets Imprecise_Results to True if any request returns
+   --  imprecise results.
+
 end LSP.Lal_Utils;
