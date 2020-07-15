@@ -17,9 +17,18 @@
 --
 --  This package provides a set of files for Ada Language server.
 
+with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
+with Ada.Containers.Vectors;
 
 with GNATCOLL.VFS;
+
+with Libadalang.Analysis;
+
+with VSS.Strings;
+
+with LSP.Ada_Completion_Sets;
+with LSP.Types;
 
 package LSP.Ada_File_Sets is
 
@@ -27,5 +36,53 @@ package LSP.Ada_File_Sets is
      (Element_Type        => GNATCOLL.VFS.Virtual_File,
       "<"                 => GNATCOLL.VFS."<",
       "="                 => GNATCOLL.VFS."=");
+
+   type Indexed_File_Set is tagged limited private;
+
+   procedure Include
+     (Self : in out Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File);
+
+   function Length (Self : Indexed_File_Set'Class) return Natural;
+
+   function Contains
+     (Self : Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+
+   procedure Clear (Self : in out Indexed_File_Set'Class);
+
+   function Iterate (Self : Indexed_File_Set'Class)
+     return File_Sets.Set_Iterator_Interfaces.Reversible_Iterator'Class;
+
+   procedure Index_File
+     (Self : in out Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File;
+      Unit : Libadalang.Analysis.Analysis_Unit);
+
+   procedure Get_Any_Symbol_Completion
+     (Self   : Indexed_File_Set'Class;
+      Prefix : VSS.Strings.Virtual_String;
+      Limit  : Ada.Containers.Count_Type;
+      Result : in out LSP.Ada_Completion_Sets.Completion_Map);
+
+private
+   package File_Vectors is new Ada.Containers.Vectors
+     (Positive, GNATCOLL.VFS.Virtual_File, GNATCOLL.VFS."=");
+
+   type Symbol_Information is record
+      Original : LSP.Types.LSP_String;  --  Original writting of the symbol
+      Files    : File_Vectors.Vector;   --  Symbol occurrences
+   end record;
+
+   package Symbol_Maps is new Ada.Containers.Ordered_Maps
+     (VSS.Strings.Virtual_String,
+      Symbol_Information,
+      VSS.Strings."<");
+
+   type Indexed_File_Set is tagged limited record
+      Files       : File_Sets.Set;
+      All_Symbols : Symbol_Maps.Map;
+      --  Index of all symbols defined in Files
+   end record;
 
 end LSP.Ada_File_Sets;

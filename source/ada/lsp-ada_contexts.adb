@@ -168,12 +168,12 @@ package body LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array
    is
       Source_Units : Libadalang.Analysis.Analysis_Unit_Array
-        (1 .. Integer (Self.Source_Files.Length));
+        (1 .. Self.Source_Files.Length);
       Index : Natural := Source_Units'First;
    begin
-      for File of Self.Source_Files loop
+      for File in Self.Source_Files.Iterate loop
          Source_Units (Index) := Self.LAL_Context.Get_From_File
-           (File.Display_Full_Name,
+           (LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name,
             Charset => Self.Get_Charset);
          Index := Index + 1;
       end loop;
@@ -411,6 +411,20 @@ package body LSP.Ada_Contexts is
          Log (Self.Trace, E, "in Is_Called_By");
    end Find_All_Calls;
 
+   -------------------------------
+   -- Get_Any_Symbol_Completion --
+   -------------------------------
+
+   procedure Get_Any_Symbol_Completion
+     (Self   : Context;
+      Prefix : VSS.Strings.Virtual_String;
+      Limit  : Ada.Containers.Count_Type;
+      Result : in out LSP.Ada_Completion_Sets.Completion_Map) is
+   begin
+      Self.Source_Files.Get_Any_Symbol_Completion
+        (Prefix, Limit, Result);
+   end Get_Any_Symbol_Completion;
+
    -----------------
    -- Get_Charset --
    -----------------
@@ -495,6 +509,7 @@ package body LSP.Ada_Contexts is
 
          Unchecked_Free (All_Sources);
          Self.Source_Files.Clear;
+         Self.Last_Indexed := GNATCOLL.VFS.No_File;
 
          for Index in 1 .. Free_Index - 1 loop
             Self.Source_Files.Include (All_Ada_Sources (Index));
@@ -679,11 +694,22 @@ package body LSP.Ada_Contexts is
    -- Index_File --
    ----------------
 
-   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File) is
-      Ignored : Libadalang.Analysis.Analysis_Unit;
+   procedure Index_File
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File)
+   is
+      Unit : Libadalang.Analysis.Analysis_Unit;
+
    begin
-      Ignored := Self.LAL_Context.Get_From_File
+      Unit := Self.LAL_Context.Get_From_File
         (File.Display_Full_Name, Charset => Self.Get_Charset);
+
+      if Self.Last_Indexed = GNATCOLL.VFS.No_File
+        or else Self.Last_Indexed < File
+      then
+         Self.Source_Files.Index_File (File, Unit);
+         Self.Last_Indexed := File;
+      end if;
    end Index_File;
 
    --------------------

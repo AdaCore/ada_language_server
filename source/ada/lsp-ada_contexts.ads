@@ -17,6 +17,7 @@
 --
 --  This package provides a context of Ada Language server.
 
+with Ada.Containers;
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -29,10 +30,13 @@ with Libadalang.Common;
 with Utils.Command_Lines;
 with Pp.Command_Lines;
 
+with VSS.Strings;
+
 with LSP.Messages;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets; use LSP.Ada_File_Sets;
 with LSP.Types;
+with LSP.Ada_Completion_Sets;
 
 package LSP.Ada_Contexts is
 
@@ -161,7 +165,9 @@ package LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
 
-   procedure Index_File (Self : Context; File : GNATCOLL.VFS.Virtual_File);
+   procedure Index_File
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 
@@ -188,12 +194,16 @@ package LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Context;
    --  Return the LAL context corresponding to Self
 
-private
+   procedure Get_Any_Symbol_Completion
+     (Self   : Context;
+      Prefix : VSS.Strings.Virtual_String;
+      Limit  : Ada.Containers.Count_Type;
+      Result : in out LSP.Ada_Completion_Sets.Completion_Map);
+   --  Find symbols starting with given Prefix in all files of the context and
+   --  populate Result with corresponding CompletionItem-s. Keep no more then
+   --  Limit items in the Result.
 
-   type Project_Status is
-     (User_Provided_Project,  --  Server uses user provides project
-      Default_Project,        --  No project provided or found, use default
-      Found_Unique_Project);  --  No project provided, but server found one
+private
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Id             : LSP.Types.LSP_String;
@@ -201,8 +211,10 @@ private
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
-      Source_Files   : File_Sets.Set;
+      Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.
+      Last_Indexed   : GNATCOLL.VFS.Virtual_File;
+      --  A file from Source_Files that was indexed in the last iteration
 
       PP_Options : Utils.Command_Lines.Command_Line
                     (Pp.Command_Lines.Descriptor'Access);
@@ -218,6 +230,6 @@ private
        is (Self.Source_Files.Iterate);
 
    function File_Count (Self : Context) return Natural
-       is (Natural (Self.Source_Files.Length));
+       is (Self.Source_Files.Length);
 
 end LSP.Ada_Contexts;

@@ -31,7 +31,7 @@ with GNATCOLL.VFS;        use GNATCOLL.VFS;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common;
+with Libadalang.Sources;
 with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
@@ -103,7 +103,7 @@ package body LSP.Ada_Documents is
      (Node                     : Libadalang.Analysis.Aggregate;
       Context                  : LSP.Ada_Contexts.Context;
       Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionList);
+      Result                   : out Ada_Completion_Sets.Completion_Result);
    --  Return the completion list for the given aggregate node.
    --  The returned completion list may contain several items if the aggregate
    --  is used to assign a value to a variant record: in that case, a snippet
@@ -116,7 +116,7 @@ package body LSP.Ada_Documents is
    procedure Get_Keywords_Completion
      (Node   : Libadalang.Analysis.Ada_Node;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Messages.CompletionList);
+      Result : out LSP.Ada_Completion_Sets.Completion_Result);
    --  Get completion for keywords, filtering them with the given Prefix.
 
    function Compute_Completion_Detail
@@ -1684,6 +1684,58 @@ package body LSP.Ada_Documents is
       return LSP.Messages.Als_Public;
    end Get_Visibility;
 
+   -----------------
+   -- Get_Word_At --
+   -----------------
+
+   function Get_Word_At
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return LSP.Types.LSP_String
+   is
+      use Langkit_Support.Slocs;
+      use all type Libadalang.Common.Token_Kind;
+
+      Result : LSP.Types.LSP_String;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+
+      Where : constant Source_Location :=
+        (Line   => Line_Number (Position.line) + 1,
+         Column => Column_Number (Position.character));
+      --  Compute the position we want for completion, which is one character
+      --  before the cursor.
+
+      Token : constant Libadalang.Common.Token_Reference :=
+        Unit.Lookup_Token (Where);
+
+      Data : constant Libadalang.Common.Token_Data_Type :=
+        Libadalang.Common.Data (Token);
+
+      Kind : constant Libadalang.Common.Token_Kind :=
+        Libadalang.Common.Kind (Data);
+
+      Text : constant Wide_Wide_String :=
+        Libadalang.Common.Text (Token);
+
+      Sloc : constant Source_Location_Range :=
+        Libadalang.Common.Sloc_Range (Data);
+
+      Span : constant Integer :=
+        Natural (Where.Column) - Natural (Sloc.Start_Column);
+   begin
+      if Kind in Ada_Identifier .. Ada_Xor
+        and then Compare (Sloc, Where) = Inside
+      then
+         Result := LSP.Types.To_LSP_String
+           (Text (Text'First .. Text'First + Span));
+      end if;
+
+      return Result;
+   end Get_Word_At;
+
    ----------------
    -- Initialize --
    ----------------
@@ -1917,6 +1969,82 @@ package body LSP.Ada_Documents is
       return Item;
    end Compute_Completion_Item;
 
+   -------------------------------
+   -- Get_Any_Symbol_Completion --
+   -------------------------------
+
+   procedure Get_Any_Symbol_Completion
+     (Self    : in out Document;
+      Context : LSP.Ada_Contexts.Context;
+      Prefix  : VSS.Strings.Virtual_String;
+      Limit   : Ada.Containers.Count_Type;
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Map)
+   is
+      use type Ada.Containers.Count_Type;
+
+      procedure Resresh_Symbol_Cache;
+
+      --------------------------
+      -- Resresh_Symbol_Cache --
+      --------------------------
+
+      procedure Resresh_Symbol_Cache is
+         use Libadalang.Common;
+
+         Node : Libadalang.Analysis.Ada_Node;
+
+         It : Libadalang.Iterators.Traverse_Iterator'Class :=
+           Libadalang.Iterators.Find
+             (Self.Unit (Context).Root,
+              Libadalang.Iterators.Kind_Is (Ada_Defining_Name));
+      begin
+         while It.Next (Node) loop
+            declare
+               Token : constant Token_Reference := Node.Token_End;
+
+               Text : constant Wide_Wide_String :=
+                 Libadalang.Common.Text (Token);
+
+               Canonical : constant Symbolization_Result :=
+                 Libadalang.Sources.Canonicalize (Text);
+            begin
+               if Canonical.Success then
+                  Self.Symbol_Cache.Include
+                    (VSS.Strings.To_Virtual_String (Canonical.Symbol), Token);
+               end if;
+            end;
+         end loop;
+      end Resresh_Symbol_Cache;
+
+      Cursor : Symbol_Maps.Cursor;
+
+   begin
+      if Self.Symbol_Cache.Is_Empty then
+         Resresh_Symbol_Cache;
+      end if;
+
+      Cursor := Self.Symbol_Cache.Ceiling (Prefix);
+
+      while Symbol_Maps.Has_Element (Cursor)
+        and Result.Length < Limit
+      loop
+         declare
+            Key   : constant VSS.Strings.Virtual_String :=
+              Symbol_Maps.Key (Cursor);
+
+            Token : constant Libadalang.Common.Token_Reference :=
+              Self.Symbol_Cache (Cursor);
+         begin
+            exit when not Key.Starts (Prefix);
+
+            Result.Append_Invisible_Symbol
+              (Key, To_LSP_String (Libadalang.Common.Text (Token)));
+
+            Symbol_Maps.Next (Cursor);
+         end;
+      end loop;
+   end Get_Any_Symbol_Completion;
+
    ------------------------------
    -- Get_Aggregate_Completion --
    ------------------------------
@@ -1925,7 +2053,7 @@ package body LSP.Ada_Documents is
      (Node                     : Libadalang.Analysis.Aggregate;
       Context                  : LSP.Ada_Contexts.Context;
       Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionList)
+      Result                   : out Ada_Completion_Sets.Completion_Result)
    is
       pragma Unreferenced (Context);
 
@@ -2242,7 +2370,7 @@ package body LSP.Ada_Documents is
                      Item.insertText :=
                        (Is_Set => True,
                         Value  => Insert_Text);
-                     Result.items.Append (Item);
+                     Result.Completion_List.Append (Item);
                   end if;
                end;
             end loop;
@@ -2257,7 +2385,7 @@ package body LSP.Ada_Documents is
    procedure Get_Keywords_Completion
      (Node   : Libadalang.Analysis.Ada_Node;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Messages.CompletionList)
+      Result : out LSP.Ada_Completion_Sets.Completion_Result)
    is
       Keywords : constant Unbounded_Text_Type_Array := Node.P_Valid_Keywords;
       Item     : LSP.Messages.CompletionItem;
@@ -2277,7 +2405,10 @@ package body LSP.Ada_Documents is
                Item.insertText := (True, Item.label);
                Item.kind := (True, LSP.Messages.Keyword);
 
-               Result.items.Append (Item);
+               Result.Append
+                 (Ada.Strings.Wide_Wide_Unbounded.
+                    To_Wide_Wide_String (Keyword),
+                  Item);
             end if;
          end;
       end loop;
@@ -2293,7 +2424,7 @@ package body LSP.Ada_Documents is
       Position                 : LSP.Messages.Position;
       Snippets_Enabled         : Boolean;
       Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionList)
+      Result                   : out Ada_Completion_Sets.Completion_Result)
    is
       use Libadalang.Common;
       use LSP.Messages;
@@ -2398,7 +2529,7 @@ package body LSP.Ada_Documents is
       then
          LSP.Predefined_Completion.Get_Aspects
            (Prefix => Prefix,
-            Result => Result.items);
+            Result => Result.Completion_List);
          return;
       end if;
 
@@ -2410,7 +2541,7 @@ package body LSP.Ada_Documents is
       then
          LSP.Predefined_Completion.Get_Pragmas
            (Prefix => Prefix,
-            Result => Result.items);
+            Result => Result.Completion_List);
          return;
       end if;
 
@@ -2471,8 +2602,9 @@ package body LSP.Ada_Documents is
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
-                     Result.items.Append
-                       (Compute_Completion_Item
+                     Result.Append
+                       (Libadalang.Common.Text (DN.Token_End),
+                        Compute_Completion_Item
                           (Context                  => Context,
                            BD                       => BD,
                            DN                       => DN,
@@ -2486,7 +2618,8 @@ package body LSP.Ada_Documents is
          end loop;
 
          Context.Trace.Trace
-           ("Number of filtered completions : " & Result.items.Length'Image);
+           ("Number of filtered completions : " &
+              Result.Completion_List.Length'Image);
       end;
    end Get_Completions_At;
 
