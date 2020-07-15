@@ -319,6 +319,11 @@ private
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
       return LSP.Messages.Server_Responses.ALS_Called_By_Response;
 
+   overriding function On_ALS_Calls_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Calls_Request)
+      return LSP.Messages.Server_Responses.ALS_Calls_Response;
+
    overriding function On_ALS_Show_Dependencies_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)

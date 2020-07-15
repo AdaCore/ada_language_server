@@ -162,4 +162,24 @@ package LSP.Lal_Utils is
    --  parent. It sets Imprecise_Results to True if any request returns
    --  imprecise results.
 
+   function Is_Enum_Literal
+     (Node      : Ada_Node'Class;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Imprecise : out Boolean) return Boolean;
+   --  Check if a node is an enum literal.
+
+   function Is_Call
+     (Node      : Ada_Node'Class;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Imprecise : out Boolean) return Boolean;
+   --  Check if a node is a call and an identifier. Enum literals
+   --  in DottedName are excluded.
+
+   --  function Is_Task
+   --    (Node      : Ada_Node'Class;
+   --     Trace     : GNATCOLL.Traces.Trace_Handle;
+   --     Imprecise : out Boolean) return Boolean;
+   --  TODO: Reactivate these lines when libadalang supports
+   --  P_Next_Part for tasks: T716-049
+
 end LSP.Lal_Utils;

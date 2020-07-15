@@ -475,7 +475,7 @@ package body LSP.Lal_Utils is
      (Definition : Defining_Name;
       Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name
    is
-      Next : Defining_Name;
+      Next   : Defining_Name;
    begin
       Next := Definition.P_Next_Part;
 
@@ -735,12 +735,21 @@ package body LSP.Lal_Utils is
          return List;
       end if;
 
-      --  If the definition that we found is a body, add this to the list
+      --  If the definition that we found is a subprogram body, add this to the
+      --  list
       if Parents'Length > 2 and then Parents (Parents'First + 2).Kind in
         Libadalang.Common.Ada_Subp_Body
       then
          List.Append (Definition);
       end if;
+
+      --  TODO: Reactivate these lines when libadalang supports
+      --  P_Next_Part for tasks: T716-049
+      --  if Parents'Length > 1 and then Parents (Parents'First + 1).Kind in
+      --    Libadalang.Common.Ada_Task_Body
+      --  then
+      --     List.Append (Definition);
+      --  end if;
 
       Next_Part := Definition;
 
@@ -763,5 +772,70 @@ package body LSP.Lal_Utils is
       end loop;
       return List;
    end List_Bodies_Of;
+
+   ---------------------
+   -- Is_Enum_Literal --
+   ---------------------
+
+   function Is_Enum_Literal
+     (Node      : Ada_Node'Class;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Imprecise : out Boolean) return Boolean
+   is
+      Definition : Defining_Name;
+   begin
+      if Ada_Node (Node) /= No_Ada_Node
+        and then Node.Kind in Ada_Name
+      then
+         Definition := Resolve_Name (Node.As_Name, Trace, Imprecise);
+         return Definition /= No_Defining_Name
+           and then Definition.P_Basic_Decl.Kind = Ada_Enum_Literal_Decl;
+      else
+         Imprecise := False;
+         return False;
+      end if;
+   end Is_Enum_Literal;
+
+   -------------
+   -- Is_Call --
+   -------------
+
+   function Is_Call
+     (Node      : Ada_Node'Class;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Imprecise : out Boolean) return Boolean
+   is
+      Is_Call : Boolean
+        := Ada_Node (Node) /= No_Ada_Node
+        and then Node.Kind in Ada_Name
+        and then Node.As_Name.P_Is_Call
+        and then Node.Kind = Ada_Identifier;
+   begin
+      if Is_Call then
+         Is_Call := not Is_Enum_Literal (Node, Trace, Imprecise);
+      else
+         Imprecise := False;
+      end if;
+      return Is_Call;
+   end Is_Call;
+
+   -------------
+   -- Is_Task --
+   -------------
+
+   --  TODO: Reactivate these lines when libadalang supports
+   --  P_Next_Part for tasks: T716-049
+
+   --  function Is_Task
+   --    (Node      : Ada_Node'Class;
+   --     Trace     : GNATCOLL.Traces.Trace_Handle;
+   --     Imprecise : out Boolean) return Boolean is
+   --  begin
+   --     return Ada_Node (N) /= No_Ada_Node
+   --       and then N.Kind in Ada_Name
+   --       and then (N.P_Basic_Decl.Kind = Ada_Task_Body or else
+   --                 N.P_Basic_Decl.Kind = Ada_Single_Task_Type_Decl or else
+   --                 N.P_Basic_Decl.Kind = Ada_Task_Type_Decl);
+   --  end Is_Task;
 
 end LSP.Lal_Utils;

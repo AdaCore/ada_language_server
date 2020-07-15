@@ -43,3 +43,5 @@ related resources.
  * [Reference kinds](reference_kinds.md)
 
  * [Called by](called_by.md)
+
+ * [Calls](calls.md)
