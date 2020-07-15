@@ -64,7 +64,25 @@
                     }
                 }
             },
-            "wait":[]
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                },  {
+                    "jsonrpc": "2.0",
+                    "method": "$/progress",
+                    "params": {
+                      "token": "<ANY>",
+                      "value": {
+                        "kind": "end"
+                      }
+                    }
+                }
+            ]
         }
     },  {
         "send": {
@@ -153,7 +171,7 @@
                 }
             },
             "wait":[{
-                "id":2,
+                "id":3,
                 "method":"workspace/applyEdit",
                 "params":{
                     "edit":{
@@ -293,7 +311,7 @@
                 }
             },
             "wait":[{
-                "id":3,
+                "id":4,
                 "method":"workspace/applyEdit",
                 "params":{
                     "edit":{
@@ -456,7 +474,7 @@
                 }
             },
             "wait":[{
-                "id":4,
+                "id":5,
                 "method":"workspace/applyEdit",
                 "params":{
                     "edit":{
@@ -598,7 +616,7 @@
                 }
             },
             "wait":[{
-                "id":5,
+                "id":6,
                 "method":"workspace/applyEdit",
                 "params":{
                     "edit":{

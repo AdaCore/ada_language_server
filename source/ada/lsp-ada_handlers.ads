@@ -28,6 +28,7 @@ with GNATCOLL.Traces;
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
+with LSP.Ada_File_Sets;
 
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
@@ -184,7 +185,7 @@ private
       Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
       --  The project environment for the currently loaded project
 
-      Project_Predefined_Sources : File_Sets.Set;
+      Project_Predefined_Sources : LSP.Ada_File_Sets.Indexed_File_Set;
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
 

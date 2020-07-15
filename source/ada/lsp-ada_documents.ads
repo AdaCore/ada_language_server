@@ -17,17 +17,24 @@
 --
 --  This package provides an Ada document abstraction.
 
+with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
 with LSP.Messages;
 with LSP.Types;
+
 with Libadalang.Analysis;
+with Libadalang.Common;
+
 limited with LSP.Ada_Contexts;
+with LSP.Ada_Completion_Sets;
 
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Pp.Command_Lines;
+
+with VSS.Strings;
 
 package LSP.Ada_Documents is
 
@@ -109,19 +116,34 @@ package LSP.Ada_Documents is
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
 
+   function Get_Word_At
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return LSP.Types.LSP_String;
+   --  Get an identifier at given position in the document or an empty string.
+
    procedure Get_Completions_At
      (Self                     : Document;
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
       Snippets_Enabled         : Boolean;
       Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionList);
+      Result                   : out Ada_Completion_Sets.Completion_Result);
    --  Populate Result with completions for given position in the document.
    --  When Snippets_Enabled is True, subprogram completion items are computed
    --  as snippets that list all the subprogram's formal parameters.
    --  Named_Notation_Threshold defines the number of parameters / components
    --  at which point named notation is used for subprogram/aggregate
    --  completion snippets.
+
+   procedure Get_Any_Symbol_Completion
+     (Self    : in out Document;
+      Context : LSP.Ada_Contexts.Context;
+      Prefix  : VSS.Strings.Virtual_String;
+      Limit   : Ada.Containers.Count_Type;
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Map);
+   --  See Contests.Get_Any_Symbol_Completion
 
    procedure Get_Folding_Blocks
      (Self       : Document;
@@ -188,6 +210,12 @@ private
       "="          => "=");
    use Line_To_Index_Vectors;
 
+   package Symbol_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type     => VSS.Strings.Virtual_String,
+      Element_Type => Libadalang.Common.Token_Reference,
+      "<"          => VSS.Strings."<",
+      "="          => Libadalang.Common."=");
+
    type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record
       URI  : LSP.Messages.DocumentUri;
@@ -204,6 +232,9 @@ private
       --  This serves as cache to be able to modify text ranges in Text
       --  given in line/column coordinates without having to scan the whole
       --  text from the beginning.
+
+      Symbol_Cache : Symbol_Maps.Map;
+      --  Cache of all defining name symbol of the document.
    end record;
 
    procedure Diff

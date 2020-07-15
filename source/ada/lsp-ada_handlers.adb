@@ -32,8 +32,8 @@ with GNATCOLL.Utils;             use GNATCOLL.Utils;
 with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
+with LSP.Ada_Completion_Sets;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
-with LSP.Ada_File_Sets;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
@@ -49,6 +49,9 @@ with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
+with Libadalang.Sources;
+
+with VSS.Strings;
 
 package body LSP.Ada_Handlers is
 
@@ -426,6 +429,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       Self.Contexts.Prepend (C);
+      Self.Indexing_Required := True;
    end Load_Implicit_Project;
 
    ---------------------------
@@ -2943,6 +2947,30 @@ package body LSP.Ada_Handlers is
       --  tree: this seems reasonable. One further refinement could
       --  be to return only results that are available for all
       --  project contexts.
+
+      function Canonicalize
+        (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
+
+      ------------------
+      -- Canonicalize --
+      ------------------
+
+      function Canonicalize
+        (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String
+      is
+         UTF_32 : constant Wide_Wide_String :=
+           Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode
+             (LSP.Types.To_UTF_8_String (Text));
+         Result : constant Symbolization_Result :=
+           Libadalang.Sources.Canonicalize (UTF_32);
+      begin
+         if Result.Success then
+            return VSS.Strings.To_Virtual_String (Result.Symbol);
+         else
+            return VSS.Strings.Empty_Magic_String;
+         end if;
+      end Canonicalize;
+
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
@@ -2951,13 +2979,42 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
+      Result : LSP.Ada_Completion_Sets.Completion_Result;
    begin
+
       Document.Get_Completions_At
         (Context                  => Context.all,
          Position                 => Value.position,
          Snippets_Enabled         => Self.Completion_Snippets_Enabled,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
-         Result                   => Response.result);
+         Result                   => Result);
+
+      declare
+         Word : constant LSP.Types.LSP_String := Document.Get_Word_At
+           (Context.all, Value.position);
+
+         Canonical_Prefix : constant VSS.Strings.Virtual_String :=
+           Canonicalize (Word);
+
+         Invisible : LSP.Ada_Completion_Sets.Completion_Map;
+      begin
+         if not LSP.Types.Is_Empty (Word) then
+            Context.Get_Any_Symbol_Completion
+              (Prefix => Canonical_Prefix,
+               Limit  => 10,
+               Result => Invisible);
+
+            for Doc of Self.Open_Documents loop
+               Doc.Get_Any_Symbol_Completion
+                 (Context.all, Canonical_Prefix, 10, Invisible);
+            end loop;
+
+            Invisible.Write_Completions (10, Result);
+         end if;
+      end;
+
+      Response.result.items.Move (Source => Result.Completion_List);
+      Response.result.isIncomplete := Result.Is_Incomplete;
 
       return Response;
    end On_Completion_Request;
