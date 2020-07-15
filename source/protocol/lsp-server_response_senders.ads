@@ -82,6 +82,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.ALS_Called_By_Response)
    is abstract;
 
+   procedure On_ALS_Calls_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.ALS_Calls_Response)
+   is abstract;
+
    procedure On_ALS_ShowDependencies_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response)

@@ -199,6 +199,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : ALS_Calls_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_ALS_Calls_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : ALS_Show_Dependencies_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -317,6 +324,10 @@ begin
    Map.Insert
      (+"textDocument/alsCalledBy",
       ALS_Called_By_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/alsCalls",
+      ALS_Calls_Request'Tag);
 
    Map.Insert
      (+"textDocument/alsShowDependencies",

@@ -28,13 +28,13 @@ interface ALSSubprogramAndReferences {
 
 And a new request:
 
-  method: `textDocument/ALS_called_by`
+  method: `textDocument/alsCalledBy`
   params: `TextDocumentPositionParams`
 
 Returning the references to the method identified at the given position:
 
   result: `ALSSubprogramAndReferences[]`
 
-We also introduce a new boolean field `ALS_calledbyProvider` in the
+We also introduce a new boolean field `alsCalledByProvider` in the
 interface `ServerCapabilities` indicating whether the server supports
 this extension.

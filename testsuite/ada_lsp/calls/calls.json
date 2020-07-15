@@ -1,0 +1,170 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "documentSymbolProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "definitionProvider": true,
+                     "alsCalledByProvider": true,
+                     "alsCallsProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "p.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with P; use P;\nprocedure Main is\n   function Exprfinmain return Boolean is (Foo = 43);\n   My_Literal : My_Enum := First;\n    My_Other_Literal : My_Enum := P.Second;\nbegin\n   if Foo > 10 then\n      raise Constraint_Error;\n   end if;\n\n   declare\n      package Bla is\n         X : Integer := Foo;\n      end Bla;\n\n      package body Bla is\n         Y : Integer := Foo + 2;\n      begin\n         X := Foo + 3;\n      end Bla;\n   begin\n      if My_Enum in P.First | Second | P.Third\n      then\n         null;\n      end if;\n   end;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+            {
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               },
+               "method": "textDocument/publishDiagnostics"
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/alsCalls"
+         },
+
+         "wait": [{"jsonrpc":"2.0","id":2,
+                   "result":[
+                       {"location":
+                           {"uri":"$URI{p.ads}",
+                            "range":{"start":{"line":2,"character":12},"end":{"line":2,"character":15}}},
+                            "name":"Foo",
+                            "refs":[{"uri":"$URI{main.adb}","range":{"start":{"line":6,"character":6},"end":{"line":6,"character":9}},"alsKind":["call"]},
+                                    {"uri":"$URI{main.adb}","range":{"start":{"line":12,"character":24},"end":{"line":12,"character":27}},"alsKind":["call"]},
+                                    {"uri":"$URI{main.adb}","range":{"start":{"line":16,"character":24},"end":{"line":16,"character":27}},"alsKind":["call"]},
+                                    {"uri":"$URI{main.adb}","range":{"start":{"line":18,"character":14},"end":{"line":18,"character":17}},"alsKind":["call"]}]}]}]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 2,
+                  "character": 45
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/alsCalls"
+         },
+
+         "wait": [{"jsonrpc":"2.0","id":3,
+                   "result":[
+                       {"location":
+                           {"uri":"$URI{p.ads}",
+                            "range":{"start":{"line":2,"character":12},"end":{"line":2,"character":15}}},
+                            "name":"Foo",
+                            "refs":[{"uri":"$URI{p.adb}","range":{"start":{"line":3,"character":13},"end":{"line":3,"character":16}},"alsKind":["call"]}]}]}]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

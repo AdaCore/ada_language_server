@@ -132,6 +132,14 @@ package body LSP.Ada_Handlers is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
+   function Get_Call_Reference_Kind
+     (Node  : Libadalang.Analysis.Name;
+      Trace : GNATCOLL.Traces.Trace_Handle)
+      return LSP.Messages.AlsReferenceKind_Set;
+   --  Check the nature of nodes that represent subprogram calls. Query whether
+   --  Node is a static or a dispatching call, and format this into an
+   --  AlsReferenceKind_Set.
+
    ---------------------
    -- Project loading --
    ---------------------
@@ -584,6 +592,8 @@ package body LSP.Ada_Handlers is
       end if;
 
       Response.result.capabilities.alsCalledByProvider := True;
+      Response.result.capabilities.alsCallsProvider := True;
+
       Response.result.capabilities.alsShowDepsProvider := True;
 
       Response.result.capabilities.alsReferenceKinds :=
@@ -1874,6 +1884,30 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_References_Request;
 
+   -----------------------------
+   -- Get_Call_Reference_Kind --
+   -----------------------------
+
+   function Get_Call_Reference_Kind
+     (Node  : Libadalang.Analysis.Name;
+      Trace : GNATCOLL.Traces.Trace_Handle)
+      return LSP.Messages.AlsReferenceKind_Set
+   is
+      Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
+   begin
+      begin
+         Result.As_Flags (LSP.Messages.Static_Call) :=
+           Node.P_Is_Static_Call;
+         Result.As_Flags (LSP.Messages.Dispatching_Call) :=
+           Node.P_Is_Dispatching_Call;
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            Log (Trace, E);
+      end;
+
+      return Result;
+   end Get_Call_Reference_Kind;
+
    ------------------------------
    -- On_ALS_Called_By_Request --
    ------------------------------
@@ -1909,7 +1943,8 @@ package body LSP.Ada_Handlers is
       ------------------------
 
       function Get_Reference_Kind
-        (Node : Name) return LSP.Messages.AlsReferenceKind_Set
+        (Node : Libadalang.Analysis.Name)
+         return LSP.Messages.AlsReferenceKind_Set
       is
          Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
       begin
@@ -2021,6 +2056,221 @@ package body LSP.Ada_Handlers is
       end loop;
       return Response;
    end On_ALS_Called_By_Request;
+
+   ------------------------------
+   -- On_ALS_Calls_Request --
+   ------------------------------
+
+   overriding function On_ALS_Calls_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Calls_Request)
+      return LSP.Messages.Server_Responses.ALS_Calls_Response
+   is
+      use Libadalang.Analysis;
+
+      Value      : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+      Response   : LSP.Messages.Server_Responses.ALS_Calls_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
+
+      procedure Add_Subprogram
+        (Subp : LSP.Messages.ALS_Subprogram_And_References);
+      --  Add a subprogram in results, it prevents having duplicates
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : Context_Access) is
+         Definition     : Defining_Name;
+         Calls          : LSP.Lal_Utils.References_By_Subprogram.Map;
+         Calls_Cursor   : LSP.Lal_Utils.References_By_Subprogram.Cursor;
+         This_Imprecise : Boolean;
+
+         function Process_Body_Children (N : Ada_Node'Class)
+                                         return Visit_Status;
+         --  Check if N is a call and if so resolve it and add it to a
+         --  map where the key is the Defining_Name of the call and the
+         --  value is a Double_Linked_List of Base_Id representing where
+         --  the call is made.
+
+         ----------------------------
+         -- Process_Body_Childreen --
+         ----------------------------
+
+         function Process_Body_Children (N : Ada_Node'Class)
+                                         return Visit_Status is
+         begin
+            --  Do not consider calls made by nested subprograms, expression
+            --  functions or tasks.
+
+            Self.Trace.Trace (N.Image);
+
+            if N.Kind in
+              Ada_Subp_Body
+              | Ada_Subp_Spec
+              | Ada_Expr_Function
+
+              --  TODO: Reactivate these lines when libadalang supports
+              --  P_Next_Part for tasks: T716-049
+              --  | Ada_Task_Body
+              --  | Ada_Single_Task_Decl
+              --  | Ada_Task_Type_Decl
+            then
+               return Over;
+            end if;
+
+            if LSP.Lal_Utils.Is_Call (N, Self.Trace, This_Imprecise) then
+               declare
+                  This_Imprecise    : Boolean;
+                  Call_Definition   : Defining_Name;
+                  Call_Name         : constant Name
+                    := LSP.Lal_Utils.Get_Node_As_Name (Ada_Node (N));
+
+               begin
+                  --  First try to resolve the called function
+
+                  Call_Definition := LSP.Lal_Utils.Resolve_Name
+                    (Call_Name, C.Trace, This_Imprecise);
+                  Imprecise := Imprecise or This_Imprecise;
+
+                  if Call_Definition /= No_Defining_Name then
+                     if Calls.Contains (Call_Definition) then
+                        declare
+                           R : constant LSP.Lal_Utils.References_By_Subprogram.
+                             Reference_Type := Calls.Reference
+                               (Call_Definition);
+                        begin
+                           R.Append (N.As_Base_Id);
+                        end;
+                     else
+                        declare
+                           L : LSP.Lal_Utils.References_List.List;
+                        begin
+                           L.Append (N.As_Base_Id);
+                           Calls.Insert (Call_Definition, L);
+                        end;
+                     end if;
+                  end if;
+               end;
+            end if;
+
+            Imprecise := Imprecise or This_Imprecise;
+            return Into;
+         end Process_Body_Children;
+
+         --  Start of processing for Process_Context
+
+      begin
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         Self.Imprecise_Resolve_Name (C, Value, Definition);
+
+         if Definition = No_Defining_Name
+           or else not Definition.P_Basic_Decl.P_Is_Subprogram
+           or else Request.Canceled
+         then
+            return;
+         end if;
+
+         declare
+            This_Imprecise : Boolean;
+            Bodies         : constant LSP.Lal_Utils.Bodies_List.List :=
+              LSP.Lal_Utils.List_Bodies_Of
+                (Definition, C.Trace, This_Imprecise);
+
+         begin
+            Imprecise := Imprecise or This_Imprecise;
+
+            --  Iterate through all the bodies, and for each, iterate
+            --  through all the childreen looking for function calls.
+
+            for B of Bodies loop
+               for C of B.P_Basic_Decl.Children loop
+                  C.Traverse (Process_Body_Children'Access);
+               end loop;
+            end loop;
+         end;
+
+         Calls_Cursor := Calls.First;
+         while LSP.Lal_Utils.References_By_Subprogram.Has_Element
+           (Calls_Cursor)
+         loop
+            declare
+               Node : constant Defining_Name
+                 := LSP.Lal_Utils.References_By_Subprogram.Key
+                   (Calls_Cursor);
+               Refs : constant LSP.Lal_Utils.References_List.List :=
+                 LSP.Lal_Utils.References_By_Subprogram.Element
+                   (Calls_Cursor);
+               Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
+
+            begin
+               Subp_And_Refs.loc  := Get_Node_Location (Ada_Node (Node));
+               Subp_And_Refs.name := To_LSP_String
+                 (Langkit_Support.Text.To_UTF8 (Node.Text));
+               for Ref of Refs loop
+                  Append_Location (Subp_And_Refs.refs,
+                                   Ref,
+                                   Get_Call_Reference_Kind
+                                     (Ref.As_Name, Self.Trace));
+
+                  if Request.Canceled then
+                     return;
+                  end if;
+               end loop;
+               Add_Subprogram (Subp_And_Refs);
+               LSP.Lal_Utils.References_By_Subprogram.Next (Calls_Cursor);
+            end;
+         end loop;
+      end Process_Context;
+
+      --------------------
+      -- Add_Subprogram --
+      --------------------
+
+      procedure Add_Subprogram
+        (Subp     : LSP.Messages.ALS_Subprogram_And_References)
+      is
+         use LSP.Messages;
+      begin
+         for Cur of Response.result loop
+            if Cur.loc = Subp.loc and then Cur.name = Subp.name then
+               Cur.refs.Append (Subp.refs);
+               return;
+            end if;
+         end loop;
+         Response.result.Append (Subp);
+      end Add_Subprogram;
+
+      --  Start of processing for On_ALS_Calls_Request
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Process_Context (C);
+
+         exit when Request.Canceled;
+      end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'calls' are approximate.",
+            LSP.Messages.Warning);
+      end if;
+
+      for Loc of Response.result loop
+         Sort_And_Remove_Duplicates (Loc.refs);
+      end loop;
+      return Response;
+   end On_ALS_Calls_Request;
 
    ----------------------------------
    -- On_ALS_Show_Dependencies_Request --
