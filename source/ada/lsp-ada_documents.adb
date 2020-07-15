@@ -2462,30 +2462,25 @@ package body LSP.Ada_Documents is
             BD := Decl (CI).As_Basic_Decl;
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
-                  declare
-                     Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                       Langkit_Support.Text.To_UTF8 (Node.Text);
-                  begin
 
-                     --  If we are not completing a dotted name, filter the
-                     --  raw completion results by the node's prefix.
-                     if Node.Kind in Ada_Dotted_Name_Range
-                       or else Starts_With
-                         (To_LSP_String (DN.P_Relative_Name.Text),
-                          Prefix         => Prefix,
-                          Case_Sensitive => False)
-                     then
-                        Result.items.Append
-                          (Compute_Completion_Item
-                             (Context                  => Context,
-                              BD                       => BD,
-                              DN                       => DN,
-                              Snippets_Enabled         => Should_Use_Snippets,
-                              Named_Notation_Threshold =>
-                                Named_Notation_Threshold,
-                              Is_Dot_Call              => Is_Dot_Call (CI)));
-                     end if;
-                  end;
+                  --  If we are not completing a dotted name, filter the
+                  --  raw completion results by the node's prefix.
+                  if Node.Kind in Ada_Dotted_Name_Range
+                    or else Starts_With
+                      (To_LSP_String (DN.P_Relative_Name.Text),
+                       Prefix         => Prefix,
+                       Case_Sensitive => False)
+                  then
+                     Result.items.Append
+                       (Compute_Completion_Item
+                          (Context                  => Context,
+                           BD                       => BD,
+                           DN                       => DN,
+                           Snippets_Enabled         => Should_Use_Snippets,
+                           Named_Notation_Threshold =>
+                             Named_Notation_Threshold,
+                           Is_Dot_Call              => Is_Dot_Call (CI)));
+                  end if;
                end loop;
             end if;
          end loop;
