@@ -27,11 +27,11 @@ test = traces_to_test(inout_file, root)
 
 test_yaml_file = os.path.join(root, 'test.yaml')
 print("generating {}".format(test_yaml_file))
-with open(test_yaml_file, "wb") as f:
+with open(test_yaml_file, "w") as f:
     f.write("title: '{}'\n".format(testname))
 
 testfile = os.path.join(root, 'test.json')
 print("generating {}".format(testfile))
 
-with open(testfile, "wb") as f:
+with open(testfile, "w") as f:
    f.write(json.dumps(test, indent=3))

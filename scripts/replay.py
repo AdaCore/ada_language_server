@@ -22,4 +22,4 @@ result = ""
 for x in test:
     if "send" in x:
         result += python_to_protocol_string([x["send"]["request"]])
-print result + "\r"
+print(result + "\r")
