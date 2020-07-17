@@ -120,7 +120,11 @@ package LSP.Lal_Utils is
      (Base_Id);
 
    function "<" (Left, Right : Defining_Name) return Boolean is
-      (Left.Text < Right.Text);
+     (Left.Text <= Right.Text);
+   --  The Ordered_Maps is using the "<" in its Equivalent_Keys function:
+   --  this is too basic and it will assume that Left.Text = Right.Text implies
+   --  Left = Right which is wrong.
+   --  By using "<=" we are breaking the equality and we are keeping the order.
 
    package References_By_Subprogram is new Ada.Containers.Ordered_Maps
      (Key_Type     => Defining_Name,
