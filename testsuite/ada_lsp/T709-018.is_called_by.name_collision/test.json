@@ -1,0 +1,287 @@
+[
+   {
+      "comment": [
+         "When Called_By is referencing 2 entities with the same name ",
+         "at the same line/column in 2 differents files: the results ",
+         "should not be grouped"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "documentSymbolProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "definitionProvider": true,
+                     "alsCalledByProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}", 
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "package Common is\n\n   type Data is abstract tagged limited null record;\n   type Data_Access is access all Data'Class;\n\n   function Create (Self : access Data) return Integer is abstract;\n\n   function Uno return Integer is (1);\n\nend Common;\n", 
+                  "version": 0, 
+                  "uri": "$URI{common.ads}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "error": {
+               "message": "Unknown method:window/workDoneProgress/create", 
+               "code": -32601
+            }
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 7, 
+                  "character": 12
+               }, 
+               "textDocument": {
+                  "uri": "$URI{common.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 3, 
+            "method": "textDocument/alsCalledBy"
+         }, 
+         "wait": [
+            {
+               "id": 3, 
+               "result": [
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 4, 
+                                 "character": 20
+                              }, 
+                              "end": {
+                                 "line": 4, 
+                                 "character": 23
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack2.adb}"
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 4, 
+                                 "character": 33
+                              }, 
+                              "end": {
+                                 "line": 4, 
+                                 "character": 36
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack2.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 6, 
+                              "character": 23
+                           }, 
+                           "end": {
+                              "line": 6, 
+                              "character": 29
+                           }
+                        }, 
+                        "uri": "$URI{pack2.ads}"
+                     }, 
+                     "name": "Create"
+                  }, 
+                  {
+                     "refs": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 4, 
+                                 "character": 37
+                              }, 
+                              "end": {
+                                 "line": 4, 
+                                 "character": 40
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack1.adb}"
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 20
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 23
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack1.adb}"
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 33
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 36
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack1.adb}"
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 46
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 49
+                              }
+                           }, 
+                           "alsKind": [
+                              "call"
+                           ], 
+                           "uri": "$URI{pack1.adb}"
+                        }
+                     ], 
+                     "location": {
+                        "range": {
+                           "start": {
+                              "line": 6, 
+                              "character": 23
+                           }, 
+                           "end": {
+                              "line": 6, 
+                              "character": 29
+                           }
+                        }, 
+                        "uri": "$URI{pack1.ads}"
+                     }, 
+                     "name": "Create"
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{common.ads}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
