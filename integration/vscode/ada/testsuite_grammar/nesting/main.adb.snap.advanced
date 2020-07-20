@@ -19,54 +19,64 @@
 #             ^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada keyword.ada
 >      procedure C is begin null; end C;
 #^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada
-#      ^^^^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.specification.ada keyword.ada
-#               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.specification.ada
-#                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.specification.ada entity.name.function.ada
-#                 ^^^^^^^^^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.specification.ada
-#                               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.specification.ada punctuation.ada
-#                                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada
-#                                 ^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada
-#                                      ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada punctuation.ada
+#      ^^^^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada keyword.ada
+#               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                 ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                  ^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada keyword.ada
+#                    ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                     ^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada keyword.ada
+#                          ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                           ^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada meta.statement.null.ada keyword.ada
+#                               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada meta.statement.null.ada punctuation.ada
+#                                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                                 ^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada keyword.ada
+#                                    ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada
+#                                     ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                                      ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada meta.declaration.procedure.body.ada punctuation.ada
 >   end B;
-#^^^ source.ada meta.declaration.procedure.body.ada
-#   ^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
-#      ^^ source.ada meta.declaration.procedure.body.ada
-#        ^ source.ada meta.declaration.procedure.body.ada punctuation.ada
+#^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada
+#   ^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada keyword.ada
+#      ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada
+#       ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada entity.name.package.ada
+#        ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.specification.ada punctuation.ada
 >
 >   package body B is
-#^^^ source.ada
-#   ^^^^^^^ source.ada meta.declaration.package.body.ada keyword.ada
-#          ^ source.ada meta.declaration.package.body.ada
-#           ^^^^ source.ada meta.declaration.package.body.ada keyword.ada
-#               ^ source.ada meta.declaration.package.body.ada
-#                ^ source.ada meta.declaration.package.body.ada entity.name.package.ada
-#                 ^ source.ada meta.declaration.package.body.ada
-#                  ^^ source.ada meta.declaration.package.body.ada keyword.ada
+#^^^ source.ada meta.declaration.procedure.body.ada
+#   ^^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada keyword.ada
+#          ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#           ^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada keyword.ada
+#               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada entity.name.package.ada
+#                 ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#                  ^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada keyword.ada
 >      procedure C is begin null; end C;
-#^^^^^^ source.ada meta.declaration.package.body.ada
-#      ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
-#               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
-#                 ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                  ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
-#                    ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                     ^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
-#                          ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                           ^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.null.ada keyword.ada
-#                               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.null.ada punctuation.ada
-#                                ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                                 ^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
-#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
-#                                     ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
-#                                      ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+#^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#      ^^^^^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                 ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                  ^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#                    ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                     ^^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#                          ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                           ^^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.null.ada keyword.ada
+#                               ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.statement.null.ada punctuation.ada
+#                                ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                                 ^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#                                    ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                                     ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#                                      ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
 >   end B;
-#^^^ source.ada meta.declaration.package.body.ada
-#   ^^^ source.ada meta.declaration.package.body.ada keyword.ada
-#      ^ source.ada meta.declaration.package.body.ada
-#       ^ source.ada meta.declaration.package.body.ada entity.name.package.ada
-#        ^ source.ada meta.declaration.package.body.ada punctuation.ada
+#^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#   ^^^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada keyword.ada
+#      ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada
+#       ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada entity.name.package.ada
+#        ^ source.ada meta.declaration.procedure.body.ada meta.declaration.package.body.ada punctuation.ada
 >begin
-#^^^^^ source.ada keyword.ada
+#^^^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
 >end Main;
-#^^^ source.ada keyword.ada
-#   ^^^^^^^ source.ada
+#^^^ source.ada meta.declaration.procedure.body.ada keyword.ada
+#   ^ source.ada meta.declaration.procedure.body.ada
+#    ^^^^ source.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#        ^ source.ada meta.declaration.procedure.body.ada punctuation.ada
