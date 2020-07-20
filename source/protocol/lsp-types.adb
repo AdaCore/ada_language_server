@@ -798,7 +798,7 @@ package body LSP.Types is
       end loop;
 
       return Result : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Magic_String (Aux (1 .. Last))
+        VSS.Strings.Conversions.To_Virtual_String (Aux (1 .. Last))
       do
          Free (Aux);
       end return;
