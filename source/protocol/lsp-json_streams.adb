@@ -69,7 +69,7 @@ package body LSP.JSON_Streams is
       Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String) is
    begin
       pragma Assert (Self.R = null);
-      Self.W.Key := VSS.Strings.Conversions.To_Magic_String
+      Self.W.Key := VSS.Strings.Conversions.To_Virtual_String
         (To_UTF_8_String (Key));
    end Key;
 
@@ -265,7 +265,7 @@ package body LSP.JSON_Streams is
       pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value
-        (VSS.Strings.Conversions.To_Magic_String (Item));
+        (VSS.Strings.Conversions.To_Virtual_String (Item));
    end Write_String;
 
    ------------------
