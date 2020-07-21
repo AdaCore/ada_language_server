@@ -102,7 +102,12 @@ function osx_copy_dylibs()
         drop_rpath $DIR/`basename $J.dylib`
     done
 
-    for J in $DIR/libgnatcoll_gmp.dylib $DIR/ada_language_server; do
+    for J in \
+     $DIR/libgnatcoll_gmp.dylib \
+     $DIR/libadalang.dylib \
+     $DIR/liblangkit_support.dylib \
+     $DIR/ada_language_server
+    do
         install_name_tool -change /usr/local/opt/gmp/lib/libgmp.10.dylib @rpath/libgmp.10.dylib $J
     done
 
