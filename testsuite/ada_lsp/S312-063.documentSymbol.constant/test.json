@@ -1,0 +1,279 @@
+[
+   {
+      "comment": [
+         "constants and variables should be separated in the documentSymbols",
+         "results."
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+          "request": {
+              "jsonrpc":"2.0","id":0,"method":"initialize",
+              "params":{
+                  "processId":1,
+                  "rootUri":"$URI{.}",
+                  "capabilities":{
+                      "textDocument": {
+                          "documentSymbol":{
+                              "hierarchicalDocumentSymbolSupport":true
+                          }
+                      }
+                  }
+              }
+          },
+          "wait":[{ "id": 0,
+                    "result":{
+                        "capabilities":{
+                          "textDocumentSync": 2,
+                           "documentSymbolProvider":true
+                        }
+                    }
+          }]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}", 
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Foo is\n   A : constant Character := 'A';\n   B : Character := 'B';\nbegin\n   declare\n      C : constant Character := 'C';\n      D : Character := 'D';\n   begin\n      null;\n   end;\nend Foo;\n", 
+                  "version": 0, 
+                  "uri": "$URI{foo.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": 2, 
+            "method": "textDocument/documentSymbol"
+         }, 
+         "wait": [
+            {
+               "id": 2, 
+               "result": [
+                  {
+                     "kind": 12, 
+                     "name": "Foo", 
+                     "selectionRange": {
+                        "start": {
+                           "line": 0, 
+                           "character": 10
+                        }, 
+                        "end": {
+                           "line": 0, 
+                           "character": 13
+                        }
+                     }, 
+                     "alsVisibility": 1, 
+                     "alsIsDeclaration": false, 
+                     "detail": "", 
+                     "range": {
+                        "start": {
+                           "line": 0, 
+                           "character": 0
+                        }, 
+                        "end": {
+                           "line": 10, 
+                           "character": 8
+                        }
+                     }, 
+                     "alsIsAdaProcedure": true, 
+                     "children": [
+                        {
+                           "kind": 14, 
+                           "name": "A", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 1, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 1, 
+                                 "character": 4
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 1, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 1, 
+                                 "character": 33
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "kind": 13, 
+                           "name": "B", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 2, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 2, 
+                                 "character": 4
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 2, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 2, 
+                                 "character": 24
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "kind": 14, 
+                           "name": "C", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 5, 
+                                 "character": 6
+                              }, 
+                              "end": {
+                                 "line": 5, 
+                                 "character": 7
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 5, 
+                                 "character": 6
+                              }, 
+                              "end": {
+                                 "line": 5, 
+                                 "character": 36
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "kind": 13, 
+                           "name": "D", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 6
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 7
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 6, 
+                                 "character": 6
+                              }, 
+                              "end": {
+                                 "line": 6, 
+                                 "character": 27
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   }, 
+{
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

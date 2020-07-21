@@ -76,6 +76,10 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
    --  Return True if the type contains a record part.
 
+   function Is_Constant
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+   --  Return True if the decl contains the constant keyword
+
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
@@ -1419,7 +1423,10 @@ package body LSP.Ada_Documents is
               Ada_Single_Task_Decl =>
             return (if Ignore_Local
                     then LSP.Messages.A_Null
-                    else LSP.Messages.Variable);
+                    else
+                      (if Is_Constant (Node)
+                       then LSP.Messages.A_Constant
+                       else LSP.Messages.Variable));
 
          when Ada_Generic_Formal_Package |
               Ada_Package_Decl |
@@ -1663,6 +1670,26 @@ package body LSP.Ada_Documents is
 
       return False;
    end Is_Structure;
+
+   -----------------
+   -- Is_Constant --
+   -----------------
+
+   function Is_Constant
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+      use Libadalang.Common;
+   begin
+      for Child of Node.Children loop
+         if Child /= No_Ada_Node
+           and then Child.Kind = Ada_Constant_Present
+         then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Is_Constant;
 
    --------------------
    -- Get_Visibility --
