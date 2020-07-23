@@ -24,7 +24,6 @@ with LSP.Messages;
 with LSP.Types;
 
 with Libadalang.Analysis;
-with Libadalang.Common;
 
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completion_Sets;
@@ -142,7 +141,7 @@ package LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Map);
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Result);
    --  See Contests.Get_Any_Symbol_Completion
 
    procedure Get_Folding_Blocks
@@ -210,11 +209,14 @@ private
       "="          => "=");
    use Line_To_Index_Vectors;
 
+   package Name_Vectors is new Ada.Containers.Vectors
+     (Positive, Libadalang.Analysis.Defining_Name, Libadalang.Analysis."=");
+
    package Symbol_Maps is new Ada.Containers.Ordered_Maps
      (Key_Type     => VSS.Strings.Virtual_String,
-      Element_Type => Libadalang.Common.Token_Reference,
+      Element_Type => Name_Vectors.Vector,
       "<"          => VSS.Strings."<",
-      "="          => Libadalang.Common."=");
+      "="          => Name_Vectors."=");
 
    type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record

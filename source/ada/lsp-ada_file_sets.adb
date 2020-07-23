@@ -51,28 +51,30 @@ package body LSP.Ada_File_Sets is
      (Self   : Indexed_File_Set'Class;
       Prefix : VSS.Strings.Virtual_String;
       Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Map)
+      Result : in out LSP.Ada_Completion_Sets.Completion_Result)
    is
       use type Ada.Containers.Count_Type;
 
       Cursor : Symbol_Maps.Cursor :=
         Self.All_Symbols.Ceiling (Prefix);
    begin
-      while Symbol_Maps.Has_Element (Cursor)
-        and Result.Length < Limit
-      loop
+      Each_Prefix :
+      while Symbol_Maps.Has_Element (Cursor) loop
          declare
             Value : constant VSS.Strings.Virtual_String :=
               Symbol_Maps.Key (Cursor);
          begin
-            exit when not Value.Starts (Prefix);
+            exit Each_Prefix when not Value.Starts (Prefix);
 
-            Result.Append_Invisible_Symbol
-              (Value, Self.All_Symbols (Cursor).Original);
+            for Name of Self.All_Symbols (Cursor).Names loop
+               exit Each_Prefix when Result.Completion_List.Length >= Limit;
+
+               Result.Append_Invisible_Symbol (Value, Name);
+            end loop;
 
             Symbol_Maps.Next (Cursor);
          end;
-      end loop;
+      end loop Each_Prefix;
    end Get_Any_Symbol_Completion;
 
    -------------
@@ -95,6 +97,7 @@ package body LSP.Ada_File_Sets is
       File : GNATCOLL.VFS.Virtual_File;
       Unit : Libadalang.Analysis.Analysis_Unit)
    is
+      pragma Unreferenced (File);
 
       package Symbol_Sets is new Ada.Containers.Hashed_Maps
         (Key_Type        => VSS.Strings.Virtual_String,
@@ -123,32 +126,18 @@ package body LSP.Ada_File_Sets is
 
             Canonical : constant Symbolization_Result :=
               Libadalang.Sources.Canonicalize (Text);
+
+            Inserted  : Boolean;
+            Cursor    : Symbol_Maps.Cursor;
          begin
             if Canonical.Success then
-               Symbol_Set.Include
-                 (VSS.Strings.To_Virtual_String (Canonical.Symbol), Symbol);
+               Self.All_Symbols.Insert
+                 (VSS.Strings.To_Virtual_String (Canonical.Symbol),
+                  (Symbol, Name_Vectors.Empty_Vector),
+                  Cursor,
+                  Inserted);
+               Self.All_Symbols (Cursor).Names.Append (Node.As_Defining_Name);
             end if;
-         end;
-      end loop;
-
-      for Item in Symbol_Set.Iterate loop
-         declare
-            Canonical : constant VSS.Strings.Virtual_String :=
-              Symbol_Sets.Key (Item);
-            Inserted : Boolean;
-            Cursor   : Symbol_Maps.Cursor;
-         begin
-            Self.All_Symbols.Insert
-              (Canonical,
-               (Symbol_Set (Item), File_Vectors.Empty_Vector),
-               Cursor,
-               Inserted);
-
-            if Inserted then
-               Self.All_Symbols (Cursor).Files.Reserve_Capacity (4);
-            end if;
-
-            Self.All_Symbols (Cursor).Files.Append (File);
          end;
       end loop;
    end Index_File;

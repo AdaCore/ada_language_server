@@ -63,15 +63,15 @@ package LSP.Ada_File_Sets is
      (Self   : Indexed_File_Set'Class;
       Prefix : VSS.Strings.Virtual_String;
       Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Map);
+      Result : in out LSP.Ada_Completion_Sets.Completion_Result);
 
 private
-   package File_Vectors is new Ada.Containers.Vectors
-     (Positive, GNATCOLL.VFS.Virtual_File, GNATCOLL.VFS."=");
+   package Name_Vectors is new Ada.Containers.Vectors
+     (Positive, Libadalang.Analysis.Defining_Name, Libadalang.Analysis."=");
 
    type Symbol_Information is record
       Original : LSP.Types.LSP_String;  --  Original writting of the symbol
-      Files    : File_Vectors.Vector;   --  Symbol occurrences
+      Names    : Name_Vectors.Vector;   --  Symbol occurrences
    end record;
 
    package Symbol_Maps is new Ada.Containers.Ordered_Maps

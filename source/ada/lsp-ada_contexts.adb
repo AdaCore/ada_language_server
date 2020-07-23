@@ -419,7 +419,7 @@ package body LSP.Ada_Contexts is
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
       Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Map) is
+      Result : in out LSP.Ada_Completion_Sets.Completion_Result) is
    begin
       Self.Source_Files.Get_Any_Symbol_Completion
         (Prefix, Limit, Result);
