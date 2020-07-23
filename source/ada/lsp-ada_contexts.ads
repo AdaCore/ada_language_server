@@ -198,7 +198,7 @@ package LSP.Ada_Contexts is
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
       Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Map);
+      Result : in out LSP.Ada_Completion_Sets.Completion_Result);
    --  Find symbols starting with given Prefix in all files of the context and
    --  populate Result with corresponding CompletionItem-s. Keep no more then
    --  Limit items in the Result.

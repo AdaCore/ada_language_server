@@ -3224,21 +3224,17 @@ package body LSP.Ada_Handlers is
 
          Canonical_Prefix : constant VSS.Strings.Virtual_String :=
            Canonicalize (Word);
-
-         Invisible : LSP.Ada_Completion_Sets.Completion_Map;
       begin
          if not LSP.Types.Is_Empty (Word) then
             Context.Get_Any_Symbol_Completion
               (Prefix => Canonical_Prefix,
                Limit  => 10,
-               Result => Invisible);
+               Result => Result);
 
             for Doc of Self.Open_Documents loop
                Doc.Get_Any_Symbol_Completion
-                 (Context.all, Canonical_Prefix, 10, Invisible);
+                 (Context.all, Canonical_Prefix, 10, Result);
             end loop;
-
-            Invisible.Write_Completions (10, Result);
          end if;
       end;
 

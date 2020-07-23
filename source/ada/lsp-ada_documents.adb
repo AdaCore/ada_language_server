@@ -31,6 +31,7 @@ with GNATCOLL.VFS;        use GNATCOLL.VFS;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
+with Libadalang.Common;
 with Libadalang.Sources;
 with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
@@ -2005,7 +2006,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Map)
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Result)
    is
       use type Ada.Containers.Count_Type;
 
@@ -2034,11 +2035,19 @@ package body LSP.Ada_Documents is
 
                Canonical : constant Symbolization_Result :=
                  Libadalang.Sources.Canonicalize (Text);
+
+               Cursor    : Symbol_Maps.Cursor;
+               Inserted  : Boolean;
             begin
                if Canonical.Success then
-                  Self.Symbol_Cache.Include
-                    (VSS.Strings.To_Virtual_String (Canonical.Symbol), Token);
+                  Self.Symbol_Cache.Insert
+                    (VSS.Strings.To_Virtual_String (Canonical.Symbol),
+                     Name_Vectors.Empty_Vector,
+                     Cursor,
+                     Inserted);
                end if;
+
+               Self.Symbol_Cache (Cursor).Append (Node.As_Defining_Name);
             end;
          end loop;
       end Resresh_Symbol_Cache;
@@ -2052,24 +2061,24 @@ package body LSP.Ada_Documents is
 
       Cursor := Self.Symbol_Cache.Ceiling (Prefix);
 
-      while Symbol_Maps.Has_Element (Cursor)
-        and Result.Length < Limit
-      loop
+      Each_Prefix :
+      while Symbol_Maps.Has_Element (Cursor) loop
          declare
             Key   : constant VSS.Strings.Virtual_String :=
               Symbol_Maps.Key (Cursor);
 
-            Token : constant Libadalang.Common.Token_Reference :=
-              Self.Symbol_Cache (Cursor);
          begin
-            exit when not Key.Starts (Prefix);
+            exit Each_Prefix when not Key.Starts (Prefix);
 
-            Result.Append_Invisible_Symbol
-              (Key, To_LSP_String (Libadalang.Common.Text (Token)));
+            for Name of Self.Symbol_Cache (Cursor) loop
+               exit Each_Prefix when Result.Completion_List.Length >= Limit;
+
+               Result.Append_Invisible_Symbol (Key, Name);
+            end loop;
 
             Symbol_Maps.Next (Cursor);
          end;
-      end loop;
+      end loop Each_Prefix;
    end Get_Any_Symbol_Completion;
 
    ------------------------------
@@ -2431,11 +2440,7 @@ package body LSP.Ada_Documents is
                Item.insertTextFormat := (True, LSP.Messages.PlainText);
                Item.insertText := (True, Item.label);
                Item.kind := (True, LSP.Messages.Keyword);
-
-               Result.Append
-                 (Ada.Strings.Wide_Wide_Unbounded.
-                    To_Wide_Wide_String (Keyword),
-                  Item);
+               Result.Completion_List.Append (Item);
             end if;
          end;
       end loop;
@@ -2630,7 +2635,7 @@ package body LSP.Ada_Documents is
                        Case_Sensitive => False)
                   then
                      Result.Append
-                       (Libadalang.Common.Text (DN.Token_End),
+                       (DN,
                         Compute_Completion_Item
                           (Context                  => Context,
                            BD                       => BD,
