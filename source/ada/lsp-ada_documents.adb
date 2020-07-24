@@ -1947,12 +1947,12 @@ package body LSP.Ada_Documents is
                            & "${"
                            & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
                            & ":"
+                           &  Langkit_Support.Text.To_UTF8 (Id.Text)
+                           & " : "
                            & (if Mode /= "" then
                                   Mode & " "
                              else
                                 "")
-                           &  Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
                            & Langkit_Support.Text.To_UTF8
                              (Param.F_Type_Expr.Text)
                            & "}, ");
@@ -1961,12 +1961,12 @@ package body LSP.Ada_Documents is
                           ("${"
                            & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
                            & ":"
+                           & Langkit_Support.Text.To_UTF8 (Id.Text)
+                           & " : "
                            & (if Mode /= "" then
                                   Mode & " "
                              else
                                 "")
-                           & Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
                            & Langkit_Support.Text.To_UTF8
                              (Param.F_Type_Expr.Text)
                            & "}, ");
