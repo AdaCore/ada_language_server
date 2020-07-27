@@ -264,7 +264,7 @@ REQUESTS = [
     ('shutdown', 'Shutdown', None, 'Shutdown_Response'),
     ('textDocument/codeAction', 'CodeAction', 'CodeActionParams',
      'CodeAction_Response'),
-    ('textDocument/completion', 'Completion', 'TextDocumentPositionParams',
+    ('textDocument/completion', 'Completion', 'CompletionParams',
      'Completion_Response'),
     ('textDocument/definition', 'Definition', 'TextDocumentPositionParams',
      'Location_Link_Response'),

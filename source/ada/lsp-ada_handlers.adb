@@ -3200,7 +3200,7 @@ package body LSP.Ada_Handlers is
          end if;
       end Canonicalize;
 
-      Value    : LSP.Messages.TextDocumentPositionParams renames
+      Value    : LSP.Messages.CompletionParams renames
         Request.params;
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);

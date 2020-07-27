@@ -62,7 +62,7 @@ package LSP.Messages.Server_Requests is
    package Completion_Requests is
      new LSP.Generic_Requests
        (Server_Request,
-        TextDocumentPositionParams,
+        CompletionParams,
         Server_Request_Receiver'Class);
 
    type Completion_Request is
