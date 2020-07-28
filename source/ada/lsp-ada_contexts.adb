@@ -418,11 +418,13 @@ package body LSP.Ada_Contexts is
    procedure Get_Any_Symbol_Completion
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
-      Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Result) is
+      Callback : not null access procedure
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean)) is
    begin
       Self.Source_Files.Get_Any_Symbol_Completion
-        (Prefix, Limit, Result);
+        (Prefix, Callback);
    end Get_Any_Symbol_Completion;
 
    -----------------
@@ -698,16 +700,16 @@ package body LSP.Ada_Contexts is
      (Self : in out Context;
       File : GNATCOLL.VFS.Virtual_File)
    is
-      Unit : Libadalang.Analysis.Analysis_Unit;
-
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.LAL_Context.Get_From_File
+          (File.Display_Full_Name, Charset => Self.Get_Charset);
+      Name : constant LSP.Types.LSP_String :=
+        LSP.Types.To_LSP_String (Unit.Get_Filename);
    begin
-      Unit := Self.LAL_Context.Get_From_File
-        (File.Display_Full_Name, Charset => Self.Get_Charset);
-
       if Self.Last_Indexed = GNATCOLL.VFS.No_File
         or else Self.Last_Indexed < File
       then
-         Self.Source_Files.Index_File (File, Unit);
+         Self.Source_Files.Index_File (File_To_URI (Name), Unit);
          Self.Last_Indexed := File;
       end if;
    end Index_File;

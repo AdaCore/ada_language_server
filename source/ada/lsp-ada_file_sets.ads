@@ -27,8 +27,7 @@ with Libadalang.Analysis;
 
 with VSS.Strings;
 
-with LSP.Ada_Completion_Sets;
-with LSP.Types;
+with LSP.Messages;
 
 package LSP.Ada_File_Sets is
 
@@ -56,28 +55,35 @@ package LSP.Ada_File_Sets is
 
    procedure Index_File
      (Self : in out Indexed_File_Set'Class;
-      File : GNATCOLL.VFS.Virtual_File;
+      URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit);
 
    procedure Get_Any_Symbol_Completion
-     (Self   : Indexed_File_Set'Class;
-      Prefix : VSS.Strings.Virtual_String;
-      Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Result);
+     (Self     : Indexed_File_Set'Class;
+      Prefix   : VSS.Strings.Virtual_String;
+      Callback : not null access procedure
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean));
+   --  Find symbols starting with given Prefix in all files of the set and
+   --  call Callback for each. Name could contain a stale reference if the File
+   --  was updated since last indexing operation.
 
 private
-   package Name_Vectors is new Ada.Containers.Vectors
-     (Positive, Libadalang.Analysis.Defining_Name, Libadalang.Analysis."=");
-
-   type Symbol_Information is record
-      Original : LSP.Types.LSP_String;  --  Original writting of the symbol
-      Names    : Name_Vectors.Vector;   --  Symbol occurrences
+   type Name_Information is record
+      URI  : LSP.Messages.DocumentUri;
+      Name : Libadalang.Analysis.Defining_Name;
    end record;
+
+   package Name_Vectors is new Ada.Containers.Vectors
+     (Positive, Name_Information);
 
    package Symbol_Maps is new Ada.Containers.Ordered_Maps
      (VSS.Strings.Virtual_String,
-      Symbol_Information,
-      VSS.Strings."<");
+      Name_Vectors.Vector,
+      VSS.Strings."<",
+      Name_Vectors."=");
+   --  A map from cannonical writting to vector of name information
 
    type Indexed_File_Set is tagged limited record
       Files       : File_Sets.Set;

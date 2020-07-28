@@ -193,7 +193,8 @@
             "id": 2,
             "method": "textDocument/completion"
          },
-         "wait": [
+         "sortReply": { "result": {"items": "label"} },
+	 "wait": [
             {
                "id": 2,
                "result": {

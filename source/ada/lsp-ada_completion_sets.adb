@@ -15,81 +15,41 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Langkit_Support.Slocs;
-with Libadalang.Common;
+with GNATCOLL.VFS;
 
-with VSS.Strings.Conversions;
-
-with LSP.Types;
+with LSP.Ada_Contexts;
+with LSP.Ada_Documents;
 
 package body LSP.Ada_Completion_Sets is
 
-   Details : constant LSP.Types.Optional_String :=
-     (Is_Set => True,
-      Value  => LSP.Types.To_LSP_String
-        (Wide_Wide_String'("An invisible entity.")));
+   -----------------------
+   -- Write_Completions --
+   -----------------------
 
-   Sort_Prefix : constant Wide_Character := '~';
-
-   ------------
-   -- Append --
-   ------------
-
-   procedure Append
-     (Self : in out Completion_Result'Class;
-      Name : Libadalang.Analysis.Defining_Name;
-      Item : LSP.Messages.CompletionItem)
-   is
-      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
-        Name.Sloc_Range;
-
-      Start : constant Langkit_Support.Slocs.Source_Location :=
-        Langkit_Support.Slocs.Start_Sloc (Sloc);
-
-      Key : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Virtual_String
-          (Name.Unit.Get_Filename & ":" &
-           Langkit_Support.Slocs.Image (Start));
-
-      Ignore   : Key_Sets.Cursor;
-      Inserted : Boolean;
+   procedure Write_Completions
+     (Context                  : LSP.Ada_Contexts.Context;
+      Names                    : Completion_Maps.Map;
+      Use_Snippets             : Boolean;
+      Named_Notation_Threshold : Natural;
+      Result                   : in out LSP.Messages.CompletionItem_Vector) is
    begin
-      Self.Unique_Keys.Insert
-        (New_Item => Key,
-         Position => Ignore,
-         Inserted => Inserted);
-
-      if Inserted then
-         Self.Completion_List.Append (Item);
-      end if;
-   end Append;
-
-   -----------------------------
-   -- Append_Invisible_Symbol --
-   -----------------------------
-
-   procedure Append_Invisible_Symbol
-     (Self      : in out Completion_Result'Class;
-      Canonical : VSS.Strings.Virtual_String;
-      Name      : Libadalang.Analysis.Defining_Name)
-   is
-      use Libadalang.Common;
-      use type LSP.Types.LSP_String;
-
-      Token : constant Token_Reference := Name.Token_End;
-
-      Text : constant Wide_Wide_String :=
-        Libadalang.Common.Text (Token);
-
-      Item : constant LSP.Messages.CompletionItem :=
-        (label    => LSP.Types.To_LSP_String (Text),
-         kind     => (True, LSP.Messages.Text),
-         detail   => Details,
-         sortText =>
-           (True, Sort_Prefix & LSP.Types.To_LSP_String (Canonical)),
-         others   => <>);
-   begin
-      Self.Append (Name, Item);
-   end Append_Invisible_Symbol;
+      for Cursor in Names.Iterate loop
+         declare
+            Name : constant Libadalang.Analysis.Defining_Name :=
+              Completion_Maps.Key (Cursor);
+            Info : constant Name_Information := Names (Cursor);
+         begin
+            Result.Append
+              (LSP.Ada_Documents.Compute_Completion_Item
+                 (Context,
+                  Name.P_Basic_Decl,
+                  Name,
+                  Use_Snippets,
+                  Named_Notation_Threshold,
+                  Is_Dot_Call => Info.Is_Dot_Call,
+                  Is_Visible  => Info.Is_Visible));
+         end;
+      end loop;
+   end Write_Completions;
 
 end LSP.Ada_Completion_Sets;

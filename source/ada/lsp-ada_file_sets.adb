@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Maps;
-
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Iterators;
 with Libadalang.Sources;
@@ -48,13 +46,14 @@ package body LSP.Ada_File_Sets is
    -------------------------------
 
    procedure Get_Any_Symbol_Completion
-     (Self   : Indexed_File_Set'Class;
-      Prefix : VSS.Strings.Virtual_String;
-      Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Result)
+     (Self     : Indexed_File_Set'Class;
+      Prefix   : VSS.Strings.Virtual_String;
+      Callback : not null access procedure
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean))
    is
-      use type Ada.Containers.Count_Type;
-
+      Stop   : Boolean := False;
       Cursor : Symbol_Maps.Cursor :=
         Self.All_Symbols.Ceiling (Prefix);
    begin
@@ -66,10 +65,9 @@ package body LSP.Ada_File_Sets is
          begin
             exit Each_Prefix when not Value.Starts (Prefix);
 
-            for Name of Self.All_Symbols (Cursor).Names loop
-               exit Each_Prefix when Result.Completion_List.Length >= Limit;
-
-               Result.Append_Invisible_Symbol (Value, Name);
+            for Item of Self.All_Symbols (Cursor) loop
+               Callback (Item.URI, Item.Name, Stop);
+               exit Each_Prefix when Stop;
             end loop;
 
             Symbol_Maps.Next (Cursor);
@@ -94,35 +92,22 @@ package body LSP.Ada_File_Sets is
 
    procedure Index_File
      (Self : in out Indexed_File_Set'Class;
-      File : GNATCOLL.VFS.Virtual_File;
+      URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit)
    is
-      pragma Unreferenced (File);
-
-      package Symbol_Sets is new Ada.Containers.Hashed_Maps
-        (Key_Type        => VSS.Strings.Virtual_String,
-         Element_Type    => LSP.Types.LSP_String,
-         Hash            => LSP.Ada_Completion_Sets.Hash,
-         Equivalent_Keys => VSS.Strings."=",
-         "="             => LSP.Types."=");
 
       Node       : Libadalang.Analysis.Ada_Node;
-      Symbol_Set : Symbol_Sets.Map;  --  Unique symbols collection
 
       It         : Libadalang.Iterators.Traverse_Iterator'Class :=
         Libadalang.Iterators.Find
           (Unit.Root,
            Libadalang.Iterators.Kind_Is (Ada_Defining_Name));
    begin
-      Symbol_Set.Reserve_Capacity (200);
 
       while It.Next (Node) loop
          declare
             Text : constant Wide_Wide_String :=
               Libadalang.Common.Text (Node.Token_End);
-
-            Symbol    : constant LSP.Types.LSP_String :=
-              LSP.Types.To_LSP_String (Text);
 
             Canonical : constant Symbolization_Result :=
               Libadalang.Sources.Canonicalize (Text);
@@ -133,10 +118,11 @@ package body LSP.Ada_File_Sets is
             if Canonical.Success then
                Self.All_Symbols.Insert
                  (VSS.Strings.To_Virtual_String (Canonical.Symbol),
-                  (Symbol, Name_Vectors.Empty_Vector),
+                  Name_Vectors.Empty_Vector,
                   Cursor,
                   Inserted);
-               Self.All_Symbols (Cursor).Names.Append (Node.As_Defining_Name);
+
+               Self.All_Symbols (Cursor).Append ((URI, Node.As_Defining_Name));
             end if;
          end;
       end loop;

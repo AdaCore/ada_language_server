@@ -126,22 +126,25 @@ package LSP.Ada_Documents is
      (Self                     : Document;
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
-      Snippets_Enabled         : Boolean;
       Named_Notation_Threshold : Natural;
-      Result                   : out Ada_Completion_Sets.Completion_Result);
+      Should_Use_Snippets      : in out Boolean;
+      Should_Use_Names         : out Boolean;
+      Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
+      Result                   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
-   --  When Snippets_Enabled is True, subprogram completion items are computed
-   --  as snippets that list all the subprogram's formal parameters.
-   --  Named_Notation_Threshold defines the number of parameters / components
-   --  at which point named notation is used for subprogram/aggregate
-   --  completion snippets.
+   --  Named_Notation_Threshold defines the number of components at which point
+   --  named notation is used for aggregate completion snippets.
+   --  Reset Should_Use_Snippets is snippets have no sence in given position.
+   --  In case when no defining names could be used for completion (for
+   --  instange inside aggregates, pragmas, keywords, etc) set Should_Use_Names
+   --  to False. Otherwise set it to True and populate Names instead of Result.
 
    procedure Get_Any_Symbol_Completion
      (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Result);
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map);
    --  See Contests.Get_Any_Symbol_Completion
 
    procedure Get_Folding_Blocks
@@ -200,6 +203,26 @@ package LSP.Ada_Documents is
    --  If the document is not opened, then if Force a new document
    --  will be created and must be freed by the user else null will be
    --  returned.
+
+   function Compute_Completion_Item
+     (Context                  : LSP.Ada_Contexts.Context;
+      BD                       : Libadalang.Analysis.Basic_Decl;
+      DN                       : Libadalang.Analysis.Defining_Name;
+      Snippets_Enabled         : Boolean;
+      Named_Notation_Threshold : Natural;
+      Is_Dot_Call              : Boolean;
+      Is_Visible               : Boolean)
+      return LSP.Messages.CompletionItem;
+   --  Compute a completion item.
+   --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
+   --  BD and DN are respectively the basic declaration and the defining name
+   --  that should be used to compute the completion item.
+   --  When Snippets_Enabled is True, subprogram completion items are computed
+   --  as snippets that list all the subprogram's formal parameters.
+   --  Named_Notation_Threshold defines the number of parameters at which point
+   --  named notation is used for subprogram completion snippets.
+   --  Is_Dot_Call is used to know if we should omit the first parameter
+   --  when computing subprogram snippets.
 
 private
 
