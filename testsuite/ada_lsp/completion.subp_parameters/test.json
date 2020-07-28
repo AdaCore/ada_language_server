@@ -223,6 +223,7 @@
             "id": 4,
             "method": "textDocument/completion"
          },
+         "sortReply": { "result": {"items": "label"} },
          "wait": [
             {
                "id": 4,
@@ -370,13 +371,37 @@
               "id": 6,
               "method": "textDocument/completion"
           },
+         "sortReply": { "result": {"items": "label"} },
           "wait": [
               {
                   "id": 6,
                   "result": {
                       "isIncomplete": false,
                       "items": [
-                          {
+                        {
+                           "label": "A",
+                           "kind": 6,
+                           "detail": "A : Integer := 3;",
+                           "documentation": "at main.adb (10:4)",
+                           "additionalTextEdits": []
+                        },
+                        {
+                           "label": "ASCII",
+                           "kind": 9,
+                           "detail": "package ASCII ",
+                           "documentation": "at __standard (23:3)",
+                           "additionalTextEdits": []
+                        },
+                        {
+                           "label": "Add",
+                           "kind": 3,
+                           "detail": "function Add (A, B : Integer) return Integer",
+                           "documentation": "at main.adb (6:4)",
+                           "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
+                           "insertTextFormat": 2,
+                           "additionalTextEdits": []
+                        },
+                        {
                               "label": "abort",
                               "kind": 14,
                               "insertText": "abort",
@@ -455,33 +480,7 @@
                               "insertTextFormat": 1,
                               "additionalTextEdits": [
                               ]
-                          },
-                          {
-                              "label": "A",
-                              "kind": 6,
-                              "detail": "A : Integer := 3;",
-                              "documentation": "at main.adb (10:4)",
-                              "additionalTextEdits": [
-                              ]
-                          },
-                          {
-                           "label": "Add",
-                           "kind": 3,
-                           "detail": "function Add (A, B : Integer) return Integer",
-                           "documentation": "at main.adb (6:4)",
-                           "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
-                           "insertTextFormat": 2,
-                           "additionalTextEdits": [
-                           ]
-                       },
-                       {
-                           "label": "ASCII",
-                           "kind": 9,
-                           "detail": "package ASCII ",
-                           "documentation": "at __standard (23:3)",
-                           "additionalTextEdits": [
-                           ]
-                       }
+                          }
 
                       ]
                }
