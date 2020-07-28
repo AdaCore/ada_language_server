@@ -43,10 +43,20 @@ Property value - an object:
 
  * "request" - JSON object to send to LSP server as request.
  * "wait" - array of _wait_ objects to expect them in any order.
- * "sortReply" - an object with properies. Each property has string value of
-a _key_. The property name points to a property in the server reply to
-be sorted; it should be JSON array of object. While _key_ is property name
-in the array item to compare.
+ * "sortReply" - an object describing how to sort a server reply. Let's
+   explain by examples:
+    1.  `"sortReply": {"result", "uri"}` - Server reply should have a property
+       `result`, that is an array of objects, each of them has a property
+       `uri`. Tester driver will sort the array using the `uri` as a sort key.
+    2. `"sortReply": { "result": ["label", "detail"] }` - you can have a
+       composite sort key, if you provide names of properties as an array
+       of strings.
+    3. `"sortReply": { "result": { "items": ["label", "detail"] } }` - if the
+       server reply has a JSON array wrapped in an object, you can nest a sort
+       desriptor into an object. In this case in the server reply `result` is
+       an object, that has a `items` property. Where `items` is an array of
+       objects, that should be sorted using the `label` and `detail` as a
+       composite sort key.
 
 Where _wait_ object is expected server answer. Each property of this object
 should be in server response, but some string values have a special meaning:

@@ -245,12 +245,9 @@ package body Tester.Tests is
       --  For JSON Array check length and each item recursively.
       --  For JSON simple type check if Reft and Right are equal.
 
-      procedure Sort_Reply
-        (Name  : String;
-         Value : GNATCOLL.JSON.JSON_Value);
-      --  Let Name be field name in the reply to be sorted, Value is
-      --  JSON string with a key. Then JSON[Name] should be array.
-      --  Each element in the array should have key field. Sort this array.
+      procedure Sort_Reply_In_JSON
+        (JSON      : GNATCOLL.JSON.JSON_Value;
+         Parameter : GNATCOLL.JSON.JSON_Value);
 
       -----------
       -- Match --
@@ -379,60 +376,131 @@ package body Tester.Tests is
          end if;
       end Sweep_Waits;
 
-      JSON : constant GNATCOLL.JSON.JSON_Value :=
-        GNATCOLL.JSON.Read (Data);
+      ------------------------
+      -- Sort_Reply_In_JSON --
+      ------------------------
 
-      ----------------
-      -- Sort_Reply --
-      ----------------
-
-      procedure Sort_Reply
-        (Name  : String;
-         Value : GNATCOLL.JSON.JSON_Value)
+      procedure Sort_Reply_In_JSON
+        (JSON      : GNATCOLL.JSON.JSON_Value;
+         Parameter : GNATCOLL.JSON.JSON_Value)
       is
-         function Less (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean;
+         procedure Sort_Reply
+           (Name  : String;
+            Value : GNATCOLL.JSON.JSON_Value);
+         --  Let Name be field name in the reply to be sorted, Value is
+         --  JSON string with a key. Then JSON[Name] should be array.
+         --  Each element in the array should have key field. Sort this array.
 
-         function Less
-           (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean
+         ----------------
+         -- Sort_Reply --
+         ----------------
+
+         procedure Sort_Reply
+           (Name  : String;
+            Value : GNATCOLL.JSON.JSON_Value)
          is
-            Key : constant String := Value.Get;
-            Left_Value  : constant GNATCOLL.JSON.JSON_Value := Left.Get (Key);
-            Right_Value : constant GNATCOLL.JSON.JSON_Value := Right.Get (Key);
+            function Less
+              (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean;
+
+            function Less
+              (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean
+            is
+               function Key_Count return Natural;
+               function Get_Key (Index : Positive) return String;
+
+               ---------------
+               -- Key_Count --
+               ---------------
+
+               function Key_Count return Natural is
+               begin
+                  case Value.Kind is
+                     when GNATCOLL.JSON.JSON_String_Type =>
+                        return 1;
+                     when GNATCOLL.JSON.JSON_Array_Type =>
+                        return GNATCOLL.JSON.Length (Value.Get);
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end Key_Count;
+
+               -------------
+               -- Get_Key --
+               -------------
+
+               function Get_Key (Index : Positive) return String is
+               begin
+                  case Value.Kind is
+                     when GNATCOLL.JSON.JSON_String_Type =>
+                        return Value.Get;
+                     when GNATCOLL.JSON.JSON_Array_Type =>
+                        return GNATCOLL.JSON.Get (Value.Get, Index).Get;
+                     when others =>
+                        raise Program_Error;
+                  end case;
+               end Get_Key;
+
+            begin
+               for J in 1 .. Key_Count loop
+                  declare
+                     Key         : constant String := Get_Key (J);
+                     Left_Value  : constant GNATCOLL.JSON.JSON_Value :=
+                       Left.Get (Key);
+
+                     Right_Value : constant GNATCOLL.JSON.JSON_Value :=
+                       Right.Get (Key);
+                  begin
+                     if Left_Value.Kind /= Right_Value.Kind then
+                        return Left_Value.Kind < Right_Value.Kind;
+                     end if;
+
+                     case Left_Value.Kind is
+                        when GNATCOLL.JSON.JSON_String_Type =>
+                           declare
+                              L : constant String := Left_Value.Get;
+                              R : constant String := Right_Value.Get;
+                           begin
+                              if L /= R then
+                                 return L < R;
+                              end if;
+                           end;
+
+                        when others =>
+                           raise Program_Error with "Not implemented";
+                     end case;
+                  end;
+               end loop;
+
+               return False;
+            end Less;
+
+            List : GNATCOLL.JSON.JSON_Value;
          begin
-            if Left_Value.Kind /= Right_Value.Kind then
-               return Left_Value.Kind < Right_Value.Kind;
+            if JSON.Is_Empty then
+               return;
             end if;
 
-            case Left_Value.Kind is
-               when GNATCOLL.JSON.JSON_String_Type =>
-                  declare
-                     Left_String : constant String := Left_Value.Get;
-                     Right_String : constant String := Right_Value.Get;
-                  begin
-                     return Left_String < Right_String;
-                  end;
+            List := JSON.Get (Name);
+            if Value.Kind = GNATCOLL.JSON.JSON_Object_Type then
+               Sort_Reply_In_JSON (List, Value);
+            elsif List.Kind = GNATCOLL.JSON.JSON_Array_Type then
+               GNATCOLL.JSON.Sort (List, Less'Access);
+               JSON.Set_Field (Name, List);
+            end if;
+         end Sort_Reply;
 
-               when others =>
-                  raise Program_Error with "Not implemented";
-            end case;
-         end Less;
-
-         List : GNATCOLL.JSON.JSON_Value := JSON.Get (Name);
       begin
-         if List.Kind /= GNATCOLL.JSON.JSON_Array_Type then
-            return;
-         end if;
+         Parameter.Map_JSON_Object (Sort_Reply'Access);
+      end Sort_Reply_In_JSON;
 
-         List := JSON.Get (Name);
-         GNATCOLL.JSON.Sort (List, Less'Access);
-         JSON.Set_Field (Name, List);
-      end Sort_Reply;
+      JSON : constant GNATCOLL.JSON.JSON_Value :=
+        GNATCOLL.JSON.Read (Data);
 
    begin
       GNATCOLL.JSON.Append (Self.Full_Server_Output, JSON);
 
       if not Self.Sort_Reply.Is_Empty then
-         Self.Sort_Reply.Map_JSON_Object (Sort_Reply'Access);
+         Sort_Reply_In_JSON (JSON, Self.Sort_Reply);
       end if;
 
       Sweep_Waits (JSON);
