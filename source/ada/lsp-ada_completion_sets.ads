@@ -17,50 +17,36 @@
 --
 --  This package provides types to support completions in Ada Language server.
 
-with Ada.Containers.Hashed_Sets;
+with Ada.Containers.Hashed_Maps;
 
 with Libadalang.Analysis;
 
-with VSS.Strings;
-
+limited with LSP.Ada_Contexts;
 with LSP.Messages;
 
 package LSP.Ada_Completion_Sets is
 
-   function Hash
-     (Text : VSS.Strings.Virtual_String) return Ada.Containers.Hash_Type is
-       (Ada.Containers.Hash_Type'Mod (Text.Hash));
+   function Hash (Name : Libadalang.Analysis.Defining_Name)
+     return Ada.Containers.Hash_Type is
+       (Name.As_Ada_Node.Hash);
 
-   package Key_Sets is new Ada.Containers.Hashed_Sets
-     (Element_Type        => VSS.Strings.Virtual_String,
-      Hash                => Hash,
-      Equivalent_Elements => VSS.Strings."=",
-      "="                 => VSS.Strings."=");
-   --  Sets to keep completion keys, like <file:line:column>
-
-   type Completion_Result is tagged record
-      Unique_Keys     : Key_Sets.Set;
-      --  Unique keys for completions that included in the result
-      Completion_List : LSP.Messages.CompletionItem_Vector;
-      --  Corresponding ComplitionItem vector
-      Is_Incomplete   : Boolean := False;
-      --  Flag for an incomplete completion result.
+   type Name_Information is record
+      Is_Dot_Call : Boolean;
+      Is_Visible  : Boolean;
    end record;
-   --  A collection of CompletionItem. It could contain several CompletionItems
-   --  for the same canonical symbol.
 
-   procedure Append
-     (Self : in out Completion_Result'Class;
-      Name : Libadalang.Analysis.Defining_Name;
-      Item : LSP.Messages.CompletionItem) with Inline;
-   --  Append a Name and corresponding CompletionItem to the
-   --  Completion_Result, if Self doesn't contain it yet.
+   package Completion_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => Libadalang.Analysis.Defining_Name,
+      Element_Type    => Name_Information,
+      Hash            => Hash,
+      Equivalent_Keys => Libadalang.Analysis."=",
+      "="             => "=");
 
-   procedure Append_Invisible_Symbol
-     (Self      : in out Completion_Result'Class;
-      Canonical : VSS.Strings.Virtual_String;
-      Name      : Libadalang.Analysis.Defining_Name) with Inline;
-   --  Create CompletionItem for an invisible Name. Canonical is a canonical
-   --  writting on the Name
+   procedure Write_Completions
+     (Context                  : LSP.Ada_Contexts.Context;
+      Names                    : Completion_Maps.Map;
+      Use_Snippets             : Boolean;
+      Named_Notation_Threshold : Natural;
+      Result                   : in out LSP.Messages.CompletionItem_Vector);
 
 end LSP.Ada_Completion_Sets;

@@ -3172,6 +3172,8 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response
    is
+      use type Ada.Containers.Count_Type;
+
       --  We're completing only based on one context, ie one project
       --  tree: this seems reasonable. One further refinement could
       --  be to return only results that are available for all
@@ -3179,6 +3181,11 @@ package body LSP.Ada_Handlers is
 
       function Canonicalize
         (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
+
+      procedure On_Inaccessible_Name
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean);
 
       ------------------
       -- Canonicalize --
@@ -3202,21 +3209,58 @@ package body LSP.Ada_Handlers is
 
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Use_Snippets : Boolean := Self.Completion_Snippets_Enabled;
+
+      Names     : LSP.Ada_Completion_Sets.Completion_Maps.Map;
+      Use_Names : Boolean := False;
+
+      Limit : constant := 10;
+
+      --------------------------
+      -- On_Inaccessible_Name --
+      --------------------------
+
+      procedure On_Inaccessible_Name
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean) is
+      begin
+         --  Skip all names in open documents, because they could have
+         --  stale references. Then skip already provided results.
+         if not Self.Open_Documents.Contains (URI)
+           and then not Names.Contains (Name)
+         then
+            Names.Insert
+              (Name,
+               (Is_Dot_Call => False,
+                Is_Visible  => False));
+
+            Stop := Names.Length >= Limit;
+         end if;
+      end On_Inaccessible_Name;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
-      Result : LSP.Ada_Completion_Sets.Completion_Result;
    begin
 
       Document.Get_Completions_At
         (Context                  => Context.all,
          Position                 => Value.position,
-         Snippets_Enabled         => Self.Completion_Snippets_Enabled,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
-         Result                   => Result);
+         Should_Use_Snippets      => Use_Snippets,
+         Should_Use_Names         => Use_Names,
+         Names                    => Names,
+         Result                   => Response.result);
+
+      if not Use_Names then
+         return Response;
+      end if;
 
       declare
          Word : constant LSP.Types.LSP_String := Document.Get_Word_At
@@ -3227,19 +3271,24 @@ package body LSP.Ada_Handlers is
       begin
          if not LSP.Types.Is_Empty (Word) then
             Context.Get_Any_Symbol_Completion
-              (Prefix => Canonical_Prefix,
-               Limit  => 10,
-               Result => Result);
+              (Prefix   => Canonical_Prefix,
+               Callback => On_Inaccessible_Name'Access);
 
             for Doc of Self.Open_Documents loop
                Doc.Get_Any_Symbol_Completion
-                 (Context.all, Canonical_Prefix, 10, Result);
+                 (Context.all, Canonical_Prefix, Limit, Names);
             end loop;
          end if;
       end;
 
-      Response.result.items.Move (Source => Result.Completion_List);
-      Response.result.isIncomplete := Result.Is_Incomplete;
+      LSP.Ada_Completion_Sets.Write_Completions
+        (Context                  => Context.all,
+         Names                    => Names,
+         Use_Snippets             => Use_Snippets,
+         Named_Notation_Threshold => Self.Named_Notation_Threshold,
+         Result                   => Response.result.items);
+
+      Response.result.isIncomplete := Names.Length >= Limit;
 
       return Response;
    end On_Completion_Request;

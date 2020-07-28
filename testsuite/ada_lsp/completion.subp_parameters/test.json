@@ -137,8 +137,26 @@
             "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
          },
-         "wait": []
-      }
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "window/workDoneProgress/create",
+                "params": {
+                    "token": "<ANY>"
+                }
+            },  {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+     }
    },
    {
       "send": {
@@ -223,7 +241,7 @@
             "id": 4,
             "method": "textDocument/completion"
          },
-         "sortReply": { "result": {"items": "label"} },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
          "wait": [
             {
                "id": 4,
@@ -371,13 +389,31 @@
               "id": 6,
               "method": "textDocument/completion"
           },
-         "sortReply": { "result": {"items": "label"} },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
           "wait": [
               {
                   "id": 6,
                   "result": {
                       "isIncomplete": false,
                       "items": [
+                          {
+                              "label": "A",
+                              "kind": 5,
+                              "detail": "A : Integer;",
+                              "documentation": "at bar.ads (4:7)",
+                              "sortText": "~A",
+                              "additionalTextEdits": [
+                            ]
+                          },
+                          {
+                              "label": "A",
+                              "kind": 6,
+                              "detail": "A :Integer",
+                              "documentation": "at bar.ads (7:40)",
+                              "sortText": "~A",
+                              "additionalTextEdits": [
+                              ]
+                          },
                         {
                            "label": "A",
                            "kind": 6,
@@ -385,6 +421,15 @@
                            "documentation": "at main.adb (10:4)",
                            "additionalTextEdits": []
                         },
+                          {
+                              "label": "A",
+                              "kind": 6,
+                              "detail": "A, B : Integer",
+                              "documentation": "at main.adb (6:18)",
+                              "sortText": "~A",
+                              "additionalTextEdits": [
+                              ]
+                          },
                         {
                            "label": "ASCII",
                            "kind": 9,

@@ -85,30 +85,11 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
 
-   function Compute_Completion_Item
-     (Context                  : LSP.Ada_Contexts.Context;
-      BD                       : Libadalang.Analysis.Basic_Decl;
-      DN                       : Libadalang.Analysis.Defining_Name;
-      Snippets_Enabled         : Boolean;
-      Named_Notation_Threshold : Natural;
-      Is_Dot_Call              : Boolean)
-      return LSP.Messages.CompletionItem;
-   --  Compute a completion item.
-   --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
-   --  BD and DN are respectively the basic declaration and the defining name
-   --  that should be used to compute the completion item.
-   --  When Snippets_Enabled is True, subprogram completion items are computed
-   --  as snippets that list all the subprogram's formal parameters.
-   --  Named_Notation_Threshold defines the number of parameters at which point
-   --  named notation is used for subprogram completion snippets.
-   --  Is_Dot_Call is used to know if we should omit the first parameter
-   --  when computing subprogram snippets.
-
    procedure Get_Aggregate_Completion
      (Node                     : Libadalang.Analysis.Aggregate;
       Context                  : LSP.Ada_Contexts.Context;
       Named_Notation_Threshold : Natural;
-      Result                   : out Ada_Completion_Sets.Completion_Result);
+      Result                   : out LSP.Messages.CompletionItem_Vector);
    --  Return the completion list for the given aggregate node.
    --  The returned completion list may contain several items if the aggregate
    --  is used to assign a value to a variant record: in that case, a snippet
@@ -121,7 +102,7 @@ package body LSP.Ada_Documents is
    procedure Get_Keywords_Completion
      (Node   : Libadalang.Analysis.Ada_Node;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Ada_Completion_Sets.Completion_Result);
+      Result : out LSP.Messages.CompletionItem_Vector);
    --  Get completion for keywords, filtering them with the given Prefix.
 
    function Compute_Completion_Detail
@@ -1825,7 +1806,8 @@ package body LSP.Ada_Documents is
       DN                       : Libadalang.Analysis.Defining_Name;
       Snippets_Enabled         : Boolean;
       Named_Notation_Threshold : Natural;
-      Is_Dot_Call              : Boolean)
+      Is_Dot_Call              : Boolean;
+      Is_Visible               : Boolean)
       return LSP.Messages.CompletionItem
    is
       use LSP.Messages;
@@ -1841,6 +1823,10 @@ package body LSP.Ada_Documents is
       Item.kind := (True, To_Completion_Kind
                  (Get_Decl_Kind (BD)));
       Item.detail := (True, Compute_Completion_Detail (BD));
+
+      if not Is_Visible then
+         Item.sortText := (True, '~' & Item.label);
+      end if;
 
       --  Property_Errors can occur when calling
       --  Get_Documentation on unsupported docstrings, so
@@ -2006,9 +1992,8 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Result)
+      Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map)
    is
-      use type Ada.Containers.Count_Type;
 
       procedure Resresh_Symbol_Cache;
 
@@ -2064,16 +2049,19 @@ package body LSP.Ada_Documents is
       Each_Prefix :
       while Symbol_Maps.Has_Element (Cursor) loop
          declare
-            Key   : constant VSS.Strings.Virtual_String :=
+            Key : constant VSS.Strings.Virtual_String :=
               Symbol_Maps.Key (Cursor);
 
          begin
             exit Each_Prefix when not Key.Starts (Prefix);
 
             for Name of Self.Symbol_Cache (Cursor) loop
-               exit Each_Prefix when Result.Completion_List.Length >= Limit;
-
-               Result.Append_Invisible_Symbol (Key, Name);
+               if not Result.Contains (Name) then
+                  Result.Insert
+                    (Name,
+                     (Is_Dot_Call => False,
+                      Is_Visible  => False));
+               end if;
             end loop;
 
             Symbol_Maps.Next (Cursor);
@@ -2089,7 +2077,7 @@ package body LSP.Ada_Documents is
      (Node                     : Libadalang.Analysis.Aggregate;
       Context                  : LSP.Ada_Contexts.Context;
       Named_Notation_Threshold : Natural;
-      Result                   : out Ada_Completion_Sets.Completion_Result)
+      Result                   : out LSP.Messages.CompletionItem_Vector)
    is
       pragma Unreferenced (Context);
 
@@ -2406,7 +2394,7 @@ package body LSP.Ada_Documents is
                      Item.insertText :=
                        (Is_Set => True,
                         Value  => Insert_Text);
-                     Result.Completion_List.Append (Item);
+                     Result.Append (Item);
                   end if;
                end;
             end loop;
@@ -2421,7 +2409,7 @@ package body LSP.Ada_Documents is
    procedure Get_Keywords_Completion
      (Node   : Libadalang.Analysis.Ada_Node;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Ada_Completion_Sets.Completion_Result)
+      Result : out LSP.Messages.CompletionItem_Vector)
    is
       Keywords : constant Unbounded_Text_Type_Array := Node.P_Valid_Keywords;
       Item     : LSP.Messages.CompletionItem;
@@ -2440,7 +2428,7 @@ package body LSP.Ada_Documents is
                Item.insertTextFormat := (True, LSP.Messages.PlainText);
                Item.insertText := (True, Item.label);
                Item.kind := (True, LSP.Messages.Keyword);
-               Result.Completion_List.Append (Item);
+               Result.Append (Item);
             end if;
          end;
       end loop;
@@ -2454,12 +2442,13 @@ package body LSP.Ada_Documents is
      (Self                     : Document;
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
-      Snippets_Enabled         : Boolean;
       Named_Notation_Threshold : Natural;
-      Result                   : out Ada_Completion_Sets.Completion_Result)
+      Should_Use_Snippets      : in out Boolean;
+      Should_Use_Names         : out Boolean;
+      Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
+      Result                   : out LSP.Messages.CompletionList)
    is
       use Libadalang.Common;
-      use LSP.Messages;
       use LSP.Types;
 
       Real_Pos : constant LSP.Messages.Position :=
@@ -2477,24 +2466,6 @@ package body LSP.Ada_Documents is
       In_End_Label : Boolean := False;
       --  Set to True if we are completing an end label
       --  (e.g: end <Subp_Name>);
-
-      -------------------------
-      -- Should_Use_Snippets --
-      -------------------------
-
-      function Should_Use_Snippets return Boolean
-      is
-        (Snippets_Enabled and then not In_End_Label and then Sibling.Is_Null);
-      --  Return True if snippets should be enabled.
-      --  Snippets should not be used in the following cases:
-      --
-      --    . The Snippets_Enabled parameter if set to False
-      --
-      --    . When the queried node is within an end label
-      --
-      --    . When the queried node has a sibling: this is to avoid proposing
-      --      snippets when a list of parameters is already present on the
-      --      right of the completion point for instance.
 
       Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Langkit_Support.Text.To_UTF8 (Node.Text);
@@ -2550,7 +2521,7 @@ package body LSP.Ada_Documents is
            (Node                     => As_Aggregate (Node),
             Context                  => Context,
             Named_Notation_Threshold => Named_Notation_Threshold,
-            Result                   => Result);
+            Result                   => Result.items);
          return;
       end if;
 
@@ -2561,7 +2532,7 @@ package body LSP.Ada_Documents is
       then
          LSP.Predefined_Completion.Get_Aspects
            (Prefix => Prefix,
-            Result => Result.Completion_List);
+            Result => Result.items);
          return;
       end if;
 
@@ -2573,7 +2544,7 @@ package body LSP.Ada_Documents is
       then
          LSP.Predefined_Completion.Get_Pragmas
            (Prefix => Prefix,
-            Result => Result.Completion_List);
+            Result => Result.items);
          return;
       end if;
 
@@ -2603,7 +2574,7 @@ package body LSP.Ada_Documents is
             Get_Keywords_Completion
               (Node   => Node,
                Prefix => Prefix,
-               Result => Result);
+               Result => Result.items);
          end if;
       end;
 
@@ -2611,6 +2582,22 @@ package body LSP.Ada_Documents is
       --  with a syntax error.
       if Node.Kind in Ada_Error_Decl_Range then
          return;
+      end if;
+
+      Should_Use_Names := True;  --  Let's use defining names for completion
+
+      if In_End_Label or not Sibling.Is_Null then
+         --  Snippets should not be used in the following cases:
+         --
+         --   . The Snippets_Enabled parameter if set to False
+         --
+         --   . When the queried node is within an end label
+         --
+         --   . When the queried node has a sibling: this is to avoid proposing
+         --     snippets when a list of parameters is already present on the
+         --     right of the completion point for instance.
+
+         Should_Use_Snippets := False;
       end if;
 
       declare
@@ -2634,16 +2621,7 @@ package body LSP.Ada_Documents is
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
-                     Result.Append
-                       (DN,
-                        Compute_Completion_Item
-                          (Context                  => Context,
-                           BD                       => BD,
-                           DN                       => DN,
-                           Snippets_Enabled         => Should_Use_Snippets,
-                           Named_Notation_Threshold =>
-                             Named_Notation_Threshold,
-                           Is_Dot_Call              => Is_Dot_Call (CI)));
+                     Names.Include (DN, (Is_Dot_Call (CI), True));
                   end if;
                end loop;
             end if;
@@ -2651,7 +2629,7 @@ package body LSP.Ada_Documents is
 
          Context.Trace.Trace
            ("Number of filtered completions : " &
-              Result.Completion_List.Length'Image);
+              Names.Length'Image);
       end;
    end Get_Completions_At;
 

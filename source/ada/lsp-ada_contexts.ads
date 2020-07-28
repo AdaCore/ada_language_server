@@ -17,7 +17,6 @@
 --
 --  This package provides a context of Ada Language server.
 
-with Ada.Containers;
 with Ada.Strings.Unbounded;
 
 with GNATCOLL.Projects;
@@ -36,7 +35,6 @@ with LSP.Messages;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets; use LSP.Ada_File_Sets;
 with LSP.Types;
-with LSP.Ada_Completion_Sets;
 
 package LSP.Ada_Contexts is
 
@@ -197,11 +195,13 @@ package LSP.Ada_Contexts is
    procedure Get_Any_Symbol_Completion
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
-      Limit  : Ada.Containers.Count_Type;
-      Result : in out LSP.Ada_Completion_Sets.Completion_Result);
+      Callback : not null access procedure
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the context and
-   --  populate Result with corresponding CompletionItem-s. Keep no more then
-   --  Limit items in the Result.
+   --  call Callback for each. Name could contain a stale reference if the File
+   --  was updated since last indexing operation.
 
 private
 
