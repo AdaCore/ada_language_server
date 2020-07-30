@@ -3077,24 +3077,33 @@ package body LSP.Ada_Handlers is
 
       for Context of Self.Contexts.Each_Context loop
          for F in Context.List_Files loop
-            Current_Percent := (Index * 100) / Total;
-            --  If the value of the indexing increased by at least one percent,
-            --  emit one progress report.
-            if Current_Percent > Last_Percent then
-               Emit_Progress_Report (Current_Percent);
-               Last_Percent := Current_Percent;
-            end if;
+            declare
+               File : constant GNATCOLL.VFS.Virtual_File :=
+                 LSP.Ada_File_Sets.File_Sets.Element (F);
+               URI  : constant LSP.Messages.DocumentUri := File_To_URI
+                 (LSP.Types.To_LSP_String (File.Display_Full_Name));
+            begin
+               if not Self.Open_Documents.Contains (URI) then
+                  Current_Percent := (Index * 100) / Total;
+                  --  If the value of the indexing increased by at least one
+                  --  percent, emit one progress report.
+                  if Current_Percent > Last_Percent then
+                     Emit_Progress_Report (Current_Percent);
+                     Last_Percent := Current_Percent;
+                  end if;
 
-            Context.Index_File (LSP.Ada_File_Sets.File_Sets.Element (F));
-            Index := Index + 1;
+                  Context.Index_File (File);
+                  Index := Index + 1;
 
-            --  Check whether another request is pending. If so, pause the
-            --  indexing; it will be resumed later as part of After_Request.
-            --  if Self.Server.Input_Queue_Length > 0 then
-            if Self.Server.Has_Pending_Work then
-               Emit_Progress_End;
-               return;
-            end if;
+                  --  Check whether another request is pending. If so, pause
+                  --  the indexing; it will be resumed later as part of
+                  --  After_Request. if Self.Server.Input_Queue_Length > 0 then
+                  if Self.Server.Has_Pending_Work then
+                     Emit_Progress_End;
+                     return;
+                  end if;
+               end if;
+            end;
          end loop;
       end loop;
 
