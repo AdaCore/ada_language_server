@@ -260,6 +260,8 @@ private
 
       Symbol_Cache : Symbol_Maps.Map;
       --  Cache of all defining name symbol of the document.
+      Refresh_Symbol_Cache : Boolean := False;
+      --  Symbol_Cache rebuild is required before.
    end record;
 
    procedure Diff

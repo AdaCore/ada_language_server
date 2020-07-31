@@ -136,6 +136,9 @@ package body LSP.Ada_Documents is
    procedure Recompute_Indexes (Self : in out Document);
    --  Recompute the line-to-offset indexes in Self
 
+   procedure Reset_Symbol_Cache (Self : in out Document'Class);
+   --  Clean cache for defining name symbols of the document.
+
    -----------------------
    -- Recompute_Indexes --
    -----------------------
@@ -180,6 +183,7 @@ package body LSP.Ada_Documents is
       use LSP.Types;
    begin
       Self.Trace.Trace ("Applying changes for document " & File);
+      Self.Reset_Symbol_Cache;
 
       if Version.Is_Set then
          Self.Version := Version.Value;
@@ -1758,8 +1762,25 @@ package body LSP.Ada_Documents is
       Self.URI  := URI;
       Self.Version := 1;
       Self.Text := Text;
+      Self.Refresh_Symbol_Cache := True;
       Recompute_Indexes (Self);
    end Initialize;
+
+   ------------------------
+   -- Reset_Symbol_Cache --
+   ------------------------
+
+   procedure Reset_Symbol_Cache (Self : in out Document'Class) is
+   begin
+      for Item of Self.Symbol_Cache loop
+         --  We clear defining name vectors, but keep symbol map in hope, that
+         --  we will reuse the same elements after reindexing in
+         --  Refresh_Symbol_Cache call, so we avoid memory reallocation.
+         Item.Clear;
+      end loop;
+
+      Self.Refresh_Symbol_Cache := True;
+   end Reset_Symbol_Cache;
 
    -------------------
    -- To_LSP_String --
@@ -1995,13 +2016,13 @@ package body LSP.Ada_Documents is
       Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map)
    is
 
-      procedure Resresh_Symbol_Cache;
+      procedure Refresh_Symbol_Cache;
 
       --------------------------
-      -- Resresh_Symbol_Cache --
+      -- Refresh_Symbol_Cache --
       --------------------------
 
-      procedure Resresh_Symbol_Cache is
+      procedure Refresh_Symbol_Cache is
          use Libadalang.Common;
 
          Node : Libadalang.Analysis.Ada_Node;
@@ -2035,13 +2056,14 @@ package body LSP.Ada_Documents is
                Self.Symbol_Cache (Cursor).Append (Node.As_Defining_Name);
             end;
          end loop;
-      end Resresh_Symbol_Cache;
+      end Refresh_Symbol_Cache;
 
       Cursor : Symbol_Maps.Cursor;
 
    begin
-      if Self.Symbol_Cache.Is_Empty then
-         Resresh_Symbol_Cache;
+      if Self.Refresh_Symbol_Cache then
+         Refresh_Symbol_Cache;
+         Self.Refresh_Symbol_Cache := False;
       end if;
 
       Cursor := Self.Symbol_Cache.Ceiling (Prefix);
