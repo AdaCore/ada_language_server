@@ -1396,25 +1396,32 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
+      URI      : LSP.Messages.DocumentUri renames Value.textDocument.uri;
       Diag     : LSP.Messages.PublishDiagnosticsParams;
       Document : Internal_Document_Access;
    begin
       if Self.Open_Documents.Contains (Value.textDocument.uri) then
-         Document := Self.Open_Documents.Element (Value.textDocument.uri);
+         Document := Self.Open_Documents.Element (URI);
+
+         for Context of Self.Contexts_For_URI (URI) loop
+            Context.Flush_Document (Document.all);
+         end loop;
+
          Unchecked_Free (Document);
-         Self.Open_Documents.Delete (Value.textDocument.uri);
+         Self.Open_Documents.Delete (URI);
+
       else
          --  We have received a didCloseTextDocument but the document was
          --  not open: this is not supposed to happen, log it.
 
          Self.Trace.Trace
            ("received a didCloseTextDocument for non-open document with uri: "
-            & To_UTF_8_String (Value.textDocument.uri));
+            & To_UTF_8_String (URI));
       end if;
 
       --  Clean diagnostics up on closing document
       if Self.Diagnostics_Enabled then
-         Diag.uri := Value.textDocument.uri;
+         Diag.uri := URI;
          Self.Server.On_Publish_Diagnostics (Diag);
       end if;
    end On_DidCloseTextDocument_Notification;

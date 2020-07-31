@@ -340,6 +340,25 @@ package body LSP.Ada_Contexts is
       end if;
    end Find_All_References_In_Hierarchy;
 
+   --------------------
+   -- Flush_Document --
+   --------------------
+
+   procedure Flush_Document
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document)
+   is
+      File : constant LSP.Types.LSP_String := URI_To_File (Document.URI);
+      Unit : Libadalang.Analysis.Analysis_Unit;
+   begin
+      Unit := Self.LAL_Context.Get_From_File
+        (Filename => LSP.Types.To_UTF_8_String (File),
+         Charset  => Self.Get_Charset,
+         Reparse  => True);  --  Force LAL to reload unit content
+
+      Self.Source_Files.Flush_File_Index (Document.URI, Unit);
+   end Flush_Document;
+
    ---------------------------------
    -- Get_References_For_Renaming --
    ---------------------------------
