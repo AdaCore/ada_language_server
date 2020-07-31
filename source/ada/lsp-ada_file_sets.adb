@@ -41,6 +41,35 @@ package body LSP.Ada_File_Sets is
       return Self.Files.Contains (File);
    end Contains;
 
+   ----------------------
+   -- Flush_File_Index --
+   ----------------------
+
+   procedure Flush_File_Index
+     (Self : in out Indexed_File_Set'Class;
+      URI  : LSP.Messages.DocumentUri;
+      Unit : Libadalang.Analysis.Analysis_Unit)
+   is
+      use type LSP.Messages.DocumentUri;
+      Index : Positive;
+   begin
+      --  Delete all Defining_Names with given URI
+      for Vector of Self.All_Symbols loop
+         Index := 1;
+
+         while Index <= Vector.Last_Index loop
+            if Vector (Index).URI = URI then
+               Vector.Swap (Index, Vector.Last_Index);
+               Vector.Delete_Last;
+            else
+               Index := Index + 1;
+            end if;
+         end loop;
+      end loop;
+
+      Self.Index_File (URI, Unit);
+   end Flush_File_Index;
+
    -------------------------------
    -- Get_Any_Symbol_Completion --
    -------------------------------

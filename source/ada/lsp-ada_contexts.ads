@@ -173,6 +173,11 @@ package LSP.Ada_Contexts is
      (Self : Context; Document : LSP.Ada_Documents.Document);
    --  Index/reindex the given document in this context
 
+   procedure Flush_Document
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document);
+   --  Revert Document to the state of the file discarding any changes
+
    procedure Append_Declarations
      (Self      : Context;
       Document  : LSP.Ada_Documents.Document_Access;
