@@ -1,0 +1,319 @@
+[
+   {
+      "comment": [
+          "Check invisible symbols in completion.",
+          " 1. Check symbols from unopen file.",
+          " 2. Check symbols from an edited file.",
+          " 3. Check symbols from a closed file."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 "("
+                             ],
+                             "resolveProvider": false
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile":"default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "text": "with Aaa;\n\nprocedure Main is\n   V : Integer := Invisi;\nbegin\n   null;\nend Main;\n",
+                  "version": 1,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 24
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Invisible",
+                        "kind": 6,
+                        "detail": "Invisible : Integer;",
+                        "documentation": "at aaa.ads (2:4)",
+                        "sortText": "~Invisible"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "text": "package Aaa is\n   Invisible : Integer;\nend;",
+                  "version": 1,
+                  "uri": "$URI{aaa.ads}",
+                  "languageId": "ada"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{aaa.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 14
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 14
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": "\n"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 24
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 19,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Invisible",
+                        "kind": 6,
+                        "detail": "Invisible : Integer;",
+                        "documentation": "at aaa.ads (3:4)",
+                        "sortText": "~Invisible"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{aaa.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 28,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 24
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 28,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Invisible",
+                        "kind": 6,
+                        "detail": "Invisible : Integer;",
+                        "documentation": "at aaa.ads (2:4)",
+                        "sortText": "~Invisible"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 44,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
