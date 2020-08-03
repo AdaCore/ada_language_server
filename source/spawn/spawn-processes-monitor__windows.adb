@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -114,7 +114,7 @@ package body Spawn.Processes.Monitor is
             declare
                Old : pollfd_array_access := fds;
             begin
-               fds := new Windows_API.HANDLE_Array (1 .. fds'Last * 2 / 3);
+               fds := new Windows_API.HANDLE_Array (1 .. fds'Last * 3 / 2);
                fds (Old'Range) := Old.all;
                Free (Old);
             end;
