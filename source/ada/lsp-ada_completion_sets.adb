@@ -22,6 +22,16 @@ with LSP.Ada_Documents;
 
 package body LSP.Ada_Completion_Sets is
 
+   --------------
+   -- Is_Equal --
+   --------------
+
+   function Is_Equal (Left, Right : Libadalang.Analysis.Defining_Name)
+     return Boolean is
+   begin
+      return Libadalang.Analysis."=" (Left, Right);
+   end Is_Equal;
+
    -----------------------
    -- Write_Completions --
    -----------------------
