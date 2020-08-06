@@ -30,6 +30,11 @@ package LSP.Ada_Completion_Sets is
      return Ada.Containers.Hash_Type is
        (Name.As_Ada_Node.Hash);
 
+   function Is_Equal (Left, Right : Libadalang.Analysis.Defining_Name)
+     return Boolean;
+   --  This custom Is_Equal function is here as a temporary workaround.
+   --  The ticket for the corresponding compiler bug is T806-020.
+
    type Name_Information is record
       Is_Dot_Call : Boolean;
       Is_Visible  : Boolean;
@@ -39,7 +44,7 @@ package LSP.Ada_Completion_Sets is
      (Key_Type        => Libadalang.Analysis.Defining_Name,
       Element_Type    => Name_Information,
       Hash            => Hash,
-      Equivalent_Keys => Libadalang.Analysis."=",
+      Equivalent_Keys => Is_Equal,
       "="             => "=");
 
    procedure Write_Completions
