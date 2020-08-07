@@ -81,7 +81,7 @@
             {
                 "language": "ada",
                 "scopeName": "source.ada",
-                "path": "./syntaxes/ada.tmLanguage.json"
+                "path": "./advanced/ada.tmLanguage.json"
             },
             {
                 "language": "ali",
