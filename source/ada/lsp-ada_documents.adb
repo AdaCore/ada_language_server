@@ -2516,9 +2516,14 @@ package body LSP.Ada_Documents is
          end if;
       end loop;
 
-      --  Return immediately if we are dealing with a null node
+      --  Return immediately if we are dealing with a null node or if the
+      --  node's parent is a Defining_Name, meaning that we are declaring a
+      --  new symbol.
 
-      if Node.Is_Null then
+      if Node.Is_Null or else
+        (not Node.Parent.Is_Null
+                and then Node.Parent.Kind in Ada_Defining_Name_Range)
+      then
          return;
       end if;
 
