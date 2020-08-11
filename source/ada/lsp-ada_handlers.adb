@@ -35,6 +35,7 @@ with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Completion_Sets;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
@@ -46,9 +47,12 @@ with LSP.Types;        use LSP.Types;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
+with Laltools.Refactor_Imports;
+
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
+with Libadalang.Helpers;
 
 with VSS.Strings;
 
@@ -84,8 +88,6 @@ package body LSP.Ada_Handlers is
    --  Send a message of the given Msg_Type to the LSP client to warn the user
    --  of a possible imprecise result while computing xrefs on the given
    --  node.
-
-   subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
 
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
@@ -825,6 +827,7 @@ package body LSP.Ada_Handlers is
          end Append_Command;
 
          Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
+
       begin
          case Kind is
             when Libadalang.Common.Ada_Stmt
@@ -847,6 +850,77 @@ package body LSP.Ada_Handlers is
                       (List.As_Basic_Assoc_List)
                   then
                      Append_Command (List);
+                  end if;
+               end;
+
+            when Libadalang.Common.Ada_Identifier =>
+               declare
+                  Name      : constant Libadalang.Analysis.Name
+                    := Get_Node_As_Name (Node);
+                  Imprecise : Boolean;
+                  use type Libadalang.Analysis.Name;
+                  use type Libadalang.Analysis.Defining_Name;
+               begin
+                  --  Only suggest with clause / prefix for unresolved nodes
+
+                  if Name /= Libadalang.Analysis.No_Name and then
+                    Resolve_Name (Name, Context.Trace, Imprecise)
+                    = Libadalang.Analysis.No_Defining_Name
+                  then
+                     declare
+                        Units_Vector : Libadalang.Helpers.Unit_Vectors.Vector;
+                        Units_Array  : constant
+                          Libadalang.Analysis.Analysis_Unit_Array
+                            := Context.Analysis_Units;
+                        Import_Suggestions : Laltools.Refactor_Imports.
+                          Import_Suggestions_Vector.Vector;
+                     begin
+
+                        for U of Units_Array loop
+                           Units_Vector.Append (U);
+                        end loop;
+
+                        --  Add runtime analysis units for this context
+
+                        for F in Self.Project_Predefined_Sources.Iterate loop
+                           declare
+                              VF : GNATCOLL.VFS.Virtual_File renames
+                                LSP.Ada_File_Sets.File_Sets.Element (F);
+                              Filename : constant String := +VF.Full_Name;
+                           begin
+                              Units_Vector.Append
+                                (Context.LAL_Context.Get_From_File (Filename));
+                           end;
+                        end loop;
+
+                        --  Get suggestions for all reachable declarations.
+                        --  Each suggestion contains a with clause and a
+                        --  prefix.
+
+                        Import_Suggestions := Laltools.Refactor_Imports.
+                          Get_Import_Suggestions
+                            (Node.As_Identifier, Units_Vector);
+
+                        --  Create a new codeAction command for each suggestion
+
+                        for Suggestion of Import_Suggestions loop
+                           declare
+                              Command : LSP.Ada_Handlers.
+                                Refactor_Imports_Commands.Command;
+                           begin
+                              Command.Append_Suggestion
+                                (Context         => Context,
+                                 Where           =>
+                                   LSP.Lal_Utils.Get_Node_Location (Node),
+                                 Commands_Vector => Result,
+                                 Suggestion      => Suggestion);
+                           end;
+                        end loop;
+
+                        if not Import_Suggestions.Is_Empty then
+                           Found := True;
+                        end if;
+                     end;
                   end if;
                end;
 
@@ -2125,8 +2199,6 @@ package body LSP.Ada_Handlers is
          begin
             --  Do not consider calls made by nested subprograms, expression
             --  functions or tasks.
-
-            Self.Trace.Trace (N.Image);
 
             if N.Kind in
               Ada_Subp_Body
