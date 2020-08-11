@@ -284,7 +284,7 @@ package LSP.Messages is
    --```
    type Span is record
       first: Position;
-      last: Position;  --  end: is reserved work
+      last: Position;  --  end: is reserved word
    end record;
    --  `Range` is a reserved word in Ada, so let's name it Span
 
