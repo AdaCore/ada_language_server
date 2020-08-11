@@ -128,7 +128,7 @@ package LSP.Ada_Documents is
       Position                 : LSP.Messages.Position;
       Named_Notation_Threshold : Natural;
       Should_Use_Snippets      : in out Boolean;
-      Should_Use_Names         : out Boolean;
+      Should_Use_Names         : in out Boolean;
       Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
