@@ -105,7 +105,8 @@
                      "documentSymbolProvider": true,
                      "executeCommandProvider": {
                         "commands": [
-                           "als-named-parameters"
+                           "als-named-parameters",
+                           "als-refactor-imports"
                         ]
                      }
                   }

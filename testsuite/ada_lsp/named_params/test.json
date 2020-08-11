@@ -48,7 +48,9 @@
                             "codeActionKinds":["refactor.rewrite"]
                         },
                         "executeCommandProvider":{
-                            "commands":["als-named-parameters"]
+                            "commands":["als-named-parameters",
+                                        "als-refactor-imports"
+                            ]
                         }
                     }
                 }

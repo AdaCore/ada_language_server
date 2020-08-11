@@ -57,6 +57,8 @@ package LSP.Ada_Handlers is
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
+   subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
+
 private
 
    --  Options for refactoring/renaming

@@ -34,6 +34,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -126,6 +127,8 @@ procedure LSP.Ada_Driver is
    begin
       LSP.Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Imports_Commands.Command'Tag);
    end Register_Commands;
 
    use GNAT.Strings;
