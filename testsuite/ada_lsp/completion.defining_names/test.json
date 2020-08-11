@@ -1,0 +1,351 @@
+[
+   {
+      "comment": [
+          "This test checks that we don't propose any completion ",
+          "when defining a new symbol (e.g: when creating a new procedure)"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 438,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "signatureHelp": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ],
+                     "implementationProvider": true,
+                     "foldingRangeProvider": true,
+                     "typeDefinitionProvider": true,
+                     "alsShowDepsProvider": true,
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "codeActionProvider": {},
+                     "alsCallsProvider": true,
+                     "textDocumentSync": 2,
+                     "documentFormattingProvider": true,
+                     "declarationProvider": true,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-named-parameters"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\n\n   procedure Do_Nothing is null;\n\n   procedure Do_No\nbegin\n     null;\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "foldComments": false
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/foldingRange"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "endLine": 7,
+                     "startLine": 0,
+                     "kind": "region"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "t",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 18
+                        }
+                     }
+                  }
+               ],
+               "textDocument": {
+                  "version": 1,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 19
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "contentChanges": [
+                  {
+                     "text": "h",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 19
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 19
+                        }
+                     }
+                  }
+               ],
+               "textDocument": {
+                  "version": 2,
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 20
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
