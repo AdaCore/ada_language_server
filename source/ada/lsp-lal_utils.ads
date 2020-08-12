@@ -25,12 +25,15 @@ with GNATCOLL.Traces;
 
 with LSP.Ada_Contexts;
 with LSP.Messages;
+with LSP.Types;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
 
 with Langkit_Support.Text;
 with Langkit_Support.Slocs;
+
+with VSS.Strings;
 
 package LSP.Lal_Utils is
 
@@ -185,5 +188,10 @@ package LSP.Lal_Utils is
    --     Imprecise : out Boolean) return Boolean;
    --  TODO: Reactivate these lines when libadalang supports
    --  P_Next_Part for tasks: T716-049
+
+   function Canonicalize
+     (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
+   --  Return a canonicalized value for Text. This performs case folding and
+   --  brackets decoding.
 
 end LSP.Lal_Utils;

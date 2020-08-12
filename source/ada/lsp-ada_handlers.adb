@@ -49,7 +49,6 @@ with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
-with Libadalang.Sources;
 
 with VSS.Strings;
 
@@ -3195,33 +3194,10 @@ package body LSP.Ada_Handlers is
       --  be to return only results that are available for all
       --  project contexts.
 
-      function Canonicalize
-        (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
-
       procedure On_Inaccessible_Name
         (URI  : LSP.Messages.DocumentUri;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean);
-
-      ------------------
-      -- Canonicalize --
-      ------------------
-
-      function Canonicalize
-        (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String
-      is
-         UTF_32 : constant Wide_Wide_String :=
-           Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode
-             (LSP.Types.To_UTF_8_String (Text));
-         Result : constant Symbolization_Result :=
-           Libadalang.Sources.Canonicalize (UTF_32);
-      begin
-         if Result.Success then
-            return VSS.Strings.To_Virtual_String (Result.Symbol);
-         else
-            return VSS.Strings.Empty_Magic_String;
-         end if;
-      end Canonicalize;
 
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
