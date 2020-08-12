@@ -396,24 +396,6 @@
                   "result": {
                       "isIncomplete": false,
                       "items": [
-                          {
-                              "label": "A",
-                              "kind": 5,
-                              "detail": "A : Integer;",
-                              "documentation": "at bar.ads (4:7)",
-                              "sortText": "~A",
-                              "additionalTextEdits": [
-                            ]
-                          },
-                          {
-                              "label": "A",
-                              "kind": 6,
-                              "detail": "A :Integer",
-                              "documentation": "at bar.ads (7:40)",
-                              "sortText": "~A",
-                              "additionalTextEdits": [
-                              ]
-                          },
                         {
                            "label": "A",
                            "kind": 6,
@@ -422,7 +404,28 @@
                            "additionalTextEdits": []
                         },
                           {
-                              "label": "A",
+                              "label": "A (invisible)",
+                              "insertText": "A",
+                              "kind": 5,
+                              "detail": "A : Integer;",
+                              "documentation": "at bar.ads (4:7)",
+                              "sortText": "~A",
+                              "additionalTextEdits": [
+                            ]
+                          },
+                          {
+                              "label": "A (invisible)",
+                              "insertText": "A",
+                              "kind": 6,
+                              "detail": "A :Integer",
+                              "documentation": "at bar.ads (7:40)",
+                              "sortText": "~A",
+                              "additionalTextEdits": [
+                              ]
+                          },
+                          {
+                              "label": "A (invisible)",
+                              "insertText": "A",
                               "kind": 6,
                               "detail": "A, B : Integer",
                               "documentation": "at main.adb (6:18)",

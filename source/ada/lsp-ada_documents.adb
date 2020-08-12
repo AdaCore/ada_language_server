@@ -1847,6 +1847,8 @@ package body LSP.Ada_Documents is
 
       if not Is_Visible then
          Item.sortText := (True, '~' & Item.label);
+         Item.insertText := (True, Item.label);
+         Item.label := Item.label & " (invisible)";
       end if;
 
       --  Property_Errors can occur when calling
@@ -1891,8 +1893,9 @@ package body LSP.Ada_Documents is
       end;
 
       --  Return immediately if the client does not support completion
-      --  snippets.
-      if not Snippets_Enabled then
+      --  snippets. Also don't provide snippets for invisible symbols, because
+      --  we don't know if this is a "dot call" or normal one.
+      if not Snippets_Enabled or not Is_Visible then
          return Item;
       end if;
 
