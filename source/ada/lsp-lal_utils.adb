@@ -16,12 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Wide_Wide_Characters.Handling;
+with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Fixed;
 
 with LSP.Common;        use LSP.Common;
 with LSP.Types;         use LSP.Types;
 
 with Libadalang.Common; use Libadalang.Common;
+with Libadalang.Sources;
 
 with Langkit_Support;
 
@@ -618,6 +620,26 @@ package body LSP.Lal_Utils is
          Log (Trace, E);
          return No_Defining_Name;
    end Find_Other_Part_Fallback;
+
+   ------------------
+   -- Canonicalize --
+   ------------------
+
+   function Canonicalize
+     (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String
+   is
+      UTF_32 : constant Wide_Wide_String :=
+        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode
+          (LSP.Types.To_UTF_8_String (Text));
+      Result : constant Symbolization_Result :=
+        Libadalang.Sources.Canonicalize (UTF_32);
+   begin
+      if Result.Success then
+         return VSS.Strings.To_Virtual_String (Result.Symbol);
+      else
+         return VSS.Strings.Empty_Magic_String;
+      end if;
+   end Canonicalize;
 
    -----------------------
    -- Containing_Entity --
