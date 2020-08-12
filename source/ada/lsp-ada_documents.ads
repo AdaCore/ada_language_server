@@ -127,14 +127,15 @@ package LSP.Ada_Documents is
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
       Named_Notation_Threshold : Natural;
-      Should_Use_Snippets      : in out Boolean;
+      Snippets_Enabled         : Boolean;
       Should_Use_Names         : in out Boolean;
       Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
    --  Named_Notation_Threshold defines the number of components at which point
    --  named notation is used for aggregate completion snippets.
-   --  Reset Should_Use_Snippets is snippets have no sence in given position.
+   --  If Use_Snippets is True, completion for subprograms and aggregates
+   --  will be given in the form of snippets when it makes sense.
    --  In case when no defining names could be used for completion (for
    --  instange inside aggregates, pragmas, keywords, etc) set Should_Use_Names
    --  to False. Otherwise set it to True and populate Names instead of Result.
@@ -208,7 +209,7 @@ package LSP.Ada_Documents is
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
       DN                       : Libadalang.Analysis.Defining_Name;
-      Snippets_Enabled         : Boolean;
+      Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean)
@@ -217,7 +218,7 @@ package LSP.Ada_Documents is
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
    --  BD and DN are respectively the basic declaration and the defining name
    --  that should be used to compute the completion item.
-   --  When Snippets_Enabled is True, subprogram completion items are computed
+   --  When Use_Snippets is True, subprogram completion items are computed
    --  as snippets that list all the subprogram's formal parameters.
    --  Named_Notation_Threshold defines the number of parameters at which point
    --  named notation is used for subprogram completion snippets.
