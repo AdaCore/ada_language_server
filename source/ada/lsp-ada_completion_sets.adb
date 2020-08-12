@@ -39,7 +39,6 @@ package body LSP.Ada_Completion_Sets is
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
-      Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Result                   : in out LSP.Messages.CompletionItem_Vector) is
    begin
@@ -51,13 +50,13 @@ package body LSP.Ada_Completion_Sets is
          begin
             Result.Append
               (LSP.Ada_Documents.Compute_Completion_Item
-                 (Context,
-                  Name.P_Basic_Decl,
-                  Name,
-                  Use_Snippets,
-                  Named_Notation_Threshold,
-                  Is_Dot_Call => Info.Is_Dot_Call,
-                  Is_Visible  => Info.Is_Visible));
+                 (Context                  => Context,
+                  BD                       => Name.P_Basic_Decl,
+                  DN                       => Name,
+                  Use_Snippets             => Info.Use_Snippets,
+                  Named_Notation_Threshold => Named_Notation_Threshold,
+                  Is_Dot_Call              => Info.Is_Dot_Call,
+                  Is_Visible               => Info.Is_Visible));
          end;
       end loop;
    end Write_Completions;

@@ -36,8 +36,9 @@ package LSP.Ada_Completion_Sets is
    --  The ticket for the corresponding compiler bug is T806-020.
 
    type Name_Information is record
-      Is_Dot_Call : Boolean;
-      Is_Visible  : Boolean;
+      Is_Dot_Call  : Boolean;
+      Is_Visible   : Boolean;
+      Use_Snippets : Boolean;
    end record;
 
    package Completion_Maps is new Ada.Containers.Hashed_Maps
@@ -50,7 +51,6 @@ package LSP.Ada_Completion_Sets is
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
-      Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Result                   : in out LSP.Messages.CompletionItem_Vector);
 

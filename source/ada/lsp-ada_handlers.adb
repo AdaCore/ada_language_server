@@ -3229,7 +3229,7 @@ package body LSP.Ada_Handlers is
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
-      Use_Snippets : Boolean := Self.Completion_Snippets_Enabled;
+      Snippets_Enabled : constant Boolean := Self.Completion_Snippets_Enabled;
 
       Names     : LSP.Ada_Completion_Sets.Completion_Maps.Map;
       Use_Names : Boolean := False;
@@ -3252,8 +3252,9 @@ package body LSP.Ada_Handlers is
          then
             Names.Insert
               (Name,
-               (Is_Dot_Call => False,
-                Is_Visible  => False));
+               (Is_Dot_Call  => False,
+                Is_Visible   => False,
+                Use_Snippets => False));
 
             Stop := Names.Length >= Limit;
          end if;
@@ -3269,11 +3270,14 @@ package body LSP.Ada_Handlers is
         (Context                  => Context.all,
          Position                 => Value.position,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
-         Should_Use_Snippets      => Use_Snippets,
+         Snippets_Enabled         => Snippets_Enabled,
          Should_Use_Names         => Use_Names,
          Names                    => Names,
          Result                   => Response.result);
 
+      --  We are not expecting a defining name: it means that we are completing
+      --  a pragma, an aspect or an attribute. In this case, we don't want to
+      --  search for invisible symbols since it's costly so return immediately.
       if not Use_Names then
          return Response;
       end if;
@@ -3300,7 +3304,6 @@ package body LSP.Ada_Handlers is
       LSP.Ada_Completion_Sets.Write_Completions
         (Context                  => Context.all,
          Names                    => Names,
-         Use_Snippets             => Use_Snippets,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
          Result                   => Response.result.items);
 

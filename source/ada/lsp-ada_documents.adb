@@ -1825,7 +1825,7 @@ package body LSP.Ada_Documents is
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
       DN                       : Libadalang.Analysis.Defining_Name;
-      Snippets_Enabled         : Boolean;
+      Use_Snippets         : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean)
@@ -1892,10 +1892,9 @@ package body LSP.Ada_Documents is
             Item.documentation := (others => <>);
       end;
 
-      --  Return immediately if the client does not support completion
-      --  snippets. Also don't provide snippets for invisible symbols, because
-      --  we don't know if this is a "dot call" or normal one.
-      if not Snippets_Enabled or not Is_Visible then
+      --  Return immediately if we should not use snippets (e.g: completion for
+      --  invisible symbols).
+      if not Use_Snippets then
          return Item;
       end if;
 
@@ -2084,8 +2083,9 @@ package body LSP.Ada_Documents is
                if not Result.Contains (Name) then
                   Result.Insert
                     (Name,
-                     (Is_Dot_Call => False,
-                      Is_Visible  => False));
+                     (Is_Dot_Call  => False,
+                      Is_Visible   => False,
+                      Use_Snippets => False));
                end if;
             end loop;
 
@@ -2468,7 +2468,7 @@ package body LSP.Ada_Documents is
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
       Named_Notation_Threshold : Natural;
-      Should_Use_Snippets      : in out Boolean;
+      Snippets_Enabled      : Boolean;
       Should_Use_Names         : in out Boolean;
       Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList)
@@ -2486,7 +2486,11 @@ package body LSP.Ada_Documents is
         Self.Get_Node_At (Context, Real_Pos);
       --  Get the corresponding LAL node
 
+      Parent   : Libadalang.Analysis.Ada_Node;
+      --  The parent of the node to complete.
+
       Sibling  : Libadalang.Analysis.Ada_Node;
+      --  The right sibling of the node to complete.
 
       In_End_Label : Boolean := False;
       --  Set to True if we are completing an end label
@@ -2494,6 +2498,8 @@ package body LSP.Ada_Documents is
 
       Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Langkit_Support.Text.To_UTF8 (Node.Text);
+
+      Use_Snippets : Boolean := Snippets_Enabled;
    begin
       Context.Trace.Trace ("In Get_Completions_At");
 
@@ -2535,12 +2541,13 @@ package body LSP.Ada_Documents is
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
 
+      Parent := Node.Parent;
       Sibling := Node.Next_Sibling;
 
       --  Check if we are completing an end label. If it's the case, we want
       --  to disable snippets since end labels don't expect any parameters.
-      In_End_Label := not Node.Parent.Is_Null
-        and then Node.Parent.Kind in Ada_End_Name_Range;
+      In_End_Label := not Parent.Is_Null
+        and then Parent.Kind in Ada_End_Name_Range;
 
       --  Check if we are dealing with an aggregate node. If yes, handle it
       --  separately to propose snipppets to the user, allowing him to fill
@@ -2557,9 +2564,7 @@ package body LSP.Ada_Documents is
 
       --  Get completion for aspects if we are within an aspect association
       --  node and return immediatly since we only expect aspects here.
-      if not Node.Parent.Is_Null
-        and then Node.Parent.Kind in Ada_Aspect_Assoc_Range
-      then
+      if not Parent.Is_Null and then Parent.Kind in Ada_Aspect_Assoc_Range then
          LSP.Predefined_Completion.Get_Aspects
            (Prefix => Prefix,
             Result => Result.items);
@@ -2569,9 +2574,7 @@ package body LSP.Ada_Documents is
       --  Get completion for pragmas if we are within an pragma node and return
       --  immediately, since we don't want to propose other items than pragmas
       --  when wthin a pragma node.
-      if not Node.Parent.Is_Null
-        and then Node.Parent.Kind in Ada_Pragma_Node_Range
-      then
+      if not Parent.Is_Null and then Parent.Kind in Ada_Pragma_Node_Range then
          LSP.Predefined_Completion.Get_Pragmas
            (Prefix => Prefix,
             Result => Result.items);
@@ -2616,18 +2619,24 @@ package body LSP.Ada_Documents is
 
       Should_Use_Names := True;  --  Let's use defining names for completion
 
-      if In_End_Label or not Sibling.Is_Null then
+      if In_End_Label
+        or else not Sibling.Is_Null
+        or else
+          (not Parent.Is_Null and then Parent.Kind in Ada_Param_Assoc_Range)
+      then
          --  Snippets should not be used in the following cases:
          --
-         --   . The Snippets_Enabled parameter if set to False
+         --   . The Use_Snippets parameter if set to False
          --
          --   . When the queried node is within an end label
          --
          --   . When the queried node has a sibling: this is to avoid proposing
          --     snippets when a list of parameters is already present on the
          --     right of the completion point for instance.
+         --
+         --   . When we are providing an actual parameter to a subprogram call
 
-         Should_Use_Snippets := False;
+         Use_Snippets := False;
       end if;
 
       declare
@@ -2651,7 +2660,8 @@ package body LSP.Ada_Documents is
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
-                     Names.Include (DN, (Is_Dot_Call (CI), True));
+                     Names.Include
+                       (DN, (Is_Dot_Call (CI), True, Use_Snippets));
                   end if;
                end loop;
             end if;
