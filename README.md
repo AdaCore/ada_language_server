@@ -42,9 +42,15 @@ It will build `.obj/server/ada_language_server` file.
 
 ### Dependencies
 
-To build the language server you need at least a version of the GNAT compiler,
-and the [Libadalang](https://github.com/AdaCore/libadalang) library to be built
-and available via the `GPR_PROJECT_PATH`.
+To build the language server you need:
+
+ * A GNAT compiler
+ * [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
+   built)
+ * The [VSS](https://github.com/AdaCore/VSS) library
+
+Project files of the libraries must be available via the `GPR_PROJECT_PATH`
+environment variable.
 
 To run the language server you need `gnatls` (parts of GNAT installation)
 somewhere in the path.
