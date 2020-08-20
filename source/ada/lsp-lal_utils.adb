@@ -518,7 +518,10 @@ package body LSP.Lal_Utils is
             Result := Name_Node.P_Enclosing_Defining_Name.P_Canonical_Part;
          else
             Result := Name_Node.P_Referenced_Defining_Name
-              (Imprecise_Fallback => False).P_Canonical_Part;
+              (Imprecise_Fallback => False);
+            if Result /= No_Defining_Name then
+               Result := Result.P_Canonical_Part;
+            end if;
          end if;
       exception
          when E : Property_Error =>
@@ -535,8 +538,10 @@ package body LSP.Lal_Utils is
       --  Try again with the imprecise fallback.
       if not Name_Node.P_Is_Defining then
          Result := Name_Node.P_Referenced_Defining_Name
-           (Imprecise_Fallback => True).P_Canonical_Part;
-
+           (Imprecise_Fallback => True);
+         if Result /= No_Defining_Name then
+            Result := Result.P_Canonical_Part;
+         end if;
          Imprecise := Result /= No_Defining_Name;
       end if;
 
@@ -637,9 +642,7 @@ package body LSP.Lal_Utils is
       -------------
 
       function Matches
-        (Node : Ada_Node'Class) return Libadalang.Common.Visit_Status
-      is
-         use type Langkit_Support.Slocs.Line_Number;
+        (Node : Ada_Node'Class) return Libadalang.Common.Visit_Status is
       begin
          if Node.Is_Null
            or else Node.Kind not in Libadalang.Common.Ada_Basic_Decl
@@ -652,13 +655,17 @@ package body LSP.Lal_Utils is
          --  TODO: improve this by find all entities that match, and
          --  finding the best through a distance/scoring heuristics.
 
-         if Node.As_Basic_Decl.P_Fully_Qualified_Name = Qualified_Name
-           and then Node.Sloc_Range.Start_Line
-             /= Definition.Sloc_Range.Start_Line
-         then
-            Found := Node.As_Basic_Decl.P_Defining_Name;
-            return Libadalang.Common.Stop;
-         end if;
+         declare
+            Decl : constant Basic_Decl := Node.As_Basic_Decl;
+            Def  : constant Defining_Name := Decl.P_Defining_Name;
+         begin
+            if Def /= Definition
+              and then Decl.P_Fully_Qualified_Name = Qualified_Name
+            then
+               Found := Def;
+               return Libadalang.Common.Stop;
+            end if;
+         end;
 
          return Libadalang.Common.Into;
       end Matches;
