@@ -545,6 +545,9 @@ package body LSP.Ada_Handlers is
       --    (Is_Set => True,
       --     Value  => (workDoneProgress => (Is_Set => False)));
 
+      Response.result.capabilities.workspaceSymbolProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => (Is_Set => False)));
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
@@ -3166,15 +3169,79 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response
    is
-      pragma Unreferenced (Self, Request);
+      procedure On_Inaccessible_Name
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean);
+
+      function Has_Been_Canceled return Boolean;
+
+      procedure Write_Symbols is
+        new LSP.Ada_Completion_Sets.Write_Symbols (Has_Been_Canceled);
+
+      Count : Cancel_Countdown := 0;
+      Names : LSP.Ada_Completion_Sets.Completion_Maps.Map;
+
+      -----------------------
+      -- Has_Been_Canceled --
+      -----------------------
+
+      function Has_Been_Canceled return Boolean is
+      begin
+         Count := Count - 1;
+         return Count = 0  and then Request.Canceled;
+      end Has_Been_Canceled;
+
+      --------------------------
+      -- On_Inaccessible_Name --
+      --------------------------
+
+      procedure On_Inaccessible_Name
+        (URI  : LSP.Messages.DocumentUri;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean)
+      is
+      begin
+         --  Skip all names in open documents, because they could have
+         --  stale references. Then skip already provided results.
+         if not Self.Open_Documents.Contains (URI)
+           and then not Names.Contains (Name)
+         then
+            Names.Insert
+              (Name,
+               (Is_Dot_Call  => False,
+                Is_Visible   => False,
+                Use_Snippets => False));
+
+            Stop := Has_Been_Canceled;
+         end if;
+      end On_Inaccessible_Name;
+
+      Query : constant VSS.Strings.Virtual_String :=
+        Canonicalize (Request.params.query);
       Response : LSP.Messages.Server_Responses.Symbol_Response
-        (Is_Error => True);
+        (Is_Error => False);
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      for Context of Self.Contexts.Each_Context loop
+         Context.Get_Any_Symbol_Completion
+           (Prefix   => Query,
+            Callback => On_Inaccessible_Name'Access);
+
+         exit when Request.Canceled;
+      end loop;
+
+      for Doc of Self.Open_Documents loop
+         declare
+            Context : constant Context_Access :=
+              Self.Contexts.Get_Best_Context (Doc.URI);
+         begin
+            Doc.Get_Any_Symbol_Completion
+              (Context.all, Query, Ada.Containers.Count_Type'Last, Names);
+         end;
+      end loop;
+
+      Write_Symbols (Names, Response.result);
+
       return Response;
    end On_Workspace_Symbols_Request;
 

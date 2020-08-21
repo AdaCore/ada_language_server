@@ -17,8 +17,12 @@
 
 with GNATCOLL.VFS;
 
+with Libadalang.Common;
+
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
+with LSP.Lal_Utils;
+with LSP.Types;
 
 package body LSP.Ada_Completion_Sets is
 
@@ -60,5 +64,41 @@ package body LSP.Ada_Completion_Sets is
          end;
       end loop;
    end Write_Completions;
+
+   -------------------
+   -- Write_Symbols --
+   -------------------
+
+   procedure Write_Symbols
+     (Names  : Completion_Maps.Map;
+      Result : in out LSP.Messages.Symbol_Vector) is
+   begin
+      for Cursor in Names.Iterate loop
+         declare
+            Name : constant Libadalang.Analysis.Defining_Name :=
+              Completion_Maps.Key (Cursor);
+            Node : Libadalang.Analysis.Ada_Node := Name.As_Ada_Node;
+         begin
+            while not Node.Is_Null and then
+              Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+            loop
+               Node := Node.Parent;
+            end loop;
+
+            if not Node.Is_Null then
+               Result.Vector.Append
+                 (LSP.Messages.SymbolInformation'
+                    (name     => LSP.Types.To_LSP_String (Name.Text),
+                     kind     => LSP.Lal_Utils.Get_Decl_Kind
+                                  (Node.As_Basic_Decl),
+                     location => LSP.Lal_Utils.Get_Node_Location
+                                  (Name.As_Ada_Node),
+                     others   => <>));
+            end if;
+
+            exit when Has_Been_Canceled;
+         end;
+      end loop;
+   end Write_Symbols;
 
 end LSP.Ada_Completion_Sets;
