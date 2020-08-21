@@ -136,6 +136,7 @@
                }
             }
          },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -143,6 +144,14 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     {
+                        "label": "Invisible (invisible)",
+                        "insertText": "Invisible",
+                        "kind": 6,
+                        "detail": "Invisible : Integer;",
+                        "documentation": "at aaa.ads (2:4)",
+                        "sortText": "~Invisible"
+                     },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
@@ -152,14 +161,6 @@
                         "insertText": "Invisible_Function",
                         "additionalTextEdits": [
                         ]
-                      },
-                     {
-                        "label": "Invisible (invisible)",
-                        "insertText": "Invisible",
-                        "kind": 6,
-                        "detail": "Invisible : Integer;",
-                        "documentation": "at aaa.ads (2:4)",
-                        "sortText": "~Invisible"
                      }
                   ]
                }
@@ -288,6 +289,7 @@
                }
             }
          },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -295,6 +297,14 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     {
+                        "label": "Invisible (invisible)",
+                        "insertText": "Invisible",
+                        "kind": 6,
+                        "detail": "Invisible : Integer;",
+                        "documentation": "at aaa.ads (2:4)",
+                        "sortText": "~Invisible"
+                     },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
@@ -304,14 +314,6 @@
                         "insertText": "Invisible_Function",
                         "additionalTextEdits": [
                         ]
-                      },
-                     {
-                        "label": "Invisible (invisible)",
-                        "insertText": "Invisible",
-                        "kind": 6,
-                        "detail": "Invisible : Integer;",
-                        "documentation": "at aaa.ads (2:4)",
-                        "sortText": "~Invisible"
                      }
                   ]
                }
