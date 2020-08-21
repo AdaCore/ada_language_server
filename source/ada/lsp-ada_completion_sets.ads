@@ -54,4 +54,10 @@ package LSP.Ada_Completion_Sets is
       Named_Notation_Threshold : Natural;
       Result                   : in out LSP.Messages.CompletionItem_Vector);
 
+   generic
+      with function Has_Been_Canceled return Boolean;
+   procedure Write_Symbols
+     (Names  : Completion_Maps.Map;
+      Result : in out LSP.Messages.Symbol_Vector);
+
 end LSP.Ada_Completion_Sets;
