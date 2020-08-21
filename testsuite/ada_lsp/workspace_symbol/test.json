@@ -1,0 +1,155 @@
+[
+    {
+        "comment":[
+            "Test a trivial workspace/symbol request"
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0,
+                      "result":{
+                          "capabilities":{
+                              "textDocumentSync": 2,
+                              "workspaceSymbolProvider":true
+                          }
+                      }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+        "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                    "token": "<ANY>",
+                    "value": {
+                        "kind": "end"
+                    }
+                }
+            }
+        ]
+    }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is\n\nbegin\n   null;\nend Main;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"wsSymbol",
+                "method":"workspace/symbol",
+                "params":{
+                    "query":""
+                }
+            },
+            "sortReply": {"result":"name"},
+            "wait":[{
+                "id": "wsSymbol",
+                "result": [
+                    {
+                        "name": "Main",
+                        "kind": 12,
+                        "location": {
+                            "uri": "$URI{main.adb}",
+                            "range": {
+                                "start": {
+                                    "line": 0,
+                                    "character": 10
+                                },
+                                "end": {
+                                    "line": 0,
+                                    "character": 14
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Test1",
+                        "kind": 12,
+                        "location": {
+                            "uri": "$URI{test1.ads}",
+                            "range": {
+                                "start": {
+                                    "line": 0,
+                                    "character": 10
+                                },
+                                "end": {
+                                    "line": 0,
+                                    "character": 15
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "Test2",
+                        "kind": 12,
+                        "location": {
+                            "uri": "$URI{test2.ads}",
+                            "range": {
+                                "start": {
+                                    "line": 0,
+                                    "character": 10
+                                },
+                                "end": {
+                                    "line": 0,
+                                    "character": 15
+                                }
+                            }
+                        }
+                    }
+                ]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
