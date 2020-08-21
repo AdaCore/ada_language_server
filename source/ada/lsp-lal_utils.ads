@@ -194,4 +194,20 @@ package LSP.Lal_Utils is
    --  Return a canonicalized value for Text. This performs case folding and
    --  brackets decoding.
 
+   function Get_Decl_Kind
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
+      return LSP.Messages.SymbolKind;
+   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+   --  When Ignore_Local it will return Is_Null for all local objects like
+   --  variables.
+
+   function Is_Constant
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+   --  Return True if the decl contains the constant keyword
+
+   function Is_Structure
+     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
+   --  Return True if the type contains a record part.
+
 end LSP.Lal_Utils;

@@ -56,14 +56,6 @@ package body LSP.Ada_Documents is
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
-   function Get_Decl_Kind
-     (Node         : Libadalang.Analysis.Basic_Decl;
-      Ignore_Local : Boolean := False)
-      return LSP.Messages.SymbolKind;
-   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
-   --  When Ignore_Local it will return Is_Null for all local objects like
-   --  variables.
-
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
       Is_Function : out Boolean)
@@ -72,14 +64,6 @@ package body LSP.Ada_Documents is
 
    function Is_Declaration
      (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
-
-   function Is_Structure
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
-   --  Return True if the type contains a record part.
-
-   function Is_Constant
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
-   --  Return True if the decl contains the constant keyword
 
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
@@ -963,7 +947,8 @@ package body LSP.Ada_Documents is
                  Node.As_Basic_Decl;
 
                Kind : constant LSP.Messages.SymbolKind :=
-                 Get_Decl_Kind (Decl, Ignore_Local => Nested_Level > 1);
+                 LSP.Lal_Utils.Get_Decl_Kind
+                   (Decl, Ignore_Local => Nested_Level > 1);
 
             begin
                if Kind /= LSP.Messages.A_Null then
@@ -1087,7 +1072,7 @@ package body LSP.Ada_Documents is
       while Cursor.Next (Element) loop
          declare
             Kind : constant LSP.Messages.SymbolKind :=
-              Get_Decl_Kind
+              LSP.Lal_Utils.Get_Decl_Kind
                 (Element.As_Defining_Name.P_Basic_Decl, Ignore_Local => True);
          begin
             if Kind /= LSP.Messages.A_Null then
@@ -1366,112 +1351,6 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Folding_Blocks;
 
-   -------------------
-   -- Get_Decl_Kind --
-   -------------------
-
-   function Get_Decl_Kind
-     (Node         : Libadalang.Analysis.Basic_Decl;
-      Ignore_Local : Boolean := False)
-      return LSP.Messages.SymbolKind
-   is
-      use Libadalang.Common;
-
-   begin
-      case Node.Kind is
-         when Ada_Generic_Formal_Subp_Decl |
-              Ada_Abstract_Subp_Decl |
-              Ada_Abstract_Formal_Subp_Decl |
-              Ada_Concrete_Formal_Subp_Decl |
-              Ada_Null_Subp_Decl |
-              Ada_Subp_Decl |
-              Ada_Subp_Renaming_Decl |
-              Ada_Expr_Function |
-              Ada_Subp_Body |
-              Ada_Subp_Body_Stub |
-              Ada_Entry_Body |
-              Ada_Entry_Decl |
-              Ada_Generic_Subp_Decl |
-              Ada_Generic_Subp_Instantiation |
-              Ada_Generic_Subp_Renaming_Decl =>
-            return LSP.Messages.A_Function;
-
-         when Ada_Component_Decl |
-              Ada_Discriminant_Spec =>
-            return LSP.Messages.Field;
-
-         when Ada_Generic_Formal_Obj_Decl |
-              Ada_Param_Spec |
-              Ada_Exception_Handler |
-              Ada_Object_Decl |
-              Ada_Extended_Return_Stmt_Object_Decl |
-              Ada_Single_Protected_Decl |
-              Ada_Single_Task_Decl =>
-            return (if Ignore_Local
-                    then LSP.Messages.A_Null
-                    else
-                      (if Is_Constant (Node)
-                       then LSP.Messages.A_Constant
-                       else LSP.Messages.Variable));
-
-         when Ada_Generic_Formal_Package |
-              Ada_Package_Decl |
-              Ada_Generic_Package_Decl |
-              Ada_Generic_Package_Instantiation |
-              Ada_Generic_Package_Renaming_Decl |
-              Ada_Package_Renaming_Decl =>
-            return LSP.Messages.A_Package;
-
-         when Ada_Package_Body_Stub |
-              Ada_Protected_Body_Stub |
-              Ada_Task_Body_Stub |
-              Ada_Package_Body |
-              Ada_Protected_Body |
-              Ada_Task_Body =>
-            return LSP.Messages.Module;
-
-         when Ada_Type_Decl =>
-            return (if Is_Structure (Node)
-                    then LSP.Messages.Struct
-                    else LSP.Messages.Class);
-
-         when Ada_Generic_Formal_Type_Decl |
-              Ada_Classwide_Type_Decl |
-              Ada_Incomplete_Type_Decl |
-              Ada_Incomplete_Tagged_Type_Decl |
-              Ada_Protected_Type_Decl |
-              Ada_Task_Type_Decl |
-              Ada_Subtype_Decl |
-              Ada_Anonymous_Type_Decl |
-              Ada_Synth_Anonymous_Type_Decl =>
-            return LSP.Messages.Class;
-
-         when Ada_Entry_Index_Spec |
-              Ada_Number_Decl =>
-            return LSP.Messages.Number;
-
-         when Ada_Enum_Literal_Decl =>
-            return (if Ignore_Local
-                    then LSP.Messages.A_Null
-                    else LSP.Messages.Enum);
-
-         when Ada_Exception_Decl =>
-            return LSP.Messages.String;
-
-         when Ada_For_Loop_Var_Decl |
-              Ada_Label_Decl |
-              Ada_Named_Stmt_Decl =>
-            return (if Ignore_Local
-                    then LSP.Messages.A_Null
-                    else LSP.Messages.A_Constant);
-
-         when others
-            => null;
-      end case;
-
-      return LSP.Messages.A_Null;
-   end Get_Decl_Kind;
-
    -----------------
    -- Get_Profile --
    -----------------
@@ -1636,46 +1515,6 @@ package body LSP.Ada_Documents is
             return False;
       end case;
    end Is_Declaration;
-
-   ------------------
-   -- Is_Structure --
-   ------------------
-
-   function Is_Structure
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
-   is
-      use Libadalang.Common;
-   begin
-      for Child of Node.Children loop
-         if Child /= No_Ada_Node
-           and then Child.Kind = Ada_Record_Type_Def
-         then
-            return True;
-         end if;
-      end loop;
-
-      return False;
-   end Is_Structure;
-
-   -----------------
-   -- Is_Constant --
-   -----------------
-
-   function Is_Constant
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean
-   is
-      use Libadalang.Common;
-   begin
-      for Child of Node.Children loop
-         if Child /= No_Ada_Node
-           and then Child.Kind = Ada_Constant_Present
-         then
-            return True;
-         end if;
-      end loop;
-
-      return False;
-   end Is_Constant;
 
    --------------------
    -- Get_Visibility --
@@ -1842,7 +1681,7 @@ package body LSP.Ada_Documents is
    begin
       Item.label := To_LSP_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
-                 (Get_Decl_Kind (BD)));
+                            (LSP.Lal_Utils.Get_Decl_Kind (BD)));
       Item.detail := (True, Compute_Completion_Detail (BD));
 
       if not Is_Visible then
