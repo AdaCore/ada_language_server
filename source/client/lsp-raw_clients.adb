@@ -378,6 +378,7 @@ package body LSP.Raw_Clients is
       pragma Unreferenced (Exit_Code);
 
    begin
+      Self.Client.Standard_Input_Available := False;
       Self.Client.On_Finished;
    end Finished;
 
