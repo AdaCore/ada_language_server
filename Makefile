@@ -10,6 +10,7 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 # Tester files
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
+SPAWN_TESTS=.obj/spawn_test/spawn_test
 
 # Testsuite directory
 TD=testsuite/ada_lsp
@@ -136,6 +137,9 @@ check: all
            done; \
         fi
 	${CODEC_TEST} < testsuite/codecs/index.txt
+	for TEST in ${SPAWN_TESTS}; do \
+	   echo $$TEST; $$TEST; \
+	done
 
 deploy: check
 	integration/$(USER)/deploy.sh $(PLATFORM)
