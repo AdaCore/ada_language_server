@@ -20,6 +20,8 @@ with Spawn.Processes.Windows;
 
 package body Spawn.Processes is
 
+   use type Ada.Streams.Stream_Element_Offset;
+
    ---------------
    -- Arguments --
    ---------------
@@ -122,6 +124,11 @@ package body Spawn.Processes is
          Monitor.Enqueue ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stderr));
       end On_No_Data;
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
       Windows.Do_Read (Self, Data, Last, Stderr, On_No_Data'Access);
    end Read_Standard_Error;
 
@@ -141,6 +148,11 @@ package body Spawn.Processes is
          Monitor.Enqueue ((Monitor.Watch_Pipe, Self'Unchecked_Access, Stdout));
       end On_No_Data;
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
       Windows.Do_Read (Self, Data, Last, Stdout, On_No_Data'Access);
    end Read_Standard_Output;
 
@@ -250,6 +262,11 @@ package body Spawn.Processes is
       end On_No_Data;
 
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
       Windows.Do_Write (Self, Data, Last, On_No_Data'Access);
    end Write_Standard_Input;
 
