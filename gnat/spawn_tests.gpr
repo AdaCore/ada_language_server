@@ -21,7 +21,7 @@ project Spawn_Tests is
 
    for Source_Dirs use ("../testsuite/spawn");
    for Object_Dir use "../.obj/spawn_test";
-   for Main use ("spawn_test.adb");
+   for Main use ("spawn_test.adb", "spawn_unexpected.adb");
 
    package Compiler renames Spawn.Compiler;
 

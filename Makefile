@@ -10,7 +10,8 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 # Tester files
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
-SPAWN_TESTS=.obj/spawn_test/spawn_test
+SPAWN_TESTS=.obj/spawn_test/spawn_test \
+ .obj/spawn_test/spawn_unexpected
 
 # Testsuite directory
 TD=testsuite/ada_lsp

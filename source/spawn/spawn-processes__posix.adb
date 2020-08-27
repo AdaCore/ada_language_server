@@ -131,11 +131,17 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
-      Count : constant Interfaces.C.size_t :=
-        Posix.read (Self.pipe (Stderr), Data, Data'Length);
+
+      Count : Interfaces.C.size_t;
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
+      Count := Posix.read (Self.pipe (Stderr), Data, Data'Length);
+
       if Count = Interfaces.C.size_t'Last then
          if Errno in Posix.EAGAIN | Posix.EINTR then
             Last := Data'First - 1;
@@ -160,11 +166,17 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
-      Count : constant Interfaces.C.size_t :=
-        Posix.read (Self.pipe (Stdout), Data, Data'Length);
+
+      Count : Interfaces.C.size_t;
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
+      Count := Posix.read (Self.pipe (Stdout), Data, Data'Length);
+
       if Count = Interfaces.C.size_t'Last then
          if Errno in Posix.EAGAIN | Posix.EINTR then
             Last := Data'First - 1;
@@ -274,13 +286,17 @@ package body Spawn.Processes is
       Last : out Ada.Streams.Stream_Element_Offset)
    is
       use type Ada.Streams.Stream_Element_Offset;
-      use type Interfaces.C.int;
       use type Interfaces.C.size_t;
 
-      Count : constant Interfaces.C.size_t :=
-        Posix.write (Self.pipe (Stdin), Data, Data'Length);
+      Count : Interfaces.C.size_t;
 
    begin
+      if Self.Status /= Running then
+         Last := Data'First - 1;
+         return;
+      end if;
+
+      Count := Posix.write (Self.pipe (Stdin), Data, Data'Length);
       Last := Data'First - 1;
 
       if Count = Interfaces.C.size_t'Last then
