@@ -328,17 +328,22 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       V.Clear;
-      pragma Assert (JS.R.Is_Start_Array);
-      JS.R.Read_Next;
 
-      while not JS.R.Is_End_Array loop
-         declare
-            Item : LSP_String;
-         begin
-            LSP.Types.Read (S, Item);
-            V.Append (Item);
-         end;
-      end loop;
+      if JS.R.Is_Start_Array then
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Array loop
+            declare
+               Item : LSP_String;
+            begin
+               LSP.Types.Read (S, Item);
+               V.Append (Item);
+            end;
+         end loop;
+
+      elsif JS.R.Is_String_Value then
+         V.Append (To_LSP_String (JS.R.String_Value));
+      end if;
 
       JS.R.Read_Next;
    end Read_LSP_String_Vector;
