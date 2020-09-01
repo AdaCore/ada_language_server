@@ -1238,7 +1238,7 @@ package body LSP.Message_Loggers is
       Value : LSP.Messages.Server_Requests.Shutdown_Request) is
    begin
       Self.Trace.Trace
-        ("ShowMessage_Request: "
+        ("Shutdown_Request: "
          & Image (Value));
    end On_Shutdown_Request;
 
