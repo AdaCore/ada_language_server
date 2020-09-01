@@ -28,10 +28,10 @@ function clone_dependencies() {
 function linux_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
-    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200429-x86_64-linux-bin
+    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200818-x86_64-linux-bin
 
-    download_gnat https://community.download.adacore.com/v1/4d99b7b2f212c8efdab2ba8ede474bb9fa15888d\
-?filename=gnat-2020-20200429-x86_64-linux-bin
+    download_gnat https://community.download.adacore.com/v1/a639696a9fd3bdf0be21376cc2dc3129323cbe42\
+?filename=gnat-2020-20200818-x86_64-linux-bin
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
         | tar xzf - -C $INSTALL_DIR
@@ -60,10 +60,10 @@ function linux_script()
 function osx_before_install()
 {
     echo INSTALL_DIR=$INSTALL_DIR
-    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200429-x86_64-darwin-bin.dmg
+    GNAT_INSTALLER=$HOME/cache/gnat-2020-20200818-x86_64-darwin-bin.dmg
 
-    download_gnat https://community.download.adacore.com/v1/4470dd195aec672d7c2f2a2bac3dcf6e59bbb26c\
-?filename=gnat-2020-20200429-x86_64-darwin-bin.dmg
+    download_gnat https://community.download.adacore.com/v1/aefa0616b9476874823a7974d3dd969ac13dfe3a\
+?filename=gnat-2020-20200818-x86_64-darwin-bin.dmg
 
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-osx.tar.gz \
         | tar xzf - -C $INSTALL_DIR
