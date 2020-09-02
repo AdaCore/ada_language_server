@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Wide_Unbounded;
+
 with Memory_Text_Streams;
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Strings.Conversions;
@@ -44,98 +46,98 @@ package body LSP.Clients is
 
       procedure Initialize_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Shutdown_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Code_Action_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Completion_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Type_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Hover_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Folding_Range_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Highlight_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_References_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Signature_Help_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Text_Document_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Workspace_Execute_Command_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
 
       procedure Workspace_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class);
@@ -169,12 +171,31 @@ package body LSP.Clients is
    -------------------------
 
    function Allocate_Request_Id
-     (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String is
+     (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String
+   is
+      Prefix : constant LSP.Types.LSP_String := Self.Request_Id_Prefix;
+
    begin
       Self.Request_Id := Self.Request_Id + 1;
 
-      return (True, Self.Request_Id);
+      if LSP.Types.Length (Prefix) = 0 then
+         return (True, Self.Request_Id);
+
+      else
+         declare
+            Image : constant Wide_String :=
+              LSP.Types.LSP_Number'Wide_Image (Self.Request_Id);
+
+         begin
+            return
+              (False, Prefix & '-' & Image (Image'First + 1 .. Image'Last));
+         end;
+      end if;
    end Allocate_Request_Id;
+
+   --------------
+   -- Decoders --
+   --------------
 
    package body Decoders is
 
@@ -184,7 +205,7 @@ package body LSP.Clients is
 
       procedure Initialize_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -203,7 +224,7 @@ package body LSP.Clients is
 
       procedure Shutdown_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -221,7 +242,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Code_Action_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -240,7 +261,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Completion_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -259,7 +280,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -277,7 +298,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Type_Definition_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -295,7 +316,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Hover_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -312,7 +333,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Folding_Range_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -331,7 +352,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Highlight_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -350,7 +371,7 @@ package body LSP.Clients is
 
       procedure Text_Document_References_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -368,7 +389,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Signature_Help_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -387,7 +408,7 @@ package body LSP.Clients is
 
       procedure Text_Document_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -404,7 +425,7 @@ package body LSP.Clients is
 
       procedure Workspace_Execute_Command_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -423,7 +444,7 @@ package body LSP.Clients is
 
       procedure Workspace_Symbol_Response
         (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-         Request  : LSP.Types.LSP_Number;
+         Request  : LSP.Types.LSP_Number_Or_String;
          Is_Error : Boolean;
          Handler  : access
            LSP.Clients.Response_Handlers.Response_Handler'Class)
@@ -536,7 +557,7 @@ package body LSP.Clients is
 
    procedure Initialize_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.InitializeParams)
    is
       Message : LSP.Messages.Server_Requests.Initialize_Request :=
@@ -681,9 +702,9 @@ package body LSP.Clients is
          else
             --  Response from server
 
-            if Id.Is_Number and then Self.Request_Map.Contains (Id.Number) then
-               Self.Request_Map (Id.Number).all
-                 (Stream'Access, Id.Number, Is_Error, Self.Response_Handler);
+            if Self.Request_Map.Contains (Id) then
+               Self.Request_Map (Id).all
+                 (Stream'Access, Id, Is_Error, Self.Response_Handler);
             else
                raise Constraint_Error with "Unknown request id";
             end if;
@@ -705,6 +726,17 @@ package body LSP.Clients is
          end;
       end if;
    end On_Raw_Message;
+
+   -----------------------
+   -- Request_Id_Prefix --
+   -----------------------
+
+   function Request_Id_Prefix (Self : Client) return LSP.Types.LSP_String is
+   begin
+      return
+        LSP.Types.LSP_String
+          (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
+   end Request_Id_Prefix;
 
    -----------------------
    -- Send_Notification --
@@ -733,7 +765,7 @@ package body LSP.Clients is
 
    procedure Send_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class)
@@ -743,12 +775,12 @@ package body LSP.Clients is
       Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
    begin
       JS.Set_Stream (Output'Unchecked_Access);
-      Request := Self.Allocate_Request_Id.Number;
+      Request := Self.Allocate_Request_Id;
       Self.Request_Map.Insert (Request, Decoder);
 
       Value.jsonrpc := +"2.0";
       Value.method := +Method;
-      Value.id := (True, Request);
+      Value.id := Request;
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
       Self.Send_Buffer (Output.Buffer);
@@ -794,7 +826,7 @@ package body LSP.Clients is
 
    procedure Shutdown_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number)
+      Request : out LSP.Types.LSP_Number_Or_String)
    is
       Message : LSP.Messages.Server_Requests.Shutdown_Request;
    begin
@@ -832,7 +864,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Code_Action_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.CodeActionParams)
    is
       Message : CodeAction_Request := (params => Value, others => <>);
@@ -850,7 +882,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Completion_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Completion_Request := (params => Value, others => <>);
@@ -868,7 +900,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Definition_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Definition_Request := (params => Value, others => <>);
@@ -886,7 +918,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Type_Definition_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Definition_Request := (params => Value, others => <>);
@@ -974,7 +1006,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Highlight_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Highlight_Request := (params => Value, others => <>);
@@ -992,7 +1024,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Hover_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Hover_Request := (params => Value, others => <>);
@@ -1010,7 +1042,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Folding_Range_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.FoldingRangeParams)
    is
       Message : Folding_Range_Request := (params => Value, others => <>);
@@ -1028,7 +1060,7 @@ package body LSP.Clients is
 
    procedure Text_Document_References_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.ReferenceParams)
    is
       Message : References_Request := (params => Value, others => <>);
@@ -1046,7 +1078,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Signature_Help_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.TextDocumentPositionParams)
    is
       Message : Signature_Help_Request := (params => Value, others => <>);
@@ -1064,7 +1096,7 @@ package body LSP.Clients is
 
    procedure Text_Document_Symbol_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.DocumentSymbolParams)
    is
       Message : Document_Symbols_Request := (params => Value, others => <>);
@@ -1138,7 +1170,7 @@ package body LSP.Clients is
 
    procedure Workspace_Execute_Command_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.ExecuteCommandParams)
    is
       Message : Execute_Command_Request := (params => Value, others => <>);
@@ -1156,7 +1188,7 @@ package body LSP.Clients is
 
    procedure Workspace_Symbol_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.WorkspaceSymbolParams)
    is
       Message : Workspace_Symbols_Request := (params => Value, others => <>);

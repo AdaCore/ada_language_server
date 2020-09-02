@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -93,71 +93,71 @@ package LSP.Clients is
 
    procedure Initialize_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.InitializeParams);
 
    procedure Shutdown_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number);
+      Request  : out LSP.Types.LSP_Number_Or_String);
 
    procedure Text_Document_Code_Action_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.CodeActionParams);
 
    procedure Text_Document_Completion_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Definition_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Type_Definition_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Hover_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Folding_Range_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Value   : LSP.Messages.FoldingRangeParams);
 
    procedure Text_Document_Highlight_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_References_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.ReferenceParams);
 
    procedure Text_Document_Signature_Help_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Symbol_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.DocumentSymbolParams);
 
    procedure Workspace_Execute_Command_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.ExecuteCommandParams);
 
    procedure Workspace_Symbol_Request
      (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number;
+      Request  : out LSP.Types.LSP_Number_Or_String;
       Value    : LSP.Messages.WorkspaceSymbolParams);
 
    --  Send response to the LSP server
@@ -171,22 +171,21 @@ package LSP.Clients is
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String;
    --  Allocates request id.
 
+   function Request_Id_Prefix (Self : Client) return LSP.Types.LSP_String;
+   --  Prefix to generate request id in form "prefix-id".
+
 private
 
    type Response_Decoder is access procedure
      (Stream   : access Ada.Streams.Root_Stream_Type'Class;
-      Request  : LSP.Types.LSP_Number;
+      Request  : LSP.Types.LSP_Number_Or_String;
       Is_Error : Boolean;
       Handler  : access LSP.Clients.Response_Handlers.Response_Handler'Class);
 
-   function Hash (Value : LSP.Types.LSP_Number)
-      return Ada.Containers.Hash_Type is
-        (Ada.Containers.Hash_Type'Val (Value));
-
    package Request_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_Number,
+     (Key_Type        => LSP.Types.LSP_Number_Or_String,
       Element_Type    => Response_Decoder,
-      Hash            => Hash,
+      Hash            => LSP.Types.Hash,
       Equivalent_Keys => "=");
 
    type Notification_Decoder is access procedure
@@ -225,7 +224,7 @@ private
 
    procedure Send_Request
      (Self    : in out Client'Class;
-      Request : out LSP.Types.LSP_Number;
+      Request : out LSP.Types.LSP_Number_Or_String;
       Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class);
