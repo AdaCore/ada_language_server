@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,72 +24,72 @@ package LSP.Clients.Response_Handlers is
 
    procedure Initialize_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Initialize_Response) is null;
 
    procedure Shutdown_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Shutdown_Response) is null;
 
    procedure Text_Document_Code_Action_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.CodeAction_Response) is null;
 
    procedure Text_Document_Completion_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Completion_Response) is null;
 
    procedure Text_Document_Definition_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Location_Response) is null;
 
    procedure Text_Document_Type_Definition_Response
      (Self     : not null access Response_Handler;
-      Request  : LSP.Types.LSP_Number;
+      Request  : LSP.Types.LSP_Number_Or_String;
       Response : LSP.Messages.Server_Responses.Location_Response) is null;
 
    procedure Text_Document_Hover_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Hover_Response) is null;
 
    procedure Text_Document_Folding_Range_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.FoldingRange_Response) is null;
 
    procedure Text_Document_Highlight_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Highlight_Response) is null;
 
    procedure Text_Document_References_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Location_Response) is null;
 
    procedure Text_Document_Signature_Help_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.SignatureHelp_Response) is null;
 
    procedure Text_Document_Symbol_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Symbol_Response) is null;
 
    procedure Workspace_Execute_Command_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.ExecuteCommand_Response) is null;
 
    procedure Workspace_Symbol_Response
     (Self     : not null access Response_Handler;
-     Request  : LSP.Types.LSP_Number;
+     Request  : LSP.Types.LSP_Number_Or_String;
      Response : LSP.Messages.Server_Responses.Symbol_Response) is null;
 
 end LSP.Clients.Response_Handlers;
