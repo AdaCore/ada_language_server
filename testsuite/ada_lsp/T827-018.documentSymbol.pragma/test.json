@@ -1,0 +1,353 @@
+[
+   {
+      "comment": [
+         "Pragma with a nested level of 1 or 0 should be added in the",
+         " documentSymbol output"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+          "request": {
+              "jsonrpc":"2.0","id":0,"method":"initialize",
+              "params":{
+                  "processId":1,
+                  "rootUri":"$URI{.}",
+                  "capabilities":{
+                      "textDocument": {
+                          "documentSymbol":{
+                              "hierarchicalDocumentSymbolSupport":true
+                          }
+                      }
+                  }
+              }
+          },
+          "wait":[{ "id": 0,
+                    "result":{
+                        "capabilities":{
+                          "textDocumentSync": 2,
+                           "documentSymbolProvider":true
+                        }
+                    }
+          }]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}", 
+                     "scenarioVariables": {}, 
+                     "enableDiagnostics": false, 
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Foo is\n   \n   procedure Proc_A (I : Integer);\n\n   ------------\n   -- Proc_A --\n   ------------\n\n   procedure Proc_A (I : Integer) \n   is\n      pragma Unreferenced (I);\n      --  Nested pragmas are not reported\n   begin\n      null;\n   end Proc_A;\n   \n   procedure Proc_B;\n   pragma Inline (Proc_B);\n\n   ------------\n   -- Proc_B --\n   ------------\n\n   procedure Proc_B is\n   begin\n      null;\n   end Proc_B;\nbegin\n   pragma Warnings (Off);\n   Proc_B;\n   Proc_A (42);\n   pragma Warnings (On);\nend Foo;\n", 
+                  "version": 0, 
+                  "uri": "$URI{foo.adb}", 
+                  "languageId": "Ada"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "id": "ada-2", 
+            "method": "textDocument/documentSymbol"
+         }, 
+         "wait": [
+            {
+               "id": "ada-2", 
+               "result": [
+                  {
+                     "kind": 12, 
+                     "name": "Foo", 
+                     "selectionRange": {
+                        "start": {
+                           "line": 0, 
+                           "character": 10
+                        }, 
+                        "end": {
+                           "line": 0, 
+                           "character": 13
+                        }
+                     }, 
+                     "alsVisibility": 1, 
+                     "alsIsDeclaration": false, 
+                     "detail": "", 
+                     "range": {
+                        "start": {
+                           "line": 0, 
+                           "character": 0
+                        }, 
+                        "end": {
+                           "line": 32, 
+                           "character": 8
+                        }
+                     }, 
+                     "alsIsAdaProcedure": true, 
+                     "children": [
+                        {
+                           "kind": 12, 
+                           "name": "Proc_A", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 2, 
+                                 "character": 13
+                              }, 
+                              "end": {
+                                 "line": 2, 
+                                 "character": 19
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": true, 
+                           "detail": "(I : in Integer)", 
+                           "range": {
+                              "start": {
+                                 "line": 2, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 2, 
+                                 "character": 34
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "kind": 12, 
+                           "name": "Proc_A", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 8, 
+                                 "character": 13
+                              }, 
+                              "end": {
+                                 "line": 8, 
+                                 "character": 19
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "(I : in Integer)", 
+                           "range": {
+                              "start": {
+                                 "line": 8, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 14, 
+                                 "character": 14
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "kind": 12, 
+                           "name": "Proc_B", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 16, 
+                                 "character": 13
+                              }, 
+                              "end": {
+                                 "line": 16, 
+                                 "character": 19
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": true, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 16, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 16, 
+                                 "character": 20
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 17, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 17, 
+                                 "character": 26
+                              }
+                           }, 
+                           "kind": 7, 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 17, 
+                                 "character": 10
+                              }, 
+                              "end": {
+                                 "line": 17, 
+                                 "character": 16
+                              }
+                           }, 
+                           "name": "Inline", 
+                           "detail": "(Proc_B)"
+                        }, 
+                        {
+                           "kind": 12, 
+                           "name": "Proc_B", 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 23, 
+                                 "character": 13
+                              }, 
+                              "end": {
+                                 "line": 23, 
+                                 "character": 19
+                              }
+                           }, 
+                           "alsVisibility": 1, 
+                           "alsIsDeclaration": false, 
+                           "detail": "", 
+                           "range": {
+                              "start": {
+                                 "line": 23, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 26, 
+                                 "character": 14
+                              }
+                           }, 
+                           "alsIsAdaProcedure": true, 
+                           "children": []
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 28, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 28, 
+                                 "character": 25
+                              }
+                           }, 
+                           "kind": 7, 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 28, 
+                                 "character": 10
+                              }, 
+                              "end": {
+                                 "line": 28, 
+                                 "character": 18
+                              }
+                           }, 
+                           "name": "Warnings", 
+                           "detail": "(Off)"
+                        }, 
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 31, 
+                                 "character": 3
+                              }, 
+                              "end": {
+                                 "line": 31, 
+                                 "character": 24
+                              }
+                           }, 
+                           "kind": 7, 
+                           "selectionRange": {
+                              "start": {
+                                 "line": 31, 
+                                 "character": 10
+                              }, 
+                              "end": {
+                                 "line": 31, 
+                                 "character": 18
+                              }
+                           }, 
+                           "name": "Warnings", 
+                           "detail": "(On)"
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": "ada-4", 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": "ada-4", 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
