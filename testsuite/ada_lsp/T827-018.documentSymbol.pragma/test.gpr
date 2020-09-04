@@ -1,0 +1,5 @@
+project Test is
+   for Main use ("foo.adb");
+   for Object_Dir use "obj";
+end Test;
+

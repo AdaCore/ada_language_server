@@ -933,6 +933,9 @@ package body LSP.Ada_Documents is
          Tree         : in out LSP.Messages.DocumentSymbol_Tree)
       is
          Next             : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         Dummy            : LSP.Messages.DocumentSymbol_Trees.Cursor;
+         --  Dummy is used for node which can't be parents like pragma and with
+         --  statements
          New_Nested_Level : Integer := Nested_Level;
       begin
          if Node = No_Ada_Node
@@ -1020,13 +1023,46 @@ package body LSP.Ada_Documents is
                         children          => False);
                   begin
                      Tree.Insert_Child
-                       (Parent   => Cursor,
+                       (Parent   => Next,
                         Before   =>
                           Messages.DocumentSymbol_Trees.No_Element,
                         New_Item => Item,
-                        Position => Next);
+                        Position => Dummy);
                   end;
                end loop;
+            end;
+         elsif Nested_Level <=  1
+           and then Node.Kind in Libadalang.Common.Ada_Pragma_Node
+         then
+            declare
+               Pragma_Node : constant Libadalang.Analysis.Pragma_Node :=
+                 Node.As_Pragma_Node;
+               Id          : constant Libadalang.Analysis.Identifier  :=
+                 Pragma_Node.F_Id;
+               Item        : constant LSP.Messages.DocumentSymbol :=
+                 (name              =>
+                    To_LSP_String (Id.Text),
+                  detail            =>
+                    (Is_Set => True,
+                     Value  =>
+                       To_LSP_String ("(" & (Pragma_Node.F_Args.Text & ")"))),
+                  kind              => Property,
+                  deprecated        => (Is_Set => False),
+                  span              => LSP.Lal_Utils.To_Span
+                    (Node.Sloc_Range),
+                  selectionRange    => LSP.Lal_Utils.To_Span
+                    (Id.Sloc_Range),
+                  alsIsDeclaration  => (Is_Set => False),
+                  alsIsAdaProcedure => (Is_Set => False),
+                  alsVisibility     => (Is_Set => False),
+                  children          => False);
+            begin
+               Tree.Insert_Child
+                 (Parent   => Next,
+                  Before   =>
+                    Messages.DocumentSymbol_Trees.No_Element,
+                  New_Item => Item,
+                  Position => Dummy);
             end;
          end if;
 
