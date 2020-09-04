@@ -1155,6 +1155,14 @@ package body LSP.Ada_Handlers is
 
             Decl_For_Find_Overrides := Definition.P_Basic_Decl;
 
+            --  Search for overriding subprograms only if we are on an
+            --  abstract subprogram.
+            if Decl_For_Find_Overrides.Kind
+              not in Ada_Abstract_Subp_Decl_Range
+            then
+               Decl_For_Find_Overrides := No_Basic_Decl;
+            end if;
+
             if Other_Part = No_Defining_Name then
                --  No next part is found. Check first defining name
                Other_Part := Find_Canonical_Part (Definition, Self.Trace);
