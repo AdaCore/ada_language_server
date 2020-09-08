@@ -1,0 +1,96 @@
+# Ada Language Server configuration
+
+The LSP has a dedicated notification to signal the server the change of configuration settings. Any setting should be inside a `ada` JSON object.
+Ada Language Server understands these settings:
+
+ * [projectFile](#projectFile)
+ * [scenarioVariables](#scenarioVariables)
+ * [defaultCharset](#defaultCharset)
+ * [enableDiagnostics](#enableDiagnostics)
+ * [enableIndexing](#enableIndexing)
+ * [renameInComments](#renameInComments)
+ * [namedNotationThreshold](#namedNotationThreshold)
+ * [foldComments](#foldComments)
+
+----
+
+
+
+## projectFile
+
+You can configure the GNAT Project File via the `projectFile` key.
+The setting has a string value, that points to the `.gpr` file.
+It could be a full path or relative path.
+It could be prefixed with `file:` schema.
+If no project provided and there is a single project file in the
+root folder, then ALS will use it.
+
+```javascript
+    'projectFile': 'gnat/lsp_server.gpr'
+```
+
+## scenarioVariables
+You can configure scenario variables via the `scenarioVariables` key.
+The setting has an object value. Keys in this object correspond to
+scenario variables names and string values to variables values.
+
+```javascript
+    'scenarioVariables': {
+        'BUILD_MODE': 'DEBUG'
+    }
+```
+## defaultCharset
+You can set the character set to use when the server has to use when reading
+files from disk by specifying an `defaultCharset` key. The default is
+`iso-8859-1`. This should have a string value.
+
+```javascript
+    'defaultCharset': 'UTF-8'
+```
+
+## enableDiagnostics
+You can explicitly deactivate the emission of diagnostics, via the
+`enableDiagnostics` key. By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'enableDiagnostics': false
+```
+
+## enableIndexing
+By default, the server indexes the source files after loading a project,
+to speed up subsequent requests. This behavior can be controlled
+via the `enableIndexing` flag in this request.
+The value is a boolean.
+
+```javascript
+    'enableIndexing': false
+```
+
+## renameInComments
+The language server is able to edit Ada comments while executing
+`textDocument/rename` request. To enable this just set
+`renameInComments` setting to `true`.
+The value is a boolean.
+
+```javascript
+    'renameInComments': false
+```
+
+## namedNotationThreshold
+This setting defines the number of parameters/components at which point named
+notation is used for subprogram/aggregate completion snippets.
+The value is a number. The default value is `3`.
+
+```javascript
+    'namedNotationThreshold': 2
+```
+
+## foldComments
+When this setting is `true` the server sends blocks information for comments which can be used for folding comment blocks.
+The value is a boolean. The default is `true`.
+
+```javascript
+    'foldComments': false
+```
+
