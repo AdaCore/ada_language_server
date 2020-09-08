@@ -123,11 +123,14 @@ package LSP.Lal_Utils is
      (Base_Id);
 
    function "<" (Left, Right : Defining_Name) return Boolean is
-     (Left.Text <= Right.Text);
+     (Left.Text < Right.Text
+      or else (Left.Text = Right.Text
+               and then Left.Full_Sloc_Image < Right.Full_Sloc_Image));
    --  The Ordered_Maps is using the "<" in its Equivalent_Keys function:
    --  this is too basic and it will assume that Left.Text = Right.Text implies
    --  Left = Right which is wrong.
-   --  By using "<=" we are breaking the equality and we are keeping the order.
+   --  If Left.Text = Right.Text then Full_Sloc_Image will sort first by
+   --  file and then by Sloc (first by line and then by column).
 
    package References_By_Subprogram is new Ada.Containers.Ordered_Maps
      (Key_Type     => Defining_Name,
