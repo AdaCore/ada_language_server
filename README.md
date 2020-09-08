@@ -3,19 +3,40 @@
 [![Build Status](https://travis-ci.org/AdaCore/ada_language_server.svg?branch=master)](https://travis-ci.org/AdaCore/ada_language_server)
 [ ![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
 
-This repository contains a prototype implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
+This repository contains an implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
 for Ada/SPARK.
 
 Current features:
- * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html)
- * Code completion
- * Go to definition
- * Find corresponding references
- * Document symbol search
- * Code folding
+ * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
+ * Code completion for names, keywords, aggregates, etc.
+ * Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
+ * Code refactoring like insert named associations, auto-add `with`-clauses.
+ * Document/Workspace symbol search.
+ * Code folding and formatting.
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
-[extension as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-20.0.999.vsix).
+extension
+[at the Marketplace](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada) and
+[the latest build as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-21.0.999.vsix).
+
+## Table of Contents
+ * [Install](#Install)
+   * [Dependencies](#Dependencies)
+ * [Usage](#Usage)
+ * [Supported LSP Server Requests](#supported-lsp-server-requests)
+   * [General Requests](#General-Requests)
+   * [Workspace Requests](#Workspace-Requests)
+   * [Synchronization Requests](#Synchronization-Requests)
+   * [Text Document Requests](#Text-Document-Requests)
+   * [Protocol extensions](#Protocol-extensions)
+ * [How to use the VScode extension](#How-to-use-the-VScode-extension)
+ * [Integration with LanguageClient-Neovim](#Integration-with-LanguageClient-Neovim)
+ * [Integration with Neovim's built-in LSP client](#Integration-with-Neovim's-built-in-LSP-client)
+ * [Integration with emacs lsp-mode](#Integration-with-emacs-lsp-mode)
+ * [Integration with QtCreator](#Integration-with-QtCreator)
+ * [Authors & Contributors](#Authors--Contributors)
+ * [Contribute](#Contribute)
+ * [License](#License)
 
 ## Install
 
@@ -57,9 +78,21 @@ somewhere in the path.
 
 ## Usage
 
-The `ada_language_server` doesn't require/understand any command line options.
+The `ada_language_server` doesn't require any command line options,
+but it understands these options:
 
-# Supported LSP Server Requests
+ * `--tracefile=<FILE>` - Full path to a file containing traces
+   configuration
+ * `--help` - Display supported command like options and exit.
+
+You can turn some debugging and experimental features trought
+[the traces file](doc/traces.md).
+
+The server also gets configuration via `workspace/didChangeConfiguration`
+notification. See more [details here](doc/settings.md). Each LSP
+client provides its-own way to set such settings.
+
+## Supported LSP Server Requests
 
 ### General Requests
 
@@ -128,7 +161,7 @@ The Ada Language Server supports some features that are not in the official
 [Language Server Protocol](https://microsoft.github.io/language-server-protocol)
 specification. See [corresponding document](doc/README.md).
 
-# How to use the VScode extension
+## How to use the VScode extension
 
 For the moment, this repository includes a vscode extension that is used as the
 reference extension for this implementation.
@@ -139,24 +172,8 @@ You can try it by running:
 code --extensionDevelopmentPath=<path_to_this_repo>/integration/vscode/ada <workspace directory>
 ```
 
-You can configure the [GNAT Project File]() and scenario variables via the
-`.vscode/settings.json` settings file, via the keys `"ada.projectFile"` and
-`"ada.scenarioVariables"`.
-
-You can set the character set to use when the server has to use when reading
-files from disk by specifying an `"ada.defaultCharset"` key. The default is
-`iso-8859-1`.
-
-You can explicitly deactivate the emission of diagnostics, via the
-`"ada.enableDiagnostics"` key. By default, diagnostics are enabled.
-
-The language server is able to edit Ada comments while executing
-`textDocument/rename` request. To enable this just set
-`ada.renameInComments` setting to `true`.
-
-By default, the server indexes the source files after loading a project,
-to speed up subsequent requests. This behavior can be controlled
-via the `"ada.enableIndexing"` flag in this request.
+You can configure the ALS via the `.vscode/settings.json` settings file.
+See the setting list [here](doc/settings.md).
 
 Here is an example config file from the gnatcov project:
 
@@ -173,7 +190,7 @@ Here is an example config file from the gnatcov project:
 }
 ```
 
-# Integration with LanguageClient-Neovim
+## Integration with LanguageClient-Neovim
 
 If you want to integrate the Ada Language Server into Neovim, you can use the
 [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim).
@@ -195,6 +212,7 @@ specific `.gpr` project file.
 
 This is the way to specify a project file, eg. you cannot open a project file
 another way.
+See the setting list [here](doc/settings.md).
 
 Here is an example of a settings file:
 
@@ -216,7 +234,7 @@ the language server *even for files which might have nothing to do with that
 specific project*, so this needs to be taken into account. Ultimately what this
 means is that the configuration is determined by where you open vim.
 
-# Integration with Neovim's built-in LSP client
+## Integration with Neovim's built-in LSP client
 
 Neovim 0.5.0 and later have a built-in LSP client which can be used with the
 Ada Language Server. In order to use it with minimal effort, follow these steps:
@@ -248,7 +266,9 @@ require('nvim_lsp').als.setup{
 }
 ```
 
-# Integration with emacs lsp-mode
+See the setting list [here](doc/settings.md).
+
+### Integration with emacs lsp-mode
 
 The configuration for each project can be provided using a `.dir-locals.el`
 file defined at the root of each project.
@@ -287,7 +307,7 @@ for the `ada_language_server` and defines default customizable configuration
 values in the `lsp-ada` group that can be edited similarly to
 `lsp-ada-project-file` in the example above.
 
-# Integration with QtCreator
+## Integration with QtCreator
 Starting with version `4.9`, QtCreator supports a LSP plugin. Follow
 [the official documentation](https://doc.qt.io/qtcreator/creator-language-servers.html)
 to configure the Ada Language Server in this plugin. Make sure to set `Startup behavior`

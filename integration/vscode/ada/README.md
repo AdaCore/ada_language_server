@@ -1,53 +1,42 @@
-# Ada Language Support
+# Ada/SPARK for Visual Studio Code
+
+#### [Repository](https://github.com/AdaCore/ada_language_server)&nbsp;&nbsp;|&nbsp;&nbsp;[Issues](https://github.com/AdaCore/ada_language_server/issues)&nbsp;&nbsp;|&nbsp;&nbsp;[Documentation](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/ada/README.md)&nbsp;&nbsp;|&nbsp;&nbsp;[Code Samples](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples)&nbsp;&nbsp;|&nbsp;&nbsp;[Offline Installers](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
+
 
 [![Build Status](https://travis-ci.org/AdaCore/ada_language_server.svg?branch=master)](https://travis-ci.org/AdaCore/ada_language_server)
 
-This extension provides support for Ada programing language via
+This extension provides support for Ada/SPARK programing language via
 [Ada language server](https://github.com/AdaCore/ada_language_server)
 which utilizes
 [Libadalang library](https://github.com/AdaCore/libadalang).
 
-## Features
+## Getting started
 
- * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html)
- * Code completion
- * Go to definition, corresponding references
- * Document symbol search
+### Ada compiler and debugger
+The extension does not include an Ada compiler nor debugger. You will need to install these tools or use those already installed on your computer.
 
-## Requirements
+Popular Ada compilers are:
+ * [GNAT Community Edition](https://www.adacore.com/download/more)
+ * GNAT of [GCC](https://gcc.gnu.org/) in a Linux distro. Also install `gprbuild` package.
+ * GNAT for Windows in [msys2](https://www.msys2.org/). Also install `gprbuild` package.
+ * [GNAT for Mac OS X](https://sourceforge.net/projects/gnuada/files/GNAT_GCC%20Mac%20OS%20X/)
 
-To enable cross-references GNAT compiler should be installed.
+Make sure your compiler executable is in your platform path so the extension can find it. You can check availability of your Ada tools by opening the Integrated Terminal (Ctrl+\`) in VS Code and try running the executable (for example `gnatls -v`).
 
-## Extension Settings
+### Install the Language Support for Ada extension
 
-This extension contributes the following settings:
+Launch VS Code Quick Open (Ctrl+P), paste the following command, and press enter.
 
- * Use `ada.projectFile` to configure the GNAT Project File
- * Use `ada.scenarioVariables` to configure scenario variables.
+    ext install AdaCore.ada
 
-Here is an example config file:
+## Documentation
 
-```json
-{
-    "ada.projectFile": "my_project.gpr",
-    "ada.scenarioVariables": {
-        "BUILD_DIR": "build",
-        "OS": "Windows_NT"
-    }
-}
-```
+Some useful links:
+ * Ada Language Server [README.md](https://github.com/AdaCore/ada_language_server/blob/master/README.md)
+ * [Code Samples](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples) with Build and Debug tasks
+
 
 ## Feedback and Known Issues
 
 File a bug or see known issues [at github](https://github.com/AdaCore/ada_language_server/issues/).
 
-## Release Notes
-
-### 0.0.1
-
-Initial release of Ada Language Support extension
-
-----
-
-## License
-GPL 3.0, See [LICENSE](LICENSE) for more information.
