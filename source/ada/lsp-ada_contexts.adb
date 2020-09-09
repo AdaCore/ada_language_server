@@ -19,7 +19,6 @@ with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
 with GNAT.Strings;
 
-with GNATCOLL.JSON;
 with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 

@@ -20,7 +20,6 @@
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Doubly_Linked_Lists;
 
-with GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with LSP.Ada_Contexts;
