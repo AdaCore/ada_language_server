@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.VFS;
-
 with Libadalang.Common;
 
 with LSP.Ada_Contexts;
