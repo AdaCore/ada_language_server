@@ -4,7 +4,7 @@ pragma Style_Checks (Off);
 
 package LSP.Predefined_Completion.Ada2012 is
 
-   Db_Aspects: constant String := "{" & ASCII.LF
+   Db_Aspects_1 : constant String := "{" & ASCII.LF
    & """PREDEFINED_ADA"": {" & ASCII.LF
    & """ASPECT"": [" & ASCII.LF
    & "{" & ASCII.LF
@@ -839,8 +839,9 @@ package LSP.Predefined_Completion.Ada2012 is
    & """_name"": ""Unreferenced""," & ASCII.LF
    & """_origin"": ""GNAT RM""," & ASCII.LF
    & """_category"": ""unknown""" & ASCII.LF
-   & "}," & ASCII.LF
-   & "{" & ASCII.LF
+     & "}," & ASCII.LF;
+
+   Db_Aspects_2 : constant String := "{" & ASCII.LF
    & """DOC"": ""This boolean aspect is equivalent to *note pragma Unreferenced_Objects:\n112.""," & ASCII.LF
    & """_id"": ""0""," & ASCII.LF
    & """_name"": ""Unreferenced_Objects""," & ASCII.LF
@@ -905,7 +906,7 @@ package LSP.Predefined_Completion.Ada2012 is
    & "}" & ASCII.LF
    & "]," & ASCII.LF;
 
-   Db_Attributes : constant String := """ATTRIBUTE"": [" & ASCII.LF
+   Db_Attributes_1 : constant String := """ATTRIBUTE"": [" & ASCII.LF
    & "{" & ASCII.LF
    & """DOC"": ""`Standard'Abort_Signal' (`Standard' is the only allowed prefix)\nprovides the entity for the special exception used to signal task abort\nor asynchronous transfer of control.  Normally this attribute should\nonly be used in the tasking runtime (it is highly peculiar, and\ncompletely outside the normal semantics of Ada, for a user program to\nintercept the abort exception).""," & ASCII.LF
    & """_id"": ""0""," & ASCII.LF
@@ -1178,8 +1179,10 @@ package LSP.Predefined_Completion.Ada2012 is
    & """_name"": ""Denorm""," & ASCII.LF
    & """_origin"": ""Ada RM""," & ASCII.LF
    & """_category"": ""variable""" & ASCII.LF
-   & "}," & ASCII.LF
-   & "{" & ASCII.LF
+     & "}," & ASCII.LF;
+
+   Db_Attributes_2 : constant String :=
+     "{" & ASCII.LF
    & """DOC"": ""The attribute `typ'Deref(expr)' where `expr' is of type\n`System.Address' yields the variable of type `typ' that is located at\nthe given address. It is similar to `(totyp (expr).all)', where `totyp'\nis an unchecked conversion from address to a named access-to-`typ'\ntype, except that it yields a variable, so it can be used on the left\nside of an assignment.""," & ASCII.LF
    & """_id"": ""0""," & ASCII.LF
    & """_name"": ""Deref""," & ASCII.LF
@@ -2287,7 +2290,7 @@ package LSP.Predefined_Completion.Ada2012 is
    & "}" & ASCII.LF
    & "]," & ASCII.LF;
 
-   Db_Pragmas : constant String := """PRAGMA"": [" & ASCII.LF
+   Db_Pragmas_1 : constant String := """PRAGMA"": [" & ASCII.LF
    & "{" & ASCII.LF
    & """DOC"": ""Syntax:\n\npragma Abort_Defer;\n\nThis pragma must appear at the start of the statement sequence of a\nhandled sequence of statements (right after the `begin').  It has the\neffect of deferring aborts for the sequence of statements (but not for\nthe declarations or handlers, if any, associated with this statement\nsequence).""," & ASCII.LF
    & """_id"": ""0""," & ASCII.LF
@@ -2605,8 +2608,10 @@ package LSP.Predefined_Completion.Ada2012 is
    & """_id"": ""0""," & ASCII.LF
    & """_name"": ""Debug""," & ASCII.LF
    & """_origin"": ""GNAT RM""" & ASCII.LF
-   & "}," & ASCII.LF
-   & "{" & ASCII.LF
+     & "}," & ASCII.LF;
+
+   Db_Pragmas_2 : constant String :=
+     "{" & ASCII.LF
    & """DOC"": ""Syntax:\n\npragma Debug_Policy (CHECK | DISABLE | IGNORE | ON | OFF);\n\nThis pragma is equivalent to a corresponding `Check_Policy' pragma with\na first argument of `Debug'. It is retained for historical\ncompatibility reasons.""," & ASCII.LF
    & """_id"": ""0""," & ASCII.LF
    & """_name"": ""Debug_Policy""," & ASCII.LF
@@ -3730,6 +3735,8 @@ package LSP.Predefined_Completion.Ada2012 is
    & "}" & ASCII.LF
      & "]}}" & ASCII.LF;
 
-   Db : constant String := Db_Aspects & Db_Attributes & Db_Pragmas;
+   Db : constant String := Db_Aspects_1 & Db_Aspects_2
+     & Db_Attributes_1 & Db_Attributes_2
+     & Db_Pragmas_1 & Db_Pragmas_2;
 
 end LSP.Predefined_Completion.Ada2012;
