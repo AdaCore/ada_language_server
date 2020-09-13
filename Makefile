@@ -78,9 +78,6 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
-	$(GPRBUILD) -P gnat/lsp_client_glib.gpr -p $(COVERAGE_BUILD_FLAGS) \
-		-XVERSION=$(TRAVIS_TAG)
-
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
@@ -103,10 +100,6 @@ install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --mode=usage \
 		--prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/lsp_client.gpr -p -r	\
-		--mode=dev				\
-		--prefix=$(DESTDIR)			\
-		$(LIBRARY_FLAGS)
-	gprinstall -f -P gnat/lsp_client_glib.gpr -p -r	\
 		--mode=dev				\
 		--prefix=$(DESTDIR)			\
 		$(LIBRARY_FLAGS)
