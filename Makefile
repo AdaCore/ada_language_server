@@ -19,10 +19,13 @@ TD=testsuite/ada_lsp
 GPRBUILD=gprbuild -j0
 
 # Installation directory
-DESTDIR=
+prefix ?= /usr/local
+ifeq ($(DESTDIR),)
+  DESTDIR=$(prefix)
+endif
 
 # Library type
-LIBRARY_TYPE=relocatable
+LIBRARY_TYPE?=relocatable
 
 # Build mode (dev or prod)
 BUILD_MODE=dev
@@ -47,15 +50,11 @@ else
    endif
 endif
 
-ifeq ($(LIBRARY_TYPE), static)
-    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) \
-		  -XLIBRARY_TYPE=static \
-		  -XXMLADA_BUILD=static \
-		  -XGPR_BUILD=static \
-		  -XOS=$(OS)
-else
-    LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE) -XOS=$(OS)
-endif
+LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
+              -XOS=$(OS)			\
+              -XLIBRARY_TYPE=$(LIBRARY_TYPE)	\
+              -XXMLADA_BUILD=$(LIBRARY_TYPE)	\
+	      -XGPR_BUILD=$(LIBRARY_TYPE)
 
 BUILD_FLAGS=$(LIBRARY_FLAGS)
 
@@ -77,6 +76,10 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
+		-XVERSION=$(TRAVIS_TAG)
+	$(GPRBUILD) -P gnat/lsp_client_glib.gpr -p $(COVERAGE_BUILD_FLAGS) \
+		-XVERSION=$(TRAVIS_TAG)
 
 	mkdir -p integration/vscode/ada/$(PLATFORM)
 	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
@@ -99,8 +102,14 @@ endif
 install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --mode=usage \
 		--prefix=$(DESTDIR) $(LIBRARY_FLAGS)
-	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
-	gprinstall -f -P gnat/codec_test.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/lsp_client.gpr -p -r	\
+		--mode=dev				\
+		--prefix=$(DESTDIR)			\
+		$(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/lsp_client_glib.gpr -p -r	\
+		--mode=dev				\
+		--prefix=$(DESTDIR)			\
+		$(LIBRARY_FLAGS)
 ifneq ($(COVERAGE),)
 	mkdir -p $(DESTDIR)/share/als/sids || true
 	cp .obj/*/*.sid $(DESTDIR)/share/als/sids/
