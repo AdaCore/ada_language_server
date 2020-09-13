@@ -346,7 +346,7 @@ def write_message_types():
         """Factorization function"""
 
         # Write the .ads
-        with open(ads_name, 'wb') as ads:
+        with open(ads_name, 'w') as ads:
             ads.write(LSP_Messages_Generic_Header.format(kind=kind))
 
             for l in data_array:
@@ -369,7 +369,7 @@ def write_message_types():
         """Factorization function"""
 
         # Write the .adb
-        with open(adb_name, 'wb') as adb:
+        with open(adb_name, 'w') as adb:
             adb.write(LSP_Messages_Generic_Body_Header.format(kind=kind))
 
             for l in data_array:
@@ -427,7 +427,7 @@ def write_handle_request():
         """Factorization function"""
 
         # Write the .adb
-        with open(adb_name, 'wb') as adb:
+        with open(adb_name, 'w') as adb:
             handler_snippets = ""
 
             # Generate the snippets
@@ -469,7 +469,7 @@ def write_server_handlers():
         """Factorization function"""
 
         # Write the .ads
-        with open(ads_name, 'wb') as ads:
+        with open(ads_name, 'w') as ads:
 
             ads.write(LSP_Server_Handlers_Header.format(
                 handler=handler_name))
@@ -504,7 +504,7 @@ def write_server_receivers():
         """Factorization function"""
 
         # Write the .ads
-        with open(ads_name, 'wb') as ads:
+        with open(ads_name, 'w') as ads:
             ads.write(LSP_Server_Recievers_Header.format(
                 kind=kind, handler=handler_name,
                 extra_with=".Server_Requests" if is_request else""))
