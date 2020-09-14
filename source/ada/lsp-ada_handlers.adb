@@ -23,7 +23,6 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Directories;
 with Ada.Unchecked_Deallocation;
-with Ada.Wide_Wide_Characters.Handling;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNAT.Strings;
@@ -47,6 +46,8 @@ with LSP.Types;        use LSP.Types;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
+with Laltools.Call_Hierarchy;
+with Laltools.Common;
 with Laltools.Refactor_Imports;
 
 with Libadalang.Analysis;
@@ -289,7 +290,7 @@ package body LSP.Ada_Handlers is
       use type Libadalang.Analysis.Name;
 
       Name_Node : constant Libadalang.Analysis.Name :=
-        LSP.Lal_Utils.Get_Node_As_Name
+        Laltools.Common.Get_Node_As_Name
           (In_Context.Get_Node_At
              (Get_Open_Document (Self, Position.textDocument.uri),
               Position));
@@ -300,7 +301,7 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Definition := LSP.Lal_Utils.Resolve_Name
+      Definition := Laltools.Common.Resolve_Name
         (Name_Node,
          Self.Trace,
          Imprecise => Imprecise);
@@ -856,7 +857,7 @@ package body LSP.Ada_Handlers is
             when Libadalang.Common.Ada_Identifier =>
                declare
                   Name      : constant Libadalang.Analysis.Name
-                    := Get_Node_As_Name (Node);
+                    := Laltools.Common.Get_Node_As_Name (Node);
                   Imprecise : Boolean;
                   use type Libadalang.Analysis.Name;
                   use type Libadalang.Analysis.Defining_Name;
@@ -864,7 +865,8 @@ package body LSP.Ada_Handlers is
                   --  Only suggest with clause / prefix for unresolved nodes
 
                   if Name /= Libadalang.Analysis.No_Name and then
-                    Resolve_Name (Name, Context.Trace, Imprecise)
+                    Laltools.Common.Resolve_Name
+                      (Name, Context.Trace, Imprecise)
                     = Libadalang.Analysis.No_Defining_Name
                   then
                      declare
@@ -1080,11 +1082,11 @@ package body LSP.Ada_Handlers is
       ------------------------
 
       procedure Resolve_In_Context (C : Context_Access) is
-         Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+         Name_Node      : constant Name := Laltools.Common.Get_Node_As_Name
            (C.Get_Node_At (Document, Position));
 
          procedure Update_Response
-           (Bodies : Bodies_List.List;
+           (Bodies : Laltools.Common.Bodies_List.List;
             Kind   : LSP.Messages.AlsReferenceKind_Set);
          --  Utility function to update response with the bodies
 
@@ -1093,7 +1095,7 @@ package body LSP.Ada_Handlers is
          ---------------------
 
          procedure Update_Response
-           (Bodies : Bodies_List.List;
+           (Bodies : Laltools.Common.Bodies_List.List;
             Kind   : LSP.Messages.AlsReferenceKind_Set)
          is
          begin
@@ -1116,7 +1118,8 @@ package body LSP.Ada_Handlers is
          end if;
 
          --  Find the definition
-         Definition := Resolve_Name (Name_Node, Self.Trace, This_Imprecise);
+         Definition := Laltools.Common.Resolve_Name
+           (Name_Node, Self.Trace, This_Imprecise);
          Imprecise := Imprecise or This_Imprecise;
 
          --  If we didn't find a definition, give up for this context
@@ -1126,29 +1129,27 @@ package body LSP.Ada_Handlers is
 
          --  First list the bodies of this definition
          Update_Response
-           (List_Bodies_Of (Definition, Self.Trace, This_Imprecise),
+           (Laltools.Common.List_Bodies_Of
+              (Definition, Self.Trace, Imprecise),
             LSP.Messages.Empty_Set);
-         Imprecise := Imprecise or This_Imprecise;
 
          --  Then list the bodies of the parent implementations
          Decl := Definition.P_Basic_Decl;
          for Subp of C.Find_All_Base_Declarations (Decl, Find_All_Imprecise)
          loop
             Update_Response
-              (List_Bodies_Of
-                 (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+              (Laltools.Common.List_Bodies_Of
+                 (Subp.P_Defining_Name, Self.Trace, Imprecise),
                Is_Parent);
-            Imprecise := Imprecise or This_Imprecise;
          end loop;
          Imprecise := Imprecise or Find_All_Imprecise;
 
          --  And finally the bodies of child implementations
          for Subp of C.Find_All_Overrides (Decl, Find_All_Imprecise) loop
             Update_Response
-              (List_Bodies_Of
-                 (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+              (Laltools.Common.List_Bodies_Of
+                 (Subp.P_Defining_Name, Self.Trace, Imprecise),
                Is_Child);
-            Imprecise := Imprecise or This_Imprecise;
          end loop;
          Imprecise := Imprecise or Find_All_Imprecise;
 
@@ -1201,7 +1202,7 @@ package body LSP.Ada_Handlers is
 
       procedure Resolve_In_Context (C : Context_Access) is
          Name_Node               : constant Name :=
-                                     LSP.Lal_Utils.Get_Node_As_Name
+                                     Laltools.Common.Get_Node_As_Name
                                        (C.Get_Node_At (Document, Value));
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
@@ -1213,7 +1214,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          --  Check if we are on some defining name
-         Definition := Get_Name_As_Defining (Name_Node);
+         Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
          if Definition = No_Defining_Name then
             Self.Imprecise_Resolve_Name
@@ -1225,7 +1226,8 @@ package body LSP.Ada_Handlers is
                Decl_For_Find_Overrides := Definition.P_Basic_Decl;
             end if;
          else  --  If we are on a defining_name already
-            Other_Part := Find_Next_Part (Definition, Self.Trace);
+            Other_Part := Laltools.Common.Find_Next_Part
+              (Definition, Self.Trace);
 
             Decl_For_Find_Overrides := Definition.P_Basic_Decl;
 
@@ -1239,7 +1241,8 @@ package body LSP.Ada_Handlers is
 
             if Other_Part = No_Defining_Name then
                --  No next part is found. Check first defining name
-               Other_Part := Find_Canonical_Part (Definition, Self.Trace);
+               Other_Part := Laltools.Common.Find_Canonical_Part
+                 (Definition, Self.Trace);
             end if;
 
             if Other_Part /= No_Defining_Name then
@@ -1249,7 +1252,7 @@ package body LSP.Ada_Handlers is
                --  an answer using Find_Next_Part / Find_Canonical_Part.
                --  Use the manual fallback to attempt to find a good enough
                --  result.
-               Manual_Fallback := Find_Other_Part_Fallback
+               Manual_Fallback := Laltools.Common.Find_Other_Part_Fallback
                  (Definition, Self.Trace);
 
                if Manual_Fallback /= No_Defining_Name then
@@ -1332,7 +1335,7 @@ package body LSP.Ada_Handlers is
       ------------------------
 
       procedure Resolve_In_Context (C : Context_Access) is
-         Name_Node      : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+         Name_Node      : constant Name := Laltools.Common.Get_Node_As_Name
              (C.Get_Node_At (Document, Position));
          Definition     : Defining_Name;
          Type_Decl : Base_Type_Decl;
@@ -1351,7 +1354,7 @@ package body LSP.Ada_Handlers is
                  Def_Name.P_Basic_Decl.P_Type_Expression;
             begin
                if not Type_Expr.Is_Null then
-                  Definition := Resolve_Name
+                  Definition := Laltools.Common.Resolve_Name
                     (Type_Expr.P_Type_Name, Self.Trace, Imprecise);
                end if;
             end;
@@ -1794,61 +1797,6 @@ package body LSP.Ada_Handlers is
         (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set;
       --  Fetch reference kind for given node
 
-      function Is_End_Label (Node : Ada_Node) return Boolean
-      is
-        (not Node.Parent.Is_Null
-         and then
-           (Node.Parent.Kind in Ada_End_Name
-            or else (Node.Parent.Kind in Ada_Dotted_Name
-                     and then not Node.Parent.Parent.Is_Null
-                     and then Node.Parent.Parent.Kind in Ada_End_Name)));
-      --  Return True if the node belongs to an end label node.
-      --  Used to filter out end label references.
-
-      function Is_Type_Derivation (Node : Ada_Node) return Boolean
-      is
-        (not Node.Parent.Is_Null
-         and then
-           (Node.Parent.Kind in Ada_Subtype_Indication_Range
-            and then not Node.Parent.Parent.Is_Null
-            and then Node.Parent.Parent.Kind in Ada_Derived_Type_Def_Range));
-      --  Return True if the node belongs to derived type declaration.
-
-      function Is_Access_Ref (Node : Ada_Node) return Boolean;
-
-      -------------------
-      -- Is_Access_Ref --
-      -------------------
-
-      function Is_Access_Ref (Node : Ada_Node) return Boolean is
-      begin
-         if Node.Parent.Is_Null then
-            return False;
-         end if;
-
-         if Node.Parent.Kind = Ada_Dotted_Name then
-            return Is_Access_Ref (Node.Parent);
-         end if;
-
-         if Node.Parent.Kind in Ada_Name then
-            declare
-               Sibling : constant Ada_Node := Node.Next_Sibling;
-               Text    : constant Wide_Wide_String :=
-                 (if Sibling.Is_Null
-                  then ""
-                  else Ada.Wide_Wide_Characters.Handling.To_Lower
-                    (Sibling.Text));
-            begin
-               return
-                 Text = "access"
-                 or else Text = "unrestricted_access"
-                 or else Text = "unchecked_access"
-                 or else Text = "address";
-            end;
-         end if;
-         return False;
-      end Is_Access_Ref;
-
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
@@ -1858,7 +1806,7 @@ package body LSP.Ada_Handlers is
       is
          use LSP.Messages;
 
-         Id     : constant Name := LSP.Lal_Utils.Get_Node_As_Name (Node);
+         Id     : constant Name := Laltools.Common.Get_Node_As_Name (Node);
          Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
       begin
          begin
@@ -1870,7 +1818,7 @@ package body LSP.Ada_Handlers is
 
          begin
             Result.As_Flags (LSP.Messages.Access_Ref) :=
-              Is_Access_Ref (Id.As_Ada_Node);
+              Laltools.Common.Is_Access_Ref (Id.As_Ada_Node);
          exception
             when E : Libadalang.Common.Property_Error =>
                Log (Self.Trace, E);
@@ -1893,7 +1841,7 @@ package body LSP.Ada_Handlers is
 
          begin
             Result.As_Flags (LSP.Messages.Child) :=
-              Is_Type_Derivation (Id.As_Ada_Node);
+              Laltools.Common.Is_Type_Derivation (Id.As_Ada_Node);
          exception
             when E : Libadalang.Common.Property_Error =>
                Log (Self.Trace, E);
@@ -1927,7 +1875,7 @@ package body LSP.Ada_Handlers is
          begin
             Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
 
-            if not Is_End_Label (Node.As_Ada_Node) then
+            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
                Count := Count - 1;
 
                Append_Location
@@ -2074,10 +2022,10 @@ package body LSP.Ada_Handlers is
 
          declare
             This_Imprecise : Boolean;
-            Called  : constant LSP.Lal_Utils.References_By_Subprogram.Map :=
+            Called  : constant Laltools.Common.References_By_Subprogram.Map :=
               LSP.Lal_Utils.Find_All_Calls (C.all, Definition, This_Imprecise);
 
-            use LSP.Lal_Utils.References_By_Subprogram;
+            use Laltools.Common.References_By_Subprogram;
             C     : Cursor := Called.First;
          begin
             Imprecise := Imprecise or This_Imprecise;
@@ -2087,7 +2035,7 @@ package body LSP.Ada_Handlers is
             while Has_Element (C) loop
                declare
                   Node : constant Defining_Name := Key (C);
-                  Refs : constant LSP.Lal_Utils.References_List.List :=
+                  Refs : constant Laltools.Common.References_List.List :=
                     Element (C);
                   Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
                begin
@@ -2169,89 +2117,78 @@ package body LSP.Ada_Handlers is
       --  Process the calls found in one context and append
       --  them to Response.results.
 
-      procedure Add_Subprogram
-        (Subp : LSP.Messages.ALS_Subprogram_And_References);
-      --  Add a subprogram in results, it prevents having duplicates
-
       ---------------------
       -- Process_Context --
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
          Definition     : Defining_Name;
-         Calls          : LSP.Lal_Utils.References_By_Subprogram.Map;
-         Calls_Cursor   : LSP.Lal_Utils.References_By_Subprogram.Cursor;
-         This_Imprecise : Boolean;
+         Calls          : Laltools.Common.References_By_Subprogram.Map;
+         Calls_Cursor   : Laltools.Common.References_By_Subprogram.Cursor;
 
-         function Process_Body_Children (N : Ada_Node'Class)
-                                         return Visit_Status;
-         --  Check if N is a call and if so resolve it and add it to a
-         --  map where the key is the Defining_Name of the call and the
-         --  value is a Double_Linked_List of Base_Id representing where
-         --  the call is made.
+         procedure Callback (Subp_Call : Ada_Node'Class);
+         --  Add Subp_Call to Calls. Subp_Call definition will be the key
+         --  and Subp_Call is added to the list of the corresponding key.
 
-         ----------------------------
-         -- Process_Body_Childreen --
-         ----------------------------
+         procedure Add_Subprogram
+           (Subp : LSP.Messages.ALS_Subprogram_And_References);
+         --  Add a subprogram in results, it prevents having duplicates
 
-         function Process_Body_Children (N : Ada_Node'Class)
-                                         return Visit_Status is
+         --------------
+         -- Callback --
+         --------------
+
+         procedure Callback (Subp_Call : Ada_Node'Class)
+         is
+            Call_Definition : Defining_Name;
+            Subp_Call_Name  : constant Name :=
+              Laltools.Common.Get_Node_As_Name (Subp_Call.As_Ada_Node);
          begin
-            --  Do not consider calls made by nested subprograms, expression
-            --  functions or tasks.
 
-            if N.Kind in
-              Ada_Subp_Body
-              | Ada_Subp_Spec
-              | Ada_Expr_Function
+            --  First try to resolve the called function
 
-              --  TODO: Reactivate these lines when libadalang supports
-              --  P_Next_Part for tasks: T716-049
-              --  | Ada_Task_Body
-              --  | Ada_Single_Task_Decl
-              --  | Ada_Task_Type_Decl
-            then
-               return Over;
+            Call_Definition := Laltools.Common.Resolve_Name
+              (Subp_Call_Name, C.Trace, Imprecise);
+
+            if Call_Definition /= No_Defining_Name then
+               if Calls.Contains (Call_Definition) then
+                  declare
+                     R : constant
+                       Laltools.Common.References_By_Subprogram.
+                         Reference_Type :=
+                           Calls.Reference (Call_Definition);
+                  begin
+                     R.Append (Subp_Call.As_Base_Id);
+                  end;
+               else
+                  declare
+                     L : Laltools.Common.References_List.List;
+                  begin
+                     L.Append (Subp_Call.As_Base_Id);
+                     Calls.Insert (Call_Definition, L);
+                  end;
+               end if;
             end if;
 
-            if LSP.Lal_Utils.Is_Call (N, Self.Trace, This_Imprecise) then
-               declare
-                  This_Imprecise    : Boolean;
-                  Call_Definition   : Defining_Name;
-                  Call_Name         : constant Name
-                    := LSP.Lal_Utils.Get_Node_As_Name (Ada_Node (N));
+         end Callback;
 
-               begin
-                  --  First try to resolve the called function
+         --------------------
+         -- Add_Subprogram --
+         --------------------
 
-                  Call_Definition := LSP.Lal_Utils.Resolve_Name
-                    (Call_Name, C.Trace, This_Imprecise);
-                  Imprecise := Imprecise or This_Imprecise;
-
-                  if Call_Definition /= No_Defining_Name then
-                     if Calls.Contains (Call_Definition) then
-                        declare
-                           R : constant LSP.Lal_Utils.References_By_Subprogram.
-                             Reference_Type := Calls.Reference
-                               (Call_Definition);
-                        begin
-                           R.Append (N.As_Base_Id);
-                        end;
-                     else
-                        declare
-                           L : LSP.Lal_Utils.References_List.List;
-                        begin
-                           L.Append (N.As_Base_Id);
-                           Calls.Insert (Call_Definition, L);
-                        end;
-                     end if;
-                  end if;
-               end;
-            end if;
-
-            Imprecise := Imprecise or This_Imprecise;
-            return Into;
-         end Process_Body_Children;
+         procedure Add_Subprogram
+           (Subp     : LSP.Messages.ALS_Subprogram_And_References)
+         is
+            use LSP.Messages;
+         begin
+            for Cur of Response.result loop
+               if Cur.loc = Subp.loc and then Cur.name = Subp.name then
+                  Cur.refs.Append (Subp.refs);
+                  return;
+               end if;
+            end loop;
+            Response.result.Append (Subp);
+         end Add_Subprogram;
 
          --  Start of processing for Process_Context
 
@@ -2269,40 +2206,25 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         declare
-            This_Imprecise : Boolean;
-            Bodies         : constant LSP.Lal_Utils.Bodies_List.List :=
-              LSP.Lal_Utils.List_Bodies_Of
-                (Definition, C.Trace, This_Imprecise);
-
-         begin
-            Imprecise := Imprecise or This_Imprecise;
-
-            --  Iterate through all the bodies, and for each, iterate
-            --  through all the childreen looking for function calls.
-
-            for B of Bodies loop
-               for C of B.P_Basic_Decl.Children loop
-                  C.Traverse (Process_Body_Children'Access);
-               end loop;
-            end loop;
-         end;
+         Laltools.Call_Hierarchy.Find_Outgoing_Calls
+           (Definition => Definition,
+            Callback   => Callback'Access,
+            Trace      => C.Trace,
+            Imprecise  => Imprecise);
 
          Calls_Cursor := Calls.First;
-         while LSP.Lal_Utils.References_By_Subprogram.Has_Element
+         while Laltools.Common.References_By_Subprogram.Has_Element
            (Calls_Cursor)
          loop
             declare
-               Node : constant Defining_Name
-                 := LSP.Lal_Utils.References_By_Subprogram.Key
-                   (Calls_Cursor);
-               Refs : constant LSP.Lal_Utils.References_List.List :=
-                 LSP.Lal_Utils.References_By_Subprogram.Element
+               Node : constant Defining_Name :=
+                 Laltools.Common.References_By_Subprogram.Key (Calls_Cursor);
+               Refs : constant Laltools.Common.References_List.List :=
+                 Laltools.Common.References_By_Subprogram.Element
                    (Calls_Cursor);
                Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
-
             begin
-               Subp_And_Refs.loc  := Get_Node_Location (Ada_Node (Node));
+               Subp_And_Refs.loc  := Get_Node_Location (Node.As_Ada_Node);
                Subp_And_Refs.name := To_LSP_String
                  (Langkit_Support.Text.To_UTF8 (Node.Text));
                for Ref of Refs loop
@@ -2316,28 +2238,10 @@ package body LSP.Ada_Handlers is
                   end if;
                end loop;
                Add_Subprogram (Subp_And_Refs);
-               LSP.Lal_Utils.References_By_Subprogram.Next (Calls_Cursor);
+               Laltools.Common.References_By_Subprogram.Next (Calls_Cursor);
             end;
          end loop;
       end Process_Context;
-
-      --------------------
-      -- Add_Subprogram --
-      --------------------
-
-      procedure Add_Subprogram
-        (Subp     : LSP.Messages.ALS_Subprogram_And_References)
-      is
-         use LSP.Messages;
-      begin
-         for Cur of Response.result loop
-            if Cur.loc = Subp.loc and then Cur.name = Subp.name then
-               Cur.refs.Append (Subp.refs);
-               return;
-            end if;
-         end loop;
-         Response.result.Append (Subp);
-      end Add_Subprogram;
 
       --  Start of processing for On_ALS_Calls_Request
 
@@ -2582,7 +2486,7 @@ package body LSP.Ada_Handlers is
          Position : constant LSP.Messages.TextDocumentPositionParams :=
                       (Value.textDocument, Value.position);
 
-         Name_Node  : constant Name := LSP.Lal_Utils.Get_Node_As_Name
+         Name_Node  : constant Name := Laltools.Common.Get_Node_As_Name
            (C.Get_Node_At (Document, Position));
 
          Definition : Defining_Name;
@@ -2657,9 +2561,9 @@ package body LSP.Ada_Handlers is
             Token     : Token_Reference := First_Token (Node.Unit);
             Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-                (Get_Last_Name (Name_Node));
+                (Laltools.Common.Get_Last_Name (Name_Node));
             Text_Edit : LSP.Messages.TextEdit;
-            Span      : LSP.Messages.Span;
+            Span      : Langkit_Support.Slocs.Source_Location_Range;
             Current   : Token_Reference;
             Diff      : Integer;
 
@@ -2754,37 +2658,42 @@ package body LSP.Ada_Handlers is
             Diff := Length (Value.newName) - Name'Length;
 
             while Token /= No_Token loop
-               if Kind (Data (Token)) = Ada_Comment
-                 and then Contains (Token, Name, True, Text_Edit.span)
-               then
-                  Text_Edit.newText := Value.newName;
-
-                  if Diff /= 0
-                    and then Contains
-                      (Token, "-- " & Name & " --", False, Span)
+               declare
+                  This_Span : Langkit_Support.Slocs.Source_Location_Range;
+               begin
+                  if Kind (Data (Token)) = Ada_Comment
+                    and then Laltools.Common.Contains
+                      (Token, Name, True, This_Span)
                   then
-                     --  Can be a comment box
-                     Current := Previous (Token);
-                     loop
-                        --  Looking for the box header
-                        exit when not Process_Box;
-                        Current := Previous (Current);
-                     end loop;
+                     Text_Edit.span := To_Span (This_Span);
+                     Text_Edit.newText := Value.newName;
 
-                     --  Include corrected comment itself
-                     Response.result.changes (Uri).Append (Text_Edit);
+                     if Diff /= 0
+                       and then Laltools.Common.Contains
+                         (Token, "-- " & Name & " --", False, Span)
+                     then
+                        --  Can be a comment box
+                        Current := Previous (Token);
+                        loop
+                           --  Looking for the box header
+                           exit when not Process_Box;
+                           Current := Previous (Current);
+                        end loop;
 
-                     Current := Next (Token);
-                     loop
-                        --  Looking for the box footer
-                        exit when not Process_Box;
-                        Current := Next (Current);
-                     end loop;
+                        --  Include corrected comment itself
+                        Response.result.changes (Uri).Append (Text_Edit);
 
-                  else
-                     Response.result.changes (Uri).Append (Text_Edit);
+                        Current := Next (Token);
+                        loop
+                           --  Looking for the box footer
+                           exit when not Process_Box;
+                           Current := Next (Current);
+                        end loop;
+                     else
+                        Response.result.changes (Uri).Append (Text_Edit);
+                     end if;
                   end if;
-               end if;
+               end;
 
                Token := Next (Token);
             end loop;
@@ -2795,7 +2704,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         Definition := LSP.Lal_Utils.Resolve_Name
+         Definition := Laltools.Common.Resolve_Name
            (Name_Node,
             Self.Trace,
             Imprecise => Imprecise);
