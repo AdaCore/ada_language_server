@@ -17,61 +17,20 @@
 --
 --  This package provides some Libadalang related utility subprograms.
 
-with Ada.Containers.Ordered_Maps;
-with Ada.Containers.Doubly_Linked_Lists;
-
-with GNATCOLL.Traces;
-
 with LSP.Ada_Contexts;
 with LSP.Messages;
 with LSP.Types;
 
+with Laltools.Common;
+
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
 
-with Langkit_Support.Text;
 with Langkit_Support.Slocs;
 
 with VSS.Strings;
 
 package LSP.Lal_Utils is
-
-   function Get_Node_As_Name (Node : Ada_Node) return Name;
-
-   function Get_Name_As_Defining (Name_Node : Name) return Defining_Name;
-
-   function Resolve_Name
-     (Name_Node : Name;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Imprecise : out Boolean) return Defining_Name;
-   --  Return the definition node (canonical part) of the given name.
-   --  Imprecise is set to True if LAL's imprecise fallback mechanism has been
-   --  used to compute the cross reference.
-
-   function Get_Last_Name (Name_Node : Name)
-      return Langkit_Support.Text.Unbounded_Text_Type;
-   --  Return the last name, for example if name is A.B.C then return C
-
-   function Find_Next_Part
-     (Definition : Defining_Name;
-      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Wrapper around P_Next_Part that returns No_Defining_Name if next part
-   --  is name itself. It also catches Property_Error and reports it in traces.
-
-   function Find_Canonical_Part
-     (Definition : Defining_Name;
-      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Wrapper around P_Canonical_Part that returns null if canonical part
-   --  is name itself. It also catches Property_Error and reports it in traces.
-
-   function Find_Other_Part_Fallback
-     (Definition : Defining_Name;
-      Trace      : GNATCOLL.Traces.Trace_Handle) return Defining_Name;
-   --  Attempt to find the other part of a definition manually, with
-   --  simple heuristics that look at the available entities with matching
-   --- names and profiles.
-   --  This should be called only if straightforward Libadalang calls
-   --  have failed.
 
    procedure Append_Location
      (Result : in out LSP.Messages.Location_Or_Link_Vector;
@@ -108,81 +67,21 @@ package LSP.Lal_Utils is
       return LSP.Messages.Span;
    --  Convert Source_Location_Range to Span
 
-   function Is_Definition_Without_Separate_Implementation
-     (Definition : Defining_Name) return Boolean;
-   --  Return True if the definition given is a subprogram that does not call
-   --  for a body, ie a "is null" procedure, an expression function, or an
-   --  abstract subprogram.
-
    ---------------
    -- Called_By --
    ---------------
-
-   package References_List is new Ada.Containers.Doubly_Linked_Lists
-     (Base_Id);
-
-   function "<" (Left, Right : Defining_Name) return Boolean is
-     (Left.Text < Right.Text
-      or else (Left.Text = Right.Text
-               and then Left.Full_Sloc_Image < Right.Full_Sloc_Image));
-   --  The Ordered_Maps is using the "<" in its Equivalent_Keys function:
-   --  this is too basic and it will assume that Left.Text = Right.Text implies
-   --  Left = Right which is wrong.
-   --  If Left.Text = Right.Text then Full_Sloc_Image will sort first by
-   --  file and then by Sloc (first by line and then by column).
-
-   package References_By_Subprogram is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Defining_Name,
-      Element_Type => References_List.List,
-      "<"          => "<",
-      "="          => References_List."=");
 
    function Find_All_Calls
      (Context           : LSP.Ada_Contexts.Context;
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)
-      return References_By_Subprogram.Map
+      return Laltools.Common.References_By_Subprogram.Map
      with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
    --  Return the list of all the calls made to the subprogram pointed at by
    --  the node given by Definition, organized by the subprograms in which
    --  these calls are listed, ordered by the name of these subprograms.
    --  Imprecise_Results is set to True if we don't know whether the results
    --  are precise.
-
-   function Contains
-     (Token   : Libadalang.Common.Token_Reference;
-      Pattern : Wide_Wide_String;
-      As_Word : Boolean;
-      Span    : out LSP.Messages.Span)
-      return Boolean;
-   --  Return True if the Token text contains Pattern and set position in Span.
-   --  Checks whether the Token's Pattern is delimited by word delimiters
-   --  if As_Word is True.
-
-   package Bodies_List is new Ada.Containers.Doubly_Linked_Lists
-     (Defining_Name);
-
-   function List_Bodies_Of
-     (Definition : Defining_Name;
-      Trace      : GNATCOLL.Traces.Trace_Handle;
-      Imprecise_Results  : out Boolean)
-      return Bodies_List.List;
-   --  List all the bodies of Definition. This does not list the bodies of the
-   --  parent. It sets Imprecise_Results to True if any request returns
-   --  imprecise results.
-
-   function Is_Enum_Literal
-     (Node      : Ada_Node'Class;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Imprecise : out Boolean) return Boolean;
-   --  Check if a node is an enum literal.
-
-   function Is_Call
-     (Node      : Ada_Node'Class;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Imprecise : out Boolean) return Boolean;
-   --  Check if a node is a call and an identifier. Enum literals
-   --  in DottedName are excluded.
 
    --  function Is_Task
    --    (Node      : Ada_Node'Class;
@@ -203,13 +102,5 @@ package LSP.Lal_Utils is
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
-
-   function Is_Constant
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
-   --  Return True if the decl contains the constant keyword
-
-   function Is_Structure
-     (Node : Libadalang.Analysis.Basic_Decl) return Boolean;
-   --  Return True if the type contains a record part.
 
 end LSP.Lal_Utils;

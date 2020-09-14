@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Lal_Utils;
+with Laltools.Common;
 
 package body LSP.Ada_Id_Iterators is
 
@@ -87,7 +87,7 @@ package body LSP.Ada_Id_Iterators is
          exit when Cancel;
 
          --  Try to get the corresponding body
-         Subp_Body_Name := Lal_Utils.Find_Next_Part
+         Subp_Body_Name := Laltools.Common.Find_Next_Part
            (Subp_Decl.P_Defining_Name, Trace);
 
          --  If there is a body, append the body's begin and end labels

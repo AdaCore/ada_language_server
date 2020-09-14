@@ -29,6 +29,9 @@ with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Project_Provider;
+
+with Laltools.Common;
+
 with Langkit_Support.Slocs;
 
 with Utils.Command_Lines.Common;
@@ -64,7 +67,7 @@ package body LSP.Ada_Contexts is
       use Libadalang.Analysis;
 
       Name_Node : constant Libadalang.Analysis.Name :=
-        LSP.Lal_Utils.Get_Node_As_Name
+        Laltools.Common.Get_Node_As_Name
           (Self.Get_Node_At (Document, Position));
 
       Definition              : Libadalang.Analysis.Defining_Name;
@@ -80,14 +83,14 @@ package body LSP.Ada_Contexts is
       end if;
 
       --  Check if we are on some defining name
-      Definition := LSP.Lal_Utils.Get_Name_As_Defining (Name_Node);
+      Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
       if Definition = Libadalang.Analysis.No_Defining_Name then
          --  If we aren't on a defining_name already then try to resolve
          declare
             Is_Imprecise : Boolean;
          begin
-            Definition := LSP.Lal_Utils.Resolve_Name
+            Definition := Laltools.Common.Resolve_Name
               (Name_Node, Self.Trace, Is_Imprecise);
 
             Imprecise := Imprecise or Is_Imprecise;
@@ -98,7 +101,8 @@ package body LSP.Ada_Contexts is
          return;  --  Name resolution fails, nothing to do.
       end if;
 
-      First_Part := LSP.Lal_Utils.Find_Canonical_Part (Definition, Self.Trace);
+      First_Part := Laltools.Common.Find_Canonical_Part
+        (Definition, Self.Trace);
 
       if First_Part = Libadalang.Analysis.No_Defining_Name then
          Decl_For_Find_Overrides := Definition.P_Basic_Decl;
