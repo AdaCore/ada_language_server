@@ -111,9 +111,9 @@ package LSP.Clients is
       Value    : LSP.Messages.TextDocumentPositionParams);
 
    procedure Text_Document_Definition_Request
-     (Self     : in out Client'Class;
-      Request  : out LSP.Types.LSP_Number_Or_String;
-      Value    : LSP.Messages.TextDocumentPositionParams);
+     (Self    : in out Client'Class;
+      Request : out LSP.Types.LSP_Number_Or_String;
+      Value   : LSP.Messages.DefinitionParams);
 
    procedure Text_Document_Type_Definition_Request
      (Self     : in out Client'Class;

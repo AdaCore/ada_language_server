@@ -177,6 +177,14 @@ private
       --  Defines the number of parameters/components at which point named
       --  notation is used for subprogram/aggregate completion snippets.
 
+      Display_Method_Ancestry_Policy :
+         LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
+           LSP.Messages.Usage_And_Abstract_Only;
+      --  Defines the policy regarding the listing of
+      --  overriding/overridden subprograms for navigation requests
+      --  such as textDocument/definition, textDocument/declaration
+      --  and textDocument/implementation.
+
       ----------------------
       -- Project handling --
       ----------------------

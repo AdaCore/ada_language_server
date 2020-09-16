@@ -384,6 +384,37 @@ package LSP.Messages is
    type Optional_AlsReferenceKind_Set is
      new Optional_AlsReferenceKind_Sets.Optional_Type;
 
+   --  Display method ancestry on navigation ALS extension:
+   --
+   --  export type AlsDisplayMethodAncestryOnNavigationPolicy =
+   --     'never' | 'usage_and_abstract_only' | 'definition_only' | 'always';
+   --
+   --  export namespace AlsDisplayMethodAncestryOnNavigationPolicy {
+   --     export const Never                   : AlsReferenceKind = 'never';
+   --     export const Usage_And_Abstract_Only : AlsReferenceKind = 'usage_and_absract_only';
+   --     export const Definition_Only         : AlsReferenceKind = 'definition_only';
+   --     export const Always                  : AlsReferenceKind = 'always';
+   --  }
+
+   type AlsDisplayMethodAncestryOnNavigationPolicy is
+     (Never, Usage_And_Abstract_Only, Definition_Only, Always);
+
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsDisplayMethodAncestryOnNavigationPolicy);
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsDisplayMethodAncestryOnNavigationPolicy);
+   for AlsDisplayMethodAncestryOnNavigationPolicy'Read
+   use Read_AlsDisplayMethodAncestryOnNavigationPolicy;
+   for AlsDisplayMethodAncestryOnNavigationPolicy'Write
+   use Write_AlsDisplayMethodAncestryOnNavigationPolicy;
+
+   package Optional_AlsDisplayMethodAncestryOnNavigationPolicies is
+     new LSP.Generic_Optional (AlsDisplayMethodAncestryOnNavigationPolicy);
+   type Optional_AlsDisplayMethodAncestryOnNavigationPolicy is
+     new Optional_AlsDisplayMethodAncestryOnNavigationPolicies.Optional_Type;
+
    --```typescript
    --interface Location {
    --	uri: DocumentUri;
@@ -4171,10 +4202,10 @@ package LSP.Messages is
       --	experimental?: any;
 
       --  ALS-specific capabilities
-      alsCalledByProvider : Optional_Boolean;
-      alsCallsProvider    : Optional_Boolean;
-      alsShowDepsProvider : Optional_Boolean;
-      alsReferenceKinds   : Optional_AlsReferenceKind_Set;
+      alsCalledByProvider     : Optional_Boolean;
+      alsCallsProvider        : Optional_Boolean;
+      alsShowDepsProvider     : Optional_Boolean;
+      alsReferenceKinds       : Optional_AlsReferenceKind_Set;
    end record;
 
    procedure Read_ServerCapabilities
@@ -7220,17 +7251,32 @@ package LSP.Messages is
    --```
    type SignatureHelpParams is new Text_Progress_Params with null record;
 
+   --  Base class for navigation requests, embedding an optional flag to
+   --  control whether or now we should list overriding/overridden subprograms.
+   type NavigationRequestParams is new Text_Progress_Partial_Params with record
+      alsDisplayMethodAncestryOnNavigation :
+      Optional_AlsDisplayMethodAncestryOnNavigationPolicy;
+   end record;
+   procedure Read_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NavigationRequestParams);
+   procedure Write_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NavigationRequestParams);
+   for NavigationRequestParams'Read use Read_NavigationRequestParams;
+   for NavigationRequestParams'Write use Write_NavigationRequestParams;
+
    --```typescript
    --export interface DeclarationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --}
    --```
-   type DeclarationParams is new Text_Progress_Partial_Params with null record;
+   type DeclarationParams is new NavigationRequestParams with null record;
 
    --```typescript
    --export interface DefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --}
    --```
-   type DefinitionParams is new Text_Progress_Partial_Params with null record;
+   type DefinitionParams is new NavigationRequestParams with null record;
 
    --```typescript
    --export interface TypeDefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
@@ -7242,7 +7288,7 @@ package LSP.Messages is
    --export interface ImplementationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --}
    --```
-   type ImplementationParams is new Text_Progress_Partial_Params with null record;
+   type ImplementationParams is new NavigationRequestParams with null record;
 
    --```typescript
    --export interface DocumentHighlightParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
