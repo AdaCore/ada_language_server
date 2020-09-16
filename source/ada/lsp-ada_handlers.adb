@@ -3439,6 +3439,27 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Incoming_Calls_Request;
 
+   -------------------------------
+   -- On_Outgoing_Calls_Request --
+   -------------------------------
+
+   overriding function On_Outgoing_Calls_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
+      return LSP.Messages.Server_Responses.OutgoingCalls_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.OutgoingCalls_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Outgoing_Calls_Request;
+
    ---------------------------------
    -- On_Range_Formatting_Request --
    ---------------------------------

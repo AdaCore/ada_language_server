@@ -305,6 +305,8 @@ REQUESTS = [
      'CallHierarchyPrepareParams', 'PrepareCallHierarchy_Response'),
     ('callHierarchy/incomingCalls', 'Incoming_Calls',
      'CallHierarchyIncomingCallsParams', 'IncomingCalls_Response'),
+    ('callHierarchy/outgoingCalls', 'Outgoing_Calls',
+     'CallHierarchyOutgoingCallsParams', 'OutgoingCalls_Response'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
