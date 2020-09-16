@@ -2379,6 +2379,8 @@ package body LSP.Message_IO is
                Optional_FoldingRangeClientCapabilities'Read (S, V.foldingRange);
             elsif Key = "selectionRange" then
                SelectionRangeClientCapabilities'Read (S, V.selectionRange);
+            elsif Key = "callHierarchy" then
+               CallHierarchyClientCapabilities'Read (S, V.callHierarchy);
             else
                JS.Skip_Value;
             end if;
@@ -2439,6 +2441,8 @@ package body LSP.Message_IO is
       Optional_FoldingRangeClientCapabilities'Write (S, V.foldingRange);
       JS.Key ("selectionRange");
       SelectionRangeClientCapabilities'Write (S, V.selectionRange);
+      JS.Key ("callHierarchy");
+      CallHierarchyClientCapabilities'Write (S, V.callHierarchy);
       JS.End_Object;
    end Write_TextDocumentClientCapabilities;
 
@@ -3419,6 +3423,8 @@ package body LSP.Message_IO is
                WorkspaceSymbolOptions'Read (S, V.workspaceSymbolProvider);
             elsif Key = "workspace" then
                Optional_workspace_Options'Read (S, V.workspace);
+            elsif Key = "callHierarchyProvider" then
+               CallHierarchyOptions'Read (S, V.callHierarchyProvider);
             elsif Key = "alsCalledByProvider" then
                Optional_Boolean'Read (S, V.alsCalledByProvider);
             elsif Key = "alsCallsProvider" then
@@ -3491,6 +3497,8 @@ package body LSP.Message_IO is
       WorkspaceSymbolOptions'Write (S, V.workspaceSymbolProvider);
       JS.Key ("workspace");
       Optional_workspace_Options'Write (S, V.workspace);
+      JS.Key ("callHierarchyProvider");
+      CallHierarchyOptions'Write (S, V.callHierarchyProvider);
       JS.Key ("alsCalledByProvider");
       Optional_Boolean'Write (S, V.alsCalledByProvider);
       JS.Key ("alsCallsProvider");
@@ -6165,6 +6173,202 @@ package body LSP.Message_IO is
       LSP.Messages.Span'Write (S, V.span);
       JS.End_Object;
    end Write_SelectionRange;
+
+   procedure Read_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "name" then
+               LSP.Types.Read (S, V.name);
+            elsif Key = "kind" then
+               SymbolKind'Read (S, V.kind);
+            elsif Key = "detail" then
+               Optional_String'Read (S, V.detail);
+            elsif Key = "uri" then
+               LSP.Types.Read (S, V.uri);
+            elsif Key = "range" then
+               LSP.Messages.Span'Read (S, V.span);
+            elsif Key = "selectionRange" then
+               LSP.Messages.Span'Read (S, V.selectionRange);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CallHierarchyItem;
+
+   procedure Write_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyItem)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("name");
+      LSP.Types.Write (S, V.name);
+      JS.Key ("kind");
+      SymbolKind'Write (S, V.kind);
+      JS.Key ("detail");
+      Optional_String'Write (S, V.detail);
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("range");
+      LSP.Messages.Span'Write (S, V.span);
+      JS.Key ("selectionRange");
+      LSP.Messages.Span'Write (S, V.selectionRange);
+      JS.End_Object;
+   end Write_CallHierarchyItem;
+
+   procedure Read_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCallsParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "partialResultToken" then
+               Optional_ProgressToken'Read (S, V.partialResultToken);
+            elsif Key = "item" then
+               CallHierarchyItem'Read (S, V.item);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CallHierarchyIncomingCallsParams;
+
+   procedure Write_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCallsParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.Key ("partialResultToken");
+      Optional_ProgressToken'Write (S, V.partialResultToken);
+      JS.Key ("item");
+      CallHierarchyItem'Write (S, V.item);
+      JS.End_Object;
+   end Write_CallHierarchyIncomingCallsParams;
+
+   procedure Read_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCall)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "from" then
+               CallHierarchyItem'Read (S, V.from);
+            elsif Key = "fromRanges" then
+               Span_Vector'Read (S, V.fromRanges);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CallHierarchyIncomingCall;
+
+   procedure Write_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCall)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("from");
+      CallHierarchyItem'Write (S, V.from);
+      JS.Key ("fromRanges");
+      Span_Vector'Write (S, V.fromRanges);
+      JS.End_Object;
+   end Write_CallHierarchyIncomingCall;
+
+   procedure Read_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyOutgoingCall)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "to" then
+               CallHierarchyItem'Read (S, V.to);
+            elsif Key = "fromRanges" then
+               Span_Vector'Read (S, V.fromRanges);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CallHierarchyOutgoingCall;
+
+   procedure Write_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyOutgoingCall)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("to");
+      CallHierarchyItem'Write (S, V.to);
+      JS.Key ("fromRanges");
+      Span_Vector'Write (S, V.fromRanges);
+      JS.End_Object;
+   end Write_CallHierarchyOutgoingCall;
 
    procedure Read_ALS_Subprogram_And_References
      (S : access Ada.Streams.Root_Stream_Type'Class;

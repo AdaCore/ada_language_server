@@ -51,6 +51,26 @@ package body LSP.Messages is
       V : out LSP.Messages.NotificationMessage)
       renames LSP.Message_IO.Read_NotificationMessage;
 
+   procedure Read_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCall)
+      renames LSP.Message_IO.Read_CallHierarchyIncomingCall;
+
+   procedure Read_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCallsParams)
+      renames LSP.Message_IO.Read_CallHierarchyIncomingCallsParams;
+
+   procedure Read_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyItem)
+      renames LSP.Message_IO.Read_CallHierarchyItem;
+
+   procedure Read_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyOutgoingCall)
+      renames LSP.Message_IO.Read_CallHierarchyOutgoingCall;
+
    procedure Read_CancelParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.CancelParams)
@@ -735,6 +755,26 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.NotificationMessage)
       renames LSP.Message_IO.Write_NotificationMessage;
+
+   procedure Write_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCall)
+      renames LSP.Message_IO.Write_CallHierarchyIncomingCall;
+
+   procedure Write_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCallsParams)
+      renames LSP.Message_IO.Write_CallHierarchyIncomingCallsParams;
+
+   procedure Write_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyItem)
+      renames LSP.Message_IO.Write_CallHierarchyItem;
+
+   procedure Write_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyOutgoingCall)
+      renames LSP.Message_IO.Write_CallHierarchyOutgoingCall;
 
    procedure Write_CancelParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
