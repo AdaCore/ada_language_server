@@ -99,6 +99,8 @@ endif
 install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --mode=usage \
 		--prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
+	gprinstall -f -P gnat/codec_test.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/lsp_client.gpr -p -r	\
 		--mode=dev				\
 		--prefix=$(DESTDIR)			\
