@@ -11,6 +11,7 @@ types_to_print = {
     'Span',
     'CodeActionKind',
     'AlsReferenceKind',
+    'AlsDisplayMethodAncestryOnNavigationPolicy',
     #  'AlsReferenceKind_Array',
     #  'AlsReferenceKind_Set',
     'Location',
@@ -200,6 +201,7 @@ types_to_print = {
     #  'HoverParams',
     #  'SignatureHelpParams',
     #  'DeclarationParams',
+    'NavigationRequestParams',
     #  'DefinitionParams',
     #  'TypeDefinitionParams',
     #  'ImplementationParams',
@@ -388,6 +390,7 @@ read_epilog = {
 # The list of enumeration type represented as strings
 enum_as_string = [
     'AlsReferenceKind',
+    'AlsDisplayMethodAncestryOnNavigationPolicy',
     'CodeActionKind',
     'ResourceOperationKind',
     'FailureHandlingKind',

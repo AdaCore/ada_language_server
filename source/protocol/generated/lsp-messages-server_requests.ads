@@ -75,7 +75,7 @@ package LSP.Messages.Server_Requests is
    package Definition_Requests is
      new LSP.Generic_Requests
        (Server_Request,
-        TextDocumentPositionParams,
+        DefinitionParams,
         Server_Request_Receiver'Class);
 
    type Definition_Request is
@@ -88,7 +88,7 @@ package LSP.Messages.Server_Requests is
    package Declaration_Requests is
      new LSP.Generic_Requests
        (Server_Request,
-        TextDocumentPositionParams,
+        DeclarationParams,
         Server_Request_Receiver'Class);
 
    type Declaration_Request is
@@ -101,7 +101,7 @@ package LSP.Messages.Server_Requests is
    package Implementation_Requests is
      new LSP.Generic_Requests
        (Server_Request,
-        TextDocumentPositionParams,
+        ImplementationParams,
         Server_Request_Receiver'Class);
 
    type Implementation_Request is

@@ -371,6 +371,61 @@ package body LSP.Message_IO is
       JS.Write_String (To_String (V));
    end Write_AlsReferenceKind;
 
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AlsDisplayMethodAncestryOnNavigationPolicy)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Text : constant Standard.String :=
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+   begin
+      JS.R.Read_Next;
+      if Text = "Never" then
+         V := Never;
+      elsif Text = "Usage_And_Abstract_Only" then
+         V := Usage_And_Abstract_Only;
+      elsif Text = "Definition_Only" then
+         V := Definition_Only;
+      elsif Text = "Always" then
+         V := Always;
+      else
+         V := AlsDisplayMethodAncestryOnNavigationPolicy'First;
+      end if;
+   end Read_AlsDisplayMethodAncestryOnNavigationPolicy;
+
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AlsDisplayMethodAncestryOnNavigationPolicy)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
+         return Ada.Strings.UTF_Encoding.UTF_8_String;
+
+      function To_String
+        (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
+         return Ada.Strings.UTF_Encoding.UTF_8_String is
+      begin
+         case Value is
+            when Never =>
+               return "Never";
+            when Usage_And_Abstract_Only =>
+               return "Usage_And_Abstract_Only";
+            when Definition_Only =>
+               return "Definition_Only";
+            when Always =>
+               return "Always";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write_String (To_String (V));
+   end Write_AlsDisplayMethodAncestryOnNavigationPolicy;
+
    procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Location)
@@ -6129,6 +6184,62 @@ package body LSP.Message_IO is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.End_Object;
    end Write_DocumentColorParams;
+
+   procedure Read_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NavigationRequestParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "textDocument" then
+               TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "position" then
+               LSP.Messages.Position'Read (S, V.position);
+            elsif Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "partialResultToken" then
+               Optional_ProgressToken'Read (S, V.partialResultToken);
+            elsif Key = "alsDisplayMethodAncestryOnNavigation" then
+               Optional_AlsDisplayMethodAncestryOnNavigationPolicy'Read (S, V.alsDisplayMethodAncestryOnNavigation);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_NavigationRequestParams;
+
+   procedure Write_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NavigationRequestParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      LSP.Messages.Position'Write (S, V.position);
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.Key ("partialResultToken");
+      Optional_ProgressToken'Write (S, V.partialResultToken);
+      JS.Key ("alsDisplayMethodAncestryOnNavigation");
+      Optional_AlsDisplayMethodAncestryOnNavigationPolicy'Write (S, V.alsDisplayMethodAncestryOnNavigation);
+      JS.End_Object;
+   end Write_NavigationRequestParams;
 
    procedure Read_SelectionRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

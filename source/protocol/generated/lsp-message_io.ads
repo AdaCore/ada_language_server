@@ -60,6 +60,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.AlsReferenceKind);
 
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy);
+
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy);
+
    procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.Location);
@@ -1059,6 +1067,14 @@ package LSP.Message_IO is
    procedure Write_DocumentColorParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DocumentColorParams);
+
+   procedure Read_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.NavigationRequestParams);
+
+   procedure Write_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.NavigationRequestParams);
 
    procedure Read_SelectionRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

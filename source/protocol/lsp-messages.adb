@@ -96,6 +96,11 @@ package body LSP.Messages is
       V : out LSP.Messages.AlsReferenceKind)
       renames LSP.Message_IO.Read_AlsReferenceKind;
 
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy)
+      renames LSP.Message_IO.Read_AlsDisplayMethodAncestryOnNavigationPolicy;
+
    procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.Location)
@@ -591,6 +596,11 @@ package body LSP.Messages is
       V : out LSP.Messages.DocumentFormattingParams)
       renames LSP.Message_IO.Read_DocumentFormattingParams;
 
+   procedure Read_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out NavigationRequestParams)
+     renames LSP.Message_IO.Read_NavigationRequestParams;
+
    procedure Read_DocumentRangeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DocumentRangeFormattingParams)
@@ -805,6 +815,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.AlsReferenceKind)
       renames LSP.Message_IO.Write_AlsReferenceKind;
+
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy)
+      renames LSP.Message_IO.Write_AlsDisplayMethodAncestryOnNavigationPolicy;
 
    procedure Write_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1300,6 +1315,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DocumentFormattingParams)
       renames LSP.Message_IO.Write_DocumentFormattingParams;
+
+   procedure Write_NavigationRequestParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : NavigationRequestParams)
+     renames LSP.Message_IO.Write_NavigationRequestParams;
 
    procedure Write_DocumentRangeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

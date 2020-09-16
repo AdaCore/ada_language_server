@@ -1042,20 +1042,20 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Link_Response
    is
 
-      Position   : LSP.Messages.TextDocumentPositionParams renames
+      Value   : LSP.Messages.DeclarationParams renames
         Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Position.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
 
    begin
-      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          C.Append_Declarations
            (Document,
-            Position,
+            LSP.Messages.TextDocumentPositionParams (Value),
             Response.result,
             Imprecise);
 
@@ -1082,15 +1082,20 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Link_Response
    is
       use Libadalang.Analysis;
+      use LSP.Messages;
 
-      Position   : LSP.Messages.TextDocumentPositionParams renames
+      Value   : LSP.Messages.ImplementationParams renames
         Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Display_Method_Ancestry_Policy                                  :
+      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
+        Self.Display_Method_Ancestry_Policy;
+
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Position.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
 
       procedure Resolve_In_Context (C : Context_Access);
       --  Utility function to gather results on one context
@@ -1101,7 +1106,7 @@ package body LSP.Ada_Handlers is
 
       procedure Resolve_In_Context (C : Context_Access) is
          Name_Node      : constant Name := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Position));
+           (C.Get_Node_At (Document, Value));
 
          procedure Update_Response
            (Bodies : Laltools.Common.Bodies_List.List;
@@ -1153,28 +1158,46 @@ package body LSP.Ada_Handlers is
 
          --  Then list the bodies of the parent implementations
          Decl := Definition.P_Basic_Decl;
-         for Subp of C.Find_All_Base_Declarations (Decl, Find_All_Imprecise)
-         loop
-            Update_Response
-              (Laltools.Common.List_Bodies_Of
-                 (Subp.P_Defining_Name, Self.Trace, Imprecise),
-               Is_Parent);
-         end loop;
-         Imprecise := Imprecise or Find_All_Imprecise;
 
-         --  And finally the bodies of child implementations
-         for Subp of C.Find_All_Overrides (Decl, Find_All_Imprecise) loop
-            Update_Response
-              (Laltools.Common.List_Bodies_Of
-                 (Subp.P_Defining_Name, Self.Trace, Imprecise),
-               Is_Child);
-         end loop;
-         Imprecise := Imprecise or Find_All_Imprecise;
+         --  Display overriding/overridden subprograms depending on the
+         --  displayMethodAncestryOnNavigation flag.
+         if Display_Method_Ancestry_Policy in Definition_Only | Always
+           or else
+             (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
+                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
+         then
+            for Subp of C.Find_All_Base_Declarations (Decl, Find_All_Imprecise)
+            loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+                  Is_Parent);
+               Imprecise := Imprecise or This_Imprecise;
+            end loop;
+            Imprecise := Imprecise or Find_All_Imprecise;
 
+            --  And finally the bodies of child implementations
+            for Subp of C.Find_All_Overrides (Decl, Find_All_Imprecise) loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
+                  Is_Child);
+               Imprecise := Imprecise or This_Imprecise;
+            end loop;
+         end if;
+
+         Imprecise := Imprecise or Find_All_Imprecise;
       end Resolve_In_Context;
 
    begin
-      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Display_Method_Ancestry_Policy :=
+           Value.alsDisplayMethodAncestryOnNavigation.Value;
+      end if;
+
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
          exit when Request.Canceled;
@@ -1200,12 +1223,17 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Location_Link_Response
    is
       use Libadalang.Analysis;
+      use LSP.Messages;
 
-      Value      : LSP.Messages.TextDocumentPositionParams renames
+      Value      : LSP.Messages.DefinitionParams renames
         Request.params;
       Response   : LSP.Messages.Server_Responses.Location_Link_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
+
+      Display_Method_Ancestry_Policy                          :
+      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
+        Self.Display_Method_Ancestry_Policy;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
@@ -1225,7 +1253,7 @@ package body LSP.Ada_Handlers is
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
          Manual_Fallback         : Defining_Name;
-         Decl_For_Find_Overrides : Basic_Decl;
+         Decl_For_Find_Overrides : Basic_Decl := No_Basic_Decl;
       begin
          if Name_Node = No_Name then
             return;
@@ -1241,7 +1269,11 @@ package body LSP.Ada_Handlers is
             if Definition /= No_Defining_Name then
                Append_Location (Response.result, Definition);
 
-               Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+               if Display_Method_Ancestry_Policy
+                  in Usage_And_Abstract_Only | Always
+               then
+                  Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+               end if;
             end if;
          else  --  If we are on a defining_name already
             Other_Part := Laltools.Common.Find_Next_Part
@@ -1251,8 +1283,11 @@ package body LSP.Ada_Handlers is
 
             --  Search for overriding subprograms only if we are on an
             --  abstract subprogram.
-            if Decl_For_Find_Overrides.Kind
-              not in Ada_Abstract_Subp_Decl_Range
+            if Display_Method_Ancestry_Policy = Never
+              or else
+                (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
+                        and then Decl_For_Find_Overrides.Kind
+                        not in Ada_Abstract_Subp_Decl_Range)
             then
                Decl_For_Find_Overrides := No_Basic_Decl;
             end if;
@@ -1309,6 +1344,13 @@ package body LSP.Ada_Handlers is
       end Resolve_In_Context;
 
    begin
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Display_Method_Ancestry_Policy :=
+           Value.alsDisplayMethodAncestryOnNavigation.Value;
+      end if;
+
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
@@ -2759,14 +2801,24 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
-      projectFile            : constant String := "projectFile";
-      scenarioVariables      : constant String := "scenarioVariables";
-      defaultCharset         : constant String := "defaultCharset";
-      enableDiagnostics      : constant String := "enableDiagnostics";
-      enableIndexing         : constant String := "enableIndexing";
-      renameInComments       : constant String := "renameInComments";
-      namedNotationThreshold : constant String := "namedNotationThreshold";
-      foldComments           : constant String := "foldComments";
+      projectFile                       : constant String :=
+        "projectFile";
+      scenarioVariables                 : constant String :=
+        "scenarioVariables";
+      defaultCharset                    : constant String :=
+        "defaultCharset";
+      enableDiagnostics                 : constant String :=
+        "enableDiagnostics";
+      enableIndexing                    : constant String :=
+        "enableIndexing";
+      renameInComments                  : constant String :=
+        "renameInComments";
+      namedNotationThreshold            : constant String :=
+        "namedNotationThreshold";
+      foldComments                      : constant String :=
+        "foldComments";
+      displayMethodAncestryOnNavigation : constant String :=
+        "displayMethodAncestryOnNavigation";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -2824,6 +2876,14 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (namedNotationThreshold) then
             Self.Named_Notation_Threshold := Ada.Get (namedNotationThreshold);
+         end if;
+
+         --  Retrieve the policy for displaying type hierarchy on navigation
+         --  requests.
+         if Ada.Has_Field (displayMethodAncestryOnNavigation) then
+            Self.Display_Method_Ancestry_Policy :=
+              LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
+                (Ada.Get (displayMethodAncestryOnNavigation));
          end if;
       end if;
 
