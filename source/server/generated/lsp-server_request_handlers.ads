@@ -152,6 +152,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
         is abstract;
 
+   function On_Incoming_Calls_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
+      return LSP.Messages.Server_Responses.IncomingCalls_Response
+        is abstract;
+
    function On_Workspace_Symbols_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

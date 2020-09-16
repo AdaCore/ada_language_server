@@ -185,6 +185,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Incoming_Calls_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Incoming_Calls_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Workspace_Symbols_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -323,6 +330,10 @@ begin
    Map.Insert
      (+"textDocument/prepareCallHierarchy",
       Prepare_Call_Hierarchy_Request'Tag);
+
+   Map.Insert
+     (+"callHierarchy/incomingCalls",
+      Incoming_Calls_Request'Tag);
 
    Map.Insert
      (+"workspace/symbol",

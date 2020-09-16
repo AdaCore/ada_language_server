@@ -286,6 +286,11 @@ private
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
       return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response;
 
+   overriding function On_Incoming_Calls_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
+      return LSP.Messages.Server_Responses.IncomingCalls_Response;
+
    overriding function On_Selection_Range_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)
