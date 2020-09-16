@@ -344,6 +344,18 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.Symbol_Response
         renames Document_Symbols_Request;
 
+   function Prepare_Call_Hierarchy_Request is new Generic_Request
+     (Request => LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request,
+      Response => LSP.Messages.Server_Responses.PrepareCallHierarchy_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => Server_Request_Handlers.On_Prepare_Call_Hierarchy_Request);
+
+   overriding function On_Prepare_Call_Hierarchy_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
+      return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
+        renames Prepare_Call_Hierarchy_Request;
+
    -----------------------
    -- On_Rename_Request --
    -----------------------

@@ -306,6 +306,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Selection_Range_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Prepare_Call_Hierarchy_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        CallHierarchyPrepareParams,
+        Server_Request_Receiver'Class);
+
+   type Prepare_Call_Hierarchy_Request is
+     new Prepare_Call_Hierarchy_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Prepare_Call_Hierarchy_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

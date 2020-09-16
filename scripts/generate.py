@@ -301,6 +301,8 @@ REQUESTS = [
      'DocumentRangeFormattingParams', 'Range_Formatting_Response'),
     ('textDocument/selectionRange', 'Selection_Range',
      'SelectionRangeParams', 'SelectionRange_Response'),
+    ('textDocument/prepareCallHierarchy', 'Prepare_Call_Hierarchy',
+     'CallHierarchyPrepareParams', 'PrepareCallHierarchy_Response'),
     ('workspace/symbol', 'Workspace_Symbols', 'WorkspaceSymbolParams',
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',

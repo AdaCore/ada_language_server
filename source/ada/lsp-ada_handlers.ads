@@ -281,6 +281,11 @@ private
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response;
 
+   overriding function On_Prepare_Call_Hierarchy_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
+      return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response;
+
    overriding function On_Selection_Range_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)
