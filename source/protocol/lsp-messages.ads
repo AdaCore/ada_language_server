@@ -2701,6 +2701,8 @@ package LSP.Messages is
    --```
    subtype SelectionRangeClientCapabilities is dynamicRegistration;
 
+   subtype CallHierarchyClientCapabilities is dynamicRegistration;
+
    --```typescript
    --/**
    -- * Text document specific client capabilities.
@@ -2851,6 +2853,7 @@ package LSP.Messages is
       publishDiagnostics : Optional_PublishDiagnosticsClientCapabilities;
       foldingRange       : Optional_FoldingRangeClientCapabilities;
       selectionRange     : SelectionRangeClientCapabilities;
+      callHierarchy      : CallHierarchyClientCapabilities;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -3985,6 +3988,8 @@ package LSP.Messages is
    --```
    subtype SelectionRangeOptions is Optional_Provider_Options;
 
+   subtype CallHierarchyOptions is Optional_Provider_Options;
+
    --```typescript
    --export interface SelectionRangeRegistrationOptions extends SelectionRangeOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions {
    --}
@@ -4168,6 +4173,7 @@ package LSP.Messages is
       selectionRangeProvider: SelectionRangeOptions;
       workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
+      callHierarchyProvider: CallHierarchyOptions;
       --	experimental?: any;
 
       --  ALS-specific capabilities
@@ -7322,6 +7328,162 @@ package LSP.Messages is
    --export interface PrepareRenameParams extends TextDocumentPositionParams {
    --}
    --```
+
+   --  CallHierarchy is LSP 3.16 draft feature
+
+   type CallHierarchyPrepareParams is new Text_Progress_Params with null record;
+
+   --  export interface CallHierarchyItem {
+   --  	/**
+   --  	 * The name of this item.
+   --  	 */
+   --  	name: string;
+   --
+   --  	/**
+   --  	 * The kind of this item.
+   --  	 */
+   --  	kind: SymbolKind;
+   --
+   --  	/**
+   --  	 * Tags for this item.
+   --  	 */
+   --  	tags?: SymbolTag[];
+   --
+   --  	/**
+   --  	 * More detail for this item, e.g. the signature of a function.
+   --  	 */
+   --  	detail?: string;
+   --
+   --  	/**
+   --  	 * The resource identifier of this item.
+   --  	 */
+   --  	uri: DocumentUri;
+   --
+   --  	/**
+   --  	 * The range enclosing this symbol not including leading/trailing whitespace but everything else, e.g. comments and code.
+   --  	 */
+   --  	range: Range;
+   --
+   --  	/**
+   --  	 * The range that should be selected and revealed when this symbol is being picked, e.g. the name of a function.
+   --  	 * Must be contained by the [`range`](#CallHierarchyItem.range).
+   --  	 */
+   --  	selectionRange: Range;
+   --  }
+
+   type CallHierarchyItem is record
+      name: LSP_String;
+      kind: SymbolKind;
+      --  tags?: SymbolTag[];
+      detail: Optional_String;
+      uri: DocumentUri;
+      span: LSP.Messages.Span;  --  range: is reserved word
+      selectionRange: LSP.Messages.Span;
+   end record;
+
+   procedure Read_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyItem);
+   procedure Write_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyItem);
+   for CallHierarchyItem'Read use Read_CallHierarchyItem;
+   for CallHierarchyItem'Write use Write_CallHierarchyItem;
+
+   package CallHierarchyItem_Vectors is new LSP.Generic_Vectors
+     (CallHierarchyItem, Write_Empty => LSP.Write_Null);
+
+   type CallHierarchyItem_Vector is
+     new CallHierarchyItem_Vectors.Vector with null record;
+
+   --  export interface CallHierarchyIncomingCallsParams extends WorkDoneProgressParams, PartialResultParams {
+   --  	item: CallHierarchyItem;
+   --  }
+
+   type CallHierarchyIncomingCallsParams is new Progress_Partial_Params with record
+      item: CallHierarchyItem;
+   end record;
+
+   procedure Read_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCallsParams);
+   procedure Write_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCallsParams);
+   for CallHierarchyIncomingCallsParams'Read use Read_CallHierarchyIncomingCallsParams;
+   for CallHierarchyIncomingCallsParams'Write use Write_CallHierarchyIncomingCallsParams;
+
+   package Span_Vectors is new LSP.Generic_Vectors
+     (Span, Write_Empty => LSP.Write_Array);
+
+   type Span_Vector is new Span_Vectors.Vector with null record;
+
+   --  export interface CallHierarchyIncomingCall {
+   --
+   --  	/**
+   --  	 * The item that makes the call.
+   --  	 */
+   --  	from: CallHierarchyItem;
+   --
+   --  	/**
+   --  	 * The ranges at which the calls appear. This is relative to the caller
+   --  	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
+   --  	 */
+   --  	fromRanges: Range[];
+   --  }
+   type CallHierarchyIncomingCall is record
+      from: CallHierarchyItem;
+      fromRanges: Span_Vector;
+   end record;
+   procedure Read_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyIncomingCall);
+   procedure Write_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyIncomingCall);
+   for CallHierarchyIncomingCall'Read use Read_CallHierarchyIncomingCall;
+   for CallHierarchyIncomingCall'Write use Write_CallHierarchyIncomingCall;
+
+   package CallHierarchyIncomingCall_Vectors is new LSP.Generic_Vectors
+     (CallHierarchyIncomingCall, Write_Empty => LSP.Write_Null);
+
+   type CallHierarchyIncomingCall_Vector is
+     new CallHierarchyIncomingCall_Vectors.Vector with null record;
+
+   subtype CallHierarchyOutgoingCallsParams is CallHierarchyIncomingCallsParams;
+
+   --  export interface CallHierarchyOutgoingCall {
+   --
+   --  	/**
+   --  	 * The item that is called.
+   --  	 */
+   --  	to: CallHierarchyItem;
+   --
+   --  	/**
+   --  	 * The range at which this item is called. This is the range relative to the caller, e.g the item
+   --  	 * passed to [`provideCallHierarchyOutgoingCalls`](#CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls)
+   --  	 * and not [`this.to`](#CallHierarchyOutgoingCall.to).
+   --  	 */
+   --  	fromRanges: Range[];
+   --  }
+   type CallHierarchyOutgoingCall is record
+      to: CallHierarchyItem;
+      fromRanges: Span_Vector;
+   end record;
+   procedure Read_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CallHierarchyOutgoingCall);
+   procedure Write_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CallHierarchyOutgoingCall);
+   for CallHierarchyOutgoingCall'Read use Read_CallHierarchyOutgoingCall;
+   for CallHierarchyOutgoingCall'Write use Write_CallHierarchyOutgoingCall;
+
+   package CallHierarchyOutgoingCall_Vectors is new LSP.Generic_Vectors
+     (CallHierarchyOutgoingCall, Write_Empty => LSP.Write_Null);
+
+   type CallHierarchyOutgoingCall_Vector is
+     new CallHierarchyOutgoingCall_Vectors.Vector with null record;
 
    -----------------------------------------
    -- ALS-specific messages and responses --

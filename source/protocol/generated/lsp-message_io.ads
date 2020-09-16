@@ -1068,6 +1068,38 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.SelectionRange);
 
+   procedure Read_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CallHierarchyItem);
+
+   procedure Write_CallHierarchyItem
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CallHierarchyItem);
+
+   procedure Read_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CallHierarchyIncomingCallsParams);
+
+   procedure Write_CallHierarchyIncomingCallsParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CallHierarchyIncomingCallsParams);
+
+   procedure Read_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CallHierarchyIncomingCall);
+
+   procedure Write_CallHierarchyIncomingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CallHierarchyIncomingCall);
+
+   procedure Read_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CallHierarchyOutgoingCall);
+
+   procedure Write_CallHierarchyOutgoingCall
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CallHierarchyOutgoingCall);
+
    procedure Read_ALS_Subprogram_And_References
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ALS_Subprogram_And_References);
