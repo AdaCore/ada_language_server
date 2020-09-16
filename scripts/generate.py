@@ -35,7 +35,8 @@ C_Method_Function_Snippet = """
    function On_{request_name}_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.{request_name}_Request)
-      return LSP.Messages.Server_Responses.{response_name} is abstract;
+      return LSP.Messages.Server_Responses.{response_name}
+        is abstract;
 """
 
 C_Method_Procedure_Snippet = """
@@ -59,7 +60,6 @@ C_Method_Request_Snippet = """
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
 with Ada.Strings.UTF_Encoding;
-with LSP.Messages.Common_Writers;
 
 package body LSP.Messages.Server_{kind}s is
 
@@ -100,7 +100,7 @@ C_Method_Decode_Body_Snippet = """
       return {request_name}_{kind} is
    begin
       return V : {request_name}_{kind} do
-         Messages.Common_Writers.Set_Common_{kind}_Fields (V, JS.all);
+         {kind}Message'Read (JS, {kind}Message (V));
       end return;
    end Decode;
 """
@@ -309,6 +309,8 @@ REQUESTS = [
     # ALS-specific requests
     ('textDocument/alsCalledBy', 'ALS_Called_By', 'TextDocumentPositionParams',
      'ALS_Called_By_Response'),
+    ('textDocument/alsCalls', 'ALS_Calls', 'TextDocumentPositionParams',
+     'ALS_Calls_Response'),
     ('textDocument/alsShowDependencies', 'ALS_Show_Dependencies',
      'ALS_ShowDependenciesParams',
      'ALS_ShowDependencies_Response'),

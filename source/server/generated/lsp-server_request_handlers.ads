@@ -17,145 +17,170 @@ package LSP.Server_Request_Handlers is
    function On_Initialize_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Initialize_Request)
-      return LSP.Messages.Server_Responses.Initialize_Response is abstract;
+      return LSP.Messages.Server_Responses.Initialize_Response
+        is abstract;
 
    function On_Shutdown_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Shutdown_Request)
-      return LSP.Messages.Server_Responses.Shutdown_Response is abstract;
+      return LSP.Messages.Server_Responses.Shutdown_Response
+        is abstract;
 
    function On_CodeAction_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.CodeAction_Request)
-      return LSP.Messages.Server_Responses.CodeAction_Response is abstract;
+      return LSP.Messages.Server_Responses.CodeAction_Response
+        is abstract;
 
    function On_Completion_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Completion_Request)
-      return LSP.Messages.Server_Responses.Completion_Response is abstract;
+      return LSP.Messages.Server_Responses.Completion_Response
+        is abstract;
 
    function On_Definition_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Link_Response
+        is abstract;
 
    function On_Declaration_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Declaration_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Link_Response
+        is abstract;
 
    function On_Implementation_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Implementation_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Link_Response
+        is abstract;
 
    function On_Type_Definition_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Type_Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Link_Response
+        is abstract;
 
    function On_Highlight_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Highlight_Request)
-      return LSP.Messages.Server_Responses.Highlight_Response is abstract;
+      return LSP.Messages.Server_Responses.Highlight_Response
+        is abstract;
 
    function On_Hover_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Hover_Request)
-      return LSP.Messages.Server_Responses.Hover_Response is abstract;
+      return LSP.Messages.Server_Responses.Hover_Response
+        is abstract;
 
    function On_Document_Links_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Document_Links_Request)
-      return LSP.Messages.Server_Responses.Links_Response is abstract;
+      return LSP.Messages.Server_Responses.Links_Response
+        is abstract;
 
    function On_References_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.References_Request)
-      return LSP.Messages.Server_Responses.Location_Response is abstract;
+      return LSP.Messages.Server_Responses.Location_Response
+        is abstract;
 
    function On_Signature_Help_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Signature_Help_Request)
-      return LSP.Messages.Server_Responses.SignatureHelp_Response is abstract;
+      return LSP.Messages.Server_Responses.SignatureHelp_Response
+        is abstract;
 
    function On_Document_Symbols_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
-      return LSP.Messages.Server_Responses.Symbol_Response is abstract;
+      return LSP.Messages.Server_Responses.Symbol_Response
+        is abstract;
 
    function On_Rename_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Rename_Request)
-      return LSP.Messages.Server_Responses.Rename_Response is abstract;
+      return LSP.Messages.Server_Responses.Rename_Response
+        is abstract;
 
    function On_Execute_Command_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Execute_Command_Request)
-      return LSP.Messages.Server_Responses.ExecuteCommand_Response is abstract;
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response
+        is abstract;
 
    function On_Document_Color_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Document_Color_Request)
-      return LSP.Messages.Server_Responses.DocumentColor_Response is abstract;
+      return LSP.Messages.Server_Responses.DocumentColor_Response
+        is abstract;
 
    function On_Color_Presentation_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
-      return LSP.Messages.Server_Responses.ColorPresentation_Response is
-      abstract;
+      return LSP.Messages.Server_Responses.ColorPresentation_Response
+        is abstract;
 
    function On_Folding_Range_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
-      return LSP.Messages.Server_Responses.FoldingRange_Response is abstract;
+      return LSP.Messages.Server_Responses.FoldingRange_Response
+        is abstract;
 
    function On_Formatting_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Formatting_Request)
-      return LSP.Messages.Server_Responses.Formatting_Response is abstract;
+      return LSP.Messages.Server_Responses.Formatting_Response
+        is abstract;
 
    function On_Range_Formatting_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
-      return LSP.Messages.Server_Responses.Range_Formatting_Response is
-      abstract;
+      return LSP.Messages.Server_Responses.Range_Formatting_Response
+        is abstract;
 
    function On_Selection_Range_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)
-      return LSP.Messages.Server_Responses.SelectionRange_Response is abstract;
+      return LSP.Messages.Server_Responses.SelectionRange_Response
+        is abstract;
 
    function On_Workspace_Symbols_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
-      return LSP.Messages.Server_Responses.Symbol_Response is abstract;
+      return LSP.Messages.Server_Responses.Symbol_Response
+        is abstract;
 
    function On_Workspace_Execute_Command_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
-      return LSP.Messages.Server_Responses.ExecuteCommand_Response is abstract;
+      return LSP.Messages.Server_Responses.ExecuteCommand_Response
+        is abstract;
 
    function On_ALS_Called_By_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
-      return LSP.Messages.Server_Responses.ALS_Called_By_Response is abstract;
+      return LSP.Messages.Server_Responses.ALS_Called_By_Response
+        is abstract;
 
    function On_ALS_Calls_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Calls_Request)
-      return LSP.Messages.Server_Responses.ALS_Calls_Response is abstract;
+      return LSP.Messages.Server_Responses.ALS_Calls_Response
+        is abstract;
 
    function On_ALS_Show_Dependencies_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
-      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response is
-      abstract;
+      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
+        is abstract;
 
    function On_ALS_Debug_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Debug_Request)
-      return LSP.Messages.Server_Responses.ALS_Debug_Response is abstract;
+      return LSP.Messages.Server_Responses.ALS_Debug_Response
+        is abstract;
 
    procedure Handle_Error
      (Self  : access Server_Request_Handler) is null;
