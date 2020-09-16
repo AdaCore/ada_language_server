@@ -122,6 +122,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.IncomingCalls_Response)
        is abstract;
 
+   procedure On_Outgoing_Calls_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.OutgoingCalls_Response)
+       is abstract;
+
    procedure On_Formatting_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Formatting_Response)

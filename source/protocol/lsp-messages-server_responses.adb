@@ -103,6 +103,17 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : OutgoingCalls_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_Outgoing_Calls_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : SelectionRange_Response;
       Handler : access Server_Response_Sender'Class) is
    begin

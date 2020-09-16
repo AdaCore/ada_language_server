@@ -133,6 +133,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Incoming_Calls_Request)
         is abstract;
 
+   procedure On_Outgoing_Calls_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
+        is abstract;
+
    procedure On_Workspace_Symbols_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

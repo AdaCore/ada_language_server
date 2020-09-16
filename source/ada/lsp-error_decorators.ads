@@ -148,6 +148,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
       return LSP.Messages.Server_Responses.IncomingCalls_Response;
 
+   overriding function On_Outgoing_Calls_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
+      return LSP.Messages.Server_Responses.OutgoingCalls_Response;
+
    overriding function On_Workspace_Symbols_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)

@@ -882,6 +882,44 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_Incoming_Calls_Response;
 
+   -------------------------------
+   -- On_Outgoing_Calls_Request --
+   -------------------------------
+
+   overriding procedure On_Outgoing_Calls_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Outgoing_Calls_Request) is
+   begin
+      Self.Trace.Trace
+        ("Outgoing_Calls_Request: "
+         & Image (Value)
+         & (+Value.params.item.uri)
+         & " : "
+         & (+Value.params.item.name));
+   end On_Outgoing_Calls_Request;
+
+   --------------------------------
+   -- On_Outgoing_Calls_Response --
+   --------------------------------
+
+   overriding procedure On_Outgoing_Calls_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.OutgoingCalls_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("OutgoingCalls_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("OutgoingCalls_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_Outgoing_Calls_Response;
+
    --------------------------------
    -- On_Selection_Range_Request --
    --------------------------------

@@ -332,6 +332,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Incoming_Calls_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Outgoing_Calls_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        CallHierarchyOutgoingCallsParams,
+        Server_Request_Receiver'Class);
+
+   type Outgoing_Calls_Request is
+     new Outgoing_Calls_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Outgoing_Calls_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Workspace_Symbols_Requests is
      new LSP.Generic_Requests
        (Server_Request,

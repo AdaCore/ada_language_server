@@ -208,6 +208,17 @@ package LSP.Messages.Server_Responses is
      (Self    : IncomingCalls_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package OutgoingCalls_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => CallHierarchyOutgoingCall_Vector);
+
+   type OutgoingCalls_Response is
+     new OutgoingCalls_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : OutgoingCalls_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Called_By_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Subprogram_And_References_Vector);
