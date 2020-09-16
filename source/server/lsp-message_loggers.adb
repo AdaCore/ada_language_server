@@ -808,6 +808,42 @@ package body LSP.Message_Loggers is
          & Ada.Containers.Count_Type'Image (Value.result.Length));
    end On_FoldingRange_Response;
 
+   ---------------------------------------
+   -- On_Prepare_Call_Hierarchy_Request --
+   ---------------------------------------
+
+   overriding procedure On_Prepare_Call_Hierarchy_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request) is
+   begin
+      Self.Trace.Trace
+        ("Prepare_Call_Hierarchy_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Prepare_Call_Hierarchy_Request;
+
+   ----------------------------------------
+   -- On_Prepare_Call_Hierarchy_Response --
+   ----------------------------------------
+
+   overriding procedure On_Prepare_Call_Hierarchy_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("PrepareCallHierarchy_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("PrepareCallHierarchy_Response: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image (Value.result.Length));
+   end On_Prepare_Call_Hierarchy_Response;
+
    --------------------------------
    -- On_Selection_Range_Request --
    --------------------------------

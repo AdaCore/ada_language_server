@@ -277,6 +277,18 @@ begin
          end;
       end if;
 
+      if Request in Prepare_Call_Hierarchy_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Prepare_Call_Hierarchy_Request
+                  (Prepare_Call_Hierarchy_Request (Request));
+         begin
+            R.jsonrpc := +"2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in Workspace_Symbols_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

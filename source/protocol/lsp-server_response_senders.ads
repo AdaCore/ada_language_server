@@ -112,6 +112,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.SelectionRange_Response)
        is abstract;
 
+   procedure On_Prepare_Call_Hierarchy_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response)
+       is abstract;
+
    procedure On_Formatting_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Formatting_Response)

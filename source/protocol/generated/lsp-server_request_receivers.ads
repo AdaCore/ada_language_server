@@ -123,6 +123,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Selection_Range_Request)
         is abstract;
 
+   procedure On_Prepare_Call_Hierarchy_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
+        is abstract;
+
    procedure On_Workspace_Symbols_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
