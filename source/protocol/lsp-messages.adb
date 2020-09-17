@@ -316,6 +316,11 @@ package body LSP.Messages is
       V : out LSP.Messages.FoldingRangeClientCapabilities)
       renames LSP.Message_IO.Read_FoldingRangeClientCapabilities;
 
+   procedure Read_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Text_Progress_Params)
+      renames LSP.Message_IO.Read_Text_Progress_Params;
+
    procedure Read_TextDocumentClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.TextDocumentClientCapabilities)
@@ -1021,6 +1026,11 @@ package body LSP.Messages is
       V : LSP.Messages.FoldingRangeClientCapabilities)
       renames LSP.Message_IO.Write_FoldingRangeClientCapabilities;
 
+   procedure Write_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Text_Progress_Params)
+      renames LSP.Message_IO.Write_Text_Progress_Params;
+
    procedure Write_TextDocumentClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentClientCapabilities)
@@ -1430,93 +1440,6 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Unit_Description)
       renames LSP.Message_IO.Write_ALS_Unit_Description;
-
-   --------------------------------
-   -- Get_WorkDoneProgressParams --
-   --------------------------------
-
-   procedure Get_WorkDoneProgressParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkDoneProgressParams'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Read (S, V.workDoneToken);
-   end Get_WorkDoneProgressParams;
-
-   -----------------------------
-   -- Get_PartialResultParams --
-   -----------------------------
-
-   procedure Get_PartialResultParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PartialResultParams'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Read (S, V.partialResultToken);
-   end Get_PartialResultParams;
-
-   ---------------------------------
-   -- Get_Progress_Partial_Params --
-   ---------------------------------
-
-   procedure Get_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Progress_Partial_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Read (S, V.workDoneToken);
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Read (S, V.partialResultToken);
-   end Get_Progress_Partial_Params;
-
-   --------------------------------------
-   -- Get_Text_Progress_Partial_Params --
-   --------------------------------------
-
-   procedure Get_Text_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Text_Progress_Partial_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Read (S, V.workDoneToken);
-      JS.Key ("partialResultToken");
-      Optional_ProgressToken'Read (S, V.partialResultToken);
-   end Get_Text_Progress_Partial_Params;
-
-   ------------------------------
-   -- Get_Text_Progress_Params --
-   ------------------------------
-
-   procedure Get_Text_Progress_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Text_Progress_Params'Class)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Key ("textDocument");
-      TextDocumentIdentifier'Read (S, V.textDocument);
-      JS.Key ("position");
-      Position'Read (S, V.position);
-      JS.Key ("workDoneToken");
-      Optional_ProgressToken'Read (S, V.workDoneToken);
-   end Get_Text_Progress_Params;
 
    -------------------
    -- Method_To_Tag --

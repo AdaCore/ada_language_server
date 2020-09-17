@@ -460,6 +460,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkDoneProgressCreateParams);
 
+   procedure Read_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Text_Progress_Params);
+
+   procedure Write_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Text_Progress_Params);
+
    procedure Read_ProgramInfo
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ProgramInfo);

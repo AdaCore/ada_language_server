@@ -83,7 +83,7 @@ types_to_print = {
     #  'PartialResultParams',
     #  'Progress_Partial_Params',
     #  'Text_Progress_Partial_Params',
-    #  'Text_Progress_Params',
+    'Text_Progress_Params',
     'ProgramInfo',
     'Trace_Kind',
     'InitializeParams',

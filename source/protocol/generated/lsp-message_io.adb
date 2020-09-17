@@ -2618,6 +2618,54 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_WorkDoneProgressCreateParams;
 
+   procedure Read_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Text_Progress_Params)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "textDocument" then
+               TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "position" then
+               LSP.Messages.Position'Read (S, V.position);
+            elsif Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_Text_Progress_Params;
+
+   procedure Write_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Text_Progress_Params)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      LSP.Messages.Position'Write (S, V.position);
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.End_Object;
+   end Write_Text_Progress_Params;
+
    procedure Read_ProgramInfo
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ProgramInfo)
