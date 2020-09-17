@@ -3096,13 +3096,6 @@ package LSP.Messages is
       workDoneToken: Optional_ProgressToken;
    end record;
 
-   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
-   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
-   procedure Get_WorkDoneProgressParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WorkDoneProgressParams'Class);
-   --  Get attributes of WorkDoneProgressParams from a stream.
-
    --```typescript
    --export interface PartialResultParams {
    --	/**
@@ -3116,25 +3109,11 @@ package LSP.Messages is
       partialResultToken: Optional_ProgressToken;
    end record;
 
-   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
-   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
-   procedure Get_PartialResultParams
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out PartialResultParams'Class);
-   --  Get attributes of PartialResultParams from a stream.
-
    --  Common type for `extends WorkDoneProgressParams, PartialResultParams`
    type Progress_Partial_Params is abstract tagged record
       workDoneToken: Optional_ProgressToken;
       partialResultToken: Optional_ProgressToken;
    end record;
-
-   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
-   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
-   procedure Get_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Progress_Partial_Params'Class);
-   --  Get attributes of Progress_Partial_Params from a stream.
 
    --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams`
    type Text_Progress_Partial_Params is abstract new TextDocumentPositionParams with record
@@ -3142,24 +3121,21 @@ package LSP.Messages is
       partialResultToken: Optional_ProgressToken;
    end record;
 
-   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
-   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
-   procedure Get_Text_Progress_Partial_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Text_Progress_Partial_Params'Class);
-   --  Get attributes of Text_Progress_Partial_Params from a stream.
-
    --  Common type for `extends TextDocumentPositionParams, WorkDoneProgressParams`
    type Text_Progress_Params is abstract new TextDocumentPositionParams with record
       workDoneToken: Optional_ProgressToken;
    end record;
 
-   --  This two subprograms don't do JS.Start_Object/JS.End_Object, so let's
-   --  name them as Get_XXX/Put_XXX to distinguish from 'Read/'Write subs.
-   procedure Get_Text_Progress_Params
+   procedure Read_Text_Progress_Params
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Text_Progress_Params'Class);
-   --  Get attributes of Text_Progress_Params from a stream.
+      V : out LSP.Messages.Text_Progress_Params);
+
+   procedure Write_Text_Progress_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Text_Progress_Params);
+
+   for Text_Progress_Params'Read use Read_Text_Progress_Params;
+   for Text_Progress_Params'Write use Write_Text_Progress_Params;
 
    type ProgramInfo is record
       name : LSP_String;
