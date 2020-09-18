@@ -51,7 +51,7 @@ package LSP.Lal_Utils is
    --  Sort Result and remove duplicates from it.
 
    function Get_Node_Location
-     (Node : Libadalang.Analysis.Ada_Node;
+     (Node : Libadalang.Analysis.Ada_Node'Class;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location;
    --  Return the location of the given node. Populate alsKind field of the
@@ -103,4 +103,12 @@ package LSP.Lal_Utils is
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
 
+   function To_Call_Hierarchy_Item
+     (Name : Libadalang.Analysis.Defining_Name)
+      return LSP.Messages.CallHierarchyItem;
+   --  Create CallHierarchyItem for the given subprogram
+
+   function Node_Location_Image
+     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
+   --  Return "file.adb:line:col" as a string
 end LSP.Lal_Utils;

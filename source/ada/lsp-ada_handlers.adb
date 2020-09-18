@@ -540,6 +540,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => (Is_Set => False)));
+      Response.result.capabilities.callHierarchyProvider :=
+        (Is_Set => True,
+         Value  => (Is_Boolean => False, Options => <>));
 
       --  lalpp does not support range formatting for now
       --  do not set the option
@@ -1688,7 +1691,6 @@ package body LSP.Ada_Handlers is
       Decl_Text          : LSP_String;
       Comments_Text      : LSP_String;
       Location_Text      : LSP_String;
-      Decl_Unit_File     : Virtual_File;
 
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -1735,16 +1737,7 @@ package body LSP.Ada_Handlers is
       --  In addition, append the project's name if we are dealing with an
       --  aggregate project.
 
-      Decl_Unit_File := GNATCOLL.VFS.Create (+Decl.Unit.Get_Filename);
-
-      Location_Text := To_LSP_String
-        ("at " & Decl_Unit_File.Display_Base_Name & " ("
-         & GNATCOLL.Utils.Image
-           (Integer (Decl.Sloc_Range.Start_Line), Min_Width => 1)
-         & ":"
-         & GNATCOLL.Utils.Image
-           (Integer (Decl.Sloc_Range.Start_Column), Min_Width => 1)
-         & ")");
+      Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
       if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
          Location_Text := Location_Text & " in project " & C.Id;
@@ -3406,15 +3399,51 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
       return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
    is
-      pragma Unreferenced (Self, Request);
+      Value : LSP.Messages.CallHierarchyPrepareParams renames
+        Request.params;
+
       Response : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
-        (Is_Error => True);
+        (Is_Error => False);
+
+      Imprecise : Boolean := False;
+
+      C : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the PrepareCallHierarchy request, we're only interested in the
+      --  "best" response value, not in the list of values for all contexts
+
+      Node : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (C.Get_Node_At
+            (Get_Open_Document (Self, Value.textDocument.uri), Value));
+
+      Name : Libadalang.Analysis.Defining_Name :=
+        Laltools.Common.Resolve_Name
+          (Node,
+           Self.Trace,
+           Imprecise);
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      if Name.Is_Null then
+         return Response;
+      end if;
+
+      --  Go to the corresponding body, because only body could have calls
+      declare
+         Bodies : constant Laltools.Common.Bodies_List.List :=
+           Laltools.Common.List_Bodies_Of (Name, Self.Trace, Imprecise);
+      begin
+         Name := Bodies.Last_Element;
+      end;
+
+      Response.result.Append (To_Call_Hierarchy_Item (Name));
+
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'prepareCallHierarchy' are approximate.",
+            LSP.Messages.Warning);
+      end if;
+
       return Response;
    end On_Prepare_Call_Hierarchy_Request;
 
@@ -3448,15 +3477,153 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
       return LSP.Messages.Server_Responses.OutgoingCalls_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.OutgoingCalls_Response
-        (Is_Error => True);
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
+
+      Item : LSP.Messages.CallHierarchyItem renames
+        Request.params.item;
+      Response   : LSP.Messages.Server_Responses.OutgoingCalls_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : Context_Access) is
+         function Hash (Value : LSP.Messages.Location)
+           return Ada.Containers.Hash_Type;
+
+         package Location_Sets is new Ada.Containers.Hashed_Sets
+           (LSP.Messages.Location,
+            Hash,
+            LSP.Messages."=",
+            LSP.Messages."=");
+
+         package Index_Maps is new Ada.Containers.Hashed_Maps
+           (Key_Type        => LSP.Messages.Location,
+            Element_Type    => Positive,
+            Hash            => Hash,
+            Equivalent_Keys => LSP.Messages."=");
+
+         procedure Callback (Node : Libadalang.Analysis.Ada_Node'Class);
+
+         Unique     : Location_Sets.Set;  --  Duplication protection filter
+         Name_Index : Index_Maps.Map;  --  Map from sloc to index in the result
+
+         --------------
+         -- Callback --
+         --------------
+
+         procedure Callback (Node : Libadalang.Analysis.Ada_Node'Class) is
+            Call : constant LSP.Messages.Location :=
+              LSP.Lal_Utils.Get_Node_Location (Node);
+            --  Sloc of the call node
+
+            Name : constant Libadalang.Analysis.Name :=
+              Laltools.Common.Get_Node_As_Name (Node.As_Ada_Node);
+            --  Try to cast call prefix to the name
+
+            Definition : Libadalang.Analysis.Defining_Name :=
+              Laltools.Common.Resolve_Name (Name, C.Trace, Imprecise);
+            --  Corresponding name definition if any
+
+            Location   : LSP.Messages.Location;
+            --  Sloc of the defining name
+
+            Cursor : Index_Maps.Cursor;
+            --  Cursor to the index in the result vector
+         begin
+            if Definition.Is_Null or else Unique.Contains (Call) then
+               return;
+            end if;
+
+            --  Go to the corresponding body, because only body could have call
+            declare
+               Bodies : constant Laltools.Common.Bodies_List.List :=
+                 Laltools.Common.List_Bodies_Of
+                   (Definition, Self.Trace, Imprecise);
+            begin
+               Definition := Bodies.Last_Element;
+               Location := LSP.Lal_Utils.Get_Node_Location (Definition);
+               Cursor := Name_Index.Find (Location);
+            end;
+
+            if not Index_Maps.Has_Element (Cursor) then
+               declare
+                  Item   : constant LSP.Messages.CallHierarchyOutgoingCall :=
+                    (to         => To_Call_Hierarchy_Item (Definition),
+                     fromRanges => <>);
+                  Ignore : Boolean;
+               begin
+                  Response.result.Append (Item);
+                  Name_Index.Insert
+                    (Location, Response.result.Last_Index, Cursor, Ignore);
+               end;
+            end if;
+
+            Unique.Insert (Call);
+
+            Response.result (Index_Maps.Element (Cursor)).fromRanges.Append
+              (Call.span);
+         end Callback;
+
+         ----------
+         -- Hash --
+         ----------
+
+         function Hash (Value : LSP.Messages.Location)
+           return Ada.Containers.Hash_Type
+         is
+            use type Ada.Containers.Hash_Type;
+
+            Prime : constant := 2027;
+         begin
+            return LSP.Types.Hash (Value.uri)
+              + Ada.Containers.Hash_Type'Mod (Value.span.first.character)
+              + Prime * Ada.Containers.Hash_Type'Mod (Value.span.first.line);
+         end Hash;
+
+         Position : constant LSP.Messages.TextDocumentPositionParams :=
+           (textDocument => (uri => Item.uri),
+            position     => Item.selectionRange.first);
+
+         Node : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name
+             (C.Get_Node_At
+               (Self.Get_Open_Document (Item.uri), Position));
+
+         Definition : constant Libadalang.Analysis.Defining_Name :=
+           Laltools.Common.Get_Name_As_Defining (Node);
+      begin
+         if Definition.Is_Null
+           or else Request.Canceled
+         then
+            return;
+         end if;
+
+         Laltools.Call_Hierarchy.Find_Outgoing_Calls
+           (Definition => Definition,
+            Callback   => Callback'Access,
+            Trace      => C.Trace,
+            Imprecise  => Imprecise);
+      end Process_Context;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C);
+
+         exit when Request.Canceled;
+      end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'calls' are approximate.",
+            LSP.Messages.Warning);
+      end if;
+
       return Response;
    end On_Outgoing_Calls_Request;
 

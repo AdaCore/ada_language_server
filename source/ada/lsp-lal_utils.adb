@@ -17,6 +17,9 @@
 
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
+with GNATCOLL.VFS;
+with GNATCOLL.Utils;
+
 with LSP.Types;         use LSP.Types;
 
 with Libadalang.Common; use Libadalang.Common;
@@ -308,8 +311,8 @@ package body LSP.Lal_Utils is
                     then LSP.Messages.A_Null
                     else LSP.Messages.A_Constant);
 
-         when others
-            => null;
+         when others =>
+            null;
       end case;
 
       return LSP.Messages.A_Null;
@@ -320,7 +323,7 @@ package body LSP.Lal_Utils is
    -----------------------
 
    function Get_Node_Location
-     (Node : Libadalang.Analysis.Ada_Node;
+     (Node : Libadalang.Analysis.Ada_Node'Class;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location
    is
@@ -489,6 +492,54 @@ package body LSP.Lal_Utils is
 
       return Result;
    end Find_All_Calls;
+
+   ----------------------------
+   -- To_Call_Hierarchy_Item --
+   ----------------------------
+
+   function To_Call_Hierarchy_Item
+     (Name : Libadalang.Analysis.Defining_Name)
+      return LSP.Messages.CallHierarchyItem
+   is
+      Main_Item : constant Libadalang.Analysis.Basic_Decl :=
+        Name.P_Basic_Decl;
+
+      Where     : constant LSP.Messages.Location :=
+        LSP.Lal_Utils.Get_Node_Location (Main_Item);
+   begin
+      return Result : LSP.Messages.CallHierarchyItem do
+         Result.name := To_LSP_String (Name.Text);
+         Result.kind := LSP.Lal_Utils.Get_Decl_Kind (Main_Item);
+         Result.detail := (True, LSP.Lal_Utils.Node_Location_Image (Name));
+         Result.uri := Where.uri;
+         Result.span := Where.span;
+         Result.selectionRange :=
+           LSP.Lal_Utils.To_Span (Name.Sloc_Range);
+      end return;
+   end To_Call_Hierarchy_Item;
+
+   -------------------------
+   -- Node_Location_Image --
+   -------------------------
+
+   function Node_Location_Image
+     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String
+   is
+      use type GNATCOLL.VFS.Filesystem_String;
+      Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.Create (+Node.Unit.Get_Filename);
+
+      Location_Text : constant LSP.Types.LSP_String  := To_LSP_String
+        ("at " & Decl_Unit_File.Display_Base_Name & " ("
+         & GNATCOLL.Utils.Image
+           (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)
+         & ":"
+         & GNATCOLL.Utils.Image
+           (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)
+         & ")");
+   begin
+      return Location_Text;
+   end Node_Location_Image;
 
    -------------
    -- Is_Task --
