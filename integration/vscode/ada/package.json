@@ -6,7 +6,7 @@
     "publisher": "AdaCore",
     "license": "GPL-3.0",
     "engines": {
-        "vscode": "^1.17.0"
+        "vscode": "^1.49.0"
     },
     "categories": [
         "Programming Languages"
@@ -178,7 +178,7 @@
         "@types/glob": "^7.1.1",
         "@types/mocha": "^2.2.42",
         "@types/node": "^6.0.88",
-        "vscode": "^1.1.35",
+        "@types/vscode": "^1.49.0",
         "eslint": "^4.6.1",
         "typescript": "^3.8.3",
         "glob": "^7.1.4",
@@ -186,12 +186,11 @@
         "vscode-tmgrammar-test": "0.0.9"
     },
     "scripts": {
-        "postinstall": "vscode-install",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./"
     },
     "dependencies": {
-        "vscode-languageclient": "^6.0.1",
+        "vscode-languageclient": "7.0.0-next.9",
         "ws": "^6.0.0",
         "process": "^0.10.0"
     }
