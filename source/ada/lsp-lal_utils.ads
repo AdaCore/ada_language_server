@@ -111,4 +111,9 @@ package LSP.Lal_Utils is
    function Node_Location_Image
      (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
    --  Return "file.adb:line:col" as a string
+
+   function Containing_Entity (Ref : Ada_Node) return Defining_Name;
+   --  Return the declaration of the subprogram or task that contains Ref.
+   --  Return No_Defining_Name if this fails.
+
 end LSP.Lal_Utils;

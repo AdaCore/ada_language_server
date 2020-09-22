@@ -194,6 +194,21 @@ package body LSP.Ada_Handlers is
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
+   function Hash
+     (Value : LSP.Messages.Location) return Ada.Containers.Hash_Type;
+
+   package Location_Sets is new Ada.Containers.Hashed_Sets
+     (LSP.Messages.Location,
+      Hash,
+      LSP.Messages."=",
+      LSP.Messages."=");
+
+   package Index_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => LSP.Messages.Location,
+      Element_Type    => Positive,
+      Hash            => Hash,
+      Equivalent_Keys => LSP.Messages."=");
+
    ----------------------
    -- Contexts_For_URI --
    ----------------------
@@ -3456,15 +3471,120 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
       return LSP.Messages.Server_Responses.IncomingCalls_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.IncomingCalls_Response
-        (Is_Error => True);
+      procedure Process_Context (C : Context_Access);
+      --  Process the subprogram found in one context and append corresponding
+      --  calls to Response.results.
+
+      Item : LSP.Messages.CallHierarchyItem renames
+        Request.params.item;
+      Response   : LSP.Messages.Server_Responses.IncomingCalls_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : Context_Access) is
+         procedure Callback
+           (Ref    : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+         --  Process each call identified by Ref.
+
+         Unique     : Location_Sets.Set;  --  Duplication protection filter
+         Name_Index : Index_Maps.Map;  --  Map from sloc to index in the result
+         Count      : Cancel_Countdown := 0;
+
+         --------------
+         -- Callback --
+         --------------
+
+         procedure Callback
+           (Ref    : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            From : constant Libadalang.Analysis.Defining_Name :=
+              LSP.Lal_Utils.Containing_Entity (Ref.As_Ada_Node);
+            --  Defining name of the enclosing entity.
+
+            Call : constant LSP.Messages.Location :=
+              LSP.Lal_Utils.Get_Node_Location (Ref);
+            --  Sloc of the call node
+
+            Location : LSP.Messages.Location;
+            --  Sloc of the From defining name
+
+            Cursor : Index_Maps.Cursor;
+            --  Cursor to the index in the result vector
+         begin
+            if From.Is_Null or else Unique.Contains (Call) then
+               return;
+            elsif Kind = Libadalang.Common.Imprecise then
+               Imprecise := True;
+            end if;
+
+            Location := LSP.Lal_Utils.Get_Node_Location (From);
+            Cursor := Name_Index.Find (Location);
+
+            if not Index_Maps.Has_Element (Cursor) then
+               declare
+                  Item   : constant LSP.Messages.CallHierarchyIncomingCall :=
+                    (from       => To_Call_Hierarchy_Item (From),
+                     fromRanges => <>);
+                  Ignore : Boolean;
+               begin
+                  Response.result.Append (Item);
+                  Name_Index.Insert
+                    (Location, Response.result.Last_Index, Cursor, Ignore);
+               end;
+            end if;
+
+            Unique.Insert (Call);
+
+            Response.result (Name_Index (Cursor)).fromRanges.Append
+              (Call.span);
+
+            Count := Count - 1;
+            Cancel := Count = 0 and then Request.Canceled;
+         end Callback;
+
+         Position : constant LSP.Messages.TextDocumentPositionParams :=
+           (textDocument => (uri => Item.uri),
+            position     => Item.selectionRange.first);
+
+         Node : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name
+             (C.Get_Node_At
+               (Self.Get_Open_Document (Item.uri), Position));
+
+         Definition : constant Libadalang.Analysis.Defining_Name :=
+           Laltools.Common.Get_Name_As_Defining (Node);
+      begin
+         if Definition.Is_Null
+           or else Request.Canceled
+         then
+            return;
+         end if;
+
+         C.Find_All_Calls (Definition, Callback'Access);
+      end Process_Context;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C);
+
+         exit when Request.Canceled;
+      end loop;
+
+      if Imprecise then
+         Self.Show_Message
+           ("The results of 'incomingCalls' are approximate.",
+            LSP.Messages.Warning);
+      end if;
+
       return Response;
    end On_Incoming_Calls_Request;
 
@@ -3492,20 +3612,6 @@ package body LSP.Ada_Handlers is
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
-         function Hash (Value : LSP.Messages.Location)
-           return Ada.Containers.Hash_Type;
-
-         package Location_Sets is new Ada.Containers.Hashed_Sets
-           (LSP.Messages.Location,
-            Hash,
-            LSP.Messages."=",
-            LSP.Messages."=");
-
-         package Index_Maps is new Ada.Containers.Hashed_Maps
-           (Key_Type        => LSP.Messages.Location,
-            Element_Type    => Positive,
-            Hash            => Hash,
-            Equivalent_Keys => LSP.Messages."=");
 
          procedure Callback (Node : Libadalang.Analysis.Ada_Node'Class);
 
@@ -3565,25 +3671,9 @@ package body LSP.Ada_Handlers is
 
             Unique.Insert (Call);
 
-            Response.result (Index_Maps.Element (Cursor)).fromRanges.Append
+            Response.result (Name_Index (Cursor)).fromRanges.Append
               (Call.span);
          end Callback;
-
-         ----------
-         -- Hash --
-         ----------
-
-         function Hash (Value : LSP.Messages.Location)
-           return Ada.Containers.Hash_Type
-         is
-            use type Ada.Containers.Hash_Type;
-
-            Prime : constant := 2027;
-         begin
-            return LSP.Types.Hash (Value.uri)
-              + Ada.Containers.Hash_Type'Mod (Value.span.first.character)
-              + Prime * Ada.Containers.Hash_Type'Mod (Value.span.first.line);
-         end Hash;
 
          Position : constant LSP.Messages.TextDocumentPositionParams :=
            (textDocument => (uri => Item.uri),
@@ -3620,7 +3710,7 @@ package body LSP.Ada_Handlers is
 
       if Imprecise then
          Self.Show_Message
-           ("The results of 'calls' are approximate.",
+           ("The results of 'outgoingCalls' are approximate.",
             LSP.Messages.Warning);
       end if;
 
@@ -3690,6 +3780,22 @@ package body LSP.Ada_Handlers is
       --  Reload the contexts in case of unexpected errors.
       Self.Contexts.Reload_All_Contexts;
    end Handle_Error;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (Value : LSP.Messages.Location)
+                        return Ada.Containers.Hash_Type
+   is
+      use type Ada.Containers.Hash_Type;
+
+      Prime : constant := 2027;
+   begin
+      return LSP.Types.Hash (Value.uri)
+        + Ada.Containers.Hash_Type'Mod (Value.span.first.character)
+        + Prime * Ada.Containers.Hash_Type'Mod (Value.span.first.line);
+   end Hash;
 
    ------------------
    -- Show_Message --
