@@ -29,10 +29,6 @@ with Langkit_Support;
 
 package body LSP.Lal_Utils is
 
-   function Containing_Entity (Ref : Ada_Node) return Defining_Name;
-   --  Return the declaration of the subprogram or task that contains Ref.
-   --  Return No_Defining_Name if this fails.
-
    ---------------------
    -- Append_Location --
    ---------------------
