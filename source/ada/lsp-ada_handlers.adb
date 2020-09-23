@@ -35,6 +35,7 @@ with LSP.Ada_Completion_Sets;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
+with LSP.Ada_Project_Environments;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
@@ -418,6 +419,8 @@ package body LSP.Ada_Handlers is
 
       Self.Implicit_Project_Loaded := True;
       Self.Release_Project_Info;
+      Self.Project_Environment :=
+        new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
       Self.Project_Tree := new Project_Tree;
       C.Initialize;
@@ -2976,6 +2979,8 @@ package body LSP.Ada_Handlers is
 
       --  Now load the new project
       Errors.the_type := LSP.Messages.Warning;
+      Self.Project_Environment :=
+        new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
