@@ -1,0 +1,559 @@
+[
+   {
+      "comment": [
+         "Advanced example testing the imprecive fallback of ",
+         "the definition request"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "typeDefinitionProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                         "access",
+                        "write",
+                        "call",
+                        "dispatching call", "parent", "child"
+                     ],
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "renameProvider": {},
+                     "alsCalledByProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Text_IO; use Ada.Text_IO;\nwith Pack;\n\nprocedure Foo2 is\nbegin\n   declare\n      procedure Hello;\n      procedure Hello (J : Float) is\n      begin\n         Put_Line (\"Hello World\");\n      end Hello;\n   begin\n      Hello;\n      Hello (1);\n      Pack.Hello (1);\n      Pack.Hello;\n   end;\nend Foo2;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Pack is\n\n   procedure Hello (I : Integer);\n\nend Pack;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package body Pack is\n\n   procedure Hello (I : Integer) is\n   begin\n      null;\n   end Hello;\nend Pack;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-6",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 12,
+                  "character": 6
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-6",
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 21
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-7",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 16
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-7",
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 21
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-8",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 10,
+                  "character": 10
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-8",
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 21
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-9",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 6
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 3,
+                  "message": "Imprecise fallback used to compute cross-references on entity at:\n   foo.adb\n   line: 13\n   column: 6"
+               }
+            },
+            {
+               "id": "ada-9",
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 21
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-10",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 14,
+                  "character": 11
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-10",
+               "result": [
+                  {
+                     "uri": "$URI{pack.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-12",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 13
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-12",
+               "result": [
+                  {
+                     "uri": "$URI{pack.adb}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-14",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 13
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-14",
+               "result": [
+                  {
+                     "uri": "$URI{pack.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-17",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-17",
+               "result": [
+                  {
+                     "uri": "$URI{pack.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-21",
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 15,
+                  "character": 11
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 3,
+                  "message": "Imprecise fallback used to compute cross-references on entity at:\n   foo.adb\n   line: 15\n   column: 11"
+               }
+            },
+            {
+               "id": "ada-21",
+               "result": [
+                  {
+                     "uri": "$URI{pack.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-23",
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": "ada-23",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

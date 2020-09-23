@@ -1,7 +1,8 @@
 [
    {
       "comment": [
-         "test the fallback navigation to subprograms that don't have an exact profile"
+         "test the fallback navigation to subprograms that don't have an",
+         "exact profile"
       ]
    },
    {
@@ -121,13 +122,6 @@
          },
          "wait": [
             {
-               "params": {
-                  "message": "The result of 'definition' is approximate.",
-                  "type": 2
-               },
-               "method": "window/showMessage"
-            },
-            {
                "id": 2,
                "result": [
                   {
@@ -165,7 +159,6 @@
          "wait": []
       }
    },
-   {"comment": "--------- expecting an empty result for the definition of a procedure which 'is null' -------"},
    {
       "send": {
          "request": {
@@ -185,7 +178,21 @@
          "wait": [
             {
                "id": 3,
-               "result": []
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{p.ads}"
+                  }
+               ]
             }
          ]
       }

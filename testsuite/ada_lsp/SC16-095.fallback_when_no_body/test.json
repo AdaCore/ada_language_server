@@ -206,7 +206,21 @@
          "wait": [
             {
                "id": 4,
-               "result": []
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 11,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 11,
+                           "character": 19
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
+                  }
+               ]
             }
          ]
       }

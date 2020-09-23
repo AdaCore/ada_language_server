@@ -1300,7 +1300,7 @@ package body LSP.Ada_Handlers is
             end if;
          else  --  If we are on a defining_name already
             Other_Part := Laltools.Common.Find_Next_Part
-              (Definition, Self.Trace);
+              (Definition, Self.Trace, Imprecise_Fallback => True);
 
             Decl_For_Find_Overrides := Definition.P_Basic_Decl;
 
@@ -1318,7 +1318,7 @@ package body LSP.Ada_Handlers is
             if Other_Part = No_Defining_Name then
                --  No next part is found. Check first defining name
                Other_Part := Laltools.Common.Find_Canonical_Part
-                 (Definition, Self.Trace);
+                 (Definition, Self.Trace, Imprecise_Fallback => True);
             end if;
 
             if Other_Part /= No_Defining_Name then

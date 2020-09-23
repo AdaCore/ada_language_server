@@ -209,6 +209,19 @@
                         "child"
                      ],
                      "uri": "$URI{pack.ads}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 24
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 30
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
                   }
                ]
             }
@@ -274,7 +287,20 @@
          "wait": [
             {
                "id": 7,
-               "result": []
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16,
+                           "character": 24
+                        },
+                        "end": {
+                           "line": 16,
+                           "character": 30
+                        }
+                     },
+                     "uri": "$URI{pack.ads}"
+                  }]
             }
          ]
       }
