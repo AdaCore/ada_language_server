@@ -1187,9 +1187,8 @@ package body LSP.Ada_Handlers is
                   Is_Child);
                Imprecise := Imprecise or This_Imprecise;
             end loop;
+            Imprecise := Imprecise or Find_All_Imprecise;
          end if;
-
-         Imprecise := Imprecise or Find_All_Imprecise;
       end Resolve_In_Context;
 
    begin
