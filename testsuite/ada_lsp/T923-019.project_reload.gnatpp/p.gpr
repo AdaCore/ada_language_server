@@ -1,0 +1,23 @@
+project P is
+
+   type Var_Type is ("A", "B", "C");
+   Var : Var_Type := external("VAR", "A");
+
+   package Pretty_Printer is
+      case Var is
+         when "A" =>
+            for Default_Switches ("ada") use
+              ("--vertical-enum_types", "--max-line-length=12000",
+               "--par-threshold=50");
+         when "B" =>
+            for Default_Switches ("ada") use
+              ("--vertical-enum_types", "--max-line-length=13000",
+               "--par-threshold=30");
+         when "C" =>
+            for Default_Switches ("ada") use
+              ("--vertical-enum_types", "--max-line-length=14000",
+               "--par-threshold=40");
+      end case;
+   end Pretty_Printer;
+
+end P;
