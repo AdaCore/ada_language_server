@@ -1051,14 +1051,26 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Display_Method_Ancestry_Policy                                  :
+      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
+        Self.Display_Method_Ancestry_Policy;
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
    begin
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Display_Method_Ancestry_Policy :=
+           Value.alsDisplayMethodAncestryOnNavigation.Value;
+      end if;
+
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          C.Append_Declarations
            (Document,
             LSP.Messages.TextDocumentPositionParams (Value),
+            Display_Method_Ancestry_Policy,
             Response.result,
             Imprecise);
 

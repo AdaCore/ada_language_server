@@ -179,11 +179,13 @@ package LSP.Ada_Contexts is
    --  Revert Document to the state of the file discarding any changes
 
    procedure Append_Declarations
-     (Self      : Context;
-      Document  : LSP.Ada_Documents.Document_Access;
-      Position  : LSP.Messages.TextDocumentPositionParams;
-      Result    : in out LSP.Messages.Location_Or_Link_Vector;
-      Imprecise : in out Boolean);
+     (Self                    : Context;
+      Document                : LSP.Ada_Documents.Document_Access;
+      Position                : LSP.Messages.TextDocumentPositionParams;
+      Display_Method_Ancestry_Policy :
+         LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy;
+      Result                  : in out LSP.Messages.Location_Or_Link_Vector;
+      Imprecise               : in out Boolean);
    --  Find corresponding declarations for a name at given Position and append
    --  their locations to Result.
    --  Document is the document from which the request originates; it can
