@@ -58,12 +58,15 @@ package body LSP.Ada_Contexts is
    -------------------------
 
    procedure Append_Declarations
-     (Self      : Context;
-      Document  : LSP.Ada_Documents.Document_Access;
-      Position  : LSP.Messages.TextDocumentPositionParams;
-      Result    : in out LSP.Messages.Location_Or_Link_Vector;
-      Imprecise : in out Boolean)
+     (Self                    : Context;
+      Document                : LSP.Ada_Documents.Document_Access;
+      Position                : LSP.Messages.TextDocumentPositionParams;
+      Display_Method_Ancestry_Policy :
+         LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy;
+      Result                  : in out LSP.Messages.Location_Or_Link_Vector;
+      Imprecise               : in out Boolean)
    is
+      use LSP.Messages;
       use Libadalang.Analysis;
 
       Name_Node : constant Libadalang.Analysis.Name :=
@@ -72,8 +75,15 @@ package body LSP.Ada_Contexts is
 
       Definition              : Libadalang.Analysis.Defining_Name;
       --  A defining name that corresponds to Name_Node
+      First_Part              : Libadalang.Analysis.Defining_Name;
+      --  "Canonical part" of Definition
       Prev_Part               : Libadalang.Analysis.Defining_Name;
       --  A previous name for Definition
+      Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl :=
+        Libadalang.Analysis.No_Basic_Decl;
+
+      On_Defining_Name        : Boolean := False;
+      --  Set to True if we are on a denfining name node
    begin
       if Name_Node = Libadalang.Analysis.No_Name then
          return;
@@ -92,10 +102,38 @@ package body LSP.Ada_Contexts is
 
             Imprecise := Imprecise or Is_Imprecise;
          end;
+      else
+         On_Defining_Name := True;
       end if;
 
       if Definition = Libadalang.Analysis.No_Defining_Name then
          return;  --  Name resolution fails, nothing to do.
+      end if;
+
+      First_Part := Laltools.Common.Find_Canonical_Part
+        (Definition, Self.Trace);
+
+      --  Display the method ancestry in three cases:
+      --
+      --   . When the preference is set to Always
+      --
+      --   . When we are on a usage node (e.g: subprogram call) and if the
+      --     preference is set to Usage_And_Abstract_Only
+      --
+      --   . When we are on a defining name node and if the preference is
+      --     set to Definition_Only
+
+      if Display_Method_Ancestry_Policy = Always
+        or else (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
+                        and then not On_Defining_Name)
+        or else (Display_Method_Ancestry_Policy = Definition_Only
+                        and then On_Defining_Name)
+      then
+         if First_Part = Libadalang.Analysis.No_Defining_Name then
+            Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+         else
+            Decl_For_Find_Overrides := First_Part.P_Basic_Decl;
+         end if;
       end if;
 
       begin
@@ -113,6 +151,29 @@ package body LSP.Ada_Contexts is
          --  No previous part, return definition itself.
          LSP.Lal_Utils.Append_Location (Result, Definition);
       end if;
+
+      declare
+         Imprecise_Over       : Boolean;
+         Imprecise_Base       : Boolean;
+         Overriding_Subps     : constant Basic_Decl_Array :=
+                                  Self.Find_All_Overrides
+                                    (Decl_For_Find_Overrides,
+                                     Imprecise_Results => Imprecise_Over);
+         Base_Subps           : constant Basic_Decl_Array :=
+                                  Self.Find_All_Base_Declarations
+                                    (Decl_For_Find_Overrides,
+                                     Imprecise_Results => Imprecise_Base);
+      begin
+         for Subp of Base_Subps loop
+            Append_Location
+              (Result, Subp.P_Defining_Name, LSP.Common.Is_Parent);
+         end loop;
+         for Subp of Overriding_Subps loop
+            Append_Location
+              (Result, Subp.P_Defining_Name, LSP.Common.Is_Child);
+         end loop;
+         Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
+      end;
    end Append_Declarations;
 
    -----------------
