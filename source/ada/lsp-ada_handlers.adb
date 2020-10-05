@@ -2844,8 +2844,8 @@ package body LSP.Ada_Handlers is
       File      : LSP.Types.LSP_String;
       Charset   : Unbounded_String;
       Variables : LSP.Types.LSP_Any;
-      Relocate  : Virtual_File;
-      Root      : Virtual_File;
+      Relocate  : Virtual_File := No_File;
+      Root      : Virtual_File := No_File;
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
