@@ -6,6 +6,8 @@ Ada Language Server understands these settings:
  * [projectFile](#projectFile)
  * [scenarioVariables](#scenarioVariables)
  * [defaultCharset](#defaultCharset)
+ * [relocateBuildTree](#relocateBuildTree)
+ * [rootDir](#rootDir)
  * [enableDiagnostics](#enableDiagnostics)
  * [enableIndexing](#enableIndexing)
  * [renameInComments](#renameInComments)
@@ -46,6 +48,23 @@ files from disk by specifying an `defaultCharset` key. The default is
 
 ```javascript
     'defaultCharset': 'UTF-8'
+```
+
+## relocateBuildTree
+That is, real object, library or exec directories are relocated to the
+current working directory or dir if specified. Ensure that it is full
+normalized patch ended with the directory separator.
+```javascript
+    'relocateBuildTree': '~/home/user/project/build/'
+```
+
+## rootDir
+This option is to be used with relocateBuildTree above and cannot be
+specified alone. This option specifies the root directory for artifacts
+for proper relocation. Ensure that it is full normalized patch ended
+with the directory separator.
+```javascript
+    'relocateBuildTree': '~/home/user/project/'
 ```
 
 ## enableDiagnostics
