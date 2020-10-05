@@ -188,10 +188,12 @@ package body LSP.Ada_Handlers is
    --  Load the implicit project
 
    procedure Load_Project
-     (Self     : access Message_Handler;
-      GPR      : Virtual_File;
-      Scenario : LSP.Types.LSP_Any;
-      Charset  : String);
+     (Self                : access Message_Handler;
+      Relocate_Build_Tree : Virtual_File;
+      Root_Dir            : Virtual_File;
+      GPR                 : Virtual_File;
+      Scenario            : LSP.Types.LSP_Any;
+      Charset             : String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
@@ -513,7 +515,7 @@ package body LSP.Ada_Handlers is
          --  We have not found exactly one .gpr file: load the default
          --  project.
          Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
-         Self.Load_Project (GPR, No_Any, "iso-8859-1");
+         Self.Load_Project (No_File, No_File, GPR, No_Any, "iso-8859-1");
       else
          --  We have found more than one project: warn the user!
 
@@ -2815,6 +2817,10 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
+      relocateBuildTree                 : constant String :=
+        "relocateBuildTree";
+      rootDir                           : constant String :=
+        "rootDir";
       projectFile                       : constant String :=
         "projectFile";
       scenarioVariables                 : constant String :=
@@ -2838,8 +2844,20 @@ package body LSP.Ada_Handlers is
       File      : LSP.Types.LSP_String;
       Charset   : Unbounded_String;
       Variables : LSP.Types.LSP_Any;
+      Relocate  : Virtual_File;
+      Root      : Virtual_File;
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
+         if Ada.Has_Field (relocateBuildTree) then
+            Relocate := Create
+              (+To_UTF_8_String (+Ada.Get (relocateBuildTree).Get));
+         end if;
+
+         if Ada.Has_Field (rootDir) then
+            Root := Create
+              (+To_UTF_8_String (+Ada.Get (rootDir).Get));
+         end if;
+
          if Ada.Has_Field (projectFile) then
             File := +Ada.Get (projectFile).Get;
 
@@ -2916,7 +2934,8 @@ package body LSP.Ada_Handlers is
                GPR := Create_From_Dir (Self.Root, Project_File);
             end if;
 
-            Self.Load_Project (GPR, Variables, To_String (Charset));
+            Self.Load_Project
+              (Relocate, Root, GPR, Variables, To_String (Charset));
          end;
       end if;
 
@@ -2928,10 +2947,12 @@ package body LSP.Ada_Handlers is
    ------------------
 
    procedure Load_Project
-     (Self     : access Message_Handler;
-      GPR      : Virtual_File;
-      Scenario : LSP.Types.LSP_Any;
-      Charset  : String)
+     (Self                : access Message_Handler;
+      Relocate_Build_Tree : Virtual_File;
+      Root_Dir            : Virtual_File;
+      GPR                 : Virtual_File;
+      Scenario            : LSP.Types.LSP_Any;
+      Charset             : String)
    is
       use GNATCOLL.Projects;
       Errors        : LSP.Messages.ShowMessageParams;
@@ -2993,6 +3014,14 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
+      if Relocate_Build_Tree /= No_File then
+         Self.Project_Environment.Set_Build_Tree_Dir
+           (Relocate_Build_Tree.Full_Name);
+      end if;
+      if Root_Dir /= No_File then
+         Self.Project_Environment.Set_Root_Dir
+           (Root_Dir.Full_Name);
+      end if;
       if not Scenario.Is_Empty then
          Scenario.Map_JSON_Object (Add_Variable'Access);
       end if;
