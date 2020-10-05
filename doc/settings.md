@@ -55,7 +55,7 @@ That is, real object, library or exec directories are relocated to the
 current working directory or dir if specified. Ensure that it is full
 normalized patch ended with the directory separator.
 ```javascript
-    'relocateBuildTree': '~/home/user/project/build/'
+    'relocateBuildTree': '/home/user/project/build/'
 ```
 
 ## rootDir
@@ -64,7 +64,7 @@ specified alone. This option specifies the root directory for artifacts
 for proper relocation. Ensure that it is full normalized patch ended
 with the directory separator.
 ```javascript
-    'relocateBuildTree': '~/home/user/project/'
+    'relocateBuildTree': '/home/user/project/'
 ```
 
 ## enableDiagnostics
