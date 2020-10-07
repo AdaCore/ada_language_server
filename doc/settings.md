@@ -51,7 +51,7 @@ files from disk by specifying an `defaultCharset` key. The default is
 ```
 
 ## relocateBuildTree
-With this option it is possible to achieve out-of-tree build.That is,
+With this option it is possible to achieve out-of-tree build. That is,
 real object, library or exec directories are relocated to the current
 working directory or dir if specified. Ensure that it is full normalized
 path ended with the directory separator. Visit
