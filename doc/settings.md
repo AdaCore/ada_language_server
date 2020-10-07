@@ -56,7 +56,7 @@ real object, library or exec directories are relocated to the current
 working directory or dir if specified. Ensure that it is full normalized
 path ended with the directory separator. Visit
 https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/building_with_gprbuild.html#switches
-for more details about the corresponding grpbuild switch.
+for more details about the corresponding gprbuild switch.
 ```javascript
     'relocateBuildTree': '/home/user/project/build/'
 ```
@@ -67,7 +67,7 @@ specified alone. This option specifies the root directory for artifacts
 for proper relocation. Ensure that it is full normalized path ended
 with the directory separator. Visit
 https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/building_with_gprbuild.html#switches
-for more details about the corresponding grpbuild switch.
+for more details about the corresponding gprbuild switch.
 ```javascript
     'relocateBuildTree': '/home/user/project/'
 ```
