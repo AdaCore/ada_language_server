@@ -179,10 +179,13 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
+      Warn : Boolean;
       Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
    --  This function makes sure that the contexts in Self are properly
    --  initialized and a project is loaded. If they are not initialized,
    --  initialize them. Use custom Root directory if provided.
+   --  If Warn is True, emit a warning message in case multiple projects
+   --  are found in the directory but none was provided through configuration.
 
    procedure Load_Implicit_Project (Self : access Message_Handler);
    --  Load the implicit project
@@ -251,7 +254,7 @@ package body LSP.Ada_Handlers is
       Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access is
    begin
-      Self.Ensure_Project_Loaded;
+      Self.Ensure_Project_Loaded (Warn => False);
 
       if Self.Open_Documents.Contains (URI) then
          return LSP.Ada_Documents.Document_Access
@@ -466,6 +469,7 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
+      Warn : Boolean;
       Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
    is
       GPRs_Found : Natural := 0;
@@ -516,11 +520,12 @@ package body LSP.Ada_Handlers is
          Self.Load_Project (GPR, No_Any, "iso-8859-1");
       else
          --  We have found more than one project: warn the user!
-
-         Self.Show_Message
-           ("More than one .gpr found." & Line_Feed &
-              "Note: you can configure a project " &
-              " through the ada.projectFile setting.");
+         if Warn then
+            Self.Show_Message
+              ("More than one .gpr found." & Line_Feed &
+                 "Note: you can configure a project " &
+                 " through the ada.projectFile setting.");
+         end if;
       end if;
    end Ensure_Project_Loaded;
 
@@ -1607,6 +1612,7 @@ package body LSP.Ada_Handlers is
       --  project in this directory, if needed.
       Ensure_Project_Loaded
         (Self,
+         False,
          To_LSP_String (Ada.Directories.Containing_Directory
            (To_UTF_8_String (URI_To_File (URI)))));
 
@@ -2920,7 +2926,9 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
-      Self.Ensure_Project_Loaded;
+      --  If we have reached DidChangeConfiguration and the project is still
+      --  ambiguous, we can emit a warning message.
+      Self.Ensure_Project_Loaded (Warn => True);
    end On_DidChangeConfiguration_Notification;
 
    ------------------
