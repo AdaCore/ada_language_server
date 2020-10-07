@@ -493,6 +493,26 @@ package body LSP.Ada_Documents is
          Add (Old_Line_Number);
          Free (LCS);
 
+         --  Handle the edge case where the last location of
+         --  the edit is trying to affect a non existent line.
+         --  The edits are ordered so we only need to check the last one.
+         if not (Integer (Edit.Last_Element.span.last.line)
+                 in Self.Line_To_Index.First_Index ..
+                   Self.Line_To_Index.Last_Index)
+         then
+            declare
+               Element : LSP.Messages.TextEdit := Edit.Last_Element;
+            begin
+               --  Replace the wrong location by the end of the buffer
+               Element.span.last :=
+                 (line => Line_Number
+                    (Old_Lines.Last_Index - Old_Lines.First_Index),
+                  character =>
+                    UTF_16_Index (Length (Old_Lines.Last_Element)));
+               Edit.Replace_Element (Edit.Last, Element);
+            end;
+         end if;
+
       exception
          when others =>
             Free (LCS);
