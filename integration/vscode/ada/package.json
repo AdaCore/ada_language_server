@@ -2,7 +2,7 @@
     "name": "ada",
     "displayName": "Language Support for Ada",
     "description": "A Language Server providing Ada and SPARK support in Visual Studio Code",
-    "version": "21.0.999",
+    "version": "22.0.999",
     "publisher": "AdaCore",
     "license": "GPL-3.0",
     "engines": {
