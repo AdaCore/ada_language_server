@@ -92,10 +92,10 @@ See more about the project testsuite [here](../testsuite/README.md).
 ## Release VS Code extension
 
 To release a new version of the VS Code extension, just put a tag with of the form
-`21.0.3`, where `21.0` matches the current GNAT Studio development version. The
+`22.0.3`, where `22.0` matches the current GNAT Studio development version. The
 corresponding `git` command is
 ```
-   git tag -a 21.0.3
+   git tag -a 22.0.3
 ```
 
 Put release notes in the comment of the tag starting with a `Release notes` header:
@@ -106,7 +106,7 @@ Release notes
 * <notes 2>, etc.
 ```
 
-Then push it to GitHub with `git push 21.0.3` or `git push --tags`.
+Then push it to GitHub with `git push 22.0.3` or `git push --tags`.
 The travis CI will publish the extension on the marketplace.
 
 ## Source directories

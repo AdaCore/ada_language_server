@@ -17,7 +17,7 @@ Current features:
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
 extension
 [at the Marketplace](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada) and
-[the latest build as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-21.0.999.vsix).
+[the latest build as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-22.0.999.vsix).
 
 ## Table of Contents
  * [Install](#Install)
