@@ -186,6 +186,9 @@ package LSP.Ada_Documents is
    --  If Show_Implicit is True, units that depend on the document's unit in
    --  an implicit way will also be returned.
 
+   procedure Reset_Symbol_Cache (Self : in out Document'Class);
+   --  Clean cache for defining name symbols of the document.
+
    -----------------------
    -- Document_Provider --
    -----------------------

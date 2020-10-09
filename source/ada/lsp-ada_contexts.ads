@@ -170,7 +170,8 @@ package LSP.Ada_Contexts is
    --  Analysis_Unit associated to it.
 
    procedure Index_Document
-     (Self : Context; Document : LSP.Ada_Documents.Document);
+     (Self     : Context;
+      Document : in out LSP.Ada_Documents.Document);
    --  Index/reindex the given document in this context
 
    procedure Flush_Document
