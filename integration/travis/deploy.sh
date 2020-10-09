@@ -4,7 +4,7 @@ set -x
 
 PLATFORM=$1
 DIR=integration/vscode/ada/$PLATFORM
-TAG=${TRAVIS_TAG:-latest}
+TAG=${TRAVIS_TAG:-22.0.999}
 
 function linux_deploy()
 {
