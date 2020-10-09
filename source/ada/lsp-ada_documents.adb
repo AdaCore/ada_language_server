@@ -120,9 +120,6 @@ package body LSP.Ada_Documents is
    procedure Recompute_Indexes (Self : in out Document);
    --  Recompute the line-to-offset indexes in Self
 
-   procedure Reset_Symbol_Cache (Self : in out Document'Class);
-   --  Clean cache for defining name symbols of the document.
-
    -----------------------
    -- Recompute_Indexes --
    -----------------------
@@ -167,7 +164,6 @@ package body LSP.Ada_Documents is
       use LSP.Types;
    begin
       Self.Trace.Trace ("Applying changes for document " & File);
-      Self.Reset_Symbol_Cache;
 
       if Version.Is_Set then
          Self.Version := Version.Value;

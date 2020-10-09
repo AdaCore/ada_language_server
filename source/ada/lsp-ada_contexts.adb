@@ -768,11 +768,14 @@ package body LSP.Ada_Contexts is
 
    procedure Index_Document
      (Self     : Context;
-      Document : LSP.Ada_Documents.Document)
+      Document : in out LSP.Ada_Documents.Document)
    is
       File  : constant LSP.Types.LSP_String := URI_To_File (Document.URI);
       Unit  : Libadalang.Analysis.Analysis_Unit;
    begin
+      Document.Reset_Symbol_Cache;
+      --  Reset cache of symbols to avoid access to stale references
+
       Unit := Self.LAL_Context.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
          --  Change.text is always encoded in UTF-8, as per the protocol
