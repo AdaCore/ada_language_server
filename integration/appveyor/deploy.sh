@@ -6,7 +6,7 @@ PLATFORM=$1
 DIR=integration/vscode/ada/$PLATFORM
 LIB=/Projects/ada-language-server/adalib/lib
 GNAT=/c/GNAT/
-TAG=${APPVEYOR_REPO_TAG_NAME:-latest}
+TAG=${APPVEYOR_REPO_TAG_NAME:-22.0.999}
 
 function add_dll()
 {
