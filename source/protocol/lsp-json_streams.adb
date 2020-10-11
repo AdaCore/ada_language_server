@@ -36,7 +36,7 @@ package body LSP.JSON_Streams is
    begin
       pragma Assert (Self.R = null);
       Self.W.Writer.End_Array;
-      Self.W.Key := VSS.Strings.Empty_Magic_String;
+      Self.W.Key := VSS.Strings.Empty_Virtual_String;
    end End_Array;
 
    ------------------
@@ -57,7 +57,7 @@ package body LSP.JSON_Streams is
    begin
       pragma Assert (Self.R = null);
       Self.W.Writer.End_Object;
-      Self.W.Key := VSS.Strings.Empty_Magic_String;
+      Self.W.Key := VSS.Strings.Empty_Virtual_String;
    end End_Object;
 
    ---------
@@ -202,7 +202,7 @@ package body LSP.JSON_Streams is
    begin
       if not Self.Key.Is_Empty then
          Self.Writer.Key_Name (Self.Key);
-         Self.Key := VSS.Strings.Empty_Magic_String;
+         Self.Key := VSS.Strings.Empty_Virtual_String;
       end if;
    end Write_Key;
 

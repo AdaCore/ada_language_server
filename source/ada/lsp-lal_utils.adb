@@ -397,7 +397,7 @@ package body LSP.Lal_Utils is
       if Result.Success then
          return VSS.Strings.To_Virtual_String (Result.Symbol);
       else
-         return VSS.Strings.Empty_Magic_String;
+         return VSS.Strings.Empty_Virtual_String;
       end if;
    end Canonicalize;
 
