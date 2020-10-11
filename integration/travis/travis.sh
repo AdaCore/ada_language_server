@@ -42,7 +42,7 @@ function linux_before_install()
 
 function linux_script()
 {
-    TAG=${TRAVIS_TAG:-latest}
+    TAG=${TRAVIS_TAG:-22.0.999}
     sed -i -e "s/VERSION/$TAG/g" integration/travis/bintray.json
     make LIBRARY_TYPE=relocatable check
 
