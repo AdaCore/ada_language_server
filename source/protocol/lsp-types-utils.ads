@@ -19,8 +19,6 @@
 
 package LSP.Types.Utils is
 
-   function Split_Lines (Text : LSP_String) return LSP_String_Vector;
-
    function Lenght_Of_UTF8_Symbol (First : Character) return Positive;
    --  Return lenght of a UTF8 symbol based on the symbol first byte
 
