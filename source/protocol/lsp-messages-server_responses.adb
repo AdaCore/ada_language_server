@@ -92,6 +92,17 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : Prepare_Rename_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_Prepare_Rename_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : IncomingCalls_Response;
       Handler : access Server_Response_Sender'Class) is
    begin

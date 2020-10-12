@@ -88,6 +88,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Rename_Request)
         is abstract;
 
+   procedure On_Prepare_Rename_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Prepare_Rename_Request)
+        is abstract;
+
    procedure On_Execute_Command_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Execute_Command_Request)

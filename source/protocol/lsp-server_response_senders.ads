@@ -63,6 +63,11 @@ package LSP.Server_Response_Senders is
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Rename_Response) is abstract;
 
+   procedure On_Prepare_Rename_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.Prepare_Rename_Response)
+       is abstract;
+
    procedure On_CodeAction_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.CodeAction_Response)
