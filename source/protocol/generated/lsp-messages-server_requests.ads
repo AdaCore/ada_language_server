@@ -215,6 +215,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Rename_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Prepare_Rename_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        PrepareRenameParams,
+        Server_Request_Receiver'Class);
+
+   type Prepare_Rename_Request is
+     new Prepare_Rename_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Prepare_Rename_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Execute_Command_Requests is
      new LSP.Generic_Requests
        (Server_Request,

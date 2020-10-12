@@ -3568,6 +3568,27 @@ package body LSP.Ada_Handlers is
    end On_Prepare_Call_Hierarchy_Request;
 
    -------------------------------
+   -- On_Prepare_Rename_Request --
+   -------------------------------
+
+   overriding function On_Prepare_Rename_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
+      return LSP.Messages.Server_Responses.Prepare_Rename_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.Prepare_Rename_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => +"Not implemented",
+          data => <>));
+      return Response;
+   end On_Prepare_Rename_Request;
+
+   -------------------------------
    -- On_Incoming_Calls_Request --
    -------------------------------
 

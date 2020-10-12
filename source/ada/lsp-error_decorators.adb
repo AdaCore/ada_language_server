@@ -361,6 +361,22 @@ package body LSP.Error_Decorators is
         renames Prepare_Call_Hierarchy_Request;
 
    -------------------------------
+   -- On_Prepare_Rename_Request --
+   -------------------------------
+
+   function Prepare_Rename_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Prepare_Rename_Request,
+      Response   => LSP.Messages.Server_Responses.Prepare_Rename_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => Server_Request_Handlers.On_Prepare_Rename_Request);
+
+   overriding function On_Prepare_Rename_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
+      return LSP.Messages.Server_Responses.Prepare_Rename_Response
+        renames Prepare_Rename_Request;
+
+   -------------------------------
    -- On_Incoming_Calls_Request --
    -------------------------------
 

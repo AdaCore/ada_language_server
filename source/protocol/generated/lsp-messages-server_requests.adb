@@ -129,6 +129,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Prepare_Rename_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Prepare_Rename_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Execute_Command_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -305,6 +312,10 @@ begin
    Map.Insert
      (+"textDocument/rename",
       Rename_Request'Tag);
+
+   Map.Insert
+     (+"textDocument/prepareRename",
+      Prepare_Rename_Request'Tag);
 
    Map.Insert
      (+"textDocument/executeCommand",

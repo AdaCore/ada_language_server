@@ -104,6 +104,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.Rename_Response
         is abstract;
 
+   function On_Prepare_Rename_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
+      return LSP.Messages.Server_Responses.Prepare_Rename_Response
+        is abstract;
+
    function On_Execute_Command_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Execute_Command_Request)

@@ -1259,6 +1259,46 @@ package body LSP.Message_Loggers is
          & Image (Value));
    end On_Rename_Response;
 
+   -------------------------------
+   -- On_Prepare_Rename_Request --
+   -------------------------------
+
+   overriding procedure On_Prepare_Rename_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Prepare_Rename_Request) is
+   begin
+      Self.Trace.Trace
+        ("Prepare_Rename_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Prepare_Rename_Request;
+
+   --------------------------------
+   -- On_Prepare_Rename_Response --
+   --------------------------------
+
+   overriding procedure On_Prepare_Rename_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.Prepare_Rename_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("Prepare_Rename_Response: "
+            & Image (Value)
+            & " Error");
+      elsif Value.result.Is_Set then
+         Self.Trace.Trace
+           ("Rename_Rename_Response: "
+            & Image (Value)
+            & Image (Value.result.Value));
+      else
+         Self.Trace.Trace
+           ("Rename_Rename_Response: "
+            & Image (Value)
+            & " null");
+      end if;
+   end On_Prepare_Rename_Response;
+
    ----------------------------
    -- On_Server_Notification --
    ----------------------------

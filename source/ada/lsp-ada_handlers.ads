@@ -314,6 +314,11 @@ private
       Request : LSP.Messages.Server_Requests.Rename_Request)
       return LSP.Messages.Server_Responses.Rename_Response;
 
+   overriding function On_Prepare_Rename_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
+      return LSP.Messages.Server_Responses.Prepare_Rename_Response;
+
    overriding function On_Execute_Command_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Execute_Command_Request)

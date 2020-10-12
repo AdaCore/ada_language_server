@@ -110,6 +110,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Rename_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package Prepare_Rename_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => Optional_Span_Or_Null);
+
+   type Prepare_Rename_Response is new Prepare_Rename_Responses.Response
+     with null record;
+
+   overriding procedure Visit
+     (Self    : Prepare_Rename_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package CodeAction_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => CodeAction_Vector);

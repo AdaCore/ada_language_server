@@ -303,6 +303,10 @@ package LSP.Messages is
    package Optional_Spans is new LSP.Generic_Optional (Span);
    type Optional_Span is new Optional_Spans.Optional_Type;
 
+   package Optional_Span_Or_Nulls is
+     new LSP.Generic_Optional (Span, Write_Unset_As_Null => True);
+   type Optional_Span_Or_Null is new Optional_Span_Or_Nulls.Optional_Type;
+
    type CodeActionKind is
      (Empty,
       QuickFix,
@@ -7350,6 +7354,7 @@ package LSP.Messages is
    --export interface PrepareRenameParams extends TextDocumentPositionParams {
    --}
    --```
+   subtype PrepareRenameParams is TextDocumentPositionParams;
 
    --  CallHierarchy is LSP 3.16 draft feature
 

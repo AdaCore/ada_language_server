@@ -182,6 +182,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Rename_Request);
 
+   overriding procedure On_Prepare_Rename_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Prepare_Rename_Request);
+
    overriding procedure On_Execute_Command_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Execute_Command_Request);
@@ -289,6 +293,10 @@ private
    overriding procedure On_Rename_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Rename_Response);
+
+   overriding procedure On_Prepare_Rename_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.Prepare_Rename_Response);
 
    overriding procedure On_CodeAction_Response
      (Self   : in out Message_Logger;
