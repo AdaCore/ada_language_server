@@ -538,6 +538,8 @@ package body LSP.Ada_Handlers is
       Value    : LSP.Messages.InitializeParams renames Request.params;
       Code_Action : LSP.Messages.Optional_CodeActionClientCapabilities renames
         Value.capabilities.textDocument.codeAction;
+      Has_Rename : LSP.Messages.Optional_RenameClientCapabilities renames
+        Value.capabilities.textDocument.rename;
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
@@ -547,7 +549,7 @@ package body LSP.Ada_Handlers is
          Value => (Is_Boolean => True, Bool => True));
       Response.result.capabilities.definitionProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.typeDefinitionProvider :=
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
@@ -556,10 +558,10 @@ package body LSP.Ada_Handlers is
          Value => (Is_Boolean => True, Bool => True));
       Response.result.capabilities.referencesProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
@@ -569,18 +571,22 @@ package body LSP.Ada_Handlers is
       --
       --  Response.result.capabilities.documentRangeFormattingProvider :=
       --    (Is_Set => True,
-      --     Value  => (workDoneProgress => (Is_Set => False)));
+      --     Value  => (workDoneProgress => LSP.Types.None));
 
       Response.result.capabilities.workspaceSymbolProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.renameProvider :=
         (Is_Set => True,
-         Value  => (prepareProvider  => (Is_Set => False),
-                    workDoneProgress => (Is_Set => False)));
+         Value  => (prepareProvider  =>
+                     (if Has_Rename.Is_Set
+                      and then Has_Rename.Value.prepareSupport.Is_Set
+                      and then Has_Rename.Value.prepareSupport.Value
+                        then LSP.Types.True else LSP.Types.None),
+                    workDoneProgress => LSP.Types.None));
       Response.result.capabilities.textDocumentSync :=
         (Is_Set => True, Is_Number => True,
          Value  =>
@@ -590,17 +596,17 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Full));
       Response.result.capabilities.completionProvider :=
         (True,
-         (resolveProvider     => (True, False),
+         (resolveProvider     => LSP.Types.False,
           triggerCharacters   => (True, Empty_Vector & (+".") & (+"(")),
           allCommitCharacters => (Is_Set => False),
-          workDoneProgress    => (Is_Set => False)));
+          workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.hoverProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => (Is_Set => False)));
+         Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.executeCommandProvider :=
         (Is_Set => True,
          Value  => (commands => LSP.Commands.All_Commands,
-                    workDoneProgress  => (Is_Set => False)));
+                    workDoneProgress  => LSP.Types.None));
 
       if Code_Action.Is_Set and then
         Code_Action.Value.codeActionLiteralSupport.Is_Set
@@ -613,7 +619,7 @@ package body LSP.Ada_Handlers is
                     Value  => LSP.Messages.To_Set
                       (From => LSP.Messages.RefactorRewrite,
                        To   => LSP.Messages.RefactorRewrite)),
-               workDoneProgress => (Is_Set => False)));
+               workDoneProgress => LSP.Types.None));
       else
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True, Value => <>);
@@ -3576,15 +3582,41 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
       return LSP.Messages.Server_Responses.Prepare_Rename_Response
    is
-      pragma Unreferenced (Self, Request);
+      Value    : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+
       Response : LSP.Messages.Server_Responses.Prepare_Rename_Response
-        (Is_Error => True);
+        (Is_Error => False);
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
+      Context : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the prepareRename request, we're only interested in the "best"
+      --  context to check that we are able to rename the name.
+
+      Name_Node : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (Context.Get_Node_At (Document, Value));
+
+      Imprecise : Boolean := False;
+
+      Defining_Name : constant Libadalang.Analysis.Defining_Name :=
+        Laltools.Common.Resolve_Name (Name_Node, Self.Trace, Imprecise);
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      if not Name_Node.Is_Null
+        and then not Defining_Name.Is_Null
+        and then not Imprecise
+      then
+         --  Success only if the node is a name and can be resolved precisely
+         Response.result :=
+           (Is_Set => True,
+            Value  => LSP.Lal_Utils.To_Span (Name_Node.Sloc_Range));
+
+      end if;
+
       return Response;
    end On_Prepare_Rename_Request;
 

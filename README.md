@@ -152,7 +152,7 @@ client provides its-own way to set such settings.
 | `textDocument/rangeFormatting`        |                    |
 | `textDocument/onTypeFormatting`       |                    |
 | `textDocument/rename`                 | :white_check_mark: |
-| `textDocument/prepareRename`          |                    |
+| `textDocument/prepareRename`          | :white_check_mark: |
 | `textDocument/foldingRange`           | :white_check_mark: |
 | `textDocument/prepareCallHierarchy`   | :white_check_mark: |
 | `callHierarchy/incomingCalls`         | :white_check_mark: |
