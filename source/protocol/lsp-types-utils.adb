@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Wide_Latin_1;
-
 package body LSP.Types.Utils is
 
    type Byte is mod 2 ** 8;
@@ -43,27 +41,5 @@ package body LSP.Types.Utils is
    begin
       return Natural (Utf8_Skip_Data (First));
    end Lenght_Of_UTF8_Symbol;
-
-   -----------------
-   -- Split_Lines --
-   -----------------
-
-   function Split_Lines (Text : LSP_String) return LSP_String_Vector is
-      Result : LSP_String_Vector;
-      Start  : Positive := 1;
-   begin
-      for Index in 1 .. Length (Text) loop
-         if Element (Text, Index) = Ada.Characters.Wide_Latin_1.LF then
-            Append (Result, Unbounded_Slice (Text, Start, Index));
-            Start := Index + 1;
-         end if;
-      end loop;
-
-      if Start <= Length (Text) then
-         Append (Result, Unbounded_Slice (Text, Start, Length (Text)));
-      end if;
-
-      return Result;
-   end Split_Lines;
 
 end LSP.Types.Utils;

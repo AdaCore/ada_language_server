@@ -36,6 +36,9 @@ with Libadalang.Sources;
 with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
+with VSS.String_Vectors;
+with VSS.Strings.Iterators.Characters;
+
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Predefined_Completion;
 with LSP.Common;
@@ -275,21 +278,29 @@ package body LSP.Ada_Documents is
    is
       use LSP.Types;
       use LSP.Messages;
-      use type Ada.Containers.Count_Type;
+
+      LSP_New_Line_Function : constant VSS.Strings.Line_Terminator_Set :=
+        (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
+         others => False);
+      --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
       Old_First_Line : Natural;
       New_First_Line : Natural;
 
-      Old_Lines, New_Lines   : LSP_String_Vector;
+      Old_Lines, New_Lines   : VSS.String_Vectors.Virtual_String_Vector;
       Old_Length, New_Length : Natural;
 
    begin
-      Old_Lines := LSP.Types.Utils.Split_Lines (Self.Text);
-      New_Lines := LSP.Types.Utils.Split_Lines (New_Text);
+      Old_Lines :=
+        LSP.Types.To_Virtual_String (Self.Text).Split_Lines
+          (LSP_New_Line_Function, True);
+      New_Lines :=
+        LSP.Types.To_Virtual_String (New_Text).Split_Lines
+          (LSP_New_Line_Function, True);
 
       if Old_Span = Empty_Span then
          Old_First_Line := 1;
-         Old_Length     := Natural (Length (Old_Lines));
+         Old_Length     := Old_Lines.Length;
 
       else
          Old_First_Line := Natural (Old_Span.first.line + 1);
@@ -298,13 +309,15 @@ package body LSP.Ada_Documents is
 
       if New_Span = Empty_Span then
          New_First_Line := 1;
-         New_Length     := Natural (Length (New_Lines));
+         New_Length     := New_Lines.Length;
       else
          New_First_Line := Natural (New_Span.first.line + 1);
          New_Length := Natural (New_Span.last.line - New_Span.first.line + 1);
       end if;
 
       declare
+         use type VSS.Strings.Virtual_String;
+
          type LCS_Array is array
            (Natural range 0 .. Old_Length,
             Natural range 0 .. New_Length) of Integer;
@@ -330,7 +343,7 @@ package body LSP.Ada_Documents is
 
          procedure Prepare
            (Line : Line_Number;
-            Text : LSP_String);
+            Text : VSS.Strings.Virtual_String);
          --  Store imformation for Text_Etid in New_String and Span
 
          procedure Add (From_Line : Line_Number);
@@ -342,7 +355,7 @@ package body LSP.Ada_Documents is
 
          procedure Prepare
            (Line : Line_Number;
-            Text : LSP_String) is
+            Text : VSS.Strings.Virtual_String) is
          begin
             if Changed_Block_Span.last = (0, 0) then
                --  it is the first portion of a changed block so store
@@ -351,7 +364,8 @@ package body LSP.Ada_Documents is
             end if;
 
             --  accumulating new text for the changed block
-            Changed_Block_Text := Text & Changed_Block_Text;
+            Changed_Block_Text :=
+              LSP.Types.To_LSP_String (Text) & Changed_Block_Text;
          end Prepare;
 
          ---------
@@ -449,7 +463,7 @@ package body LSP.Ada_Documents is
               LCS (Old_Index - 1, New_Index) - 5
             then
                --  line has been deleted, move lines cursor backward
-               Prepare (Old_Line_Number, Empty_LSP_String);
+               Prepare (Old_Line_Number, VSS.Strings.Empty_Virtual_String);
 
                Old_Line_Number := Old_Line_Number - 1;
                Old_Index       := Old_Index - 1;
@@ -471,7 +485,7 @@ package body LSP.Ada_Documents is
 
          while Old_Index > 0 loop
             --  deleted
-            Prepare (Old_Line_Number, Empty_LSP_String);
+            Prepare (Old_Line_Number, VSS.Strings.Empty_Virtual_String);
 
             Old_Line_Number := Old_Line_Number - 1;
             Old_Index       := Old_Index - 1;
@@ -497,14 +511,25 @@ package body LSP.Ada_Documents is
                    Self.Line_To_Index.Last_Index)
          then
             declare
-               Element : LSP.Messages.TextEdit := Edit.Last_Element;
+               Element   : LSP.Messages.TextEdit := Edit.Last_Element;
+               Last_Line : constant VSS.Strings.Virtual_String :=
+                 Old_Lines (Old_Lines.Length);
+               Iterator  :
+                 VSS.Strings.Iterators.Characters.Character_Iterator :=
+                   Last_Line.First_Character;
+
             begin
+               --  Iterate to the end of the line to compute UTF16 offset of
+               --  the last character
+
+               while Iterator.Forward loop
+                  null;
+               end loop;
+
                --  Replace the wrong location by the end of the buffer
                Element.span.last :=
-                 (line => Line_Number
-                    (Old_Lines.Last_Index - Old_Lines.First_Index),
-                  character =>
-                    UTF_16_Index (Length (Old_Lines.Last_Element)));
+                 (line      => Line_Number (Old_Lines.Length - 1),
+                  character => UTF_16_Index (Iterator.UTF16_Offset));
                Edit.Replace_Element (Edit.Last, Element);
             end;
          end if;
