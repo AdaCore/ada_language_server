@@ -1,0 +1,327 @@
+[
+   {
+      "comment": [
+         "Test the format request at the end of a buffer with and without",
+         "a end of line. The test order is format with EOL, edit the text to",
+         "remove the end of line, format without EOL"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 20634,
+               "capabilities": {
+                  "textDocument": {
+                     "formatting": {
+                        "dynamicRegistration": true
+                     }
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "documentFormattingProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package UI is\n   type UI_Element;\n   procedure Put (E : UI_Element); end UI;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-4",
+            "method": "textDocument/formatting",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}"
+               },
+               "options": {
+                  "tabSize": 3,
+                  "insertSpaces": true,
+                  "trimTrailingWhitespace": true,
+                  "insertFinalNewline": false,
+                  "trimFinalNewlines": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-4",
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 0
+                        }
+                     },
+                     "newText": "   procedure Put (E : UI_Element);\nend UI;\n"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 0
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 0
+                        }
+                     },
+                     "text": "   procedure Put (E : UI_Element);\nend UI;\n"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 0
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 0
+                        }
+                     },
+                     "text": "package UI is\n   type UI_Element;\n   procedure Put (E : UI_Element); end UI;"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-7",
+            "method": "textDocument/formatting",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}"
+               },
+               "options": {
+                  "tabSize": 3,
+                  "insertSpaces": true,
+                  "trimTrailingWhitespace": true,
+                  "insertFinalNewline": false,
+                  "trimFinalNewlines": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-7",
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 42
+                        }
+                     },
+                     "newText": "   procedure Put (E : UI_Element);\nend UI;\n"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{ui.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-10",
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": "ada-10",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
