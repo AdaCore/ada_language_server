@@ -1,0 +1,225 @@
+[
+    {
+        "comment":[
+            "This test checks textDocument/prepareRename request."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{
+                    "textDocument":{
+                        "rename": {
+                            "prepareSupport": true
+                        }        
+                    }
+                }}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync": 2,
+                        "renameProvider":{
+                            "prepareProvider": true
+                        }
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main (Text : String) is\nbegin\n   Main (\"Main\");  --  Main\nend Main;"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-1",
+                "method":"textDocument/prepareRename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "position": {
+                        "line": 2,
+                        "character": 5
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": "rename-1",
+                    "result": {
+                        "start": {
+                            "line": 2,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 2,
+                            "character": 7
+                        }
+                    }
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-2",
+                "method":"textDocument/prepareRename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "position": {
+                        "line": 2,
+                        "character": 12
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": "rename-2",
+                    "result": null
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-3",
+                "method":"textDocument/prepareRename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "position": {
+                        "line": 2,
+                        "character": 26
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": "rename-3",
+                    "result": null
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"rename-4",
+                "method":"textDocument/prepareRename",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "position": {
+                        "line": 3,
+                        "character": 5
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": "rename-4",
+                    "result": {
+                        "start": {
+                            "line": 3,
+                            "character": 4
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 8
+                        }
+                    }
+                }
+            ]
+        }
+        },  {
+            "send": {
+                "request": {
+                    "jsonrpc":"2.0",
+                    "id":"rename-5",
+                    "method":"textDocument/prepareRename",
+                    "params":{
+                        "textDocument": {
+                            "uri": "$URI{main.adb}"
+                        },
+                        "position": {
+                            "line": 0,
+                            "character": 12
+                        }
+                    }
+                },
+                "wait": [
+                    {
+                        "id": "rename-5",
+                        "result": {
+                            "start": {
+                                "line": 0,
+                                "character": 10
+                            },
+                            "end": {
+                                "line": 0,
+                                "character": 14
+                            }
+                        }
+                    }
+                ]
+            }
+        },  {
+    "send": {
+        "request": {
+            "jsonrpc":"2.0",
+            "id": "shutdown",
+            "method":"shutdown",
+            "params":null
+        },
+        "wait":[{ "id": "shutdown", "result": null }]
+    }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
