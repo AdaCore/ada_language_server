@@ -278,6 +278,10 @@ write_component = {
     "Boolean": """\
       {kind}_Boolean (JS, +"{key}", V.{name});
 """,
+    "UTF_16_Index": """\
+      JS.Key ("{key}");
+      LSP.Types.Write_UTF16_Code_Unit_Count (JS, V.{name});
+""",
     "": """\
       JS.Key ("{key}");
       {type}'{kind} (S, V.{name});
@@ -293,6 +297,9 @@ read_component = {
             els""",
     "Boolean": """if Key = "{key}" then
                LSP.Types.Read_Boolean (JS, V.{name});
+            els""",
+    "UTF_16_Index": """if Key = "{key}" then
+               LSP.Types.Read_UTF16_Code_Unit_Count (JS, V.{name});
             els""",
     "": """if Key = "{key}" then
                {type}'Read (S, V.{name});

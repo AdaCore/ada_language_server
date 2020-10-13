@@ -165,7 +165,7 @@ package body LSP.Message_IO is
             if Key = "line" then
                Line_Number'Read (S, V.line);
             elsif Key = "character" then
-               UTF_16_Index'Read (S, V.character);
+               LSP.Types.Read_UTF16_Code_Unit_Count (JS, V.character);
             else
                JS.Skip_Value;
             end if;
@@ -185,7 +185,7 @@ package body LSP.Message_IO is
       JS.Key ("line");
       Line_Number'Write (S, V.line);
       JS.Key ("character");
-      UTF_16_Index'Write (S, V.character);
+      LSP.Types.Write_UTF16_Code_Unit_Count (JS, V.character);
       JS.End_Object;
    end Write_Position;
 

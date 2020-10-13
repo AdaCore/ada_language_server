@@ -23,6 +23,7 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with GNATCOLL.JSON;
 with VSS.Strings;
+with VSS.Unicode;
 
 with LSP.Generic_Optional;
 
@@ -203,10 +204,17 @@ package LSP.Types is
 
    type Line_Number is new LSP_Number;
    --  Line number. In LSP first line has zero number
-   type UTF_16_Index is new LSP_Number;
+   subtype UTF_16_Index is VSS.Unicode.UTF16_Code_Unit_Index;
    --  LSP measures character position in UTF_16 code units starting from zero
    type Version_Id is new LSP_Number;
    --  Document version
+
+   procedure Read_UTF16_Code_Unit_Count
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Item   : out VSS.Unicode.UTF16_Code_Unit_Count);
+   procedure Write_UTF16_Code_Unit_Count
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Item   : VSS.Unicode.UTF16_Code_Unit_Count);
 
    ---------------------
    -- Optional_Number --

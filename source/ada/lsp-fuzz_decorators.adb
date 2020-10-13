@@ -17,6 +17,9 @@
 
 with Ada.Characters.Wide_Latin_1; use Ada.Characters.Wide_Latin_1;
 with Ada.Containers.Hashed_Maps;
+
+with VSS.Unicode;
+
 with LSP.Types; use LSP.Types;
 
 package body LSP.Fuzz_Decorators is
@@ -112,7 +115,10 @@ package body LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
+
       Doc_Content : LSP_String;
+
    begin
       Doc_Content := Open_Docs.Element (Value.textDocument.uri);
 
