@@ -26,7 +26,6 @@ with VSS.JSON.Streams.Readers;
 with VSS.Characters;
 with VSS.Strings.Conversions;
 with VSS.Strings.Iterators.Characters;
-with VSS.Unicode;
 
 with LSP.JSON_Streams;
 
@@ -451,6 +450,20 @@ package body LSP.Types is
       JS.R.Read_Next;
    end Read_Nullable_String;
 
+   --------------------------------
+   -- Read_UTF16_Code_Unit_Count --
+   --------------------------------
+
+   procedure Read_UTF16_Code_Unit_Count
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Item   : out VSS.Unicode.UTF16_Code_Unit_Count) is
+   begin
+      pragma Assert (Stream.R.Is_Number_Value);
+      Item :=
+        VSS.Unicode.UTF16_Code_Unit_Count
+          (Stream.R.Number_Value.Integer_Value);
+      Stream.R.Read_Next;
+   end Read_UTF16_Code_Unit_Count;
    -----------------
    -- Starts_With --
    -----------------
@@ -1079,5 +1092,16 @@ package body LSP.Types is
             JS.Write_String (V.String);
       end case;
    end Write_LSP_Boolean_Or_String;
+
+   ---------------------------------
+   -- Write_UTF16_Code_Unit_Count --
+   ---------------------------------
+
+   procedure Write_UTF16_Code_Unit_Count
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Item   : VSS.Unicode.UTF16_Code_Unit_Count) is
+   begin
+      Stream.Write_Integer (Interfaces.Integer_64 (Item));
+   end Write_UTF16_Code_Unit_Count;
 
 end LSP.Types;

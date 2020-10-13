@@ -57,6 +57,7 @@ with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
 with VSS.Strings;
+with VSS.Unicode;
 
 package body LSP.Ada_Handlers is
 
@@ -2696,6 +2697,8 @@ package body LSP.Ada_Handlers is
                         else
                            --  Decrease '-', Diff is negative
                            declare
+                              use type VSS.Unicode.UTF16_Code_Unit_Count;
+
                               Sloc : constant Source_Location_Range :=
                                 Sloc_Range (Data (Current));
 

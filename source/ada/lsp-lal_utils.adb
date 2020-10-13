@@ -20,12 +20,13 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
-with LSP.Types;         use LSP.Types;
-
+with Langkit_Support;
 with Libadalang.Common; use Libadalang.Common;
 with Libadalang.Sources;
 
-with Langkit_Support;
+with VSS.Unicode;
+
+with LSP.Types;         use LSP.Types;
 
 package body LSP.Lal_Utils is
 
@@ -83,6 +84,8 @@ package body LSP.Lal_Utils is
    procedure Sort_And_Remove_Duplicates
      (Result : in out LSP.Messages.Location_Vector)
    is
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
+
       function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean;
       --  Comparison function for URIs, return True if Left < Right
 
@@ -323,6 +326,8 @@ package body LSP.Lal_Utils is
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
       return LSP.Messages.Location
    is
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
+
       Start_Sloc_Range                                     :
       constant Langkit_Support.Slocs.Source_Location_Range :=
          Sloc_Range (Data (Node.Token_Start));
@@ -336,6 +341,7 @@ package body LSP.Lal_Utils is
       Last_Position  : constant LSP.Messages.Position :=
                          (Line_Number (End_Sloc_Range.End_Line) - 1,
                           UTF_16_Index (End_Sloc_Range.End_Column) - 1);
+      --  XXX Code unit offset computation is incorrect here
 
       File : constant LSP.Types.LSP_String :=
         LSP.Types.To_LSP_String (Node.Unit.Get_Filename);
@@ -368,6 +374,8 @@ package body LSP.Lal_Utils is
      (Value : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Messages.Span
    is
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
+
       Result : constant LSP.Messages.Span :=
         (first =>
            (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
@@ -377,6 +385,8 @@ package body LSP.Lal_Utils is
            (line => LSP.Types.Line_Number (Value.End_Line) - 1,
             character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!
               (Value.End_Column) - 1));
+      --  XXX Code unit offset computation is incorrect here
+
    begin
       return Result;
    end To_Span;

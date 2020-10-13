@@ -38,6 +38,7 @@ with Libadalang.Iterators;
 
 with VSS.String_Vectors;
 with VSS.Strings.Iterators.Characters;
+with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Predefined_Completion;
@@ -529,7 +530,7 @@ package body LSP.Ada_Documents is
                --  Replace the wrong location by the end of the buffer
                Element.span.last :=
                  (line      => Line_Number (Old_Lines.Length - 1),
-                  character => UTF_16_Index (Iterator.UTF16_Offset));
+                  character => Iterator.UTF16_Offset);
                Edit.Replace_Element (Edit.Last, Element);
             end;
          end if;
@@ -589,6 +590,8 @@ package body LSP.Ada_Documents is
         (Span : LSP.Messages.Span)
          return Utils.Char_Vectors.Char_Subrange
       is
+         use type VSS.Unicode.UTF16_Code_Unit_Count;
+
          Line   : Line_Number  := 0;
          Char   : UTF_16_Index := 0;
          Result : Utils.Char_Vectors.Char_Subrange := (1, 1);
@@ -673,6 +676,8 @@ package body LSP.Ada_Documents is
          From_Position : LSP.Messages.Position := (0, 0))
          return LSP.Messages.Position
       is
+         use type VSS.Unicode.UTF16_Code_Unit_Count;
+
          Current : Natural := From_Index;
          Result  : LSP.Messages.Position := From_Position;
       begin
@@ -2391,6 +2396,7 @@ package body LSP.Ada_Documents is
    is
       use Libadalang.Common;
       use LSP.Types;
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
 
       Real_Pos : constant LSP.Messages.Position :=
         (Position.line,
