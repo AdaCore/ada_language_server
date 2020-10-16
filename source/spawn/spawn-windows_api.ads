@@ -138,7 +138,7 @@ package Spawn.Windows_API is
      with Import, Convention => Stdcall, External_Name => "CancelIo";
 
    function CreateNamedPipeA
-     (lpName                 : Interfaces.C.char_array;
+     (lpName                 : Interfaces.C.Strings.chars_ptr;
       dwOpenMode             : DWORD;
       dwPipeMode             : DWORD;
       nMaxInstances          : DWORD;
@@ -158,12 +158,28 @@ package Spawn.Windows_API is
    --  The flow of data in the pipe goes from server to client only. This mode
    --  gives the server the equivalent of GENERIC_WRITE access to the pipe. The
    --  client must specify GENERIC_READ access when connecting to the pipe.
-   FILE_FLAG_OVERLAPPED     : constant DWORD := 16#40000000#;
-   PIPE_TYPE_BYTE           : constant DWORD := 0;
-   PIPE_WAIT                : constant DWORD := 0;
-   PIPE_UNLIMITED_INSTANCES : constant DWORD := 255;
+   FILE_FLAG_OVERLAPPED       : constant DWORD := 16#40000000#;
+   PIPE_TYPE_BYTE             : constant DWORD := 0;
+   PIPE_WAIT                  : constant DWORD := 0;
+   PIPE_REJECT_REMOTE_CLINETS : constant DWORD := 16#0000_0008#;
+   PIPE_UNLIMITED_INSTANCES   : constant DWORD := 255;
 
    Pipe_Name_Prefix : constant String := "\\.\pipe\";
+
+   function ConnectNamedPipe
+     (hNamedPipe   : HANDLE;
+      lpOverlapped : access OVERLAPPED) return BOOL
+     with Import, Convention => Stdcall, External_Name => "ConnectNamedPipe";
+
+   function CreateFileA
+     (lpFileName            : Interfaces.C.Strings.chars_ptr;
+      dwDesiredAccess       : DWORD;
+      dwShareMode           : DWORD;
+      lpSecurityAttributes  : access System.Win32.SECURITY_ATTRIBUTES;
+      dwCreationDisposition : DWORD;
+      dwFlagsAndAttributes  : DWORD;
+      hTemplateFile         : HANDLE) return HANDLE
+     with Import, Convention => Stdcall, External_Name => "CreateFileA";
 
    function CreateEventW
      (lpSecurityAttributes : access System.Win32.SECURITY_ATTRIBUTES;
@@ -219,9 +235,12 @@ package Spawn.Windows_API is
          with Import, Convention => Stdcall,
               External_Name => "_get_osfhandle";
 
+   ERROR_PIPE_BUSY         : constant DWORD := 231;
+   ERROR_PIPE_CONNECTED    : constant DWORD := 535;
    ERROR_OPERATION_ABORTED : constant DWORD := 995;
    --  he I/O operation has been aborted because of either a thread exit or an
    --  application request.
+   ERROR_IO_PENDING        : constant DWORD := 997;
 
    function SearchPath
      (lpPath         : LPWSTR;
@@ -237,5 +256,9 @@ package Spawn.Windows_API is
 
    MAX_PATH : constant := 32767;
    --  Max file name length. Legacy MAX_PATH was 256
+
+   function GetCurrentProcessId return DWORD
+     with Import, Convention => Stdcall,
+          External_Name => "GetCurrentProcessId";
 
 end Spawn.Windows_API;
