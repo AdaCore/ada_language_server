@@ -20,9 +20,10 @@ with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.Wide_Fixed;
 with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Conversion;
-with Interfaces.C;
+with Interfaces.C.Strings;
 
 pragma Warnings (Off);
+with System.OS_Interface;
 with System.Win32;
 pragma Warnings (On);
 
@@ -55,6 +56,10 @@ package body Spawn.Processes.Windows is
    Callback : constant array (Stdout .. Stderr) of Read_Write_Ex.Callback :=
      (Standard_Output_Callback'Access,
       Standard_Error_Callback'Access);
+
+   Pipe_Count : Interfaces.Unsigned_32 := 0;
+   --  Counter of pipes created by current process. It is used to construct
+   --  unique name of the named pipe.
 
    ---------------------------
    -- Append_Escaped_String --
@@ -239,56 +244,176 @@ package body Spawn.Processes.Windows is
          Inbound       : Boolean;
          Success       : in out Boolean)
       is
+         use type Interfaces.Unsigned_32;
+
+         procedure Ignore (Value : System.Win32.BOOL) is null;
+         procedure Ignore (Value : System.Win32.DWORD) is null;
+         --  Used to ignore returnd value of the Windows API functions
+
+         Process_Id_Image : constant String :=
+           Spawn.Windows_API.DWORD'Image
+             (Spawn.Windows_API.GetCurrentProcessId);
+
          Mode : constant array (Boolean) of Windows_API.DWORD :=
            (True  => Windows_API.PIPE_ACCESS_INBOUND,
             False => Windows_API.PIPE_ACCESS_OUTBOUND);
 
          Client_Access : constant array (Boolean) of Windows_API.DWORD :=
            (True  => System.Win32.GENERIC_WRITE,
-            False => System.Win32.GENERIC_READ);
+            False =>
+              System.Win32.GENERIC_READ + System.Win32.FILE_WRITE_ATTRIBUTES);
 
-         Inherit : aliased System.Win32.SECURITY_ATTRIBUTES :=
+         Inherit_Handle      : aliased System.Win32.SECURITY_ATTRIBUTES :=
            (nLength             => System.Win32.SECURITY_ATTRIBUTES'Size / 8,
             pSecurityDescriptor => System.Null_Address,
             bInheritHandle      => System.Win32.TRUE);
+         Dont_Inherit_Handle : aliased System.Win32.SECURITY_ATTRIBUTES :=
+           (nLength             => System.Win32.SECURITY_ATTRIBUTES'Size / 8,
+            pSecurityDescriptor => System.Null_Address,
+            bInheritHandle      => System.Win32.FALSE);
 
-         Name : constant Interfaces.C.char_array := Interfaces.C.To_C
-           (Windows_API.Pipe_Name_Prefix &
-              "my_" & Boolean'Image (Inbound));
+         Pipe_Name : Interfaces.C.Strings.chars_ptr;
+         Attempts  : Natural := 1_000;
 
       begin
-         Parent_Handle := Windows_API.CreateNamedPipeA
-           (lpName               => Name,
-            dwOpenMode           => Mode (Inbound) +
-              Windows_API.FILE_FLAG_OVERLAPPED,
-            dwPipeMode           => Windows_API.PIPE_TYPE_BYTE,
-            nMaxInstances        => Windows_API.PIPE_UNLIMITED_INSTANCES,
-            nOutBufferSize       => 4096,
-            nInBufferSize        => 4096,
-            nDefaultTimeOut      => 0,
-            lpSecurityAttributes => null);
+         --  Create named pipe and server handle
 
-         if Parent_Handle = System.Win32.INVALID_HANDLE_VALUE then
-            Self.Listener.Error_Occurred (Integer (System.Win32.GetLastError));
-            Child_Handle := Parent_Handle;
-            Success := False;
-            return;
-         end if;
+         loop
+            declare
+               Pipe_Count_Image : constant String :=
+                 Interfaces.Unsigned_32'Image (Pipe_Count);
 
-         Child_Handle := System.Win32.CreateFileA
-           (lpFileName            => Name'Address,
+            begin
+               Interfaces.C.Strings.Free (Pipe_Name);
+               Pipe_Name :=
+                 Interfaces.C.Strings.New_String
+                   (Spawn.Windows_API.Pipe_Name_Prefix
+                    & "ada-"
+                    & Process_Id_Image
+                      (Process_Id_Image'First + 1 .. Process_Id_Image'Last)
+                    & '-'
+                    & Pipe_Count_Image
+                      (Pipe_Count_Image'First + 1 .. Pipe_Count_Image'Last));
+               --  Each named pipe is created with unique name.
+
+               Pipe_Count := Pipe_Count + 1;
+
+               Parent_Handle := Windows_API.CreateNamedPipeA
+                 (lpName               => Pipe_Name,
+                  dwOpenMode           =>
+                    Mode (Inbound) + Windows_API.FILE_FLAG_OVERLAPPED,
+                  dwPipeMode           =>
+                    Windows_API.PIPE_TYPE_BYTE
+                      + Windows_API.PIPE_WAIT
+                      + Windows_API.PIPE_REJECT_REMOTE_CLINETS,
+                  nMaxInstances        => 1,
+                  nOutBufferSize       => 0,
+                  nInBufferSize        => 0,
+                  nDefaultTimeOut      => 0,
+                  lpSecurityAttributes => Dont_Inherit_Handle'Access);
+
+               exit when Parent_Handle /= System.Win32.INVALID_HANDLE_VALUE;
+
+               declare
+                  Error : constant Windows_API.DWORD :=
+                    System.Win32.GetLastError;
+
+               begin
+                  Attempts := Attempts - 1;
+
+                  if Error /= Windows_API.ERROR_PIPE_BUSY or Attempts = 0 then
+                     Self.Listener.Error_Occurred (Integer (Error));
+
+                     Interfaces.C.Strings.Free (Pipe_Name);
+
+                     Child_Handle  := System.Win32.INVALID_HANDLE_VALUE;
+                     Parent_Handle := System.Win32.INVALID_HANDLE_VALUE;
+                     Success       := False;
+
+                     return;
+                  end if;
+               end;
+            end;
+         end loop;
+
+         --  Open named pipe to create client handle
+
+         Child_Handle := Windows_API.CreateFileA
+           (lpFileName            => Pipe_Name,
             dwDesiredAccess       => Client_Access (Inbound),
             dwShareMode           => 0,
-            lpSecurityAttributes  => Inherit'Access,
+            lpSecurityAttributes  => Inherit_Handle'Access,
             dwCreationDisposition => System.Win32.OPEN_EXISTING,
-            dwFlagsAndAttributes  => System.Win32.FILE_ATTRIBUTE_NORMAL,
+            dwFlagsAndAttributes  => Windows_API.FILE_FLAG_OVERLAPPED,
             hTemplateFile         => 0);
 
          if Child_Handle = System.Win32.INVALID_HANDLE_VALUE then
             Self.Listener.Error_Occurred (Integer (System.Win32.GetLastError));
-            Success := False;
+
+            Interfaces.C.Strings.Free (Pipe_Name);
+            Ignore (System.Win32.CloseHandle (Parent_Handle));
+
+            Child_Handle  := System.Win32.INVALID_HANDLE_VALUE;
+            Parent_Handle := System.Win32.INVALID_HANDLE_VALUE;
+            Success       := False;
+
             return;
          end if;
+
+         Interfaces.C.Strings.Free (Pipe_Name);
+
+         --  Wait till connection is in place
+
+         declare
+            Overlapped : aliased Windows_API.OVERLAPPED;
+
+         begin
+            Overlapped.hEvent :=
+              System.OS_Interface.CreateEvent
+                (pEventAttributes => null,
+                 bManualReset     => System.Win32.TRUE,
+                 bInitialState    => System.Win32.FALSE,
+                 pName            => Interfaces.C.Strings.Null_Ptr);
+
+            if Windows_API.ConnectNamedPipe (Parent_Handle, Overlapped'Access)
+              = System.Win32.FALSE
+            then
+               declare
+                  Error : constant Windows_API.DWORD :=
+                    System.Win32.GetLastError;
+
+               begin
+                  case Error is
+                     when Windows_API.ERROR_PIPE_CONNECTED =>
+                        null;
+
+                     when Windows_API.ERROR_IO_PENDING =>
+                        Ignore
+                          (System.OS_Interface.WaitForSingleObject
+                             (Overlapped.hEvent,
+                              System.OS_Interface.Wait_Infinite));
+
+                     when others =>
+                        Self.Listener.Error_Occurred
+                          (Integer (System.Win32.GetLastError));
+
+                        Ignore (System.Win32.CloseHandle (Overlapped.hEvent));
+                        Ignore (System.Win32.CloseHandle (Parent_Handle));
+                        Ignore (System.Win32.CloseHandle (Child_Handle));
+
+                        Child_Handle  := System.Win32.INVALID_HANDLE_VALUE;
+                        Parent_Handle := System.Win32.INVALID_HANDLE_VALUE;
+                        Success       := False;
+
+                        return;
+                  end case;
+               end;
+            end if;
+
+            Ignore (System.Win32.CloseHandle (Overlapped.hEvent));
+         end;
+
+         Success := True;
       end Create_Pipe;
 
       ------------------
