@@ -176,7 +176,6 @@ package body LSP.Raw_Clients is
    ------------------------------
 
    overriding procedure Standard_Error_Available (Self : in out Listener) is
-      Client : Raw_Clients.Raw_Client'Class renames Self.Client.all;
    begin
       loop
          declare
@@ -186,7 +185,7 @@ package body LSP.Raw_Clients is
          begin
             Self.Client.Server.Read_Standard_Error (Raw, Last);
             exit when Last in 0;
-            Client.On_Standard_Error_Message (Text (1 .. Natural (Last)));
+            Self.Client.On_Standard_Error_Message (Text (1 .. Natural (Last)));
          end;
       end loop;
    end Standard_Error_Available;
