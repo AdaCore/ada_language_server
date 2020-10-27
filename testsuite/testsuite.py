@@ -50,6 +50,8 @@ class ALSTestsuite(Testsuite):
         path = os.path.join(self.env.repo_base, '.obj', *args)
         if os.path.isfile(path):
             return path
+        elif os.path.isfile(path + '.exe'):
+            return path + '.exe'
 
         # Otherwise, look for the requested program name in the PATH.
         #
