@@ -335,6 +335,8 @@ NOTIFICATIONS = [
      'DidChangeConfigurationParams'),
     ('workspace/didChangeWorkspaceFolders', 'DidChangeWorkspaceFolders',
      'DidChangeWorkspaceFoldersParams'),
+    ('workspace/didChangeWatchedFiles', 'DidChangeWatchedFiles',
+     'DidChangeWatchedFilesParams'),
     ('$/cancelRequest', 'Cancel', 'CancelParams'),
 
     # TODO: rename these to TextDocumentDidOpen/DidChange/DidSave/DidClose?

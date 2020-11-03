@@ -17,6 +17,8 @@
 --
 --  This package provides a set of contexts for Ada Language server.
 
+with GNATCOLL.VFS;
+
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 
@@ -53,6 +55,12 @@ package LSP.Ada_Context_Sets is
 
    function Total_Source_Files (Self : Context_Set'Class) return Natural;
    --  Number of files in all contexts
+
+   function All_Source_Directories
+     (Self : Context_Set'Class) return GNATCOLL.VFS.File_Array;
+   --  Return the list of all source directories for writable projects
+   --  in the context (ie, excluding externally-built projects). Each
+   --  dirctory is present only once in the resulting array.
 
    procedure Cleanup (Self : in out Context_Set'Class);
    --  Free memory referenced by Self

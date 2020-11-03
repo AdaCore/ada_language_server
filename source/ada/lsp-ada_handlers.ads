@@ -135,28 +135,31 @@ private
       --  Whether to index sources in the background. This should be True
       --  for normal use, and can be disabled for debug or testing purposes.
 
-      Indexing_Required : Boolean := False;
-      --  Set to True if an indexing operation had been paused in order to
-      --  process requests.
+      Files_To_Index : File_Sets.Set;
+      --  Contains any files that need indexing.
+      --
       --  Indexing of sources is performed in the background as soon as needed
       --  (typically after a project load), and pre-indexes the Ada source
       --  files, so that subsequent request are fast.
       --  The way the "backgrounding" works is the following:
       --
       --      * each request which should trigger indexing (for instance
-      --        project load) sets Indexing_Required to True
+      --        project load) adds files to Files_To_Index
       --
       --      * the procedure Index_Files takes care of the indexing; it's also
       --        looking at the queue after each indexing to see if there
       --        are requests pending. If a request is pending, it stops
-      --        indexing, and leaves Indexing_Required to True
+      --        indexing.
       --
       --      * whenever the server has finished processing a notification
-      --        or a requests, it looks at whether Indexing_Required is True,
-      --        if it is, it runs Indexing_Required
-      --
-      --      * Indexing_Required is set to False when Index_Files has
-      --        completed
+      --        or a requests, it looks at whether Files_To_Index contains
+      --        files; if it does, it runs Index_Files
+
+      Total_Files_Indexed  : Natural := 0;
+      Total_Files_To_Index : Positive := 1;
+      --  These two fields are used to produce a progress bar for the indexing
+      --  operations. Total_Files_To_Index starts at 1 so that the progress
+      --  bar starts at 0%.
 
       Options : Options_Holder;
 
@@ -403,6 +406,10 @@ private
    overriding procedure On_DidChangeWorkspaceFolders_Notification
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeWorkspaceFoldersParams) is null;
+
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeWatchedFilesParams);
 
    overriding procedure On_Cancel_Notification
      (Self  : access Message_Handler;

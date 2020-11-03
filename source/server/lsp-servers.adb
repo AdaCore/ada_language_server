@@ -26,6 +26,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.Errors;
+with LSP.Ada_Contexts;
 with LSP.JSON_Streams;
 with LSP.Messages.Client_Notifications;
 with LSP.Servers.Decode_Notification;
@@ -33,7 +34,9 @@ with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Request;
 
 with GNATCOLL.Traces;           use GNATCOLL.Traces;
+with GNATCOLL.VFS;              use GNATCOLL.VFS;
 
+with Libfswatch;                use Libfswatch;
 with Libadalang.Common;         use Libadalang.Common;
 
 with VSS.JSON.Streams.Readers.Simple;
@@ -164,6 +167,7 @@ package body LSP.Servers is
 
       Self.Processing_Task.Stop;
       Self.Output_Task.Stop;
+      Self.Stop_Monitoring_Directories;
 
       select
          --  Input task can be waiting reading from stream and won't accept
@@ -1265,5 +1269,187 @@ package body LSP.Servers is
 
       return Self.Input_Queue_Length > 0;
    end Has_Pending_Work;
+
+   ---------------------
+   -- Data_To_Monitor --
+   ---------------------
+
+   protected body Data_To_Monitor is
+      procedure Stop_Monitor is
+      begin
+         if Monitor /= null then
+            Monitor.Stop_Monitor;
+         end if;
+      end Stop_Monitor;
+
+      ---------------------
+      -- Set_LSP_Monitor --
+      ---------------------
+
+      procedure Set_LSP_Monitor (M : LSP_Monitor_Access) is
+      begin
+         Monitor := M;
+      end Set_LSP_Monitor;
+   end Data_To_Monitor;
+
+   --------------
+   -- Callback --
+   --------------
+
+   overriding procedure Callback
+     (Self   : in out LSP_Monitor;
+      Events : Libfswatch.Event_Vectors.Vector)
+   is
+      function Flag_To_FileChangeType
+        (X : Event_Flags) return LSP.Messages.FileChangeType;
+      --  Utility conversion function
+
+      ----------------------------
+      -- Flag_To_FileChangeType --
+      ----------------------------
+
+      function Flag_To_FileChangeType
+        (X : Event_Flags) return LSP.Messages.FileChangeType is
+      begin
+         case X is
+         when Created | Moved_From =>
+            return LSP.Messages.Created;
+         when Removed =>
+            return LSP.Messages.Deleted;
+         when others =>
+            return LSP.Messages.Changed;
+         end case;
+      end Flag_To_FileChangeType;
+
+      File : Virtual_File;
+
+   begin
+      --  Look through all events...
+      for E of Events loop
+         File := Create (+To_String (E.Path), Normalize => True);
+         --  A file from the source directories has been modified on disk:
+         --  send a message to inform that this should be reloaded. The
+         --  server will process it in the processing thread.
+
+         declare
+            use LSP.Messages;
+            use LSP.Messages.Server_Notifications;
+            Message : Message_Access;
+            Changes : DidChangeWatchedFilesParams;
+            URI     : constant LSP.Messages.DocumentUri :=
+              LSP.Ada_Contexts.File_To_URI (LSP.Types.To_LSP_String
+                                            (File.Display_Full_Name));
+         begin
+            for F of E.Flags loop
+               Changes.changes.Append
+                 (FileEvent'(uri => URI,
+                             the_type => Flag_To_FileChangeType (F)));
+            end loop;
+            Message := new DidChangeWatchedFiles_Notification'
+              (method  => +"workspace/didChangeWatchedFiles",
+               jsonrpc => +"2.0",
+               params  => Changes);
+
+            Self.The_Server.Input_Queue.Enqueue (Message);
+         end;
+      end loop;
+   end Callback;
+
+   ------------------
+   -- Monitor_Task --
+   ------------------
+
+   task body Monitor_Task is
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (LSP_Monitor, LSP_Monitor_Access);
+
+      Monitor        : LSP_Monitor_Access;
+      Dirs           : GNATCOLL.VFS.File_Array_Access;
+      Stop_Requested : Boolean := False;
+
+   begin
+      loop
+         --  Wait until Start or Stop
+         select
+            accept Start
+              (Data_To_Monitor : Data_To_Monitor_Access;
+               Directories     : GNATCOLL.VFS.File_Array)
+            do
+               Monitor := new LSP_Monitor;
+               Monitor.The_Server := Data_To_Monitor.Server;
+               Data_To_Monitor.Set_LSP_Monitor (Monitor);
+               Dirs := new File_Array'(Directories);
+            end Start;
+         or
+            accept Stop do
+               Stop_Requested := True;
+            end Stop;
+         end select;
+
+         if Stop_Requested then
+            --  Exit the task
+            exit;
+         else
+            --  Start monitoring. This call is blocking until
+            --  Monitor.Stop_Monitor is called.
+            Monitor.Blocking_Monitor
+              (Dirs.all, (Updated, Created, Moved_From));
+
+            --
+            Unchecked_Free (Dirs);
+            Unchecked_Free (Monitor);
+         end if;
+      end loop;
+   end Monitor_Task;
+
+   -------------------------
+   -- Monitor_Directories --
+   -------------------------
+
+   procedure Monitor_Directories
+     (Self        : access Server;
+      Directories : GNATCOLL.VFS.File_Array)
+   is
+
+   begin
+      --  If the task hasn't started, start it now
+      if Self.Filesystem_Monitor_Task = null then
+         Self.Filesystem_Monitor_Task := new Monitor_Task;
+      end if;
+
+      if Self.To_Monitor /= null then
+         --  If we were previously monitoring directories, stop this now
+         Self.To_Monitor.Stop_Monitor;
+      else
+         --  Create the shared data if it didn't exist before
+         Self.To_Monitor := new Data_To_Monitor (Self);
+      end if;
+
+      --  Tell the task to start monitoring directories
+      Self.Filesystem_Monitor_Task.Start
+        (Data_To_Monitor => Self.To_Monitor,
+         Directories     => Directories);
+   end Monitor_Directories;
+
+   ---------------------------------
+   -- Stop_Monitoring_Directories --
+   ---------------------------------
+
+   procedure Stop_Monitoring_Directories (Self : access Server) is
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (Monitor_Task, Monitor_Task_Access);
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (Data_To_Monitor, Data_To_Monitor_Access);
+   begin
+      if Self.To_Monitor /= null then
+         Self.To_Monitor.Stop_Monitor;
+         Unchecked_Free (Self.To_Monitor);
+      end if;
+
+      if Self.Filesystem_Monitor_Task /= null then
+         Self.Filesystem_Monitor_Task.Stop;
+         Unchecked_Free (Self.Filesystem_Monitor_Task);
+      end if;
+   end Stop_Monitoring_Directories;
 
 end LSP.Servers;

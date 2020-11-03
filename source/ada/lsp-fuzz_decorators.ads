@@ -60,6 +60,10 @@ package LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidChangeWorkspaceFoldersParams);
 
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.DidChangeWatchedFilesParams);
+
    overriding procedure On_Cancel_Notification
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.CancelParams);

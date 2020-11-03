@@ -57,11 +57,13 @@ package LSP.Ada_File_Sets is
      (Self : in out Indexed_File_Set'Class;
       URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit);
+   --  ??? needs doc
 
    procedure Flush_File_Index
      (Self : in out Indexed_File_Set'Class;
       URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit);
+   --  ??? needs doc
 
    procedure Get_Any_Symbol_Completion
      (Self     : Indexed_File_Set'Class;
