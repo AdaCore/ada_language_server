@@ -19,6 +19,7 @@ with Ada.Unchecked_Deallocation;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 
+with LSP.Ada_File_Sets;
 with URIs;
 
 package body LSP.Ada_Context_Sets is
@@ -153,5 +154,31 @@ package body LSP.Ada_Context_Sets is
    begin
       return True;
    end All_Contexts;
+
+   ----------------------------
+   -- All_Source_Directories --
+   ----------------------------
+
+   function All_Source_Directories
+     (Self : Context_Set'Class) return GNATCOLL.VFS.File_Array
+   is
+      Consolidated_Set : LSP.Ada_File_Sets.File_Sets.Set;
+   begin
+      for C of Self.Contexts loop
+         Consolidated_Set.Union (C.List_Source_Directories);
+      end loop;
+
+      declare
+         Result : GNATCOLL.VFS.File_Array
+           (1 .. Integer (Consolidated_Set.Length));
+         J      : Natural := 1;
+      begin
+         for Dir of Consolidated_Set loop
+            Result (J) := Dir;
+            J := J + 1;
+         end loop;
+         return Result;
+      end;
+   end All_Source_Directories;
 
 end LSP.Ada_Context_Sets;

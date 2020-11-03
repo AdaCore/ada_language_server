@@ -17,6 +17,7 @@
 
 with "libadalang";
 with "lal_tools.gpr";
+with "ada_libfswatch.gpr";
 
 with "lsp";
 
@@ -40,7 +41,6 @@ project LSP_Server is
         LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
    end Compiler;
-
 
    package Binder is
       for Switches ("ada") use ("-E");

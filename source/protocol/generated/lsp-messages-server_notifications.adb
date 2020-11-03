@@ -65,6 +65,13 @@ package body LSP.Messages.Server_Notifications is
    end Visit;
 
    overriding procedure Visit
+     (Self    : DidChangeWatchedFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_DidChangeWatchedFiles_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Cancel_Notification;
       Handler : access Server_Notification_Receiver'Class) is
    begin
@@ -120,6 +127,10 @@ begin
    Map.Insert
      (+"workspace/didChangeWorkspaceFolders",
       DidChangeWorkspaceFolders_Notification'Tag);
+
+   Map.Insert
+     (+"workspace/didChangeWatchedFiles",
+      DidChangeWatchedFiles_Notification'Tag);
 
    Map.Insert
      (+"$/cancelRequest",

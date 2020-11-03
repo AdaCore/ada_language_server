@@ -102,6 +102,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.DidChangeWorkspaceFoldersParams);
 
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.DidChangeWatchedFilesParams);
+
    overriding procedure On_DidOpenTextDocument_Notification
      (Self   : access Message_Logger;
       Value  : LSP.Messages.DidOpenTextDocumentParams);

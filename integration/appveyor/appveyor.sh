@@ -11,7 +11,9 @@ export PATH=$ADALIB_DIR/bin:\
 $PATH
 export ADA_PROJECT_PATH=$ADALIB_DIR/share/gpr:\
 $ADALIB_DIR/libadalang-tools/src:\
-$ADALIB_DIR/VSS/gnat
+$ADALIB_DIR/VSS/gnat:\
+$BUILD_FOLDER/subprojects/stubs
+
 export LIBRARY_TYPE=relocatable
 export CPATH=/mingw64/include
 export LIBRARY_PATH=/mingw64/lib

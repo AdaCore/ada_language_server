@@ -33,6 +33,9 @@ with LSP.Server_Request_Handlers;
 with LSP.Types;
 
 with GNATCOLL.Traces;
+with GNATCOLL.VFS;
+
+with Libfswatch;
 
 private with Ada.Strings.Unbounded;
 private with Ada.Containers.Hashed_Maps;
@@ -129,13 +132,27 @@ package LSP.Servers is
    --  notification/request it's currently processing. This should only be
    --  called from the processing task.
 
+   procedure Monitor_Directories
+     (Self        : access Server;
+      Directories : GNATCOLL.VFS.File_Array);
+   --  Set up filesystem monitoring for Directories, and emit
+   --  "workspace/didChangeWatchedFiles" notifications
+   --  for any modification of any files in these directories.
+   --
+   --  This cancels any monitoring that was previously set up: only
+   --  one set of directories is monitored at a given time.
+
+   procedure Stop_Monitoring_Directories (Self : access Server);
+   --  Stop filesystem monitoring. This is a no-op if no monitoring is
+   --  ongoing.
+
 private
 
    -------------------------
    --  Tasking in the ALS --
    -------------------------
 
-   --  The server has 3 tasks:
+   --  The server has 4 tasks:
    --    The input task
    --         This reads input coming from stdin, forms requests, and places
    --         them on the requests queue. It also destroys processed requests.
@@ -146,6 +163,9 @@ private
    --    The output task:
    --         This task reads the responses coming from the output queue,
    --         and writes them to the standard output.
+   --    The filesystem monitoring task:
+   --         This tasks monitors the filesystem for any changes in source
+   --         files
    --
    --  There are next flows of messages:
    --  * Notifications created by Input_Tast are processed and destroyed by
@@ -219,6 +239,51 @@ private
       --  Clean shutdown of the task. Can only be called after Start.
    end Input_Task_Type;
 
+   ---------------------------
+   -- Filesystem monitoring --
+   ---------------------------
+
+   type LSP_Monitor is new Libfswatch.Root_Event_Monitor with record
+      The_Server : access Server;
+   end record;
+   overriding procedure Callback
+     (Self   : in out LSP_Monitor;
+      Events : Libfswatch.Event_Vectors.Vector);
+   --  The function that is called when files change on disk
+
+   type LSP_Monitor_Access is access LSP_Monitor;
+
+   protected type Data_To_Monitor (Server : access LSP.Servers.Server) is
+      --  This is used to share data with the Filesystem_Monitoring_Task
+
+      procedure Stop_Monitor;
+      --  Stop the monitoring session
+
+      procedure Set_LSP_Monitor (M : LSP_Monitor_Access);
+      --  Store the LSP Monitor that has been created by the task
+
+   private
+      Monitor : LSP_Monitor_Access;
+      --  A ref to the monitor. This is set when the task starts monitoring.
+      --  The task has the ownership of this.
+   end Data_To_Monitor;
+   type Data_To_Monitor_Access is access Data_To_Monitor;
+
+   task type Monitor_Task is
+      entry Start
+        (Data_To_Monitor : Data_To_Monitor_Access;
+         Directories     : GNATCOLL.VFS.File_Array);
+      --  Start watching the data in Data_To_Monitor
+
+      entry Stop;
+      --  Stop the task
+   end Monitor_Task;
+   type Monitor_Task_Access is access Monitor_Task;
+
+   ------------
+   -- Server --
+   ------------
+
    type Server is limited
      new LSP.Client_Message_Receivers.Client_Message_Receiver with
    record
@@ -247,6 +312,10 @@ private
       Out_Trace       : GNATCOLL.Traces.Trace_Handle;
       Logger          : aliased LSP.Message_Loggers.Message_Logger;
       On_Error        : Uncaught_Exception_Handler;
+
+      --  Filesystem monitoring
+      Filesystem_Monitor_Task : Monitor_Task_Access;
+      To_Monitor              : Data_To_Monitor_Access;
    end record;
 
    Unknown_Method : exception;

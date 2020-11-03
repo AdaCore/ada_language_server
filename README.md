@@ -111,7 +111,7 @@ client provides its-own way to set such settings.
 | `workspace/didChangeWorkspaceFolders` |                    |
 | `workspace/didChangeConfiguration`    | :white_check_mark: |
 | `workspace/didChangeWorkspaceFolders` |                    |
-| `workspace/didChangeWatchedFiles`     |                    |
+| `workspace/didChangeWatchedFiles`     | :white_check_mark: |
 | `workspace/symbol`                    | :white_check_mark: |
 | `workspace/executeCommand`            | :white_check_mark: |
 

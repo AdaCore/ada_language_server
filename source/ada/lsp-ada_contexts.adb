@@ -209,6 +209,16 @@ package body LSP.Ada_Contexts is
       return Source_Units;
    end Analysis_Units;
 
+   -----------------------------
+   -- List_Source_Directories --
+   -----------------------------
+
+   function List_Source_Directories
+     (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set is
+   begin
+      return Self.Source_Dirs;
+   end List_Source_Directories;
+
    -------------------------
    -- Find_All_References --
    -------------------------
@@ -406,6 +416,9 @@ package body LSP.Ada_Contexts is
          Definition.P_Basic_Decl;
 
    begin
+      --  Make sure to initialize the "out" variable Imprecise_Results
+      Imprecise_Results := False;
+
       if Decl.Is_Null then
          return;
       end if;
@@ -471,8 +484,7 @@ package body LSP.Ada_Contexts is
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean)) is
    begin
-      Self.Source_Files.Get_Any_Symbol_Completion
-        (Prefix, Callback);
+      Self.Source_Files.Get_Any_Symbol_Completion (Prefix, Callback);
    end Get_Any_Symbol_Completion;
 
    -----------------
@@ -559,10 +571,18 @@ package body LSP.Ada_Contexts is
 
          Unchecked_Free (All_Sources);
          Self.Source_Files.Clear;
-         Self.Last_Indexed := GNATCOLL.VFS.No_File;
 
          for Index in 1 .. Free_Index - 1 loop
             Self.Source_Files.Include (All_Ada_Sources (Index));
+         end loop;
+
+         Self.Source_Dirs.Clear;
+         for Dir of Source_Dirs
+           (Project                  => Root,
+            Recursive                => True,
+            Include_Externally_Built => False)
+         loop
+            Self.Source_Dirs.Include (Dir);
          end loop;
       end Update_Source_Files;
 
@@ -660,6 +680,7 @@ package body LSP.Ada_Contexts is
    procedure Free (Self : in out Context) is
    begin
       Self.Source_Files.Clear;
+      Self.Source_Dirs.Clear;
       --  Destroy GnatPP command line
       Utils.Command_Lines.Clear (Self.PP_Options);
    end Free;
@@ -750,16 +771,14 @@ package body LSP.Ada_Contexts is
    is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.LAL_Context.Get_From_File
-          (File.Display_Full_Name, Charset => Self.Get_Charset);
+          (File.Display_Full_Name,
+           Charset => Self.Get_Charset,
+           Reparse => True);
       Name : constant LSP.Types.LSP_String :=
         LSP.Types.To_LSP_String (Unit.Get_Filename);
+      URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
    begin
-      if Self.Last_Indexed = GNATCOLL.VFS.No_File
-        or else Self.Last_Indexed < File
-      then
-         Self.Source_Files.Index_File (File_To_URI (Name), Unit);
-         Self.Last_Indexed := File;
-      end if;
+      Self.Source_Files.Flush_File_Index (URI, Unit);
    end Index_File;
 
    --------------------
