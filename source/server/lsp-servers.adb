@@ -1393,7 +1393,7 @@ package body LSP.Servers is
             --  Start monitoring. This call is blocking until
             --  Monitor.Stop_Monitor is called.
             Monitor.Blocking_Monitor
-              (Dirs.all, (Updated, Created, Moved_From));
+              (Dirs.all, (Updated, Created, Moved_From, Removed, Moved_To));
 
             --
             Unchecked_Free (Dirs);
