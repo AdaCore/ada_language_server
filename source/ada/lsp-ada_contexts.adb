@@ -778,7 +778,7 @@ package body LSP.Ada_Contexts is
         LSP.Types.To_LSP_String (Unit.Get_Filename);
       URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
    begin
-      Self.Source_Files.Flush_File_Index (URI, Unit);
+      Self.Source_Files.Index_File (URI, Unit);
    end Index_File;
 
    --------------------
