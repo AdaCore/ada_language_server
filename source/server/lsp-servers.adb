@@ -1366,7 +1366,8 @@ package body LSP.Servers is
       Monitor        : LSP_Monitor_Access;
       Dirs           : GNATCOLL.VFS.File_Array_Access;
       Stop_Requested : Boolean := False;
-
+      Free_Index     : Natural;
+      --  Index of the first available spot in Dirs.all
    begin
       loop
          --  Wait until Start or Stop
@@ -1378,7 +1379,15 @@ package body LSP.Servers is
                Monitor := new LSP_Monitor;
                Monitor.The_Server := Data_To_Monitor.Server;
                Data_To_Monitor.Set_LSP_Monitor (Monitor);
-               Dirs := new File_Array'(Directories);
+
+               Dirs := new File_Array (1 .. Directories'Length);
+               Free_Index := 1;
+               for Dir of Directories loop
+                  if Dir.Is_Directory then
+                     Dirs (Free_Index) := Dir;
+                     Free_Index := Free_Index + 1;
+                  end if;
+               end loop;
             end Start;
          or
             accept Stop do
@@ -1392,10 +1401,13 @@ package body LSP.Servers is
          else
             --  Start monitoring. This call is blocking until
             --  Monitor.Stop_Monitor is called.
-            Monitor.Blocking_Monitor
-              (Dirs.all, (Updated, Created, Moved_From, Removed, Moved_To));
+            if Free_Index > 1 then
+               Monitor.Blocking_Monitor
+                 (Dirs (1 .. Free_Index - 1),
+                  (Updated, Created, Moved_From, Removed, Moved_To));
+            end if;
 
-            --
+            --  Deallocate memory
             Unchecked_Free (Dirs);
             Unchecked_Free (Monitor);
          end if;
