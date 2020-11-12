@@ -1363,6 +1363,7 @@ package body LSP.Servers is
       procedure Unchecked_Free is new Ada.Unchecked_Deallocation
         (LSP_Monitor, LSP_Monitor_Access);
 
+      Data           : Data_To_Monitor_Access;
       Monitor        : LSP_Monitor_Access;
       Dirs           : GNATCOLL.VFS.File_Array_Access;
       Stop_Requested : Boolean := False;
@@ -1376,9 +1377,10 @@ package body LSP.Servers is
               (Data_To_Monitor : Data_To_Monitor_Access;
                Directories     : GNATCOLL.VFS.File_Array)
             do
+               Data    := Data_To_Monitor;
+
                Monitor := new LSP_Monitor;
                Monitor.The_Server := Data_To_Monitor.Server;
-               Data_To_Monitor.Set_LSP_Monitor (Monitor);
 
                Dirs := new File_Array (1 .. Directories'Length);
                Free_Index := 1;
@@ -1399,12 +1401,16 @@ package body LSP.Servers is
             --  Exit the task
             exit;
          else
-            --  Start monitoring. This call is blocking until
-            --  Monitor.Stop_Monitor is called.
             if Free_Index > 1 then
+               Data.Set_LSP_Monitor (Monitor);
+
+               --  Start monitoring. This call is blocking until
+               --  Monitor.Stop_Monitor is called.
                Monitor.Blocking_Monitor
                  (Dirs (1 .. Free_Index - 1),
                   (Updated, Created, Moved_From, Removed, Moved_To));
+            else
+               Data.Set_LSP_Monitor (null);
             end if;
 
             --  Deallocate memory
