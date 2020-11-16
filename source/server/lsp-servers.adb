@@ -50,6 +50,10 @@ package body LSP.Servers is
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
+   Filesystem_Monitoring_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.FILESYSTEM_MONITORING",
+                             GNATCOLL.Traces.Off);
+
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
@@ -1426,10 +1430,13 @@ package body LSP.Servers is
 
    procedure Monitor_Directories
      (Self        : access Server;
-      Directories : GNATCOLL.VFS.File_Array)
-   is
-
+      Directories : GNATCOLL.VFS.File_Array) is
    begin
+      --  If the trace is deactivated, do nothing, and do not launch the task
+      if not Filesystem_Monitoring_Trace.Active then
+         return;
+      end if;
+
       --  If the task hasn't started, start it now
       if Self.Filesystem_Monitor_Task = null then
          Self.Filesystem_Monitor_Task := new Monitor_Task;
