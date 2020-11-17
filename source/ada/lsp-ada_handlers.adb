@@ -3291,7 +3291,9 @@ package body LSP.Ada_Handlers is
                end if;
 
                for Context of Self.Contexts_For_File (File) loop
-                  Context.Index_File (File);
+                  --  Set Reparse to False to avoid issues with LAL envs
+                  --  for now (see T226-048 for more info).
+                  Context.Index_File (File, Reparse => False);
                end loop;
 
                --  Check whether another request is pending. If so, pause

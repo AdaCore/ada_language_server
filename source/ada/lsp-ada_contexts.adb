@@ -766,14 +766,15 @@ package body LSP.Ada_Contexts is
    ----------------
 
    procedure Index_File
-     (Self : in out Context;
-      File : GNATCOLL.VFS.Virtual_File)
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := True)
    is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.LAL_Context.Get_From_File
           (File.Display_Full_Name,
            Charset => Self.Get_Charset,
-           Reparse => True);
+           Reparse => Reparse);
       Name : constant LSP.Types.LSP_String :=
         LSP.Types.To_LSP_String (Unit.Get_Filename);
       URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
