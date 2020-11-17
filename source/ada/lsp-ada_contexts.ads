@@ -168,8 +168,9 @@ package LSP.Ada_Contexts is
    --  List the source directories in non-externally-built projects
 
    procedure Index_File
-     (Self : in out Context;
-      File : GNATCOLL.VFS.Virtual_File);
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := True);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 
