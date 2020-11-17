@@ -93,3 +93,6 @@ ENV/
 
 # Expected testsuite output
 testsuite/.als/inout.txt
+
+# Generated integration packages
+integration/vscode/ada/linux/
