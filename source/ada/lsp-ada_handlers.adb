@@ -903,9 +903,11 @@ package body LSP.Ada_Handlers is
                   List : constant Libadalang.Analysis.Ada_Node :=
                     Node.As_Call_Expr.F_Suffix;
                begin
-                  if List.Kind in Libadalang.Common.Ada_Basic_Assoc_List
-                    and then Has_Assoc_Without_Designator
-                      (List.As_Basic_Assoc_List)
+                  if not List.Is_Null
+                    and then List.Kind in
+                      Libadalang.Common.Ada_Basic_Assoc_List
+                      and then Has_Assoc_Without_Designator
+                        (List.As_Basic_Assoc_List)
                   then
                      Append_Command (List);
                   end if;
