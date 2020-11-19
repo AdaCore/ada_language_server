@@ -170,7 +170,7 @@ package LSP.Ada_Contexts is
    procedure Index_File
      (Self    : in out Context;
       File    : GNATCOLL.VFS.Virtual_File;
-      Reparse : Boolean := True);
+      Reparse : Boolean := False);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 

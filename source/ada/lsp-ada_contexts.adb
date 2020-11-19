@@ -768,7 +768,7 @@ package body LSP.Ada_Contexts is
    procedure Index_File
      (Self    : in out Context;
       File    : GNATCOLL.VFS.Virtual_File;
-      Reparse : Boolean := True)
+      Reparse : Boolean := False)
    is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.LAL_Context.Get_From_File
