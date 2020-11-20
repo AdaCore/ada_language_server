@@ -139,7 +139,7 @@ client provides its-own way to set such settings.
 | `textDocument/typeDefinition`         | :white_check_mark: |
 | `textDocument/implementation`         | :white_check_mark: |
 | `textDocument/references`             | :white_check_mark: |
-| `textDocument/documentHighlight`      |                    |
+| `textDocument/documentHighlight`      | :white_check_mark: |
 | `textDocument/documentSymbol`         | :white_check_mark: |
 | `textDocument/codeAction`             | :white_check_mark: |
 | `textDocument/codeLens`               |                    |

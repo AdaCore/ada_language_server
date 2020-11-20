@@ -274,7 +274,7 @@ REQUESTS = [
      'ImplementationParams', 'Location_Link_Response'),
     ('textDocument/typeDefinition', 'Type_Definition',
      'TextDocumentPositionParams', 'Location_Link_Response'),
-    ('textDocument/highight', 'Highlight', 'TextDocumentPositionParams',
+    ('textDocument/documentHighlight', 'Highlight', 'TextDocumentPositionParams',
      'Highlight_Response'),
     ('textDocument/hover', 'Hover', 'TextDocumentPositionParams',
      'Hover_Response'),
