@@ -49,7 +49,7 @@ package body LSP.Ada_Contexts is
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
-   --  When called on a tagged type primitive declaration, iterate ovet all the
+   --  When called on a tagged type primitive declaration, iterate over all the
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
 

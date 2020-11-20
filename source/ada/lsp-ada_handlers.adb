@@ -593,6 +593,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
+      Response.result.capabilities.documentHighlightProvider :=
+        (Is_Set => True,
+         Value => (workDoneProgress => LSP.Types.None));
 
       --  lalpp does not support range formatting for now
       --  do not set the option
@@ -1767,15 +1770,83 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Highlight_Request)
       return LSP.Messages.Server_Responses.Highlight_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.Highlight_Response
-        (Is_Error => True);
+      use Libadalang.Analysis;
+      use LSP.Messages;
+
+      Value      : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+      Context    : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document   : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Response   : LSP.Messages.Server_Responses.Highlight_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+      Definition : Defining_Name;
+
+      procedure Callback
+        (Node   : Libadalang.Analysis.Base_Id;
+         Kind   : Libadalang.Common.Ref_Result_Kind;
+         Cancel : in out Boolean);
+      --  Called on each found reference. Used to append the reference to the
+      --  final result.
+
+      function Get_Highlight_Kind
+        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind;
+      --  Fetch highlight kind for given node
+
+      ------------------------
+      -- Get_Highlight_Kind --
+      ------------------------
+
+      function Get_Highlight_Kind
+        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind
+      is
+         Id : constant Name := Laltools.Common.Get_Node_As_Name (Node);
+      begin
+         if Id.P_Is_Write_Reference then
+            return LSP.Messages.Optional_DocumentHighlightKind'
+              (Is_Set => True, Value => Write);
+         else
+            return LSP.Messages.Optional_DocumentHighlightKind'
+              (Is_Set => True, Value  => Read);
+         end if;
+      end Get_Highlight_Kind;
+
+      --------------
+      -- Callback --
+      --------------
+
+      procedure Callback
+        (Node   : Libadalang.Analysis.Base_Id;
+         Kind   : Libadalang.Common.Ref_Result_Kind;
+         Cancel : in out Boolean)
+      is
+         pragma Unreferenced (Cancel);
+      begin
+         Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
+
+         if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+            Append_Location
+              (Result => Response.Result,
+               Node   => Node,
+               Kind   => Get_Highlight_Kind (Node.As_Ada_Node));
+         end if;
+
+      end Callback;
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+
+      Self.Imprecise_Resolve_Name (Context, Value, Definition);
+
+      if Definition = No_Defining_Name or else Request.Canceled then
+         return Response;
+      end if;
+
+      Document.Find_All_References
+        (Context    => Context.all,
+         Definition => Definition,
+         Callback   => Callback'Access);
+
       return Response;
    end On_Highlight_Request;
 

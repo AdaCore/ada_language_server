@@ -286,7 +286,7 @@ begin
       Type_Definition_Request'Tag);
 
    Map.Insert
-     (+"textDocument/highight",
+     (+"textDocument/documentHighlight",
       Highlight_Request'Tag);
 
    Map.Insert
