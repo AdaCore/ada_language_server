@@ -41,6 +41,7 @@ with Libadalang.Common;         use Libadalang.Common;
 
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Buffers;
+with VSS.Stream_Element_Buffers.Conversions;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory;
 with Memory_Text_Streams;
@@ -989,16 +990,10 @@ package body LSP.Servers is
          if Server.Out_Trace.Is_Active then
             declare
                Aux  : Ada.Strings.Unbounded.String_Access :=
-                 new String (1 .. Integer (Vector.Length));
-               Last : Natural := 0;
-
+                 new String'(VSS.Stream_Element_Buffers.Conversions
+                               .Unchecked_To_String (Vector));
             begin
-               for E in Vector.Each_Stream_Element loop
-                  Last := Last + 1;
-                  Aux (Last) := Character'Val (E.Element);
-               end loop;
-
-               Server.Out_Trace.Trace (Aux (Aux'First .. Last));
+               Server.Out_Trace.Trace (Aux.all);
                Free (Aux);
             end;
          end if;
