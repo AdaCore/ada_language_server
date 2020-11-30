@@ -92,7 +92,7 @@ package body LSP.Ada_File_Sets is
             Value : constant VSS.Strings.Virtual_String :=
               Symbol_Maps.Key (Cursor);
          begin
-            exit Each_Prefix when not Value.Starts (Prefix);
+            exit Each_Prefix when not Value.Starts_With (Prefix);
 
             for Item of Self.All_Symbols (Cursor) loop
                Callback (Item.URI, Item.Name, Stop);
