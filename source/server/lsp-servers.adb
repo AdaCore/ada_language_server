@@ -43,8 +43,8 @@ with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Buffers;
 with VSS.Stream_Element_Buffers.Conversions;
 with VSS.Strings.Conversions;
+with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
-with Memory_Text_Streams;
 
 package body LSP.Servers is
 
@@ -305,7 +305,8 @@ package body LSP.Servers is
       is
          use type LSP.Types.LSP_String;
 
-         Memory : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
+         Memory : aliased
+           VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
 
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
@@ -378,7 +379,7 @@ package body LSP.Servers is
                end;
             end loop;
 
-            Memory.Current := 1;
+            Memory.Rewind;
          end Decode_JSON_RPC_Headers;
 
          Message      : Message_Access;
@@ -392,11 +393,10 @@ package body LSP.Servers is
          Request_Id : LSP.Types.LSP_Number_Or_String;
          Error      : LSP.Messages.Optional_ResponseError;
       begin
-         for J in 1 .. Length (Vector) loop
-            Memory.Buffer.Append
-              (Ada.Streams.Stream_Element'Val
-                 (Character'Pos (Element (Vector, J))));
-         end loop;
+         Memory.Set_Data
+           (VSS.Stream_Element_Buffers.Conversions
+              .Unchecked_From_Unbounded_String
+                 (Vector));
 
          --  Read request id and method if any
          Decode_JSON_RPC_Headers (Request_Id, Version, Method, Error);
