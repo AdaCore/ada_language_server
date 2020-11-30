@@ -387,15 +387,13 @@ package body LSP.Ada_Contexts is
      (Self     : in out Context;
       Document : LSP.Ada_Documents.Document)
    is
-      File : constant LSP.Types.LSP_String := URI_To_File (Document.URI);
-      Unit : Libadalang.Analysis.Analysis_Unit;
+      File : constant Virtual_File := Create
+        (Filesystem_String
+           (LSP.Types.To_UTF_8_String (URI_To_File (Document.URI))),
+         Normalize => True);
    begin
-      Unit := Self.LAL_Context.Get_From_File
-        (Filename => LSP.Types.To_UTF_8_String (File),
-         Charset  => Self.Get_Charset,
-         Reparse  => True);  --  Force LAL to reload unit content
-
-      Self.Source_Files.Flush_File_Index (Document.URI, Unit);
+      --  Make LAL reload file from disk and then update index
+      Self.Index_File (File, Reparse => True);
    end Flush_Document;
 
    ---------------------------------

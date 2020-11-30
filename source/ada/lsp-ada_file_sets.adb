@@ -21,6 +21,12 @@ with Libadalang.Sources;
 
 package body LSP.Ada_File_Sets is
 
+   procedure Flush_File_Index
+     (Self : in out Indexed_File_Set'Class;
+      URI  : LSP.Messages.DocumentUri);
+   --  Remove all names defined in the Unit (identified by URI) from the
+   --  internal symbol index.
+
    -----------
    -- Clear --
    -----------
@@ -47,8 +53,7 @@ package body LSP.Ada_File_Sets is
 
    procedure Flush_File_Index
      (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri;
-      Unit : Libadalang.Analysis.Analysis_Unit)
+      URI  : LSP.Messages.DocumentUri)
    is
       use type LSP.Messages.DocumentUri;
       Index : Positive;
@@ -66,8 +71,6 @@ package body LSP.Ada_File_Sets is
             end if;
          end loop;
       end loop;
-
-      Self.Index_File (URI, Unit);
    end Flush_File_Index;
 
    -------------------------------
@@ -125,6 +128,8 @@ package body LSP.Ada_File_Sets is
       Unit : Libadalang.Analysis.Analysis_Unit)
    is
 
+      Inserted   : Boolean;
+      Ignore     : String_Sets.Cursor;
       Node       : Libadalang.Analysis.Ada_Node;
 
       It         : Libadalang.Iterators.Traverse_Iterator'Class :=
@@ -132,6 +137,12 @@ package body LSP.Ada_File_Sets is
           (Unit.Root,
            Libadalang.Iterators.Kind_Is (Ada_Defining_Name));
    begin
+      Self.Indexed.Insert (URI, Ignore, Inserted);
+
+      if not Inserted then
+         --  URI has been indexed already, clear index from names of the unit
+         Self.Flush_File_Index (URI);
+      end if;
 
       while It.Next (Node) loop
          declare

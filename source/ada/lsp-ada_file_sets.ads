@@ -19,6 +19,7 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
+with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Vectors;
 
 with GNATCOLL.VFS;
@@ -28,6 +29,7 @@ with Libadalang.Analysis;
 with VSS.Strings;
 
 with LSP.Messages;
+with LSP.Types;
 
 package LSP.Ada_File_Sets is
 
@@ -57,13 +59,9 @@ package LSP.Ada_File_Sets is
      (Self : in out Indexed_File_Set'Class;
       URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit);
-   --  ??? needs doc
-
-   procedure Flush_File_Index
-     (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri;
-      Unit : Libadalang.Analysis.Analysis_Unit);
-   --  ??? needs doc
+   --  Append names defined in the Unit (identified by URI) to internal symbol
+   --  index. After that names could be fetched using Get_Any_Symbol_Completion
+   --  function.
 
    procedure Get_Any_Symbol_Completion
      (Self     : Indexed_File_Set'Class;
@@ -92,10 +90,18 @@ private
       Name_Vectors."=");
    --  A map from cannonical writting to vector of name information
 
+   package String_Sets is new Ada.Containers.Hashed_Sets
+     (LSP.Types.LSP_String,
+      LSP.Types.Hash,
+      LSP.Types."=",
+      LSP.Types."=");
+
    type Indexed_File_Set is tagged limited record
       Files       : File_Sets.Set;
       All_Symbols : Symbol_Maps.Map;
       --  Index of all symbols defined in Files
+      Indexed     : String_Sets.Set;
+      --  Set of document URIs presented in All_Symbols
    end record;
 
 end LSP.Ada_File_Sets;
