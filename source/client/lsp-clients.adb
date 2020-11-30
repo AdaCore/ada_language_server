@@ -17,9 +17,10 @@
 
 with Ada.Strings.Wide_Unbounded;
 
-with Memory_Text_Streams;
 with VSS.JSON.Streams.Readers.Simple;
+with VSS.Stream_Element_Buffers.Conversions;
 with VSS.Strings.Conversions;
+with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 
 with LSP.Client_Notification_Receivers;
@@ -580,7 +581,8 @@ package body LSP.Clients is
          Method   : out LSP.Types.Optional_String;
          Is_Error : in out Boolean);
 
-      Memory : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
+      Memory : aliased
+        VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
 
       ----------------
       -- Look_Ahead --
@@ -642,7 +644,7 @@ package body LSP.Clients is
             end;
          end loop;
 
-         Memory.Current := 1;
+         Memory.Rewind;
       end Look_Ahead;
 
       Reader : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
@@ -652,16 +654,11 @@ package body LSP.Clients is
       Method : LSP.Types.Optional_String;
 
       Is_Error : Boolean := False;
+
    begin
-      declare
-         use Ada.Strings.Unbounded;
-      begin
-         for J in 1 .. Length (Data) loop
-            Memory.Buffer.Append
-              (Ada.Streams.Stream_Element'Val
-                 (Character'Pos (Element (Data, J))));
-         end loop;
-      end;
+      Memory.Set_Data
+        (VSS.Stream_Element_Buffers.Conversions.Unchecked_From_Unbounded_String
+           (Data));
 
       Look_Ahead (Id, Method, Is_Error);
       Reader.Set_Stream (Memory'Unchecked_Access);

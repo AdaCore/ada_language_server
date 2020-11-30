@@ -30,10 +30,10 @@ with Ada.Streams.Stream_IO;
 with GNATCOLL.JSON;
 
 with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 with VSS.Stream_Element_Buffers;
 with VSS.JSON.Streams.Readers.Simple;
-with Memory_Text_Streams;
 
 procedure Codec_Test is
 
@@ -84,12 +84,13 @@ procedure Codec_Test is
      (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
       return VSS.Stream_Element_Buffers.Stream_Element_Buffer
    is
-      Text_Input : aliased Memory_Text_Streams.Memory_UTF8_Input_Stream;
+      Text_Input : aliased
+        VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
       Reader     : aliased VSS.JSON.Streams.Readers
         .Simple.JSON_Simple_Reader;
       In_JS      : aliased LSP.JSON_Streams.JSON_Stream (False, Reader'Access);
    begin
-      Text_Input.Buffer := Input;
+      Text_Input.Set_Data (Input);
       Reader.Set_Stream (Text_Input'Unchecked_Access);
       Reader.Read_Next;
       pragma Assert (Reader.Is_Start_Document);
