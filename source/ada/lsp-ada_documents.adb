@@ -2021,7 +2021,7 @@ package body LSP.Ada_Documents is
               Symbol_Maps.Key (Cursor);
 
          begin
-            exit Each_Prefix when not Key.Starts (Prefix);
+            exit Each_Prefix when not Key.Starts_With (Prefix);
 
             for Name of Self.Symbol_Cache (Cursor) loop
                if not Result.Contains (Name) then
