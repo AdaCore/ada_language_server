@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,7 +30,7 @@ with Ada.Streams.Stream_IO;
 with GNATCOLL.JSON;
 
 with VSS.Stream_Element_Buffers.Conversions;
-with VSS.Text_Streams.Memory;
+with VSS.Text_Streams.Memory_UTF8_Output;
 with VSS.Stream_Element_Buffers;
 with VSS.JSON.Streams.Readers.Simple;
 with Memory_Text_Streams;
@@ -98,9 +98,10 @@ procedure Codec_Test is
 
       declare
          Out_JS : aliased LSP.JSON_Streams.JSON_Stream;
-         Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
-
+         Output : aliased
+           VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
          Object : Response (Is_Error => False);
+
       begin
          Out_JS.Set_Stream (Output'Unchecked_Access);
          Response'Read (In_JS'Access, Object);

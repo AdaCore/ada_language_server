@@ -20,7 +20,7 @@ with Ada.Strings.Wide_Unbounded;
 with Memory_Text_Streams;
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Strings.Conversions;
-with VSS.Text_Streams.Memory;
+with VSS.Text_Streams.Memory_UTF8_Output;
 
 with LSP.Client_Notification_Receivers;
 with LSP.Clients.Request_Handlers;
@@ -749,7 +749,9 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased
+        VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
+
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";
@@ -772,7 +774,9 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased
+        VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
+
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Request := Self.Allocate_Request_Id;
@@ -848,7 +852,9 @@ package body LSP.Clients is
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => null);
-      Output : aliased VSS.Text_Streams.Memory.Memory_UTF8_Output_Stream;
+      Output : aliased
+        VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
+
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := +"2.0";

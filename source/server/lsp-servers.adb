@@ -43,7 +43,7 @@ with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Buffers;
 with VSS.Stream_Element_Buffers.Conversions;
 with VSS.Strings.Conversions;
-with VSS.Text_Streams.Memory;
+with VSS.Text_Streams.Memory_UTF8_Output;
 with Memory_Text_Streams;
 
 package body LSP.Servers is
@@ -1010,8 +1010,9 @@ package body LSP.Servers is
 
             declare
                Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True, null);
-               Output     : aliased VSS.Text_Streams.Memory
-                 .Memory_UTF8_Output_Stream;
+               Output     : aliased
+                 VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
+
             begin
                Out_Stream.Set_Stream (Output'Unchecked_Access);
 
