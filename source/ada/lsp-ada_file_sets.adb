@@ -27,6 +27,24 @@ package body LSP.Ada_File_Sets is
    --  Remove all names defined in the Unit (identified by URI) from the
    --  internal symbol index.
 
+   type In_Private_Or_Body_Predicate is
+     new Libadalang.Iterators.Ada_Node_Predicate_Interface with null record;
+   --  A custom node predicate to filter private parts and bodies subtree.
+
+   overriding function Evaluate
+     (Ignore : in out In_Private_Or_Body_Predicate;
+      Node   : Libadalang.Analysis.Ada_Node) return Boolean;
+   --  Evaluate the In_Private_Or_Body_Predicate filter
+
+   type Restricted_Decl_Kind_Predicate is
+     new Libadalang.Iterators.Ada_Node_Predicate_Interface with null record;
+   --  A custom node predicate to filter some declaration kinds.
+
+   overriding function Evaluate
+     (Ignore : in out Restricted_Decl_Kind_Predicate;
+      Node   : Libadalang.Analysis.Ada_Node) return Boolean;
+   --  Evaluate the Restricted_Decl_Kind_Predicate filter
+
    -----------
    -- Clear --
    -----------
@@ -46,6 +64,65 @@ package body LSP.Ada_File_Sets is
    begin
       return Self.Files.Contains (File);
    end Contains;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   overriding function Evaluate
+     (Ignore : in out In_Private_Or_Body_Predicate;
+      Node   : Libadalang.Analysis.Ada_Node) return Boolean
+   is
+      Decl : constant Libadalang.Analysis.Basic_Decl :=
+        Node.As_Defining_Name.P_Basic_Decl;
+      Next : Libadalang.Analysis.Ada_Node := Decl.Parent;
+   begin
+      while not Next.Is_Null loop
+         if Next.Kind in
+           Libadalang.Common.Ada_Body_Node
+           | Libadalang.Common.Ada_Private_Part
+         then
+            return True;
+         end if;
+
+         Next := Next.Parent;
+      end loop;
+
+      return False;
+   end Evaluate;
+
+   --------------
+   -- Evaluate --
+   --------------
+
+   overriding function Evaluate
+     (Ignore : in out Restricted_Decl_Kind_Predicate;
+      Node   : Libadalang.Analysis.Ada_Node) return Boolean
+   is
+      Decl : constant Libadalang.Analysis.Basic_Decl :=
+        Node.As_Defining_Name.P_Basic_Decl;
+   begin
+      if not Decl.Is_Null and then
+        Decl.Kind in Libadalang.Common.Ada_For_Loop_Var_Decl
+          | Libadalang.Common.Ada_Base_Formal_Param_Decl
+          | Libadalang.Common.Ada_Anonymous_Expr_Decl
+          | Libadalang.Common.Ada_Exception_Handler
+          | Libadalang.Common.Ada_Label_Decl
+          | Libadalang.Common.Ada_Named_Stmt_Decl
+          | Libadalang.Common.Ada_Entry_Index_Spec
+          | Libadalang.Common.Ada_Entry_Decl
+      then
+         return True;
+      elsif not Decl.Is_Null and then
+        Decl.Kind in Libadalang.Common.Ada_Object_Decl and then
+        Decl.Parent.Kind = Libadalang.Common.Ada_Generic_Formal_Obj_Decl
+      then
+         --  This is a special case for the formal_object_declaration
+         return True;
+      end if;
+
+      return False;
+   end Evaluate;
 
    ----------------------
    -- Flush_File_Index --
@@ -127,15 +204,49 @@ package body LSP.Ada_File_Sets is
       URI  : LSP.Messages.DocumentUri;
       Unit : Libadalang.Analysis.Analysis_Unit)
    is
+      use Libadalang.Iterators;
 
       Inserted   : Boolean;
       Ignore     : String_Sets.Cursor;
       Node       : Libadalang.Analysis.Ada_Node;
 
-      It         : Libadalang.Iterators.Traverse_Iterator'Class :=
+      function In_Private_Or_Body return
+        Libadalang.Iterators.Ada_Node_Predicate;
+
+      function Restricted_Decl_Kind return
+        Libadalang.Iterators.Ada_Node_Predicate;
+
+      ------------------------
+      -- In_Private_Or_Body --
+      ------------------------
+
+      function In_Private_Or_Body return
+        Libadalang.Iterators.Ada_Node_Predicate is
+      begin
+         return Result : Libadalang.Iterators.Ada_Node_Predicate do
+            Result.Set (In_Private_Or_Body_Predicate'(null record));
+         end return;
+      end In_Private_Or_Body;
+
+      --------------------------
+      -- Restricted_Decl_Kind --
+      --------------------------
+
+      function Restricted_Decl_Kind return
+        Libadalang.Iterators.Ada_Node_Predicate is
+      begin
+         return Result : Libadalang.Iterators.Ada_Node_Predicate do
+            Result.Set (Restricted_Decl_Kind_Predicate'(null record));
+         end return;
+      end Restricted_Decl_Kind;
+
+      --  Find all definings names excluding private parts and bodies content
+      It : Libadalang.Iterators.Traverse_Iterator'Class :=
         Libadalang.Iterators.Find
           (Unit.Root,
-           Libadalang.Iterators.Kind_Is (Ada_Defining_Name));
+           Libadalang.Iterators.Kind_Is (Ada_Defining_Name)
+             and not In_Private_Or_Body
+             and not Restricted_Decl_Kind);
    begin
       Self.Indexed.Insert (URI, Ignore, Inserted);
 
