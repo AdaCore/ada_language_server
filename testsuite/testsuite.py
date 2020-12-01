@@ -25,11 +25,6 @@ class ALSTestsuite(Testsuite):
 
     def add_options(self, parser):
         parser.add_argument(
-            "--build",
-            default="",
-            action="store",
-            help="Ignored, here for compatibility purposes")
-        parser.add_argument(
             "--gnatcov",
             help="If provided, compute the source code coverage of testcases"
                  " on ALS. This requires GNATcoverage working with"
