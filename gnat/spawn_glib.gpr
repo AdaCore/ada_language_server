@@ -17,13 +17,30 @@
 
 with "gtkada";
 
-project Spawn_Glib is
+library project Spawn_Glib is
 
    type OS_API_Kind is ("unix", "osx", "Windows_NT");
    OS_API : OS_API_Kind := external ("OS", "unix");
 
+   type Library_Kind is ("static", "static-pic", "relocatable");
+   Library_Type : Library_Kind := external ("LIBRARY_TYPE", "static");
+
+   type Build_Kind is ("dev", "prod", "coverage");
+   Build_Mode : Build_Kind :=
+     external ("SPAWN_GLIB_BUILD_MODE", external ("BUILD_MODE", "prod"));
+
+   --  By default, treat warnings as errors in dev mode, but not in prod
+   --  mode. Let users override this default using the SPAWN_WARN_ERRORS
+   --  environment variable.
+
+   type Any_Boolean is ("false", "true");
+   Warnings_As_Errors : Any_Boolean := external ("SPAWN_WARN_ERRORS", "true");
+
+   for Library_Kind use Library_Type;
+   for Object_Dir   use "../.obj/spawn_glib/" & Library_Type;
+   for Library_Dir  use "../.libs/spawn_glib/" & Library_Type;
+   for Library_Name use "spawn_glib";
    for Source_Dirs use ("../source/spawn");
-   for Object_Dir use "../.obj/spawn";
 
    Common_Excluded :=
      ("spawn-processes-monitor.ads",
@@ -41,9 +58,60 @@ project Spawn_Glib is
          for Excluded_Source_Files use Common_Excluded;
    end case;
 
+   Ada_Switches := ();
+   Linker_Options := ();
+   case Warnings_As_Errors is
+      when "true"  => Ada_Switches := Ada_Switches & ("-gnatwe");
+      when "false" => null;
+   end case;
+
+   case Build_Mode is
+      when "prod" =>
+         Ada_Switches := Ada_Switches & (
+            --  Compile with optimizations
+            "-O2",
+
+            --  Generate debug information: this is useful to get meaningful
+            --  tracebacks.
+            "-g"
+         );
+
+      when "dev" =>
+         Ada_Switches := Ada_Switches & (
+            --  Compile with no optimization and with debug information to ease
+            --  investigation in debuggers.
+            "-O0", "-g",
+
+            --  Enable all warnings and GNAT stylechecks (plus O: check for
+            --  overriding indicators).
+            "-gnatwa", "-gnatygO",
+
+            --  Enable assertions and all validity checking options
+            "-gnata", "-gnatVa",
+
+            --  Enable stack overflow checks
+            "-fstack-check"
+         );
+
+      when "coverage" =>
+         Ada_Switches := Ada_Switches & (
+            --  Compile with no optimization and with debug information to ease
+            --  investigation in debuggers.
+            "-O0", "-g",
+
+            --  Enable coverage code instrumentation.
+            "--coverage");
+
+         Linker_Options := Linker_Options & ("--coverage");
+   end case;
+
    package Compiler is
-      for Switches ("ada") use ("-g", "-gnatwa", "-gnatyyO", "-gnatwe");
+      for Switches ("ada") use Ada_Switches;
    end Compiler;
+
+   package Linker is
+      for Linker_Options use Linker_Options;
+   end Linker;
 
    package Naming is
       case OS_API is
@@ -81,4 +149,3 @@ project Spawn_Glib is
    end Naming;
 
 end Spawn_Glib;
-
