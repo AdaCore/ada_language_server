@@ -25,6 +25,10 @@ project LSP_Server is
 
    VERSION := external ("VERSION", "latest");
 
+   type BUILD_KIND is ("static", "static-pic", "relocatable");
+   BUILD : BUILD_KIND := external("ADA_LANGUAGE_SERVER_BUILD",
+                                  external("LIBRARY_TYPE", "relocatable"));
+
    for Source_Dirs use
      ("../source/server",
       "../source/server/generated",
@@ -41,6 +45,15 @@ project LSP_Server is
         LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
    end Compiler;
+
+   package Linker is
+      case BUILD is
+         when "static" | "static-pic" =>
+            for Switches ("Ada") use ("-static", "-static-libgcc", "-static-libstdc++");
+         when "relocatable" =>
+            null;
+      end case;
+   end Linker;
 
    package Binder is
       for Switches ("ada") use ("-E");
