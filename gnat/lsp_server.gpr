@@ -29,6 +29,9 @@ project LSP_Server is
    BUILD : BUILD_KIND := external("ADA_LANGUAGE_SERVER_BUILD",
                                   external("LIBRARY_TYPE", "relocatable"));
 
+   type OS_KIND is ("Windows_NT", "unix", "osx");
+   OS : OS_KIND := external("OS", "unix");
+
    for Source_Dirs use
      ("../source/server",
       "../source/server/generated",
@@ -49,7 +52,14 @@ project LSP_Server is
    package Linker is
       case BUILD is
          when "static" | "static-pic" =>
-            for Switches ("Ada") use ("-static", "-static-libgcc", "-static-libstdc++");
+            case OS is
+               when "Windows_NT" =>
+                  for Switches ("Ada") use ("-static", "-static-libstdc++", "-static-libgcc");
+               when "osx" | "unix" =>
+                  --  On UNIX, we want to link libc dynamically: needed to find
+                  --  a recent version of iconv_open (and a recommended practice)
+                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+             end case;
          when "relocatable" =>
             null;
       end case;
