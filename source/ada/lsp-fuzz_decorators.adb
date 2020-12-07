@@ -80,6 +80,18 @@ package body LSP.Fuzz_Decorators is
       Self.Handler.On_DidChangeWorkspaceFolders_Notification (Value);
    end On_DidChangeWorkspaceFolders_Notification;
 
+   -------------------------------------------
+   -- On_DidChangeWatchedFiles_Notification --
+   -------------------------------------------
+
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.DidChangeWatchedFilesParams)
+   is
+   begin
+      Self.Handler.On_DidChangeWatchedFiles_Notification (Value);
+   end On_DidChangeWatchedFiles_Notification;
+
    ----------------------------
    -- On_Cancel_Notification --
    ----------------------------

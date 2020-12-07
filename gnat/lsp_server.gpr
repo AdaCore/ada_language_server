@@ -17,12 +17,20 @@
 
 with "libadalang";
 with "lal_tools.gpr";
+with "ada_libfswatch.gpr";
 
 with "lsp";
 
 project LSP_Server is
 
    VERSION := external ("VERSION", "latest");
+
+   type BUILD_KIND is ("static", "static-pic", "relocatable");
+   BUILD : BUILD_KIND := external("ADA_LANGUAGE_SERVER_BUILD",
+                                  external("LIBRARY_TYPE", "relocatable"));
+
+   type OS_KIND is ("Windows_NT", "unix", "osx");
+   OS : OS_KIND := external("OS", "unix");
 
    for Source_Dirs use
      ("../source/server",
@@ -41,6 +49,21 @@ project LSP_Server is
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
    end Compiler;
 
+   package Linker is
+      case BUILD is
+         when "static" | "static-pic" =>
+            case OS is
+               when "Windows_NT" =>
+                  for Switches ("Ada") use ("-static", "-static-libstdc++", "-static-libgcc");
+               when "osx" | "unix" =>
+                  --  On UNIX, we want to link libc dynamically: needed to find
+                  --  a recent version of iconv_open (and a recommended practice)
+                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+             end case;
+         when "relocatable" =>
+            null;
+      end case;
+   end Linker;
 
    package Binder is
       for Switches ("ada") use ("-E");

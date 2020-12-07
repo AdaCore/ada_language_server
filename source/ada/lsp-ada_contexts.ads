@@ -163,9 +163,14 @@ package LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
 
+   function List_Source_Directories
+     (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set;
+   --  List the source directories in non-externally-built projects
+
    procedure Index_File
-     (Self : in out Context;
-      File : GNATCOLL.VFS.Virtual_File);
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := True);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
 
@@ -221,8 +226,10 @@ private
 
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.
-      Last_Indexed   : GNATCOLL.VFS.Virtual_File;
-      --  A file from Source_Files that was indexed in the last iteration
+
+      Source_Dirs    : LSP.Ada_File_Sets.File_Sets.Set;
+      --  All the source dirs in the loaded project, not including
+      --  the externally built projects
 
       PP_Options : Utils.Command_Lines.Command_Line
                     (Pp.Command_Lines.Descriptor'Access);

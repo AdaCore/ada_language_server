@@ -151,8 +151,38 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Node := Node.Parent;
       end loop;
 
+      if Node.Is_Null then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code => LSP.Errors.InvalidRequest,
+               message => LSP.Types.To_LSP_String
+                 (Wide_Wide_String'
+                      ("This is not a valid position to name parameters.")),
+               data => <>));
+         return;
+      end if;
+
       Args := Node.As_Basic_Assoc_List;
       Params := Get_Parameters (Args);
+
+      --  If we have more than one argument but no params were found then
+      --  we could not resolve this this call expression precisely due to
+      --  invalid Ada code.
+
+      if Params.Is_Empty and then Args.Children_Count /= 0
+      then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code => LSP.Errors.InvalidRequest,
+               message => LSP.Types.To_LSP_String
+                 (Wide_Wide_String'
+                      ("Could not resolve this call expression precisely.")),
+               data => <>));
+         return;
+      end if;
+
       Index := Args.Children_Count;
 
       for Arg of reverse Args.Children loop
@@ -221,8 +251,14 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       function Get_Params_Spec_Array
         (Decl : Libadalang.Analysis.Basic_Decl)
-         return Libadalang.Analysis.Param_Spec_Array is
+         return Libadalang.Analysis.Param_Spec_Array
+      is
+         use type Libadalang.Analysis.Basic_Decl;
       begin
+         if Decl = Libadalang.Analysis.No_Basic_Decl then
+            return (1 .. 0 => <>);
+         end if;
+
          case Decl.Kind is
 
          when Libadalang.Common.Ada_Base_Subp_Spec =>
@@ -262,6 +298,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Name        : Libadalang.Analysis.Name;
       Decl        : Libadalang.Analysis.Basic_Decl;
       Is_Dot_Call : Boolean;
+
+      use type Libadalang.Analysis.Basic_Decl;
    begin
       case Expr.Kind is
          when Libadalang.Common.Ada_Call_Expr =>
@@ -271,9 +309,18 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       end case;
 
       Decl := Name.P_Referenced_Decl;
+
+      --  Return an empty Result if we can't resolve this call expression
+      --  precisely.
+
+      if Decl = Libadalang.Analysis.No_Basic_Decl then
+         return Result;
+      end if;
+
       Is_Dot_Call := Name.P_Is_Dot_Call;
 
-      --  Don't append the first parameter if we are dealing with a dot call
+      --  Don't append the first parameter if we are dealing with a dot call.
+
       declare
          Params : constant Libadalang.Analysis.Param_Spec_Array :=
            Get_Params_Spec_Array (Decl);

@@ -30,6 +30,7 @@ with LSP.Ada_Completion_Sets;
 
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
+with Libadalang.Common;
 
 with Pp.Command_Lines;
 
@@ -185,6 +186,17 @@ package LSP.Ada_Documents is
    --  Return the units that import the document's unit among the given list.
    --  If Show_Implicit is True, units that depend on the document's unit in
    --  an implicit way will also be returned.
+
+   procedure Find_All_References
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Definition : Libadalang.Analysis.Defining_Name;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean));
+   --  Finds all references to a given defining name in the document's unit and
+   --  call Calbback on each found reference.
 
    procedure Reset_Symbol_Cache (Self : in out Document'Class);
    --  Clean cache for defining name symbols of the document.

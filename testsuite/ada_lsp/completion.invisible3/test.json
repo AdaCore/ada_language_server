@@ -1,0 +1,197 @@
+[
+   {
+      "comment": [
+          "Check no 'unneeded' symbols (symbols of some decl kinds, from body and private part) in completion."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 "("
+                             ],
+                             "resolveProvider": false
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile":"default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\nbegin\n   ABC;\nend Main;\n",
+                  "version": 1,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 6
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "ABC1 (invisible)",
+                        "kind": 3,
+                        "detail": "function ABC1 return Integer",
+                        "documentation": "at pkg.ads (3:4)",
+                        "sortText": "~ABC1",
+                        "insertText": "ABC1",
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "ABC14 (invisible)",
+                        "kind": 18,
+                        "detail": "generic\n      ABC13 : Integer;\npackage ABC14 ",
+                        "documentation": "at pkg.ads (19:4)",
+                        "sortText": "~ABC14",
+                        "insertText": "ABC14",
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "ABC4 (invisible)",
+                        "kind": 18,
+                        "detail": "type ABC4 (ABC5 : Integer) is record\n   ABC6 : Boolean := (for some ABC7 in Boolean => ABC7);\nend record;",
+                        "documentation": "at pkg.ads (5:4)",
+                        "sortText": "~ABC4",
+                        "insertText": "ABC4",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 44,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

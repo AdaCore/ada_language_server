@@ -31,7 +31,6 @@ with GNATCOLL.VFS;        use GNATCOLL.VFS;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Sources;
 with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
@@ -41,8 +40,9 @@ with VSS.Strings.Iterators.Characters;
 with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Ada_Id_Iterators;
 with LSP.Predefined_Completion;
-with LSP.Common;
+with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 with LSP.Types.Utils;
 
@@ -900,6 +900,29 @@ package body LSP.Ada_Documents is
             null;
       end case;
    end Get_Importing_Units;
+
+   -------------------------
+   -- Find_All_References --
+   -------------------------
+
+   procedure Find_All_References
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Definition : Libadalang.Analysis.Defining_Name;
+      Callback   : not null access procedure
+        (Base_Id : Libadalang.Analysis.Base_Id;
+         Kind    : Libadalang.Common.Ref_Result_Kind;
+         Cancel  : in out Boolean))
+   is
+      Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
+        (1 =>  LSP.Ada_Documents.Unit (Self    => Self,
+                                       Context => Context));
+   begin
+      LSP.Ada_Id_Iterators.Find_All_References (Definition, Units, Callback);
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Log (Self.Trace, E, "in Find_All_References");
+   end Find_All_References;
 
    ----------------
    -- Get_Errors --
@@ -1998,7 +2021,7 @@ package body LSP.Ada_Documents is
               Symbol_Maps.Key (Cursor);
 
          begin
-            exit Each_Prefix when not Key.Starts (Prefix);
+            exit Each_Prefix when not Key.Starts_With (Prefix);
 
             for Name of Self.Symbol_Cache (Cursor) loop
                if not Result.Contains (Name) then

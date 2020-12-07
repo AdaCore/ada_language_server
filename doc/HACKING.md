@@ -1,5 +1,13 @@
 # Developing on the Ada Language Server
 
+## Dependencies
+
+The Ada Language Server depends on the following:
+
+ * VSS: https://github.com/AdaCore/VSS
+ * (optional) ada_libfswatch: https://github.com/AdaCore/ada_libfswatch,
+   to activate filesystem monitoring.
+
 ## Debugging
 
 You can activate traces that show all the server input/output. This is done
@@ -126,6 +134,9 @@ The repository contains the following folders:
 * `source/spawn/` - Process spawn/communication API
 * `source/tester/` - source of the test driver
 * `testsuite/ada_lsp/` - test suite of LSP in form of request/response
+* `subprojects/` - where we store dependencies (VCS, ada_libfswatch)
+* `subprojects/stubs` - the location for "stub" versions of .gpr files, for
+                        dependencies that are optional.
 
 ## Protocol synchronization
 

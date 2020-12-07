@@ -46,6 +46,12 @@ package LSP.Lal_Utils is
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set);
    --  The same for Location_Vector.
 
+   procedure Append_Location
+     (Result : in out LSP.Messages.DocumentHighlight_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kind   : LSP.Messages.Optional_DocumentHighlightKind);
+   --  The same for Location_Vector.
+
    procedure Sort_And_Remove_Duplicates
      (Result : in out LSP.Messages.Location_Vector);
    --  Sort Result and remove duplicates from it.

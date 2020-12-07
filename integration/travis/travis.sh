@@ -3,8 +3,9 @@
 set -e -x
 
 INSTALL_DIR=$PWD/../gnat
+ROOT=$PWD
 export PATH=$INSTALL_DIR/bin:$PATH
-export ADA_PROJECT_PATH=$PWD/libadalang-tools/src:$PWD/VSS/gnat
+export ADA_PROJECT_PATH=$PWD/libadalang-tools/src:$PWD/VSS/gnat:$PWD/ada_libfswatch/:$PWD/subprojects/stubs
 
 function download_gnat()
 {
@@ -20,6 +21,22 @@ function download_gnat()
     $INSTALL_DIR/bin/gprinstall --uninstall gnatcoll
 }
 
+function build_libfswatch() {
+   (
+      cd $ROOT
+      git clone --depth=1 https://github.com/AdaCore/fswatch.git --branch=adacore-1.15.0
+      git clone --depth=1 https://github.com/AdaCore/ada_libfswatch.git
+
+      cd $ROOT/fswatch
+      ./configure --prefix=$ROOT/ada_libfswatch/libfswatch CC=gcc CXX=g++ --enable-shared=no
+      cd libfswatch
+      export LIBRARY_TYPE=relocatable
+      make -j AUTOMAKE=: AUTOCONF=: ACLOCAL=:
+      make install AUTOMAKE=: AUTOCONF=: ACLOCAL=:
+      cd $ROOT/ada_libfswatch
+      make
+   )
+}
 function clone_dependencies() {
     git clone --depth=1 https://github.com/AdaCore/libadalang-tools.git
     git clone --depth=1 https://github.com/AdaCore/VSS.git
@@ -36,6 +53,7 @@ function linux_before_install()
     wget -nv -O- https://dl.bintray.com/reznikmm/libadalang/libadalang-stable-linux.tar.gz \
         | tar xzf - -C $INSTALL_DIR
     clone_dependencies
+    build_libfswatch
     sudo apt-get update
     sudo apt-get -y install chrpath
 }

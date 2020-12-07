@@ -617,6 +617,26 @@ package body LSP.Message_Loggers is
    end On_DidChangeWorkspaceFolders_Notification;
 
    -------------------------------------------
+   -- On_DidChangeWatchedFiles_Notification --
+   -------------------------------------------
+
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.DidChangeWatchedFilesParams)
+   is
+      use LSP.Types;
+      Result : LSP.Types.LSP_String;
+   begin
+      for Change of Value.changes loop
+         Append (Result, " " & Change.uri & ": " &
+                   Change.the_type'Wide_Image & ";");
+      end loop;
+
+      Self.Trace.Trace ("DidChangeWatchedFiles_Notification:"
+                        & ASCII.LF & To_UTF_8_String (Result));
+   end On_DidChangeWatchedFiles_Notification;
+
+   -------------------------------------------
    -- On_DidChangeTextDocument_Notification --
    -------------------------------------------
 

@@ -274,7 +274,7 @@ REQUESTS = [
      'ImplementationParams', 'Location_Link_Response'),
     ('textDocument/typeDefinition', 'Type_Definition',
      'TextDocumentPositionParams', 'Location_Link_Response'),
-    ('textDocument/highight', 'Highlight', 'TextDocumentPositionParams',
+    ('textDocument/documentHighlight', 'Highlight', 'TextDocumentPositionParams',
      'Highlight_Response'),
     ('textDocument/hover', 'Hover', 'TextDocumentPositionParams',
      'Hover_Response'),
@@ -335,6 +335,8 @@ NOTIFICATIONS = [
      'DidChangeConfigurationParams'),
     ('workspace/didChangeWorkspaceFolders', 'DidChangeWorkspaceFolders',
      'DidChangeWorkspaceFoldersParams'),
+    ('workspace/didChangeWatchedFiles', 'DidChangeWatchedFiles',
+     'DidChangeWatchedFilesParams'),
     ('$/cancelRequest', 'Cancel', 'CancelParams'),
 
     # TODO: rename these to TextDocumentDidOpen/DidChange/DidSave/DidClose?

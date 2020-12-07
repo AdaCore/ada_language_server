@@ -122,11 +122,15 @@ package body LSP.Ada_Handlers is
    procedure Release_Project_Info (Self : access Message_Handler);
    --  Release the memory associated to project information in Self
 
+   function Contexts_For_File
+     (Self : access Message_Handler;
+      File : Virtual_File)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
    function Contexts_For_URI
      (Self : access Message_Handler;
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Context_Sets.Context_Lists.List;
-   --  Return a list of contexts that are suitable for the given URI:
+   --  Return a list of contexts that are suitable for the given File/URI:
    --  a list of all contexts where the file is known to be part of the
    --  project tree, or is a runtime file for this project. If the file
    --  is not known to any project, return an empty list.
@@ -198,6 +202,10 @@ package body LSP.Ada_Handlers is
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
+   procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
+   --  Mark all sources in all projects for indexing. This factorizes code
+   --  between Load_Project and Load_Implicit_Project.
+
    function Hash
      (Value : LSP.Messages.Location) return Ada.Containers.Hash_Type;
 
@@ -213,17 +221,15 @@ package body LSP.Ada_Handlers is
       Hash            => Hash,
       Equivalent_Keys => LSP.Messages."=");
 
-   ----------------------
-   -- Contexts_For_URI --
-   ----------------------
+   -----------------------
+   -- Contexts_For_File --
+   -----------------------
 
-   function Contexts_For_URI
+   function Contexts_For_File
      (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
+      File : Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
-      File : constant Virtual_File := To_File (URI);
-
       function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
         (Self.Is_Part_Of_Project (File));
       --  Return True if File is a source of the project held by Context
@@ -242,6 +248,20 @@ package body LSP.Ada_Handlers is
 
       --  List contexts where File is a source of the project hierarchy
       return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
+   end Contexts_For_File;
+
+   ----------------------
+   -- Contexts_For_URI --
+   ----------------------
+
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Messages.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      File : constant Virtual_File := To_File (URI);
+   begin
+      return Self.Contexts_For_File (File);
    end Contexts_For_URI;
 
    -----------------------
@@ -350,6 +370,11 @@ package body LSP.Ada_Handlers is
       end if;
       Self.Project_Predefined_Sources.Clear;
       Self.Project_Dirs_Loaded.Clear;
+
+      --  Clear indexing data
+      Self.Files_To_Index.Clear;
+      Self.Total_Files_To_Index := 1;
+      Self.Total_Files_Indexed := 0;
    end Release_Project_Info;
 
    -------------
@@ -460,7 +485,9 @@ package body LSP.Ada_Handlers is
       end loop;
 
       Self.Contexts.Prepend (C);
-      Self.Indexing_Required := True;
+
+      --  Reindex the files from disk in the background after a project reload
+      Self.Mark_Source_Files_For_Indexing;
    end Load_Implicit_Project;
 
    ---------------------------
@@ -566,6 +593,9 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
+      Response.result.capabilities.documentHighlightProvider :=
+        (Is_Set => True,
+         Value => (workDoneProgress => LSP.Types.None));
 
       --  lalpp does not support range formatting for now
       --  do not set the option
@@ -876,9 +906,11 @@ package body LSP.Ada_Handlers is
                   List : constant Libadalang.Analysis.Ada_Node :=
                     Node.As_Call_Expr.F_Suffix;
                begin
-                  if List.Kind in Libadalang.Common.Ada_Basic_Assoc_List
-                    and then Has_Assoc_Without_Designator
-                      (List.As_Basic_Assoc_List)
+                  if not List.Is_Null
+                    and then List.Kind in
+                      Libadalang.Common.Ada_Basic_Assoc_List
+                      and then Has_Assoc_Without_Designator
+                        (List.As_Basic_Assoc_List)
                   then
                      Append_Command (List);
                   end if;
@@ -1738,15 +1770,83 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Highlight_Request)
       return LSP.Messages.Server_Responses.Highlight_Response
    is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.Highlight_Response
-        (Is_Error => True);
+      use Libadalang.Analysis;
+      use LSP.Messages;
+
+      Value      : LSP.Messages.TextDocumentPositionParams renames
+        Request.params;
+      Context    : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document   : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Response   : LSP.Messages.Server_Responses.Highlight_Response
+        (Is_Error => False);
+      Imprecise  : Boolean := False;
+      Definition : Defining_Name;
+
+      procedure Callback
+        (Node   : Libadalang.Analysis.Base_Id;
+         Kind   : Libadalang.Common.Ref_Result_Kind;
+         Cancel : in out Boolean);
+      --  Called on each found reference. Used to append the reference to the
+      --  final result.
+
+      function Get_Highlight_Kind
+        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind;
+      --  Fetch highlight kind for given node
+
+      ------------------------
+      -- Get_Highlight_Kind --
+      ------------------------
+
+      function Get_Highlight_Kind
+        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind
+      is
+         Id : constant Name := Laltools.Common.Get_Node_As_Name (Node);
+      begin
+         if Id.P_Is_Write_Reference then
+            return LSP.Messages.Optional_DocumentHighlightKind'
+              (Is_Set => True, Value => Write);
+         else
+            return LSP.Messages.Optional_DocumentHighlightKind'
+              (Is_Set => True, Value  => Read);
+         end if;
+      end Get_Highlight_Kind;
+
+      --------------
+      -- Callback --
+      --------------
+
+      procedure Callback
+        (Node   : Libadalang.Analysis.Base_Id;
+         Kind   : Libadalang.Common.Ref_Result_Kind;
+         Cancel : in out Boolean)
+      is
+         pragma Unreferenced (Cancel);
+      begin
+         Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
+
+         if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+            Append_Location
+              (Result => Response.Result,
+               Node   => Node,
+               Kind   => Get_Highlight_Kind (Node.As_Ada_Node));
+         end if;
+
+      end Callback;
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+
+      Self.Imprecise_Resolve_Name (Context, Value, Definition);
+
+      if Definition = No_Defining_Name or else Request.Canceled then
+         return Response;
+      end if;
+
+      Document.Find_All_References
+        (Context    => Context.all,
+         Definition => Definition,
+         Callback   => Callback'Access);
+
       return Response;
    end On_Highlight_Request;
 
@@ -2951,6 +3051,52 @@ package body LSP.Ada_Handlers is
       Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
+   -------------------------------------------
+   -- On_DidChangeWatchedFiles_Notification --
+   -------------------------------------------
+
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeWatchedFilesParams)
+   is
+      Document : LSP.Ada_Documents.Document_Access;
+   begin
+      --  Look through each changes
+      for Change of Value.changes loop
+         --  A watched file has changed on disk. If there is an open
+         --  document for this file, nothing to do: the document takes
+         --  precedence over the filesystem.
+
+         Document := Self.Get_Open_Document (Change.uri);
+
+         if Document = null then
+            --  If there is no document, reindex the file for each
+            --  context where it is relevant.
+            for C of Self.Contexts_For_URI (Change.uri) loop
+               C.Index_File (To_File (Change.uri));
+            end loop;
+         end if;
+      end loop;
+   end On_DidChangeWatchedFiles_Notification;
+
+   ------------------------------------
+   -- Mark_Source_Files_For_Indexing --
+   ------------------------------------
+
+   procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler) is
+   begin
+      Self.Files_To_Index.Clear;
+      for C of Self.Contexts.Each_Context loop
+         for F in C.List_Files loop
+            Self.Files_To_Index.Include
+              (LSP.Ada_File_Sets.File_Sets.Element (F));
+         end loop;
+      end loop;
+      Self.Total_Files_Indexed := 0;
+      Self.Total_Files_To_Index := Positive'Max
+        (1, Natural (Self.Files_To_Index.Length));
+   end Mark_Source_Files_For_Indexing;
+
    ------------------
    -- Load_Project --
    ------------------
@@ -3091,8 +3237,12 @@ package body LSP.Ada_Handlers is
          end loop;
       end loop;
 
+      --  We have successfully loaded a real project: monitor the filesystem
+      --  for any changes on the sources of the project
+      Self.Server.Monitor_Directories (Self.Contexts.All_Source_Directories);
+
       --  Reindex the files from disk in the background after a project reload
-      Self.Indexing_Required := True;
+      Self.Mark_Source_Files_For_Indexing;
    end Load_Project;
 
    -------------------------------
@@ -3182,8 +3332,6 @@ package body LSP.Ada_Handlers is
          Self.Server.On_Progress (P);
       end Emit_Progress_End;
 
-      Index           : Natural := 1;
-      Total           : constant Natural := Self.Contexts.Total_Source_Files;
       Last_Percent    : Natural := 0;
       Current_Percent : Natural := 0;
    begin
@@ -3195,40 +3343,44 @@ package body LSP.Ada_Handlers is
 
       Emit_Progress_Begin;
 
-      for Context of Self.Contexts.Each_Context loop
-         for F in Context.List_Files loop
-            declare
-               File : constant GNATCOLL.VFS.Virtual_File :=
-                 LSP.Ada_File_Sets.File_Sets.Element (F);
-               URI  : constant LSP.Messages.DocumentUri := File_To_URI
-                 (LSP.Types.To_LSP_String (File.Display_Full_Name));
-            begin
-               if not Self.Open_Documents.Contains (URI) then
-                  Current_Percent := (Index * 100) / Total;
-                  --  If the value of the indexing increased by at least one
-                  --  percent, emit one progress report.
-                  if Current_Percent > Last_Percent then
-                     Emit_Progress_Report (Current_Percent);
-                     Last_Percent := Current_Percent;
-                  end if;
-
-                  Context.Index_File (File);
-                  Index := Index + 1;
-
-                  --  Check whether another request is pending. If so, pause
-                  --  the indexing; it will be resumed later as part of
-                  --  After_Request. if Self.Server.Input_Queue_Length > 0 then
-                  if Self.Server.Has_Pending_Work then
-                     Emit_Progress_End;
-                     return;
-                  end if;
+      while not Self.Files_To_Index.Is_Empty loop
+         declare
+            Cursor : File_Sets.Cursor := Self.Files_To_Index.First;
+            File   : GNATCOLL.VFS.Virtual_File;
+         begin
+            File := File_Sets.Element (Cursor);
+            Self.Files_To_Index.Delete (Cursor);
+            Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
+            if not Self.Open_Documents.Contains
+              (File_To_URI (LSP.Types.To_LSP_String (File.Display_Full_Name)))
+            then
+               Current_Percent := (Self.Total_Files_Indexed * 100)
+                 / Self.Total_Files_To_Index;
+               --  If the value of the indexing increased by at least one
+               --  percent, emit one progress report.
+               if Current_Percent > Last_Percent then
+                  Emit_Progress_Report (Current_Percent);
+                  Last_Percent := Current_Percent;
                end if;
-            end;
-         end loop;
+
+               for Context of Self.Contexts_For_File (File) loop
+                  --  Set Reparse to False to avoid issues with LAL envs
+                  --  for now (see T226-048 for more info).
+                  Context.Index_File (File, Reparse => False);
+               end loop;
+
+               --  Check whether another request is pending. If so, pause
+               --  the indexing; it will be resumed later as part of
+               --  After_Request. if Self.Server.Input_Queue_Length > 0 then
+               if Self.Server.Has_Pending_Work then
+                  Emit_Progress_End;
+                  return;
+               end if;
+            end if;
+         end;
       end loop;
 
       Emit_Progress_End;
-      Self.Indexing_Required := False;
    end Index_Files;
 
    ------------------------------------------
@@ -3990,7 +4142,7 @@ package body LSP.Ada_Handlers is
    begin
      --  We have finished processing a request or notification:
      --  if it happens that indexing is required, do it now.
-      if Self.Indexing_Required then
+      if not Self.Files_To_Index.Is_Empty then
          Self.Index_Files;
       end if;
    end After_Work;
