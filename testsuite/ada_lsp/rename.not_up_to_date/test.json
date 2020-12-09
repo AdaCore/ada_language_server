@@ -547,12 +547,12 @@
                            "newText": "Zboob",
                            "range": {
                               "start": {
-                                 "line": 6,
-                                 "character": 40
+                                 "line": 4,
+                                 "character": 3
                               },
                               "end": {
-                                 "line": 6,
-                                 "character": 41
+                                 "line": 4,
+                                 "character": 4
                               }
                            }
                         },
@@ -560,12 +560,12 @@
                            "newText": "Zboob",
                            "range": {
                               "start": {
-                                 "line": 4,
-                                 "character": 3
+                                 "line": 6,
+                                 "character": 40
                               },
                               "end": {
-                                 "line": 4,
-                                 "character": 4
+                                 "line": 6,
+                                 "character": 41
                               }
                            }
                         }

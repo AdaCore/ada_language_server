@@ -545,6 +545,19 @@ package body LSP.Lal_Utils is
       end return;
    end To_Call_Hierarchy_Item;
 
+   ----------------------------
+   -- To_Unbounded_Text_Type --
+   ----------------------------
+
+   function To_Unbounded_Text_Type
+     (Item : LSP_String)
+      return Langkit_Support.Text.Unbounded_Text_Type
+   is
+      use Langkit_Support.Text;
+   begin
+      return To_Unbounded_Text (From_UTF8 (To_UTF_8_String (Item)));
+   end To_Unbounded_Text_Type;
+
    -------------------------
    -- Node_Location_Image --
    -------------------------

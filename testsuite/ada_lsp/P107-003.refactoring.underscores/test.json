@@ -126,6 +126,19 @@
                            "newText": "Hello_1",
                            "range": {
                               "start": {
+                                 "line": 3,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 18
+                              }
+                           }
+                        },
+                        {
+                           "newText": "Hello_1",
+                           "range": {
+                              "start": {
                                  "line": 6,
                                  "character": 7
                               },
@@ -145,19 +158,6 @@
                               "end": {
                                  "line": 8,
                                  "character": 8
-                              }
-                           }
-                        },
-                        {
-                           "newText": "Hello_1",
-                           "range": {
-                              "start": {
-                                 "line": 3,
-                                 "character": 13
-                              },
-                              "end": {
-                                 "line": 3,
-                                 "character": 18
                               }
                            }
                         }
