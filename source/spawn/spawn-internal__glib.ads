@@ -46,7 +46,7 @@ private package Spawn.Internal is
    type Pipe_Array is array (Pipe_Kinds) of Pipe_Record;
    --  File descriptors array
 
-   type Process;
+   type Process is tagged;
 
    type Process_Reference is record
       Self : access Process'Class;

@@ -36,7 +36,7 @@ private package Spawn.Internal is
 
    end Environments;
 
-   type Process;
+   type Process is tagged;
 
    Buffer_Size : constant Ada.Streams.Stream_Element_Count := 512;
 
