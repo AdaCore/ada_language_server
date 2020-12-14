@@ -20,12 +20,21 @@ project Spawn is
    type OS_API_Kind is ("unix", "osx", "Windows_NT");
    OS_API : OS_API_Kind := external ("OS", "unix");
 
-   --  By default, treat warnings as errors in dev mode, but not in prod
-   --  mode. Let users override this default using the SPAWN_WARN_ERRORS
-   --  environment variable.
+   type Build_Type is ("Debug", "Production");
+   Build : Build_Type := External ("BUILD", "Debug");
 
    type Any_Boolean is ("false", "true");
-   Warnings_As_Errors : Any_Boolean := external ("SPAWN_WARN_ERRORS", "true");
+   Warnings_As_Errors : Any_Boolean := "true";
+
+   --  By default, treat warnings as errors in dev mode, but not in prod
+   --  mode. Users may override this default using the SPAWN_WARN_ERRORS
+   --  environment variable.
+   case Build is
+      when "Debug" =>
+         Warnings_As_Errors := external ("SPAWN_WARN_ERRORS", "true");
+      when "Production" =>
+         Warnings_As_Errors := external ("SPAWN_WARN_ERRORS", "false");
+   end case;
 
    for Source_Dirs use ("../source/spawn");
    for Object_Dir use "../.obj/spawn";
