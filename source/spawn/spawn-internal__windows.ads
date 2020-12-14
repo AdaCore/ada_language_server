@@ -33,7 +33,7 @@ package Spawn.Internal is
       function "<" (Left, Right : UTF_8_String) return Boolean;
    end Environments;
 
-   type Process;
+   type Process is tagged;
 
    type Pipe_Kinds is (Stdin, Stdout, Stderr);
 
