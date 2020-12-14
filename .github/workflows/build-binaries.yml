@@ -1,0 +1,114 @@
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 2*.*.*
+  pull_request:
+name: Build binaries
+env:
+  DEFAULT_TAG: 22.0.999
+jobs:
+  build:
+    name: Build and deploy
+    strategy:
+      fail-fast: false
+      matrix: # Build debug and production
+        debug: ['', 'debug']      # '' if production, 'debug' for debug
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Initialize TAG and git autocrlf
+        shell: bash
+        run: |
+          git config --global core.autocrlf input
+          if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]]; then
+              echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          else
+              echo "TAG=$DEFAULT_TAG" >> $GITHUB_ENV
+          fi
+      - name: Install iconv and gmp (Windows only)
+        if: ${{ runner.os == 'Windows' }}
+        uses: msys2/setup-msys2@v2
+        with:
+          path-type: inherit
+          update: true
+          install: >-
+            mingw64/mingw-w64-x86_64-libiconv
+            mingw64/mingw-w64-x86_64-gmp
+      - name: Get als
+        uses: actions/checkout@v2
+      - name: Get VSS
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/VSS
+          path: subprojects/VSS
+      - name: Get LAL_Tools
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/libadalang-tools
+          path: subprojects/libadalang-tools
+      - uses: actions/cache@v2
+        with:
+          path: ./cached_gnat
+          key: ${{ runner.os }}-gnat-ce-2020
+      - name: Get GNAT Community 2020 toolchain
+        uses: ada-actions/toolchain@ce2020
+        with:
+          distrib: community
+          install_dir: ./cached_gnat
+      - name: Build (Windows)
+        if: ${{ runner.os == 'Windows' }}
+        shell: msys2 {0}
+        run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
+      - name: Build (non-Windows)
+        if: ${{ runner.os != 'Windows' }}
+        run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
+      - name: Archive ALS binary
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: als-${{ runner.os }}-${{ matrix.debug }}
+          path: integration/vscode/ada/[ldw]*/*
+      - name: Upload tar-ball to Bintray
+        if: ${{ github.event_name == 'push' }}
+        uses: reznikmm/upload-bintray-action@v4
+        with:
+          subject: reznikmm
+          username: reznikmm
+          repository: ada-language-server
+          package: ada-language-server
+          version: ${{ env.TAG }}
+          sourcePath: '*.tar.gz'
+          override: 1
+          apiKey: ${{secrets.BINTRAY_API_KEY}}
+  package:
+    if: ${{ github.event_name == 'push' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get als
+        uses: actions/checkout@v2
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+      - name: Pack vscode extension
+        run: |
+          if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]]; then
+              TAG="${GITHUB_REF##*/}"
+          else
+              TAG="$DEFAULT_TAG"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" $TAG
+          .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" $TAG
+      - name: Upload vsix to Bintray
+        uses: reznikmm/upload-bintray-action@v4
+        with:
+          subject: reznikmm
+          username: reznikmm
+          repository: ada-language-server
+          package: ada-language-server
+          version: ${{ env.TAG }}
+          sourcePath: '*.vsix'
+          override: 1
+          apiKey: ${{secrets.BINTRAY_API_KEY}}
