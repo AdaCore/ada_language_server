@@ -457,7 +457,8 @@ package body LSP.Ada_Contexts is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
         Self.Analysis_Units;
    begin
-      for Item of Definition.P_Find_All_Calls (Units) loop
+      for Item of Definition.P_Find_All_Calls (Units, Follow_Renamings => True)
+      loop
          Callback
            (Base_Id => Libadalang.Analysis.Ref (Item).As_Base_Id,
             Kind    => Libadalang.Analysis.Kind (Item),
