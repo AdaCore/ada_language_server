@@ -618,6 +618,7 @@ package body Spawn.Processes.Windows is
       Kind                      : Standard_Pipe)
    is
       use type Windows_API.DWORD;
+      use type Windows_API.HANDLE;
       use type Ada.Streams.Stream_Element_Count;
 
       Self : Process'Class renames
@@ -628,6 +629,11 @@ package body Spawn.Processes.Windows is
       Transfered : constant Ada.Streams.Stream_Element_Count :=
         Ada.Streams.Stream_Element_Count (dwNumberOfBytesTransfered);
    begin
+      if Self.pipe (Kind).Handle = System.Win32.INVALID_HANDLE_VALUE then
+         --  A user closed the pipe, but OS reports some IO on it
+         return;
+      end if;
+
       if dwErrorCode /= 0 then
          if not (Self.Status = Not_Running
                  and then dwErrorCode = Windows_API.ERROR_OPERATION_ABORTED)
