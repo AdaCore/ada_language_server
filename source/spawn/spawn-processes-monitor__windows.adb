@@ -179,9 +179,13 @@ package body Spawn.Processes.Monitor is
 
       procedure Wake_Up is
          use type Windows_API.BOOL;
-         Result : constant Windows_API.BOOL := Windows_API.SetEvent (wake);
+         use type Windows_API.HANDLE;
+         Result : Windows_API.BOOL;
       begin
-         pragma Assert (Result = System.Win32.FALSE);
+         if wake /= 0 then  --  If wake has been created
+            Result := Windows_API.SetEvent (wake);
+            pragma Assert (Result /= System.Win32.FALSE);
+         end if;
       end Wake_Up;
    end Poll;
 
