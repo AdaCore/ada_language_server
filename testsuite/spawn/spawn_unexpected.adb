@@ -110,7 +110,7 @@ procedure Spawn_Unexpected is
       Last : Ada.Streams.Stream_Element_Offset;
    begin
       Process.Write_Standard_Input (Chunk, Last);
-      pragma Assert (Last = Chunk'Length);
+      pragma Assert (Last < Chunk'First);
    end Write_Standard_Input;
 
    use all type Spawn.Processes.Process_Status;
