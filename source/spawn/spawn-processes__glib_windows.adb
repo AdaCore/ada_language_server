@@ -195,11 +195,8 @@ package body Spawn.Processes is
 
    overriding procedure Finalize (Self : in out Process) is
    begin
-      if Self.Status /= Not_Running then
---           raise Program_Error;
-         --  XXX commented out temporary to avoid finalization issues in GPS
-         null;
-      end if;
+      --  Shall we check if the process is still running here?
+      null;
    end Finalize;
 
    --------------
