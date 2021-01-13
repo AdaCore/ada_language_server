@@ -43,6 +43,11 @@ jobs:
         with:
           repository: AdaCore/VSS
           path: subprojects/VSS
+      - name: Get Spawn
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/spawn
+          path: subprojects/spawn
       - name: Get LAL_Tools
         uses: actions/checkout@v2
         with:
