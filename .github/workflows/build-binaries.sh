@@ -10,7 +10,11 @@ if [ $RUNNER_OS = Windows ]; then
     mount `cmd /c cd | cut -d\: -f1`:/opt /opt
 fi
 
-export GPR_PROJECT_PATH=$prefix/share/gpr:$PWD/subprojects/VSS/gnat:$PWD/subprojects/libadalang-tools/src:$PWD/subprojects/stubs
+export GPR_PROJECT_PATH=$prefix/share/gpr:\
+$PWD/subprojects/VSS/gnat:\
+$PWD/subprojects/libadalang-tools/src:\
+$PWD/subprojects/spawn/gnat:\
+$PWD/subprojects/stubs
 export CPATH=/usr/local/include:/mingw64/include
 export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
 export DYLD_LIBRARY_PATH=/usr/local/lib
@@ -20,6 +24,7 @@ URL=https://bintray.com/reznikmm/libadalang/download_file\?file_path=libadalang-
 curl -L $URL | tar xzf - -C $prefix
 gprinstall --uninstall gnatcoll || true
 gprinstall --uninstall gpr || true
+rm -f -v gnat/spawn*.gpr
 
 if [ "$DEBUG" = "debug" ]; then
     export BUILD_MODE=dev
