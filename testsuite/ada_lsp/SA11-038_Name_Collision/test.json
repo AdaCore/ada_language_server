@@ -1,0 +1,194 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-1",
+            "method": "initialize",
+            "params": {
+               "processId": 142665,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {},
+                     "callHierarchy": {}
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-1",
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "renameProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Main is\n   A : Integer := 0;\n   B : Integer := 1;\n\nbegin\n   --  Insert code here.\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": [
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-4",
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 3
+               },
+               "newName": "B"
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-4",
+               "error": {
+                  "code": -32600,
+                  "message": "Renaming A to B creates a name collision with <Id \"B\" main.adb:3:4-3:5>\n"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-5",
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": "ada-5",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

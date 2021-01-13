@@ -185,14 +185,14 @@
                     "changes":{
                         "$URI{main.adb}":[{
                             "range":{
-                                "start":{"line":6,"character":40},
-                                "end":{"line":6,"character":41}
+                                "start":{"line":3,"character":3},
+                                "end":{"line":3,"character":4}
                             },
                             "newText":"BB"
                         },{
                             "range":{
-                                "start":{"line":3,"character":3},
-                                "end":{"line":3,"character":4}
+                                "start":{"line":6,"character":40},
+                                "end":{"line":6,"character":41}
                             },
                             "newText":"BB"
                         }]

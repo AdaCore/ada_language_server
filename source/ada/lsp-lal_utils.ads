@@ -27,6 +27,7 @@ with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Text;
 
 with VSS.Strings;
 
@@ -113,6 +114,14 @@ package LSP.Lal_Utils is
      (Name : Libadalang.Analysis.Defining_Name)
       return LSP.Messages.CallHierarchyItem;
    --  Create CallHierarchyItem for the given subprogram
+
+   function To_Unbounded_Text_Type
+     (Item : LSP.Types.LSP_String)
+      return Langkit_Support.Text.Unbounded_Text_Type;
+   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
+   --  of this function is to convert names and small strings but not buffers.
+   --  It's dangerous to return a string when the string might be giant,
+   --  therefore, a buffer should not be passed to this function.
 
    function Node_Location_Image
      (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
