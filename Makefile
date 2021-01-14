@@ -10,8 +10,6 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 # Tester files
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
-SPAWN_TESTS=.obj/spawn_test/spawn_test \
- .obj/spawn_test/spawn_unexpected
 
 # Testsuite directory
 TD=testsuite/ada_lsp
@@ -70,7 +68,6 @@ else
 endif
 
 all: coverage-instrument
-	$(GPRBUILD) -P gnat/spawn_tests.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
@@ -113,7 +110,6 @@ endif
 clean:
 	gprclean -P gnat/lsp.gpr $(LIBRARY_FLAGS)
 	gprclean -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
-	gprclean -P gnat/spawn_tests.gpr $(LIBRARY_FLAGS)
 	gprclean -P gnat/tester.gpr $(LIBRARY_FLAGS)
 	gprclean -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
 	rm -rf integration/vscode/ada/$(PLATFORM)
@@ -142,9 +138,6 @@ check: all
            done; \
         fi
 	${CODEC_TEST} < testsuite/codecs/index.txt
-	for TEST in ${SPAWN_TESTS}; do \
-	   echo $$TEST; $$TEST; \
-	done
 
 deploy: check
 	integration/$(USER)/deploy.sh $(PLATFORM)
