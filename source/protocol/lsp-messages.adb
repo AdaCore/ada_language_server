@@ -2250,8 +2250,18 @@ package body LSP.Messages is
 
             if Key = "command" then
                LSP.Types.Read (JS'Access, Command);
-               Tag := Ada.Tags.Internal_Tag
-                 (LSP.Types.To_UTF_8_String (Command));
+               if JS.Is_Server_Side then
+                  Tag := Ada.Tags.Internal_Tag
+                    (LSP.Types.To_UTF_8_String (Command));
+               else
+                  --  There is a discrepancy between server code and client
+                  --  code when decoding a "command": the server has a
+                  --  hierarchy of tagged types that represent command
+                  --  objects, but this is an opaque type to the client,
+                  --  which does not have tagged types with the named tags.
+                  Tag := Ada.Tags.No_Tag;
+               end if;
+
                exit;
             else
                JS.Skip_Value;
