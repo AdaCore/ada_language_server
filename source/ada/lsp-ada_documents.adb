@@ -29,6 +29,7 @@ with GNATCOLL.Utils;
 with GNATCOLL.VFS;        use GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Sources;
@@ -1969,6 +1970,7 @@ package body LSP.Ada_Documents is
       --------------------------
 
       procedure Refresh_Symbol_Cache is
+         use Langkit_Support.Symbols;
          use Libadalang.Common;
 
          Node : Libadalang.Analysis.Ada_Node;
