@@ -21,7 +21,8 @@ with GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with Langkit_Support;
-with Libadalang.Common; use Libadalang.Common;
+with Langkit_Support.Symbols; use Langkit_Support.Symbols;
+with Libadalang.Common;       use Libadalang.Common;
 with Libadalang.Sources;
 
 with VSS.Unicode;
