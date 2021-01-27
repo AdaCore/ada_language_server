@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Langkit_Support.Symbols;     use Langkit_Support.Symbols;
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Iterators;
 with Libadalang.Sources;
