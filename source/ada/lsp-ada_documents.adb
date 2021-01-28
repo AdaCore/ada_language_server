@@ -2587,15 +2587,15 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Raw_Completions     : constant Completion_Item_Array :=
+         Raw_Completions     : constant Completion_Item_Iterator :=
            Node.P_Complete;
+         Item                : Completion_Item;
          BD                  : Basic_Decl;
+         Completion_Count    : Natural := 0;
       begin
-         Context.Trace.Trace
-           ("Number of LAL completions : " & Raw_Completions'Length'Image);
-
-         for CI of Raw_Completions loop
-            BD := Decl (CI).As_Basic_Decl;
+         while Next (Raw_Completions, Item) loop
+            BD := Decl (Item).As_Basic_Decl;
+            Completion_Count := Completion_Count + 1;
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
 
@@ -2608,11 +2608,14 @@ package body LSP.Ada_Documents is
                        Case_Sensitive => False)
                   then
                      Names.Include
-                       (DN, (Is_Dot_Call (CI), True, Use_Snippets));
+                       (DN, (Is_Dot_Call (Item), True, Use_Snippets));
                   end if;
                end loop;
             end if;
          end loop;
+
+         Context.Trace.Trace
+           ("Number of LAL completions : " & Completion_Count'Image);
 
          Context.Trace.Trace
            ("Number of filtered completions : " &
