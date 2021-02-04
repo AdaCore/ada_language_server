@@ -1,0 +1,6 @@
+project Hello is
+
+   for Main use ("main.adb");
+
+end Hello;
+
