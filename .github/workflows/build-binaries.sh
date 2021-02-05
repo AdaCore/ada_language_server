@@ -18,7 +18,18 @@ $PWD/subprojects/stubs
 export CPATH=/usr/local/include:/mingw64/include
 export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
 export DYLD_LIBRARY_PATH=/usr/local/lib
+
 BRANCH=stable
+
+# Rebase PR on edge branch
+if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
+    git config user.email `git log -1 --pretty=format:'%ae'`
+    git config user.name  `git log -1 --pretty=format:'%an'`
+    git config core.autocrlf
+    git config core.autocrlf input
+    git rebase --verbose origin/edge
+fi
+
 mkdir -p $prefix
 URL=https://bintray.com/reznikmm/libadalang/download_file\?file_path=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
 curl -L $URL | tar xzf - -C $prefix

@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - master
+      - edge
     tags:
       - 2*.*.*
   pull_request:
@@ -38,6 +38,8 @@ jobs:
             mingw64/mingw-w64-x86_64-gmp
       - name: Get als
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Get VSS
         uses: actions/checkout@v2
         with:
@@ -57,6 +59,7 @@ jobs:
         with:
           path: ./cached_gnat
           key: ${{ runner.os }}-gnat-ce-2020
+          restore-keys: ${{ runner.os }}-gnat-ce-2020
       - name: Get GNAT Community 2020 toolchain
         uses: ada-actions/toolchain@ce2020
         with:
@@ -65,7 +68,10 @@ jobs:
       - name: Build (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
-        run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
+        run: |
+          # This is to avoid locking .sh on win that prevents its updating
+          cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
+          .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Build (non-Windows)
         if: ${{ runner.os != 'Windows' }}
         run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
