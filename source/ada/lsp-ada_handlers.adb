@@ -1963,6 +1963,9 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Additional_Kinds : LSP.Messages.AlsReferenceKind_Array :=
+        (others => False);
+
       procedure Process_Context (C : Context_Access);
       --  Process the references found in one context and append
       --  them to Response.results.
@@ -2027,6 +2030,9 @@ package body LSP.Ada_Handlers is
             Result.As_Flags (LSP.Messages.Simple) := True;
          end if;
 
+         --  Apply additional kinds
+         Result.As_Flags := Result.As_Flags or Additional_Kinds;
+
          return Result;
       end Get_Reference_Kind;
 
@@ -2064,11 +2070,23 @@ package body LSP.Ada_Handlers is
          Definition : Defining_Name;
 
       begin
+
          Self.Imprecise_Resolve_Name (C, Value, Definition);
 
          if Definition = No_Defining_Name or else Request.Canceled then
             return;
          end if;
+
+         --  Set additional "reference" kind for enumeration literal
+         declare
+            Decl : constant Basic_Decl := P_Basic_Decl (Definition);
+         begin
+            if Decl /= No_Basic_Decl
+              and then Kind (Decl) = Ada_Enum_Literal_Decl
+            then
+               Additional_Kinds (LSP.Messages.Simple) := True;
+            end if;
+         end;
 
          C.Find_All_References (Definition, Callback'Access);
 
