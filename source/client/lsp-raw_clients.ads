@@ -19,6 +19,8 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
+with VSS.Strings;
+
 with VSS.Stream_Element_Buffers;
 
 with Spawn.Environments;
@@ -26,7 +28,7 @@ with Spawn.Processes;
 with Spawn.String_Vectors;
 
 package LSP.Raw_Clients is
-   type Raw_Client is tagged limited private;
+   type Raw_Client is abstract tagged limited private;
 
    procedure On_Error
      (Self  : in out Raw_Client;
@@ -44,9 +46,17 @@ package LSP.Raw_Clients is
    --  Called when an exception is raised by the underlying listener
 
    procedure On_Raw_Message
-     (Self : in out Raw_Client;
-      Data : Ada.Strings.Unbounded.Unbounded_String) is null;
+     (Self    : in out Raw_Client;
+      Data    : Ada.Strings.Unbounded.Unbounded_String;
+      Success : in out Boolean) is null;
    --  Callback to be called on new message from LSP server.
+   --  Parameter Success can be set to False to report some "internal error"
+   --  that need to be passed to caller. Caller can use Error_Message to
+   --  retrieve error message for detected error.
+
+   function Error_Message
+     (Self : Raw_Client) return VSS.Strings.Virtual_String is abstract;
+   --  Error message for the last detected "internal error".
 
    procedure On_Started (Self : in out Raw_Client) is null;
    --  Callback to be called on successful startup of the server process.
@@ -122,7 +132,7 @@ private
      (Self       : in out Listener;
       Occurrence : Ada.Exceptions.Exception_Occurrence);
 
-   type Raw_Client is tagged limited record
+   type Raw_Client is abstract tagged limited record
       Server    : Spawn.Processes.Process;
       Listener  : aliased Raw_Clients.Listener (Raw_Client'Unchecked_Access);
 
