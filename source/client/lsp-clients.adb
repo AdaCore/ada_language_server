@@ -518,6 +518,16 @@ package body LSP.Clients is
 
    end Decoders;
 
+   -------------------
+   -- Error_Message --
+   -------------------
+
+   overriding function Error_Message
+     (Self : Client) return VSS.Strings.Virtual_String is
+   begin
+      return Self.Error_Message;
+   end Error_Message;
+
    --------------------------
    -- On_Exit_Notification --
    --------------------------
@@ -573,8 +583,9 @@ package body LSP.Clients is
    --------------------
 
    overriding procedure On_Raw_Message
-     (Self : in out Client;
-      Data : Ada.Strings.Unbounded.Unbounded_String)
+     (Self    : in out Client;
+      Data    : Ada.Strings.Unbounded.Unbounded_String;
+      Success : in out Boolean)
    is
       procedure Look_Ahead
         (Id       : out LSP.Types.LSP_Number_Or_String;
@@ -656,6 +667,9 @@ package body LSP.Clients is
       Is_Error : Boolean := False;
 
    begin
+      Self.Error_Message.Clear;
+      --  First, cleanup error message from previous value.
+
       Memory.Set_Data
         (VSS.Stream_Element_Buffers.Conversions.Unchecked_From_Unbounded_String
            (Data));
@@ -703,7 +717,12 @@ package body LSP.Clients is
                Self.Request_Map (Id).all
                  (Stream'Access, Id, Is_Error, Self.Response_Handler);
             else
-               raise Constraint_Error with "Unknown request id";
+               Self.Error_Message :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   ("Unknown request id '"
+                    & LSP.Types.To_UTF_8_String (Id)
+                    & ''');
+               Success := False;
             end if;
          end if;
 

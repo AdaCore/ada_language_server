@@ -21,6 +21,8 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
+private with VSS.Strings;
+
 with LSP.Messages;
 with LSP.Server_Notification_Receivers;
 with LSP.Raw_Clients;
@@ -215,11 +217,16 @@ private
         LSP.Clients.Request_Handlers.Request_Handler'Class;
       Notification     : access
         LSP.Client_Notification_Receivers.Client_Notification_Receiver'Class;
+      Error_Message    : VSS.Strings.Virtual_String;
    end record;
 
    overriding procedure On_Raw_Message
-     (Self : in out Client;
-      Data : Ada.Strings.Unbounded.Unbounded_String);
+     (Self    : in out Client;
+      Data    : Ada.Strings.Unbounded.Unbounded_String;
+      Success : in out Boolean);
+
+   overriding function Error_Message
+     (Self : Client) return VSS.Strings.Virtual_String;
 
    procedure Send_Notification
      (Self   : in out Client'Class;
