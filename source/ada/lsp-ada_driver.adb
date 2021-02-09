@@ -148,6 +148,7 @@ procedure LSP.Ada_Driver is
    Tracefile_Name         : aliased String_Access;
    Config_File            : Virtual_File;
    Help_Arg               : aliased Boolean := False;
+   Version_Arg            : aliased Boolean := False;
 
    Memory_Monitor_Enabled : Boolean;
 begin
@@ -164,6 +165,12 @@ begin
 
    Define_Switch
      (Cmdline,
+      Output      => Version_Arg'Access,
+      Long_Switch => "--version",
+      Help        => "Display the program version");
+
+   Define_Switch
+     (Cmdline,
       Output      => Help_Arg'Access,
       Long_Switch => "--help",
       Help        => "Display this help");
@@ -177,6 +184,11 @@ begin
    end;
 
    Free (Cmdline);
+
+   if Version_Arg then
+      Ada.Text_IO.Put_Line ("ALS version: " & $VERSION);
+      GNAT.OS_Lib.OS_Exit (0);
+   end if;
 
    --  Look for a traces file, in this order:
    --     - passed on the command line via --tracefile,
