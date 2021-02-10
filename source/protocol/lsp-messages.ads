@@ -4720,8 +4720,23 @@ package LSP.Messages is
             DocumentOnTypeFormatting : DocumentOnTypeFormattingRegistrationOptions;
          when Execute_Command_Registration_Option =>
             ExecuteCommand : ExecuteCommandRegistrationOptions;
+         when Did_Change_Watched_Files_Registration_Option =>
+            DidChangeWatchedFiles : DidChangeWatchedFilesRegistrationOptions;
+         when Code_Action_Registration_Option =>
+            CodeAction : CodeActionRegistrationOptions;
+         when Rename_Registration_Option =>
+            Rename : RenameRegistrationOptions;
       end case;
    end record;
+
+   procedure Read_Registration_Option
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Registration_Option);
+   procedure Write_Registration_Option
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Registration_Option);
+   for Registration_Option'Read use Read_Registration_Option;
+   for Registration_Option'Write use Write_Registration_Option;
 
    --```typescript
    --/**

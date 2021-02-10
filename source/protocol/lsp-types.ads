@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -331,7 +331,10 @@ package LSP.Types is
                         Code_Lens_Registration_Option,
                     Document_Link_Registration_Option,
       Document_On_Type_Formatting_Registration_Option,
-                  Execute_Command_Registration_Option);
+                  Execute_Command_Registration_Option,
+         Did_Change_Watched_Files_Registration_Option,
+                      Code_Action_Registration_Option,
+                           Rename_Registration_Option);
 
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
