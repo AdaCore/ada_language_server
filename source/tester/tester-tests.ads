@@ -17,6 +17,8 @@
 
 with Ada.Strings.Unbounded;
 
+private with VSS.Strings;
+
 with GNATCOLL.JSON;
 
 with LSP.Raw_Clients;
@@ -48,8 +50,13 @@ private
       Error : String);
 
    overriding procedure On_Raw_Message
-     (Self : in out Test;
-      Data : Ada.Strings.Unbounded.Unbounded_String);
+     (Self    : in out Test;
+      Data    : Ada.Strings.Unbounded.Unbounded_String;
+      Success : in out Boolean);
+
+   overriding function Error_Message
+     (Self : Test) return VSS.Strings.Virtual_String
+        is (VSS.Strings.Empty_Virtual_String);
 
    procedure Execute_Command
      (Self    : in out Test;

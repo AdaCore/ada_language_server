@@ -23,6 +23,7 @@ with Ada.Text_IO;
 with GNAT.OS_Lib;
 
 with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Strings.Conversions;
 
 with Spawn.Processes; use Spawn.Processes;
 
@@ -335,10 +336,19 @@ package body LSP.Raw_Clients is
                  or else Length (Client.Buffer) < Client.To_Read;
 
                declare
-                  Text : constant Ada.Strings.Unbounded.Unbounded_String :=
+                  Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
                     Head (Client.Buffer, Client.To_Read);
+                  Success : Boolean := True;
+
                begin
-                  Client.On_Raw_Message (Text);
+                  Client.On_Raw_Message (Text, Success);
+
+                  if not Success then
+                     raise Program_Error
+                       with VSS.Strings.Conversions.To_UTF_8_String
+                              (Client.Error_Message);
+                  end if;
+
                   Delete (Client.Buffer, 1, Client.To_Read);
                   Client.To_Read := 0;
                end;

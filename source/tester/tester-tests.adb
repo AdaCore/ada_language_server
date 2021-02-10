@@ -234,9 +234,12 @@ package body Tester.Tests is
    --------------------
 
    overriding procedure On_Raw_Message
-     (Self : in out Test;
-      Data : Ada.Strings.Unbounded.Unbounded_String)
+     (Self    : in out Test;
+      Data    : Ada.Strings.Unbounded.Unbounded_String;
+      Success : in out Boolean)
    is
+      pragma Unreferenced (Success);
+
       procedure Sweep_Waits (JSON : GNATCOLL.JSON.JSON_Value);
       --  Find matching wait if any and delete it from Test.Waits
 
