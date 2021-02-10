@@ -4565,6 +4565,139 @@ package LSP.Messages is
       V : ExecuteCommandRegistrationOptions);
    for ExecuteCommandRegistrationOptions'Write use Write_ExecuteCommandRegistrationOptions;
 
+   --```typescript
+   --/**
+   -- * Describe options to be used when registering for file system change events.
+   -- */
+   --export interface DidChangeWatchedFilesRegistrationOptions {
+   --	/**
+   --	 * The watchers to register.
+   --	 */
+   --	watchers: FileSystemWatcher[];
+   --}
+   --
+   --export interface FileSystemWatcher {
+   --	/**
+   --	 * The  glob pattern to watch.
+   --	 *
+   --	 * Glob patterns can have the following syntax:
+   --	 * - `*` to match one or more characters in a path segment
+   --	 * - `?` to match on one character in a path segment
+   --	 * - `**` to match any number of path segments, including none
+   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 */
+   --	globPattern: string;
+   --
+   --	/**
+   --	 * The kind of events of interest. If omitted it defaults
+   --	 * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
+   --	 * which is 7.
+   --	 */
+   --	kind?: number;
+   --}
+   --
+   --export namespace WatchKind {
+   --	/**
+   --	 * Interested in create events.
+   --	 */
+   --	export const Create = 1;
+   --
+   --	/**
+   --	 * Interested in change events
+   --	 */
+   --	export const Change = 2;
+   --
+   --	/**
+   --	 * Interested in delete events
+   --	 */
+   --	export const Delete = 4;
+   --}
+   --```
+   type WatchKind is (Create, Change, Delete);
+   type WatchKind_Set is array (WatchKind) of Boolean
+     with Default_Component_Value => True;
+
+   procedure Read_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out WatchKind_Set);
+   procedure Write_WatchKind_Set
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : WatchKind_Set);
+   for WatchKind_Set'Read use Read_WatchKind_Set;
+   for WatchKind_Set'Write use Write_WatchKind_Set;
+
+   Default_WatchKind_Set : constant WatchKind_Set := (WatchKind => True);
+
+   type FileSystemWatcher is record
+      globPattern: LSP_String;
+      kind: WatchKind_Set;
+   end record;
+
+   procedure Read_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileSystemWatcher);
+   procedure Write_FileSystemWatcher
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileSystemWatcher);
+   for FileSystemWatcher'Read use Read_FileSystemWatcher;
+   for FileSystemWatcher'Write use Write_FileSystemWatcher;
+
+   package FileSystemWatcher_Vectors is new LSP.Generic_Vectors
+     (FileSystemWatcher, Write_Empty => LSP.Write_Array);
+
+   type FileSystemWatcher_Vector is new FileSystemWatcher_Vectors.Vector with null record;
+
+   type DidChangeWatchedFilesRegistrationOptions is record
+      watchers: FileSystemWatcher_Vector;
+   end record;
+
+   procedure Read_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesRegistrationOptions);
+   procedure Write_DidChangeWatchedFilesRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesRegistrationOptions);
+   for DidChangeWatchedFilesRegistrationOptions'Read use Read_DidChangeWatchedFilesRegistrationOptions;
+   for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
+
+   --```typescript
+   --export interface CodeActionRegistrationOptions extends TextDocumentRegistrationOptions, CodeActionOptions {
+   --}
+   --```
+   type CodeActionRegistrationOptions is
+     new TextDocumentRegistrationOptions with
+   record
+      This : CodeActionOptions;
+   end record;
+
+   procedure Read_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionRegistrationOptions);
+   procedure Write_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionRegistrationOptions);
+   for CodeActionRegistrationOptions'Read use Read_CodeActionRegistrationOptions;
+   for CodeActionRegistrationOptions'Write use Write_CodeActionRegistrationOptions;
+
+   --```typescript
+   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions, RenameOptions {
+   --}
+   --```
+   type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
+      prepareProvider: Optional_Boolean;
+   end record;
+
+   procedure Read_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameRegistrationOptions);
+   procedure Write_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameRegistrationOptions);
+   for RenameRegistrationOptions'Read use Read_RenameRegistrationOptions;
+   for RenameRegistrationOptions'Write use Write_RenameRegistrationOptions;
+
    type Registration_Option (Kind : Registration_Option_Kinds := Absent) is record
       case Kind is
          when Absent =>
@@ -6730,103 +6863,6 @@ package LSP.Messages is
    for ConfigurationParams'Write use Write_ConfigurationParams;
 
    --```typescript
-   --/**
-   -- * Describe options to be used when registering for file system change events.
-   -- */
-   --export interface DidChangeWatchedFilesRegistrationOptions {
-   --	/**
-   --	 * The watchers to register.
-   --	 */
-   --	watchers: FileSystemWatcher[];
-   --}
-   --
-   --export interface FileSystemWatcher {
-   --	/**
-   --	 * The  glob pattern to watch.
-   --	 *
-   --	 * Glob patterns can have the following syntax:
-   --	 * - `*` to match one or more characters in a path segment
-   --	 * - `?` to match on one character in a path segment
-   --	 * - `**` to match any number of path segments, including none
-   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
-   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
-   --	 */
-   --	globPattern: string;
-   --
-   --	/**
-   --	 * The kind of events of interest. If omitted it defaults
-   --	 * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
-   --	 * which is 7.
-   --	 */
-   --	kind?: number;
-   --}
-   --
-   --export namespace WatchKind {
-   --	/**
-   --	 * Interested in create events.
-   --	 */
-   --	export const Create = 1;
-   --
-   --	/**
-   --	 * Interested in change events
-   --	 */
-   --	export const Change = 2;
-   --
-   --	/**
-   --	 * Interested in delete events
-   --	 */
-   --	export const Delete = 4;
-   --}
-   --```
-   type WatchKind is (Create, Change, Delete);
-   type WatchKind_Set is array (WatchKind) of Boolean
-     with Default_Component_Value => True;
-
-   procedure Read_WatchKind_Set
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out WatchKind_Set);
-   procedure Write_WatchKind_Set
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : WatchKind_Set);
-   for WatchKind_Set'Read use Read_WatchKind_Set;
-   for WatchKind_Set'Write use Write_WatchKind_Set;
-
-   Default_WatchKind_Set : constant WatchKind_Set := (WatchKind => True);
-
-   type FileSystemWatcher is record
-      globPattern: LSP_String;
-      kind: WatchKind_Set;
-   end record;
-
-   procedure Read_FileSystemWatcher
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out FileSystemWatcher);
-   procedure Write_FileSystemWatcher
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : FileSystemWatcher);
-   for FileSystemWatcher'Read use Read_FileSystemWatcher;
-   for FileSystemWatcher'Write use Write_FileSystemWatcher;
-
-   package FileSystemWatcher_Vectors is new LSP.Generic_Vectors
-     (FileSystemWatcher, Write_Empty => LSP.Write_Array);
-
-   type FileSystemWatcher_Vector is new FileSystemWatcher_Vectors.Vector with null record;
-
-   type DidChangeWatchedFilesRegistrationOptions is record
-      watchers: FileSystemWatcher_Vector;
-   end record;
-
-   procedure Read_DidChangeWatchedFilesRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out DidChangeWatchedFilesRegistrationOptions);
-   procedure Write_DidChangeWatchedFilesRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : DidChangeWatchedFilesRegistrationOptions);
-   for DidChangeWatchedFilesRegistrationOptions'Read use Read_DidChangeWatchedFilesRegistrationOptions;
-   for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
-
-   --```typescript
    --export interface CompletionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The completion context. This is only available if the client specifies
@@ -6994,25 +7030,6 @@ package LSP.Messages is
    --  Command is represented as CodeAction with just `command` property set.
 
    --```typescript
-   --export interface CodeActionRegistrationOptions extends TextDocumentRegistrationOptions, CodeActionOptions {
-   --}
-   --```
-   type CodeActionRegistrationOptions is
-     new TextDocumentRegistrationOptions with
-   record
-      This : CodeActionOptions;
-   end record;
-
-   procedure Read_CodeActionRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out CodeActionRegistrationOptions);
-   procedure Write_CodeActionRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : CodeActionRegistrationOptions);
-   for CodeActionRegistrationOptions'Read use Read_CodeActionRegistrationOptions;
-   for CodeActionRegistrationOptions'Write use Write_CodeActionRegistrationOptions;
-
-   --```typescript
    --interface ColorInformation {
    --	/**
    --	 * The range in the document where this color appears.
@@ -7161,23 +7178,6 @@ package LSP.Messages is
 
    type ColorPresentation_Vector is
      new ColorPresentation_Vectors.Vector with null record;
-
-   --```typescript
-   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions, RenameOptions {
-   --}
-   --```
-   type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
-      prepareProvider: Optional_Boolean;
-   end record;
-
-   procedure Read_RenameRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out RenameRegistrationOptions);
-   procedure Write_RenameRegistrationOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : RenameRegistrationOptions);
-   for RenameRegistrationOptions'Read use Read_RenameRegistrationOptions;
-   for RenameRegistrationOptions'Write use Write_RenameRegistrationOptions;
 
    --```typescript
    --export interface FoldingRangeParams extends WorkDoneProgressParams, PartialResultParams {
