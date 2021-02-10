@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3554,6 +3554,15 @@ package LSP.Messages is
       documentSelector:  LSP.Messages.DocumentSelector;
    end record;
 
+   procedure Read_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentRegistrationOptions);
+   for TextDocumentRegistrationOptions'Read use Read_TextDocumentRegistrationOptions;
+   procedure Write_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentRegistrationOptions);
+   for TextDocumentRegistrationOptions'Write use Write_TextDocumentRegistrationOptions;
+
    --```typescript
    --/**
    -- * Static registration options to be returned in the initialize request.
@@ -4427,6 +4436,15 @@ package LSP.Messages is
       syncKind: TextDocumentSyncKind;
    end record;
 
+   procedure Read_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentChangeRegistrationOptions);
+   for TextDocumentChangeRegistrationOptions'Read use Read_TextDocumentChangeRegistrationOptions;
+   procedure Write_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentChangeRegistrationOptions);
+   for TextDocumentChangeRegistrationOptions'Write use Write_TextDocumentChangeRegistrationOptions;
+
    --```typescript
    --export interface TextDocumentSaveRegistrationOptions extends TextDocumentRegistrationOptions {
    --	/**
@@ -4440,6 +4458,15 @@ package LSP.Messages is
       includeText: Optional_Boolean;
    end record;
 
+   procedure Read_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSaveRegistrationOptions);
+   for TextDocumentSaveRegistrationOptions'Read use Read_TextDocumentSaveRegistrationOptions;
+   procedure Write_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveRegistrationOptions);
+   for TextDocumentSaveRegistrationOptions'Write use Write_TextDocumentSaveRegistrationOptions;
+
    --```typescript
    --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions, CompletionOptions {
    --}
@@ -4450,6 +4477,15 @@ package LSP.Messages is
       resolveProvider: Optional_Boolean;
    end record;
 
+   procedure Read_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionRegistrationOptions);
+   for CompletionRegistrationOptions'Read use Read_CompletionRegistrationOptions;
+   procedure Write_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionRegistrationOptions);
+   for CompletionRegistrationOptions'Write use Write_CompletionRegistrationOptions;
+
    --```typescript
    --export interface SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions, SignatureHelpOptions {
    --}
@@ -4459,6 +4495,15 @@ package LSP.Messages is
       retriggerCharacters: Optional_LSP_String_Vector;
    end record;
 
+   procedure Read_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpRegistrationOptions);
+   for SignatureHelpRegistrationOptions'Read use Read_SignatureHelpRegistrationOptions;
+   procedure Write_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpRegistrationOptions);
+   for SignatureHelpRegistrationOptions'Write use Write_SignatureHelpRegistrationOptions;
+
    --```typescript
    --export interface CodeLensRegistrationOptions extends TextDocumentRegistrationOptions, CodeLensOptions {
    --}
@@ -4467,13 +4512,20 @@ package LSP.Messages is
       resolveProvider: Optional_Boolean;
    end record;
 
+   procedure Read_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensRegistrationOptions);
+   for CodeLensRegistrationOptions'Read use Read_CodeLensRegistrationOptions;
+   procedure Write_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensRegistrationOptions);
+   for CodeLensRegistrationOptions'Write use Write_CodeLensRegistrationOptions;
+
    --```typescript
    --export interface DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions, DocumentLinkOptions {
    --}
    --```
-   type DocumentLinkRegistrationOptions is new TextDocumentRegistrationOptions with record
-      resolveProvider: Optional_Boolean;
-   end record;
+   subtype DocumentLinkRegistrationOptions is CodeLensRegistrationOptions;
 
    --```typescript
    --export interface DocumentOnTypeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
@@ -4483,6 +4535,15 @@ package LSP.Messages is
       firstTriggerCharacter: LSP_String;
       moreTriggerCharacter: Optional_LSP_String_Vector;
    end record;
+
+   procedure Read_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingRegistrationOptions);
+   for DocumentOnTypeFormattingRegistrationOptions'Read use Read_DocumentOnTypeFormattingRegistrationOptions;
+   procedure Write_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentOnTypeFormattingRegistrationOptions);
+   for DocumentOnTypeFormattingRegistrationOptions'Write use Write_DocumentOnTypeFormattingRegistrationOptions;
 
    --```typescript
    --/**
@@ -4494,6 +4555,15 @@ package LSP.Messages is
    type ExecuteCommandRegistrationOptions is record
       commands: LSP_String_Vector;
    end record;
+
+   procedure Read_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ExecuteCommandRegistrationOptions);
+   for ExecuteCommandRegistrationOptions'Read use Read_ExecuteCommandRegistrationOptions;
+   procedure Write_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ExecuteCommandRegistrationOptions);
+   for ExecuteCommandRegistrationOptions'Write use Write_ExecuteCommandRegistrationOptions;
 
    type Registration_Option (Kind : Registration_Option_Kinds := Absent) is record
       case Kind is
@@ -4552,11 +4622,32 @@ package LSP.Messages is
       registerOptions: Registration_Option;
    end record;
 
-   type Registration_Array is array (Positive range <>) of Registration;
+   procedure Read_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Registration);
+   procedure Write_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Registration);
+   for Registration'Read use Read_Registration;
+   for Registration'Write use Write_Registration;
 
-   type RegistrationParams (Length : Natural) is record
-      registrations: Registration_Array (1 .. Length);
+   package Registration_Vectors is new LSP.Generic_Vectors
+     (Registration, Write_Empty => LSP.Write_Array);
+
+   type Registration_Vector is new Registration_Vectors.Vector with null record;
+
+   type RegistrationParams is record
+      registrations: Registration_Vector;
    end record;
+
+   procedure Read_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegistrationParams);
+   procedure Write_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegistrationParams);
+   for RegistrationParams'Read use Read_RegistrationParams;
+   for RegistrationParams'Write use Write_RegistrationParams;
 
    --```typescript
    --/**
@@ -4587,6 +4678,15 @@ package LSP.Messages is
       method: LSP_String;
    end record;
 
+   procedure Read_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Unregistration);
+   procedure Write_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Unregistration);
+   for Unregistration'Read use Read_Unregistration;
+   for Unregistration'Write use Write_Unregistration;
+
    package Unregistration_Vectors is new LSP.Generic_Vectors
      (Unregistration, Write_Empty => LSP.Write_Array);
    type Unregistration_Vector is new Unregistration_Vectors.Vector with null record;
@@ -4594,6 +4694,15 @@ package LSP.Messages is
    type UnregistrationParams is record
       unregisterations : Unregistration_Vector;
    end record;
+
+   procedure Read_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UnregistrationParams);
+   procedure Write_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UnregistrationParams);
+   for UnregistrationParams'Read use Read_UnregistrationParams;
+   for UnregistrationParams'Write use Write_UnregistrationParams;
 
    --```typescript
    --interface DidChangeConfigurationParams {
@@ -4880,6 +4989,15 @@ package LSP.Messages is
       the_type : FileChangeType;  -- type: is reserver word
    end record;
 
+   procedure Read_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileEvent);
+   procedure Write_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileEvent);
+   for FileEvent'Read use Read_FileEvent;
+   for FileEvent'Write use Write_FileEvent;
+
    package FileEvent_Vectors is new LSP.Generic_Vectors
      (FileEvent, Write_Empty => LSP.Write_Array);
 
@@ -4896,6 +5014,15 @@ package LSP.Messages is
    type DidChangeWatchedFilesParams is record
       changes: FileEvent_Vector;
    end record;
+
+   procedure Read_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesParams);
+   procedure Write_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesParams);
+   for DidChangeWatchedFilesParams'Read use Read_DidChangeWatchedFilesParams;
+   for DidChangeWatchedFilesParams'Write use Write_DidChangeWatchedFilesParams;
 
    --```typescript
    --interface PublishDiagnosticsParams {
@@ -6876,6 +7003,15 @@ package LSP.Messages is
       This : CodeActionOptions;
    end record;
 
+   procedure Read_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionRegistrationOptions);
+   procedure Write_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionRegistrationOptions);
+   for CodeActionRegistrationOptions'Read use Read_CodeActionRegistrationOptions;
+   for CodeActionRegistrationOptions'Write use Write_CodeActionRegistrationOptions;
+
    --```typescript
    --interface ColorInformation {
    --	/**
@@ -7033,6 +7169,15 @@ package LSP.Messages is
    type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
       prepareProvider: Optional_Boolean;
    end record;
+
+   procedure Read_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameRegistrationOptions);
+   procedure Write_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameRegistrationOptions);
+   for RenameRegistrationOptions'Read use Read_RenameRegistrationOptions;
+   for RenameRegistrationOptions'Write use Write_RenameRegistrationOptions;
 
    --```typescript
    --export interface FoldingRangeParams extends WorkDoneProgressParams, PartialResultParams {

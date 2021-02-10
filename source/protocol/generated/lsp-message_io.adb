@@ -3061,6 +3061,46 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_SignatureHelpOptions;
 
+   procedure Read_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_TextDocumentRegistrationOptions;
+
+   procedure Write_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.End_Object;
+   end Write_TextDocumentRegistrationOptions;
+
    procedure Read_TSW_RegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out TSW_RegistrationOptions)
@@ -3856,6 +3896,498 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_LogMessageParams;
 
+   procedure Read_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentChangeRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "syncKind" then
+               TextDocumentSyncKind'Read (S, V.syncKind);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_TextDocumentChangeRegistrationOptions;
+
+   procedure Write_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentChangeRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("syncKind");
+      TextDocumentSyncKind'Write (S, V.syncKind);
+      JS.End_Object;
+   end Write_TextDocumentChangeRegistrationOptions;
+
+   procedure Read_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSaveRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "includeText" then
+               Optional_Boolean'Read (S, V.includeText);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_TextDocumentSaveRegistrationOptions;
+
+   procedure Write_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("includeText");
+      Optional_Boolean'Write (S, V.includeText);
+      JS.End_Object;
+   end Write_TextDocumentSaveRegistrationOptions;
+
+   procedure Read_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "triggerCharacters" then
+               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+            elsif Key = "allCommitCharacters" then
+               Optional_LSP_String_Vector'Read (S, V.allCommitCharacters);
+            elsif Key = "resolveProvider" then
+               Optional_Boolean'Read (S, V.resolveProvider);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CompletionRegistrationOptions;
+
+   procedure Write_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("triggerCharacters");
+      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      JS.Key ("allCommitCharacters");
+      Optional_LSP_String_Vector'Write (S, V.allCommitCharacters);
+      JS.Key ("resolveProvider");
+      Optional_Boolean'Write (S, V.resolveProvider);
+      JS.End_Object;
+   end Write_CompletionRegistrationOptions;
+
+   procedure Read_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "triggerCharacters" then
+               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+            elsif Key = "retriggerCharacters" then
+               Optional_LSP_String_Vector'Read (S, V.retriggerCharacters);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_SignatureHelpRegistrationOptions;
+
+   procedure Write_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("triggerCharacters");
+      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      JS.Key ("retriggerCharacters");
+      Optional_LSP_String_Vector'Write (S, V.retriggerCharacters);
+      JS.End_Object;
+   end Write_SignatureHelpRegistrationOptions;
+
+   procedure Read_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "resolveProvider" then
+               Optional_Boolean'Read (S, V.resolveProvider);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CodeLensRegistrationOptions;
+
+   procedure Write_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("resolveProvider");
+      Optional_Boolean'Write (S, V.resolveProvider);
+      JS.End_Object;
+   end Write_CodeLensRegistrationOptions;
+
+   procedure Read_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "firstTriggerCharacter" then
+               LSP.Types.Read (S, V.firstTriggerCharacter);
+            elsif Key = "moreTriggerCharacter" then
+               Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_DocumentOnTypeFormattingRegistrationOptions;
+
+   procedure Write_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentOnTypeFormattingRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("firstTriggerCharacter");
+      LSP.Types.Write (S, V.firstTriggerCharacter);
+      JS.Key ("moreTriggerCharacter");
+      Optional_LSP_String_Vector'Write (S, V.moreTriggerCharacter);
+      JS.End_Object;
+   end Write_DocumentOnTypeFormattingRegistrationOptions;
+
+   procedure Read_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ExecuteCommandRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "commands" then
+               LSP_String_Vector'Read (S, V.commands);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_ExecuteCommandRegistrationOptions;
+
+   procedure Write_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ExecuteCommandRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("commands");
+      LSP_String_Vector'Write (S, V.commands);
+      JS.End_Object;
+   end Write_ExecuteCommandRegistrationOptions;
+
+   procedure Read_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Registration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "id" then
+               LSP.Types.Read (S, V.id);
+            elsif Key = "method" then
+               LSP.Types.Read (S, V.method);
+            elsif Key = "registerOptions" then
+               Registration_Option'Read (S, V.registerOptions);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_Registration;
+
+   procedure Write_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Registration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("id");
+      LSP.Types.Write (S, V.id);
+      JS.Key ("method");
+      LSP.Types.Write (S, V.method);
+      JS.Key ("registerOptions");
+      Registration_Option'Write (S, V.registerOptions);
+      JS.End_Object;
+   end Write_Registration;
+
+   procedure Read_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegistrationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "registrations" then
+               Registration_Vector'Read (S, V.registrations);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_RegistrationParams;
+
+   procedure Write_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegistrationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("registrations");
+      Registration_Vector'Write (S, V.registrations);
+      JS.End_Object;
+   end Write_RegistrationParams;
+
+   procedure Read_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Unregistration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "id" then
+               LSP.Types.Read (S, V.id);
+            elsif Key = "method" then
+               LSP.Types.Read (S, V.method);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_Unregistration;
+
+   procedure Write_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Unregistration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("id");
+      LSP.Types.Write (S, V.id);
+      JS.Key ("method");
+      LSP.Types.Write (S, V.method);
+      JS.End_Object;
+   end Write_Unregistration;
+
+   procedure Read_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UnregistrationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "unregisterations" then
+               Unregistration_Vector'Read (S, V.unregisterations);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_UnregistrationParams;
+
+   procedure Write_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UnregistrationParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("unregisterations");
+      Unregistration_Vector'Write (S, V.unregisterations);
+      JS.End_Object;
+   end Write_UnregistrationParams;
+
    procedure Read_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DidChangeConfigurationParams)
@@ -4153,6 +4685,90 @@ package body LSP.Message_IO is
    begin
       JS.Write_Integer ((FileChangeType'Pos (V)) + 1);
    end Write_FileChangeType;
+
+   procedure Read_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileEvent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "uri" then
+               LSP.Types.Read (S, V.uri);
+            elsif Key = "type" then
+               FileChangeType'Read (S, V.the_type);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_FileEvent;
+
+   procedure Write_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileEvent)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("type");
+      FileChangeType'Write (S, V.the_type);
+      JS.End_Object;
+   end Write_FileEvent;
+
+   procedure Read_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "changes" then
+               FileEvent_Vector'Read (S, V.changes);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_DidChangeWatchedFilesParams;
+
+   procedure Write_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("changes");
+      FileEvent_Vector'Write (S, V.changes);
+      JS.End_Object;
+   end Write_DidChangeWatchedFilesParams;
 
    procedure Read_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -5833,6 +6449,50 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_CompletionParams;
 
+   procedure Read_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "This" then
+               CodeActionOptions'Read (S, V.This);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CodeActionRegistrationOptions;
+
+   procedure Write_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("This");
+      CodeActionOptions'Write (S, V.This);
+      JS.End_Object;
+   end Write_CodeActionRegistrationOptions;
+
    procedure Read_RGBA_Color
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out RGBA_Color)
@@ -6032,6 +6692,50 @@ package body LSP.Message_IO is
       TextEdit_Vector'Write (S, V.additionalTextEdits);
       JS.End_Object;
    end Write_ColorPresentation;
+
+   procedure Read_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "documentSelector" then
+               LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
+            elsif Key = "prepareProvider" then
+               Optional_Boolean'Read (S, V.prepareProvider);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_RenameRegistrationOptions;
+
+   procedure Write_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameRegistrationOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("documentSelector");
+      LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
+      JS.Key ("prepareProvider");
+      Optional_Boolean'Write (S, V.prepareProvider);
+      JS.End_Object;
+   end Write_RenameRegistrationOptions;
 
    procedure Read_FoldingRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
