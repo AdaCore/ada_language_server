@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -3338,8 +3338,6 @@ package body LSP.Ada_Handlers is
    -----------------
 
    procedure Index_Files (Self : access Message_Handler) is
-      token : constant LSP.Types.LSP_Number_Or_String
-        := Self.Get_Unique_Progress_Token ("indexing");
 
       procedure Emit_Progress_Begin;
       procedure Emit_Progress_Report (Percent : Natural);
@@ -3356,7 +3354,7 @@ package body LSP.Ada_Handlers is
 
          Create_Progress : constant LSP.Messages.Client_Requests
            .WorkDoneProgressCreate_Request :=
-             (params => (token => token), others => <>);
+             (params => (token => Self.Indexing_Token), others => <>);
       begin
          Self.Server.On_WorkDoneProgress_Create_Request
            (Create_Progress);
@@ -3365,7 +3363,7 @@ package body LSP.Ada_Handlers is
          --  request and immediately after this start sending notifications.
          --  We could do better, send request, wait for client response and
          --  start progress-report sending only after response.
-         P.Begin_Param.token := token;
+         P.Begin_Param.token := Self.Indexing_Token;
          P.Begin_Param.value.title := +"Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
          Self.Server.On_Progress (P);
@@ -3378,7 +3376,7 @@ package body LSP.Ada_Handlers is
       procedure Emit_Progress_Report (Percent : Natural) is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
       begin
-         P.Report_Param.token := token;
+         P.Report_Param.token := Self.Indexing_Token;
          P.Report_Param.value.percentage :=
            (Is_Set => True, Value => LSP_Number (Percent));
          Self.Server.On_Progress (P);
@@ -3391,7 +3389,7 @@ package body LSP.Ada_Handlers is
       procedure Emit_Progress_End is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_End);
       begin
-         P.End_Param.token := token;
+         P.End_Param.token := Self.Indexing_Token;
          Self.Server.On_Progress (P);
       end Emit_Progress_End;
 
@@ -3404,7 +3402,10 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Emit_Progress_Begin;
+      if Self.Indexing_Token = Empty_Token then
+         Self.Indexing_Token := Self.Get_Unique_Progress_Token ("indexing");
+         Emit_Progress_Begin;
+      end if;
 
       while not Self.Files_To_Index.Is_Empty loop
          declare
@@ -3434,9 +3435,8 @@ package body LSP.Ada_Handlers is
 
                --  Check whether another request is pending. If so, pause
                --  the indexing; it will be resumed later as part of
-               --  After_Request. if Self.Server.Input_Queue_Length > 0 then
+               --  After_Request.
                if Self.Server.Has_Pending_Work then
-                  Emit_Progress_End;
                   return;
                end if;
             end if;
@@ -3444,6 +3444,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       Emit_Progress_End;
+      Self.Indexing_Token := Empty_Token;
    end Index_Files;
 
    ------------------------------------------
