@@ -30,6 +30,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 
+with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 with LSP.Server_Backends;
@@ -213,6 +214,9 @@ private
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
+
+      File_Monitor    : LSP.File_Monitors.File_Monitor_Access;
+      --  Filesystem monitoring
    end record;
 
    overriding procedure Before_Work
