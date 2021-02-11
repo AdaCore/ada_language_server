@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -55,10 +55,43 @@ package body LSP.Messages.Client_Requests is
    -----------
 
    overriding procedure Visit
+     (Self    : RegisterCapability_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_RegisterCapability_Request (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Workspace_Configuration_Request;
       Reciver : access Client_Request_Receiver'Class) is
    begin
       Reciver.On_Workspace_Configuration_Request (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : Workspace_Folders_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_Workspace_Folders_Request (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : UnregisterCapability_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_UnregisterCapability_Request (Self);
    end Visit;
 
 end LSP.Messages.Client_Requests;

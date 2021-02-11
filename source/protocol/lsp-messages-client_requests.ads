@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -67,6 +67,12 @@ package LSP.Messages.Client_Requests is
      (Self    : Workspace_Configuration_Request;
       Reciver : access Client_Request_Receiver'Class);
 
+   type Workspace_Folders_Request is new Client_Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Folders_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
    package WorkDoneProgressCreate_Requests is
      new LSP.Generic_Requests
        (Client_Request,
@@ -78,6 +84,32 @@ package LSP.Messages.Client_Requests is
 
    overriding procedure Visit
      (Self    : WorkDoneProgressCreate_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
+   package RegisterCapability_Requests is
+     new LSP.Generic_Requests
+       (Client_Request,
+        RegistrationParams,
+        Client_Request_Receiver'Class);
+
+   type RegisterCapability_Request is
+     new RegisterCapability_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : RegisterCapability_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
+   package UnregisterCapability_Requests is
+     new LSP.Generic_Requests
+       (Client_Request,
+        UnregistrationParams,
+        Client_Request_Receiver'Class);
+
+   type UnregisterCapability_Request is
+     new UnregisterCapability_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : UnregisterCapability_Request;
       Reciver : access Client_Request_Receiver'Class);
 
 end LSP.Messages.Client_Requests;

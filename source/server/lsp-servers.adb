@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -674,6 +674,42 @@ package body LSP.Servers is
    begin
       Self.Send_Request ("workspace/configuration", Message);
    end On_Workspace_Configuration_Request;
+
+   ----------------------------------
+   -- On_Workspace_Folders_Request --
+   ----------------------------------
+
+   overriding procedure On_Workspace_Folders_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.Workspace_Folders_Request)
+   is
+   begin
+      Self.Send_Request ("workspace/workspaceFolders", Message);
+   end On_Workspace_Folders_Request;
+
+   -----------------------------------
+   -- On_RegisterCapability_Request --
+   -----------------------------------
+
+   overriding procedure On_RegisterCapability_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.RegisterCapability_Request)
+   is
+   begin
+      Self.Send_Request ("client/registerCapability", Message);
+   end On_RegisterCapability_Request;
+
+   -------------------------------------
+   -- On_UnregisterCapability_Request --
+   -------------------------------------
+
+   overriding procedure On_UnregisterCapability_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.UnregisterCapability_Request)
+   is
+   begin
+      Self.Send_Request ("client/unregisterCapability", Message);
+   end On_UnregisterCapability_Request;
 
    ----------------------------------------
    -- On_WorkDoneProgress_Create_Request --

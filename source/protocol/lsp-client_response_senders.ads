@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,6 +37,26 @@ package LSP.Client_Response_Senders is
    procedure On_ShowMessage_Response
      (Self     : in out Client_Response_Sender;
       Response : LSP.Messages.Client_Responses.ShowMessage_Response)
+   is abstract;
+
+   procedure On_WorkspaceFolders_Response
+     (Self     : in out Client_Response_Sender;
+      Response : LSP.Messages.Client_Responses.WorkspaceFolders_Response)
+   is abstract;
+
+   procedure On_WorkDoneProgressCreate_Response
+     (Self     : in out Client_Response_Sender;
+      Response : LSP.Messages.Client_Responses.WorkDoneProgressCreate_Response)
+   is abstract;
+
+   procedure On_RegisterCapability_Response
+     (Self     : in out Client_Response_Sender;
+      Response : LSP.Messages.Client_Responses.RegisterCapability_Response)
+   is abstract;
+
+   procedure On_UnregisterCapability_Response
+     (Self     : in out Client_Response_Sender;
+      Response : LSP.Messages.Client_Responses.UnregisterCapability_Response)
    is abstract;
 
 end LSP.Client_Response_Senders;

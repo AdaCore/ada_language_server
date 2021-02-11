@@ -96,3 +96,6 @@ testsuite/.als/inout.txt
 
 # Generated integration packages
 integration/vscode/ada/linux/
+
+# GNAT Studio clangd options
+.clang-format

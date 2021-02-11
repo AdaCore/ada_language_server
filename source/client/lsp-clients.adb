@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -693,6 +693,72 @@ package body LSP.Clients is
                     Read (Stream'Access, Request);
 
                   Self.Request_Handler.Workspace_Apply_Edit
+                    (Request => Id,
+                     Params  => Request.params);
+               end;
+            elsif Method.Value = "workspace/workspaceFolders" then
+               declare
+                  Request : LSP.Messages.RequestMessage;
+               begin
+                  LSP.Messages.RequestMessage'Read (Stream'Access, Request);
+                  Self.Request_Handler.Workspace_Folders (Request => Id);
+               end;
+            elsif Method.Value = "workspace/configuration" then
+               declare
+                  Request : LSP.Messages.Client_Requests
+                              .Workspace_Configuration_Request;
+               begin
+                  LSP.Messages.Client_Requests.Workspace_Configuration_Request'
+                    Read (Stream'Access, Request);
+
+                  Self.Request_Handler.Workspace_Configuration
+                    (Request => Id,
+                     Params  => Request.params);
+               end;
+            elsif Method.Value = "window/showMessage" then
+               declare
+                  Request : LSP.Messages.Client_Requests.ShowMessage_Request;
+               begin
+                  LSP.Messages.Client_Requests.ShowMessage_Request'
+                    Read (Stream'Access, Request);
+
+                  Self.Request_Handler.Window_Show_Message
+                    (Request => Id,
+                     Params  => Request.params);
+               end;
+            elsif Method.Value = "window/workDoneProgress/create" then
+               declare
+                  Request : LSP.Messages.Client_Requests
+                              .WorkDoneProgressCreate_Request;
+               begin
+                  LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request'
+                    Read (Stream'Access, Request);
+
+                  Self.Request_Handler.Window_Work_Done_Progress_Create
+                    (Request => Id,
+                     Params  => Request.params);
+               end;
+            elsif Method.Value = "client/registerCapability" then
+               declare
+                  Request : LSP.Messages.Client_Requests
+                              .RegisterCapability_Request;
+               begin
+                  LSP.Messages.Client_Requests.RegisterCapability_Request'
+                    Read (Stream'Access, Request);
+
+                  Self.Request_Handler.Client_Register_Capability
+                    (Request => Id,
+                     Params  => Request.params);
+               end;
+            elsif Method.Value = "client/unregisterCapability" then
+               declare
+                  Request : LSP.Messages.Client_Requests
+                              .UnregisterCapability_Request;
+               begin
+                  LSP.Messages.Client_Requests.UnregisterCapability_Request'
+                    Read (Stream'Access, Request);
+
+                  Self.Request_Handler.Client_Unregister_Capability
                     (Request => Id,
                      Params  => Request.params);
                end;

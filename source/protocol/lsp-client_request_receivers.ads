@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2019, AdaCore                          --
+--                     Copyright (C) 2019-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,9 +38,24 @@ package LSP.Client_Request_Receivers is
       Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
         is abstract;
 
+   procedure On_Workspace_Folders_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.Workspace_Folders_Request)
+        is abstract;
+
    procedure On_WorkDoneProgress_Create_Request
      (Self    : access Client_Request_Receiver;
       Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request)
+        is abstract;
+
+   procedure On_RegisterCapability_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.RegisterCapability_Request)
+        is abstract;
+
+   procedure On_UnregisterCapability_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.UnregisterCapability_Request)
         is abstract;
 
 end LSP.Client_Request_Receivers;
