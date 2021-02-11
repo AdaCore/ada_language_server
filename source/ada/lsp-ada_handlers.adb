@@ -36,6 +36,7 @@ with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Project_Environments;
+with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
@@ -698,6 +699,13 @@ package body LSP.Ada_Handlers is
       then
          --  Client capability to support snippets for completion
          Self.Completion_Snippets_Enabled := True;
+      end if;
+
+      if Value.capabilities.workspace.didChangeWatchedFiles
+           .dynamicRegistration = True
+      then
+         Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
+           (Self.Server);
       end if;
 
       if Value.rootUri.Is_Set
