@@ -569,6 +569,7 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Initialize_Request)
       return LSP.Messages.Server_Responses.Initialize_Response
    is
+      use all type LSP.Types.Optional_Boolean;
       Value    : LSP.Messages.InitializeParams renames Request.params;
       Code_Action : LSP.Messages.Optional_CodeActionClientCapabilities renames
         Value.capabilities.textDocument.codeAction;
@@ -620,8 +621,7 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value  => (prepareProvider  =>
                      (if Has_Rename.Is_Set
-                      and then Has_Rename.Value.prepareSupport.Is_Set
-                      and then Has_Rename.Value.prepareSupport.Value
+                      and then Has_Rename.Value.prepareSupport = True
                         then LSP.Types.True else LSP.Types.None),
                     workDoneProgress => LSP.Types.None));
       Response.result.capabilities.textDocumentSync :=
@@ -677,7 +677,7 @@ package body LSP.Ada_Handlers is
 
       if Value.capabilities.textDocument.documentSymbol.Is_Set
         and then Value.capabilities.textDocument.documentSymbol.Value
-          .hierarchicalDocumentSymbolSupport = (True, True)
+          .hierarchicalDocumentSymbolSupport = True
       then
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
       else
@@ -686,18 +686,15 @@ package body LSP.Ada_Handlers is
 
       if Value.capabilities.textDocument.foldingRange.Is_Set
         and then Value.capabilities.textDocument.foldingRange.Value.
-          lineFoldingOnly.Is_Set
+          lineFoldingOnly = True
       then
          --  Client capability to fold only entire lines
-         Self.Line_Folding_Only := Value.capabilities.textDocument.
-           foldingRange.Value.lineFoldingOnly.Value;
+         Self.Line_Folding_Only := True;
       end if;
 
       if Value.capabilities.textDocument.completion.completionItem.Is_Set
         and then Value.capabilities.textDocument.completion.
-          completionItem.Value.snippetSupport.Is_Set
-          and then Value.capabilities.textDocument.completion.
-            completionItem.Value.snippetSupport.Value
+          completionItem.Value.snippetSupport = True
       then
          --  Client capability to support snippets for completion
          Self.Completion_Snippets_Enabled := True;
