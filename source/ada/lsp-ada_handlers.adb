@@ -42,6 +42,7 @@ with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
+with LSP.Servers.FS_Watch;
 with LSP.Types;        use LSP.Types;
 
 with Langkit_Support.Slocs;
@@ -384,6 +385,10 @@ package body LSP.Ada_Handlers is
 
    procedure Cleanup (Self : access Message_Handler) is
    begin
+      if Self.File_Monitor.Assigned then
+         Self.File_Monitor.Stop_Monitoring_Directories;
+      end if;
+
       --  Cleanup documents
       for Document of Self.Open_Documents loop
          Unchecked_Free (Document);
@@ -3300,9 +3305,15 @@ package body LSP.Ada_Handlers is
          end loop;
       end loop;
 
+      if not Self.File_Monitor.Assigned then
+         Self.File_Monitor :=
+           new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
+      end if;
+
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
-      Self.Server.Monitor_Directories (Self.Contexts.All_Source_Directories);
+      Self.File_Monitor.Monitor_Directories
+        (Self.Contexts.All_Source_Directories);
 
       --  Reindex the files from disk in the background after a project reload
       Self.Mark_Source_Files_For_Indexing;
