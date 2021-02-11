@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,5 +25,41 @@ package LSP.Clients.Request_Handlers is
      (Self    : not null access Request_Handler;
       Request : LSP.Types.LSP_Number_Or_String;
       Params  : LSP.Messages.ApplyWorkspaceEditParams) is null;
+   --  The workspace/applyEdit request
+
+   procedure Workspace_Folders
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String) is null;
+   --  The workspace/workspaceFolders request
+
+   procedure Workspace_Configuration
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.ConfigurationParams) is null;
+   --  The workspace/configuration request
+
+   procedure Window_Show_Message
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.ShowMessageParams) is null;
+   --  The window/showMessage request
+
+   procedure Window_Work_Done_Progress_Create
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.WorkDoneProgressCreateParams) is null;
+   --  The window/workDoneProgress/create request
+
+   procedure Client_Register_Capability
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.RegistrationParams) is null;
+   --  The client/registerCapability request
+
+   procedure Client_Unregister_Capability
+     (Self    : not null access Request_Handler;
+      Request : LSP.Types.LSP_Number_Or_String;
+      Params  : LSP.Messages.UnregistrationParams) is null;
+   --  The client/unregisterCapability request
 
 end LSP.Clients.Request_Handlers;
