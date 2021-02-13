@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,6 +48,50 @@ package body LSP.Messages.Client_Responses is
       Handler : access Client_Response_Sender'Class) is
    begin
       Handler.On_ShowMessage_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : WorkspaceFolders_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_WorkspaceFolders_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : WorkDoneProgressCreate_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_WorkDoneProgressCreate_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : RegisterCapability_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_RegisterCapability_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : UnregisterCapability_Response;
+      Handler : access Client_Response_Sender'Class) is
+   begin
+      Handler.On_UnregisterCapability_Response (Self);
    end Visit;
 
 end LSP.Messages.Client_Responses;

@@ -532,6 +532,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.SignatureHelpOptions);
 
+   procedure Read_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentRegistrationOptions);
+
+   procedure Write_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentRegistrationOptions);
+
    procedure Read_TSW_RegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.TSW_RegistrationOptions);
@@ -660,6 +668,94 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.LogMessageParams);
 
+   procedure Read_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentChangeRegistrationOptions);
+
+   procedure Write_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentChangeRegistrationOptions);
+
+   procedure Read_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.TextDocumentSaveRegistrationOptions);
+
+   procedure Write_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.TextDocumentSaveRegistrationOptions);
+
+   procedure Read_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CompletionRegistrationOptions);
+
+   procedure Write_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CompletionRegistrationOptions);
+
+   procedure Read_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpRegistrationOptions);
+
+   procedure Write_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpRegistrationOptions);
+
+   procedure Read_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeLensRegistrationOptions);
+
+   procedure Write_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeLensRegistrationOptions);
+
+   procedure Read_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DocumentOnTypeFormattingRegistrationOptions);
+
+   procedure Write_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DocumentOnTypeFormattingRegistrationOptions);
+
+   procedure Read_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ExecuteCommandRegistrationOptions);
+
+   procedure Write_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ExecuteCommandRegistrationOptions);
+
+   procedure Read_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Registration);
+
+   procedure Write_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Registration);
+
+   procedure Read_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RegistrationParams);
+
+   procedure Write_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RegistrationParams);
+
+   procedure Read_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Unregistration);
+
+   procedure Write_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Unregistration);
+
+   procedure Read_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.UnregistrationParams);
+
+   procedure Write_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.UnregistrationParams);
+
    procedure Read_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DidChangeConfigurationParams);
@@ -723,6 +819,22 @@ package LSP.Message_IO is
    procedure Write_FileChangeType
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.FileChangeType);
+
+   procedure Read_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileEvent);
+
+   procedure Write_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileEvent);
+
+   procedure Read_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DidChangeWatchedFilesParams);
+
+   procedure Write_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DidChangeWatchedFilesParams);
 
    procedure Read_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1012,6 +1124,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CompletionParams);
 
+   procedure Read_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CodeActionRegistrationOptions);
+
+   procedure Write_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CodeActionRegistrationOptions);
+
    procedure Read_RGBA_Color
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.RGBA_Color);
@@ -1043,6 +1163,14 @@ package LSP.Message_IO is
    procedure Write_ColorPresentation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ColorPresentation);
+
+   procedure Read_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameRegistrationOptions);
+
+   procedure Write_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameRegistrationOptions);
 
    procedure Read_FoldingRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

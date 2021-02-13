@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 
+with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 with LSP.Server_Backends;
@@ -107,6 +108,9 @@ private
       Result   : out LSP.Messages.Symbol_Vector);
    --  textDocument/documentSymbol handler
 
+   Empty_Token : LSP.Types.LSP_Number_Or_String :=
+     (Is_Number => False, String => LSP.Types.Empty_LSP_String);
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -134,6 +138,9 @@ private
       Indexing_Enabled  : Boolean := True;
       --  Whether to index sources in the background. This should be True
       --  for normal use, and can be disabled for debug or testing purposes.
+
+      Indexing_Token  : LSP.Types.LSP_Number_Or_String := Empty_Token;
+      --  The token of the current indexing progress sequence
 
       Files_To_Index : File_Sets.Set;
       --  Contains any files that need indexing.
@@ -207,6 +214,9 @@ private
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
+
+      File_Monitor    : LSP.File_Monitors.File_Monitor_Access;
+      --  Filesystem monitoring
    end record;
 
    overriding procedure Before_Work

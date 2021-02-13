@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1366,6 +1366,108 @@ package body LSP.Message_Loggers is
          & (+Params.message));
    end On_Show_Message;
 
+   -----------------------------------
+   -- On_RegisterCapability_Request --
+   -----------------------------------
+
+   overriding procedure On_RegisterCapability_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.RegisterCapability_Request) is
+   begin
+      Self.Trace.Trace
+        ("RegisterCapability_Request: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image
+            (Value.params.registrations.Length));
+   end On_RegisterCapability_Request;
+
+   ------------------------------------
+   -- On_RegisterCapability_Response --
+   ------------------------------------
+
+   overriding procedure On_RegisterCapability_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.RegisterCapability_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("RegisterCapability_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("RegisterCapability_Response: "
+         & Image (Value));
+   end On_RegisterCapability_Response;
+
+   -------------------------------------
+   -- On_UnregisterCapability_Request --
+   -------------------------------------
+
+   overriding procedure On_UnregisterCapability_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.UnregisterCapability_Request) is
+   begin
+      Self.Trace.Trace
+        ("UnregisterCapability_Request: "
+         & Image (Value)
+         & Ada.Containers.Count_Type'Image
+            (Value.params.unregisterations.Length));
+   end On_UnregisterCapability_Request;
+
+   --------------------------------------
+   -- On_UnregisterCapability_Response --
+   --------------------------------------
+
+   overriding procedure On_UnregisterCapability_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.UnregisterCapability_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("UnregisterCapability_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("UnregisterCapability_Response: "
+         & Image (Value));
+   end On_UnregisterCapability_Response;
+
+   ----------------------------------
+   -- On_Workspace_Folders_Request --
+   ----------------------------------
+
+   overriding procedure On_Workspace_Folders_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.Workspace_Folders_Request) is
+   begin
+      Self.Trace.Trace
+        ("Workspace_Folders_Request: "
+         & Image (Value));
+   end On_Workspace_Folders_Request;
+
+   overriding procedure On_WorkspaceFolders_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.WorkspaceFolders_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("WorkspaceFolders_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("WorkspaceFolders_Response: "
+         & Image (Value));
+   end On_WorkspaceFolders_Response;
+
    ----------------------------
    -- On_ShowMessage_Request --
    ----------------------------
@@ -1639,6 +1741,27 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Image (Value.params.token));
    end On_WorkDoneProgress_Create_Request;
+
+   ----------------------------------------
+   -- On_WorkDoneProgressCreate_Response --
+   ----------------------------------------
+
+   overriding procedure On_WorkDoneProgressCreate_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.WorkDoneProgressCreate_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("WorkDoneProgressCreate_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("WorkDoneProgressCreate_Response: "
+         & Image (Value));
+   end On_WorkDoneProgressCreate_Response;
 
    ---------------------------
    -- On_Formatting_Request --

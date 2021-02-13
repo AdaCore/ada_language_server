@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,10 +49,40 @@ package LSP.Messages.Client_Responses is
      (Self    : Configuration_Response;
       Handler : access Client_Response_Sender'Class);
 
+   package WorkspaceFolders_Responses is new LSP.Generic_Responses
+     (Client_Response,
+      Optional_WorkspaceFolder_Vector);
+
+   type WorkspaceFolders_Response is
+     new WorkspaceFolders_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : WorkspaceFolders_Response;
+      Handler : access Client_Response_Sender'Class);
+
    type ShowMessage_Response is new Client_Response with null record;
 
    overriding procedure Visit
      (Self    : ShowMessage_Response;
+      Handler : access Client_Response_Sender'Class);
+
+   type WorkDoneProgressCreate_Response is new Client_Response
+     with null record;
+
+   overriding procedure Visit
+     (Self    : WorkDoneProgressCreate_Response;
+      Handler : access Client_Response_Sender'Class);
+
+   type RegisterCapability_Response is new Client_Response with null record;
+
+   overriding procedure Visit
+     (Self    : RegisterCapability_Response;
+      Handler : access Client_Response_Sender'Class);
+
+   type UnregisterCapability_Response is new Client_Response with null record;
+
+   overriding procedure Visit
+     (Self    : UnregisterCapability_Response;
       Handler : access Client_Response_Sender'Class);
 
 end LSP.Messages.Client_Responses;

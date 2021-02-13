@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,12 +36,14 @@ with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Project_Environments;
+with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
+with LSP.Servers.FS_Watch;
 with LSP.Types;        use LSP.Types;
 
 with Langkit_Support.Slocs;
@@ -384,6 +386,10 @@ package body LSP.Ada_Handlers is
 
    procedure Cleanup (Self : access Message_Handler) is
    begin
+      if Self.File_Monitor.Assigned then
+         Self.File_Monitor.Stop_Monitoring_Directories;
+      end if;
+
       --  Cleanup documents
       for Document of Self.Open_Documents loop
          Unchecked_Free (Document);
@@ -564,6 +570,7 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Initialize_Request)
       return LSP.Messages.Server_Responses.Initialize_Response
    is
+      use all type LSP.Types.Optional_Boolean;
       Value    : LSP.Messages.InitializeParams renames Request.params;
       Code_Action : LSP.Messages.Optional_CodeActionClientCapabilities renames
         Value.capabilities.textDocument.codeAction;
@@ -615,8 +622,7 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value  => (prepareProvider  =>
                      (if Has_Rename.Is_Set
-                      and then Has_Rename.Value.prepareSupport.Is_Set
-                      and then Has_Rename.Value.prepareSupport.Value
+                      and then Has_Rename.Value.prepareSupport = True
                         then LSP.Types.True else LSP.Types.None),
                     workDoneProgress => LSP.Types.None));
       Response.result.capabilities.textDocumentSync :=
@@ -672,7 +678,7 @@ package body LSP.Ada_Handlers is
 
       if Value.capabilities.textDocument.documentSymbol.Is_Set
         and then Value.capabilities.textDocument.documentSymbol.Value
-          .hierarchicalDocumentSymbolSupport = (True, True)
+          .hierarchicalDocumentSymbolSupport = True
       then
          Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
       else
@@ -681,21 +687,25 @@ package body LSP.Ada_Handlers is
 
       if Value.capabilities.textDocument.foldingRange.Is_Set
         and then Value.capabilities.textDocument.foldingRange.Value.
-          lineFoldingOnly.Is_Set
+          lineFoldingOnly = True
       then
          --  Client capability to fold only entire lines
-         Self.Line_Folding_Only := Value.capabilities.textDocument.
-           foldingRange.Value.lineFoldingOnly.Value;
+         Self.Line_Folding_Only := True;
       end if;
 
       if Value.capabilities.textDocument.completion.completionItem.Is_Set
         and then Value.capabilities.textDocument.completion.
-          completionItem.Value.snippetSupport.Is_Set
-          and then Value.capabilities.textDocument.completion.
-            completionItem.Value.snippetSupport.Value
+          completionItem.Value.snippetSupport = True
       then
          --  Client capability to support snippets for completion
          Self.Completion_Snippets_Enabled := True;
+      end if;
+
+      if Value.capabilities.workspace.didChangeWatchedFiles
+           .dynamicRegistration = True
+      then
+         Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
+           (Self.Server);
       end if;
 
       if Value.rootUri.Is_Set
@@ -3300,9 +3310,15 @@ package body LSP.Ada_Handlers is
          end loop;
       end loop;
 
+      if not Self.File_Monitor.Assigned then
+         Self.File_Monitor :=
+           new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
+      end if;
+
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
-      Self.Server.Monitor_Directories (Self.Contexts.All_Source_Directories);
+      Self.File_Monitor.Monitor_Directories
+        (Self.Contexts.All_Source_Directories);
 
       --  Reindex the files from disk in the background after a project reload
       Self.Mark_Source_Files_For_Indexing;
@@ -3338,8 +3354,6 @@ package body LSP.Ada_Handlers is
    -----------------
 
    procedure Index_Files (Self : access Message_Handler) is
-      token : constant LSP.Types.LSP_Number_Or_String
-        := Self.Get_Unique_Progress_Token ("indexing");
 
       procedure Emit_Progress_Begin;
       procedure Emit_Progress_Report (Percent : Natural);
@@ -3356,7 +3370,7 @@ package body LSP.Ada_Handlers is
 
          Create_Progress : constant LSP.Messages.Client_Requests
            .WorkDoneProgressCreate_Request :=
-             (params => (token => token), others => <>);
+             (params => (token => Self.Indexing_Token), others => <>);
       begin
          Self.Server.On_WorkDoneProgress_Create_Request
            (Create_Progress);
@@ -3365,7 +3379,7 @@ package body LSP.Ada_Handlers is
          --  request and immediately after this start sending notifications.
          --  We could do better, send request, wait for client response and
          --  start progress-report sending only after response.
-         P.Begin_Param.token := token;
+         P.Begin_Param.token := Self.Indexing_Token;
          P.Begin_Param.value.title := +"Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
          Self.Server.On_Progress (P);
@@ -3378,7 +3392,7 @@ package body LSP.Ada_Handlers is
       procedure Emit_Progress_Report (Percent : Natural) is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
       begin
-         P.Report_Param.token := token;
+         P.Report_Param.token := Self.Indexing_Token;
          P.Report_Param.value.percentage :=
            (Is_Set => True, Value => LSP_Number (Percent));
          Self.Server.On_Progress (P);
@@ -3391,7 +3405,7 @@ package body LSP.Ada_Handlers is
       procedure Emit_Progress_End is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_End);
       begin
-         P.End_Param.token := token;
+         P.End_Param.token := Self.Indexing_Token;
          Self.Server.On_Progress (P);
       end Emit_Progress_End;
 
@@ -3404,7 +3418,10 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Emit_Progress_Begin;
+      if Self.Indexing_Token = Empty_Token then
+         Self.Indexing_Token := Self.Get_Unique_Progress_Token ("indexing");
+         Emit_Progress_Begin;
+      end if;
 
       while not Self.Files_To_Index.Is_Empty loop
          declare
@@ -3434,9 +3451,8 @@ package body LSP.Ada_Handlers is
 
                --  Check whether another request is pending. If so, pause
                --  the indexing; it will be resumed later as part of
-               --  After_Request. if Self.Server.Input_Queue_Length > 0 then
+               --  After_Request.
                if Self.Server.Has_Pending_Work then
-                  Emit_Progress_End;
                   return;
                end if;
             end if;
@@ -3444,6 +3460,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       Emit_Progress_End;
+      Self.Indexing_Token := Empty_Token;
    end Index_Files;
 
    ------------------------------------------

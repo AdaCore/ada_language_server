@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -501,6 +501,16 @@ package body LSP.Messages is
       V : out LSP.Messages.FileChangeType)
       renames LSP.Message_IO.Read_FileChangeType;
 
+   procedure Read_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileEvent)
+      renames LSP.Message_IO.Read_FileEvent;
+
+   procedure Read_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DidChangeWatchedFilesParams)
+      renames LSP.Message_IO.Read_DidChangeWatchedFilesParams;
+
    procedure Read_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.PublishDiagnosticsParams)
@@ -551,6 +561,11 @@ package body LSP.Messages is
       V : out LSP.Messages.ReferenceParams)
       renames LSP.Message_IO.Read_ReferenceParams;
 
+   procedure Read_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegistrationParams)
+      renames LSP.Message_IO.Read_RegistrationParams;
+
    procedure Read_DocumentHighlightKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DocumentHighlightKind)
@@ -575,6 +590,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.WorkspaceSymbolParams)
       renames LSP.Message_IO.Read_WorkspaceSymbolParams;
+
+   procedure Read_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Unregistration)
+      renames LSP.Message_IO.Read_Unregistration;
+
+   procedure Read_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UnregistrationParams)
+      renames LSP.Message_IO.Read_UnregistrationParams;
 
    procedure Read_CodeActionContext
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -745,6 +770,56 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ALS_ShowDependenciesKind)
      renames LSP.Message_IO.Read_ALS_ShowDependenciesKind;
+
+   procedure Read_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentRegistrationOptions)
+     renames LSP.Message_IO.Read_TextDocumentRegistrationOptions;
+
+   procedure Read_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentChangeRegistrationOptions)
+     renames LSP.Message_IO.Read_TextDocumentChangeRegistrationOptions;
+
+   procedure Read_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSaveRegistrationOptions)
+     renames LSP.Message_IO.Read_TextDocumentSaveRegistrationOptions;
+
+   procedure Read_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CompletionRegistrationOptions)
+     renames LSP.Message_IO.Read_CompletionRegistrationOptions;
+
+   procedure Read_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpRegistrationOptions)
+     renames LSP.Message_IO.Read_SignatureHelpRegistrationOptions;
+
+   procedure Read_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensRegistrationOptions)
+     renames LSP.Message_IO.Read_CodeLensRegistrationOptions;
+
+   procedure Read_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentOnTypeFormattingRegistrationOptions)
+     renames LSP.Message_IO.Read_DocumentOnTypeFormattingRegistrationOptions;
+
+   procedure Read_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ExecuteCommandRegistrationOptions)
+     renames LSP.Message_IO.Read_ExecuteCommandRegistrationOptions;
+
+   procedure Read_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeActionRegistrationOptions)
+     renames LSP.Message_IO.Read_CodeActionRegistrationOptions;
+
+   procedure Read_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameRegistrationOptions)
+     renames LSP.Message_IO.Read_RenameRegistrationOptions;
 
    procedure Write_ALS_ShowDependenciesKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1221,6 +1296,16 @@ package body LSP.Messages is
       V : LSP.Messages.FileChangeType)
       renames LSP.Message_IO.Write_FileChangeType;
 
+   procedure Write_FileEvent
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileEvent)
+      renames LSP.Message_IO.Write_FileEvent;
+
+   procedure Write_DidChangeWatchedFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DidChangeWatchedFilesParams)
+      renames LSP.Message_IO.Write_DidChangeWatchedFilesParams;
+
    procedure Write_PublishDiagnosticsParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.PublishDiagnosticsParams)
@@ -1270,6 +1355,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ReferenceParams)
       renames LSP.Message_IO.Write_ReferenceParams;
+
+   procedure Write_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Registration)
+      renames LSP.Message_IO.Write_Registration;
+
+   procedure Write_RegistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegistrationParams)
+      renames LSP.Message_IO.Write_RegistrationParams;
 
    procedure Write_DocumentHighlightKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1426,6 +1521,16 @@ package body LSP.Messages is
       V : LSP.Messages.ColorPresentation)
       renames LSP.Message_IO.Write_ColorPresentation;
 
+   procedure Write_Unregistration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Unregistration)
+      renames LSP.Message_IO.Write_Unregistration;
+
+   procedure Write_UnregistrationParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UnregistrationParams)
+      renames LSP.Message_IO.Write_UnregistrationParams;
+
    procedure Write_FoldingRangeParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.FoldingRangeParams)
@@ -1460,6 +1565,56 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Unit_Description)
       renames LSP.Message_IO.Write_ALS_Unit_Description;
+
+   procedure Write_TextDocumentRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentRegistrationOptions)
+      renames LSP.Message_IO.Write_TextDocumentRegistrationOptions;
+
+   procedure Write_TextDocumentChangeRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentChangeRegistrationOptions)
+      renames LSP.Message_IO.Write_TextDocumentChangeRegistrationOptions;
+
+   procedure Write_TextDocumentSaveRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSaveRegistrationOptions)
+      renames LSP.Message_IO.Write_TextDocumentSaveRegistrationOptions;
+
+   procedure Write_CompletionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CompletionRegistrationOptions)
+      renames LSP.Message_IO.Write_CompletionRegistrationOptions;
+
+   procedure Write_SignatureHelpRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpRegistrationOptions)
+      renames LSP.Message_IO.Write_SignatureHelpRegistrationOptions;
+
+   procedure Write_CodeLensRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensRegistrationOptions)
+      renames LSP.Message_IO.Write_CodeLensRegistrationOptions;
+
+   procedure Write_DocumentOnTypeFormattingRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentOnTypeFormattingRegistrationOptions)
+      renames LSP.Message_IO.Write_DocumentOnTypeFormattingRegistrationOptions;
+
+   procedure Write_ExecuteCommandRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ExecuteCommandRegistrationOptions)
+      renames LSP.Message_IO.Write_ExecuteCommandRegistrationOptions;
+
+   procedure Write_CodeActionRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeActionRegistrationOptions)
+      renames LSP.Message_IO.Write_CodeActionRegistrationOptions;
+
+   procedure Write_RenameRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameRegistrationOptions)
+      renames LSP.Message_IO.Write_RenameRegistrationOptions;
 
    -------------------
    -- Method_To_Tag --
@@ -3088,5 +3243,175 @@ package body LSP.Messages is
 
       JS.End_Object;
    end Write_Progress_Params;
+
+   procedure Read_Registration_Option
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Registration_Option) is
+   begin
+      case V.Kind is
+         when Absent =>
+            null;
+         when Text_Document_Registration_Option =>
+            TextDocumentRegistrationOptions'Read (S, V.Text_Document);
+         when Text_Document_Change_Registration_Option =>
+            TextDocumentChangeRegistrationOptions'Read
+              (S, V.Text_Document_Change);
+         when Text_Document_Save_Registration_Option =>
+            TextDocumentSaveRegistrationOptions'Read (S, V.Text_Document_Save);
+         when Completion_Registration_Option =>
+            CompletionRegistrationOptions'Read (S, V.Completion);
+         when Signature_Help_Registration_Option =>
+            SignatureHelpRegistrationOptions'Read (S, V.SignatureHelp);
+         when Code_Lens_Registration_Option =>
+            CodeLensRegistrationOptions'Read (S, V.CodeLens);
+         when Document_Link_Registration_Option =>
+            DocumentLinkRegistrationOptions'Read (S, V.DocumentLink);
+         when Document_On_Type_Formatting_Registration_Option =>
+            DocumentOnTypeFormattingRegistrationOptions'Read
+              (S, V.DocumentOnTypeFormatting);
+         when Execute_Command_Registration_Option =>
+            ExecuteCommandRegistrationOptions'Read (S, V.ExecuteCommand);
+         when Did_Change_Watched_Files_Registration_Option =>
+            DidChangeWatchedFilesRegistrationOptions'Read
+              (S, V.DidChangeWatchedFiles);
+         when Code_Action_Registration_Option =>
+            CodeActionRegistrationOptions'Read (S, V.CodeAction);
+         when Rename_Registration_Option =>
+            RenameRegistrationOptions'Read (S, V.Rename);
+      end case;
+   end Read_Registration_Option;
+
+   procedure Write_Registration_Option
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Registration_Option) is
+   begin
+      case V.Kind is
+         when Absent =>
+            null;
+         when Text_Document_Registration_Option =>
+            TextDocumentRegistrationOptions'Write (S, V.Text_Document);
+         when Text_Document_Change_Registration_Option =>
+            TextDocumentChangeRegistrationOptions'Write
+              (S, V.Text_Document_Change);
+         when Text_Document_Save_Registration_Option =>
+            TextDocumentSaveRegistrationOptions'Write
+              (S, V.Text_Document_Save);
+         when Completion_Registration_Option =>
+            CompletionRegistrationOptions'Write (S, V.Completion);
+         when Signature_Help_Registration_Option =>
+            SignatureHelpRegistrationOptions'Write (S, V.SignatureHelp);
+         when Code_Lens_Registration_Option =>
+            CodeLensRegistrationOptions'Write (S, V.CodeLens);
+         when Document_Link_Registration_Option =>
+            DocumentLinkRegistrationOptions'Write (S, V.DocumentLink);
+         when Document_On_Type_Formatting_Registration_Option =>
+            DocumentOnTypeFormattingRegistrationOptions'Write
+              (S, V.DocumentOnTypeFormatting);
+         when Execute_Command_Registration_Option =>
+            ExecuteCommandRegistrationOptions'Write (S, V.ExecuteCommand);
+         when Did_Change_Watched_Files_Registration_Option =>
+            DidChangeWatchedFilesRegistrationOptions'Write
+              (S, V.DidChangeWatchedFiles);
+         when Code_Action_Registration_Option =>
+            CodeActionRegistrationOptions'Write (S, V.CodeAction);
+         when Rename_Registration_Option =>
+            RenameRegistrationOptions'Write (S, V.Rename);
+      end case;
+   end Write_Registration_Option;
+
+   -----------------------
+   -- Read_Registration --
+   -----------------------
+
+   procedure Read_Registration
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Registration)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "id" then
+               LSP.Types.Read (S, V.id);
+            elsif Key = "method" then
+               LSP.Types.Read (S, V.method);
+
+               --  Now set V.registerOptions.Kind according to the "method"
+
+               if V.method = "workspace/didChangeWatchedFiles" then
+                  V.registerOptions :=
+                    (Kind => Did_Change_Watched_Files_Registration_Option,
+                     others => <>);
+               elsif V.method = "workspace/symbol" then
+                  V.registerOptions := (Kind => Absent);
+               elsif V.method = "workspace/executeCommand" then
+                  V.registerOptions :=
+                    (Kind => Execute_Command_Registration_Option,
+                     others => <>);
+               elsif V.method = "textDocument/rename" then
+                  V.registerOptions :=
+                    (Kind => Rename_Registration_Option,
+                     others => <>);
+               elsif V.method = "textDocument/onTypeFormatting" then
+                  V.registerOptions :=
+                    (Kind => Document_On_Type_Formatting_Registration_Option,
+                     others => <>);
+               elsif V.method = "textDocument/signatureHelp" then
+                  V.registerOptions :=
+                    (Kind => Signature_Help_Registration_Option, others => <>);
+               elsif V.method = "textDocument/documentLink" then
+                  V.registerOptions :=
+                    (Kind => Document_Link_Registration_Option, others => <>);
+               elsif V.method = "textDocument/codeLens" then
+                  V.registerOptions :=
+                    (Kind => Code_Lens_Registration_Option, others => <>);
+               elsif V.method = "textDocument/codeAction" then
+                  V.registerOptions :=
+                    (Kind => Code_Action_Registration_Option, others => <>);
+               elsif V.method = "textDocument/completion" then
+                  V.registerOptions :=
+                    (Kind => Completion_Registration_Option, others => <>);
+               elsif V.method = "textDocument/didChange" then
+                  V.registerOptions :=
+                    (Kind => Text_Document_Change_Registration_Option,
+                     others => <>);
+               elsif V.method = "textDocument/didSave" then
+                  V.registerOptions :=
+                    (Kind => Text_Document_Save_Registration_Option,
+                     others => <>);
+               elsif V.method = "textDocument/didOpen"
+                 or else V.method = "textDocument/didClose"
+                 or else V.method = "textDocument/willSave"
+                 or else V.method = "textDocument/willSaveWaitUntil"
+               then
+                  V.registerOptions :=
+                    (Kind => Text_Document_Registration_Option,
+                     others => <>);
+               end if;
+               --  TBD workspace/symbol, textDocument/hover,
+               --  TBD textDocument/declaration, textDocument/definition
+               --  TBD textDocument/typeDefinition, textDocument/implementation
+               --  TBD textDocument/references, textDocument/documentHighlight
+               --  TBD textDocument/documentSymbol, textDocument/documentColor
+               --  TBD textDocument/formatting, textDocument/rangeFormatting
+               --  TBD textDocument/foldingRange, textDocument/selectionRange
+            elsif Key = "registerOptions" then
+               Registration_Option'Read (S, V.registerOptions);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_Registration;
 
 end LSP.Messages;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -358,6 +358,18 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.ShowMessage_Request);
 
+   overriding procedure On_Workspace_Folders_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.Workspace_Folders_Request);
+
+   overriding procedure On_RegisterCapability_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.RegisterCapability_Request);
+
+   overriding procedure On_UnregisterCapability_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Client_Requests.UnregisterCapability_Request);
+
    overriding procedure On_WorkDoneProgress_Create_Request
      (Self  : access Message_Logger;
       Value : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request);
@@ -389,6 +401,22 @@ private
    overriding procedure On_ShowMessage_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Client_Responses.ShowMessage_Response);
+
+   overriding procedure On_WorkspaceFolders_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.WorkspaceFolders_Response);
+
+   overriding procedure On_WorkDoneProgressCreate_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.WorkDoneProgressCreate_Response);
+
+   overriding procedure On_RegisterCapability_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.RegisterCapability_Response);
+
+   overriding procedure On_UnregisterCapability_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Client_Responses.UnregisterCapability_Response);
 
    overriding procedure On_Formatting_Request
      (Self  : access Message_Logger;
