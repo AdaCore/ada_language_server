@@ -173,6 +173,11 @@ package LSP.Clients is
       Request : LSP.Types.LSP_Number_Or_String;
       Failure : LSP.Types.Optional_String);
 
+   procedure Void_Response
+     (Self    : in out Client'Class;
+      Request : LSP.Types.LSP_Number_Or_String);
+   --  Return a void response to server->client request
+
    function Allocate_Request_Id
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String;
    --  Allocates request id.
