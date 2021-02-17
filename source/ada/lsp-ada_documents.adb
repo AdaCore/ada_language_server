@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,7 +36,7 @@ with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
 with VSS.String_Vectors;
-with VSS.Strings.Iterators.Characters;
+with VSS.Strings.Character_Iterators;
 with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
@@ -516,7 +516,7 @@ package body LSP.Ada_Documents is
                Last_Line : constant VSS.Strings.Virtual_String :=
                  Old_Lines (Old_Lines.Length);
                Iterator  :
-                 VSS.Strings.Iterators.Characters.Character_Iterator :=
+                 VSS.Strings.Character_Iterators.Character_Iterator :=
                    Last_Line.First_Character;
 
             begin

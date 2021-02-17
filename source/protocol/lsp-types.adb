@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,7 +25,7 @@ with Interfaces;
 with VSS.JSON.Streams.Readers;
 with VSS.Characters;
 with VSS.Strings.Conversions;
-with VSS.Strings.Iterators.Characters;
+with VSS.Strings.Character_Iterators;
 
 with LSP.JSON_Streams;
 
@@ -552,7 +552,7 @@ package body LSP.Types is
       --  Abstract character can occupi up to two code units in UTF-16
       --  encoding. Reserve enought space to avoid reallocations.
       Last     : Natural := 0;
-      Position : VSS.Strings.Iterators.Characters.Character_Iterator :=
+      Position : VSS.Strings.Character_Iterators.Character_Iterator :=
         Item.First_Character;
 
    begin
