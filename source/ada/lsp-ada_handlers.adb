@@ -726,6 +726,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Root := Create (+To_UTF_8_String (Root));
+      Self.Client := Value;
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
@@ -3121,6 +3122,32 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
+      --  Register rangeFormatting provider is the client supports
+      --  dynamic registration for it (and we haven't done it before).
+      if not Self.Range_Formatting_Enabled
+        and then Self.Client.capabilities.textDocument.rangeFormatting
+                   .dynamicRegistration = True
+      then
+         declare
+            Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
+            Registration : LSP.Messages.Registration;
+            Selector     : LSP.Messages.DocumentSelector;
+            Filter       : constant LSP.Messages.DocumentFilter :=
+              (language => (True, +"ada"),
+               others   => <>);
+         begin
+            Selector.Append (Filter);
+            Registration.method := +"textDocument/rangeFormatting";
+            Registration.registerOptions :=
+              (LSP.Types.Text_Document_Registration_Option,
+               (documentSelector => Selector));
+            Registration.id := +"rf";
+            Request.params.registrations.Append (Registration);
+            Self.Server.On_RegisterCapability_Request (Request);
+            Self.Range_Formatting_Enabled := True;
+         end;
+      end if;
+
       Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
@@ -3210,7 +3237,7 @@ package body LSP.Ada_Handlers is
 
       procedure On_Error (Text : String) is
       begin
-         LSP.Types.Append (Error_Text, LSP.Types.To_LSP_String (Text));
+         LSP.Types.Append (Error_Text, +Text);
       end On_Error;
 
       --------------------------------------
@@ -3432,7 +3459,7 @@ package body LSP.Ada_Handlers is
             Self.Files_To_Index.Delete (Cursor);
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
             if not Self.Open_Documents.Contains
-              (File_To_URI (LSP.Types.To_LSP_String (File.Display_Full_Name)))
+              (File_To_URI (+File.Display_Full_Name))
             then
                Current_Percent := (Self.Total_Files_Indexed * 100)
                  / Self.Total_Files_To_Index;
@@ -4199,7 +4226,7 @@ package body LSP.Ada_Handlers is
       Text : String;
       Mode : LSP.Messages.MessageType := LSP.Messages.Error) is
    begin
-      Self.Server.On_Show_Message ((Mode, To_LSP_String (Text)));
+      Self.Server.On_Show_Message ((Mode, +Text));
    end Show_Message;
 
    -----------------
