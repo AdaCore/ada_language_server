@@ -1214,6 +1214,22 @@ package body LSP.Clients is
       Self.Send_Response (Request, Message);
    end Workspace_Apply_Edit;
 
+   -------------------
+   -- Void_Response --
+   -------------------
+
+   procedure Void_Response
+     (Self    : in out Client'Class;
+      Request : LSP.Types.LSP_Number_Or_String)
+   is
+      Ok : LSP.Messages.ResponseMessage :=
+        (Is_Error => False,
+         error    => (Is_Set => False),
+         others   => <>);
+   begin
+      Self.Send_Response (Request, Ok);
+   end Void_Response;
+
    ---------------------------------
    -- On_Initialized_Notification --
    ---------------------------------
