@@ -1,0 +1,76 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "gprbuild",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "-p",
+                "-P",
+                "test.gpr"
+            ],
+            "problemMatcher": ["$ada"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }             
+        },
+        {
+            "label": "prove",
+            "type": "shell",
+            "command": "gnatprove",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "args": [
+                "--report=all",
+                "-P",
+                "test.gpr"
+            ],
+            "problemMatcher": [{
+                "owner": "ada",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "severity": "error",
+                "pattern": {
+                    "regexp": "(\\S+):(\\d+):(\\d+): error: (.+)",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                }
+            },{
+                "owner": "ada",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "severity": "warning",
+                "pattern": {
+                    "regexp": "(\\S+):(\\d+):(\\d+): warning: (.+)",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                }
+            },{
+                "owner": "ada",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "severity": "info",
+                "pattern": {
+                    "regexp": "(\\S+):(\\d+):(\\d+): info: (.+)",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "message": 4
+                }
+            }],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
