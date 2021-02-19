@@ -1633,6 +1633,9 @@ package body LSP.Messages is
       end if;
    end Method_To_Tag;
 
+   function Empty_Set return AlsReferenceKind_Set is
+      (Is_Server_Side => True, As_Flags => (others => False));
+
    -------------------------------
    -- Read_AlsReferenceKind_Set --
    -------------------------------
