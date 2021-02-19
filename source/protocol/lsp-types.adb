@@ -35,6 +35,12 @@ package body LSP.Types is
    Chunk_Size    : constant := 512;
    --  When processing strings in chunks, this is the size of the chunk
 
+   function No_Any return LSP_Any is
+     (GNATCOLL.JSON.JSON_Null with null record);
+
+   function Empty return LSP_Any is
+     (GNATCOLL.JSON.Create_Object with null record);
+
    --------------
    -- Assigned --
    --------------

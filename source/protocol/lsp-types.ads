@@ -45,11 +45,9 @@ package LSP.Types is
    for LSP_Any'Read use Read_Any;
    for LSP_Any'Write use Write_Any;
 
-   function No_Any return LSP_Any is
-     (GNATCOLL.JSON.JSON_Null with null record);
+   function No_Any return LSP_Any;
    --  A null value of No_Any type
-   function Empty return LSP_Any is
-     (GNATCOLL.JSON.Create_Object with null record);
+   function Empty return LSP_Any;
    --  An empty object value of No_Any type
 
    type LSP_Number is new Natural;
