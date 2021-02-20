@@ -371,8 +371,7 @@ package LSP.Messages is
             As_Strings : LSP.Types.LSP_String_Vector;
       end case;
    end record;
-   function Empty_Set return AlsReferenceKind_Set is
-      (Is_Server_Side => True, As_Flags => (others => False));
+   function Empty_Set return AlsReferenceKind_Set;
 
    procedure Read_AlsReferenceKind_Set
      (S : access Ada.Streams.Root_Stream_Type'Class;

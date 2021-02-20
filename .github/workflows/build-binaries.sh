@@ -23,8 +23,8 @@ BRANCH=stable
 
 # Rebase PR on edge branch
 if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
-    git config user.email `git log -1 --pretty=format:'%ae'`
-    git config user.name  `git log -1 --pretty=format:'%an'`
+    git config user.email "`git log -1 --pretty=format:'%ae'`"
+    git config user.name  "`git log -1 --pretty=format:'%an'`"
     git config core.autocrlf
     git config core.autocrlf input
     git rebase --verbose origin/edge
