@@ -168,7 +168,7 @@ sed -n -e '/^   --```typescript/,/^   --```/p' lsp-messages.ads
 ```
 
 Unfortunately we have to reorder Ada declarations to follow _"define before use"_
-rule. To restore original order use `awk -f reorder.awk` script. Then you can
+rule. To restore original order use `scripts/reorder.py` script. Then you can
 compare texts with `diff -u` to see what's changed.
 
 Rules to match method name with corresponding messages are not present in the
