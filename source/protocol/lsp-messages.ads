@@ -162,19 +162,54 @@ package LSP.Messages is
    --
    --export namespace ErrorCodes {
    --	// Defined by JSON RPC
-   --	export const ParseError: number = -32700;
-   --	export const InvalidRequest: number = -32600;
-   --	export const MethodNotFound: number = -32601;
-   --	export const InvalidParams: number = -32602;
-   --	export const InternalError: number = -32603;
-   --	export const serverErrorStart: number = -32099;
-   --	export const serverErrorEnd: number = -32000;
-   --	export const ServerNotInitialized: number = -32002;
-   --	export const UnknownErrorCode: number = -32001;
+   --	export const ParseError: integer = -32700;
+   --	export const InvalidRequest: integer = -32600;
+   --	export const MethodNotFound: integer = -32601;
+   --	export const InvalidParams: integer = -32602;
+   --	export const InternalError: integer = -32603;
    --
-   --	// Defined by the protocol.
-   --	export const RequestCancelled: number = -32800;
-   --	export const ContentModified: number = -32801;
+   --	/**
+   --	 * This is the start range of JSON RPC reserved error codes.
+   --	 * It doesn't denote a real error code. No LSP error codes should
+   --	 * be defined between the start and end range. For backwards
+   --	 * compatibility the `ServerNotInitialized` and the `UnknownErrorCode`
+   --	 * are left in the range.
+   --	 *
+   --	 * @since 3.16.0
+   --	*/
+   --	export const jsonrpcReservedErrorRangeStart: integer = -32099;
+   --	/** @deprecated use  jsonrpcReservedErrorRangeStart */
+   --	export const serverErrorStart: integer = jsonrpcReservedErrorRangeStart;
+   --
+   --	export const ServerNotInitialized: integer = -32002;
+   --	export const UnknownErrorCode: integer = -32001;
+   --
+   --	/**
+   --	 * This is the start range of JSON RPC reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	*/
+   --	export const jsonrpcReservedErrorRangeEnd = -32000;
+   --	/** @deprecated use  jsonrpcReservedErrorRangeEnd */
+   --	export const serverErrorEnd: integer = jsonrpcReservedErrorRangeEnd;
+   --
+   --	/**
+   --	 * This is the start range of LSP reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	export const lspReservedErrorRangeStart: integer = -32899;
+   --
+   --	export const ContentModified: integer = -32801;
+   --	export const RequestCancelled: integer = -32800;
+   --
+   --	/**
+   --	 * This is the end range of LSP reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	export const lspReservedErrorRangeEnd: integer = -32800;
    --}
    --```
    subtype ErrorCodes is LSP.Errors.ErrorCodes;
@@ -267,12 +302,12 @@ package LSP.Messages is
    --	line: uinteger;
    --
    --	/**
-   --	 * Character offset on a line in a document (zero-based). Assuming that the line is
-   --	 * represented as a string, the `character` value represents the gap between the
-   --	 * `character` and `character + 1`.
+   --	 * Character offset on a line in a document (zero-based). Assuming that
+   --	 * the line is represented as a string, the `character` value represents
+   --	 * the gap between the `character` and `character + 1`.
    --	 *
-   --	 * If the character value is greater than the line length it defaults back to the
-   --	 * line length.
+   --	 * If the character value is greater than the line length it defaults back
+   --	 * to the line length.
    --	 */
    --	character: uinteger;
    --}
@@ -483,8 +518,8 @@ package LSP.Messages is
    --	/**
    --	 * Span of the origin of this link.
    --	 *
-   --	 * Used as the underlined span for mouse interaction. Defaults to the word range at
-   --	 * the mouse position.
+   --	 * Used as the underlined span for mouse interaction. Defaults to the word
+   --	 * range at the mouse position.
    --	 */
    --	originSelectionRange?: Range;
    --
@@ -494,15 +529,17 @@ package LSP.Messages is
    --	targetUri: DocumentUri;
    --
    --	/**
-   --	 * The full target range of this link. If the target for example is a symbol then target range is the
-   --	 * range enclosing this symbol not including leading/trailing whitespace but everything else
-   --	 * like comments. This information is typically used to highlight the range in the editor.
+   --	 * The full target range of this link. If the target for example is a symbol
+   --	 * then target range is the range enclosing this symbol not including
+   --	 * leading/trailing whitespace but everything else like comments. This
+   --	 * information is typically used to highlight the range in the editor.
    --	 */
    --	targetRange: Range;
    --
    --	/**
-   --	 * The range that should be selected and revealed when this link is being followed, e.g the name of a function.
-   --	 * Must be contained by the the `targetRange`. See also `DocumentSymbol#range`
+   --	 * The range that should be selected and revealed when this link is being
+   --	 * followed, e.g the name of a function. Must be contained by the the
+   --	 * `targetRange`. See also `DocumentSymbol#range`
    --	 */
    --	targetSelectionRange: Range;
    --}
@@ -588,8 +625,8 @@ package LSP.Messages is
    --    /**
    --     * Unused or unnecessary code.
    --     *
-   --     * Clients are allowed to render diagnostics with this tag faded out instead of having
-   --     * an error squiggle.
+   --     * Clients are allowed to render diagnostics with this tag faded out
+   --	 * instead of having an error squiggle.
    --     */
    --    export const Unnecessary: 1 = 1;
    --    /**
@@ -639,9 +676,9 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * Represents a related message and source code location for a diagnostic. This should be
-   -- * used to point to code locations that cause or are related to a diagnostics, e.g when duplicating
-   -- * a symbol in a scope.
+   -- * Represents a related message and source code location for a diagnostic.
+   -- * This should be used to point to code locations that cause or are related to
+   -- * a diagnostics, e.g when duplicating a symbol in a scope.
    -- */
    --export interface DiagnosticRelatedInformation {
    --	/**
@@ -940,6 +977,7 @@ package LSP.Messages is
    --	 * Overwrite existing file. Overwrite wins over `ignoreIfExists`
    --	 */
    --	overwrite?: boolean;
+   --
    --	/**
    --	 * Ignore if exists.
    --	 */
@@ -954,10 +992,12 @@ package LSP.Messages is
    --	 * A create
    --	 */
    --	kind: 'create';
+   --
    --	/**
    --	 * The resource to create.
    --	 */
    --	uri: DocumentUri;
+   --
    --	/**
    --	 * Additional options
    --	 */
@@ -972,6 +1012,7 @@ package LSP.Messages is
    --	 * Overwrite target if existing. Overwrite wins over `ignoreIfExists`
    --	 */
    --	overwrite?: boolean;
+   --
    --	/**
    --	 * Ignores if target exists.
    --	 */
@@ -986,14 +1027,17 @@ package LSP.Messages is
    --	 * A rename
    --	 */
    --	kind: 'rename';
+   --
    --	/**
    --	 * The old (existing) location.
    --	 */
    --	oldUri: DocumentUri;
+   --
    --	/**
    --	 * The new location.
    --	 */
    --	newUri: DocumentUri;
+   --
    --	/**
    --	 * Rename options.
    --	 */
@@ -1008,6 +1052,7 @@ package LSP.Messages is
    --	 * Delete the content recursively if a folder is denoted.
    --	 */
    --	recursive?: boolean;
+   --
    --	/**
    --	 * Ignore the operation if the file doesn't exist.
    --	 */
@@ -1022,10 +1067,12 @@ package LSP.Messages is
    --	 * A delete
    --	 */
    --	kind: 'delete';
+   --
    --	/**
    --	 * The file to delete.
    --	 */
    --	uri: DocumentUri;
+   --
    --	/**
    --	 * Delete options.
    --	 */
@@ -1105,18 +1152,24 @@ package LSP.Messages is
    --	changes?: { [uri: DocumentUri]: TextEdit[]; };
    --
    --	/**
-   --	 * Depending on the client capability `workspace.workspaceEdit.resourceOperations` document changes
-   --	 * are either an array of `TextDocumentEdit`s to express changes to n different text documents
-   --	 * where each text document edit addresses a specific version of a text document. Or it can contain
-   --	 * above `TextDocumentEdit`s mixed with create, rename and delete file / folder operations.
+   --	 * Depending on the client capability
+   --	 * `workspace.workspaceEdit.resourceOperations` document changes are either
+   --	 * an array of `TextDocumentEdit`s to express changes to n different text
+   --	 * documents where each text document edit addresses a specific version of
+   --	 * a text document. Or it can contain above `TextDocumentEdit`s mixed with
+   --	 * create, rename and delete file / folder operations.
    --	 *
    --	 * Whether a client supports versioned document edits is expressed via
    --	 * `workspace.workspaceEdit.documentChanges` client capability.
    --	 *
-   --	 * If a client neither supports `documentChanges` nor `workspace.workspaceEdit.resourceOperations` then
-   --	 * only plain `TextEdit`s using the `changes` property are supported.
+   --	 * If a client neither supports `documentChanges` nor
+   --	 * `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
+   --	 * using the `changes` property are supported.
    --	 */
-   --	documentChanges?: (TextDocumentEdit[] | (TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]);
+   --	documentChanges?: (
+   --		TextDocumentEdit[] |
+   --		(TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]
+   --	);
    --}
    --```
    type WorkspaceEdit is record
@@ -1235,9 +1288,13 @@ package LSP.Messages is
    --	 * - `*` to match one or more characters in a path segment
    --	 * - `?` to match on one character in a path segment
    --	 * - `**` to match any number of path segments, including none
-   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
-   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
+   --	 *   not `example.0`)
    --	 */
    --	pattern?: string;
    --}
@@ -1318,13 +1375,15 @@ package LSP.Messages is
    --	export const Delete: ResourceOperationKind = 'delete';
    --}
    --
-   --export type FailureHandlingKind = 'abort' | 'transactional' | 'undo' | 'textOnlyTransactional';
+   --export type FailureHandlingKind = 'abort' | 'transactional' | 'undo'
+   --	| 'textOnlyTransactional';
    --
    --export namespace FailureHandlingKind {
    --
    --	/**
-   --	 * Applying the workspace change is simply aborted if one of the changes provided
-   --	 * fails. All operations executed before the failing operation stay executed.
+   --	 * Applying the workspace change is simply aborted if one of the changes
+   --	 * provided fails. All operations executed before the failing operation
+   --	 * stay executed.
    --	 */
    --	export const Abort: FailureHandlingKind = 'abort';
    --
@@ -1336,11 +1395,12 @@ package LSP.Messages is
    --
    --
    --	/**
-   --	 * If the workspace edit contains only textual file changes they are executed transactional.
-   --	 * If resource changes (create, rename or delete file) are part of the change the failure
-   --	 * handling strategy is abort.
+   --	 * If the workspace edit contains only textual file changes they are
+   --	 * executed transactional. If resource changes (create, rename or delete
+   --	 * file) are part of the change the failure handling strategy is abort.
    --	 */
-   --	export const TextOnlyTransactional: FailureHandlingKind = 'textOnlyTransactional';
+   --	export const TextOnlyTransactional: FailureHandlingKind
+   --		= 'textOnlyTransactional';
    --
    --	/**
    --	 * The client tries to undo the operations already executed. But there is no
@@ -1428,9 +1488,9 @@ package LSP.Messages is
    --```typescript
    --export interface DidChangeWatchedFilesClientCapabilities {
    --	/**
-   --	 * Did change watched files notification supports dynamic registration. Please note
-   --	 * that the current protocol doesn't support static configuration for file changes
-   --	 * from the server side.
+   --	 * Did change watched files notification supports dynamic registration.
+   --	 * Please note that the current protocol doesn't support static
+   --	 * configuration for file changes from the server side.
    --	 */
    --	dynamicRegistration?: boolean;
    --}
@@ -1445,7 +1505,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
+   --	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol`
+   --	 * request.
    --	 */
    --	symbolKind?: {
    --		/**
@@ -1637,13 +1698,15 @@ package LSP.Messages is
    --export type MarkupKind = 'plaintext' | 'markdown';
    --
    --/**
-   -- * A `MarkupContent` literal represents a string value which content is interpreted base on its
-   -- * kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.
+   -- * A `MarkupContent` literal represents a string value which content is
+   -- * interpreted base on its kind flag. Currently the protocol supports
+   -- * `plaintext` and `markdown` as markup kinds.
    -- *
-   -- * If the kind is `markdown` then the value can contain fenced code blocks like in GitHub issues.
-   -- * See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+   -- * If the kind is `markdown` then the value can contain fenced code blocks like
+   -- * in GitHub issues.
    -- *
-   -- * Here is an example how such a string can be constructed using JavaScript / TypeScript:
+   -- * Here is an example how such a string can be constructed using
+   -- * JavaScript / TypeScript:
    -- * ```typescript
    -- * let markdown: MarkdownContent = {
    -- *  kind: MarkupKind.Markdown,
@@ -1657,8 +1720,8 @@ package LSP.Messages is
    -- * };
    -- * ```
    -- *
-   -- * *Please Note* that clients might sanitize the return markdown. A client could decide to
-   -- * remove HTML from the markdown to avoid script execution.
+   -- * *Please Note* that clients might sanitize the return markdown. A client could
+   -- * decide to remove HTML from the markdown to avoid script execution.
    -- */
    --export interface MarkupContent {
    --	/**
@@ -1788,7 +1851,8 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Defines how the host (editor) should sync document changes to the language server.
+   -- * Defines how the host (editor) should sync document changes to the language
+   -- * server.
    -- */
    --export namespace TextDocumentSyncKind {
    --	/**
@@ -1810,32 +1874,36 @@ package LSP.Messages is
    --	export const Incremental = 2;
    --}
    --
+   --export type TextDocumentSyncKind = 0 | 1 | 2;
+   --
    --export interface TextDocumentSyncOptions {
    --	/**
-   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
-   --	 * be sent.
+   --	 * Open and close notifications are sent to the server. If omitted open
+   --	 * close notification should not be sent.
    --	 */
    --	openClose?: boolean;
    --	/**
-   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
+   --	 * Change notifications are sent to the server. See
+   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+   --	 * TextDocumentSyncKind.None.
    --	 */
-   --	change?: number;
+   --	change?: TextDocumentSyncKind;
    --	/**
-   --	 * If present will save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
+   --	 * If present will save notifications are sent to the server. If omitted
+   --	 * the notification should not be sent.
    --	 */
    --	willSave?: boolean;
    --	/**
-   --	 * If present will save wait until requests are sent to the server. If omitted the request should not be
-   --	 * sent.
+   --	 * If present will save wait until requests are sent to the server. If
+   --	 * omitted the request should not be sent.
    --	 */
    --	willSaveWaitUntil?: boolean;
    --	/**
-   --	 * If present save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
+   --	 * If present save notifications are sent to the server. If omitted the
+   --	 * notification should not be sent.
    --	 */
-   --	save?: SaveOptions;
+   --	save?: boolean | SaveOptions;
    --}
    --```
    type TextDocumentSyncClientCapabilities is record
@@ -1876,8 +1944,8 @@ package LSP.Messages is
    --		 *
    --		 * A snippet can define tab stops and placeholders with `$1`, `$2`
    --		 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
-   --		 * the end of the snippet. Placeholders with equal identifiers are linked,
-   --		 * that is typing in one will update others too.
+   --		 * the end of the snippet. Placeholders with equal identifiers are
+   --		 * linked, that is typing in one will update others too.
    --		 */
    --		snippetSupport?: boolean;
    --
@@ -1887,7 +1955,7 @@ package LSP.Messages is
    --		commitCharactersSupport?: boolean
    --
    --		/**
-   --		 * Client supports the follow content formats for the documentation
+   --		 * Client supports the following content formats for the documentation
    --		 * property. The order describes the preferred format of the client.
    --		 */
    --		documentationFormat?: MarkupKind[];
@@ -1903,10 +1971,10 @@ package LSP.Messages is
    --		preselectSupport?: boolean;
    --
    --		/**
-   --		 * Client supports the tag property on a completion item. Clients supporting
-   --		 * tags have to handle unknown tags gracefully. Clients especially need to
-   --		 * preserve unknown tags when sending a completion item back to the server in
-   --		 * a resolve call.
+   --		 * Client supports the tag property on a completion item. Clients
+   --		 * supporting tags have to handle unknown tags gracefully. Clients
+   --		 * especially need to preserve unknown tags when sending a completion
+   --		 * item back to the server in a resolve call.
    --		 *
    --		 * @since 3.15.0
    --		 */
@@ -2106,8 +2174,9 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Client supports the follow content formats for the content
-   --	 * property. The order describes the preferred format of the client.
+   --	 * Client supports the following content formats if the content
+   --	 * property refers to a `literal of type MarkupContent`.
+   --	 * The order describes the preferred format of the client.
    --	 */
    --	contentFormat?: MarkupKind[];
    --}
@@ -2147,7 +2216,7 @@ package LSP.Messages is
    --	 */
    --	signatureInformation?: {
    --		/**
-   --		 * Client supports the follow content formats for the documentation
+   --		 * Client supports the following content formats for the documentation
    --		 * property. The order describes the preferred format of the client.
    --		 */
    --		documentationFormat?: MarkupKind[];
@@ -2255,7 +2324,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Specific capabilities for the `SymbolKind` in the `textDocument/documentSymbol` request.
+   --	 * Specific capabilities for the `SymbolKind` in the
+   --	 * `textDocument/documentSymbol` request.
    --	 */
    --	symbolKind?: {
    --		/**
@@ -2303,9 +2373,9 @@ package LSP.Messages is
    --```typescript
    --export interface DeclarationClientCapabilities {
    --	/**
-   --	 * Whether declaration supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `DeclarationRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether declaration supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `DeclarationRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2357,9 +2427,9 @@ package LSP.Messages is
    --```typescript
    --export interface TypeDefinitionClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `TypeDefinitionRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `TypeDefinitionRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2377,9 +2447,9 @@ package LSP.Messages is
    --```typescript
    --export interface ImplementationClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `ImplementationRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `ImplementationRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2446,6 +2516,7 @@ package LSP.Messages is
    --
    --	/**
    --	 * Whether code action supports the `isPreferred` property.
+   --	 *
    --	 * @since 3.15.0
    --	 */
    --	isPreferredSupport?: boolean;
@@ -2608,7 +2679,7 @@ package LSP.Messages is
    --	 * Client supports testing for validity of rename operations
    --	 * before execution.
    --	 *
-   --	 * @since version 3.12.0
+   --	 * @since 3.12.0
    --	 */
    --	prepareSupport?: boolean;
    --}
@@ -2711,19 +2782,22 @@ package LSP.Messages is
    --```typescript
    --export interface FoldingRangeClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration for folding range providers. If this is set to `true`
-   --	 * the client supports the new `FoldingRangeRegistrationOptions` return value for the corresponding server
-   --	 * capability as well.
+   --	 * Whether implementation supports dynamic registration for folding range
+   --	 * providers. If this is set to `true` the client supports the new
+   --	 * `FoldingRangeRegistrationOptions` return value for the corresponding
+   --	 * server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --	/**
-   --	 * The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
-   --	 * hint, servers are free to follow the limit.
+   --	 * The maximum number of folding ranges that the client prefers to receive
+   --	 * per document. The value serves as a hint, servers are free to follow the
+   --	 * limit.
    --	 */
-   --	rangeLimit?: number;
+   --	rangeLimit?: uinteger;
    --	/**
-   --	 * If set, the client signals that it only supports folding complete lines. If set, client will
-   --	 * ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
+   --	 * If set, the client signals that it only supports folding complete lines.
+   --	 * If set, client will ignore specified `startCharacter` and `endCharacter`
+   --	 * properties in a FoldingRange.
    --	 */
    --	lineFoldingOnly?: boolean;
    --}
@@ -2754,9 +2828,10 @@ package LSP.Messages is
    --```typescript
    --export interface SelectionRangeClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration for selection range providers. If this is set to `true`
-   --	 * the client supports the new `SelectionRangeRegistrationOptions` return value for the corresponding server
-   --	 * capability as well.
+   --	 * Whether implementation supports dynamic registration for selection range
+   --	 * providers. If this is set to `true` the client supports the new
+   --	 * `SelectionRangeRegistrationOptions` return value for the corresponding
+   --	 * server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --}
@@ -2873,7 +2948,8 @@ package LSP.Messages is
    --	rename?: RenameClientCapabilities;
    --
    --	/**
-   --	 * Capabilities specific to the `textDocument/publishDiagnostics` notification.
+   --	 * Capabilities specific to the `textDocument/publishDiagnostics`
+   --	 * notification.
    --	 */
    --	publishDiagnostics?: PublishDiagnosticsClientCapabilities;
    --
@@ -2935,7 +3011,8 @@ package LSP.Messages is
    --	 */
    --	window?: {
    --		/**
-   --		 * Whether client supports handling progress notifications.
+   --		 * Whether client supports server initiated progress using the
+   --		 * `window/workDoneProgress/create` request.
    --		 */
    --		workDoneProgress?: boolean;
    --	}
@@ -2968,49 +3045,51 @@ package LSP.Messages is
    --	 */
    --	workspace?: {
    --		/**
-   --		* The client supports applying batch edits
-   --		* to the workspace by supporting the request
-   --		* 'workspace/applyEdit'
-   --		*/
+   --		 * The client supports applying batch edits
+   --		 * to the workspace by supporting the request
+   --		 * 'workspace/applyEdit'
+   --		 */
    --		applyEdit?: boolean;
    --
    --		/**
-   --		* Capabilities specific to `WorkspaceEdit`s
-   --		*/
+   --		 * Capabilities specific to `WorkspaceEdit`s
+   --		 */
    --		workspaceEdit?: WorkspaceEditClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/didChangeConfiguration` notification.
-   --		*/
+   --		 * Capabilities specific to the `workspace/didChangeConfiguration`
+   --		 * notification.
+   --		 */
    --		didChangeConfiguration?: DidChangeConfigurationClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
-   --		*/
+   --		 * Capabilities specific to the `workspace/didChangeWatchedFiles`
+   --		 * notification.
+   --		 */
    --		didChangeWatchedFiles?: DidChangeWatchedFilesClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/symbol` request.
-   --		*/
+   --		 * Capabilities specific to the `workspace/symbol` request.
+   --		 */
    --		symbol?: WorkspaceSymbolClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/executeCommand` request.
-   --		*/
+   --		 * Capabilities specific to the `workspace/executeCommand` request.
+   --		 */
    --		executeCommand?: ExecuteCommandClientCapabilities;
    --
    --		/**
-   --		* The client has support for workspace folders.
-   --		*
-   --		* Since 3.6.0
-   --		*/
+   --		 * The client has support for workspace folders.
+   --		 *
+   --		 * @since 3.6.0
+   --		 */
    --		workspaceFolders?: boolean;
    --
    --		/**
-   --		* The client supports `workspace/configuration` requests.
-   --		*
-   --		* Since 3.6.0
-   --		*/
+   --		 * The client supports `workspace/configuration` requests.
+   --		 *
+   --		 * @since 3.6.0
+   --		 */
    --		configuration?: boolean;
    --	};
    --
@@ -3024,10 +3103,11 @@ package LSP.Messages is
    --	 */
    --	window?: {
    --		/**
-   --		 * Whether client supports handling progress notifications. If set servers are allowed to
-   --		 * report in `workDoneProgress` property in the request specific server capabilities.
+   --		 * Whether client supports handling progress notifications. If set
+   --		 * servers are allowed to report in `workDoneProgress` property in the
+   --		 * request specific server capabilities.
    --		 *
-   --		 * Since 3.15.0
+   --		 * @since 3.15.0
    --		 */
    --		workDoneProgress?: boolean;
    --	}
@@ -3096,6 +3176,7 @@ package LSP.Messages is
 
    --```typescript
    --type ProgressToken = integer | string;
+   --
    --interface ProgressParams<T> {
    --	/**
    --	 * The progress token provided by the client or server.
@@ -3161,8 +3242,8 @@ package LSP.Messages is
    --```typescript
    --export interface PartialResultParams {
    --	/**
-   --	 * An optional token that a server can use to report partial results (e.g. streaming) to
-   --	 * the client.
+   --	 * An optional token that a server can use to report partial results (e.g.
+   --	 * streaming) to the client.
    --	 */
    --	partialResultToken?: ProgressToken;
    --}
@@ -3249,9 +3330,10 @@ package LSP.Messages is
    --```typescript
    --interface InitializeParams extends WorkDoneProgressParams {
    --	/**
-   --	 * The process Id of the parent process that started
-   --	 * the server. Is null if the process has not been started by another process.
-   --	 * If the parent process is not alive then the server should exit (see exit notification) its process.
+   --	 * The process Id of the parent process that started the server. Is null if
+   --	 * the process has not been started by another process. If the parent
+   --	 * process is not alive then the server should exit (see exit notification)
+   --	 * its process.
    --	 */
    --	processId: integer | null;
    --
@@ -3276,7 +3358,7 @@ package LSP.Messages is
    --	 * The rootPath of the workspace. Is null
    --	 * if no folder is open.
    --	 *
-   --	 * @deprecated in favour of rootUri.
+   --	 * @deprecated in favour of `rootUri`.
    --	 */
    --	rootPath?: string | null;
    --
@@ -3284,6 +3366,8 @@ package LSP.Messages is
    --	 * The rootUri of the workspace. Is null if no
    --	 * folder is open. If both `rootPath` and `rootUri` are set
    --	 * `rootUri` wins.
+   --	 *
+   --	 * @deprecated in favour of `workspaceFolders`
    --	 */
    --	rootUri: DocumentUri | null;
    --
@@ -3364,7 +3448,8 @@ package LSP.Messages is
    --
    --```typescript
    --/**
-   -- * Defines how the host (editor) should sync document changes to the language server.
+   -- * Defines how the host (editor) should sync document changes to the language
+   -- * server.
    -- */
    --export namespace TextDocumentSyncKind {
    --	/**
@@ -3388,14 +3473,16 @@ package LSP.Messages is
    --
    --export interface TextDocumentSyncOptions {
    --	/**
-   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
-   --	 * be sent.
+   --	 * Open and close notifications are sent to the server. If omitted open
+   --	 * close notification should not be sent.
    --	 */
    --	openClose?: boolean;
    --
    --	/**
-   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
+   --	 * Change notifications are sent to the server. See
+   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+   --	 * TextDocumentSyncKind.None.
    --	 */
    --	change?: TextDocumentSyncKind;
    --}
@@ -3465,24 +3552,27 @@ package LSP.Messages is
    -- */
    --export interface CompletionOptions extends WorkDoneProgressOptions {
    --	/**
-   --	 * Most tools trigger completion request automatically without explicitly requesting
-   --	 * it using a keyboard shortcut (e.g. Ctrl+Space). Typically they do so when the user
-   --	 * starts to type an identifier. For example if the user types `c` in a JavaScript file
-   --	 * code complete will automatically pop up present `console` besides others as a
-   --	 * completion item. Characters that make up identifiers don't need to be listed here.
+   --	 * Most tools trigger completion request automatically without explicitly
+   --	 * requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
+   --	 * do so when the user starts to type an identifier. For example if the user
+   --	 * types `c` in a JavaScript file code complete will automatically pop up
+   --	 * present `console` besides others as a completion item. Characters that
+   --	 * make up identifiers don't need to be listed here.
    --	 *
-   --	 * If code complete should automatically be trigger on characters not being valid inside
-   --	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
+   --	 * If code complete should automatically be trigger on characters not being
+   --	 * valid inside an identifier (for example `.` in JavaScript) list them in
+   --	 * `triggerCharacters`.
    --	 */
    --	triggerCharacters?: string[];
    --
    --	/**
-   --	 * The list of all possible characters that commit a completion. This field can be used
-   --	 * if clients don't support individual commit characters per completion item. See
-   --	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+   --	 * The list of all possible characters that commit a completion. This field
+   --	 * can be used if clients don't support individual commit characters per
+   --	 * completion item. See client capability
+   --	 * `completion.completionItem.commitCharactersSupport`.
    --	 *
-   --	 * If a server provides both `allCommitCharacters` and commit characters on an individual
-   --	 * completion item the ones on the completion item win.
+   --	 * If a server provides both `allCommitCharacters` and commit characters on
+   --	 * an individual completion item the ones on the completion item win.
    --	 *
    --	 * @since 3.2.0
    --	 */
@@ -3534,8 +3624,9 @@ package LSP.Messages is
    --	/**
    --	 * List of characters that re-trigger signature help.
    --	 *
-   --	 * These trigger characters are only active when signature help is already showing. All trigger characters
-   --	 * are also counted as re-trigger characters.
+   --	 * These trigger characters are only active when signature help is already
+   --	 * showing. All trigger characters are also counted as re-trigger
+   --	 * characters.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -3571,8 +3662,8 @@ package LSP.Messages is
    -- */
    --export interface TextDocumentRegistrationOptions {
    --	/**
-   --	 * A document selector to identify the scope of the registration. If set to null
-   --	 * the document selector provided on the client side will be used.
+   --	 * A document selector to identify the scope of the registration. If set to
+   --	 * null the document selector provided on the client side will be used.
    --	 */
    --	documentSelector: DocumentSelector | null;
    --}
@@ -3665,7 +3756,8 @@ package LSP.Messages is
    subtype DeclarationOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface DeclarationRegistrationOptions extends DeclarationOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions  {
+   --export interface DeclarationRegistrationOptions extends DeclarationOptions,
+   --	TextDocumentRegistrationOptions, StaticRegistrationOptions  {
    --}
    --```
 
@@ -3676,7 +3768,8 @@ package LSP.Messages is
    subtype DefinitionOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DefinitionRegistrationOptions extends TextDocumentRegistrationOptions, DefinitionOptions {
+   --export interface DefinitionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DefinitionOptions {
    --}
    --```
 
@@ -3687,7 +3780,9 @@ package LSP.Messages is
    subtype TypeDefinitionOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface TypeDefinitionRegistrationOptions extends TextDocumentRegistrationOptions, TypeDefinitionOptions, StaticRegistrationOptions {
+   --export interface TypeDefinitionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, TypeDefinitionOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3698,7 +3793,9 @@ package LSP.Messages is
    subtype ImplementationOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface ImplementationRegistrationOptions extends TextDocumentRegistrationOptions, ImplementationOptions, StaticRegistrationOptions {
+   --export interface ImplementationRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, ImplementationOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3709,7 +3806,8 @@ package LSP.Messages is
    subtype ReferenceOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface ReferenceRegistrationOptions extends TextDocumentRegistrationOptions, ReferenceOptions {
+   --export interface ReferenceRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, ReferenceOptions {
    --}
    --```
 
@@ -3720,7 +3818,8 @@ package LSP.Messages is
    subtype DocumentHighlightOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentHighlightRegistrationOptions extends TextDocumentRegistrationOptions, DocumentHighlightOptions {
+   --export interface DocumentHighlightRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentHighlightOptions {
    --}
    --```
 
@@ -3731,7 +3830,8 @@ package LSP.Messages is
    subtype DocumentSymbolOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentSymbolRegistrationOptions extends TextDocumentRegistrationOptions, DocumentSymbolOptions {
+   --export interface DocumentSymbolRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentSymbolOptions {
    --}
    --```
 
@@ -3740,8 +3840,8 @@ package LSP.Messages is
    --	/**
    --	 * CodeActionKinds that this server may return.
    --	 *
-   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
-   --	 * may list out every specific kind they provide.
+   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`,
+   --	 * or the server may list out every specific kind they provide.
    --	 */
    --	codeActionKinds?: CodeActionKind[];
    --}
@@ -3798,7 +3898,9 @@ package LSP.Messages is
    subtype DocumentColorOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface DocumentColorRegistrationOptions extends TextDocumentRegistrationOptions, StaticRegistrationOptions, DocumentColorOptions {
+   --export interface DocumentColorRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, StaticRegistrationOptions,
+   --	DocumentColorOptions {
    --}
    --```
 
@@ -3809,18 +3911,21 @@ package LSP.Messages is
    subtype DocumentFormattingOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentFormattingOptions {
+   --export interface DocumentFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentFormattingOptions {
    --}
    --```
 
    --```typescript
-   --export interface DocumentRangeFormattingOptions extends WorkDoneProgressOptions {
+   --export interface DocumentRangeFormattingOptions extends
+   --	WorkDoneProgressOptions {
    --}
    --```
    subtype DocumentRangeFormattingOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentRangeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentRangeFormattingOptions {
+   --export interface DocumentRangeFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentRangeFormattingOptions {
    --}
    --```
 
@@ -3921,7 +4026,9 @@ package LSP.Messages is
    subtype FoldingRangeOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface FoldingRangeRegistrationOptions extends TextDocumentRegistrationOptions, FoldingRangeOptions, StaticRegistrationOptions {
+   --export interface FoldingRangeRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, FoldingRangeOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3958,7 +4065,8 @@ package LSP.Messages is
    subtype WorkspaceSymbolOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface WorkspaceSymbolRegistrationOptions extends WorkspaceSymbolOptions {
+   --export interface WorkspaceSymbolRegistrationOptions
+   --	extends WorkspaceSymbolOptions {
    --}
    --```
 
@@ -4038,7 +4146,9 @@ package LSP.Messages is
    subtype CallHierarchyOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface SelectionRangeRegistrationOptions extends SelectionRangeOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions {
+   --export interface SelectionRangeRegistrationOptions extends
+   --	SelectionRangeOptions, TextDocumentRegistrationOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -4046,10 +4156,12 @@ package LSP.Messages is
    --```typescript
    --interface ServerCapabilities {
    --	/**
-   --	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
-   --	 * for backwards compatibility the TextDocumentSyncKind number. If omitted it defaults to `TextDocumentSyncKind.None`.
+   --	 * Defines how text documents are synced. Is either a detailed structure
+   --	 * defining each notification or for backwards compatibility the
+   --	 * TextDocumentSyncKind number. If omitted it defaults to
+   --	 * `TextDocumentSyncKind.None`.
    --	 */
-   --	textDocumentSync?: TextDocumentSyncOptions | number;
+   --	textDocumentSync?: TextDocumentSyncOptions | TextDocumentSyncKind;
    --
    --	/**
    --	 * The server provides completion support.
@@ -4071,7 +4183,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.14.0
    --	 */
-   --	declarationProvider?: boolean | DeclarationOptions | DeclarationRegistrationOptions;
+   --	declarationProvider?: boolean | DeclarationOptions
+   --		| DeclarationRegistrationOptions;
    --
    --	/**
    --	 * The server provides goto definition support.
@@ -4083,14 +4196,16 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	typeDefinitionProvider?: boolean | TypeDefinitionOptions | TypeDefinitionRegistrationOptions;
+   --	typeDefinitionProvider?: boolean | TypeDefinitionOptions
+   --		| TypeDefinitionRegistrationOptions;
    --
    --	/**
    --	 * The server provides goto implementation support.
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	implementationProvider?: boolean | ImplementationOptions | ImplementationRegistrationOptions;
+   --	implementationProvider?: boolean | ImplementationOptions
+   --		| ImplementationRegistrationOptions;
    --
    --	/**
    --	 * The server provides find references support.
@@ -4108,9 +4223,9 @@ package LSP.Messages is
    --	documentSymbolProvider?: boolean | DocumentSymbolOptions;
    --
    --	/**
-   --	 * The server provides code actions. The `CodeActionOptions` return type is only
-   --	 * valid if the client signals code action literal support via the property
-   --	 * `textDocument.codeAction.codeActionLiteralSupport`.
+   --	 * The server provides code actions. The `CodeActionOptions` return type is
+   --	 * only valid if the client signals code action literal support via the
+   --	 * property `textDocument.codeAction.codeActionLiteralSupport`.
    --	 */
    --	codeActionProvider?: boolean | CodeActionOptions;
    --
@@ -4129,7 +4244,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	colorProvider?: boolean | DocumentColorOptions | DocumentColorRegistrationOptions;
+   --	colorProvider?: boolean | DocumentColorOptions
+   --		| DocumentColorRegistrationOptions;
    --
    --	/**
    --	 * The server provides document formatting.
@@ -4158,7 +4274,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.10.0
    --	 */
-   --	foldingRangeProvider?: boolean | FoldingRangeOptions | FoldingRangeRegistrationOptions;
+   --	foldingRangeProvider?: boolean | FoldingRangeOptions
+   --		| FoldingRangeRegistrationOptions;
    --
    --	/**
    --	 * The server provides execute command support.
@@ -4170,12 +4287,13 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.15.0
    --	 */
-   --	selectionRangeProvider?: boolean | SelectionRangeOptions | SelectionRangeRegistrationOptions;
+   --	selectionRangeProvider?: boolean | SelectionRangeOptions
+   --		| SelectionRangeRegistrationOptions;
    --
    --	/**
    --	 * The server provides workspace symbol support.
    --	 */
-   --	workspaceSymbolProvider?: boolean;
+   --	workspaceSymbolProvider?: boolean | WorkspaceSymbolOptions;
    --
    --	/**
    --	 * Workspace specific server capabilities
@@ -4301,11 +4419,13 @@ package LSP.Messages is
    -- */
    --export namespace InitializeError {
    --	/**
-   --	 * If the protocol version provided by the client can't be handled by the server.
-   --	 * @deprecated This initialize error got replaced by client capabilities. There is
-   --	 * no version handshake in version 3.0x
+   --	 * If the protocol version provided by the client can't be handled by the
+   --	 * server.
+   --	 *
+   --	 * @deprecated This initialize error got replaced by client capabilities.
+   --	 * There is no version handshake in version 3.0x
    --	 */
-   --	export const unknownProtocolVersion: number = 1;
+   --	export const unknownProtocolVersion: 1 = 1;
    --}
    --```
    unknownProtocolVersion: constant := 1;
@@ -4449,7 +4569,8 @@ package LSP.Messages is
    --/**
    -- * Describe options to be used when registering for text document change events.
    -- */
-   --export interface TextDocumentChangeRegistrationOptions extends TextDocumentRegistrationOptions {
+   --export interface TextDocumentChangeRegistrationOptions
+   --	extends TextDocumentRegistrationOptions {
    --	/**
    --	 * How documents are synced to the server. See TextDocumentSyncKind.Full
    --	 * and TextDocumentSyncKind.Incremental.
@@ -4473,7 +4594,8 @@ package LSP.Messages is
    for TextDocumentChangeRegistrationOptions'Write use Write_TextDocumentChangeRegistrationOptions;
 
    --```typescript
-   --export interface TextDocumentSaveRegistrationOptions extends TextDocumentRegistrationOptions {
+   --export interface TextDocumentSaveRegistrationOptions
+   --	extends TextDocumentRegistrationOptions {
    --	/**
    --	 * The client is supposed to include the content on save.
    --	 */
@@ -4495,7 +4617,8 @@ package LSP.Messages is
    for TextDocumentSaveRegistrationOptions'Write use Write_TextDocumentSaveRegistrationOptions;
 
    --```typescript
-   --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions, CompletionOptions {
+   --export interface CompletionRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, CompletionOptions {
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4514,7 +4637,8 @@ package LSP.Messages is
    for CompletionRegistrationOptions'Write use Write_CompletionRegistrationOptions;
 
    --```typescript
-   --export interface SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions, SignatureHelpOptions {
+   --export interface SignatureHelpRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, SignatureHelpOptions {
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4532,7 +4656,8 @@ package LSP.Messages is
    for SignatureHelpRegistrationOptions'Write use Write_SignatureHelpRegistrationOptions;
 
    --```typescript
-   --export interface CodeLensRegistrationOptions extends TextDocumentRegistrationOptions, CodeLensOptions {
+   --export interface CodeLensRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CodeLensOptions {
    --}
    --```
    type CodeLensRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4549,13 +4674,15 @@ package LSP.Messages is
    for CodeLensRegistrationOptions'Write use Write_CodeLensRegistrationOptions;
 
    --```typescript
-   --export interface DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions, DocumentLinkOptions {
+   --export interface DocumentLinkRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentLinkOptions {
    --}
    --```
    subtype DocumentLinkRegistrationOptions is CodeLensRegistrationOptions;
 
    --```typescript
-   --export interface DocumentOnTypeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
+   --export interface DocumentOnTypeFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
    --}
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4576,7 +4703,8 @@ package LSP.Messages is
    --/**
    -- * Execute command registration options.
    -- */
-   --export interface ExecuteCommandRegistrationOptions extends ExecuteCommandOptions {
+   --export interface ExecuteCommandRegistrationOptions
+   --	extends ExecuteCommandOptions {
    --}
    --```
    type ExecuteCommandRegistrationOptions is record
@@ -4611,9 +4739,13 @@ package LSP.Messages is
    --	 * - `*` to match one or more characters in a path segment
    --	 * - `?` to match on one character in a path segment
    --	 * - `**` to match any number of path segments, including none
-   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
-   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
+   --	 *   `example.0`)
    --	 */
    --	globPattern: string;
    --
@@ -4690,7 +4822,8 @@ package LSP.Messages is
    for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
 
    --```typescript
-   --export interface CodeActionRegistrationOptions extends TextDocumentRegistrationOptions, CodeActionOptions {
+   --export interface CodeActionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CodeActionOptions {
    --}
    --```
    type CodeActionRegistrationOptions is
@@ -4709,7 +4842,8 @@ package LSP.Messages is
    for CodeActionRegistrationOptions'Write use Write_CodeActionRegistrationOptions;
 
    --```typescript
-   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions, RenameOptions {
+   --export interface RenameRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, RenameOptions {
    --}
    --```
    type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4933,24 +5067,26 @@ package LSP.Messages is
    --	textDocument: VersionedTextDocumentIdentifier;
    --
    --	/**
-   --	 * The actual content changes. The content changes describe single state changes
-   --	 * to the document. So if there are two content changes c1 (at array index 0) and
-   --	 * c2 (at array index 1) for a document in state S then c1 moves the document from
-   --	 * S to S' and c2 from S' to S''. So c1 is computed on the state S and c2 is computed
-   --	 * on the state S'.
+   --	 * The actual content changes. The content changes describe single state
+   --	 * changes to the document. So if there are two content changes c1 (at
+   --	 * array index 0) and c2 (at array index 1) for a document in state S then
+   --	 * c1 moves the document from S to S' and c2 from S' to S''. So c1 is
+   --	 * computed on the state S and c2 is computed on the state S'.
    --	 *
-   --	 * To mirror the content of a document using change events use the following approach:
+   --	 * To mirror the content of a document using change events use the following
+   --	 * approach:
    --	 * - start with the same initial content
-   --	 * - apply the 'textDocument/didChange' notifications in the order you recevie them.
-   --	 * - apply the `TextDocumentContentChangeEvent`s in a single notification in the order
-   --	 *   you receive them.
+   --	 * - apply the 'textDocument/didChange' notifications in the order you
+   --	 *   receive them.
+   --	 * - apply the `TextDocumentContentChangeEvent`s in a single notification
+   --	 *   in the order you receive them.
    --	 */
    --	contentChanges: TextDocumentContentChangeEvent[];
    --}
    --
    --/**
-   -- * An event describing a change to a text document. If range and rangeLength are omitted
-   -- * the new text is considered to be the full content of the document.
+   -- * An event describing a change to a text document. If range and rangeLength are
+   -- * omitted the new text is considered to be the full content of the document.
    -- */
    --export type TextDocumentContentChangeEvent = {
    --	/**
@@ -5024,7 +5160,7 @@ package LSP.Messages is
    --	/**
    --	 * The 'TextDocumentSaveReason'.
    --	 */
-   --	reason: number;
+   --	reason: TextDocumentSaveReason;
    --}
    --
    --/**
@@ -5033,8 +5169,8 @@ package LSP.Messages is
    --export namespace TextDocumentSaveReason {
    --
    --	/**
-   --	 * Manually triggered, e.g. by the user pressing save, by starting debugging,
-   --	 * or by an API call.
+   --	 * Manually triggered, e.g. by the user pressing save, by starting
+   --	 * debugging, or by an API call.
    --	 */
    --	export const Manual = 1;
    --
@@ -5048,6 +5184,8 @@ package LSP.Messages is
    --	 */
    --	export const FocusOut = 3;
    --}
+   --
+   --export type TextDocumentSaveReason = 1 | 2 | 3;
    --```
    type TextDocumentSaveReason is (Manual, AfterDelay, FocusOut);
 
@@ -5207,7 +5345,8 @@ package LSP.Messages is
    --	uri: DocumentUri;
    --
    --	/**
-   --	 * Optional the version number of the document the diagnostics are published for.
+   --	 * Optional the version number of the document the diagnostics are published
+   --	 * for.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -5236,8 +5375,8 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * Represents a collection of [completion items](#CompletionItem) to be presented
-   -- * in the editor.
+   -- * Represents a collection of [completion items](#CompletionItem) to be
+   -- * presented in the editor.
    -- */
    --export interface CompletionList {
    --	/**
@@ -5276,8 +5415,8 @@ package LSP.Messages is
    --export type InsertTextFormat = 1 | 2;
    --
    --/**
-   -- * Completion item tags are extra annotations that tweak the rendering of a completion
-   -- * item.
+   -- * Completion item tags are extra annotations that tweak the rendering of a
+   -- * completion item.
    -- *
    -- * @since 3.15.0
    -- */
@@ -5303,7 +5442,7 @@ package LSP.Messages is
    --	 * an icon is chosen by the editor. The standardized set
    --	 * of available values is defined in `CompletionItemKind`.
    --	 */
-   --	kind?: number;
+   --	kind?: CompletionItemKind;
    --
    --	/**
    --	 * Tags for this completion item.
@@ -5357,51 +5496,70 @@ package LSP.Messages is
    --	 *
    --	 * The `insertText` is subject to interpretation by the client side.
    --	 * Some tools might not take the string literally. For example
-   --	 * VS Code when code complete is requested in this example `con<cursor position>`
-   --	 * and a completion item with an `insertText` of `console` is provided it
-   --	 * will only insert `sole`. Therefore it is recommended to use `textEdit` instead
-   --	 * since it avoids additional client side interpretation.
+   --	 * VS Code when code complete is requested in this example
+   --	 * `con<cursor position>` and a completion item with an `insertText` of
+   --	 * `console` is provided it will only insert `sole`. Therefore it is
+   --	 * recommended to use `textEdit` instead since it avoids additional client
+   --	 * side interpretation.
    --	 */
    --	insertText?: string;
    --
    --	/**
-   --	 * The format of the insert text. The format applies to both the `insertText` property
-   --	 * and the `newText` property of a provided `textEdit`. If omitted defaults to
-   --	 * `InsertTextFormat.PlainText`.
+   --	 * The format of the insert text. The format applies to both the
+   --	 * `insertText` property and the `newText` property of a provided
+   --	 * `textEdit`. If omitted defaults to `InsertTextFormat.PlainText`.
    --	 */
    --	insertTextFormat?: InsertTextFormat;
    --
    --	/**
-   --	 * An edit which is applied to a document when selecting this completion. When an edit is provided the value of
-   --	 * `insertText` is ignored.
+   --	 * An edit which is applied to a document when selecting this completion.
+   --	 * When an edit is provided the value of `insertText` is ignored.
    --	 *
-   --	 * *Note:* The range of the edit must be a single line range and it must contain the position at which completion
-   --	 * has been requested.
+   --	 * *Note:* The range of the edit must be a single line range and it must
+   --	 * contain the position at which completion has been requested.
+   --	 *
+   --	 * Most editors support two different operations when accepting a completion
+   --	 * item. One is to insert a completion text and the other is to replace an
+   --	 * existing text with a completion text. Since this can usually not be
+   --	 * predetermined by a server it can report both ranges. Clients need to
+   --	 * signal support for `InsertReplaceEdits` via the
+   --	 * `textDocument.completion.insertReplaceSupport` client capability
+   --	 * property.
+   --	 *
+   --	 * *Note 1:* The text edit's range as well as both ranges from an insert
+   --	 * replace edit must be a [single line] and they must contain the position
+   --	 * at which completion has been requested.
+   --	 * *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
+   --	 * must be a prefix of the edit's replace range, that means it must be
+   --	 * contained and starting at the same position.
+   --	 *
+   --	 * @since 3.16.0 additional type `InsertReplaceEdit`
    --	 */
    --	textEdit?: TextEdit;
    --
    --	/**
    --	 * An optional array of additional text edits that are applied when
-   --	 * selecting this completion. Edits must not overlap (including the same insert position)
-   --	 * with the main edit nor with themselves.
+   --	 * selecting this completion. Edits must not overlap (including the same
+   --	 * insert position) with the main edit nor with themselves.
    --	 *
-   --	 * Additional text edits should be used to change text unrelated to the current cursor position
-   --	 * (for example adding an import statement at the top of the file if the completion item will
-   --	 * insert an unqualified type).
+   --	 * Additional text edits should be used to change text unrelated to the
+   --	 * current cursor position (for example adding an import statement at the
+   --	 * top of the file if the completion item will insert an unqualified type).
    --	 */
    --	additionalTextEdits?: TextEdit[];
    --
    --	/**
-   --	 * An optional set of characters that when pressed while this completion is active will accept it first and
-   --	 * then type that character. *Note* that all commit characters should have `length=1` and that superfluous
-   --	 * characters will be ignored.
+   --	 * An optional set of characters that when pressed while this completion is
+   --	 * active will accept it first and then type that character. *Note* that all
+   --	 * commit characters should have `length=1` and that superfluous characters
+   --	 * will be ignored.
    --	 */
    --	commitCharacters?: string[];
    --
    --	/**
-   --	 * An optional command that is executed *after* inserting this completion. *Note* that
-   --	 * additional modifications to the current document should be described with the
-   --	 * additionalTextEdits-property.
+   --	 * An optional command that is executed *after* inserting this completion.
+   --	 * *Note* that additional modifications to the current document should be
+   --	 * described with the additionalTextEdits-property.
    --	 */
    --	command?: Command;
    --
@@ -5513,19 +5671,21 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * MarkedString can be used to render human readable text. It is either a markdown string
-   -- * or a code-block that provides a language and a code snippet. The language identifier
-   -- * is semantically equal to the optional language identifier in fenced code blocks in GitHub
-   -- * issues. See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+   -- * MarkedString can be used to render human readable text. It is either a
+   -- * markdown string or a code-block that provides a language and a code snippet.
+   -- * The language identifier is semantically equal to the optional language
+   -- * identifier in fenced code blocks in GitHub issues.
    -- *
    -- * The pair of a language and a value is an equivalent to markdown:
    -- * ```${language}
    -- * ${value}
    -- * ```
    -- *
-   -- * Note that markdown strings will be sanitized - that means html will be escaped.
-   --* @deprecated use MarkupContent instead.
-   --*/
+   -- * Note that markdown strings will be sanitized - that means html will be
+   -- * escaped.
+   -- *
+   -- * @deprecated use MarkupContent instead.
+   -- */
    --type MarkedString = string | { language: string; value: string };
    --```
    type MarkedString (Is_String : Boolean := True) is record
@@ -5614,16 +5774,19 @@ package LSP.Messages is
    -- */
    --export interface SignatureHelp {
    --	/**
-   --	 * One or more signatures.
+   --	 * One or more signatures. If no signatures are available the signature help
+   --	 * request should return `null`.
    --	 */
    --	signatures: SignatureInformation[];
    --
    --	/**
    --	 * The active signature. If omitted or the value lies outside the
    --	 * range of `signatures` the value defaults to zero or is ignored if
-   --	 * `signatures.length === 0`. Whenever possible implementors should
-   --	 * make an active decision about the active signature and shouldn't
-   --	 * rely on a default value.
+   --	 * the `SignatureHelp` has no signatures.
+   --	 *
+   --	 * Whenever possible implementors should make an active decision about
+   --	 * the active signature and shouldn't rely on a default value.
+   --	 *
    --	 * In future version of the protocol this property might become
    --	 * mandatory to better express this.
    --	 */
@@ -5674,12 +5837,14 @@ package LSP.Messages is
    --	/**
    --	 * The label of this parameter information.
    --	 *
-   --	 * Either a string or an inclusive start and exclusive end offsets within its containing
-   --	 * signature label. (see SignatureInformation.label). The offsets are based on a UTF-16
-   --	 * string representation as `Position` and `Range` does.
+   --	 * Either a string or an inclusive start and exclusive end offsets within
+   --	 * its containing signature label. (see SignatureInformation.label). The
+   --	 * offsets are based on a UTF-16 string representation as `Position` and
+   --	 * `Range` does.
    --	 *
-   --	 * *Note*: a label of type string should be a substring of its containing signature label.
-   --	 * Its intended use case is to highlight the parameter label part in the `SignatureInformation.label`.
+   --	 * *Note*: a label of type string should be a substring of its containing
+   --	 * signature label. Its intended use case is to highlight the parameter
+   --	 * label part in the `SignatureInformation.label`.
    --	 */
    --	label: string | [uinteger, uinteger];
    --
@@ -5763,7 +5928,8 @@ package LSP.Messages is
    for SignatureHelp'Read use Read_SignatureHelp;
 
    --```typescript
-   --export interface ReferenceParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface ReferenceParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --	context: ReferenceContext
    --}
    --
@@ -5816,7 +5982,7 @@ package LSP.Messages is
    --	/**
    --	 * The highlight kind, default is DocumentHighlightKind.Text.
    --	 */
-   --	kind?: number;
+   --	kind?: DocumentHighlightKind;
    --}
    --
    --/**
@@ -5838,6 +6004,8 @@ package LSP.Messages is
    --	 */
    --	export const Write = 3;
    --}
+   --
+   --export type DocumentHighlightKind = 1 | 2 | 3;
    --```
    type DocumentHighlightKind is (Text, Read, Write);
 
@@ -5876,7 +6044,8 @@ package LSP.Messages is
      new DocumentHighlight_Vectors.Vector with null record;
 
    --```typescript
-   --export interface DocumentSymbolParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface DocumentSymbolParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -5930,15 +6099,17 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
-   -- * hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
-   -- * e.g. the range of an identifier.
+   -- * Represents programming constructs like variables, classes, interfaces etc.
+   -- * that appear in a document. Document symbols can be hierarchical and they
+   -- * have two ranges: one that encloses its definition and one that points to its
+   -- * most interesting range, e.g. the range of an identifier.
    -- */
    --export interface DocumentSymbol {
    --
    --	/**
-   --	 * The name of this symbol. Will be displayed in the user interface and therefore must not be
-   --	 * an empty string or a string only consisting of white spaces.
+   --	 * The name of this symbol. Will be displayed in the user interface and
+   --	 * therefore must not be an empty string or a string only consisting of
+   --	 * white spaces.
    --	 */
    --	name: string;
    --
@@ -5958,15 +6129,16 @@ package LSP.Messages is
    --	deprecated?: boolean;
    --
    --	/**
-   --	 * The range enclosing this symbol not including leading/trailing whitespace but everything else
-   --	 * like comments. This information is typically used to determine if the clients cursor is
-   --	 * inside the symbol to reveal in the symbol in the UI.
+   --	 * The range enclosing this symbol not including leading/trailing whitespace
+   --	 * but everything else like comments. This information is typically used to
+   --	 * determine if the clients cursor is inside the symbol to reveal in the
+   --	 * symbol in the UI.
    --	 */
    --	range: Range;
    --
    --	/**
-   --	 * The range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
-   --	 * Must be contained by the `range`.
+   --	 * The range that should be selected and revealed when this symbol is being
+   --	 * picked, e.g. the name of a function. Must be contained by the `range`.
    --	 */
    --	selectionRange: Range;
    --
@@ -6092,7 +6264,8 @@ package LSP.Messages is
    --/**
    -- * The parameters of a Workspace Symbol Request.
    -- */
-   --interface WorkspaceSymbolParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface WorkspaceSymbolParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * A query string to filter symbols by. Clients may send an empty
    --	 * string here to request all symbols.
@@ -6117,7 +6290,8 @@ package LSP.Messages is
    --/**
    -- * Params for the CodeActionRequest
    -- */
-   --export interface CodeActionParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface CodeActionParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The document in which the command was invoked.
    --	 */
@@ -6137,10 +6311,11 @@ package LSP.Messages is
    --/**
    -- * The kind of a code action.
    -- *
-   -- * Kinds are a hierarchical list of identifiers separated by `.`, e.g. `"refactor.extract.function"`.
+   -- * Kinds are a hierarchical list of identifiers separated by `.`,
+   -- * e.g. `"refactor.extract.function"`.
    -- *
-   -- * The set of kinds is open and client needs to announce the kinds it supports to the server during
-   -- * initialization.
+   -- * The set of kinds is open and client needs to announce the kinds it supports
+   -- * to the server during initialization.
    -- */
    --export type CodeActionKind = string;
    --
@@ -6211,9 +6386,11 @@ package LSP.Messages is
    --	export const Source: CodeActionKind = 'source';
    --
    --	/**
-   --	 * Base kind for an organize imports source action: `source.organizeImports`.
+   --	 * Base kind for an organize imports source action:
+   --	 * `source.organizeImports`.
    --	 */
-   --	export const SourceOrganizeImports: CodeActionKind = 'source.organizeImports';
+   --	export const SourceOrganizeImports: CodeActionKind =
+   --		'source.organizeImports';
    --}
    --
    --/**
@@ -6222,10 +6399,11 @@ package LSP.Messages is
    -- */
    --export interface CodeActionContext {
    --	/**
-   --	 * An array of diagnostics known on the client side overlapping the range provided to the
-   --	 * `textDocument/codeAction` request. They are provided so that the server knows which
-   --	 * errors are currently presented to the user for the given range. There is no guarantee
-   --	 * that these accurately reflect the error state of the resource. The primary parameter
+   --	 * An array of diagnostics known on the client side overlapping the range
+   --	 * provided to the `textDocument/codeAction` request. They are provided so
+   --	 * that the server knows which errors are currently presented to the user
+   --	 * for the given range. There is no guarantee that these accurately reflect
+   --	 * the error state of the resource. The primary parameter
    --	 * to compute code actions is the provided range.
    --	 */
    --	diagnostics: Diagnostic[];
@@ -6233,8 +6411,8 @@ package LSP.Messages is
    --	/**
    --	 * Requested kind of actions to return.
    --	 *
-   --	 * Actions not of this kind are filtered out by the client before being shown. So servers
-   --	 * can omit computing them.
+   --	 * Actions not of this kind are filtered out by the client before being
+   --	 * shown. So servers can omit computing them.
    --	 */
    --	only?: CodeActionKind[];
    --}
@@ -6285,12 +6463,14 @@ package LSP.Messages is
    -- * A code lens represents a command that should be shown along with
    -- * source text, like the number of references, a way to run tests, etc.
    -- *
-   -- * A code lens is _unresolved_ when no command is associated to it. For performance
-   -- * reasons the creation of a code lens and resolving should be done in two stages.
+   -- * A code lens is _unresolved_ when no command is associated to it. For
+   -- * performance reasons the creation of a code lens and resolving should be done
+   -- * in two stages.
    -- */
    --interface CodeLens {
    --	/**
-   --	 * The range in which this code lens is valid. Should only span a single line.
+   --	 * The range in which this code lens is valid. Should only span a single
+   --	 * line.
    --	 */
    --	range: Range;
    --
@@ -6313,7 +6493,8 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --interface DocumentLinkParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface DocumentLinkParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The document to provide document links for.
    --	 */
@@ -6326,8 +6507,8 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * A document link is a range in a text document that links to an internal or external resource, like another
-   -- * text document or a web site.
+   -- * A document link is a range in a text document that links to an internal or
+   -- * external resource, like another text document or a web site.
    -- */
    --interface DocumentLink {
    --	/**
@@ -6343,9 +6524,10 @@ package LSP.Messages is
    --	/**
    --	 * The tooltip text when you hover over this link.
    --	 *
-   --	 * If a tooltip is provided, is will be displayed in a string that includes instructions on how to
-   --	 * trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
-   --	 * user settings, and localization.
+   --	 * If a tooltip is provided, is will be displayed in a string that includes
+   --	 * instructions on how to trigger the link, such as `{0} (ctrl + click)`.
+   --	 * The specific instructions vary depending on OS, user settings, and
+   --	 * localization.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -6519,7 +6701,8 @@ package LSP.Messages is
      Write_DocumentOnTypeFormattingParams;
 
    --```typescript
-   --interface RenameParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --interface RenameParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --	/**
    --	 * The new name of the symbol. If the given name is not valid the
    --	 * request must return a [ResponseError](#ResponseError) with an
@@ -6605,9 +6788,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * An optional textual description for why the edit was not applied.
-   --	 * This may be used may be used by the server for diagnostic
-   --	 * logging or to provide a suitable error for a request that
-   --	 * triggered the edit.
+   --	 * This may be used by the server for diagnostic logging or to provide
+   --	 * a suitable error for a request that triggered the edit.
    --	 */
    --	failureReason?: string;
    --}
@@ -6641,8 +6823,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * Controls if a cancel button should show to allow the user to cancel the
-   --	 * long running operation. Clients that don't support cancellation are allowed
-   --	 * to ignore the setting.
+   --	 * long running operation. Clients that don't support cancellation are
+   --	 * allowed to ignore the setting.
    --	 */
    --	cancellable?: boolean;
    --
@@ -6661,7 +6843,7 @@ package LSP.Messages is
    --	 * to ignore the `percentage` value in subsequent in report notifications.
    --	 *
    --	 * The value should be steadily rising. Clients are free to ignore values
-   --	 * that are not following this rule.
+   --	 * that are not following this rule. The value range is [0, 100]
    --	 */
    --	percentage?: uinteger;
    --}
@@ -6680,11 +6862,11 @@ package LSP.Messages is
    --	kind: 'report';
    --
    --	/**
-   --	 * Controls enablement state of a cancel button. This property is only valid if a cancel
-   --	 * button got requested in the `WorkDoneProgressStart` payload.
+   --	 * Controls enablement state of a cancel button. This property is only valid
+   --	 *  if a cancel button got requested in the `WorkDoneProgressStart` payload.
    --	 *
-   --	 * Clients that don't support cancellation or don't support control the button's
-   --	 * enablement state are allowed to ignore the setting.
+   --	 * Clients that don't support cancellation or don't support control the
+   --	 * button's enablement state are allowed to ignore the setting.
    --	 */
    --	cancellable?: boolean;
    --
@@ -6703,7 +6885,7 @@ package LSP.Messages is
    --	 * to ignore the `percentage` value in subsequent in report notifications.
    --	 *
    --	 * The value should be steadily rising. Clients are free to ignore values
-   --	 * that are not following this rule.
+   --	 * that are not following this rule. The value range is [0, 100]
    --	 */
    --	percentage?: uinteger;
    --}
@@ -6905,10 +7087,12 @@ package LSP.Messages is
    for ConfigurationParams'Write use Write_ConfigurationParams;
 
    --```typescript
-   --export interface CompletionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface CompletionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The completion context. This is only available if the client specifies
-   --	 * to send this using `ClientCapabilities.textDocument.completion.contextSupport === true`
+   --	 * to send this using the client capability
+   --	 * `completion.contextSupport === true`
    --	 */
    --	context?: CompletionContext;
    --}
@@ -6925,7 +7109,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * Completion was triggered by a trigger character specified by
-   --	 * the `triggerCharacters` properties of the `CompletionRegistrationOptions`.
+   --	 * the `triggerCharacters` properties of the
+   --	 * `CompletionRegistrationOptions`.
    --	 */
    --	export const TriggerCharacter: 2 = 2;
    --
@@ -6938,7 +7123,8 @@ package LSP.Messages is
    --
    --
    --/**
-   -- * Contains additional information about the context in which a completion request is triggered.
+   -- * Contains additional information about the context in which a completion
+   -- * request is triggered.
    -- */
    --export interface CompletionContext {
    --	/**
@@ -6947,8 +7133,9 @@ package LSP.Messages is
    --	triggerKind: CompletionTriggerKind;
    --
    --	/**
-   --	 * The trigger character (a single character) that has trigger code complete.
-   --	 * Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
+   --	 * The trigger character (a single character) that has trigger code
+   --	 * complete. Is undefined if
+   --	 * `triggerKind !== CompletionTriggerKind.TriggerCharacter`
    --	 */
    --	triggerCharacter?: string;
    --}
@@ -6998,10 +7185,11 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * A code action represents a change that can be performed in code, e.g. to fix a problem or
-   -- * to refactor code.
+   -- * A code action represents a change that can be performed in code, e.g. to fix
+   -- * a problem or to refactor code.
    -- *
-   -- * A CodeAction must set either `edit` and/or a `command`. If both are supplied, the `edit` is applied first, then the `command` is executed.
+   -- * A CodeAction must set either `edit` and/or a `command`. If both are supplied,
+   -- * the `edit` is applied first, then the `command` is executed.
    -- */
    --export interface CodeAction {
    --
@@ -7023,11 +7211,12 @@ package LSP.Messages is
    --	diagnostics?: Diagnostic[];
    --
    --	/**
-   --	 * Marks this as a preferred action. Preferred actions are used by the `auto fix` command and can be targeted
-   --	 * by keybindings.
+   --	 * Marks this as a preferred action. Preferred actions are used by the
+   --	 * `auto fix` command and can be targeted by keybindings.
    --	 *
-   --	 * A quick fix should be marked preferred if it properly addresses the underlying error.
-   --	 * A refactoring should be marked preferred if it is the most reasonable choice of actions to take.
+   --	 * A quick fix should be marked preferred if it properly addresses the
+   --	 * underlying error. A refactoring should be marked preferred if it is the
+   --	 * most reasonable choice of actions to take.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -7147,7 +7336,8 @@ package LSP.Messages is
      new ColorInformation_Vectors.Vector with null record;
 
    --```typescript
-   --interface ColorPresentationParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface ColorPresentationParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7183,19 +7373,20 @@ package LSP.Messages is
    --interface ColorPresentation {
    --	/**
    --	 * The label of this color presentation. It will be shown on the color
-   --	 * picker header. By default this is also the text that is inserted when selecting
-   --	 * this color presentation.
+   --	 * picker header. By default this is also the text that is inserted when
+   --	 * selecting this color presentation.
    --	 */
    --	label: string;
    --	/**
    --	 * An [edit](#TextEdit) which is applied to a document when selecting
-   --	 * this presentation for the color.  When `falsy` the [label](#ColorPresentation.label)
-   --	 * is used.
+   --	 * this presentation for the color.  When `falsy` the
+   --	 * [label](#ColorPresentation.label) is used.
    --	 */
    --	textEdit?: TextEdit;
    --	/**
-   --	 * An optional array of additional [text edits](#TextEdit) that are applied when
-   --	 * selecting this color presentation. Edits must not overlap with the main [edit](#ColorPresentation.textEdit) nor with themselves.
+   --	 * An optional array of additional [text edits](#TextEdit) that are applied
+   --	 * when selecting this color presentation. Edits must not overlap with the
+   --	 * main [edit](#ColorPresentation.textEdit) nor with themselves.
    --	 */
    --	additionalTextEdits?: TextEdit[];
    --}
@@ -7222,7 +7413,8 @@ package LSP.Messages is
      new ColorPresentation_Vectors.Vector with null record;
 
    --```typescript
-   --export interface FoldingRangeParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface FoldingRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7262,34 +7454,43 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Represents a folding range.
+   -- * Represents a folding range. To be valid, start and end line must be bigger
+   -- * than zero and smaller than the number of lines in the document. Clients
+   -- * are free to ignore invalid ranges.
    -- */
    --export interface FoldingRange {
    --
    --	/**
-   --	 * The zero-based line number from where the folded range starts.
+   --	 * The zero-based start line of the range to fold. The folded area starts
+   --	 * after the line's last character. To be valid, the end must be zero or
+   --	 * larger and smaller than the number of lines in the document.
    --	 */
    --	startLine: uinteger;
    --
    --	/**
-   --	 * The zero-based character offset from where the folded range starts. If not defined, defaults to the length of the start line.
+   --	 * The zero-based character offset from where the folded range starts. If
+   --	 * not defined, defaults to the length of the start line.
    --	 */
    --	startCharacter?: uinteger;
    --
    --	/**
-   --	 * The zero-based line number where the folded range ends.
+   --	 * The zero-based end line of the range to fold. The folded area ends with
+   --	 * the line's last character. To be valid, the end must be zero or larger
+   --	 * and smaller than the number of lines in the document.
    --	 */
    --	endLine: uinteger;
    --
    --	/**
-   --	 * The zero-based character offset before the folded range ends. If not defined, defaults to the length of the end line.
+   --	 * The zero-based character offset before the folded range ends. If not
+   --	 * defined, defaults to the length of the end line.
    --	 */
    --	endCharacter?: uinteger;
    --
    --	/**
-   --	 * Describes the kind of the folding range such as `comment` or `region`. The kind
-   --	 * is used to categorize folding ranges and used by commands like 'Fold all comments'. See
-   --	 * [FoldingRangeKind](#FoldingRangeKind) for an enumeration of standardized kinds.
+   --	 * Describes the kind of the folding range such as `comment` or `region`.
+   --	 * The kind is used to categorize folding ranges and used by commands like
+   --	 * 'Fold all comments'. See [FoldingRangeKind](#FoldingRangeKind) for an
+   --	 * enumeration of standardized kinds.
    --	 */
    --	kind?: string;
    --}
@@ -7324,7 +7525,8 @@ package LSP.Messages is
    Region  : constant FoldingRangeKind := +"region";
 
    --```typescript
-   --interface DocumentColorParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface DocumentColorParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7345,21 +7547,25 @@ package LSP.Messages is
    for DocumentColorParams'Write use Write_DocumentColorParams;
 
    --```typescript
-   --export interface HoverRegistrationOptions extends TextDocumentRegistrationOptions, HoverOptions {
+   --export interface HoverRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, HoverOptions {
    --}
    --```
 
    --```typescript
-   --export interface HoverParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --export interface HoverParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --}
    --```
    type HoverParams is new Text_Progress_Params with null record;
 
    --```typescript
-   --export interface SignatureHelpParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --export interface SignatureHelpParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --	/**
-   --	 * The signature help context. This is only available if the client specifies
-   --	 * to send this using the client capability  `textDocument.signatureHelp.contextSupport === true`
+   --	 * The signature help context. This is only available if the client
+   --	 * specifies to send this using the client capability
+   --	 * `textDocument.signatureHelp.contextSupport === true`
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -7381,14 +7587,16 @@ package LSP.Messages is
    --	 */
    --	export const TriggerCharacter: 2 = 2;
    --	/**
-   --	 * Signature help was triggered by the cursor moving or by the document content changing.
+   --	 * Signature help was triggered by the cursor moving or by the document
+   --	 * content changing.
    --	 */
    --	export const ContentChange: 3 = 3;
    --}
    --export type SignatureHelpTriggerKind = 1 | 2 | 3;
    --
    --/**
-   -- * Additional information about the context in which a signature help request was triggered.
+   -- * Additional information about the context in which a signature help request
+   -- * was triggered.
    -- *
    -- * @since 3.15.0
    -- */
@@ -7401,23 +7609,25 @@ package LSP.Messages is
    --	/**
    --	 * Character that caused signature help to be triggered.
    --	 *
-   --	 * This is undefined when `triggerKind !== SignatureHelpTriggerKind.TriggerCharacter`
+   --	 * This is undefined when triggerKind !==
+   --	 * SignatureHelpTriggerKind.TriggerCharacter
    --	 */
    --	triggerCharacter?: string;
    --
    --	/**
    --	 * `true` if signature help was already showing when it was triggered.
    --	 *
-   --	 * Retriggers occur when the signature help is already active and can be caused by actions such as
-   --	 * typing a trigger character, a cursor move, or document content changes.
+   --	 * Retriggers occur when the signature help is already active and can be
+   --	 * caused by actions such as typing a trigger character, a cursor move, or
+   --	 * document content changes.
    --	 */
    --	isRetrigger: boolean;
    --
    --	/**
    --	 * The currently active `SignatureHelp`.
    --	 *
-   --	 * The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field updated based on
-   --	 * the user navigating through available signatures.
+   --	 * The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field
+   --	 * updated based on the user navigating through available signatures.
    --	 */
    --	activeSignatureHelp?: SignatureHelp;
    --}
@@ -7440,37 +7650,43 @@ package LSP.Messages is
    for NavigationRequestParams'Write use Write_NavigationRequestParams;
 
    --```typescript
-   --export interface DeclarationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DeclarationParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DeclarationParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface DefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DefinitionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DefinitionParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface TypeDefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface TypeDefinitionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type TypeDefinitionParams is new Text_Progress_Partial_Params with null record;
 
    --```typescript
-   --export interface ImplementationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface ImplementationParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type ImplementationParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface DocumentHighlightParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DocumentHighlightParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DocumentHighlightParams is new Text_Progress_Partial_Params with null record;
 
    --```typescript
-   --export interface SelectionRangeParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface SelectionRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7503,7 +7719,8 @@ package LSP.Messages is
    --     */
    --    range: Range;
    --    /**
-   --     * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
+   --     * The parent selection range containing this range. Therefore
+   --	 * `parent.range` must contain `this.range`.
    --     */
    --    parent?: SelectionRange;
    --}
@@ -7842,5 +8059,62 @@ private
    function Method_To_Tag
      (Map    : Maps.Map;
       Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+
+   --  Here are useless typescript snippets from LSP specification, such as
+   --  examples. We keep them to be able to restore all snippets and compare
+   --  them to the LSP specification on upgrading LSP version.
+   --
+   --```typescript
+   --{
+   --    start: { line: 5, character: 23 },
+   --    end : { line: 6, character: 0 }
+   --}
+   --```
+   --```typescript
+   --textDocument.codeAction.resolveSupport = { properties: ['edit']};
+   --```
+   --```typescript
+   --{
+   --    "title": "Do Foo"
+   --}
+   --```
+   --```typescript
+   --{ line: 2, startChar:  5, length: 3, tokenType: "property",
+   --	tokenModifiers: ["private", "static"]
+   --},
+   --{ line: 2, startChar: 10, length: 4, tokenType: "type", tokenModifiers: [] },
+   --{ line: 5, startChar:  2, length: 7, tokenType: "class", tokenModifiers: [] }
+   --```
+   --```typescript
+   --{
+   --   tokenTypes: ['property', 'type', 'class'],
+   --   tokenModifiers: ['private', 'static']
+   --}
+   --```
+   --```typescript
+   --{ line: 2, startChar:  5, length: 3, tokenType: 0, tokenModifiers: 3 },
+   --{ line: 2, startChar: 10, length: 4, tokenType: 1, tokenModifiers: 0 },
+   --{ line: 5, startChar:  2, length: 7, tokenType: 2, tokenModifiers: 0 }
+   --```
+   --```typescript
+   --{ deltaLine: 2, deltaStartChar: 5, length: 3, tokenType: 0, tokenModifiers: 3 },
+   --{ deltaLine: 0, deltaStartChar: 5, length: 4, tokenType: 1, tokenModifiers: 0 },
+   --{ deltaLine: 3, deltaStartChar: 2, length: 7, tokenType: 2, tokenModifiers: 0 }
+   --```
+   --```typescript
+   --// 1st token,  2nd token,  3rd token
+   --[  2,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0 ]
+   --```
+   --```typescript
+   --{ line: 3, startChar:  5, length: 3, tokenType: "property",
+   --	tokenModifiers: ["private", "static"]
+   --},
+   --{ line: 3, startChar: 10, length: 4, tokenType: "type", tokenModifiers: [] },
+   --{ line: 6, startChar:  2, length: 7, tokenType: "class", tokenModifiers: [] }
+   --```
+   --```typescript
+   --// 1st token,  2nd token,  3rd token
+   --[  3,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0]
+   --```
 
 end LSP.Messages;
