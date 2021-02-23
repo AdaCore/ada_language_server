@@ -56,12 +56,7 @@
                      "renameProvider": {
                      },
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-named-parameters",
-                           "als-refactor-imports"
-                        ]
-                     },
+                     "executeCommandProvider": {},
                      "alsCalledByProvider": true,
                      "alsReferenceKinds": [
                         "reference",
