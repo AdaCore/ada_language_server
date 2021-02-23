@@ -96,12 +96,7 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-named-parameters",
-                           "als-refactor-imports"
-                        ]
-                     },
+                     "executeCommandProvider": {},
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsCalledByProvider": true,
