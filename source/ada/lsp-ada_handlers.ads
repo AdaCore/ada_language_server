@@ -180,6 +180,10 @@ private
       --  textDocument/documentSymbol handler. Actual value depends on
       --  client's capabilities.
 
+      Versioned_Documents : Boolean := False;
+      --  Client capabilities to support versioned document changes in
+      --  `WorkspaceEdit`s.
+
       Line_Folding_Only : Boolean := False;
       --  Client capabilities, folding only per lines
 
@@ -442,5 +446,13 @@ private
    --  If the document is not opened, then if Force a new document
    --  will be created and must be freed by the user else null will be
    --  returned.
+
+   overriding function Get_Open_Document_Version
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri)
+      return LSP.Messages.VersionedTextDocumentIdentifier;
+   --  Return the version of an open document for the given URI.
+   --  If the document is not opened, then it returns a
+   --  VersionedTextDocumentIdentifier with a null version.
 
 end LSP.Ada_Handlers;

@@ -21,6 +21,7 @@ with Ada.Containers.Vectors;
 with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
+with Ada.Strings.Wide_Wide_Unbounded;
 with GNATCOLL.JSON;
 with VSS.Strings;
 with VSS.Unicode;
@@ -112,6 +113,11 @@ package LSP.Types is
    --  Convert given UTF-8 string into LSP_String
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
+   function To_LSP_String
+     (Text : Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String)
+      return LSP_String
+   is (To_LSP_String
+       (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Text)));
    function To_LSP_String
      (Item : VSS.Strings.Virtual_String) return LSP_String;
 
