@@ -54,7 +54,10 @@
                             "executeCommandProvider": {
                                 "commands": [
                                     "als-named-parameters",
-                                    "als-refactor-imports"
+                                    "als-refactor-imports",
+                                    "als-refactor-remove-parameters",
+                                    "als-refactor-move-parameter",
+                                    "als-refactor-change-parameter-mode"
                                 ]
                             },
                             "workspaceSymbolProvider": true,

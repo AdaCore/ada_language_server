@@ -1,0 +1,615 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 269432,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ],
+                        "failureHandling": "textOnlyTransactional",
+                        "normalizesLineEndings": true,
+                        "changeAnnotationSupport": {
+                           "groupsOnLabel": true
+                        }
+                     },
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeWatchedFiles": {
+                        "dynamicRegistration": true
+                     },
+                     "symbol": {},
+                     "codeLens": {
+                        "refreshSupport": true
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     },
+                     "configuration": true,
+                     "workspaceFolders": true,
+                     "semanticTokens": {
+                        "refreshSupport": true
+                     },
+                     "fileOperations": {}
+                  },
+                  "textDocument": {
+                     "publishDiagnostics": {},
+                     "synchronization": {
+                        "dynamicRegistration": true,
+                        "willSave": true,
+                        "willSaveWaitUntil": true,
+                        "didSave": true
+                     },
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": {
+                              "valueSet": [
+                                 1
+                              ]
+                           },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": {
+                              "valueSet": [
+                                 1,
+                                 2
+                              ]
+                           }
+                        },
+                        "completionItemKind": {}
+                     },
+                     "hover": {
+                        "dynamicRegistration": true,
+                        "contentFormat": [
+                           "markdown",
+                           "plaintext"
+                        ]
+                     },
+                     "signatureHelp": {
+                        "dynamicRegistration": true,
+                        "signatureInformation": {
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "parameterInformation": {
+                              "labelOffsetSupport": true
+                           },
+                           "activeParameterSupport": true
+                        },
+                        "contextSupport": true
+                     },
+                     "definition": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     },
+                     "references": {
+                        "dynamicRegistration": true
+                     },
+                     "documentHighlight": {
+                        "dynamicRegistration": true
+                     },
+                     "documentSymbol": {},
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "isPreferredSupport": true,
+                        "disabledSupport": true,
+                        "dataSupport": true,
+                        "resolveSupport": {
+                           "properties": [
+                              "edit"
+                           ]
+                        },
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "",
+                                 "quickfix",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite",
+                                 "source",
+                                 "source.organizeImports"
+                              ]
+                           }
+                        },
+                        "honorsChangeAnnotations": false
+                     },
+                     "rename": {
+                        "dynamicRegistration": true,
+                        "prepareSupport": true,
+                        "prepareSupportDefaultBehavior": 1,
+                        "honorsChangeAnnotations": true
+                     }
+                  }
+               },
+               "workspaceFolders": [
+                  {
+                     "uri": "$URI{.}",
+                     "name": "S314-015.refactor_remove_parameter_0"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {
+                        "codeActionKinds": [
+                           "refactor.rewrite"
+                        ]
+                     },
+                     "documentFormattingProvider": true,
+                     "renameProvider": {
+                        "prepareProvider": true
+                     },
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode"
+                        ]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsCalledByProvider": true,
+                     "alsCallsProvider": true,
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "verbose"
+                     },
+                     "projectFile": "",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\n    procedure Foo (A, B: Integer; C: Float);\n\n    procedure Foo (A, B: Integer; C: Float) is\n    begin\n        null;\n    end Foo;\nbegin\n    Foo (1, 2, 3.0);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 1,
+                     "character": 19
+                  },
+                  "end": {
+                     "line": 1,
+                     "character": 19
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  {
+                     "title": "Remove parameter A",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-remove-parameters",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 1,
+                                    "character": 14
+                                 }
+                              },
+                              "first_parameter": 1,
+                              "last_parameter": 1
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Move A forward",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-move-parameter",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 1,
+                                    "character": 14
+                                 }
+                              },
+                              "parameter_index": 1,
+                              "direction": "forward"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Change parameter A mode to in",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-change-parameter-mode",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 1,
+                                    "character": 14
+                                 }
+                              },
+                              "first_parameter": 1,
+                              "last_parameter": 1,
+                              "new_mode": "in"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Change parameter A mode to out",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-change-parameter-mode",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 1,
+                                    "character": 14
+                                 }
+                              },
+                              "first_parameter": 1,
+                              "last_parameter": 1,
+                              "new_mode": "out"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Change parameter A mode to in out",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-change-parameter-mode",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 1,
+                                    "character": 14
+                                 }
+                              },
+                              "first_parameter": 1,
+                              "last_parameter": 1,
+                              "new_mode": "in out"
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-refactor-change-parameter-mode",
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{main.adb}"
+                        },
+                        "position": {
+                           "line": 1,
+                           "character": 14
+                        }
+                     },
+                     "first_parameter": 1,
+                     "last_parameter": 1,
+                     "new_mode": "in"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 1,
+                                       "character": 20
+                                    },
+                                    "end": {
+                                       "line": 1,
+                                       "character": 22
+                                    }
+                                 },
+                                 "newText": " : in Integer;"
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 3,
+                                       "character": 20
+                                    },
+                                    "end": {
+                                       "line": 3,
+                                       "character": 22
+                                    }
+                                 },
+                                 "newText": " : in Integer;"
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 22
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": ": in Integer;"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 21
+                        }
+                     },
+                     "rangeLength": 1,
+                     "text": ""
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 22
+                        }
+                     },
+                     "rangeLength": 0,
+                     "text": ": in Integer;"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 21
+                        }
+                     },
+                     "rangeLength": 1,
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 26,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 26,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
