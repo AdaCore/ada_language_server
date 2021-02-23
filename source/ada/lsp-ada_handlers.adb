@@ -35,6 +35,9 @@ with LSP.Ada_Completion_Sets;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
+with LSP.Ada_Handlers.Refactor_Remove_Parameter;
+with LSP.Ada_Handlers.Refactor_Move_Parameter;
+with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
@@ -52,6 +55,7 @@ with Langkit_Support.Text;
 with Laltools.Call_Hierarchy;
 with Laltools.Common;
 with Laltools.Refactor_Imports;
+with Laltools.Refactor.Subprogram_Signature;
 with Laltools.Refactor.Rename;
 
 with Libadalang.Analysis;
@@ -294,6 +298,38 @@ package body LSP.Ada_Handlers is
          return null;
       end if;
    end Get_Open_Document;
+
+   -------------------------------
+   -- Get_Open_Document_Version --
+   -------------------------------
+
+   overriding
+   function Get_Open_Document_Version
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri)
+      return LSP.Messages.VersionedTextDocumentIdentifier
+   is
+      Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+      use type LSP.Ada_Documents.Document_Access;
+
+   begin
+      --  If the target textDocument hasn't been opened in the editor
+      --  then ALS hasn't received an open notification before. Therefore
+      --  Target_Text_Document will be null.
+      --  In that case, its VersionedTextDocumentIdentifier.version will
+      --  be null.
+
+      if Target_Text_Document = null then
+         return LSP.Messages.VersionedTextDocumentIdentifier'
+           (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
+
+      else
+         return LSP.Messages.VersionedTextDocumentIdentifier'
+           (uri     => Target_Text_Document.Versioned_Identifier.uri,
+            version => Target_Text_Document.Versioned_Identifier.version);
+      end if;
+   end Get_Open_Document_Version;
 
    ---------------------------------
    -- Send_Imprecise_Xref_Message --
@@ -676,6 +712,11 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
 
+      --  Client capability to support versioned document changes in
+      --  `WorkspaceEdit`s.
+      Self.Versioned_Documents :=
+        Value.capabilities.workspace.workspaceEdit.documentChanges = True;
+
       if Value.capabilities.textDocument.documentSymbol.Is_Set
         and then Value.capabilities.textDocument.documentSymbol.Value
           .hierarchicalDocumentSymbolSupport = True
@@ -1004,6 +1045,95 @@ package body LSP.Ada_Handlers is
                null;
 
          end case;
+
+         --  Refactoring Code Actions
+
+         --  Remove Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor_Remove_Parameter;
+            use Libadalang.Analysis;
+            use Laltools.Common;
+            use Laltools.Refactor.Subprogram_Signature;
+
+            Target_Subp              : Basic_Decl := No_Basic_Decl;
+            Parameter_Indices_Range  : Parameter_Indices_Range_Type;
+            Remove_Parameter_Command : Command;
+
+         begin
+            if Is_Remove_Parameter_Available
+              (Node, Target_Subp, Parameter_Indices_Range)
+            then
+               Remove_Parameter_Command.Append_Code_Action
+                 (Context            => Context,
+                  Commands_Vector    => Result,
+                  Target_Subp        => Target_Subp,
+                  Parameters_Indices => Parameter_Indices_Range);
+
+               Found := True;
+               Done := True;
+            end if;
+         end;
+
+         --  Move Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor_Move_Parameter;
+            use Libadalang.Analysis;
+            use Laltools.Refactor.Subprogram_Signature;
+
+            Target_Subp            : Basic_Decl := No_Basic_Decl;
+            Parameter_Index        : Positive;
+            Move_Directions        : Move_Direction_Availability_Type;
+            Move_Parameter_Command : Command;
+
+         begin
+            if Is_Move_Parameter_Available
+              (Node, Target_Subp, Parameter_Index, Move_Directions)
+            then
+               for Direction in Move_Direction_Type loop
+                  if Move_Directions (Direction) then
+                     Move_Parameter_Command.Append_Code_Action
+                       (Context          => Context,
+                        Commands_Vector  => Result,
+                        Target_Subp      => Target_Subp,
+                        Parameter_Index  => Parameter_Index,
+                        Move_Direction   => Direction);
+                  end if;
+               end loop;
+
+               Found := True;
+               Done := True;
+            end if;
+         end;
+
+         --  Change Parameter Mode
+         declare
+            use LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+            use Libadalang.Analysis;
+            use Laltools.Common;
+            use Laltools.Refactor.Subprogram_Signature;
+
+            Target_Subp                   : Basic_Decl := No_Basic_Decl;
+            Target_Parameters_Indices     : Parameter_Indices_Range_Type;
+            Mode_Alternatives             : Mode_Alternatives_Type;
+            Change_Parameter_Mode_Command : Command;
+
+         begin
+            if Is_Change_Mode_Available
+              (Node, Target_Subp, Target_Parameters_Indices, Mode_Alternatives)
+            then
+               for Alternative of Mode_Alternatives loop
+                  Change_Parameter_Mode_Command.Append_Code_Action
+                    (Context            => Context,
+                     Commands_Vector    => Result,
+                     Target_Subp        => Target_Subp,
+                     Parameters_Indices => Target_Parameters_Indices,
+                     New_Mode           => Alternative);
+               end loop;
+
+               Found := True;
+               Done := True;
+            end if;
+         end;
       end Analyse_Node;
 
       ------------------------

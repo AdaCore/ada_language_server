@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,7 +35,7 @@ with Langkit_Support.Token_Data_Handlers;
 
 with Pp.Actions;
 
-with LSP.Types;         use LSP.Types;
+with LSP.Types; use LSP.Types;
 
 package body LSP.Lal_Utils is
 
@@ -420,6 +420,64 @@ package body LSP.Lal_Utils is
    begin
       return Result;
    end To_Span;
+
+   -----------------
+   -- To_TextEdit --
+   -----------------
+
+   function To_TextEdit
+     (E : Laltools.Refactor.Text_Edit)
+      return LSP.Messages.TextEdit
+   is (LSP.Messages.TextEdit'(To_Span (E.Location), To_LSP_String (E.Text)));
+
+   -----------------------
+   -- To_Workspace_Edit --
+   -----------------------
+
+   function To_Workspace_Edit
+     (EM                  : Laltools.Refactor.Text_Edit_Map;
+      Versioned_Documents : Boolean := False;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
+      := null)
+      return LSP.Messages.WorkspaceEdit
+   is
+      File_URI : LSP.Types.LSP_String;
+
+      Text_Edits : LSP.Messages.TextEdit_Vector;
+
+      use Laltools.Refactor.Text_Edit_Ordered_Maps;
+
+      Edits_Cursor : Cursor := EM.First;
+
+   begin
+      return WE : LSP.Messages.WorkspaceEdit do
+         while Has_Element (Edits_Cursor) loop
+            Text_Edits.Clear;
+
+            for Edit of Element (Edits_Cursor) loop
+               Text_Edits.Append (To_TextEdit (Edit));
+            end loop;
+
+            File_URI := LSP.Ada_Contexts.File_To_URI
+              (LSP.Types.To_LSP_String (Key (Edits_Cursor)));
+
+            if Versioned_Documents then
+               WE.documentChanges.Append
+                 (LSP.Messages.Document_Change'(
+                  (Kind               => LSP.Messages.Text_Document_Edit,
+                   Text_Document_Edit => LSP.Messages.TextDocumentEdit'
+                     (textDocument =>
+                        Document_Provider.Get_Open_Document_Version (File_URI),
+                      edits        => Text_Edits))));
+
+            else
+               WE.changes.Insert (File_URI, Text_Edits);
+            end if;
+
+            Next (Edits_Cursor);
+         end loop;
+      end return;
+   end To_Workspace_Edit;
 
    ------------------
    -- Canonicalize --

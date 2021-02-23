@@ -220,6 +220,14 @@ package LSP.Ada_Documents is
    --  will be created and must be freed by the user else null will be
    --  returned.
 
+   function Get_Open_Document_Version
+     (Self  : access Document_Provider;
+      URI   : LSP.Messages.DocumentUri)
+      return LSP.Messages.VersionedTextDocumentIdentifier is abstract;
+   --  Return the version of an open document for the given URI.
+   --  If the document is not opened, then it returns a
+   --  VersionedTextDocumentIdentifier with a null version.
+
    function Compute_Completion_Item
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
