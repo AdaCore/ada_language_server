@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,9 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
+with LSP.Ada_Handlers.Refactor_Remove_Parameter;
+with LSP.Ada_Handlers.Refactor_Move_Parameter;
+with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -129,6 +132,12 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Imports_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Remove_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Move_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Change_Parameter_Mode.Command'Tag);
    end Register_Commands;
 
    use GNAT.Strings;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,6 +22,7 @@ with LSP.Messages;
 with LSP.Types;
 
 with Laltools.Common;
+with Laltools.Refactor;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
@@ -35,6 +36,7 @@ with Pp.Scanner;
 with Ada.Strings.Unbounded;
 
 with VSS.Strings;
+with LSP.Ada_Documents;
 
 package LSP.Lal_Utils is
 
@@ -78,6 +80,20 @@ package LSP.Lal_Utils is
      (Value : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Messages.Span;
    --  Convert Source_Location_Range to Span
+
+   function To_TextEdit
+     (E : Laltools.Refactor.Text_Edit)
+      return LSP.Messages.TextEdit;
+   --  Converts an Edit into a TextEdit
+
+   function To_Workspace_Edit
+     (EM                  : Laltools.Refactor.Text_Edit_Map;
+      Versioned_Documents : Boolean := False;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
+      := null)
+      return LSP.Messages.WorkspaceEdit
+     with Pre => (if Versioned_Documents then Document_Provider /= null);
+   --  Converts an Edit_Map into a WorkspaceEdit
 
    ---------------
    -- Called_By --
