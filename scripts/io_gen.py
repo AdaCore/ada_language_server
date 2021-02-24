@@ -26,6 +26,7 @@ types_to_print = {
     'TextEdit',
     'TextDocumentIdentifier',
     'VersionedTextDocumentIdentifier',
+    'OptionalVersionedTextDocumentIdentifier',
     'TextDocumentEdit',
     #  'CreateFileOptions',
     #  'CreateFile',

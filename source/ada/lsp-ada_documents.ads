@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -72,7 +72,7 @@ package LSP.Ada_Documents is
 
    procedure Apply_Changes
      (Self    : aliased in out Document;
-      Version : LSP.Messages.Nullable_Number;
+      Version : LSP.Types.LSP_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
 

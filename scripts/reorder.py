@@ -80,6 +80,7 @@ order = [
     'interface TextDocumentIdentifier ',
     'interface TextDocumentItem ',
     'interface VersionedTextDocumentIdentifier ',
+    'interface OptionalVersionedTextDocumentIdentifier ',
     'interface TextDocumentPositionParams ',
     '{ language: ',
     'interface DocumentFilter ',

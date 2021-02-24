@@ -157,7 +157,7 @@ package body LSP.Ada_Documents is
 
    procedure Apply_Changes
      (Self    : aliased in out Document;
-      Version : LSP.Messages.Nullable_Number;
+      Version : LSP.Types.LSP_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
       File : constant String :=
@@ -167,9 +167,7 @@ package body LSP.Ada_Documents is
    begin
       Self.Trace.Trace ("Applying changes for document " & File);
 
-      if Version.Is_Set then
-         Self.Version := Version.Value;
-      end if;
+      Self.Version := Version;
 
       for Change of Vector loop
          if Change.span.Is_Set then
@@ -2526,7 +2524,7 @@ package body LSP.Ada_Documents is
      (Self : Document) return LSP.Messages.VersionedTextDocumentIdentifier is
    begin
       return (uri     => Self.URI,
-              version => (Is_Set => True, Value => Self.Version));
+              version => Self.Version);
    end Versioned_Identifier;
 
 end LSP.Ada_Documents;
