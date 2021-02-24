@@ -902,24 +902,16 @@ package LSP.Messages is
    --```typescript
    --interface VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
    --	/**
-   --	 * The version number of this document. If a versioned text document identifier
-   --	 * is sent from the server to the client and the file is not open in the editor
-   --	 * (the server has not received an open notification before) the server can send
-   --	 * `null` to indicate that the version is known and the content on disk is the
-   --	 * master (as speced with document content ownership).
+   --	 * The version number of this document.
    --	 *
-   --	 * The version number of a document will increase after each change, including
-   --	 * undo/redo. The number doesn't need to be consecutive.
+   --	 * The version number of a document will increase after each change,
+   --	 * including undo/redo. The number doesn't need to be consecutive.
    --	 */
-   --	version: number | null;
+   --	version: integer;
    --}
    --```
-   package Nullable_Numbers is new LSP.Generic_Optional
-     (LSP_Number, Write_Unset_As_Null => True);
-   type Nullable_Number is new Nullable_Numbers.Optional_Type;
-
    type VersionedTextDocumentIdentifier is new TextDocumentIdentifier with record
-      version: Nullable_Number;
+      version: LSP_Number;
    end record;
 
    procedure Read_VersionedTextDocumentIdentifier
@@ -934,12 +926,48 @@ package LSP.Messages is
    for VersionedTextDocumentIdentifier'Write use
      Write_VersionedTextDocumentIdentifier;
 
+   package Nullable_Numbers is new LSP.Generic_Optional
+     (LSP_Number, Write_Unset_As_Null => True);
+   type Nullable_Number is new Nullable_Numbers.Optional_Type;
+
+   --```typescript
+   --interface OptionalVersionedTextDocumentIdentifier extends TextDocumentIdentifier {
+   --	/**
+   --	 * The version number of this document. If an optional versioned text document
+   --	 * identifier is sent from the server to the client and the file is not
+   --	 * open in the editor (the server has not received an open notification
+   --	 * before) the server can send `null` to indicate that the version is
+   --	 * known and the content on disk is the master (as specified with document
+   --	 * content ownership).
+   --	 *
+   --	 * The version number of a document will increase after each change,
+   --	 * including undo/redo. The number doesn't need to be consecutive.
+   --	 */
+   --	version: integer | null;
+   --}
+   --```
+   type OptionalVersionedTextDocumentIdentifier is new TextDocumentIdentifier with record
+      version: Nullable_Number;
+   end record;
+
+   procedure Read_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out OptionalVersionedTextDocumentIdentifier);
+   for OptionalVersionedTextDocumentIdentifier'Read use
+     Read_OptionalVersionedTextDocumentIdentifier;
+
+   procedure Write_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : OptionalVersionedTextDocumentIdentifier);
+   for OptionalVersionedTextDocumentIdentifier'Write use
+     Write_OptionalVersionedTextDocumentIdentifier;
+
    --```typescript
    --export interface TextDocumentEdit {
    --	/**
    --	 * The text document to change.
    --	 */
-   --	textDocument: VersionedTextDocumentIdentifier;
+   --	textDocument: OptionalVersionedTextDocumentIdentifier;
    --
    --	/**
    --	 * The edits to be applied.
@@ -948,7 +976,7 @@ package LSP.Messages is
    --}
    --```
    type TextDocumentEdit is record
-      textDocument: VersionedTextDocumentIdentifier;
+      textDocument: OptionalVersionedTextDocumentIdentifier;
       edits: TextEdit_Vector;
    end record;
 

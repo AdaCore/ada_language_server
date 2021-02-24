@@ -2454,6 +2454,11 @@ package body LSP.Messages is
       V : out VersionedTextDocumentIdentifier)
       renames LSP.Message_IO.Read_VersionedTextDocumentIdentifier;
 
+   procedure Read_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out OptionalVersionedTextDocumentIdentifier)
+      renames LSP.Message_IO.Read_OptionalVersionedTextDocumentIdentifier;
+
    ------------------------
    -- Read_WatchKind_Set --
    ------------------------
@@ -2975,6 +2980,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : VersionedTextDocumentIdentifier)
       renames LSP.Message_IO.Write_VersionedTextDocumentIdentifier;
+
+   procedure Write_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : OptionalVersionedTextDocumentIdentifier)
+      renames LSP.Message_IO.Write_OptionalVersionedTextDocumentIdentifier;
 
    -------------------------
    -- Write_WatchKind_Set --

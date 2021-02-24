@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2020, AdaCore                     --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -174,6 +174,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+      use type Libadalang.Common.Ada_Node_Kind_Type;
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
@@ -190,14 +192,14 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Client_Supports_documentChanges : constant Boolean := True;
 
       Edits    : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
-
-      use type Libadalang.Common.Ada_Node_Kind_Type;
+      Version  : constant LSP.Messages.VersionedTextDocumentIdentifier :=
+        Document.Versioned_Identifier;
    begin
       Edits.documentChanges.Append
         (LSP.Messages.Document_Change'
            (Kind               => LSP.Messages.Text_Document_Edit,
             Text_Document_Edit =>
-              (textDocument => Document.Versioned_Identifier,
+              (textDocument => (Version.uri, (True, Version.version)),
                edits        => <>)));
 
       --  Add prefix.
