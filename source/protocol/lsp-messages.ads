@@ -289,6 +289,11 @@ package LSP.Messages is
    subtype DocumentUri is LSP.Types.LSP_String;
 
    --```typescript
+   --type URI = string;
+   --```
+   subtype URI is LSP.Types.LSP_String;
+
+   --```typescript
    --export const EOL: string[] = ['\n', '\r\n', '\r'];
    --```
 
@@ -676,6 +681,38 @@ package LSP.Messages is
 
    --```typescript
    --/**
+   -- * Structure to capture a description for an error code.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface CodeDescription {
+   --	/**
+   --	 * An URI to open with more information about the diagnostic error.
+   --	 */
+   --	href: URI;
+   --}
+   --```
+   type CodeDescription is record
+      href: URI;
+   end record;
+
+   procedure Read_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeDescription);
+   procedure Write_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeDescription);
+   for CodeDescription'Read use Read_CodeDescription;
+   for CodeDescription'Write use Write_CodeDescription;
+
+   package Optional_CodeDescriptions is
+     new LSP.Generic_Optional (CodeDescription);
+
+   type Optional_CodeDescription is
+     new Optional_CodeDescriptions.Optional_Type;
+
+   --```typescript
+   --/**
    -- * Represents a related message and source code location for a diagnostic.
    -- * This should be used to point to code locations that cause or are related to
    -- * a diagnostics, e.g when duplicating a symbol in a scope.
@@ -733,6 +770,13 @@ package LSP.Messages is
    --	code?: integer | string;
    --
    --	/**
+   --	 * An optional property to describe the error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	codeDescription?: CodeDescription;
+   --
+   --	/**
    --	 * A human-readable string describing the source of this
    --	 * diagnostic, e.g. 'typescript' or 'super lint'.
    --	 */
@@ -755,16 +799,27 @@ package LSP.Messages is
    --	 * a scope collide all definitions can be marked via this property.
    --	 */
    --	relatedInformation?: DiagnosticRelatedInformation[];
+   --
+   --	/**
+   --	 * A data entry field that is preserved between a
+   --	 * `textDocument/publishDiagnostics` notification and
+   --	 * `textDocument/codeAction` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	data?: unknown;
    --}
    --```
    type Diagnostic is record
       span: LSP.Messages.Span;
       severity: Optional_DiagnosticSeverity;
       code: LSP_Number_Or_String;
+      codeDescription: Optional_CodeDescription;
       source: Optional_String;
       message: LSP_String;
       tags: Optional_DiagnosticTagSet;
       relatedInformation: DiagnosticRelatedInformation_Vector;
+      --  data?: unknown;
    end record;
 
    procedure Read_Diagnostic
@@ -2862,6 +2917,13 @@ package LSP.Messages is
    --	 * @since 3.15.0
    --	 */
    --	versionSupport?: boolean;
+   --
+   --	/**
+   --	 * Client supports a codeDescription property
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	codeDescriptionSupport?: boolean;
    --}
    --```
    type DiagnosticTagSupport is record
@@ -2889,6 +2951,7 @@ package LSP.Messages is
       relatedInformation : Optional_Boolean;
       tagSupport: Optional_DiagnosticTagSupport;
       versionSupport: Optional_Boolean;
+      codeDescriptionSupport: Optional_Boolean;
    end record;
 
    procedure Read_PublishDiagnosticsClientCapabilities

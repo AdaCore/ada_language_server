@@ -396,6 +396,11 @@ package body LSP.Messages is
       V : out LSP.Messages.CodeActionOptions)
       renames LSP.Message_IO.Read_CodeActionOptions;
 
+   procedure Read_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeDescription)
+      renames LSP.Message_IO.Read_CodeDescription;
+
    procedure Read_CodeLensOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.CodeLensOptions)
@@ -1195,6 +1200,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CodeActionOptions)
       renames LSP.Message_IO.Write_CodeActionOptions;
+
+   procedure Write_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeDescription)
+      renames LSP.Message_IO.Write_CodeDescription;
 
    procedure Write_CodeLensOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;

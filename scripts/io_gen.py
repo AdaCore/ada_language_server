@@ -20,6 +20,7 @@ types_to_print = {
     #  'Location_Or_Link_Vector',
     'DiagnosticSeverity',
     'DiagnosticTag',
+    'CodeDescription',
     'DiagnosticRelatedInformation',
     'Diagnostic',
     #  'Command',
