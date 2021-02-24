@@ -21,8 +21,8 @@ def read_snippets(file):
     list = []
     snippet = ''
     with open(file, 'r') as f:
-        start_re = re.compile(r'^   --```typescript')
-        stop_re = re.compile(r'^   --```')
+        start_re = re.compile(r'^   -- ?```typescript')
+        stop_re = re.compile(r'^   -- ?```')
         for x in f.readlines():
             line = x[:-1]
             if snippet:
@@ -62,6 +62,7 @@ order = [
     'interface CancelParams ',
     'type ProgressToken ',
     'type DocumentUri ',
+    'interface RegularExpressionsClientCapabilities ',
     'const EOL',
     'interface Position ',
     'start: { line: 5, character: 23 ',

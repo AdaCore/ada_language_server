@@ -3168,6 +3168,38 @@ package LSP.Messages is
      new Optional_WindowClientCapabilities_Package.Optional_Type;
 
    --```typescript
+   --/**
+   -- * Client capabilities specific to regular expressions.
+   -- */
+   --export interface RegularExpressionsClientCapabilities {
+   --	/**
+   --	 * The engine's name.
+   --	 */
+   --	engine: string;
+   --
+   --	/**
+   --	 * The engine's version.
+   --	 */
+   --	version?: string;
+   --}
+   --```
+   type RegularExpressionsClientCapabilities is record
+      engine: LSP_String;
+      version: Optional_String;
+   end record;
+
+   procedure Read_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegularExpressionsClientCapabilities);
+
+   procedure Write_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegularExpressionsClientCapabilities);
+
+   for RegularExpressionsClientCapabilities'Read use Read_RegularExpressionsClientCapabilities;
+   for RegularExpressionsClientCapabilities'Write use Write_RegularExpressionsClientCapabilities;
+
+   --```typescript
    --interface ClientCapabilities {
    --	/**
    --	 * Workspace specific client capabilities.

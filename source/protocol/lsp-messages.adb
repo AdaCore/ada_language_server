@@ -306,6 +306,11 @@ package body LSP.Messages is
       V : out LSP.Messages.RenameClientCapabilities)
       renames LSP.Message_IO.Read_RenameClientCapabilities;
 
+   procedure Read_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegularExpressionsClientCapabilities)
+      renames LSP.Message_IO.Read_RegularExpressionsClientCapabilities;
+
    procedure Read_DiagnosticTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DiagnosticTagSupport)
@@ -1100,6 +1105,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.RenameClientCapabilities)
       renames LSP.Message_IO.Write_RenameClientCapabilities;
+
+   procedure Write_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegularExpressionsClientCapabilities)
+      renames LSP.Message_IO.Write_RegularExpressionsClientCapabilities;
 
    procedure Write_DiagnosticTagSupport
      (S : access Ada.Streams.Root_Stream_Type'Class;

@@ -77,6 +77,7 @@ types_to_print = {
     'FoldingRangeClientCapabilities',
     'TextDocumentClientCapabilities',
     'WindowClientCapabilities',
+    'RegularExpressionsClientCapabilities',
     'ClientCapabilities',
     'WorkspaceFolder',
     #  'ProgressParam',
