@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Conversions;
-with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -45,9 +44,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Predefined_Completion;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
-with LSP.Types.Utils;
 
-with Pp.Actions;
 with Pp.Scanner;
 with Utils.Char_Vectors;
 
@@ -508,9 +505,10 @@ package body LSP.Ada_Documents is
          --  Handle the edge case where the last location of
          --  the edit is trying to affect a non existent line.
          --  The edits are ordered so we only need to check the last one.
-         if not (Integer (Edit.Last_Element.span.last.line)
-                 in Self.Line_To_Index.First_Index ..
-                   Self.Line_To_Index.Last_Index)
+         if not Edit.Is_Empty
+            and then not Self.Line_To_Index.Is_Empty
+            and then Integer (Edit.Last_Element.span.last.line) not in
+              Self.Line_To_Index.First_Index .. Self.Line_To_Index.Last_Index
          then
             declare
                Element   : LSP.Messages.TextEdit := Edit.Last_Element;
@@ -559,153 +557,42 @@ package body LSP.Ada_Documents is
       use Utils.Char_Vectors.Char_Vectors;
       use LSP.Types;
       use LSP.Messages;
+      use Langkit_Support.Slocs;
+      use type LSP.Types.Line_Number;
+      use type LSP.Types.UTF_16_Index;
 
       Input     : Char_Vector;
       Output    : Char_Vector;
-      In_Range  : Char_Subrange;
-      Out_Range : Char_Subrange;
       Out_Span  : LSP.Messages.Span;
 
       Messages  : Pp.Scanner.Source_Message_Vector;
 
-      function Get_Range
-        (Span : LSP.Messages.Span)
-         return Utils.Char_Vectors.Char_Subrange;
-      --  Convert Span to Char_Subrange
+      Sloc : Source_Location_Range :=
+        (Start_Line => Langkit_Support.Slocs.Line_Number (Span.first.line) + 1,
+         Start_Column => Column_Number (Span.first.character) + 1,
+         End_Line => Langkit_Support.Slocs.Line_Number (Span.last.line) + 1,
+         End_Column => Column_Number (Span.last.character) + 1);
 
-      function Get_Range
-        (Index         : Natural;
-         From_Index    : Natural := 1;
-         From_Position : LSP.Messages.Position := (0, 0))
-         return LSP.Messages.Position;
-      --  Convert UTF-8 Index to Position in UTF-16 string
-      --  From_Index and corresponding From_Position are used when we know
-      --  some 'start' point to avoid scanning from the beginning of
-      --  the buffer
-
-      ---------------
-      -- Get_Range --
-      ---------------
-
-      function Get_Range
-        (Span : LSP.Messages.Span)
-         return Utils.Char_Vectors.Char_Subrange
-      is
-         use type VSS.Unicode.UTF16_Code_Unit_Count;
-
-         Line   : Line_Number  := 0;
-         Char   : UTF_16_Index := 0;
-         Result : Utils.Char_Vectors.Char_Subrange := (1, 1);
-      begin
-         if Span.first.line > 0 then
-            --  iterating over symbols to find the beginning
-            --  of the needed line
-            for Index in 1 .. Natural (Length (Input)) loop
-               Result.First := Index;
-
-               if Input.Element (Index) = Ada.Characters.Latin_1.LF then
-                  Line := Line + 1;
-
-                  if Line = Span.first.line then
-                     --  skip '\n'
-                     Result.First := Result.First + 1;
-                     exit;
-                  end if;
-               end if;
-            end loop;
-         end if;
-
-         --  looking for a start symbol from the beginning of the line
-         while Result.First <= Natural (Length (Input))
-           and then Char < Span.first.character
-         loop
-            Char := Char + 1;
-
-            Result.First := Result.First +
-              LSP.Types.Utils.Lenght_Of_UTF8_Symbol
-                (Input.Element (Result.First));
-         end loop;
-
-         if Line = Span.last.line then
-            --  continue from the 'start' symbol
-            Result.Last := Result.First;
-
-         else
-            --  set Char to 0 because we will start from the beginning
-            --  of the new line
-            Char := 0;
-
-            --  continue iterating from the founded 'start' symbol e.g.
-            --  from the 'start' line
-
-            for Index in Result.First .. Natural (Length (Input)) loop
-               Result.Last := Index;
-
-               if Input.Element (Index) = Ada.Characters.Latin_1.LF then
-                  Line := Line + 1;
-
-                  if Line = Span.last.line then
-                     --  skip '\n'
-                     Result.Last := Result.Last + 1;
-                     exit;
-                  end if;
-               end if;
-            end loop;
-         end if;
-
-         --  looking for a last symbol
-         while Result.Last <= Natural (Length (Input))
-           and then Char < Span.last.character
-         loop
-            Result.Last := Result.Last +
-              LSP.Types.Utils.Lenght_Of_UTF8_Symbol
-                (Input.Element (Result.Last));
-
-            Char := Char + 1;
-         end loop;
-
-         return Result;
-      end Get_Range;
-
-      ---------------
-      -- Get_Range --
-      ---------------
-
-      function Get_Range
-        (Index         : Natural;
-         From_Index    : Natural := 1;
-         From_Position : LSP.Messages.Position := (0, 0))
-         return LSP.Messages.Position
-      is
-         use type VSS.Unicode.UTF16_Code_Unit_Count;
-
-         Current : Natural := From_Index;
-         Result  : LSP.Messages.Position := From_Position;
-      begin
-         while Current < Natural (Length (Output))
-           and then Current < Index
-         loop
-            if Output.Element (Current) = Ada.Characters.Latin_1.LF then
-               --  new line
-               Result.line      := Result.line + 1;
-               Result.character := 0;
-               Current          := Current + 1;
-
-            else
-               --  goto to the beginning of the next UTF-8 character
-               Current := Current + LSP.Types.Utils.Lenght_Of_UTF8_Symbol
-                 (Output.Element (Current));
-
-               --  one more symbol has been passed
-               Result.character := Result.character + 1;
-            end if;
-         end loop;
-
-         return Result;
-      end Get_Range;
-
+      Out_Sloc : Source_Location_Range;
       S : GNAT.Strings.String_Access;
    begin
+      if Span /= LSP.Messages.Empty_Span then
+         --  Align Span to line bounds
+         if Span.first.character /= 0 then
+            return Self.Formatting
+              (Context => Context,
+               Span    => ((Span.first.line, 0), Span.last),
+               Cmd     => Cmd,
+               Edit    => Edit);
+         elsif Span.last.character /= 0 then
+            return Self.Formatting
+              (Context => Context,
+               Span    => (Span.first, (Span.last.line + 1, 0)),
+               Cmd     => Cmd,
+               Edit    => Edit);
+         end if;
+      end if;
+
       S := new String'
         (Ada.Strings.Unbounded.To_String
            (LSP.Types.To_UTF_8_Unbounded_String (Self.Text)));
@@ -713,18 +600,16 @@ package body LSP.Ada_Documents is
       GNAT.Strings.Free (S);
 
       if Span = LSP.Messages.Empty_Span then
-         In_Range := Input.Full_Range;
-      else
-         In_Range := Get_Range (Span);
+         Sloc := No_Source_Location_Range;
       end if;
 
-      Pp.Actions.Format_Vector
+      LSP.Lal_Utils.Format_Vector
         (Cmd       => Cmd,
          Input     => Input,
          Node      => Self.Unit (Context).Root,
-         In_Range  => In_Range,
+         In_Sloc   => Sloc,
          Output    => Output,
-         Out_Range => Out_Range,
+         Out_Sloc  => Out_Sloc,
          Messages  => Messages);
 
       if not Messages.Is_Empty then
@@ -736,23 +621,17 @@ package body LSP.Ada_Documents is
          Lal_PP_Output.Trace (S.all);
       end if;
 
-      --  it seems that Format_Vector does not set Out_Range properly, so
-      --  using full diff for now
-      Out_Range.First := 1;
-
-      if Span = LSP.Messages.Empty_Span
-        or else Out_Range.First < In_Range.First
-      then
+      if Span = LSP.Messages.Empty_Span then
          --  diff for the whole document
          Diff (Self, LSP.Types.To_LSP_String (S.all), Edit => Edit);
 
+      elsif Out_Sloc = No_Source_Location_Range then
+         --  Range formating fails. Do nothing, skip formating altogether
+         null;
       else
          --  diff for a part of the document
 
-         Out_Span.first := Span.first;
-         Out_Span.last  := Get_Range
-           (Out_Range.Last, In_Range.First, Span.first);
-
+         Out_Span := LSP.Lal_Utils.To_Span (Out_Sloc);
          Diff (Self, LSP.Types.To_LSP_String (S.all), Span, Out_Span, Edit);
       end if;
 

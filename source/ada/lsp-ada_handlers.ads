@@ -125,6 +125,9 @@ private
       --  is known to the server, this context should map to the implicit
       --  project.
 
+      Client : LSP.Messages.InitializeParams;
+      --  Client settings got during initialization request
+
       Root : Virtual_File;
       --  The directory passed under rootURI/rootPath during the initialize
       --  request.
@@ -182,6 +185,9 @@ private
 
       Completion_Snippets_Enabled : Boolean := False;
       --  True if the client supports completion snippets
+
+      Range_Formatting_Enabled : Boolean := False;
+      --  True if the handler has registered rangeFormatting provider
 
       Named_Notation_Threshold : Natural := 3;
       --  Defines the number of parameters/components at which point named

@@ -29,6 +29,11 @@ with Libadalang.Common;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
+with Utils.Command_Lines;
+with Utils.Char_Vectors;
+with Pp.Scanner;
+with Ada.Strings.Unbounded;
+
 with VSS.Strings;
 
 package LSP.Lal_Utils is
@@ -130,5 +135,20 @@ package LSP.Lal_Utils is
    function Containing_Entity (Ref : Ada_Node) return Defining_Name;
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
+
+   function To_Unbounded_String
+     (Input : Utils.Char_Vectors.Char_Vector)
+       return Ada.Strings.Unbounded.Unbounded_String;
+   --  Convert Input to unbounded string.
+
+   procedure Format_Vector
+     (Cmd      : Utils.Command_Lines.Command_Line;
+      Input    : Utils.Char_Vectors.Char_Vector;
+      Node     : Ada_Node;
+      In_Sloc  : Langkit_Support.Slocs.Source_Location_Range;
+      Output   : out Utils.Char_Vectors.Char_Vector;
+      Out_Sloc : out Langkit_Support.Slocs.Source_Location_Range;
+      Messages : out Pp.Scanner.Source_Message_Vector);
+   --  A wrapper around Pp.Actions.Format_Vector that populates Out_Range,
 
 end LSP.Lal_Utils;
