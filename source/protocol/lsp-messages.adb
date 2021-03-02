@@ -341,6 +341,11 @@ package body LSP.Messages is
       V : out LSP.Messages.WindowClientCapabilities)
       renames LSP.Message_IO.Read_WindowClientCapabilities;
 
+   procedure Read_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ChangeAnnotation)
+      renames LSP.Message_IO.Read_ChangeAnnotation;
+
    procedure Read_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ClientCapabilities)
@@ -650,6 +655,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.RenameParams)
       renames LSP.Message_IO.Read_RenameParams;
+
+   procedure Read_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotationSupport)
+      renames LSP.Message_IO.Read_AnnotationSupport;
+
+   procedure Read_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotatedTextEdit)
+      renames LSP.Message_IO.Read_AnnotatedTextEdit;
 
    procedure Read_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1146,6 +1161,11 @@ package body LSP.Messages is
       V : LSP.Messages.WindowClientCapabilities)
       renames LSP.Message_IO.Write_WindowClientCapabilities;
 
+   procedure Write_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ChangeAnnotation)
+      renames LSP.Message_IO.Write_ChangeAnnotation;
+
    procedure Write_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ClientCapabilities)
@@ -1450,6 +1470,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.RenameParams)
       renames LSP.Message_IO.Write_RenameParams;
+
+   procedure Write_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotationSupport)
+      renames LSP.Message_IO.Write_AnnotationSupport;
+
+   procedure Write_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotatedTextEdit)
+      renames LSP.Message_IO.Write_AnnotatedTextEdit;
 
    procedure Write_ApplyWorkspaceEditParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2552,6 +2582,7 @@ package body LSP.Messages is
       V : out WorkspaceEdit)
    is
       procedure Each (Name : VSS.Strings.Virtual_String);
+      procedure Each_Annotation (Name : VSS.Strings.Virtual_String);
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -2583,6 +2614,20 @@ package body LSP.Messages is
          V.changes.Insert (To_LSP_String (Key), Vector);
       end Each;
 
+      ---------------------
+      -- Each_Annotation --
+      ---------------------
+
+      procedure Each_Annotation (Name : VSS.Strings.Virtual_String) is
+         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+           VSS.Strings.Conversions.To_UTF_8_String (Name);
+         Item : ChangeAnnotation;
+      begin
+         JS.R.Read_Next;  --  Skip Key
+         ChangeAnnotation'Read (S, Item);
+         V.changeAnnotations.Insert (To_LSP_String (Key), Item);
+      end Each_Annotation;
+
    begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
@@ -2598,14 +2643,28 @@ package body LSP.Messages is
             if Key = "changes" then
                pragma Assert (JS.R.Is_Start_Object);
                JS.R.Read_Next;
+
                while not JS.R.Is_End_Object loop
                   pragma Assert (JS.R.Is_Key_Name);
                   Each (JS.R.String_Value);
                end loop;
+
                JS.R.Read_Next;
 
             elsif Key = "documentChanges" then
                Document_Change_Vector'Read (S, V.documentChanges);
+
+            elsif Key = "changeAnnotations" then
+               pragma Assert (JS.R.Is_Start_Object);
+               JS.R.Read_Next;
+
+               while not JS.R.Is_End_Object loop
+                  pragma Assert (JS.R.Is_Key_Name);
+                  Each_Annotation (JS.R.String_Value);
+               end loop;
+
+               JS.R.Read_Next;
+
             else
                JS.Skip_Value;
             end if;
@@ -3044,6 +3103,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
+
       if V.documentChanges.Is_Empty then
          JS.Key ("changes");
 
@@ -3063,6 +3123,19 @@ package body LSP.Messages is
          JS.Key ("documentChanges");
          Document_Change_Vector'Write (S, V.documentChanges);
       end if;
+
+      if not V.changeAnnotations.Is_Empty then
+         JS.Key ("changeAnnotations");
+         JS.Start_Object;
+
+         for J in V.changeAnnotations.Iterate loop
+            JS.Key (LSP.Types.To_Wide_String (ChangeAnnotation_Maps.Key (J)));
+            ChangeAnnotation'Write (S, ChangeAnnotation_Maps.Element (J));
+         end loop;
+
+         JS.End_Object;
+      end if;
+
       JS.End_Object;
    end Write_WorkspaceEdit;
 
