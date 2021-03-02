@@ -3826,24 +3826,27 @@ package LSP.Messages is
    type Optional_ProgramInfo is
      new Optional_ProgramInfo_Package.Optional_Type;
 
-   type Trace_Kind is (off, messages_trace, verbose);
+   --```typescript
+   --export type TraceValue = 'off' | 'message' | 'verbose'
+   --```
+   type TraceValue is (off, messages_trace, verbose);
 
-   procedure Read_Trace_Kind
+   procedure Read_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Trace_Kind);
+      V : out TraceValue);
 
-   procedure Write_Trace_Kind
+   procedure Write_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Trace_Kind);
+      V : TraceValue);
 
-   for Trace_Kind'Read use Read_Trace_Kind;
-   for Trace_Kind'Write use Write_Trace_Kind;
+   for TraceValue'Read use Read_TraceValue;
+   for TraceValue'Write use Write_TraceValue;
 
-   package Optional_Trace_Kind_Package is
-     new LSP.Generic_Optional (Trace_Kind);
+   package Optional_TraceValue_Package is
+     new LSP.Generic_Optional (TraceValue);
 
-   type Optional_Trace_Kind is
-     new Optional_Trace_Kind_Package.Optional_Type;
+   type Optional_TraceValue is
+     new Optional_TraceValue_Package.Optional_Type;
 
    package Optional_Nullable_Strings is
      new LSP.Generic_Optional (Nullable_String);
@@ -3920,7 +3923,7 @@ package LSP.Messages is
    --	/**
    --	 * The initial trace setting. If omitted trace is disabled ('off').
    --	 */
-   --	trace?: 'off' | 'messages' | 'verbose';
+   --	trace?: TraceValue;
    --
    --	/**
    --	 * The workspace folders configured in the client when the server starts.
@@ -3941,7 +3944,7 @@ package LSP.Messages is
       rootUri: Nullable_String;
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
-      trace: Optional_Trace_Kind;
+      trace: Optional_TraceValue;
       workspaceFolders: Optional_WorkspaceFolder_Vector;
    end record;
 

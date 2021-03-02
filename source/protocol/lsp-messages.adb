@@ -376,10 +376,10 @@ package body LSP.Messages is
       V : out LSP.Messages.ProgramInfo)
       renames LSP.Message_IO.Read_ProgramInfo;
 
-   procedure Read_Trace_Kind
+   procedure Read_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.Trace_Kind)
-      renames LSP.Message_IO.Read_Trace_Kind;
+      V : out LSP.Messages.TraceValue)
+      renames LSP.Message_IO.Read_TraceValue;
 
    procedure Read_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1206,10 +1206,10 @@ package body LSP.Messages is
       V : LSP.Messages.ProgramInfo)
       renames LSP.Message_IO.Write_ProgramInfo;
 
-   procedure Write_Trace_Kind
+   procedure Write_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.Trace_Kind)
-      renames LSP.Message_IO.Write_Trace_Kind;
+      V : LSP.Messages.TraceValue)
+      renames LSP.Message_IO.Write_TraceValue;
 
    procedure Write_TextDocumentSyncKind
      (S : access Ada.Streams.Root_Stream_Type'Class;

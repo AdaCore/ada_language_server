@@ -101,6 +101,7 @@ order = [
     'interface WorkDoneProgressOptions ',
     'Window specific client capabilities',
     'interface PartialResultParams ',
+    'type TraceValue ',
     'interface InitializeParams ',
     'interface TextDocumentClientCapabilities ',
     'interface ClientCapabilities ',
