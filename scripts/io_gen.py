@@ -216,6 +216,7 @@ types_to_print = {
     #  'DocumentHighlightParams',
     'SelectionRangeParams',
     'SelectionRange',
+    'LinkedEditingRanges',
     'CallHierarchyItem',
     'CallHierarchyIncomingCallsParams',
     'CallHierarchyIncomingCall',

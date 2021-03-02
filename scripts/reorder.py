@@ -255,6 +255,11 @@ order = [
     '2,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0 ',
     'line: 3, startChar:  5, length: 3, tokenType: "property"',
     '3,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0',
+    'interface LinkedEditingRangeClientCapabilities ',
+    'interface LinkedEditingRangeOptions ',
+    'interface LinkedEditingRangeRegistrationOptions ',
+    'interface LinkedEditingRangeParams ',
+    'interface LinkedEditingRanges ',
 ]
 
 # extract code snippets into a list
