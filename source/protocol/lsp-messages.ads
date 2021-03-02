@@ -63,6 +63,10 @@ package LSP.Messages is
    --```
    subtype uinteger is LSP_Number range 0 .. LSP_Number'Last;
 
+   package uinteger_Vectors is new LSP.Generic_Vectors
+     (uinteger, Write_Empty => LSP.Write_Array);
+   type uinteger_Vector is new uinteger_Vectors.Vector with null record;
+
    --```typescript
    --/**
    -- * Defines a decimal number. Since decimal numbers are very
@@ -1928,6 +1932,44 @@ package LSP.Messages is
    --```
    subtype ExecuteCommandClientCapabilities is dynamicRegistration;
 
+   --```typescript
+   --export interface SemanticTokensWorkspaceClientCapabilities {
+   --	/**
+   --	 * Whether the client implementation supports a refresh request sent from
+   --	 * the server to the client.
+   --	 *
+   --	 * Note that this event is global and will force the client to refresh all
+   --	 * semantic tokens currently shown. It should be used with absolute care
+   --	 * and is useful for situation where a server for example detect a project
+   --	 * wide change that requires such a calculation.
+   --	 */
+   --	refreshSupport?: boolean;
+   --}
+   --```
+   type SemanticTokensWorkspaceClientCapabilities is record
+      refreshSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensWorkspaceClientCapabilities);
+
+   procedure Write_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensWorkspaceClientCapabilities);
+
+   for SemanticTokensWorkspaceClientCapabilities'Read use
+     Read_SemanticTokensWorkspaceClientCapabilities;
+
+   for SemanticTokensWorkspaceClientCapabilities'Write use
+     Write_SemanticTokensWorkspaceClientCapabilities;
+
+   package Optional_SemanticTokensWorkspaceClientCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensWorkspaceClientCapabilities);
+
+   type Optional_SemanticTokensWorkspaceClientCapabilities is
+     new Optional_SemanticTokensWorkspaceClientCapabilities_Package.Optional_Type;
+
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
       workspaceEdit: WorkspaceEditClientCapabilities;
@@ -1937,6 +1979,7 @@ package LSP.Messages is
       executeCommand: ExecuteCommandClientCapabilities;
       workspaceFolders: Optional_Boolean;
       configuration: Optional_Boolean;
+      semanticTokens: Optional_SemanticTokensWorkspaceClientCapabilities;
    end record;
 
    procedure Read_WorkspaceClientCapabilities
@@ -3272,6 +3315,266 @@ package LSP.Messages is
    subtype CallHierarchyClientCapabilities is dynamicRegistration;
 
    --```typescript
+   --export enum SemanticTokenTypes {
+   --	namespace = 'namespace',
+   --	/**
+   --	 * Represents a generic type. Acts as a fallback for types which
+   --	 * can't be mapped to a specific type like class or enum.
+   --	 */
+   --	type = 'type',
+   --	class = 'class',
+   --	enum = 'enum',
+   --	interface = 'interface',
+   --	struct = 'struct',
+   --	typeParameter = 'typeParameter',
+   --	parameter = 'parameter',
+   --	variable = 'variable',
+   --	property = 'property',
+   --	enumMember = 'enumMember',
+   --	event = 'event',
+   --	function = 'function',
+   --	method = 'method',
+   --	macro = 'macro',
+   --	keyword = 'keyword',
+   --	modifier = 'modifier',
+   --	comment = 'comment',
+   --	string = 'string',
+   --	number = 'number',
+   --	regexp = 'regexp',
+   --	operator = 'operator'
+   --}
+   --
+   --export enum SemanticTokenModifiers {
+   --	declaration = 'declaration',
+   --	definition = 'definition',
+   --	readonly = 'readonly',
+   --	static = 'static',
+   --	deprecated = 'deprecated',
+   --	abstract = 'abstract',
+   --	async = 'async',
+   --	modification = 'modification',
+   --	documentation = 'documentation',
+   --	defaultLibrary = 'defaultLibrary'
+   --}
+   --```
+   type SemanticTokenTypes is
+     (a_type,
+      class,
+      enum,
+      an_interface,
+      struct,
+      typeParameter,
+      parameter,
+      variable,
+      property,
+      enumMember,
+      event,
+      a_function,
+      method,
+      macro,
+      keyword,
+      modifier,
+      comment,
+      a_string,
+      number,
+      regexp,
+      operator);
+
+   procedure Read_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenTypes);
+   procedure Write_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenTypes);
+   for SemanticTokenTypes'Write use Write_SemanticTokenTypes;
+   for SemanticTokenTypes'Read use Read_SemanticTokenTypes;
+
+   package SemanticTokenTypes_Vectors is new LSP.Generic_Vectors
+     (SemanticTokenTypes, Write_Empty => LSP.Write_Array);
+   type SemanticTokenTypes_Vector is new SemanticTokenTypes_Vectors.Vector
+     with null record;
+
+   type SemanticTokenModifiers is
+     (declaration,
+      definition,
+      readonly,
+      static,
+      deprecated,
+      an_abstract,
+      async,
+      modification,
+      documentation,
+      defaultLibrary);
+
+   procedure Read_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenModifiers);
+   procedure Write_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenModifiers);
+   for SemanticTokenModifiers'Write use Write_SemanticTokenModifiers;
+   for SemanticTokenModifiers'Read use Read_SemanticTokenModifiers;
+
+   package SemanticTokenModifiers_Vectors is new LSP.Generic_Vectors
+     (SemanticTokenModifiers, Write_Empty => LSP.Write_Array);
+   type SemanticTokenModifiers_Vector is
+     new SemanticTokenModifiers_Vectors.Vector with null record;
+
+   --```typescript
+   --export namespace TokenFormat {
+   --	export const Relative: 'relative' = 'relative';
+   --}
+   --
+   --export type TokenFormat = 'relative';
+   --```
+   type TokenFormat is (relative);
+
+   procedure Read_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TokenFormat);
+
+   procedure Write_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TokenFormat);
+
+   for TokenFormat'Read use Read_TokenFormat;
+   for TokenFormat'Write use Write_TokenFormat;
+
+   package TokenFormatSets is new LSP.Generic_Sets (TokenFormat);
+   type TokenFormatSet is new TokenFormatSets.Set;
+
+   type SemanticTokensFullCapabilities is record
+      diff: Optional_Boolean;  --  "delta" is a reserver word in Ada
+   end record;
+
+   procedure Read_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensFullCapabilities);
+
+   procedure Write_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensFullCapabilities);
+
+   for SemanticTokensFullCapabilities'Read use Read_SemanticTokensFullCapabilities;
+   for SemanticTokensFullCapabilities'Write use Write_SemanticTokensFullCapabilities;
+
+   package Optional_SemanticTokensFullCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensFullCapabilities);
+
+   type Optional_SemanticTokensFullCapabilities is
+     new Optional_SemanticTokensFullCapabilities_Package.Optional_Type;
+
+   type SemanticTokensRequestCapabilities is record
+      span: Optional_Boolean;
+      full: Optional_SemanticTokensFullCapabilities;
+   end record;
+
+   procedure Read_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRequestCapabilities);
+
+   procedure Write_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRequestCapabilities);
+
+   for SemanticTokensRequestCapabilities'Read use Read_SemanticTokensRequestCapabilities;
+   for SemanticTokensRequestCapabilities'Write use Write_SemanticTokensRequestCapabilities;
+
+   --```typescript
+   --interface SemanticTokensClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Which requests the client supports and might send to the server
+   --	 * depending on the server's capability. Please note that clients might not
+   --	 * show semantic tokens or degrade some of the user experience if a range
+   --	 * or full request is advertised by the client but not provided by the
+   --	 * server. If for example the client capability `requests.full` and
+   --	 * `request.range` are both set to true but the server only provides a
+   --	 * range provider the client might not render a minimap correctly or might
+   --	 * even decide to not show any semantic tokens at all.
+   --	 */
+   --	requests: {
+   --		/**
+   --		 * The client will send the `textDocument/semanticTokens/range` request
+   --		 * if the server provides a corresponding handler.
+   --		 */
+   --		range?: boolean | {
+   --		};
+   --
+   --		/**
+   --		 * The client will send the `textDocument/semanticTokens/full` request
+   --		 * if the server provides a corresponding handler.
+   --		 */
+   --		full?: boolean | {
+   --			/**
+   --			 * The client will send the `textDocument/semanticTokens/full/delta`
+   --			 * request if the server provides a corresponding handler.
+   --			*/
+   --			delta?: boolean
+   --		}
+   --	}
+   --
+   --	/**
+   --	 * The token types that the client supports.
+   --	 */
+   --	tokenTypes: string[];
+   --
+   --	/**
+   --	 * The token modifiers that the client supports.
+   --	 */
+   --	tokenModifiers: string[];
+   --
+   --	/**
+   --	 * The formats the clients supports.
+   --	 */
+   --	formats: TokenFormat[];
+   --
+   --	/**
+   --	 * Whether the client supports tokens that can overlap each other.
+   --	 */
+   --	overlappingTokenSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether the client supports tokens that can span multiple lines.
+   --	 */
+   --	multilineTokenSupport?: boolean;
+   --}
+   --```
+   type SemanticTokensClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      requests: SemanticTokensRequestCapabilities;
+      tokenTypes: SemanticTokenTypes_Vector;
+      tokenModifiers: SemanticTokenModifiers_Vector;
+      formats: TokenFormatSet;
+      overlappingTokenSupport: Optional_Boolean;
+      multilineTokenSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensClientCapabilities);
+
+   procedure Write_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensClientCapabilities);
+
+   for SemanticTokensClientCapabilities'Read use Read_SemanticTokensClientCapabilities;
+   for SemanticTokensClientCapabilities'Write use Write_SemanticTokensClientCapabilities;
+
+   package Optional_SemanticTokensClientCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensClientCapabilities);
+
+   type Optional_SemanticTokensClientCapabilities is
+     new Optional_SemanticTokensClientCapabilities_Package.Optional_Type;
+
+   --```typescript
    --/**
    -- * Text document specific client capabilities.
    -- */
@@ -3411,6 +3714,13 @@ package LSP.Messages is
    --	 * @since 3.16.0
    --	 */
    --	callHierarchy?: CallHierarchyClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the various semantic token requests.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	semanticTokens?: SemanticTokensClientCapabilities;
    --}
    --```
    type TextDocumentClientCapabilities is record
@@ -3438,6 +3748,7 @@ package LSP.Messages is
       selectionRange     : SelectionRangeClientCapabilities;
       linkedEditingRange : LinkedEditingRangeClientCapabilities;
       callHierarchy      : CallHierarchyClientCapabilities;
+      semanticTokens     : Optional_SemanticTokensClientCapabilities;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -3637,6 +3948,14 @@ package LSP.Messages is
    --		 * @since 3.6.0
    --		 */
    --		configuration?: boolean;
+   --
+   --		/**
+   --		 * Capabilities specific to the semantic token requests scoped to the
+   --		 * workspace.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		 semanticTokens?: SemanticTokensWorkspaceClientCapabilities;
    --	};
    --
    --	/**
@@ -4659,6 +4978,85 @@ package LSP.Messages is
    --}
    --```
 
+   --```typescript
+   --export interface SemanticTokensLegend {
+   --	/**
+   --	 * The token types a server uses.
+   --	 */
+   --	tokenTypes: string[];
+   --
+   --	/**
+   --	 * The token modifiers a server uses.
+   --	 */
+   --	tokenModifiers: string[];
+   --}
+   --```
+   type SemanticTokensLegend is record
+      tokenTypes: LSP_String_Vector;
+      tokenModifiers: LSP_String_Vector;
+   end record;
+
+   procedure Read_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensLegend);
+   procedure Write_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensLegend);
+   for SemanticTokensLegend'Write use Write_SemanticTokensLegend;
+   for SemanticTokensLegend'Read use Read_SemanticTokensLegend;
+
+   --```typescript
+   --export interface SemanticTokensOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * The legend used by the server
+   --	 */
+   --	legend: SemanticTokensLegend;
+   --
+   --	/**
+   --	 * Server supports providing semantic tokens for a specific range
+   --	 * of a document.
+   --	 */
+   --	range?: boolean | {
+   --	};
+   --
+   --	/**
+   --	 * Server supports providing semantic tokens for a full document.
+   --	 */
+   --	full?: boolean | {
+   --		/**
+   --		 * The server supports deltas for full documents.
+   --		 */
+   --		delta?: boolean;
+   --	}
+   --}
+   --```
+   type SemanticTokensOptions is new WorkDoneProgressOptions with record
+      legend: SemanticTokensLegend;
+      span: Optional_Boolean;    --  Range is a reserved Ada keyword
+      full: Optional_SemanticTokensFullCapabilities;
+   end record;
+
+   procedure Read_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensOptions);
+   procedure Write_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensOptions);
+   for SemanticTokensOptions'Write use Write_SemanticTokensOptions;
+   for SemanticTokensOptions'Read use Read_SemanticTokensOptions;
+
+   package Optional_SemanticTokensOptions_Package is
+     new LSP.Generic_Optional (SemanticTokensOptions);
+   type Optional_SemanticTokensOptions is
+     new Optional_SemanticTokensOptions_Package.Optional_Type;
+
+   --```typescript
+   --export interface SemanticTokensRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, SemanticTokensOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
    --
    --```typescript
    --interface ServerCapabilities {
@@ -4814,6 +5212,14 @@ package LSP.Messages is
    --		| CallHierarchyRegistrationOptions;
    --
    --	/**
+   --	 * The server provides semantic tokens support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	semanticTokensProvider?: SemanticTokensOptions
+   --		| SemanticTokensRegistrationOptions;
+   --
+   --	/**
    --	 * The server provides workspace symbol support.
    --	 */
    --	workspaceSymbolProvider?: boolean | WorkspaceSymbolOptions;
@@ -4860,6 +5266,7 @@ package LSP.Messages is
       executeCommandProvider: Optional_ExecuteCommandOptions;
       selectionRangeProvider: SelectionRangeOptions;
       linkedEditingRangeProvider: LinkedEditingRangeOptions;
+      semanticTokensProvider: Optional_SemanticTokensOptions;
       workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
       callHierarchyProvider: CallHierarchyOptions;
@@ -5015,7 +5422,7 @@ package LSP.Messages is
    --}
    --```
    type ShowMessageParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
    end record;
 
@@ -5047,7 +5454,7 @@ package LSP.Messages is
    --}
    --```
    type ShowMessageRequestParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
       actions: MessageActionItem_Vector;
    end record;
@@ -5076,7 +5483,7 @@ package LSP.Messages is
    --}
    --```
    type LogMessageParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
    end record;
 
@@ -5823,7 +6230,7 @@ package LSP.Messages is
 
    type FileEvent is record
       uri: DocumentUri;
-      the_type : FileChangeType;  -- type: is reserver word
+      a_type : FileChangeType;  -- type: is reserver word
    end record;
 
    procedure Read_FileEvent
@@ -8043,8 +8450,8 @@ package LSP.Messages is
      new FoldingRange_Vectors.Vector with null record;
 
    subtype FoldingRangeKind is LSP_String;
-
-   Comment : constant FoldingRangeKind := +"comment";
+   --  FIXME: replace with enumeration type???
+   function Comment return FoldingRangeKind is (+"comment");
    Imports : constant FoldingRangeKind := +"imports";
    Region  : constant FoldingRangeKind := +"region";
 
@@ -8497,6 +8904,201 @@ package LSP.Messages is
 
    type CallHierarchyOutgoingCall_Vector is
      new CallHierarchyOutgoingCall_Vectors.Vector with null record;
+
+   --```typescript
+   --export interface SemanticTokensParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --}
+   --```
+   subtype SemanticTokensParams is DocumentSymbolParams;
+
+   --```typescript
+   --export interface SemanticTokens {
+   --	/**
+   --	 * An optional result id. If provided and clients support delta updating
+   --	 * the client will include the result id in the next semantic token request.
+   --	 * A server can then instead of computing all semantic tokens again simply
+   --	 * send a delta.
+   --	 */
+   --	resultId?: string;
+   --
+   --	/**
+   --	 * The actual tokens.
+   --	 */
+   --	data: uinteger[];
+   --}
+   --```
+   type SemanticTokens is record
+      resultId: Optional_String;
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokens);
+   procedure Write_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokens);
+   for SemanticTokens'Read use Read_SemanticTokens;
+   for SemanticTokens'Write use Write_SemanticTokens;
+
+   --```typescript
+   --export interface SemanticTokensPartialResult {
+   --	data: uinteger[];
+   --}
+   --```
+   type SemanticTokensPartialResult is record
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensPartialResult);
+   procedure Write_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensPartialResult);
+   for SemanticTokensPartialResult'Read use Read_SemanticTokensPartialResult;
+   for SemanticTokensPartialResult'Write use Write_SemanticTokensPartialResult;
+
+   --```typescript
+   --export interface SemanticTokensDeltaParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The result id of a previous response. The result Id can either point to
+   --	 * a full response or a delta response depending on what was received last.
+   --	 */
+   --	previousResultId: string;
+   --}
+   --```
+   type SemanticTokensDeltaParams is new Progress_Partial_Params with record
+      textDocument: TextDocumentIdentifier;
+      previousResultId: LSP_String;
+   end record;
+
+   procedure Read_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaParams);
+   procedure Write_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaParams);
+   for SemanticTokensDeltaParams'Read use Read_SemanticTokensDeltaParams;
+   for SemanticTokensDeltaParams'Write use Write_SemanticTokensDeltaParams;
+
+   --```typescript
+   --export interface SemanticTokensDelta {
+   --	readonly resultId?: string;
+   --	/**
+   --	 * The semantic token edits to transform a previous result into a new
+   --	 * result.
+   --	 */
+   --	edits: SemanticTokensEdit[];
+   --}
+   --
+   --export interface SemanticTokensEdit {
+   --	/**
+   --	 * The start offset of the edit.
+   --	 */
+   --	start: uinteger;
+   --
+   --	/**
+   --	 * The count of elements to remove.
+   --	 */
+   --	deleteCount: uinteger;
+   --
+   --	/**
+   --	 * The elements to insert.
+   --	 */
+   --	data?: uinteger[];
+   --}
+   --```
+   type SemanticTokensEdit is record
+      start: uinteger;
+      deleteCount: uinteger;
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensEdit);
+   procedure Write_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensEdit);
+   for SemanticTokensEdit'Read use Read_SemanticTokensEdit;
+   for SemanticTokensEdit'Write use Write_SemanticTokensEdit;
+
+   package SemanticTokensEdit_Vectors is new LSP.Generic_Vectors
+     (SemanticTokensEdit, Write_Empty => LSP.Write_Array);
+   type SemanticTokensEdit_Vector is new SemanticTokensEdit_Vectors.Vector
+     with null record;
+
+   type SemanticTokensDelta is record
+      resultId: Optional_String;
+      edits: SemanticTokensEdit_Vector;
+   end record;
+
+   procedure Read_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDelta);
+   procedure Write_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDelta);
+   for SemanticTokensDelta'Read use Read_SemanticTokensDelta;
+   for SemanticTokensDelta'Write use Write_SemanticTokensDelta;
+
+   --```typescript
+   --export interface SemanticTokensDeltaPartialResult {
+   --	edits: SemanticTokensEdit[]
+   --}
+   --```
+   type SemanticTokensDeltaPartialResult is record
+      edits: SemanticTokensEdit_Vector;
+   end record;
+
+   procedure Read_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaPartialResult);
+   procedure Write_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaPartialResult);
+   for SemanticTokensDeltaPartialResult'Read use Read_SemanticTokensDeltaPartialResult;
+   for SemanticTokensDeltaPartialResult'Write use Write_SemanticTokensDeltaPartialResult;
+
+   --```typescript
+   --export interface SemanticTokensRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The range the semantic tokens are requested for.
+   --	 */
+   --	range: Range;
+   --}
+   --```
+   type SemanticTokensRangeParams is new Progress_Partial_Params with record
+      textDocument: TextDocumentIdentifier;
+      span: LSP.Messages.Span;  --  range: is reserved word
+   end record;
+
+   procedure Read_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRangeParams);
+   procedure Write_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRangeParams);
+   for SemanticTokensRangeParams'Read use Read_SemanticTokensRangeParams;
+   for SemanticTokensRangeParams'Write use Write_SemanticTokensRangeParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
