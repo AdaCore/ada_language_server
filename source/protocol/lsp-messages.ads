@@ -3442,6 +3442,46 @@ package LSP.Messages is
 
    --```typescript
    --/**
+   -- * Client capabilities specific to the used markdown parser.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface MarkdownClientCapabilities {
+   --	/**
+   --	 * The name of the parser.
+   --	 */
+   --	parser: string;
+   --
+   --	/**
+   --	 * The version of the parser.
+   --	 */
+   --	version?: string;
+   --}
+   --```
+   type MarkdownClientCapabilities is record
+      parser: LSP_String;
+      version: Optional_String;
+   end record;
+
+   procedure Read_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkdownClientCapabilities);
+
+   procedure Write_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkdownClientCapabilities);
+
+   for MarkdownClientCapabilities'Read use Read_MarkdownClientCapabilities;
+   for MarkdownClientCapabilities'Write use Write_MarkdownClientCapabilities;
+
+   package Optional_MarkdownClientCapabilities_Package is
+     new LSP.Generic_Optional (MarkdownClientCapabilities);
+
+   type Optional_MarkdownClientCapabilities is
+     new Optional_MarkdownClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --/**
    -- * Client capabilities specific to regular expressions.
    -- */
    --export interface RegularExpressionsClientCapabilities {
@@ -3471,6 +3511,34 @@ package LSP.Messages is
 
    for RegularExpressionsClientCapabilities'Read use Read_RegularExpressionsClientCapabilities;
    for RegularExpressionsClientCapabilities'Write use Write_RegularExpressionsClientCapabilities;
+
+   package Optional_RegularExpressionsClientCapabilities_Package is
+     new LSP.Generic_Optional (RegularExpressionsClientCapabilities);
+
+   type Optional_RegularExpressionsClientCapabilities is
+     new Optional_RegularExpressionsClientCapabilities_Package.Optional_Type;
+
+   type GeneralClientCapabilities is record
+      regularExpressions: Optional_RegularExpressionsClientCapabilities;
+      markdown: Optional_MarkdownClientCapabilities;
+   end record;
+
+   procedure Read_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GeneralClientCapabilities);
+
+   procedure Write_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GeneralClientCapabilities);
+
+   for GeneralClientCapabilities'Read use Read_GeneralClientCapabilities;
+   for GeneralClientCapabilities'Write use Write_GeneralClientCapabilities;
+
+   package Optional_GeneralClientCapabilities_Package is
+     new LSP.Generic_Optional (GeneralClientCapabilities);
+
+   type Optional_GeneralClientCapabilities is
+     new Optional_GeneralClientCapabilities_Package.Optional_Type;
 
    --```typescript
    --interface ClientCapabilities {
@@ -3547,6 +3615,27 @@ package LSP.Messages is
    --	}
    --
    --	/**
+   --	 * General client capabilities.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	general?: {
+   --		/**
+   --		 * Client capabilities specific to regular expressions.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		regularExpressions?: RegularExpressionsClientCapabilities;
+   --
+   --		/**
+   --		 * Client capabilities specific to the client's markdown parser.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		markdown?: MarkdownClientCapabilities;
+   --	}
+   --
+   --	/**
    --	 * Experimental client capabilities.
    --	 */
    --	experimental?: any;
@@ -3556,6 +3645,7 @@ package LSP.Messages is
       workspace: WorkspaceClientCapabilities;
       textDocument: TextDocumentClientCapabilities;
       window: Optional_WindowClientCapabilities;
+      general: Optional_GeneralClientCapabilities;
       --  experimental?: any;
    end record;
 

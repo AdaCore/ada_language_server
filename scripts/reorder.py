@@ -93,6 +93,7 @@ order = [
     'interface StaticRegistrationOptions ',
     'interface TextDocumentRegistrationOptions ',
     'namespace MarkupKind ',
+    'interface MarkdownClientCapabilities ',
     'interface WorkDoneProgressBegin ',
     'interface WorkDoneProgressReport ',
     'interface WorkDoneProgressEnd ',

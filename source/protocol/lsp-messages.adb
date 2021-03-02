@@ -201,6 +201,16 @@ package body LSP.Messages is
       V : out LSP.Messages.WorkspaceClientCapabilities)
       renames LSP.Message_IO.Read_WorkspaceClientCapabilities;
 
+   procedure Read_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkdownClientCapabilities)
+      renames LSP.Message_IO.Read_MarkdownClientCapabilities;
+
+   procedure Read_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GeneralClientCapabilities)
+      renames LSP.Message_IO.Read_GeneralClientCapabilities;
+
    procedure Read_MarkupKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.MarkupKind)
@@ -1020,6 +1030,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkspaceClientCapabilities)
       renames LSP.Message_IO.Write_WorkspaceClientCapabilities;
+
+   procedure Write_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkdownClientCapabilities)
+      renames LSP.Message_IO.Write_MarkdownClientCapabilities;
+
+   procedure Write_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GeneralClientCapabilities)
+      renames LSP.Message_IO.Write_GeneralClientCapabilities;
 
    procedure Write_MarkupKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
