@@ -94,7 +94,7 @@ types_to_print = {
     #  'Text_Progress_Partial_Params',
     'Text_Progress_Params',
     'ProgramInfo',
-    'Trace_Kind',
+    'TraceValue',
     'InitializeParams',
     #  'WorkDoneProgressOptions',
     'TextDocumentSyncKind',
@@ -410,7 +410,7 @@ enum_as_string = [
     'ResourceOperationKind',
     'FailureHandlingKind',
     'MarkupKind',
-    'Trace_Kind']
+    'TraceValue']
 
 # The map to substitute words reserved in Ada:
 reserver_named = \
@@ -436,7 +436,7 @@ reserver_named = \
     "refactorrewrite": "refactor.rewrite",
     "source": "source",
     "sourceorganizeimports": "source.organizeImports",
-    "messages": "messages_trace",  # for Trace_Kind
+    "messages_trace": "message",  # for TraceValue
     }
 
 
