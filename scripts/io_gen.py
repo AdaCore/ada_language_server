@@ -79,6 +79,10 @@ types_to_print = {
     'DiagnosticTagSupport',
     'PublishDiagnosticsClientCapabilities',
     'FoldingRangeClientCapabilities',
+    'SemanticTokensFullCapabilities',
+    'SemanticTokensRequestCapabilities',
+    'TokenFormat',
+    'SemanticTokensClientCapabilities',
     'TextDocumentClientCapabilities',
     'WindowClientCapabilities',
     'MarkdownClientCapabilities',
@@ -113,6 +117,10 @@ types_to_print = {
     'ExecuteCommandOptions',
     'WorkspaceFoldersServerCapabilities',
     'workspace_Options',
+    'SemanticTokenTypes',
+    'SemanticTokenModifiers',
+    'SemanticTokensLegend',
+    'SemanticTokensOptions',
     'ServerCapabilities',
     'InitializeResult',
     'InitializedParams',
@@ -221,6 +229,14 @@ types_to_print = {
     'CallHierarchyIncomingCallsParams',
     'CallHierarchyIncomingCall',
     'CallHierarchyOutgoingCall',
+    'SemanticTokens',
+    'SemanticTokensPartialResult',
+    'SemanticTokensDeltaParams',
+    'SemanticTokensEdit',
+    'SemanticTokensDelta',
+    'SemanticTokensDeltaPartialResult',
+    'SemanticTokensRangeParams',
+    'SemanticTokensWorkspaceClientCapabilities',
     'ALS_Subprogram_And_References',
     'ALS_ShowDependenciesKind',
     'ALS_Unit_Description',
@@ -411,6 +427,9 @@ enum_as_string = [
     'ResourceOperationKind',
     'FailureHandlingKind',
     'MarkupKind',
+    'TokenFormat',
+    'SemanticTokenTypes',
+    'SemanticTokenModifiers',
     'TraceValue']
 
 # The map to substitute words reserved in Ada:
@@ -422,7 +441,7 @@ reserver_named = \
     "last": "end",
     "loc": "location",    # for ALS_Subprogram_And_References
     "span": "range",
-    "the_type": "type",
+    "a_type": "type",
     "simple": "reference",  # For AlsReferenceKind
     "write": "write",
     "static_call": "call",
@@ -438,6 +457,11 @@ reserver_named = \
     "source": "source",
     "sourceorganizeimports": "source.organizeImports",
     "messages_trace": "message",  # for TraceValue
+    "diff": "delta", # for SemanticTokens
+    "an_abstract": "abstract", # for SemanticTokenTypes
+    "an_interface": "interface",
+    "a_function": "function",
+    "a_string": "string",
     }
 
 

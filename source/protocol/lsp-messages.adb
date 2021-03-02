@@ -456,6 +456,86 @@ package body LSP.Messages is
       V : out LSP.Messages.workspace_Options)
       renames LSP.Message_IO.Read_workspace_Options;
 
+   procedure Read_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensFullCapabilities)
+      renames LSP.Message_IO.Read_SemanticTokensFullCapabilities;
+
+   procedure Read_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRequestCapabilities)
+      renames LSP.Message_IO.Read_SemanticTokensRequestCapabilities;
+
+   procedure Read_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenTypes)
+      renames LSP.Message_IO.Read_SemanticTokenTypes;
+
+   procedure Read_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenModifiers)
+      renames LSP.Message_IO.Read_SemanticTokenModifiers;
+
+   procedure Read_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensWorkspaceClientCapabilities)
+      renames LSP.Message_IO.Read_SemanticTokensWorkspaceClientCapabilities;
+
+   procedure Read_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TokenFormat)
+      renames LSP.Message_IO.Read_TokenFormat;
+
+   procedure Read_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensClientCapabilities)
+      renames LSP.Message_IO.Read_SemanticTokensClientCapabilities;
+
+   procedure Read_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensLegend)
+      renames LSP.Message_IO.Read_SemanticTokensLegend;
+
+   procedure Read_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensOptions)
+      renames LSP.Message_IO.Read_SemanticTokensOptions;
+
+   procedure Read_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokens)
+      renames LSP.Message_IO.Read_SemanticTokens;
+
+   procedure Read_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensPartialResult)
+      renames LSP.Message_IO.Read_SemanticTokensPartialResult;
+
+   procedure Read_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaParams)
+      renames LSP.Message_IO.Read_SemanticTokensDeltaParams;
+
+   procedure Read_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensEdit)
+      renames LSP.Message_IO.Read_SemanticTokensEdit;
+
+   procedure Read_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDelta)
+      renames LSP.Message_IO.Read_SemanticTokensDelta;
+
+   procedure Read_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaPartialResult)
+      renames LSP.Message_IO.Read_SemanticTokensDeltaPartialResult;
+
+   procedure Read_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRangeParams)
+      renames LSP.Message_IO.Read_SemanticTokensRangeParams;
+
    procedure Read_ServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ServerCapabilities)
@@ -1290,6 +1370,86 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.workspace_Options)
       renames LSP.Message_IO.Write_workspace_Options;
+
+   procedure Write_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensFullCapabilities)
+      renames LSP.Message_IO.Write_SemanticTokensFullCapabilities;
+
+   procedure Write_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRequestCapabilities)
+      renames LSP.Message_IO.Write_SemanticTokensRequestCapabilities;
+
+   procedure Write_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenTypes)
+      renames LSP.Message_IO.Write_SemanticTokenTypes;
+
+   procedure Write_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenModifiers)
+      renames LSP.Message_IO.Write_SemanticTokenModifiers;
+
+   procedure Write_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensWorkspaceClientCapabilities)
+      renames LSP.Message_IO.Write_SemanticTokensWorkspaceClientCapabilities;
+
+   procedure Write_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TokenFormat)
+      renames LSP.Message_IO.Write_TokenFormat;
+
+   procedure Write_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensClientCapabilities)
+      renames LSP.Message_IO.Write_SemanticTokensClientCapabilities;
+
+   procedure Write_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensLegend)
+      renames LSP.Message_IO.Write_SemanticTokensLegend;
+
+   procedure Write_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensOptions)
+      renames LSP.Message_IO.Write_SemanticTokensOptions;
+
+   procedure Write_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokens)
+      renames LSP.Message_IO.Write_SemanticTokens;
+
+   procedure Write_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensPartialResult)
+      renames LSP.Message_IO.Write_SemanticTokensPartialResult;
+
+   procedure Write_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaParams)
+      renames LSP.Message_IO.Write_SemanticTokensDeltaParams;
+
+   procedure Write_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensEdit)
+      renames LSP.Message_IO.Write_SemanticTokensEdit;
+
+   procedure Write_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDelta)
+      renames LSP.Message_IO.Write_SemanticTokensDelta;
+
+   procedure Write_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaPartialResult)
+      renames LSP.Message_IO.Write_SemanticTokensDeltaPartialResult;
+
+   procedure Write_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRangeParams)
+      renames LSP.Message_IO.Write_SemanticTokensRangeParams;
 
    procedure Write_ServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;

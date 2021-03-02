@@ -3395,7 +3395,7 @@ package body LSP.Ada_Handlers is
       Self.Implicit_Project_Loaded := False;
 
       --  Now load the new project
-      Errors.the_type := LSP.Messages.Warning;
+      Errors.a_type := LSP.Messages.Warning;
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
@@ -3438,7 +3438,7 @@ package body LSP.Ada_Handlers is
             Self.Release_Project_Info;
 
             Self.Trace.Trace (E);
-            Errors.the_type := LSP.Messages.Error;
+            Errors.a_type := LSP.Messages.Error;
 
             LSP.Types.Append
               (Errors.message,
