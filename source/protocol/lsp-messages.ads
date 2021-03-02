@@ -3258,6 +3258,17 @@ package LSP.Messages is
    --```
    subtype LinkedEditingRangeClientCapabilities is dynamicRegistration;
 
+   --```typescript
+   --interface CallHierarchyClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
    subtype CallHierarchyClientCapabilities is dynamicRegistration;
 
    --```typescript
@@ -3393,6 +3404,13 @@ package LSP.Messages is
    --	 * @since 3.16.0
    --	 */
    --	linkedEditingRange?: LinkedEditingRangeClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the various call hierarchy requests.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	callHierarchy?: CallHierarchyClientCapabilities;
    --}
    --```
    type TextDocumentClientCapabilities is record
@@ -4608,8 +4626,6 @@ package LSP.Messages is
    --```
    subtype SelectionRangeOptions is Optional_Provider_Options;
 
-   subtype CallHierarchyOptions is Optional_Provider_Options;
-
    --```typescript
    --export interface SelectionRangeRegistrationOptions extends
    --	SelectionRangeOptions, TextDocumentRegistrationOptions,
@@ -4626,6 +4642,19 @@ package LSP.Messages is
    --```typescript
    --export interface LinkedEditingRangeRegistrationOptions extends
    --	TextDocumentRegistrationOptions, LinkedEditingRangeOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface CallHierarchyOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype CallHierarchyOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface CallHierarchyRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CallHierarchyOptions,
    --	StaticRegistrationOptions {
    --}
    --```
@@ -4775,6 +4804,14 @@ package LSP.Messages is
    --	 */
    --	linkedEditingRangeProvider?: boolean | LinkedEditingRangeOptions
    --		| LinkedEditingRangeRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides call hierarchy support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	callHierarchyProvider?: boolean | CallHierarchyOptions
+   --		| CallHierarchyRegistrationOptions;
    --
    --	/**
    --	 * The server provides workspace symbol support.
@@ -8284,48 +8321,60 @@ package LSP.Messages is
    --```
    subtype PrepareRenameParams is TextDocumentPositionParams;
 
-   --  CallHierarchy is LSP 3.16 draft feature
-
+   --```typescript
+   --export interface CallHierarchyPrepareParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
+   --}
+   --```
    type CallHierarchyPrepareParams is new Text_Progress_Params with null record;
 
-   --  export interface CallHierarchyItem {
-   --  	/**
-   --  	 * The name of this item.
-   --  	 */
-   --  	name: string;
+   --```typescript
+   --export interface CallHierarchyItem {
+   --	/**
+   --	 * The name of this item.
+   --	 */
+   --	name: string;
    --
-   --  	/**
-   --  	 * The kind of this item.
-   --  	 */
-   --  	kind: SymbolKind;
+   --	/**
+   --	 * The kind of this item.
+   --	 */
+   --	kind: SymbolKind;
    --
-   --  	/**
-   --  	 * Tags for this item.
-   --  	 */
-   --  	tags?: SymbolTag[];
+   --	/**
+   --	 * Tags for this item.
+   --	 */
+   --	tags?: SymbolTag[];
    --
-   --  	/**
-   --  	 * More detail for this item, e.g. the signature of a function.
-   --  	 */
-   --  	detail?: string;
+   --	/**
+   --	 * More detail for this item, e.g. the signature of a function.
+   --	 */
+   --	detail?: string;
    --
-   --  	/**
-   --  	 * The resource identifier of this item.
-   --  	 */
-   --  	uri: DocumentUri;
+   --	/**
+   --	 * The resource identifier of this item.
+   --	 */
+   --	uri: DocumentUri;
    --
-   --  	/**
-   --  	 * The range enclosing this symbol not including leading/trailing whitespace but everything else, e.g. comments and code.
-   --  	 */
-   --  	range: Range;
+   --	/**
+   --	 * The range enclosing this symbol not including leading/trailing whitespace
+   --	 * but everything else, e.g. comments and code.
+   --	 */
+   --	range: Range;
    --
-   --  	/**
-   --  	 * The range that should be selected and revealed when this symbol is being picked, e.g. the name of a function.
-   --  	 * Must be contained by the [`range`](#CallHierarchyItem.range).
-   --  	 */
-   --  	selectionRange: Range;
-   --  }
-
+   --	/**
+   --	 * The range that should be selected and revealed when this symbol is being
+   --	 * picked, e.g. the name of a function. Must be contained by the
+   --	 * [`range`](#CallHierarchyItem.range).
+   --	 */
+   --	selectionRange: Range;
+   --
+   --	/**
+   --	 * A data entry field that is preserved between a call hierarchy prepare and
+   --	 * incoming calls or outgoing calls requests.
+   --	 */
+   --	data?: unknown;
+   --}
+   --```
    type CallHierarchyItem is record
       name: LSP_String;
       kind: SymbolKind;
@@ -8334,6 +8383,7 @@ package LSP.Messages is
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word
       selectionRange: LSP.Messages.Span;
+      --  data?: unknown;
    end record;
 
    procedure Read_CallHierarchyItem
@@ -8351,10 +8401,12 @@ package LSP.Messages is
    type CallHierarchyItem_Vector is
      new CallHierarchyItem_Vectors.Vector with null record;
 
-   --  export interface CallHierarchyIncomingCallsParams extends WorkDoneProgressParams, PartialResultParams {
-   --  	item: CallHierarchyItem;
-   --  }
-
+   --```typescript
+   --export interface CallHierarchyIncomingCallsParams extends
+   --	WorkDoneProgressParams, PartialResultParams {
+   --	item: CallHierarchyItem;
+   --}
+   --```
    type CallHierarchyIncomingCallsParams is new Progress_Partial_Params with record
       item: CallHierarchyItem;
    end record;
@@ -8368,23 +8420,26 @@ package LSP.Messages is
    for CallHierarchyIncomingCallsParams'Read use Read_CallHierarchyIncomingCallsParams;
    for CallHierarchyIncomingCallsParams'Write use Write_CallHierarchyIncomingCallsParams;
 
-   --  export interface CallHierarchyIncomingCall {
+   --```typescript
+   --export interface CallHierarchyIncomingCall {
    --
-   --  	/**
-   --  	 * The item that makes the call.
-   --  	 */
-   --  	from: CallHierarchyItem;
+   --	/**
+   --	 * The item that makes the call.
+   --	 */
+   --	from: CallHierarchyItem;
    --
-   --  	/**
-   --  	 * The ranges at which the calls appear. This is relative to the caller
-   --  	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
-   --  	 */
-   --  	fromRanges: Range[];
-   --  }
+   --	/**
+   --	 * The ranges at which the calls appear. This is relative to the caller
+   --	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
+   --	 */
+   --	fromRanges: Range[];
+   --}
+   --```
    type CallHierarchyIncomingCall is record
       from: CallHierarchyItem;
       fromRanges: Span_Vector;
    end record;
+
    procedure Read_CallHierarchyIncomingCall
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CallHierarchyIncomingCall);
@@ -8400,26 +8455,34 @@ package LSP.Messages is
    type CallHierarchyIncomingCall_Vector is
      new CallHierarchyIncomingCall_Vectors.Vector with null record;
 
+   --```typescript
+   --export interface CallHierarchyOutgoingCallsParams extends
+   --	WorkDoneProgressParams, PartialResultParams {
+   --	item: CallHierarchyItem;
+   --}
+   --```
    subtype CallHierarchyOutgoingCallsParams is CallHierarchyIncomingCallsParams;
 
-   --  export interface CallHierarchyOutgoingCall {
+   --```typescript
+   --export interface CallHierarchyOutgoingCall {
    --
-   --  	/**
-   --  	 * The item that is called.
-   --  	 */
-   --  	to: CallHierarchyItem;
+   --	/**
+   --	 * The item that is called.
+   --	 */
+   --	to: CallHierarchyItem;
    --
-   --  	/**
-   --  	 * The range at which this item is called. This is the range relative to the caller, e.g the item
-   --  	 * passed to [`provideCallHierarchyOutgoingCalls`](#CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls)
-   --  	 * and not [`this.to`](#CallHierarchyOutgoingCall.to).
-   --  	 */
-   --  	fromRanges: Range[];
-   --  }
+   --	/**
+   --	 * The range at which this item is called. This is the range relative to
+   --	 * the caller, e.g the item passed to `callHierarchy/outgoingCalls` request.
+   --	 */
+   --	fromRanges: Range[];
+   --}
+   --```
    type CallHierarchyOutgoingCall is record
       to: CallHierarchyItem;
       fromRanges: Span_Vector;
    end record;
+
    procedure Read_CallHierarchyOutgoingCall
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CallHierarchyOutgoingCall);
