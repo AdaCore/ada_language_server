@@ -908,7 +908,7 @@ package LSP.Messages is
    --	newText: string;
    --}
    --```
-   type TextEdit is record
+   type TextEdit is tagged record
       span: LSP.Messages.Span;
       newText: LSP_String;
    end record;
@@ -930,6 +930,53 @@ package LSP.Messages is
      (TextEdit, Write_Empty => LSP.Write_Array);
 
    type TextEdit_Vector is new TextEdit_Vectors.Vector with null record;
+
+   --```typescript
+   --
+   --/**
+   -- * An identifier referring to a change annotation managed by a workspace
+   -- * edit.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export type ChangeAnnotationIdentifier = string;
+   --
+   --
+   --/**
+   -- * A special text edit with an additional change annotation.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface AnnotatedTextEdit extends TextEdit {
+   --	/**
+   --	 * The actual annotation identifier.
+   --	 */
+   --	annotationId: ChangeAnnotationIdentifier;
+   --}
+   --```
+   type AnnotatedTextEdit is new TextEdit with record
+      --  Make id optional to represent both AnnotatedTextEdit and TextEdit
+      annotationId: Optional_String;
+   end record;
+
+   procedure Read_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotatedTextEdit);
+
+   procedure Write_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotatedTextEdit);
+
+   for AnnotatedTextEdit'Read use Read_AnnotatedTextEdit;
+   for AnnotatedTextEdit'Write use Write_AnnotatedTextEdit;
+
+   package AnnotatedTextEdit_Vectors is new LSP.Generic_Vectors
+     (AnnotatedTextEdit, Write_Empty => LSP.Write_Array);
+
+   type AnnotatedTextEdit_Vector is new AnnotatedTextEdit_Vectors.Vector
+     with null record;
+
+   subtype ChangeAnnotationIdentifier is LSP_String;
 
    --
    --```typescript
@@ -1026,13 +1073,16 @@ package LSP.Messages is
    --
    --	/**
    --	 * The edits to be applied.
+   --	 *
+   --	 * @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
+   --	 * client capability `workspace.workspaceEdit.changeAnnotationSupport`
    --	 */
-   --	edits: TextEdit[];
+   --	edits: (TextEdit | AnnotatedTextEdit)[];
    --}
    --```
    type TextDocumentEdit is record
       textDocument: OptionalVersionedTextDocumentIdentifier;
-      edits: TextEdit_Vector;
+      edits: AnnotatedTextEdit_Vector;
    end record;
 
    procedure Read_TextDocumentEdit
@@ -1085,6 +1135,13 @@ package LSP.Messages is
    --	 * Additional options
    --	 */
    --	options?: CreateFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --
    --/**
@@ -1125,6 +1182,13 @@ package LSP.Messages is
    --	 * Rename options.
    --	 */
    --	options?: RenameFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --
    --/**
@@ -1160,6 +1224,13 @@ package LSP.Messages is
    --	 * Delete options.
    --	 */
    --	options?: DeleteFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --```
 
@@ -1171,6 +1242,7 @@ package LSP.Messages is
    type CreateFile is record
       uri     : DocumentUri;
       options : CreateFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type RenameFileOptions is record
@@ -1182,6 +1254,7 @@ package LSP.Messages is
       oldUri  : DocumentUri;
       newUri  : DocumentUri;
       options : RenameFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type DeleteFileOptions is record
@@ -1192,6 +1265,7 @@ package LSP.Messages is
    type DeleteFile is record
       uri     : DocumentUri;
       options : DeleteFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type Document_Change_Kind is
@@ -1228,6 +1302,55 @@ package LSP.Messages is
      new Document_Change_Vectors.Vector with null record;
 
    --```typescript
+   --/**
+   -- * Additional information that describes document changes.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ChangeAnnotation {
+   --	/**
+   --	 * A human-readable string describing the actual change. The string
+   --	 * is rendered prominent in the user interface.
+   --	 */
+   --	label: string;
+   --
+   --	/**
+   --	 * A flag which indicates that user confirmation is needed
+   --	 * before applying the change.
+   --	 */
+   --	needsConfirmation?: boolean;
+   --
+   --	/**
+   --	 * A human-readable string which is rendered less prominent in
+   --	 * the user interface.
+   --	 */
+   --	description?: string;
+   --}
+   --```
+   type ChangeAnnotation is record
+      label: LSP_String;
+      needsConfirmation: Optional_Boolean;
+      description: Optional_String;
+   end record;
+
+   procedure Read_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ChangeAnnotation);
+
+   procedure Write_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ChangeAnnotation);
+
+   for ChangeAnnotation'Read use Read_ChangeAnnotation;
+   for ChangeAnnotation'Write use Write_ChangeAnnotation;
+
+   package ChangeAnnotation_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => ChangeAnnotationIdentifier,
+      Element_Type    => ChangeAnnotation,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=");
+
+   --```typescript
    --export interface WorkspaceEdit {
    --	/**
    --	 * Holds changes to existing resources.
@@ -1253,11 +1376,26 @@ package LSP.Messages is
    --		TextDocumentEdit[] |
    --		(TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]
    --	);
+   --
+   --	/**
+   --	 * A map of change annotations that can be referenced in
+   --	 * `AnnotatedTextEdit`s or create, rename and delete file / folder
+   --	 * operations.
+   --	 *
+   --	 * Whether clients honor this property depends on the client capability
+   --	 * `workspace.changeAnnotationSupport`.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	changeAnnotations?: {
+   --		[id: string /* ChangeAnnotationIdentifier */]: ChangeAnnotation;
+   --	}
    --}
    --```
    type WorkspaceEdit is record
       changes: TextDocumentEdit_Maps.Map;
       documentChanges: Document_Change_Vector;
+      changeAnnotations: ChangeAnnotation_Maps.Map;
    end record;
 
    procedure Read_WorkspaceEdit
@@ -1433,6 +1571,21 @@ package LSP.Messages is
    --	 * @since 3.13.0
    --	 */
    --	failureHandling?: FailureHandlingKind;
+   --
+   --	/**
+   --	 * Whether the client in general supports change annotations on text edits,
+   --	 * create file, rename file and delete file changes.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	changeAnnotationSupport?: {
+   --        /**
+   --         * Whether the client groups edits with equal labels into tree nodes,
+   --         * for instance all edits labelled with "Changes in Strings" would
+   --         * be a tree node.
+   --         */
+   --        groupsOnLabel?: boolean;
+   --	};
    --}
    --
    --/**
@@ -1538,10 +1691,32 @@ package LSP.Messages is
    type Optional_FailureHandlingKind is
      new Optional_FailureHandlingKinds.Optional_Type;
 
+   type AnnotationSupport is record
+      groupsOnLabel: Optional_Boolean;
+   end record;
+
+   procedure Read_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotationSupport);
+
+   procedure Write_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotationSupport);
+
+   for AnnotationSupport'Read use Read_AnnotationSupport;
+   for AnnotationSupport'Write use Write_AnnotationSupport;
+
+   package Optional_AnnotationSupports is
+     new LSP.Generic_Optional (AnnotationSupport);
+
+   type Optional_AnnotationSupport is
+     new Optional_AnnotationSupports.Optional_Type;
+
    type WorkspaceEditClientCapabilities is record
       documentChanges : Optional_Boolean;
       resourceOperations : Optional_ResourceOperationKindSet;
       failureHandling : Optional_FailureHandlingKind;
+      changeAnnotationSupport : Optional_AnnotationSupport;
    end record;
 
    procedure Read_WorkspaceEditClientCapabilities
@@ -2704,6 +2879,17 @@ package LSP.Messages is
    --	 * @since 3.15.0
    --	 */
    --	isPreferredSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether the client honors the change annotations in
+   --	 * text edits and resource operations returned via the
+   --	 * `CodeAction#edit` property by for example presenting
+   --	 * the workspace edit in the user interface and asking
+   --	 * for confirmation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	honorsChangeAnnotations?: boolean;
    --}
    --```
    type codeActionKindCapability is record
@@ -2746,6 +2932,7 @@ package LSP.Messages is
       dynamicRegistration: Optional_Boolean;
       codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
       isPreferredSupport: Optional_Boolean;
+      honorsChangeAnnotations: Optional_Boolean;
    end record;
 
    procedure Read_CodeActionClientCapabilities
@@ -2866,11 +3053,23 @@ package LSP.Messages is
    --	 * @since 3.12.0
    --	 */
    --	prepareSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether th client honors the change annotations in
+   --	 * text edits and resource operations returned via the
+   --	 * rename request's workspace edit by for example presenting
+   --	 * the workspace edit in the user interface and asking
+   --	 * for confirmation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	honorsChangeAnnotations?: boolean;
    --}
    --```
    type RenameClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       prepareSupport: Optional_Boolean;
+      honorsChangeAnnotations: Optional_Boolean;
    end record;
 
    procedure Read_RenameClientCapabilities

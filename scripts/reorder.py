@@ -76,6 +76,8 @@ order = [
     'interface CodeDescription ',
     'interface Command ',
     'interface TextEdit ',
+    'interface ChangeAnnotation ',
+    'interface AnnotatedTextEdit ',
     'interface TextDocumentEdit ',
     'interface CreateFileOptions ',
     'interface WorkspaceEdit ',

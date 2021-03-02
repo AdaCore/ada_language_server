@@ -102,7 +102,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          use type LSP.Types.LSP_String;
          Loc    : constant LSP.Messages.Location :=
            LSP.Lal_Utils.Get_Node_Location (Node);
-         Edit   : LSP.Messages.TextEdit;
+         Edit   : LSP.Messages.AnnotatedTextEdit;
       begin
          Edit.span := (Loc.span.first, Loc.span.first);
          Edit.newText := Name & " => ";
@@ -110,7 +110,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          if Client_Supports_documentChanges then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            Edits.changes (Edits.changes.First).Append (Edit);
+            Edits.changes (Edits.changes.First).Append
+              (LSP.Messages.TextEdit (Edit));
          end if;
       end Append;
 

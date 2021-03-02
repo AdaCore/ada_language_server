@@ -187,7 +187,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Node     : constant Libadalang.Analysis.Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
       Loc      : LSP.Messages.Location;
-      Edit     : LSP.Messages.TextEdit;
+      Edit     : LSP.Messages.AnnotatedTextEdit;
 
       Client_Supports_documentChanges : constant Boolean := True;
 
@@ -229,7 +229,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
          if Client_Supports_documentChanges then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            Edits.changes (Edits.changes.First).Append (Edit);
+            Edits.changes (Edits.changes.First).Append
+              (LSP.Messages.TextEdit (Edit));
          end if;
       end if;
 
@@ -285,7 +286,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                Edits.documentChanges (1).Text_Document_Edit.edits.Append
                  (Edit);
             else
-               Edits.changes (Edits.changes.First).Append (Edit);
+               Edits.changes (Edits.changes.First).Append
+                 (LSP.Messages.TextEdit (Edit));
             end if;
          end;
       end if;
