@@ -47,6 +47,34 @@ package LSP.Messages is
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
 
+   --```typescript
+   --/**
+   -- * Defines an integer number in the range of -2^31 to 2^31 - 1.
+   -- */
+   --export type integer = number;
+   --```
+   --  subtype integer is LSP_Number;
+
+   --```typescript
+   --/**
+   -- * Defines an unsigned integer number in the range of 0 to 2^31 - 1.
+   -- */
+   --export type uinteger = number;
+   --```
+   subtype uinteger is LSP_Number range 0 .. LSP_Number'Last;
+
+   --```typescript
+   --/**
+   -- * Defines a decimal number. Since decimal numbers are very
+   -- * rare in the language server specification we denote the
+   -- * exact range with every decimal using the mathematics
+   -- * interval notation (e.g. [0, 1] denotes all decimals d with
+   -- * 0 <= d <= 1.
+   -- */
+   --export type decimal = number;
+   --```
+   subtype decimal is LSP.Types.LSP_Number;  --  FIXME
+
    package Optional_LSP_String_Vectors is
      new LSP.Generic_Optional (LSP_String_Vector);
    type Optional_LSP_String_Vector is
@@ -67,7 +95,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id.
    --	 */
-   --	id: number | string;
+   --	id: integer | string;
    --
    --	/**
    --	 * The method to be invoked.
@@ -100,7 +128,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id.
    --	 */
-   --	id: number | string | null;
+   --	id: integer | string | null;
    --
    --	/**
    --	 * The result of a request. This member is REQUIRED on success.
@@ -118,7 +146,7 @@ package LSP.Messages is
    --	/**
    --	 * A number indicating the error type that occurred.
    --	 */
-   --	code: number;
+   --	code: integer;
    --
    --	/**
    --	 * A string providing a short description of the error.
@@ -203,7 +231,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id to cancel.
    --	 */
-   --	id: number | string;
+   --	id: integer | string;
    --}
    --```
    type CancelParams is record
@@ -236,7 +264,7 @@ package LSP.Messages is
    --	/**
    --	 * Line position in a document (zero-based).
    --	 */
-   --	line: number;
+   --	line: uinteger;
    --
    --	/**
    --	 * Character offset on a line in a document (zero-based). Assuming that the line is
@@ -246,7 +274,7 @@ package LSP.Messages is
    --	 * If the character value is greater than the line length it defaults back to the
    --	 * line length.
    --	 */
-   --	character: number;
+   --	character: uinteger;
    --}
    --```
    type Position is record
@@ -665,7 +693,7 @@ package LSP.Messages is
    --	/**
    --	 * The diagnostic's code, which might appear in the user interface.
    --	 */
-   --	code?: number | string;
+   --	code?: integer | string;
    --
    --	/**
    --	 * A human-readable string describing the source of this
@@ -1125,7 +1153,7 @@ package LSP.Messages is
    --	 * The version number of this document (it will increase after each
    --	 * change, including undo/redo).
    --	 */
-   --	version: number;
+   --	version: integer;
    --
    --	/**
    --	 * The content of the opened text document.
@@ -3067,7 +3095,7 @@ package LSP.Messages is
    type Optional_WorkspaceFolder_Vector is new Optional_WorkspaceFolder_Vectors.Optional_Type;
 
    --```typescript
-   --type ProgressToken = number | string;
+   --type ProgressToken = integer | string;
    --interface ProgressParams<T> {
    --	/**
    --	 * The progress token provided by the client or server.
@@ -3225,7 +3253,7 @@ package LSP.Messages is
    --	 * the server. Is null if the process has not been started by another process.
    --	 * If the parent process is not alive then the server should exit (see exit notification) its process.
    --	 */
-   --	processId: number | null;
+   --	processId: integer | null;
    --
    --	/**
    --	 * Information about the client
@@ -4594,7 +4622,7 @@ package LSP.Messages is
    --	 * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
    --	 * which is 7.
    --	 */
-   --	kind?: number;
+   --	kind?: uinteger;
    --}
    --
    --export namespace WatchKind {
@@ -4935,7 +4963,7 @@ package LSP.Messages is
    --	 *
    --	 * @deprecated use range instead.
    --	 */
-   --	rangeLength?: number;
+   --	rangeLength?: uinteger;
    --
    --	/**
    --	 * The new text for the provided range.
@@ -5099,7 +5127,7 @@ package LSP.Messages is
    --	/**
    --	 * The change type.
    --	 */
-   --	type: number;
+   --	type: uinteger;
    --}
    --
    --/**
@@ -5183,7 +5211,7 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.15.0
    --	 */
-   --	version?: number;
+   --	version?: uinteger;
    --
    --	/**
    --	 * An array of diagnostic information items.
@@ -5599,7 +5627,7 @@ package LSP.Messages is
    --	 * In future version of the protocol this property might become
    --	 * mandatory to better express this.
    --	 */
-   --	activeSignature?: number;
+   --	activeSignature?: uinteger;
    --
    --	/**
    --	 * The active parameter of the active signature. If omitted or the value
@@ -5610,7 +5638,7 @@ package LSP.Messages is
    --	 * mandatory to better express the active parameter if the
    --	 * active signature does have any.
    --	 */
-   --	activeParameter?: number;
+   --	activeParameter?: uinteger;
    --}
    --
    --/**
@@ -5653,7 +5681,7 @@ package LSP.Messages is
    --	 * *Note*: a label of type string should be a substring of its containing signature label.
    --	 * Its intended use case is to highlight the parameter label part in the `SignatureInformation.label`.
    --	 */
-   --	label: string | [number, number];
+   --	label: string | [uinteger, uinteger];
    --
    --	/**
    --	 * The human-readable doc-comment of this parameter. Will be shown
@@ -6362,7 +6390,7 @@ package LSP.Messages is
    --	/**
    --	 * Size of a tab in spaces.
    --	 */
-   --	tabSize: number;
+   --	tabSize: uinteger;
    --
    --	/**
    --	 * Prefer spaces over tabs.
@@ -6393,7 +6421,7 @@ package LSP.Messages is
    --	/**
    --	 * Signature for further properties.
    --	 */
-   --	[key: string]: boolean | number | string;
+   --	[key: string]: boolean | integer | string;
    --}
    --```
    type FormattingOptions is record
@@ -6635,7 +6663,7 @@ package LSP.Messages is
    --	 * The value should be steadily rising. Clients are free to ignore values
    --	 * that are not following this rule.
    --	 */
-   --	percentage?: number;
+   --	percentage?: uinteger;
    --}
    --```
    type WorkDoneProgressBegin is record
@@ -6677,7 +6705,7 @@ package LSP.Messages is
    --	 * The value should be steadily rising. Clients are free to ignore values
    --	 * that are not following this rule.
    --	 */
-   --	percentage?: number;
+   --	percentage?: uinteger;
    --}
    --```
    type WorkDoneProgressReport is record
@@ -7064,22 +7092,22 @@ package LSP.Messages is
    --	/**
    --	 * The red component of this color in the range [0-1].
    --	 */
-   --	readonly red: number;
+   --	readonly red: decimal;
    --
    --	/**
    --	 * The green component of this color in the range [0-1].
    --	 */
-   --	readonly green: number;
+   --	readonly green: decimal;
    --
    --	/**
    --	 * The blue component of this color in the range [0-1].
    --	 */
-   --	readonly blue: number;
+   --	readonly blue: decimal;
    --
    --	/**
    --	 * The alpha component of this color in the range [0-1].
    --	 */
-   --	readonly alpha: number;
+   --	readonly alpha: decimal;
    --}
    --```
    type RGBA_Color is record
@@ -7241,22 +7269,22 @@ package LSP.Messages is
    --	/**
    --	 * The zero-based line number from where the folded range starts.
    --	 */
-   --	startLine: number;
+   --	startLine: uinteger;
    --
    --	/**
    --	 * The zero-based character offset from where the folded range starts. If not defined, defaults to the length of the start line.
    --	 */
-   --	startCharacter?: number;
+   --	startCharacter?: uinteger;
    --
    --	/**
    --	 * The zero-based line number where the folded range ends.
    --	 */
-   --	endLine: number;
+   --	endLine: uinteger;
    --
    --	/**
    --	 * The zero-based character offset before the folded range ends. If not defined, defaults to the length of the end line.
    --	 */
-   --	endCharacter?: number;
+   --	endCharacter?: uinteger;
    --
    --	/**
    --	 * Describes the kind of the folding range such as `comment` or `region`. The kind
