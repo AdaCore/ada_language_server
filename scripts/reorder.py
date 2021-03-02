@@ -52,6 +52,9 @@ def emit(list, pattern):
 
 
 order = [
+    'type integer ',
+    'type uinteger ',
+    'type decimal ',
     'interface Message ',
     'interface RequestMessage ',
     'interface ResponseMessage ',
@@ -86,9 +89,9 @@ order = [
     'interface WorkDoneProgressBegin ',
     'interface WorkDoneProgressReport ',
     'interface WorkDoneProgressEnd ',
-    'Window specific client capabilities',
     'interface WorkDoneProgressParams ',
     'interface WorkDoneProgressOptions ',
+    'Window specific client capabilities',
     'interface PartialResultParams ',
     'interface InitializeParams ',
     'interface TextDocumentClientCapabilities ',
