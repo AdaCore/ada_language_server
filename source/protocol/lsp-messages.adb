@@ -101,6 +101,11 @@ package body LSP.Messages is
       V : out LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy)
       renames LSP.Message_IO.Read_AlsDisplayMethodAncestryOnNavigationPolicy;
 
+   procedure Read_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LinkedEditingRanges)
+      renames LSP.Message_IO.Read_LinkedEditingRanges;
+
    procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.Location)
@@ -930,6 +935,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy)
       renames LSP.Message_IO.Write_AlsDisplayMethodAncestryOnNavigationPolicy;
+
+   procedure Write_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LinkedEditingRanges)
+      renames LSP.Message_IO.Write_LinkedEditingRanges;
 
    procedure Write_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;

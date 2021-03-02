@@ -375,6 +375,11 @@ package LSP.Messages is
      new LSP.Generic_Optional (Span, Write_Unset_As_Null => True);
    type Optional_Span_Or_Null is new Optional_Span_Or_Nulls.Optional_Type;
 
+   package Span_Vectors is new LSP.Generic_Vectors
+     (Span, Write_Empty => LSP.Write_Array);
+
+   type Span_Vector is new Span_Vectors.Vector with null record;
+
    type CodeActionKind is
      (Empty,
       QuickFix,
@@ -3240,6 +3245,19 @@ package LSP.Messages is
    --```
    subtype SelectionRangeClientCapabilities is dynamicRegistration;
 
+   --```typescript
+   --export interface LinkedEditingRangeClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration.
+   --	 * If this is set to `true` the client supports the new
+   --	 * `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --	 * return value for the corresponding server capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype LinkedEditingRangeClientCapabilities is dynamicRegistration;
+
    subtype CallHierarchyClientCapabilities is dynamicRegistration;
 
    --```typescript
@@ -3368,6 +3386,13 @@ package LSP.Messages is
    --	 * @since 3.15.0
    --	 */
    --	selectionRange?: SelectionRangeClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/linkedEditingRange` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	linkedEditingRange?: LinkedEditingRangeClientCapabilities;
    --}
    --```
    type TextDocumentClientCapabilities is record
@@ -3393,6 +3418,7 @@ package LSP.Messages is
       publishDiagnostics : Optional_PublishDiagnosticsClientCapabilities;
       foldingRange       : Optional_FoldingRangeClientCapabilities;
       selectionRange     : SelectionRangeClientCapabilities;
+      linkedEditingRange : LinkedEditingRangeClientCapabilities;
       callHierarchy      : CallHierarchyClientCapabilities;
    end record;
 
@@ -4591,6 +4617,19 @@ package LSP.Messages is
    --}
    --```
 
+   --```typescript
+   --export interface LinkedEditingRangeOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype LinkedEditingRangeOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface LinkedEditingRangeRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, LinkedEditingRangeOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
    --
    --```typescript
    --interface ServerCapabilities {
@@ -4730,6 +4769,14 @@ package LSP.Messages is
    --		| SelectionRangeRegistrationOptions;
    --
    --	/**
+   --	 * The server provides linked editing range support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	linkedEditingRangeProvider?: boolean | LinkedEditingRangeOptions
+   --		| LinkedEditingRangeRegistrationOptions;
+   --
+   --	/**
    --	 * The server provides workspace symbol support.
    --	 */
    --	workspaceSymbolProvider?: boolean | WorkspaceSymbolOptions;
@@ -4775,6 +4822,7 @@ package LSP.Messages is
       foldingRangeProvider: FoldingRangeOptions;
       executeCommandProvider: Optional_ExecuteCommandOptions;
       selectionRangeProvider: SelectionRangeOptions;
+      linkedEditingRangeProvider: LinkedEditingRangeOptions;
       workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
       callHierarchyProvider: CallHierarchyOptions;
@@ -8185,6 +8233,43 @@ package LSP.Messages is
      with null record;
 
    --```typescript
+   --export interface LinkedEditingRangeParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
+   --}
+   --```
+   subtype LinkedEditingRangeParams is Text_Progress_Params;
+
+   --```typescript
+   --export interface LinkedEditingRanges {
+   --	/**
+   --	 * A list of ranges that can be renamed together. The ranges must have
+   --	 * identical length and contain identical text content. The ranges cannot overlap.
+   --	 */
+   --	ranges: Range[];
+   --
+   --	/**
+   --	 * An optional word pattern (regular expression) that describes valid contents for
+   --	 * the given ranges. If no pattern is provided, the client configuration's word
+   --	 * pattern will be used.
+   --	 */
+   --	wordPattern?: string;
+   --}
+   --```
+   type LinkedEditingRanges is record
+      ranges: Span_Vector;
+      wordPattern: Optional_String;
+   end record;
+
+   procedure Read_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LinkedEditingRanges);
+   procedure Write_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LinkedEditingRanges);
+   for LinkedEditingRanges'Read use Read_LinkedEditingRanges;
+   for LinkedEditingRanges'Write use Write_LinkedEditingRanges;
+
+   --```typescript
    --export interface WorkDoneProgressCancelParams {
    --	/**
    --	 * The token to be used to report progress.
@@ -8282,11 +8367,6 @@ package LSP.Messages is
       V : CallHierarchyIncomingCallsParams);
    for CallHierarchyIncomingCallsParams'Read use Read_CallHierarchyIncomingCallsParams;
    for CallHierarchyIncomingCallsParams'Write use Write_CallHierarchyIncomingCallsParams;
-
-   package Span_Vectors is new LSP.Generic_Vectors
-     (Span, Write_Empty => LSP.Write_Array);
-
-   type Span_Vector is new Span_Vectors.Vector with null record;
 
    --  export interface CallHierarchyIncomingCall {
    --
