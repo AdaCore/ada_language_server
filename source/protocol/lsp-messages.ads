@@ -3879,6 +3879,18 @@ package LSP.Messages is
    --	};
    --
    --	/**
+   --	 * The locale the client is currently showing the user interface
+   --	 * in. This must not necessarily be the locale of the operating
+   --	 * system.
+   --	 *
+   --	 * Uses IETF language tags as the value's syntax
+   --	 * (See https://en.wikipedia.org/wiki/IETF_language_tag)
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	locale?: string;
+   --
+   --	/**
    --	 * The rootPath of the workspace. Is null
    --	 * if no folder is open.
    --	 *
@@ -3924,6 +3936,7 @@ package LSP.Messages is
    type InitializeParams is new WorkDoneProgressParams with record
       processId: Optional_Number;
       clientInfo: Optional_ProgramInfo;
+      locale: Optional_String;
       rootPath: Optional_Nullable_String;
       rootUri: Nullable_String;
       --  initializationOptions?: any;
