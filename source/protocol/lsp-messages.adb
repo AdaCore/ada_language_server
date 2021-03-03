@@ -556,6 +556,16 @@ package body LSP.Messages is
       V : out LSP.Messages.MessageType)
       renames LSP.Message_IO.Read_MessageType;
 
+   procedure Read_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Moniker)
+      renames LSP.Message_IO.Read_Moniker;
+
+   procedure Read_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MonikerKind)
+      renames LSP.Message_IO.Read_MonikerKind;
+
    procedure Read_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ShowMessageParams)
@@ -700,6 +710,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.WorkspaceSymbolParams)
       renames LSP.Message_IO.Read_WorkspaceSymbolParams;
+
+   procedure Read_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UniquenessLevel)
+      renames LSP.Message_IO.Read_UniquenessLevel;
 
    procedure Read_Unregistration
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1471,6 +1486,16 @@ package body LSP.Messages is
       V : LSP.Messages.MessageType)
       renames LSP.Message_IO.Write_MessageType;
 
+   procedure Write_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Moniker)
+      renames LSP.Message_IO.Write_Moniker;
+
+   procedure Write_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MonikerKind)
+      renames LSP.Message_IO.Write_MonikerKind;
+
    procedure Write_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ShowMessageParams)
@@ -1760,6 +1785,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ColorPresentation)
       renames LSP.Message_IO.Write_ColorPresentation;
+
+   procedure Write_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UniquenessLevel)
+      renames LSP.Message_IO.Write_UniquenessLevel;
 
    procedure Write_Unregistration
      (S : access Ada.Streams.Root_Stream_Type'Class;

@@ -283,6 +283,11 @@ order = [
     'interface LinkedEditingRangeRegistrationOptions ',
     'interface LinkedEditingRangeParams ',
     'interface LinkedEditingRanges ',
+    'interface MonikerClientCapabilities ',
+    'interface MonikerOptions ',
+    'interface MonikerRegistrationOptions ',
+    'interface MonikerParams ',
+    'interface Moniker ',
 ]
 
 # extract code snippets into a list

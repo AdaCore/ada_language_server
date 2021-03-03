@@ -3575,6 +3575,19 @@ package LSP.Messages is
      new Optional_SemanticTokensClientCapabilities_Package.Optional_Type;
 
    --```typescript
+   --interface MonikerClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype MonikerClientCapabilities is dynamicRegistration;
+
+   --```typescript
    --/**
    -- * Text document specific client capabilities.
    -- */
@@ -3721,6 +3734,13 @@ package LSP.Messages is
    --	 * @since 3.16.0
    --	 */
    --	semanticTokens?: SemanticTokensClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/moniker` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	moniker?: MonikerClientCapabilities;
    --}
    --```
    type TextDocumentClientCapabilities is record
@@ -3749,6 +3769,7 @@ package LSP.Messages is
       linkedEditingRange : LinkedEditingRangeClientCapabilities;
       callHierarchy      : CallHierarchyClientCapabilities;
       semanticTokens     : Optional_SemanticTokensClientCapabilities;
+      moniker            : MonikerClientCapabilities;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -5057,6 +5078,18 @@ package LSP.Messages is
    --}
    --```
 
+   --```typescript
+   --export interface MonikerOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype MonikerOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface MonikerRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, MonikerOptions {
+   --}
+   --```
+
    --
    --```typescript
    --interface ServerCapabilities {
@@ -5220,6 +5253,13 @@ package LSP.Messages is
    --		| SemanticTokensRegistrationOptions;
    --
    --	/**
+   --	 * Whether server provides moniker support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --    monikerProvider?: boolean | MonikerOptions | MonikerRegistrationOptions;
+   --
+   --	/**
    --	 * The server provides workspace symbol support.
    --	 */
    --	workspaceSymbolProvider?: boolean | WorkspaceSymbolOptions;
@@ -5267,6 +5307,7 @@ package LSP.Messages is
       selectionRangeProvider: SelectionRangeOptions;
       linkedEditingRangeProvider: LinkedEditingRangeOptions;
       semanticTokensProvider: Optional_SemanticTokensOptions;
+      monikerProvider: MonikerOptions;
       workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
       callHierarchyProvider: CallHierarchyOptions;
@@ -9099,6 +9140,136 @@ package LSP.Messages is
       V : SemanticTokensRangeParams);
    for SemanticTokensRangeParams'Read use Read_SemanticTokensRangeParams;
    for SemanticTokensRangeParams'Write use Write_SemanticTokensRangeParams;
+
+   --```typescript
+   --export interface MonikerParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type MonikerParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --/**
+   --  * Moniker uniqueness level to define scope of the moniker.
+   --  */
+   --export enum UniquenessLevel {
+   --	/**
+   --	 * The moniker is only unique inside a document
+   --	 */
+   --	document = 'document',
+   --
+   --	/**
+   --	 * The moniker is unique inside a project for which a dump got created
+   --	 */
+   --	project = 'project',
+   --
+   --	/**
+   --	 * The moniker is unique inside the group to which a project belongs
+   --	 */
+   --	group = 'group',
+   --
+   --	/**
+   --	 * The moniker is unique inside the moniker scheme.
+   --	 */
+   --	scheme = 'scheme',
+   --
+   --	/**
+   --	 * The moniker is globally unique
+   --	 */
+   --	global = 'global'
+   --}
+   --
+   --/**
+   -- * The moniker kind.
+   -- */
+   --export enum MonikerKind {
+   --	/**
+   --	 * The moniker represent a symbol that is imported into a project
+   --	 */
+   --	import = 'import',
+   --
+   --	/**
+   --	 * The moniker represents a symbol that is exported from a project
+   --	 */
+   --	export = 'export',
+   --
+   --	/**
+   --	 * The moniker represents a symbol that is local to a project (e.g. a local
+   --	 * variable of a function, a class not visible outside the project, ...)
+   --	 */
+   --	local = 'local'
+   --}
+   --
+   --/**
+   -- * Moniker definition to match LSIF 0.5 moniker definition.
+   -- */
+   --export interface Moniker {
+   --	/**
+   --	 * The scheme of the moniker. For example tsc or .Net
+   --	 */
+   --	scheme: string;
+   --
+   --	/**
+   --	 * The identifier of the moniker. The value is opaque in LSIF however
+   --	 * schema owners are allowed to define the structure if they want.
+   --	 */
+   --	identifier: string;
+   --
+   --	/**
+   --	 * The scope in which the moniker is unique
+   --	 */
+   --	unique: UniquenessLevel;
+   --
+   --	/**
+   --	 * The moniker kind if known.
+   --	 */
+   --	kind?: MonikerKind;
+   --}
+   --```
+   type UniquenessLevel is (document, project, group, scheme, global);
+
+   procedure Read_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UniquenessLevel);
+   procedure Write_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UniquenessLevel);
+   for UniquenessLevel'Read use Read_UniquenessLevel;
+   for UniquenessLevel'Write use Write_UniquenessLevel;
+
+   type MonikerKind is (import, export, local);
+
+   procedure Read_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MonikerKind);
+   procedure Write_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MonikerKind);
+   for MonikerKind'Read use Read_MonikerKind;
+   for MonikerKind'Write use Write_MonikerKind;
+
+   package Optional_MonikerKinds is new LSP.Generic_Optional (MonikerKind);
+   type Optional_MonikerKind is new Optional_MonikerKinds.Optional_Type;
+
+   type Moniker is record
+      scheme: LSP_String;
+      identifier: LSP_String;
+      unique: UniquenessLevel;
+      kind: Optional_MonikerKind;
+   end record;
+
+   procedure Read_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Moniker);
+   procedure Write_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Moniker);
+   for Moniker'Read use Read_Moniker;
+   for Moniker'Write use Write_Moniker;
+
+   package Moniker_Vectors is new LSP.Generic_Vectors
+     (Moniker, Write_Empty => LSP.Write_Array);
+   type Moniker_Vector is new Moniker_Vectors.Vector with null record;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
