@@ -137,6 +137,7 @@ types_to_print = {
     'CompletionRegistrationOptions',
     'SignatureHelpRegistrationOptions',
     'CodeLensRegistrationOptions',
+    'CodeLensWorkspaceClientCapabilities',
     'DocumentLinkRegistrationOptions',
     'DocumentOnTypeFormattingRegistrationOptions',
     'ExecuteCommandRegistrationOptions',

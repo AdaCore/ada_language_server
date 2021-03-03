@@ -1970,6 +1970,43 @@ package LSP.Messages is
    type Optional_SemanticTokensWorkspaceClientCapabilities is
      new Optional_SemanticTokensWorkspaceClientCapabilities_Package.Optional_Type;
 
+   --```typescript
+   --export interface CodeLensWorkspaceClientCapabilities {
+   --	/**
+   --	 * Whether the client implementation supports a refresh request sent from the
+   --	 * server to the client.
+   --	 *
+   --	 * Note that this event is global and will force the client to refresh all
+   --	 * code lenses currently shown. It should be used with absolute care and is
+   --	 * useful for situation where a server for example detect a project wide
+   --	 * change that requires such a calculation.
+   --	 */
+   --	refreshSupport?: boolean;
+   --}
+   --```
+   type CodeLensWorkspaceClientCapabilities is record
+      refreshSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensWorkspaceClientCapabilities);
+   procedure Write_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensWorkspaceClientCapabilities);
+
+   for CodeLensWorkspaceClientCapabilities'Read use
+     Read_CodeLensWorkspaceClientCapabilities;
+
+   for CodeLensWorkspaceClientCapabilities'Write use
+     Write_CodeLensWorkspaceClientCapabilities;
+
+   package Optional_CodeLensWorkspaceClientCapabilities_Package is
+     new LSP.Generic_Optional (CodeLensWorkspaceClientCapabilities);
+
+   type Optional_CodeLensWorkspaceClientCapabilities is
+     new Optional_CodeLensWorkspaceClientCapabilities_Package.Optional_Type;
+
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
       workspaceEdit: WorkspaceEditClientCapabilities;
@@ -1980,6 +2017,7 @@ package LSP.Messages is
       workspaceFolders: Optional_Boolean;
       configuration: Optional_Boolean;
       semanticTokens: Optional_SemanticTokensWorkspaceClientCapabilities;
+      codeLens: Optional_CodeLensWorkspaceClientCapabilities;
    end record;
 
    procedure Read_WorkspaceClientCapabilities
@@ -4073,6 +4111,14 @@ package LSP.Messages is
    --		 * @since 3.16.0
    --		 */
    --		 semanticTokens?: SemanticTokensWorkspaceClientCapabilities;
+   --
+   --		/**
+   --		 * Capabilities specific to the code lens requests scoped to the
+   --		 * workspace.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		codeLens?: CodeLensWorkspaceClientCapabilities;
    --	};
    --
    --	/**
