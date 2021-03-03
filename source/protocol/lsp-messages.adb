@@ -581,6 +581,11 @@ package body LSP.Messages is
       V : out ShowDocumentResult)
       renames LSP.Message_IO.Read_ShowDocumentResult;
 
+   procedure Read_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MessageActionItemCapabilities)
+      renames LSP.Message_IO.Read_MessageActionItemCapabilities;
+
    procedure Read_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ShowMessageParams)
@@ -590,6 +595,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ShowMessageRequestParams)
       renames LSP.Message_IO.Read_ShowMessageRequestParams;
+
+   procedure Read_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageRequestClientCapabilities)
+      renames LSP.Message_IO.Read_ShowMessageRequestClientCapabilities;
 
    procedure Read_LogMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1526,6 +1536,11 @@ package body LSP.Messages is
       V : ShowDocumentResult)
       renames LSP.Message_IO.Write_ShowDocumentResult;
 
+   procedure Write_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MessageActionItemCapabilities)
+      renames LSP.Message_IO.Write_MessageActionItemCapabilities;
+
    procedure Write_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ShowMessageParams)
@@ -1535,6 +1550,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ShowMessageRequestParams)
       renames LSP.Message_IO.Write_ShowMessageRequestParams;
+
+   procedure Write_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageRequestClientCapabilities)
+      renames LSP.Message_IO.Write_ShowMessageRequestClientCapabilities;
 
    procedure Write_LogMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

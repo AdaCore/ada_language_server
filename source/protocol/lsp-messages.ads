@@ -3817,6 +3817,66 @@ package LSP.Messages is
    type Optional_ShowDocumentClientCapabilities is
      new Optional_ShowDocumentClientCapabilities_Package.Optional_Type;
 
+   type MessageActionItemCapabilities is record
+      additionalPropertiesSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MessageActionItemCapabilities);
+   procedure Write_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MessageActionItemCapabilities);
+
+   for MessageActionItemCapabilities'Read use Read_MessageActionItemCapabilities;
+   for MessageActionItemCapabilities'Write use Write_MessageActionItemCapabilities;
+
+   package Optional_MessageActionItemCapabilities_Package is
+     new LSP.Generic_Optional (MessageActionItemCapabilities);
+
+   type Optional_MessageActionItemCapabilities is
+     new Optional_MessageActionItemCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --/**
+   -- * Show message request client capabilities
+   -- */
+   --export interface ShowMessageRequestClientCapabilities {
+   --	/**
+   --	 * Capabilities specific to the `MessageActionItem` type.
+   --	 */
+   --	messageActionItem?: {
+   --		/**
+   --		 * Whether the client supports additional attributes which
+   --		 * are preserved and sent back to the server in the
+   --		 * request's response.
+   --		 */
+   --		additionalPropertiesSupport?: boolean;
+   --	}
+   --}
+   --```
+   type ShowMessageRequestClientCapabilities is record
+      messageActionItem: Optional_MessageActionItemCapabilities;
+   end record;
+
+   procedure Read_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageRequestClientCapabilities);
+   procedure Write_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageRequestClientCapabilities);
+
+   for ShowMessageRequestClientCapabilities'Read
+     use Read_ShowMessageRequestClientCapabilities;
+   for ShowMessageRequestClientCapabilities'Write
+     use Write_ShowMessageRequestClientCapabilities;
+
+   package Optional_ShowMessageRequestClientCapabilities_Package is
+     new LSP.Generic_Optional (ShowMessageRequestClientCapabilities);
+
+   type Optional_ShowMessageRequestClientCapabilities is
+     new Optional_ShowMessageRequestClientCapabilities_Package.Optional_Type;
+
    --```typescript
    --	/**
    --	 * Window specific client capabilities.
@@ -3831,6 +3891,7 @@ package LSP.Messages is
    --```
    type WindowClientCapabilities is record
       workDoneProgress: Optional_Boolean;
+      showMessage: Optional_ShowMessageRequestClientCapabilities;
       showDocument: Optional_ShowDocumentClientCapabilities;
    end record;
 
@@ -4031,6 +4092,13 @@ package LSP.Messages is
    --		 * @since 3.15.0
    --		 */
    --		workDoneProgress?: boolean;
+   --
+   --		/**
+   --		 * Capabilities specific to the showMessage request
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		showMessage?: ShowMessageRequestClientCapabilities;
    --
    --		/**
    --		 * Client capabilities for the show document request.
@@ -5479,6 +5547,8 @@ package LSP.Messages is
    --	 */
    --	export const Log = 4;
    --}
+   --
+   --export type MessageType = 1 | 2 | 3 | 4;
    --```
    type MessageType is (Error, Warning, Info, Log);
 
@@ -5496,7 +5566,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}.
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message.
@@ -5523,7 +5593,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message
@@ -5557,7 +5627,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message

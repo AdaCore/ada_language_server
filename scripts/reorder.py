@@ -112,6 +112,7 @@ order = [
     'interface InitializedParams ',
     'interface ShowMessageParams ',
     'namespace MessageType ',
+    'interface ShowMessageRequestClientCapabilities ',
     'interface ShowMessageRequestParams ',
     'interface MessageActionItem ',
     'interface ShowDocumentClientCapabilities ',
