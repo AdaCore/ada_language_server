@@ -85,6 +85,8 @@ types_to_print = {
     'SemanticTokensClientCapabilities',
     'TextDocumentClientCapabilities',
     'ShowDocumentClientCapabilities',
+    'MessageActionItemCapabilities',
+    'ShowMessageRequestClientCapabilities',
     'WindowClientCapabilities',
     'MarkdownClientCapabilities',
     'RegularExpressionsClientCapabilities',
