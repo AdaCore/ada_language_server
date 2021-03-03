@@ -961,6 +961,11 @@ package body LSP.Messages is
       V : out CodeLensRegistrationOptions)
      renames LSP.Message_IO.Read_CodeLensRegistrationOptions;
 
+   procedure Read_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensWorkspaceClientCapabilities)
+     renames LSP.Message_IO.Read_CodeLensWorkspaceClientCapabilities;
+
    procedure Read_DocumentOnTypeFormattingRegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentOnTypeFormattingRegistrationOptions)
@@ -1915,6 +1920,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : CodeLensRegistrationOptions)
       renames LSP.Message_IO.Write_CodeLensRegistrationOptions;
+
+   procedure Write_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensWorkspaceClientCapabilities)
+      renames LSP.Message_IO.Write_CodeLensWorkspaceClientCapabilities;
 
    procedure Write_DocumentOnTypeFormattingRegistrationOptions
      (S : access Ada.Streams.Root_Stream_Type'Class;

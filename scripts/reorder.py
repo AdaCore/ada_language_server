@@ -213,6 +213,7 @@ order = [
     'interface CodeLensRegistrationOptions ',
     'interface CodeLensParams ',
     'interface CodeLens ',
+    'interface CodeLensWorkspaceClientCapabilities ',
     'interface DocumentLinkClientCapabilities ',
     'interface DocumentLinkOptions ',
     'interface DocumentLinkRegistrationOptions ',
