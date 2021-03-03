@@ -3784,6 +3784,40 @@ package LSP.Messages is
    for TextDocumentClientCapabilities'Write use Write_TextDocumentClientCapabilities;
 
    --```typescript
+   --/**
+   -- * Client capabilities for the show document request.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentClientCapabilities {
+   --	/**
+   --	 * The client has support for the show document
+   --	 * request.
+   --	 */
+   --	support: boolean;
+   --}
+   --```
+   type ShowDocumentClientCapabilities is record
+      support: Boolean;
+   end record;
+
+   procedure Read_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentClientCapabilities);
+   procedure Write_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentClientCapabilities);
+
+   for ShowDocumentClientCapabilities'Read use Read_ShowDocumentClientCapabilities;
+   for ShowDocumentClientCapabilities'Write use Write_ShowDocumentClientCapabilities;
+
+   package Optional_ShowDocumentClientCapabilities_Package is
+     new LSP.Generic_Optional (ShowDocumentClientCapabilities);
+
+   type Optional_ShowDocumentClientCapabilities is
+     new Optional_ShowDocumentClientCapabilities_Package.Optional_Type;
+
+   --```typescript
    --	/**
    --	 * Window specific client capabilities.
    --	 */
@@ -3797,6 +3831,7 @@ package LSP.Messages is
    --```
    type WindowClientCapabilities is record
       workDoneProgress: Optional_Boolean;
+      showDocument: Optional_ShowDocumentClientCapabilities;
    end record;
 
    procedure Read_WindowClientCapabilities
@@ -3996,6 +4031,13 @@ package LSP.Messages is
    --		 * @since 3.15.0
    --		 */
    --		workDoneProgress?: boolean;
+   --
+   --		/**
+   --		 * Client capabilities for the show document request.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		showDocument?: ShowDocumentClientCapabilities;
    --	}
    --
    --	/**
@@ -9270,6 +9312,84 @@ package LSP.Messages is
    package Moniker_Vectors is new LSP.Generic_Vectors
      (Moniker, Write_Empty => LSP.Write_Array);
    type Moniker_Vector is new Moniker_Vectors.Vector with null record;
+
+   --```typescript
+   --/**
+   -- * Params to show a document.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentParams {
+   --	/**
+   --	 * The document uri to show.
+   --	 */
+   --	uri: URI;
+   --
+   --	/**
+   --	 * Indicates to show the resource in an external program.
+   --	 * To show for example `https://code.visualstudio.com/`
+   --	 * in the default WEB browser set `external` to `true`.
+   --	 */
+   --	external?: boolean;
+   --
+   --	/**
+   --	 * An optional property to indicate whether the editor
+   --	 * showing the document should take focus or not.
+   --	 * Clients might ignore this property if an external
+   --	 * program is started.
+   --	 */
+   --	takeFocus?: boolean;
+   --
+   --	/**
+   --	 * An optional selection range if the document is a text
+   --	 * document. Clients might ignore the property if an
+   --	 * external program is started or the file is not a text
+   --	 * file.
+   --	 */
+   --	selection?: Range;
+   --}
+   --```
+   type ShowDocumentParams is record
+      uri: LSP_String;
+      external: Optional_Boolean;
+      takeFocus: Optional_Boolean;
+      selection: Optional_Span;
+   end record;
+
+   procedure Read_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentParams);
+   procedure Write_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentParams);
+   for ShowDocumentParams'Read use Read_ShowDocumentParams;
+   for ShowDocumentParams'Write use Write_ShowDocumentParams;
+
+   --```typescript
+   --/**
+   -- * The result of an show document request.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentResult {
+   --	/**
+   --	 * A boolean indicating if the show was successful.
+   --	 */
+   --	success: boolean;
+   --}
+   --```
+   type ShowDocumentResult is record
+      success: Boolean;
+   end record;
+
+   procedure Read_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentResult);
+   procedure Write_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentResult);
+   for ShowDocumentResult'Read use Read_ShowDocumentResult;
+   for ShowDocumentResult'Write use Write_ShowDocumentResult;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
