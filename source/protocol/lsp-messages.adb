@@ -566,6 +566,21 @@ package body LSP.Messages is
       V : out MonikerKind)
       renames LSP.Message_IO.Read_MonikerKind;
 
+   procedure Read_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentClientCapabilities)
+      renames LSP.Message_IO.Read_ShowDocumentClientCapabilities;
+
+   procedure Read_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentParams)
+      renames LSP.Message_IO.Read_ShowDocumentParams;
+
+   procedure Read_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentResult)
+      renames LSP.Message_IO.Read_ShowDocumentResult;
+
    procedure Read_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ShowMessageParams)
@@ -1495,6 +1510,21 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : MonikerKind)
       renames LSP.Message_IO.Write_MonikerKind;
+
+   procedure Write_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentClientCapabilities)
+      renames LSP.Message_IO.Write_ShowDocumentClientCapabilities;
+
+   procedure Write_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentParams)
+      renames LSP.Message_IO.Write_ShowDocumentParams;
+
+   procedure Write_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentResult)
+      renames LSP.Message_IO.Write_ShowDocumentResult;
 
    procedure Write_ShowMessageParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
