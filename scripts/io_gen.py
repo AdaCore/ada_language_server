@@ -237,6 +237,9 @@ types_to_print = {
     'SemanticTokensDeltaPartialResult',
     'SemanticTokensRangeParams',
     'SemanticTokensWorkspaceClientCapabilities',
+    'UniquenessLevel',
+    'MonikerKind',
+    'Moniker',
     'ALS_Subprogram_And_References',
     'ALS_ShowDependenciesKind',
     'ALS_Unit_Description',
@@ -430,6 +433,8 @@ enum_as_string = [
     'TokenFormat',
     'SemanticTokenTypes',
     'SemanticTokenModifiers',
+    'UniquenessLevel',
+    'MonikerKind',
     'TraceValue']
 
 # The map to substitute words reserved in Ada:
