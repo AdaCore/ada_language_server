@@ -25,8 +25,8 @@ project LSP_Server is
 
    VERSION := external ("VERSION", "latest");
 
-   type BUILD_KIND is ("static", "static-pic", "relocatable");
-   BUILD : BUILD_KIND := external("ADA_LANGUAGE_SERVER_BUILD",
+   type Library_Kind is ("static", "static-pic", "relocatable");
+   Library_Type : Library_Kind := external("ALS_LIBRARY_TYPE",
                                   external("LIBRARY_TYPE", "relocatable"));
 
    type OS_KIND is ("Windows_NT", "unix", "osx");
@@ -50,7 +50,7 @@ project LSP_Server is
    end Compiler;
 
    package Linker is
-      case BUILD is
+      case Library_Type is
          when "static" | "static-pic" =>
             case OS is
                when "Windows_NT" =>
