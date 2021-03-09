@@ -498,6 +498,19 @@
                         }
                      },
                      "kind": 2
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 9
+                        }
+                     },
+                     "kind": 2
                   }
                ]
             }
