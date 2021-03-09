@@ -671,6 +671,16 @@ package body LSP.Messages is
       V : out LSP.Messages.InsertTextFormat)
       renames LSP.Message_IO.Read_InsertTextFormat;
 
+   procedure Read_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertTextMode)
+      renames LSP.Message_IO.Read_InsertTextMode;
+
+   procedure Read_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out insertTextModeSupportCapability)
+      renames LSP.Message_IO.Read_insertTextModeSupportCapability;
+
    procedure Read_CompletionItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.CompletionItem)
@@ -1635,6 +1645,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.InsertTextFormat)
       renames LSP.Message_IO.Write_InsertTextFormat;
+
+   procedure Write_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertTextMode)
+      renames LSP.Message_IO.Write_InsertTextMode;
+
+   procedure Write_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : insertTextModeSupportCapability)
+      renames LSP.Message_IO.Write_insertTextModeSupportCapability;
 
    procedure Write_CompletionItem
      (S : access Ada.Streams.Root_Stream_Type'Class;
