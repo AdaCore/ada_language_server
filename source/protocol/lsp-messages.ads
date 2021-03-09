@@ -3276,6 +3276,13 @@ package LSP.Messages is
    subtype DocumentOnTypeFormattingClientCapabilities is dynamicRegistration;
 
    --```typescript
+   --export namespace PrepareSupportDefaultBehavior {
+   --	/**
+   --	 * The client's default behavior is to select the identifier
+   --	 * according the to language's syntax rule.
+   --	 */
+   --	 export const Identifier: 1 = 1;
+   --}
    --export interface RenameClientCapabilities {
    --	/**
    --	 * Whether rename supports dynamic registration.
@@ -3291,6 +3298,17 @@ package LSP.Messages is
    --	prepareSupport?: boolean;
    --
    --	/**
+   --	 * Client supports the default behavior result
+   --	 * (`{ defaultBehavior: boolean }`).
+   --	 *
+   --	 * The value indicates the default behavior used by the
+   --	 * client.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	prepareSupportDefaultBehavior?: PrepareSupportDefaultBehavior;
+   --
+   --	/**
    --	 * Whether th client honors the change annotations in
    --	 * text edits and resource operations returned via the
    --	 * rename request's workspace edit by for example presenting
@@ -3302,9 +3320,29 @@ package LSP.Messages is
    --	honorsChangeAnnotations?: boolean;
    --}
    --```
+   type PrepareSupportDefaultBehavior is (Identifier);
+
+   procedure Read_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PrepareSupportDefaultBehavior);
+
+   procedure Write_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PrepareSupportDefaultBehavior);
+
+   for PrepareSupportDefaultBehavior'Read use Read_PrepareSupportDefaultBehavior;
+   for PrepareSupportDefaultBehavior'Write use Write_PrepareSupportDefaultBehavior;
+
+   package Optional_PrepareSupportDefaultBehavior_Package is
+     new LSP.Generic_Optional (PrepareSupportDefaultBehavior);
+
+   type Optional_PrepareSupportDefaultBehavior is
+     new Optional_PrepareSupportDefaultBehavior_Package.Optional_Type;
+
    type RenameClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       prepareSupport: Optional_Boolean;
+      prepareSupportDefaultBehavior: Optional_PrepareSupportDefaultBehavior;
       honorsChangeAnnotations: Optional_Boolean;
    end record;
 

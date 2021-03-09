@@ -78,6 +78,7 @@ types_to_print = {
     'codeActionLiteralSupport_Capability',
     'CodeActionClientCapabilities',
     'DocumentLinkClientCapabilities',
+    'PrepareSupportDefaultBehavior',
     'RenameClientCapabilities',
     'DiagnosticTagSupport',
     'PublishDiagnosticsClientCapabilities',
