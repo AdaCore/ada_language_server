@@ -2451,6 +2451,17 @@ package LSP.Messages is
    --		 * @since 3.16.0
    --		 */
    --		insertReplaceSupport?: boolean;
+   --
+   --		/**
+   --		 * The client supports the `insertTextMode` property on
+   --		 * a completion item to override the whitespace handling mode
+   --		 * as defined by the client (see `insertTextMode`).
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		insertTextModeSupport?: {
+   --			valueSet: InsertTextMode[];
+   --		}
    --	};
    --
    --	completionItemKind?: {
@@ -2519,6 +2530,49 @@ package LSP.Messages is
    type Optional_CompletionItemTagSupport is
      new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
+   type InsertTextMode is (asIs, adjustIndentation);
+
+   procedure Read_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertTextMode);
+   procedure Write_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertTextMode);
+
+   for InsertTextMode'Read use Read_InsertTextMode;
+   for InsertTextMode'Write use Write_InsertTextMode;
+
+   package Optional_InsertTextMode_Package is
+     new LSP.Generic_Optional (InsertTextMode);
+   type Optional_InsertTextMode is
+     new Optional_InsertTextMode_Package.Optional_Type;
+
+   package InsertTextModeSets is
+     new LSP.Generic_Sets (InsertTextMode);
+   type InsertTextModeSet is new InsertTextModeSets.Set;
+
+   type insertTextModeSupportCapability is record
+      valueSet: InsertTextModeSet;
+   end record;
+
+   procedure Read_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out insertTextModeSupportCapability);
+   procedure Write_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : insertTextModeSupportCapability);
+
+   for insertTextModeSupportCapability'Read
+     use Read_insertTextModeSupportCapability;
+   for insertTextModeSupportCapability'Write
+     use Write_insertTextModeSupportCapability;
+
+   package Optional_insertTextModeSupportCapability_Package is
+     new LSP.Generic_Optional (insertTextModeSupportCapability);
+
+   type Optional_insertTextModeSupportCapability is
+     new Optional_insertTextModeSupportCapability_Package.Optional_Type;
+
    type completionItemCapability is record
       snippetSupport : Optional_Boolean;
       commitCharactersSupport : Optional_Boolean;
@@ -2527,6 +2581,7 @@ package LSP.Messages is
       preselectSupport : Optional_Boolean;
       tagSupport : Optional_CompletionItemTagSupport;
       insertReplaceSupport : Optional_Boolean;
+      insertTextModeSupport: Optional_insertTextModeSupportCapability;
    end record;
 
    procedure Read_completionItemCapability
@@ -6596,6 +6651,36 @@ package LSP.Messages is
    --	replace: Range;
    --}
    --
+   --/**
+   -- * How whitespace and indentation is handled during completion
+   -- * item insertion.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace InsertTextMode {
+   --	/**
+   --	 * The insertion or replace strings is taken as it is. If the
+   --	 * value is multi line the lines below the cursor will be
+   --	 * inserted using the indentation defined in the string value.
+   --	 * The client will not apply any kind of adjustments to the
+   --	 * string.
+   --	 */
+   --	export const asIs: 1 = 1;
+   --
+   --	/**
+   --	 * The editor adjusts leading whitespace of new lines so that
+   --	 * they match the indentation up to the cursor of the line for
+   --	 * which the item is accepted.
+   --	 *
+   --	 * Consider a line like this: <2tabs><cursor><3tabs>foo. Accepting a
+   --	 * multi line completion item is indented using 2 tabs and all
+   --	 * following lines inserted will be indented using 2 tabs as well.
+   --	 */
+   --	export const adjustIndentation: 2 = 2;
+   --}
+   --
+   --export type InsertTextMode = 1 | 2;
+   --
    --export interface CompletionItem {
    --	/**
    --	 * The label of this completion item. By default
@@ -6677,6 +6762,15 @@ package LSP.Messages is
    --	 * `textEdit`. If omitted defaults to `InsertTextFormat.PlainText`.
    --	 */
    --	insertTextFormat?: InsertTextFormat;
+   --
+   --	/**
+   --	 * How whitespace and indentation is handled during completion
+   --	 * item insertion. If not provided the client's default value depends on
+   --	 * the `textDocument.completion.insertTextMode` client capability.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	insertTextMode?: InsertTextMode;
    --
    --	/**
    --	 * An edit which is applied to a document when selecting this completion.
@@ -6834,6 +6928,7 @@ package LSP.Messages is
       filterText: Optional_String;
       insertText: Optional_String;
       insertTextFormat: Optional_InsertTextFormat;
+      insertTextMode: Optional_InsertTextMode;
       textEdit: Optional_TextEdit_Or_InsertReplaceEdit;
       additionalTextEdits: TextEdit_Vector;
       commitCharacters: Optional_LSP_String_Vector;
