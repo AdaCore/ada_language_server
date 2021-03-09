@@ -646,6 +646,11 @@ package body LSP.Messages is
       V : out LSP.Messages.DidCloseTextDocumentParams)
       renames LSP.Message_IO.Read_DidCloseTextDocumentParams;
 
+   procedure Read_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Disable_Reason)
+      renames LSP.Message_IO.Read_Disable_Reason;
+
    procedure Read_FileChangeType
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.FileChangeType)
@@ -1626,6 +1631,11 @@ package body LSP.Messages is
       V : LSP.Messages.DidCloseTextDocumentParams)
       renames LSP.Message_IO.Write_DidCloseTextDocumentParams;
 
+   procedure Write_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Disable_Reason)
+      renames LSP.Message_IO.Write_Disable_Reason;
+
    procedure Write_FileChangeType
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.FileChangeType)
@@ -2225,6 +2235,9 @@ package body LSP.Messages is
                Is_CodeAction := True;
             elsif Key = "isPreferred" then
                Optional_Boolean'Read (S, V.isPreferred);
+               Is_CodeAction := True;
+            elsif Key = "disabled" then
+               Optional_Disable_Reason'Read (S, V.disabled);
                Is_CodeAction := True;
             elsif Key = "edit" then
                Optional_WorkspaceEdit'Read (S, V.edit);
@@ -3102,6 +3115,8 @@ package body LSP.Messages is
          JS.Key ("diagnostics");
          Optional_Diagnostic_Vector'Write (S, V.diagnostics);
          Write_Optional_Boolean (JS, +"isPreferred", V.isPreferred);
+         JS.Key ("disabled");
+         Optional_Disable_Reason'Write (S, V.disabled);
          JS.Key ("edit");
          Optional_WorkspaceEdit'Write (S, V.edit);
          JS.Key ("command");

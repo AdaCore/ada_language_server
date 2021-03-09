@@ -693,7 +693,8 @@ package body LSP.Ada_Handlers is
                     Value  => LSP.Messages.To_Set
                       (From => LSP.Messages.RefactorRewrite,
                        To   => LSP.Messages.RefactorRewrite)),
-               workDoneProgress => LSP.Types.None));
+               workDoneProgress => LSP.Types.None,
+               resolveProvider  => LSP.Types.None));
       else
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True, Value => <>);
@@ -927,6 +928,7 @@ package body LSP.Ada_Handlers is
                kind        => (Is_Set => True,
                                Value  => LSP.Messages.RefactorRewrite),
                diagnostics => (Is_Set => False),
+               disabled    => (Is_Set => False),
                edit        => (Is_Set => False),
                isPreferred => (Is_Set => False),
                command     => (Is_Set => True,
