@@ -2453,6 +2453,20 @@ package LSP.Messages is
    --		insertReplaceSupport?: boolean;
    --
    --		/**
+   --		 * Indicates which properties a client can resolve lazily on a
+   --		 * completion item. Before version 3.16.0 only the predefined properties
+   --		 * `documentation` and `details` could be resolved lazily.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		resolveSupport?: {
+   --			/**
+   --			 * The properties that a client can resolve lazily.
+   --			 */
+   --			properties: string[];
+   --		};
+   --
+   --		/**
    --		 * The client supports the `insertTextMode` property on
    --		 * a completion item to override the whitespace handling mode
    --		 * as defined by the client (see `insertTextMode`).
@@ -2530,6 +2544,27 @@ package LSP.Messages is
    type Optional_CompletionItemTagSupport is
      new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
+   type resolveSupportCapability is record
+      properties: LSP_String_Vector;
+   end record;
+
+   procedure Read_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out resolveSupportCapability);
+
+   procedure Write_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : resolveSupportCapability);
+
+   for resolveSupportCapability'Read use Read_resolveSupportCapability;
+   for resolveSupportCapability'Write use Write_resolveSupportCapability;
+
+   package Optional_resolveSupportCapability_Package is
+     new LSP.Generic_Optional (resolveSupportCapability);
+
+   type Optional_resolveSupportCapability is
+     new Optional_resolveSupportCapability_Package.Optional_Type;
+
    type InsertTextMode is (asIs, adjustIndentation);
 
    procedure Read_InsertTextMode
@@ -2581,6 +2616,7 @@ package LSP.Messages is
       preselectSupport : Optional_Boolean;
       tagSupport : Optional_CompletionItemTagSupport;
       insertReplaceSupport : Optional_Boolean;
+      resolveSupport : Optional_resolveSupportCapability;
       insertTextModeSupport: Optional_insertTextModeSupportCapability;
    end record;
 
@@ -3047,6 +3083,20 @@ package LSP.Messages is
    --	 */
    --	isPreferredSupport?: boolean;
    --
+   --
+   --	/**
+   --	 * Whether the client supports resolving additional code action
+   --	 * properties via a separate `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	resolveSupport?: {
+   --		/**
+   --		 * The properties that a client can resolve lazily.
+   --		*/
+   --		properties: string[];
+   --	};
+   --
    --	/**
    --	 * Whether the client honors the change annotations in
    --	 * text edits and resource operations returned via the
@@ -3099,6 +3149,7 @@ package LSP.Messages is
       dynamicRegistration: Optional_Boolean;
       codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
       isPreferredSupport: Optional_Boolean;
+      resolveSupport : Optional_resolveSupportCapability;
       honorsChangeAnnotations: Optional_Boolean;
    end record;
 
