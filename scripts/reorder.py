@@ -143,6 +143,10 @@ order = [
     'interface ExecuteCommandParams ',
     'interface ApplyWorkspaceEditParams ',
     'interface ApplyWorkspaceEditResponse ',
+    'interface FileOperationRegistrationOptions ',
+    'interface CreateFilesParams ',
+    'interface RenameFilesParams ',
+    'interface DeleteFilesParams ',
     'interface TextDocumentSyncOptions',  #  shorten snippets
     'interface DidOpenTextDocumentParams ',
     'interface TextDocumentChangeRegistrationOptions',
