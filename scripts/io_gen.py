@@ -159,6 +159,7 @@ types_to_print = {
     'DidChangeWatchedFilesParams',
     'PublishDiagnosticsParams',
     'InsertTextFormat',
+    'InsertReplaceEdit',
     'CompletionItem',
     'CompletionList',
     #  'MarkedString',
