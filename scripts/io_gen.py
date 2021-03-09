@@ -61,6 +61,7 @@ types_to_print = {
     'TextDocumentSyncClientCapabilities',
     'CompletionItemTag',
     'CompletionItemTagSupport',
+    'resolveSupportCapability',
     'InsertTextMode',
     'insertTextModeSupportCapability',
     'completionItemCapability',

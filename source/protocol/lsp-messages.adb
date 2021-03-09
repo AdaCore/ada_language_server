@@ -166,6 +166,11 @@ package body LSP.Messages is
       V : out LSP.Messages.dynamicRegistration)
       renames LSP.Message_IO.Read_dynamicRegistration;
 
+   procedure Read_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out resolveSupportCapability)
+      renames LSP.Message_IO.Read_resolveSupportCapability;
+
    procedure Read_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ResourceOperationKind)
@@ -1140,6 +1145,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.dynamicRegistration)
       renames LSP.Message_IO.Write_dynamicRegistration;
+
+   procedure Write_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : resolveSupportCapability)
+      renames LSP.Message_IO.Write_resolveSupportCapability;
 
    procedure Write_ResourceOperationKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
