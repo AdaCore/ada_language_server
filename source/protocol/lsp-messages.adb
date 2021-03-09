@@ -661,6 +661,11 @@ package body LSP.Messages is
       V : out LSP.Messages.PublishDiagnosticsParams)
       renames LSP.Message_IO.Read_PublishDiagnosticsParams;
 
+   procedure Read_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertReplaceEdit)
+      renames LSP.Message_IO.Read_InsertReplaceEdit;
+
    procedure Read_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.InsertTextFormat)
@@ -1621,6 +1626,11 @@ package body LSP.Messages is
       V : LSP.Messages.PublishDiagnosticsParams)
       renames LSP.Message_IO.Write_PublishDiagnosticsParams;
 
+   procedure Write_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertReplaceEdit)
+      renames LSP.Message_IO.Write_InsertReplaceEdit;
+
    procedure Write_InsertTextFormat
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.InsertTextFormat)
@@ -2036,6 +2046,94 @@ package body LSP.Messages is
 
       end if;
    end Write_AlsReferenceKind_Set;
+
+   ----------------------------------------
+   -- Read_TextEdit_Or_InsertReplaceEdit --
+   ----------------------------------------
+
+   procedure Read_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextEdit_Or_InsertReplaceEdit)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Found   : Boolean := False;  --  True as we know the actual type
+      newText : LSP_String;  --  newText value if not Found
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "newText" then
+               if not Found then
+                  LSP.Types.Read (S, newText);
+               elsif V.Is_TextEdit then
+                  LSP.Types.Read (S, V.TextEdit.newText);
+               else
+                  LSP.Types.Read (S, V.InsertReplaceEdit.newText);
+               end if;
+            elsif Key = "insert" then
+               if not Found then
+                  Found := True;
+
+                  V := (Is_TextEdit       => False,
+                        InsertReplaceEdit =>
+                          (newText     => newText,
+                           others      => <>));
+               end if;
+
+               Span'Read (S, V.InsertReplaceEdit.insert);
+            elsif Key = "replace" then
+               if not Found then
+                  Found := True;
+
+                  V := (Is_TextEdit       => False,
+                        InsertReplaceEdit =>
+                          (newText     => newText,
+                           others      => <>));
+               end if;
+
+               Span'Read (S, V.InsertReplaceEdit.replace);
+            elsif Key = "range" then
+               if not Found then
+                  Found := True;
+
+                  V := (Is_TextEdit => True,
+                        TextEdit    =>
+                          (newText     => newText,
+                           others      => <>));
+               end if;
+
+               Span'Read (S, V.TextEdit.span);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_TextEdit_Or_InsertReplaceEdit;
+
+   -----------------------------------------
+   -- Write_TextEdit_Or_InsertReplaceEdit --
+   -----------------------------------------
+
+   procedure Write_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextEdit_Or_InsertReplaceEdit) is
+   begin
+      if V.Is_TextEdit then
+         TextEdit'Write (S, V.TextEdit);
+      else
+         InsertReplaceEdit'Write (S, V.InsertReplaceEdit);
+      end if;
+   end Write_TextEdit_Or_InsertReplaceEdit;
 
    ---------------------
    -- Read_CodeAction --

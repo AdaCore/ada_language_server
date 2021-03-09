@@ -897,6 +897,9 @@ package LSP.Messages is
    for Command'Read use Read_Command;
    for Command'Write use Write_Command;
 
+   package Optional_Commands is new LSP.Generic_Optional (Command);
+   type Optional_Command is new Optional_Commands.Optional_Type;
+
    package Command_Vectors is new LSP.Generic_Vectors
      (Command, Write_Empty => LSP.Write_Array);
 
@@ -2440,6 +2443,14 @@ package LSP.Messages is
    --			 */
    --			valueSet: CompletionItemTag[]
    --		}
+   --
+   --		/**
+   --		 * Client supports insert replace edit to control different behavior if
+   --		 * a completion item is inserted in the text or should replace text.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		insertReplaceSupport?: boolean;
    --	};
    --
    --	completionItemKind?: {
@@ -2515,6 +2526,7 @@ package LSP.Messages is
       deprecatedSupport : Optional_Boolean;
       preselectSupport : Optional_Boolean;
       tagSupport : Optional_CompletionItemTagSupport;
+      insertReplaceSupport : Optional_Boolean;
    end record;
 
    procedure Read_completionItemCapability
@@ -2569,6 +2581,9 @@ package LSP.Messages is
       V : CompletionItemKind);
    for CompletionItemKind'Read use Read_CompletionItemKind;
    for CompletionItemKind'Write use Write_CompletionItemKind;
+
+   package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
+   type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
 
    package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind);
 
@@ -6559,6 +6574,28 @@ package LSP.Messages is
    --
    --export type CompletionItemTag = 1;
    --
+   --/**
+   -- * A special text edit to provide an insert and a replace operation.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface InsertReplaceEdit {
+   --	/**
+   --	 * The string to be inserted.
+   --	 */
+   --	newText: string;
+   --
+   --	/**
+   --	 * The range if the insert is requested
+   --	 */
+   --	insert: Range;
+   --
+   --	/**
+   --	 * The range if the replace is requested.
+   --	 */
+   --	replace: Range;
+   --}
+   --
    --export interface CompletionItem {
    --	/**
    --	 * The label of this completion item. By default
@@ -6665,7 +6702,7 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.16.0 additional type `InsertReplaceEdit`
    --	 */
-   --	textEdit?: TextEdit;
+   --	textEdit?: TextEdit | InsertReplaceEdit;
    --
    --	/**
    --	 * An optional array of additional text edits that are applied when
@@ -6745,11 +6782,45 @@ package LSP.Messages is
    package Optional_InsertTextFormats is new LSP.Generic_Optional (InsertTextFormat);
    type Optional_InsertTextFormat is new Optional_InsertTextFormats.Optional_Type;
 
-   package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
-   type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
+   type InsertReplaceEdit is record
+     newText: LSP_String;
+     insert: Span;
+     replace: Span;
+   end record;
 
-   package Optional_Commands is new LSP.Generic_Optional (Command);
-   type Optional_Command is new Optional_Commands.Optional_Type;
+   procedure Read_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertReplaceEdit);
+   procedure Write_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertReplaceEdit);
+   for InsertReplaceEdit'Read use Read_InsertReplaceEdit;
+   for InsertReplaceEdit'Write use Write_InsertReplaceEdit;
+
+   type TextEdit_Or_InsertReplaceEdit (Is_TextEdit : Boolean := True) is record
+      case Is_TextEdit is
+         when True =>
+            TextEdit : LSP.Messages.TextEdit;
+         when False =>
+            InsertReplaceEdit : LSP.Messages.InsertReplaceEdit;
+      end case;
+   end record;
+
+   procedure Read_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextEdit_Or_InsertReplaceEdit);
+   procedure Write_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextEdit_Or_InsertReplaceEdit);
+   for TextEdit_Or_InsertReplaceEdit'Read
+     use Read_TextEdit_Or_InsertReplaceEdit;
+   for TextEdit_Or_InsertReplaceEdit'Write
+     use Write_TextEdit_Or_InsertReplaceEdit;
+
+   package Optional_TextEdit_Or_InsertReplaceEdits is
+     new LSP.Generic_Optional (TextEdit_Or_InsertReplaceEdit);
+   type Optional_TextEdit_Or_InsertReplaceEdit is
+     new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
       label: LSP_String;
@@ -6763,7 +6834,7 @@ package LSP.Messages is
       filterText: Optional_String;
       insertText: Optional_String;
       insertTextFormat: Optional_InsertTextFormat;
-      textEdit: Optional_TextEdit;
+      textEdit: Optional_TextEdit_Or_InsertReplaceEdit;
       additionalTextEdits: TextEdit_Vector;
       commitCharacters: Optional_LSP_String_Vector;
       command: Optional_Command;
