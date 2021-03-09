@@ -3083,6 +3083,22 @@ package LSP.Messages is
    --	 */
    --	isPreferredSupport?: boolean;
    --
+   --	/**
+   --	 * Whether code action supports the `disabled` property.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	disabledSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether code action supports the `data` property which is
+   --	 * preserved between a `textDocument/codeAction` and a
+   --	 * `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	dataSupport?: boolean;
+   --
    --
    --	/**
    --	 * Whether the client supports resolving additional code action
@@ -3149,6 +3165,8 @@ package LSP.Messages is
       dynamicRegistration: Optional_Boolean;
       codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
       isPreferredSupport: Optional_Boolean;
+      disabledSupport: Optional_Boolean;
+      dataSupport: Optional_Boolean;
       resolveSupport : Optional_resolveSupportCapability;
       honorsChangeAnnotations: Optional_Boolean;
    end record;
@@ -3341,6 +3359,15 @@ package LSP.Messages is
    --	 * @since 3.16.0
    --	 */
    --	codeDescriptionSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether code action supports the `data` property which is
+   --	 * preserved between a `textDocument/publishDiagnostics` and
+   --	 * `textDocument/codeAction` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	dataSupport?: boolean;
    --}
    --```
    type DiagnosticTagSupport is record
@@ -3369,6 +3396,7 @@ package LSP.Messages is
       tagSupport: Optional_DiagnosticTagSupport;
       versionSupport: Optional_Boolean;
       codeDescriptionSupport: Optional_Boolean;
+      dataSupport: Optional_Boolean;
    end record;
 
    procedure Read_PublishDiagnosticsClientCapabilities
@@ -4944,10 +4972,19 @@ package LSP.Messages is
    --	 * or the server may list out every specific kind they provide.
    --	 */
    --	codeActionKinds?: CodeActionKind[];
+   --
+   --	/**
+   --	 * The server provides support to resolve additional
+   --	 * information for a code action.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	resolveProvider?: boolean;
    --}
    --```
    type CodeActionOptions is new WorkDoneProgressOptions with record
       codeActionKinds: Optional_CodeActionKindSet;
+      resolveProvider: Optional_Boolean;
    end record;
 
    procedure Read_CodeActionOptions
@@ -8530,6 +8567,22 @@ package LSP.Messages is
    for CompletionParams'Read use Read_CompletionParams;
    for CompletionParams'Write use Write_CompletionParams;
 
+   type Disable_Reason is record
+      reason: LSP_String;
+   end record;
+
+   procedure Read_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Disable_Reason);
+   procedure Write_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Disable_Reason);
+   for Disable_Reason'Read use Read_Disable_Reason;
+   for Disable_Reason'Write use Write_Disable_Reason;
+
+   package Optional_Disable_Reasons is new LSP.Generic_Optional (Disable_Reason);
+   type Optional_Disable_Reason is new Optional_Disable_Reasons.Optional_Type;
+
    --```typescript
    --/**
    -- * A code action represents a change that can be performed in code, e.g. to fix
@@ -8570,6 +8623,36 @@ package LSP.Messages is
    --	isPreferred?: boolean;
    --
    --	/**
+   --	 * Marks that the code action cannot currently be applied.
+   --	 *
+   --	 * Clients should follow the following guidelines regarding disabled code
+   --	 * actions:
+   --	 *
+   --	 * - Disabled code actions are not shown in automatic lightbulbs code
+   --	 *   action menus.
+   --	 *
+   --	 * - Disabled actions are shown as faded out in the code action menu when
+   --	 *   the user request a more specific type of code action, such as
+   --	 *   refactorings.
+   --	 *
+   --	 * - If the user has a keybinding that auto applies a code action and only
+   --	 *   a disabled code actions are returned, the client should show the user
+   --	 *   an error message with `reason` in the editor.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	disabled?: {
+   --
+   --		/**
+   --		 * Human readable description of why the code action is currently
+   --		 * disabled.
+   --		 *
+   --		 * This is displayed in the code actions UI.
+   --		 */
+   --		reason: string;
+   --	};
+   --
+   --	/**
    --	 * The workspace edit this code action performs.
    --	 */
    --	edit?: WorkspaceEdit;
@@ -8580,6 +8663,14 @@ package LSP.Messages is
    --	 * executed and then the command.
    --	 */
    --	command?: Command;
+   --
+   --	/**
+   --	 * A data entry field that is preserved on a code action between
+   --	 * a `textDocument/codeAction` and a `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	data?: any
    --}
    --```
    type CodeAction is record
@@ -8587,6 +8678,7 @@ package LSP.Messages is
       kind: Optional_CodeActionKind;
       diagnostics: Optional_Diagnostic_Vector;
       isPreferred: Optional_Boolean;
+      disabled: Optional_Disable_Reason;
       edit: Optional_WorkspaceEdit;
       command: Optional_Command;
    end record;

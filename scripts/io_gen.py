@@ -212,6 +212,7 @@ types_to_print = {
     'CompletionTriggerKind',
     'CompletionContext',
     'CompletionParams',
+    'Disable_Reason',
     #  'CodeAction',
     'CodeActionRegistrationOptions',
     'RGBA_Color',
