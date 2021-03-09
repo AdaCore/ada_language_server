@@ -178,6 +178,8 @@ types_to_print = {
     'DocumentHighlightKind',
     'DocumentHighlight',
     'DocumentSymbolParams',
+    'SymbolTag',
+    'tagSupportCapability',
     #  'DocumentSymbol',
     #  'DocumentSymbol_Tree',
     'SymbolInformation',
