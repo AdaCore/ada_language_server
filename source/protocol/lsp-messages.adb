@@ -381,6 +381,11 @@ package body LSP.Messages is
       V : out LSP.Messages.WorkDoneProgressCreateParams)
       renames LSP.Message_IO.Read_WorkDoneProgressCreateParams;
 
+   procedure Read_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PrepareSupportDefaultBehavior)
+      renames LSP.Message_IO.Read_PrepareSupportDefaultBehavior;
+
    procedure Read_ProgramInfo
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ProgramInfo)
@@ -1365,6 +1370,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.WorkDoneProgressCreateParams)
       renames LSP.Message_IO.Write_WorkDoneProgressCreateParams;
+
+   procedure Write_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PrepareSupportDefaultBehavior)
+      renames LSP.Message_IO.Write_PrepareSupportDefaultBehavior;
 
    procedure Write_ProgramInfo
      (S : access Ada.Streams.Root_Stream_Type'Class;
