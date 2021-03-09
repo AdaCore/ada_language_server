@@ -601,15 +601,14 @@ package body LSP.Lal_Utils is
       Where     : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location (Main_Item);
    begin
-      return Result : LSP.Messages.CallHierarchyItem do
-         Result.name := To_LSP_String (Name.Text);
-         Result.kind := LSP.Lal_Utils.Get_Decl_Kind (Main_Item);
-         Result.detail := (True, LSP.Lal_Utils.Node_Location_Image (Name));
-         Result.uri := Where.uri;
-         Result.span := Where.span;
-         Result.selectionRange :=
-           LSP.Lal_Utils.To_Span (Name.Sloc_Range);
-      end return;
+      return LSP.Messages.CallHierarchyItem'
+        (name           => To_LSP_String (Name.Text),
+         kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
+         tags           => LSP.Messages.Empty,
+         detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
+         uri            => Where.uri,
+         span           => Where.span,
+         selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));
    end To_Call_Hierarchy_Item;
 
    ----------------------------

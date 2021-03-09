@@ -22,6 +22,9 @@ with Ada.Streams;
 generic
    type Element is (<>);
 
+   Write_Empty : LSP.On_Empty_Array;
+   --  How to write an empty set: skip, write `[]` or write `null`
+
 package LSP.Generic_Sets is
 
    type Set is private;

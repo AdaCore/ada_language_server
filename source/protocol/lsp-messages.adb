@@ -191,6 +191,16 @@ package body LSP.Messages is
       V : out LSP.Messages.SymbolKind)
       renames LSP.Message_IO.Read_SymbolKind;
 
+   procedure Read_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolTag)
+      renames LSP.Message_IO.Read_SymbolTag;
+
+   procedure Read_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out tagSupportCapability)
+      renames LSP.Message_IO.Read_tagSupportCapability;
+
    procedure Read_symbolKindCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.symbolKindCapabilities)
@@ -1180,6 +1190,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.SymbolKind)
       renames LSP.Message_IO.Write_SymbolKind;
+
+   procedure Write_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolTag)
+      renames LSP.Message_IO.Write_SymbolTag;
+
+   procedure Write_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : tagSupportCapability)
+      renames LSP.Message_IO.Write_tagSupportCapability;
 
    procedure Write_symbolKindCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -2385,6 +2405,8 @@ package body LSP.Messages is
                   Optional_String'Read (S, Item.detail);
                elsif Key = "kind" then
                   SymbolKind'Read (S, Item.kind);
+               elsif Key = "tags" then
+                  SymbolTagSet'Read (S, Item.tags);
                elsif Key = "deprecated" then
                   Optional_Boolean'Read (S, Item.deprecated);
                elsif Key = "range" then
@@ -3205,6 +3227,8 @@ package body LSP.Messages is
                Optional_String'Write (S, Item.detail);
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
+               JS.Key ("tags");
+               SymbolTagSet'Write (S, Item.tags);
                Write_Optional_Boolean (JS, +"deprecated", Item.deprecated);
                JS.Key ("range");
                Span'Write (S, Item.span);

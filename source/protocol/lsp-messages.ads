@@ -402,7 +402,7 @@ package LSP.Messages is
    for CodeActionKind'Write use Write_CodeActionKind;
 
    package CodeActionKindSets is
-     new LSP.Generic_Sets (CodeActionKind);
+     new LSP.Generic_Sets (CodeActionKind, LSP.Write_Array);
    type CodeActionKindSet is new CodeActionKindSets.Set;
 
    package Optional_CodeActionKindSets is
@@ -678,7 +678,7 @@ package LSP.Messages is
    for DiagnosticTag'Read use Read_DiagnosticTag;
    for DiagnosticTag'Write use Write_DiagnosticTag;
 
-   package DiagnosticTagSets is new LSP.Generic_Sets (DiagnosticTag);
+   package DiagnosticTagSets is new LSP.Generic_Sets (DiagnosticTag, LSP.Write_Array);
 
    type DiagnosticTagSet is new DiagnosticTagSets.Set;
 
@@ -1682,7 +1682,7 @@ package LSP.Messages is
    for ResourceOperationKind'Write use Write_ResourceOperationKind;
 
    package ResourceOperationKindSets is
-     new LSP.Generic_Sets (ResourceOperationKind);
+     new LSP.Generic_Sets (ResourceOperationKind, LSP.Write_Array);
 
    type ResourceOperationKindSet is new ResourceOperationKindSets.Set;
 
@@ -1802,6 +1802,19 @@ package LSP.Messages is
    --		 */
    --		valueSet?: SymbolKind[];
    --	}
+   --
+   --	/**
+   --	 * The client supports tags on `SymbolInformation`.
+   --	 * Clients supporting tags have to handle unknown tags gracefully.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tagSupport?: {
+   --		/**
+   --		 * The tags supported by the client.
+   --		 */
+   --		valueSet: SymbolTag[]
+   --	}
    --}
    --```
 
@@ -1844,7 +1857,7 @@ package LSP.Messages is
    for SymbolKind'Read use Read_SymbolKind;
    for SymbolKind'Write use Write_SymbolKind;
 
-   package SymbolKindSets is new LSP.Generic_Sets (SymbolKind);
+   package SymbolKindSets is new LSP.Generic_Sets (SymbolKind, LSP.Write_Array);
 
    type SymbolKindSet is new SymbolKindSets.Set;
 
@@ -1878,6 +1891,40 @@ package LSP.Messages is
    type Optional_symbolKindCapabilities is
      new Optional_symbolKindCapabilities_Package.Optional_Type;
 
+   type SymbolTag is (Deprecated);
+
+   procedure Read_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolTag);
+   procedure Write_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolTag);
+   for SymbolTag'Read use Read_SymbolTag;
+   for SymbolTag'Write use Write_SymbolTag;
+
+   package SymbolTagSets is new LSP.Generic_Sets (SymbolTag, LSP.Skip);
+   type SymbolTagSet is new SymbolTagSets.Set;
+
+   type tagSupportCapability is record
+      valueSet: SymbolTagSet;
+   end record;
+
+   procedure Read_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out tagSupportCapability);
+
+   procedure Write_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : tagSupportCapability);
+
+   for tagSupportCapability'Read use Read_tagSupportCapability;
+   for tagSupportCapability'Write use Write_tagSupportCapability;
+
+   package Optional_tagSupportCapability_Package is
+     new LSP.Generic_Optional (tagSupportCapability);
+   type Optional_tagSupportCapability is
+     new Optional_tagSupportCapability_Package.Optional_Type;
+
    type Als_Visibility is
      (Als_Public,
       Als_Protected,
@@ -1903,6 +1950,7 @@ package LSP.Messages is
    type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_symbolKindCapabilities;
+      tagSupport: Optional_tagSupportCapability;
    end record;
 
    procedure Read_WorkspaceSymbolClientCapabilities
@@ -2513,7 +2561,7 @@ package LSP.Messages is
    for CompletionItemTag'Read use Read_CompletionItemTag;
    for CompletionItemTag'Write use Write_CompletionItemTag;
 
-   package CompletionItemTagSets is new LSP.Generic_Sets (CompletionItemTag);
+   package CompletionItemTagSets is new LSP.Generic_Sets (CompletionItemTag, LSP.Write_Array);
 
    type CompletionItemTagSet is new CompletionItemTagSets.Set;
 
@@ -2583,7 +2631,7 @@ package LSP.Messages is
      new Optional_InsertTextMode_Package.Optional_Type;
 
    package InsertTextModeSets is
-     new LSP.Generic_Sets (InsertTextMode);
+     new LSP.Generic_Sets (InsertTextMode, LSP.Write_Array);
    type InsertTextModeSet is new InsertTextModeSets.Set;
 
    type insertTextModeSupportCapability is record
@@ -2676,7 +2724,7 @@ package LSP.Messages is
    package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
    type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
 
-   package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind);
+   package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind, LSP.Write_Array);
 
    type CompletionItemKindSet is new CompletionItemKindSets.Set;
 
@@ -2907,12 +2955,26 @@ package LSP.Messages is
    --	 * The client supports hierarchical document symbols.
    --	 */
    --	hierarchicalDocumentSymbolSupport?: boolean;
+   --
+   --	/**
+   --	 * The client supports tags on `SymbolInformation`. Tags are supported on
+   --	 * `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
+   --	 * Clients supporting tags have to handle unknown tags gracefully.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tagSupport?: {
+   --		/**
+   --		 * The tags supported by the client.
+   --		 */
+   --		valueSet: SymbolTag[]
    --}
    --```
    type DocumentSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_symbolKindCapabilities;
       hierarchicalDocumentSymbolSupport: Optional_Boolean;
+      tagSupport: Optional_tagSupportCapability;
    end record;
 
    procedure Read_DocumentSymbolClientCapabilities
@@ -3665,7 +3727,7 @@ package LSP.Messages is
    for TokenFormat'Read use Read_TokenFormat;
    for TokenFormat'Write use Write_TokenFormat;
 
-   package TokenFormatSets is new LSP.Generic_Sets (TokenFormat);
+   package TokenFormatSets is new LSP.Generic_Sets (TokenFormat, LSP.Write_Array);
    type TokenFormatSet is new TokenFormatSets.Set;
 
    type SemanticTokensFullCapabilities is record
@@ -7521,6 +7583,22 @@ package LSP.Messages is
    --}
    --
    --/**
+   -- * Symbol tags are extra annotations that tweak the rendering of a symbol.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace SymbolTag {
+   --
+   --	/**
+   --	 * Render a symbol as obsolete, usually using a strike-out.
+   --	 */
+   --	export const Deprecated: 1 = 1;
+   --}
+   --
+   --export type SymbolTag = 1;
+   --
+   --
+   --/**
    -- * Represents programming constructs like variables, classes, interfaces etc.
    -- * that appear in a document. Document symbols can be hierarchical and they
    -- * have two ranges: one that encloses its definition and one that points to its
@@ -7546,7 +7624,16 @@ package LSP.Messages is
    --	kind: SymbolKind;
    --
    --	/**
+   --	 * Tags for this document symbol.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tags?: SymbolTag[];
+   --
+   --	/**
    --	 * Indicates if this symbol is deprecated.
+   --	 *
+   --	 * @deprecated Use tags instead
    --	 */
    --	deprecated?: boolean;
    --
@@ -7586,7 +7673,16 @@ package LSP.Messages is
    --	kind: SymbolKind;
    --
    --	/**
+   --	 * Tags for this completion item.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tags?: SymbolTag[];
+   --
+   --	/**
    --	 * Indicates if this symbol is deprecated.
+   --	 *
+   --	 * @deprecated Use tags instead
    --	 */
    --	deprecated?: boolean;
    --
@@ -7616,6 +7712,7 @@ package LSP.Messages is
       name: LSP_String;
       detail: Optional_String;
       kind: SymbolKind;
+      tags: SymbolTagSet;
       deprecated: Optional_Boolean;
       span: LSP.Messages.Span;
       selectionRange: LSP.Messages.Span;
@@ -7644,6 +7741,7 @@ package LSP.Messages is
       name: LSP_String;
       kind: SymbolKind;
       alsIsAdaProcedure : Optional_Boolean;
+      tags: SymbolTagSet;
       deprecated: Optional_Boolean;
       location: LSP.Messages.Location;
       containerName: Optional_String;
@@ -9331,7 +9429,7 @@ package LSP.Messages is
    type CallHierarchyItem is record
       name: LSP_String;
       kind: SymbolKind;
-      --  tags?: SymbolTag[];
+      tags: SymbolTagSet;
       detail: Optional_String;
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word

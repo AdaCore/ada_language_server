@@ -921,6 +921,7 @@ package body LSP.Ada_Documents is
                                 (Is_Set => True, Value => Profile),
                               kind              => Kind,
                               deprecated        => (Is_Set => False),
+                              tags              => LSP.Messages.Empty,
                               span              => LSP.Lal_Utils.To_Span
                                 (Node.Sloc_Range),
                               selectionRange    => LSP.Lal_Utils.To_Span
@@ -959,6 +960,7 @@ package body LSP.Ada_Documents is
                        (name              => To_LSP_String (N.Text),
                         detail            => (Is_Set => False),
                         kind              => Namespace,
+                        tags              => LSP.Messages.Empty,
                         deprecated        => (Is_Set => False),
                         span              => LSP.Lal_Utils.To_Span
                           (Node.Sloc_Range),
@@ -994,6 +996,7 @@ package body LSP.Ada_Documents is
                      Value  =>
                        To_LSP_String ("(" & (Pragma_Node.F_Args.Text & ")"))),
                   kind              => Property,
+                  tags              => LSP.Messages.Empty,
                   deprecated        => (Is_Set => False),
                   span              => LSP.Lal_Utils.To_Span
                     (Node.Sloc_Range),
@@ -1037,7 +1040,6 @@ package body LSP.Ada_Documents is
    is
       use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
-      Item    : LSP.Messages.SymbolInformation;
 
       Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
         Libadalang.Iterators.Kind_Is (Libadalang.Common.Ada_Defining_Name);
@@ -1054,17 +1056,23 @@ package body LSP.Ada_Documents is
 
       while Cursor.Next (Element) loop
          declare
+            Item : LSP.Messages.SymbolInformation;
             Kind : constant LSP.Messages.SymbolKind :=
               LSP.Lal_Utils.Get_Decl_Kind
                 (Element.As_Defining_Name.P_Basic_Decl, Ignore_Local => True);
          begin
             if Kind /= LSP.Messages.A_Null then
-               Item.name := To_LSP_String (Element.Text);
-               Item.kind := Kind;
-               Item.location :=
-                 (uri     => Self.URI,
-                  span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
-                  alsKind => LSP.Messages.Empty_Set);
+               Item :=
+                 (name              => To_LSP_String (Element.Text),
+                  kind              => Kind,
+                  alsIsAdaProcedure => <>,
+                  tags              => LSP.Messages.Empty,
+                  deprecated        => <>,
+                  location          =>
+                    (uri     => Self.URI,
+                     span    => LSP.Lal_Utils.To_Span (Element.Sloc_Range),
+                     alsKind => LSP.Messages.Empty_Set),
+                  containerName     => <>);
 
                Result.Vector.Append (Item);
             end if;
