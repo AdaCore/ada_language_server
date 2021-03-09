@@ -4299,6 +4299,33 @@ package LSP.Messages is
    type Optional_GeneralClientCapabilities is
      new Optional_GeneralClientCapabilities_Package.Optional_Type;
 
+   type fileOperationsClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      didCreate: Optional_Boolean;
+      willCreate: Optional_Boolean;
+      didRename: Optional_Boolean;
+      willRename: Optional_Boolean;
+      didDelete: Optional_Boolean;
+      willDelete: Optional_Boolean;
+   end record;
+
+   procedure Read_fileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out fileOperationsClientCapabilities);
+
+   procedure Write_fileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : fileOperationsClientCapabilities);
+
+   for fileOperationsClientCapabilities'Read use Read_fileOperationsClientCapabilities;
+   for fileOperationsClientCapabilities'Write use Write_fileOperationsClientCapabilities;
+
+   package Optional_fileOperationsClientCapabilities_Package is
+     new LSP.Generic_Optional (fileOperationsClientCapabilities);
+
+   type Optional_fileOperationsClientCapabilities is
+     new Optional_fileOperationsClientCapabilities_Package.Optional_Type;
+
    --```typescript
    --interface ClientCapabilities {
    --	/**
@@ -4368,6 +4395,49 @@ package LSP.Messages is
    --		 * @since 3.16.0
    --		 */
    --		codeLens?: CodeLensWorkspaceClientCapabilities;
+   --
+   --		/**
+   --		 * The client has support for file requests/notifications.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		fileOperations?: {
+   --			/**
+   --			 * Whether the client supports dynamic registration for file
+   --			 * requests/notifications.
+   --			 */
+   --			dynamicRegistration?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didCreateFiles notifications.
+   --			 */
+   --			didCreate?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willCreateFiles requests.
+   --			 */
+   --			willCreate?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didRenameFiles notifications.
+   --			 */
+   --			didRename?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willRenameFiles requests.
+   --			 */
+   --			willRename?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didDeleteFiles notifications.
+   --			 */
+   --			didDelete?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willDeleteFiles requests.
+   --			 */
+   --			willDelete?: boolean;
+   --		}
    --	};
    --
    --	/**
@@ -5355,8 +5425,233 @@ package LSP.Messages is
    type Optional_WorkspaceFoldersServerCapabilities is
      new Optional_WorkspaceFoldersServerCapabilities_Package.Optional_Type;
 
+   --```typescript
+   --/**
+   -- * The options to register for file operations.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --interface FileOperationRegistrationOptions {
+   --	/**
+   --	 * The actual filters.
+   --	 */
+   --	filters: FileOperationFilter[];
+   --}
+   --
+   --/**
+   -- * A pattern kind describing if a glob pattern matches a file a folder or
+   -- * both.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace FileOperationPatternKind {
+   --	/**
+   --	 * The pattern matches a file only.
+   --	 */
+   --	export const file: 'file' = 'file';
+   --
+   --	/**
+   --	 * The pattern matches a folder only.
+   --	 */
+   --	export const folder: 'folder' = 'folder';
+   --}
+   --
+   --export type FileOperationPatternKind = 'file' | 'folder';
+   --
+   --/**
+   -- * Matching options for the file operation pattern.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileOperationPatternOptions {
+   --
+   --	/**
+   --	 * The pattern should be matched ignoring casing.
+   --	 */
+   --	ignoreCase?: boolean;
+   --}
+   --
+   --/**
+   -- * A pattern to describe in which file operation requests or notifications
+   -- * the server is interested in.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --interface FileOperationPattern {
+   --	/**
+   --	 * The glob pattern to match. Glob patterns can have the following syntax:
+   --	 * - `*` to match one or more characters in a path segment
+   --	 * - `?` to match on one character in a path segment
+   --	 * - `**` to match any number of path segments, including none
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
+   --	 *   not `example.0`)
+   --	 */
+   --	glob: string;
+   --
+   --	/**
+   --	 * Whether to match files or folders with this pattern.
+   --	 *
+   --	 * Matches both if undefined.
+   --	 */
+   --	matches?: FileOperationPatternKind;
+   --
+   --	/**
+   --	 * Additional options used during matching.
+   --	 */
+   --	options?: FileOperationPatternOptions;
+   --}
+   --
+   --/**
+   -- * A filter to describe in which file operation requests or notifications
+   -- * the server is interested in.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileOperationFilter {
+   --
+   --	/**
+   --	 * A Uri like `file` or `untitled`.
+   --	 */
+   --	scheme?: string;
+   --
+   --	/**
+   --	 * The actual file operation pattern.
+   --	 */
+   --	pattern: FileOperationPattern;
+   --}
+   --```
+   type FileOperationPatternKind is (file, folder);
+
+   procedure Read_FileOperationPatternKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPatternKind);
+   procedure Write_FileOperationPatternKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPatternKind);
+
+   for FileOperationPatternKind'Write use
+     Write_FileOperationPatternKind;
+   for FileOperationPatternKind'Read use
+     Read_FileOperationPatternKind;
+
+   package Optional_FileOperationPatternKind_Package is
+     new LSP.Generic_Optional (FileOperationPatternKind);
+
+   type Optional_FileOperationPatternKind is
+     new Optional_FileOperationPatternKind_Package.Optional_Type;
+
+   type FileOperationPatternOptions is record
+      ignoreCase: Optional_Boolean;
+   end record;
+
+   procedure Read_FileOperationPatternOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPatternOptions);
+   procedure Write_FileOperationPatternOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPatternOptions);
+
+   for FileOperationPatternOptions'Write use Write_FileOperationPatternOptions;
+   for FileOperationPatternOptions'Read use Read_FileOperationPatternOptions;
+
+   package Optional_FileOperationPatternOptions_Package is
+     new LSP.Generic_Optional (FileOperationPatternOptions);
+
+   type Optional_FileOperationPatternOptions is
+     new Optional_FileOperationPatternOptions_Package.Optional_Type;
+
+   type FileOperationPattern is record
+      glob: LSP_String;
+      matches: Optional_FileOperationPatternKind;
+      options: Optional_FileOperationPatternOptions;
+   end record;
+
+   procedure Read_FileOperationPattern
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPattern);
+   procedure Write_FileOperationPattern
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPattern);
+
+   for FileOperationPattern'Write use Write_FileOperationPattern;
+   for FileOperationPattern'Read use Read_FileOperationPattern;
+
+   type FileOperationFilter is record
+      scheme: Optional_String;
+      pattern: FileOperationPattern;
+   end record;
+
+   procedure Read_FileOperationFilter
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationFilter);
+   procedure Write_FileOperationFilter
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationFilter);
+
+   for FileOperationFilter'Write use Write_FileOperationFilter;
+   for FileOperationFilter'Read use Read_FileOperationFilter;
+
+   package FileOperationFilter_Vectors is new LSP.Generic_Vectors
+     (FileOperationFilter, Write_Empty => LSP.Write_Array);
+   type FileOperationFilter_Vector is new FileOperationFilter_Vectors.Vector with null record;
+
+   type FileOperationRegistrationOptions is record
+      filters: FileOperationFilter_Vector;
+   end record;
+
+   procedure Read_FileOperationRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationRegistrationOptions);
+   procedure Write_FileOperationRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationRegistrationOptions);
+
+   for FileOperationRegistrationOptions'Write use
+     Write_FileOperationRegistrationOptions;
+   for FileOperationRegistrationOptions'Read use
+     Read_FileOperationRegistrationOptions;
+
+   package Optional_FileOperationRegistrationOptions_Package is
+     new LSP.Generic_Optional (FileOperationRegistrationOptions);
+
+   type Optional_FileOperationRegistrationOptions is
+     new Optional_FileOperationRegistrationOptions_Package.Optional_Type;
+
+   type fileOperationsServerCapabilities is record
+      didCreate: Optional_FileOperationRegistrationOptions;
+      willCreate: Optional_FileOperationRegistrationOptions;
+      didRename: Optional_FileOperationRegistrationOptions;
+      willRename: Optional_FileOperationRegistrationOptions;
+      didDelete: Optional_FileOperationRegistrationOptions;
+      willDelete: Optional_FileOperationRegistrationOptions;
+   end record;
+
+   procedure Read_fileOperationsServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out fileOperationsServerCapabilities);
+   procedure Write_fileOperationsServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : fileOperationsServerCapabilities);
+
+   for fileOperationsServerCapabilities'Write use
+     Write_fileOperationsServerCapabilities;
+   for fileOperationsServerCapabilities'Read use
+     Read_fileOperationsServerCapabilities;
+
+   package Optional_fileOperationsServerCapabilities_Package is
+     new LSP.Generic_Optional (fileOperationsServerCapabilities);
+
+   type Optional_fileOperationsServerCapabilities is
+     new Optional_fileOperationsServerCapabilities_Package.Optional_Type;
+
    type workspace_Options is record
       workspaceFolders: Optional_WorkspaceFoldersServerCapabilities;
+      fileOperations: Optional_fileOperationsServerCapabilities;
    end record;
 
    procedure Read_workspace_Options
@@ -5688,6 +5983,47 @@ package LSP.Messages is
    --		 * @since 3.6.0
    --		 */
    --		workspaceFolders?: WorkspaceFoldersServerCapabilities;
+   --
+   --		/**
+   --		 * The server is interested in file notifications/requests.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		fileOperations?: {
+   --			/**
+   --			 * The server is interested in receiving didCreateFiles
+   --			 * notifications.
+   --			 */
+   --			didCreate?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willCreateFiles requests.
+   --			 */
+   --			willCreate?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving didRenameFiles
+   --			 * notifications.
+   --			 */
+   --			didRename?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willRenameFiles requests.
+   --			 */
+   --			willRename?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving didDeleteFiles file
+   --			 * notifications.
+   --			 */
+   --			didDelete?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willDeleteFiles file
+   --			 * requests.
+   --			 */
+   --			willDelete?: FileOperationRegistrationOptions;
+   --		}
    --	}
    --
    --	/**
@@ -9951,6 +10287,184 @@ package LSP.Messages is
       V : ShowDocumentResult);
    for ShowDocumentResult'Read use Read_ShowDocumentResult;
    for ShowDocumentResult'Write use Write_ShowDocumentResult;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated creation
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface CreateFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders created in this operation.
+   --	 */
+   --	files: FileCreate[];
+   --}
+   --/**
+   -- * Represents information on a file/folder create.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileCreate {
+   --
+   --	/**
+   --	 * A file:// URI for the location of the file/folder being created.
+   --	 */
+   --	uri: string;
+   --}
+   --```
+   type FileCreate is record
+      uri: LSP_String;
+   end record;
+
+   procedure Read_FileCreate
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileCreate);
+   procedure Write_FileCreate
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileCreate);
+   for FileCreate'Read use Read_FileCreate;
+   for FileCreate'Write use Write_FileCreate;
+
+   package FileCreate_Vectors is new LSP.Generic_Vectors
+     (FileCreate, Write_Empty => LSP.Write_Array);
+   type FileCreate_Vector is new FileCreate_Vectors.Vector with null record;
+
+   type CreateFilesParams is record
+      files: FileCreate_Vector;
+   end record;
+
+   procedure Read_CreateFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CreateFilesParams);
+   procedure Write_CreateFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CreateFilesParams);
+   for CreateFilesParams'Read use Read_CreateFilesParams;
+   for CreateFilesParams'Write use Write_CreateFilesParams;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated renames
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface RenameFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders renamed in this operation. When a folder
+   --	 * is renamed, only the folder will be included, and not its children.
+   --	 */
+   --	files: FileRename[];
+   --}
+   --/**
+   -- * Represents information on a file/folder rename.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileRename {
+   --
+   --	/**
+   --	 * A file:// URI for the original location of the file/folder being renamed.
+   --	 */
+   --	oldUri: string;
+   --
+   --	/**
+   --	 * A file:// URI for the new location of the file/folder being renamed.
+   --	 */
+   --	newUri: string;
+   --}
+   --```
+   type FileRename is record
+      oldUri: LSP_String;
+      newUri: LSP_String;
+   end record;
+
+   procedure Read_FileRename
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileRename);
+   procedure Write_FileRename
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileRename);
+   for FileRename'Read use Read_FileRename;
+   for FileRename'Write use Write_FileRename;
+
+   package FileRename_Vectors is new LSP.Generic_Vectors
+     (FileRename, Write_Empty => LSP.Write_Array);
+   type FileRename_Vector is new FileRename_Vectors.Vector with null record;
+
+   type RenameFilesParams is record
+      files: FileRename_Vector;
+   end record;
+
+   procedure Read_RenameFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameFilesParams);
+   procedure Write_RenameFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameFilesParams);
+   for RenameFilesParams'Read use Read_RenameFilesParams;
+   for RenameFilesParams'Write use Write_RenameFilesParams;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated deletes
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface DeleteFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders deleted in this operation.
+   --	 */
+   --	files: FileDelete[];
+   --}
+   --/**
+   -- * Represents information on a file/folder delete.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileDelete {
+   --
+   --	/**
+   --	 * A file:// URI for the location of the file/folder being deleted.
+   --	 */
+   --	uri: string;
+   --}
+   --```
+   type FileDelete is record
+      uri: LSP_String;
+   end record;
+
+   procedure Read_FileDelete
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileDelete);
+   procedure Write_FileDelete
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileDelete);
+   for FileDelete'Read use Read_FileDelete;
+   for FileDelete'Write use Write_FileDelete;
+
+   package FileDelete_Vectors is new LSP.Generic_Vectors
+     (FileDelete, Write_Empty => LSP.Write_Array);
+   type FileDelete_Vector is new FileDelete_Vectors.Vector with null record;
+
+   type DeleteFilesParams is record
+      files: FileDelete_Vector;
+   end record;
+
+   procedure Read_DeleteFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DeleteFilesParams);
+   procedure Write_DeleteFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DeleteFilesParams);
+   for DeleteFilesParams'Read use Read_DeleteFilesParams;
+   for DeleteFilesParams'Write use Write_DeleteFilesParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
