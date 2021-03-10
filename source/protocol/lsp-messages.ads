@@ -2968,11 +2968,21 @@ package LSP.Messages is
    --		 * The tags supported by the client.
    --		 */
    --		valueSet: SymbolTag[]
+   --	}
+   --
+   --	/**
+   --	 * The client supports an additional label presented in the UI when
+   --	 * registering a document symbol provider.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	labelSupport?: boolean;
    --}
    --```
    type DocumentSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_symbolKindCapabilities;
+      labelSupport: Optional_Boolean;
       hierarchicalDocumentSymbolSupport: Optional_Boolean;
       tagSupport: Optional_tagSupportCapability;
    end record;
@@ -5123,9 +5133,35 @@ package LSP.Messages is
 
    --```typescript
    --export interface DocumentSymbolOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * A human-readable string that is shown when multiple outlines trees
+   --	 * are shown for the same document.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	label?: string;
    --}
    --```
-   subtype DocumentSymbolOptions is Optional_WorkDoneProgressOptions;
+   type DocumentSymbolOptions is new WorkDoneProgressOptions with record
+      label: Optional_String;
+   end record;
+
+   procedure Read_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentSymbolOptions);
+
+   procedure Write_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbolOptions);
+
+   for DocumentSymbolOptions'Read use Read_DocumentSymbolOptions;
+   for DocumentSymbolOptions'Write use Write_DocumentSymbolOptions;
+
+   package Optional_DocumentSymbolOptions_Package is
+     new LSP.Generic_Optional (DocumentSymbolOptions);
+
+   type Optional_DocumentSymbolOptions is
+     new Optional_DocumentSymbolOptions_Package.Optional_Type;
 
    --```typescript
    --export interface DocumentSymbolRegistrationOptions extends
@@ -6043,7 +6079,7 @@ package LSP.Messages is
       implementationProvider: ImplementationOptions;
       referencesProvider: ReferenceOptions;
       documentHighlightProvider: DocumentHighlightOptions;
-      documentSymbolProvider: DocumentSymbolOptions;
+      documentSymbolProvider: Optional_DocumentSymbolOptions;
       codeActionProvider: Optional_CodeActionOptions;
       codeLensProvider: Optional_CodeLensOptions;
       documentLinkProvider: Optional_DocumentLinkOptions;

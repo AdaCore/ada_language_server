@@ -826,6 +826,11 @@ package body LSP.Messages is
       V : out LSP.Messages.DocumentHighlight)
       renames LSP.Message_IO.Read_DocumentHighlight;
 
+   procedure Read_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentSymbolOptions)
+      renames LSP.Message_IO.Read_DocumentSymbolOptions;
+
    procedure Read_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DocumentSymbolParams)
@@ -1895,6 +1900,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DocumentHighlight)
       renames LSP.Message_IO.Write_DocumentHighlight;
+
+   procedure Write_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbolOptions)
+      renames LSP.Message_IO.Write_DocumentSymbolOptions;
 
    procedure Write_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
