@@ -1207,7 +1207,8 @@ package body LSP.Clients is
       Message : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response :=
         (Is_Error => False,
          result => (applied => not Failure.Is_Set,
-                    failureReason => Failure),
+                    failureReason => Failure,
+                    failedChange => <>),
          error => (Is_Set => False),
          others => <>);
    begin
