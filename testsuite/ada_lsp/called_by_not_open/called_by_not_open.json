@@ -32,7 +32,6 @@
                "result": {
                   "capabilities": {
                      "hoverProvider": true,
-                     "documentSymbolProvider": true,
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {

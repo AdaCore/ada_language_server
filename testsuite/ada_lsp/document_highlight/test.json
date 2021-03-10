@@ -371,7 +371,6 @@
                      "implementationProvider": true,
                      "referencesProvider": true,
                      "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
                            "refactor.rewrite"
