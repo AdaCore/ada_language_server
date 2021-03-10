@@ -10524,6 +10524,54 @@ package LSP.Messages is
    for DeleteFilesParams'Read use Read_DeleteFilesParams;
    for DeleteFilesParams'Write use Write_DeleteFilesParams;
 
+   --```typescript
+   --interface LogTraceParams {
+   --	/**
+   --	 * The message to be logged.
+   --	 */
+   --	message: string;
+   --	/**
+   --	 * Additional information that can be computed if the `trace` configuration
+   --	 * is set to `'verbose'`
+   --	 */
+   --	verbose?: string;
+   --}
+   --```
+   type LogTraceParams is record
+      message: LSP_String;
+      verbose: Optional_String;
+   end record;
+
+   procedure Read_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LogTraceParams);
+   procedure Write_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogTraceParams);
+   for LogTraceParams'Read use Read_LogTraceParams;
+   for LogTraceParams'Write use Write_LogTraceParams;
+
+   --```typescript
+   --interface SetTraceParams {
+   --	/**
+   --	 * The new value that should be assigned to the trace setting.
+   --	 */
+   --	value: TraceValue;
+   --}
+   --```
+   type SetTraceParams is record
+      value: TraceValue;
+   end record;
+
+   procedure Read_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SetTraceParams);
+   procedure Write_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SetTraceParams);
+   for SetTraceParams'Read use Read_SetTraceParams;
+   for SetTraceParams'Write use Write_SetTraceParams;
+
    -----------------------------------------
    -- ALS-specific messages and responses --
    -----------------------------------------

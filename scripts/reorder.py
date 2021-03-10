@@ -110,6 +110,8 @@ order = [
     'interface InitializeError ',
     'interface ServerCapabilities ',
     'interface InitializedParams ',
+    'interface LogTraceParams ',
+    'interface SetTraceParams ',
     'interface ShowMessageParams ',
     'namespace MessageType ',
     'interface ShowMessageRequestClientCapabilities ',

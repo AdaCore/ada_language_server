@@ -626,6 +626,16 @@ package body LSP.Messages is
       V : out LSP.Messages.LogMessageParams)
       renames LSP.Message_IO.Read_LogMessageParams;
 
+   procedure Read_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LogTraceParams)
+      renames LSP.Message_IO.Read_LogTraceParams;
+
+   procedure Read_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SetTraceParams)
+      renames LSP.Message_IO.Read_SetTraceParams;
+
    procedure Read_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.DidChangeConfigurationParams)
@@ -1695,6 +1705,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.LogMessageParams)
       renames LSP.Message_IO.Write_LogMessageParams;
+
+   procedure Write_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogTraceParams)
+      renames LSP.Message_IO.Write_LogTraceParams;
+
+   procedure Write_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SetTraceParams)
+      renames LSP.Message_IO.Write_SetTraceParams;
 
    procedure Write_DidChangeConfigurationParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
