@@ -139,6 +139,8 @@ types_to_print = {
     'ServerCapabilities',
     'InitializeResult',
     'InitializedParams',
+    'LogTraceParams',
+    'SetTraceParams',
     #  'InitializeError',
     'MessageType',
     'ShowMessageParams',
