@@ -462,14 +462,24 @@ package body LSP.Lal_Utils is
               (LSP.Types.To_LSP_String (Key (Edits_Cursor)));
 
             if Versioned_Documents then
-               WE.documentChanges.Append
-                 (LSP.Messages.Document_Change'(
-                  (Kind               => LSP.Messages.Text_Document_Edit,
-                   Text_Document_Edit => LSP.Messages.TextDocumentEdit'
-                     (textDocument =>
-                        Document_Provider.Get_Open_Document_Version (File_URI),
-                      edits        => Text_Edits))));
+               declare
+                  Annotaded_Edits : LSP.Messages.AnnotatedTextEdit_Vector;
+               begin
+                  Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
+                  for X of Text_Edits loop
+                     Annotaded_Edits.Append
+                       (LSP.Messages.AnnotatedTextEdit'
+                          (X with annotationId => <>));
+                  end loop;
 
+                  WE.documentChanges.Append
+                    (LSP.Messages.Document_Change'(
+                     (Kind               => LSP.Messages.Text_Document_Edit,
+                      Text_Document_Edit => LSP.Messages.TextDocumentEdit'
+                        (textDocument => Document_Provider.
+                                          Get_Open_Document_Version (File_URI),
+                         edits        => Annotaded_Edits))));
+               end;
             else
                WE.changes.Insert (File_URI, Text_Edits);
             end if;
