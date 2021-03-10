@@ -653,7 +653,7 @@ package body LSP.Ada_Handlers is
          Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
+         Value  => (workDoneProgress => LSP.Types.None, label => <>));
       Response.result.capabilities.renameProvider :=
         (Is_Set => True,
          Value  => (prepareProvider  =>

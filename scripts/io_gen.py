@@ -117,6 +117,7 @@ types_to_print = {
     'TextDocumentRegistrationOptions',
     'TSW_RegistrationOptions',
     #  'Provider_Options',
+    'DocumentSymbolOptions',
     'CodeActionOptions',
     'CodeLensOptions',
     'DocumentOnTypeFormattingOptions',
