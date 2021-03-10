@@ -1825,6 +1825,107 @@ package LSP.Messages is
    type Optional_SaveOptions is
      new Optional_SaveOptions_Package.Optional_Type;
 
+   --
+   --```typescript
+   --/**
+   -- * Defines how the host (editor) should sync document changes to the language
+   -- * server.
+   -- */
+   --export namespace TextDocumentSyncKind {
+   --	/**
+   --	 * Documents should not be synced at all.
+   --	 */
+   --	export const None = 0;
+   --
+   --	/**
+   --	 * Documents are synced by always sending the full content
+   --	 * of the document.
+   --	 */
+   --	export const Full = 1;
+   --
+   --	/**
+   --	 * Documents are synced by sending the full content on open.
+   --	 * After that only incremental updates to the document are
+   --	 * send.
+   --	 */
+   --	export const Incremental = 2;
+   --}
+   --
+   --export interface TextDocumentSyncOptions {
+   --	/**
+   --	 * Open and close notifications are sent to the server. If omitted open
+   --	 * close notification should not be sent.
+   --	 */
+   --	openClose?: boolean;
+   --
+   --	/**
+   --	 * Change notifications are sent to the server. See
+   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+   --	 * TextDocumentSyncKind.None.
+   --	 */
+   --	change?: TextDocumentSyncKind;
+   --}
+   --```
+   --  LSP 3.15 has two definitions for TextDocumentSyncKind and TextDocumentSyncOptions
+   --  Put the shorter one first. This TextDocumentSyncOptions definition is incomplete.
+   type TextDocumentSyncKind is (None, Full, Incremental);
+
+   procedure Read_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncKind);
+   for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
+
+   procedure Write_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncKind);
+   for TextDocumentSyncKind'Write use Write_TextDocumentSyncKind;
+
+   package Optional_TextDocumentSyncKinds is new LSP.Generic_Optional (TextDocumentSyncKind);
+   type Optional_TextDocumentSyncKind is new Optional_TextDocumentSyncKinds.Optional_Type;
+
+   type TextDocumentSyncOptions is record
+      openClose: Optional_Boolean;
+      change: Optional_TextDocumentSyncKind;
+      willSave: Optional_Boolean;
+      willSaveWaitUntil: Optional_Boolean;
+      save: Optional_SaveOptions;
+   end record;
+
+   procedure Read_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncOptions);
+   procedure Write_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncOptions);
+   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
+   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
+
+   type Optional_TextDocumentSyncOptions
+     (Is_Set    : Boolean := False;
+      Is_Number : Boolean := False) is
+      record
+         case Is_Set is
+            when True =>
+               case Is_Number is
+                  when True =>
+                     Value : TextDocumentSyncKind;
+                  when False =>
+                     Options : TextDocumentSyncOptions;
+               end case;
+            when False => null;
+         end case;
+   end record;
+
+   procedure Read_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_TextDocumentSyncOptions);
+   procedure Write_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_TextDocumentSyncOptions);
+   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
+   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
+
    --```typescript
    --export interface TextDocumentSyncClientCapabilities {
    --	/**
@@ -3444,107 +3545,6 @@ package LSP.Messages is
 
    type Optional_WorkDoneProgressOptions is
      new Optional_WorkDoneProgressOptions_Package.Optional_Type;
-
-   --
-   --```typescript
-   --/**
-   -- * Defines how the host (editor) should sync document changes to the language
-   -- * server.
-   -- */
-   --export namespace TextDocumentSyncKind {
-   --	/**
-   --	 * Documents should not be synced at all.
-   --	 */
-   --	export const None = 0;
-   --
-   --	/**
-   --	 * Documents are synced by always sending the full content
-   --	 * of the document.
-   --	 */
-   --	export const Full = 1;
-   --
-   --	/**
-   --	 * Documents are synced by sending the full content on open.
-   --	 * After that only incremental updates to the document are
-   --	 * send.
-   --	 */
-   --	export const Incremental = 2;
-   --}
-   --
-   --export interface TextDocumentSyncOptions {
-   --	/**
-   --	 * Open and close notifications are sent to the server. If omitted open
-   --	 * close notification should not be sent.
-   --	 */
-   --	openClose?: boolean;
-   --
-   --	/**
-   --	 * Change notifications are sent to the server. See
-   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
-   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
-   --	 * TextDocumentSyncKind.None.
-   --	 */
-   --	change?: TextDocumentSyncKind;
-   --}
-   --```
-   --  LSP 3.15 has two definitions for TextDocumentSyncKind and TextDocumentSyncOptions
-   --  This TextDocumentSyncOptions definition is incomplete.
-   type TextDocumentSyncKind is (None, Full, Incremental);
-
-   procedure Read_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncKind);
-   for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
-
-   procedure Write_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncKind);
-   for TextDocumentSyncKind'Write use Write_TextDocumentSyncKind;
-
-   package Optional_TextDocumentSyncKinds is new LSP.Generic_Optional (TextDocumentSyncKind);
-   type Optional_TextDocumentSyncKind is new Optional_TextDocumentSyncKinds.Optional_Type;
-
-   type TextDocumentSyncOptions is record
-      openClose: Optional_Boolean;
-      change: Optional_TextDocumentSyncKind;
-      willSave: Optional_Boolean;
-      willSaveWaitUntil: Optional_Boolean;
-      save: Optional_SaveOptions;
-   end record;
-
-   procedure Read_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncOptions);
-   procedure Write_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncOptions);
-   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
-   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
-
-   type Optional_TextDocumentSyncOptions
-     (Is_Set    : Boolean := False;
-      Is_Number : Boolean := False) is
-      record
-         case Is_Set is
-            when True =>
-               case Is_Number is
-                  when True =>
-                     Value : TextDocumentSyncKind;
-                  when False =>
-                     Options : TextDocumentSyncOptions;
-               end case;
-            when False => null;
-         end case;
-   end record;
-
-   procedure Read_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_TextDocumentSyncOptions);
-   procedure Write_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_TextDocumentSyncOptions);
-   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
-   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
 
    --```typescript
    --/**
