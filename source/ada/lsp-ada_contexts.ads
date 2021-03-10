@@ -216,6 +216,9 @@ package LSP.Ada_Contexts is
    --  call Callback for each. Name could contain a stale reference if the File
    --  was updated since last indexing operation.
 
+   function Charset (Self : Context) return String;
+   --  Return the charset for this context
+
 private
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
