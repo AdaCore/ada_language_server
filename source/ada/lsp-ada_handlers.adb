@@ -307,7 +307,7 @@ package body LSP.Ada_Handlers is
    function Get_Open_Document_Version
      (Self  : access Message_Handler;
       URI   : LSP.Messages.DocumentUri)
-      return LSP.Messages.VersionedTextDocumentIdentifier
+      return LSP.Messages.OptionalVersionedTextDocumentIdentifier
    is
       Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
@@ -321,13 +321,13 @@ package body LSP.Ada_Handlers is
       --  be null.
 
       if Target_Text_Document = null then
-         return LSP.Messages.VersionedTextDocumentIdentifier'
-           (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
+         return (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
 
       else
-         return LSP.Messages.VersionedTextDocumentIdentifier'
+         return
            (uri     => Target_Text_Document.Versioned_Identifier.uri,
-            version => Target_Text_Document.Versioned_Identifier.version);
+            version =>
+              (True, Target_Text_Document.Versioned_Identifier.version));
       end if;
    end Get_Open_Document_Version;
 
