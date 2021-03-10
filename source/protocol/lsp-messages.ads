@@ -8706,11 +8706,20 @@ package LSP.Messages is
    --	 * a suitable error for a request that triggered the edit.
    --	 */
    --	failureReason?: string;
+   --
+   --	/**
+   --	 * Depending on the client's failure handling strategy `failedChange`
+   --	 * might contain the index of the change that failed. This property is
+   --	 * only available if the client signals a `failureHandlingStrategy`
+   --	 * in its client capabilities.
+   --	 */
+   --	failedChange?: uinteger;
    --}
    --```
    type ApplyWorkspaceEditResult is record
       applied: Boolean;
       failureReason: Optional_String;
+      failedChange: Optional_uinteger;
    end record;
 
    procedure Read_ApplyWorkspaceEditResult
