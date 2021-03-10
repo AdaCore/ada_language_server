@@ -67,6 +67,9 @@ package LSP.Messages is
      (uinteger, Write_Empty => LSP.Write_Array);
    type uinteger_Vector is new uinteger_Vectors.Vector with null record;
 
+   package Optional_uintegers is new LSP.Generic_Optional (uinteger);
+   type Optional_uinteger is new Optional_uintegers.Optional_Type;
+
    --```typescript
    --/**
    -- * Defines a decimal number. Since decimal numbers are very
@@ -2843,6 +2846,14 @@ package LSP.Messages is
    --			 */
    --			labelOffsetSupport?: boolean;
    --		};
+   --
+   --		/**
+   --		 * The client supports the `activeParameter` property on
+   --		 * `SignatureInformation` literal.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		activeParameterSupport?: boolean;
    --	};
    --
    --	/**
@@ -2882,6 +2893,7 @@ package LSP.Messages is
    type signatureInformation_Capability is record
       documentationFormat: Optional_MarkupKind_Vector;
       parameterInformation: Optional_parameterInformation_Capability;
+      activeParameterSupport: Optional_Boolean;
    end record;
 
    procedure Read_signatureInformation_Capability
@@ -7682,6 +7694,15 @@ package LSP.Messages is
    --	 * The parameters of this signature.
    --	 */
    --	parameters?: ParameterInformation[];
+   --
+   --	/**
+   --	 * The index of the active parameter.
+   --	 *
+   --	 * If provided, this is used in place of `SignatureHelp.activeParameter`.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	activeParameter?: uinteger;
    --}
    --
    --/**
@@ -7752,6 +7773,7 @@ package LSP.Messages is
       label: LSP_String;
       documentation: Optional_String_Or_MarkupContent;
       parameters: ParameterInformation_Vector;
+      activeParameter: Optional_uinteger;
    end record;
 
    procedure Read_SignatureInformation
