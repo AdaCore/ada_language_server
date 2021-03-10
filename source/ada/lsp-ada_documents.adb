@@ -43,6 +43,7 @@ with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
 with LSP.Predefined_Completion;
 with LSP.Common; use LSP.Common;
+with LSP.Preprocessor;
 with LSP.Lal_Utils;
 
 with Pp.Scanner;
@@ -2521,8 +2522,10 @@ package body LSP.Ada_Documents is
    is
       File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
    begin
-      return Context.LAL_Context.Get_From_File
-        (Filename => LSP.Types.To_UTF_8_String (File),
+      return LSP.Preprocessor.Get_From_File
+        (Context.LAL_Context,
+         Filename => LSP.Types.To_UTF_8_String (File),
+         Charset  => Context.Charset,
          Reparse  => False);
    end Unit;
 
