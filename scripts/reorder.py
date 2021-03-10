@@ -131,7 +131,7 @@ order = [
     'interface ExecuteCommandParams ',
     'interface ApplyWorkspaceEditParams ',
     'interface ApplyWorkspaceEditResponse ',
-    'change?: TextDocumentSyncKind',
+    'interface TextDocumentSyncOptions',  #  shorten snippets
     'interface DidOpenTextDocumentParams ',
     'interface TextDocumentChangeRegistrationOptions',
     'interface DidChangeTextDocumentParams ',
