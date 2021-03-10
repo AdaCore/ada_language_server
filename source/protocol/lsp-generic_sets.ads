@@ -51,7 +51,8 @@ package LSP.Generic_Sets is
 
 private
 
-   type Set is array (Element) of Boolean;
+   type Set is array (Element) of Boolean
+     with Default_Component_Value => False;
 
    procedure Read_Set
      (S : access Ada.Streams.Root_Stream_Type'Class;
