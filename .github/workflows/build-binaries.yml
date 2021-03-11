@@ -110,8 +110,8 @@ jobs:
               TAG="$DEFAULT_TAG"
           fi
           echo "TAG=$TAG" >> $GITHUB_ENV
-          .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" $TAG
-          .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" $TAG
+          .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
+          .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
       - name: Upload vsix to Bintray
         uses: reznikmm/upload-bintray-action@v4
         with:
