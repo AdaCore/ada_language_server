@@ -1101,6 +1101,13 @@ package body LSP.Servers is
          Server       : not null LSP.Server_Backends.Server_Backend_Access);
       --  Initializes internal data structures
 
+      function Process_Exception
+        (Message : String; E : Exception_Occurrence) return Boolean;
+      --  Process the exception: depending on the type of exception, send a
+      --  response to the user or store it in the log.
+      --  Return True if the exception is known to be raised by Libadalang
+      --  when processing invalid Ada code.
+
       procedure Process_Message (Message : in out Message_Access);
 
       ----------------
@@ -1120,6 +1127,28 @@ package body LSP.Servers is
          Server_Backend := Server;
       end Initialize;
 
+      -----------------------
+      -- Process_Exception --
+      -----------------------
+
+      function Process_Exception
+        (Message : String; E : Exception_Occurrence) return Boolean is
+      begin
+         --  Always log an exception in the traces
+         Server.Server_Trace.Trace
+           ("Exception (" & Message & "):" & ASCII.LF
+            & Exception_Name (E) & ASCII.LF &
+              Symbolic_Traceback (E));
+
+         if Exception_Identity (E) = Property_Error'Identity
+           or Exception_Identity (E) = Precondition_Failure'Identity
+         then
+            return True;
+         end if;
+
+         return False;
+      end Process_Exception;
+
       ---------------------
       -- Process_Message --
       ---------------------
@@ -1130,14 +1159,24 @@ package body LSP.Servers is
            LSP.Messages.Server_Notifications.Server_Notification'Class
          then
             --  This is a notification
-
-            Server_Backend.Before_Work (Message.all);
-            LSP.Messages.Server_Notifications.Server_Notification'Class
-              (Message.all).Visit (Notif_Handler);
-            Server_Backend.After_Work (Message.all);
+            begin
+               Server_Backend.Before_Work (Message.all);
+               LSP.Messages.Server_Notifications.Server_Notification'Class
+                 (Message.all).Visit (Notif_Handler);
+               Server_Backend.After_Work (Message.all);
+            exception
+               when E : others =>
+                  declare
+                     Ignored : Boolean;
+                  begin
+                     Ignored := Process_Exception
+                       ("processing notification "
+                        & Ada.Tags.External_Tag (Message'Tag),
+                        E);
+                  end;
+            end;
 
             Free (Message);
-
             return;
          end if;
 
@@ -1173,33 +1212,24 @@ package body LSP.Servers is
             --  was raised when processing the request.
             --
             when E : others =>
-               Send_Exception_Response
-                 (Server.all, E,
-                  Ada.Tags.External_Tag (Message'Tag), Request.id);
+               --  Trace the exception
+               if not Process_Exception
+                 ("processing request " & Ada.Tags.External_Tag (Message'Tag),
+                  E)
+               then
+                  --  If Process_Exception returned False, this is not a
+                  --  known LAL-on-invalid-code exception: warn the user.
+                  Send_Exception_Response
+                    (Server.all, E,
+                     Ada.Tags.External_Tag (Message'Tag), Request.id);
+               end if;
                Server.Destroy_Queue.Enqueue (Message);
          end;
 
       exception
          --  Catch-all case: make sure no exception in any message
          --  processing can cause an exit of the task main loop.
-         --
-         --  Property errors are expected to happen in the normal flow
-         --  of events in LAL. However, for any other error than a
-         --  property error, we want to reload the context.
-         when E : Property_Error =>
-            --  ... and log this in the traces
-            Server.Server_Trace.Trace
-              ("Exception when processing notification:" & ASCII.LF
-               & Ada.Tags.External_Tag (Message'Tag) & ASCII.LF
-               & Exception_Name (E) & ASCII.LF &
-                 Symbolic_Traceback (E));
-
          when E : others =>
-            --  ... and log this in the traces
-            Server.Server_Trace.Trace
-              ("Exception when processing notification" & ASCII.LF
-               & Ada.Tags.External_Tag (Message'Tag));
-            --  The symbolic traceback will be printed by On_Error
             Server.On_Error (E);
       end Process_Message;
 
