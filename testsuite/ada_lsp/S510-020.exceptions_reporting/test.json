@@ -26,26 +26,15 @@
             "request": {
                 "jsonrpc":"2.0",
                 "id":"references-1",
-                "method":"textDocument/references",
-                "params":{
-                    "textDocument": {
-                        "uri": "DOES NOT EXIST"
-                    },
-                    "position": {
-                        "line": 1,
-                        "character": 12
-                    },
-                    "context": {
-                        "includeDeclaration":true
-                    }
-                }
+                "method":"a method name that does not exist",
+                "params":{}
             },
             "comment": " -- we expect an exception here, code -32603",
             "wait":[{
                 "jsonrpc": "2.0",
                 "id": "references-1",
                 "error": {
-                    "code":-32603,
+                    "code":-32601,
                     "message":"<ANY>"
                 }
             }]

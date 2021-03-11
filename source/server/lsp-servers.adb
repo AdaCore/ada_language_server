@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Assertions;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
@@ -1140,8 +1141,14 @@ package body LSP.Servers is
             & Exception_Name (E) & ASCII.LF &
               Symbolic_Traceback (E));
 
-         if Exception_Identity (E) = Property_Error'Identity
-           or Exception_Identity (E) = Precondition_Failure'Identity
+         if Exception_Identity (E) in
+           --  Libadalang / Langkit might raise these when working on
+           --  invalid Ada Code
+           Property_Error'Identity | Precondition_Failure'Identity
+
+           --  Some versions of Libadalang_Tools raise Assertion_Error
+           --  on invalid Ada Code
+             | Ada.Assertions.Assertion_Error'Identity
          then
             return True;
          end if;
