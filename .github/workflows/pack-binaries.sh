@@ -29,7 +29,7 @@ sudo npm install -g vsce
 make_change_log > CHANGELOG.md
 if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]] ; then
     vsce publish -p "$VSCE_TOKEN" || true
-    npx ovsx publish -p "$OVSX_TOKEN" *.vsix || true
+    npx ovsx publish -p "$OVSX_TOKEN" || true
 fi
 vsce package || true
 popd
