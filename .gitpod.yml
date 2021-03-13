@@ -1,0 +1,9 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: echo "hello"
+
+vscode:
+  extensions:
+    - adacore.ada@22.0.5:b56gZDvQ5KBm6u34IBzm1g==
