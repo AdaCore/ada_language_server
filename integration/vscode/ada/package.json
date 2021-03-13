@@ -175,7 +175,7 @@
                 "name": "ada",
                 "label": "Gnat Ada Problem Matcher",
                 "fileLocation": [
-                    "relative",
+                    "autoDetect",
                     "${workspaceRoot}"
                 ],
                 "pattern": [

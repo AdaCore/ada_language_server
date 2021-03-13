@@ -14,12 +14,14 @@
                 "-p",
                 "-P",
                 "test.gpr"
+                "-cargs",
+                "-gnatef"
             ],
             "problemMatcher": ["$ada"],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }             
+            }
         },
         {
             "label": "prove",
@@ -31,11 +33,13 @@
             "args": [
                 "--report=all",
                 "-P",
-                "test.gpr"
+                "test.gpr",
+                "-cargs",
+                "-gnatef"
             ],
             "problemMatcher": [{
                 "owner": "ada",
-                "fileLocation": ["relative", "${workspaceFolder}"],
+                "fileLocation": ["autoDetect", "${workspaceFolder}"],
                 "severity": "error",
                 "pattern": {
                     "regexp": "(\\S+):(\\d+):(\\d+): error: (.+)",
@@ -46,7 +50,7 @@
                 }
             },{
                 "owner": "ada",
-                "fileLocation": ["relative", "${workspaceFolder}"],
+                "fileLocation": ["autoDetect", "${workspaceFolder}"],
                 "severity": "warning",
                 "pattern": {
                     "regexp": "(\\S+):(\\d+):(\\d+): warning: (.+)",
@@ -57,7 +61,7 @@
                 }
             },{
                 "owner": "ada",
-                "fileLocation": ["relative", "${workspaceFolder}"],
+                "fileLocation": ["autoDetect", "${workspaceFolder}"],
                 "severity": "info",
                 "pattern": {
                     "regexp": "(\\S+):(\\d+):(\\d+): info: (.+)",
