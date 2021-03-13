@@ -288,7 +288,7 @@
                         ],
                         "resolveProvider": false
                      },
-                     "documentSymbolProvider": true
+                     "documentSymbolProvider": {}
                   }
                }
             }

@@ -629,7 +629,7 @@ package body LSP.Message_Loggers is
    begin
       for Change of Value.changes loop
          Append (Result, " " & Change.uri & ": " &
-                   Change.the_type'Wide_Image & ";");
+                   Change.a_type'Wide_Image & ";");
       end loop;
 
       Self.Trace.Trace ("DidChangeWatchedFiles_Notification:"

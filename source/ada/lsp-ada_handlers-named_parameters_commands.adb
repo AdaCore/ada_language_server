@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2020, AdaCore                       --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -102,7 +102,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          use type LSP.Types.LSP_String;
          Loc    : constant LSP.Messages.Location :=
            LSP.Lal_Utils.Get_Node_Location (Node);
-         Edit   : LSP.Messages.TextEdit;
+         Edit   : LSP.Messages.AnnotatedTextEdit;
       begin
          Edit.span := (Loc.span.first, Loc.span.first);
          Edit.newText := Name & " => ";
@@ -110,7 +110,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          if Client_Supports_documentChanges then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            Edits.changes (Edits.changes.First).Append (Edit);
+            Edits.changes (Edits.changes.First).Append
+              (LSP.Messages.TextEdit (Edit));
          end if;
       end Append;
 
@@ -126,16 +127,20 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Node : Libadalang.Analysis.Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
-      Args   : Libadalang.Analysis.Basic_Assoc_List;
-      Params : LSP.Types.LSP_String_Vector;
-      Index  : Natural := 0;
+      Args    : Libadalang.Analysis.Basic_Assoc_List;
+      Params  : LSP.Types.LSP_String_Vector;
+      Index   : Natural := 0;
+      Version : constant LSP.Messages.VersionedTextDocumentIdentifier :=
+        Document.Versioned_Identifier;
    begin
       if Client_Supports_documentChanges then
          Edits.documentChanges.Append
            (LSP.Messages.Document_Change'
               (Kind               => LSP.Messages.Text_Document_Edit,
                Text_Document_Edit =>
-                 (textDocument => Document.Versioned_Identifier,
+                 (textDocument =>
+                      (uri => Version.uri,
+                       version => (True, Version.version)),
                   edits        => <>)));
       else
          declare

@@ -91,7 +91,10 @@ package body LSP.Ada_Completion_Sets is
                                   (Node.As_Basic_Decl),
                      location => LSP.Lal_Utils.Get_Node_Location
                                   (Name.As_Ada_Node),
-                     others   => <>));
+                     alsIsAdaProcedure => <>,
+                     tags              => LSP.Messages.Empty,
+                     deprecated        => <>,
+                     containerName => <>));
             end if;
 
             exit when Has_Been_Canceled;

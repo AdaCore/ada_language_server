@@ -112,6 +112,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
+         disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
             Value  =>

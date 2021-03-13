@@ -51,7 +51,7 @@ package LSP.Types is
    function Empty return LSP_Any;
    --  An empty object value of No_Any type
 
-   type LSP_Number is new Natural;
+   type LSP_Number is new Integer;
 
    procedure Read
      (S : access Ada.Streams.Root_Stream_Type'Class;

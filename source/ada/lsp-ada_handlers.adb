@@ -307,7 +307,7 @@ package body LSP.Ada_Handlers is
    function Get_Open_Document_Version
      (Self  : access Message_Handler;
       URI   : LSP.Messages.DocumentUri)
-      return LSP.Messages.VersionedTextDocumentIdentifier
+      return LSP.Messages.OptionalVersionedTextDocumentIdentifier
    is
       Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
@@ -321,13 +321,13 @@ package body LSP.Ada_Handlers is
       --  be null.
 
       if Target_Text_Document = null then
-         return LSP.Messages.VersionedTextDocumentIdentifier'
-           (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
+         return (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
 
       else
-         return LSP.Messages.VersionedTextDocumentIdentifier'
+         return
            (uri     => Target_Text_Document.Versioned_Identifier.uri,
-            version => Target_Text_Document.Versioned_Identifier.version);
+            version =>
+              (True, Target_Text_Document.Versioned_Identifier.version));
       end if;
    end Get_Open_Document_Version;
 
@@ -653,7 +653,7 @@ package body LSP.Ada_Handlers is
          Value  => (workDoneProgress => LSP.Types.None));
       Response.result.capabilities.documentSymbolProvider :=
         (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
+         Value  => (workDoneProgress => LSP.Types.None, label => <>));
       Response.result.capabilities.renameProvider :=
         (Is_Set => True,
          Value  => (prepareProvider  =>
@@ -693,7 +693,8 @@ package body LSP.Ada_Handlers is
                     Value  => LSP.Messages.To_Set
                       (From => LSP.Messages.RefactorRewrite,
                        To   => LSP.Messages.RefactorRewrite)),
-               workDoneProgress => LSP.Types.None));
+               workDoneProgress => LSP.Types.None,
+               resolveProvider  => LSP.Types.None));
       else
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True, Value => <>);
@@ -927,6 +928,7 @@ package body LSP.Ada_Handlers is
                kind        => (Is_Set => True,
                                Value  => LSP.Messages.RefactorRewrite),
                diagnostics => (Is_Set => False),
+               disabled    => (Is_Set => False),
                edit        => (Is_Set => False),
                isPreferred => (Is_Set => False),
                command     => (Is_Set => True,
@@ -3395,7 +3397,7 @@ package body LSP.Ada_Handlers is
       Self.Implicit_Project_Loaded := False;
 
       --  Now load the new project
-      Errors.the_type := LSP.Messages.Warning;
+      Errors.a_type := LSP.Messages.Warning;
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
@@ -3438,7 +3440,7 @@ package body LSP.Ada_Handlers is
             Self.Release_Project_Info;
 
             Self.Trace.Trace (E);
-            Errors.the_type := LSP.Messages.Error;
+            Errors.a_type := LSP.Messages.Error;
 
             LSP.Types.Append
               (Errors.message,

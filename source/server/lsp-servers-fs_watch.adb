@@ -80,7 +80,7 @@ package body LSP.Servers.FS_Watch is
             for F of E.Flags loop
                Changes.changes.Append
                  (FileEvent'(uri => URI,
-                             the_type => Flag_To_FileChangeType (F)));
+                             a_type => Flag_To_FileChangeType (F)));
             end loop;
             Message := new DidChangeWatchedFiles_Notification'
               (method  => +"workspace/didChangeWatchedFiles",

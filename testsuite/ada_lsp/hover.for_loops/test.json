@@ -99,9 +99,7 @@
                            "("
                         ],
                         "resolveProvider": false
-                     },
-                     "documentSymbolProvider": true,
-                     "executeCommandProvider": {}
+                     }
                   }
                }
             }

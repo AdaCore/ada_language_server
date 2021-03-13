@@ -450,7 +450,7 @@ private
    overriding function Get_Open_Document_Version
      (Self  : access Message_Handler;
       URI   : LSP.Messages.DocumentUri)
-      return LSP.Messages.VersionedTextDocumentIdentifier;
+      return LSP.Messages.OptionalVersionedTextDocumentIdentifier;
    --  Return the version of an open document for the given URI.
    --  If the document is not opened, then it returns a
    --  VersionedTextDocumentIdentifier with a null version.

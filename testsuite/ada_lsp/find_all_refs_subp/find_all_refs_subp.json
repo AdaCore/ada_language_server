@@ -87,7 +87,6 @@
                "id": 0,
                "result": {
                   "capabilities": {
-                     "documentSymbolProvider": true,
                      "definitionProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {

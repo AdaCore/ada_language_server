@@ -47,6 +47,41 @@ package LSP.Messages is
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
 
+   --```typescript
+   --/**
+   -- * Defines an integer number in the range of -2^31 to 2^31 - 1.
+   -- */
+   --export type integer = number;
+   --```
+   --  subtype integer is LSP_Number;
+
+   --```typescript
+   --/**
+   -- * Defines an unsigned integer number in the range of 0 to 2^31 - 1.
+   -- */
+   --export type uinteger = number;
+   --```
+   subtype uinteger is LSP_Number range 0 .. LSP_Number'Last;
+
+   package uinteger_Vectors is new LSP.Generic_Vectors
+     (uinteger, Write_Empty => LSP.Write_Array);
+   type uinteger_Vector is new uinteger_Vectors.Vector with null record;
+
+   package Optional_uintegers is new LSP.Generic_Optional (uinteger);
+   type Optional_uinteger is new Optional_uintegers.Optional_Type;
+
+   --```typescript
+   --/**
+   -- * Defines a decimal number. Since decimal numbers are very
+   -- * rare in the language server specification we denote the
+   -- * exact range with every decimal using the mathematics
+   -- * interval notation (e.g. [0, 1] denotes all decimals d with
+   -- * 0 <= d <= 1.
+   -- */
+   --export type decimal = number;
+   --```
+   subtype decimal is LSP.Types.LSP_Number;  --  FIXME
+
    package Optional_LSP_String_Vectors is
      new LSP.Generic_Optional (LSP_String_Vector);
    type Optional_LSP_String_Vector is
@@ -67,7 +102,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id.
    --	 */
-   --	id: number | string;
+   --	id: integer | string;
    --
    --	/**
    --	 * The method to be invoked.
@@ -100,7 +135,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id.
    --	 */
-   --	id: number | string | null;
+   --	id: integer | string | null;
    --
    --	/**
    --	 * The result of a request. This member is REQUIRED on success.
@@ -118,7 +153,7 @@ package LSP.Messages is
    --	/**
    --	 * A number indicating the error type that occurred.
    --	 */
-   --	code: number;
+   --	code: integer;
    --
    --	/**
    --	 * A string providing a short description of the error.
@@ -134,19 +169,54 @@ package LSP.Messages is
    --
    --export namespace ErrorCodes {
    --	// Defined by JSON RPC
-   --	export const ParseError: number = -32700;
-   --	export const InvalidRequest: number = -32600;
-   --	export const MethodNotFound: number = -32601;
-   --	export const InvalidParams: number = -32602;
-   --	export const InternalError: number = -32603;
-   --	export const serverErrorStart: number = -32099;
-   --	export const serverErrorEnd: number = -32000;
-   --	export const ServerNotInitialized: number = -32002;
-   --	export const UnknownErrorCode: number = -32001;
+   --	export const ParseError: integer = -32700;
+   --	export const InvalidRequest: integer = -32600;
+   --	export const MethodNotFound: integer = -32601;
+   --	export const InvalidParams: integer = -32602;
+   --	export const InternalError: integer = -32603;
    --
-   --	// Defined by the protocol.
-   --	export const RequestCancelled: number = -32800;
-   --	export const ContentModified: number = -32801;
+   --	/**
+   --	 * This is the start range of JSON RPC reserved error codes.
+   --	 * It doesn't denote a real error code. No LSP error codes should
+   --	 * be defined between the start and end range. For backwards
+   --	 * compatibility the `ServerNotInitialized` and the `UnknownErrorCode`
+   --	 * are left in the range.
+   --	 *
+   --	 * @since 3.16.0
+   --	*/
+   --	export const jsonrpcReservedErrorRangeStart: integer = -32099;
+   --	/** @deprecated use  jsonrpcReservedErrorRangeStart */
+   --	export const serverErrorStart: integer = jsonrpcReservedErrorRangeStart;
+   --
+   --	export const ServerNotInitialized: integer = -32002;
+   --	export const UnknownErrorCode: integer = -32001;
+   --
+   --	/**
+   --	 * This is the start range of JSON RPC reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	*/
+   --	export const jsonrpcReservedErrorRangeEnd = -32000;
+   --	/** @deprecated use  jsonrpcReservedErrorRangeEnd */
+   --	export const serverErrorEnd: integer = jsonrpcReservedErrorRangeEnd;
+   --
+   --	/**
+   --	 * This is the start range of LSP reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	export const lspReservedErrorRangeStart: integer = -32899;
+   --
+   --	export const ContentModified: integer = -32801;
+   --	export const RequestCancelled: integer = -32800;
+   --
+   --	/**
+   --	 * This is the end range of LSP reserved error codes.
+   --	 * It doesn't denote a real error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	export const lspReservedErrorRangeEnd: integer = -32800;
    --}
    --```
    subtype ErrorCodes is LSP.Errors.ErrorCodes;
@@ -203,7 +273,7 @@ package LSP.Messages is
    --	/**
    --	 * The request id to cancel.
    --	 */
-   --	id: number | string;
+   --	id: integer | string;
    --}
    --```
    type CancelParams is record
@@ -226,6 +296,11 @@ package LSP.Messages is
    subtype DocumentUri is LSP.Types.LSP_String;
 
    --```typescript
+   --type URI = string;
+   --```
+   subtype URI is LSP.Types.LSP_String;
+
+   --```typescript
    --export const EOL: string[] = ['\n', '\r\n', '\r'];
    --```
 
@@ -236,17 +311,17 @@ package LSP.Messages is
    --	/**
    --	 * Line position in a document (zero-based).
    --	 */
-   --	line: number;
+   --	line: uinteger;
    --
    --	/**
-   --	 * Character offset on a line in a document (zero-based). Assuming that the line is
-   --	 * represented as a string, the `character` value represents the gap between the
-   --	 * `character` and `character + 1`.
+   --	 * Character offset on a line in a document (zero-based). Assuming that
+   --	 * the line is represented as a string, the `character` value represents
+   --	 * the gap between the `character` and `character + 1`.
    --	 *
-   --	 * If the character value is greater than the line length it defaults back to the
-   --	 * line length.
+   --	 * If the character value is greater than the line length it defaults back
+   --	 * to the line length.
    --	 */
-   --	character: number;
+   --	character: uinteger;
    --}
    --```
    type Position is record
@@ -307,6 +382,11 @@ package LSP.Messages is
      new LSP.Generic_Optional (Span, Write_Unset_As_Null => True);
    type Optional_Span_Or_Null is new Optional_Span_Or_Nulls.Optional_Type;
 
+   package Span_Vectors is new LSP.Generic_Vectors
+     (Span, Write_Empty => LSP.Write_Array);
+
+   type Span_Vector is new Span_Vectors.Vector with null record;
+
    type CodeActionKind is
      (Empty,
       QuickFix,
@@ -325,7 +405,7 @@ package LSP.Messages is
    for CodeActionKind'Write use Write_CodeActionKind;
 
    package CodeActionKindSets is
-     new LSP.Generic_Sets (CodeActionKind);
+     new LSP.Generic_Sets (CodeActionKind, LSP.Write_Array);
    type CodeActionKindSet is new CodeActionKindSets.Set;
 
    package Optional_CodeActionKindSets is
@@ -455,8 +535,8 @@ package LSP.Messages is
    --	/**
    --	 * Span of the origin of this link.
    --	 *
-   --	 * Used as the underlined span for mouse interaction. Defaults to the word range at
-   --	 * the mouse position.
+   --	 * Used as the underlined span for mouse interaction. Defaults to the word
+   --	 * range at the mouse position.
    --	 */
    --	originSelectionRange?: Range;
    --
@@ -466,15 +546,17 @@ package LSP.Messages is
    --	targetUri: DocumentUri;
    --
    --	/**
-   --	 * The full target range of this link. If the target for example is a symbol then target range is the
-   --	 * range enclosing this symbol not including leading/trailing whitespace but everything else
-   --	 * like comments. This information is typically used to highlight the range in the editor.
+   --	 * The full target range of this link. If the target for example is a symbol
+   --	 * then target range is the range enclosing this symbol not including
+   --	 * leading/trailing whitespace but everything else like comments. This
+   --	 * information is typically used to highlight the range in the editor.
    --	 */
    --	targetRange: Range;
    --
    --	/**
-   --	 * The range that should be selected and revealed when this link is being followed, e.g the name of a function.
-   --	 * Must be contained by the the `targetRange`. See also `DocumentSymbol#range`
+   --	 * The range that should be selected and revealed when this link is being
+   --	 * followed, e.g the name of a function. Must be contained by the the
+   --	 * `targetRange`. See also `DocumentSymbol#range`
    --	 */
    --	targetSelectionRange: Range;
    --}
@@ -560,8 +642,8 @@ package LSP.Messages is
    --    /**
    --     * Unused or unnecessary code.
    --     *
-   --     * Clients are allowed to render diagnostics with this tag faded out instead of having
-   --     * an error squiggle.
+   --     * Clients are allowed to render diagnostics with this tag faded out
+   --	 * instead of having an error squiggle.
    --     */
    --    export const Unnecessary: 1 = 1;
    --    /**
@@ -599,7 +681,7 @@ package LSP.Messages is
    for DiagnosticTag'Read use Read_DiagnosticTag;
    for DiagnosticTag'Write use Write_DiagnosticTag;
 
-   package DiagnosticTagSets is new LSP.Generic_Sets (DiagnosticTag);
+   package DiagnosticTagSets is new LSP.Generic_Sets (DiagnosticTag, LSP.Write_Array);
 
    type DiagnosticTagSet is new DiagnosticTagSets.Set;
 
@@ -611,9 +693,41 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * Represents a related message and source code location for a diagnostic. This should be
-   -- * used to point to code locations that cause or are related to a diagnostics, e.g when duplicating
-   -- * a symbol in a scope.
+   -- * Structure to capture a description for an error code.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface CodeDescription {
+   --	/**
+   --	 * An URI to open with more information about the diagnostic error.
+   --	 */
+   --	href: URI;
+   --}
+   --```
+   type CodeDescription is record
+      href: URI;
+   end record;
+
+   procedure Read_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeDescription);
+   procedure Write_CodeDescription
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeDescription);
+   for CodeDescription'Read use Read_CodeDescription;
+   for CodeDescription'Write use Write_CodeDescription;
+
+   package Optional_CodeDescriptions is
+     new LSP.Generic_Optional (CodeDescription);
+
+   type Optional_CodeDescription is
+     new Optional_CodeDescriptions.Optional_Type;
+
+   --```typescript
+   --/**
+   -- * Represents a related message and source code location for a diagnostic.
+   -- * This should be used to point to code locations that cause or are related to
+   -- * a diagnostics, e.g when duplicating a symbol in a scope.
    -- */
    --export interface DiagnosticRelatedInformation {
    --	/**
@@ -665,7 +779,14 @@ package LSP.Messages is
    --	/**
    --	 * The diagnostic's code, which might appear in the user interface.
    --	 */
-   --	code?: number | string;
+   --	code?: integer | string;
+   --
+   --	/**
+   --	 * An optional property to describe the error code.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	codeDescription?: CodeDescription;
    --
    --	/**
    --	 * A human-readable string describing the source of this
@@ -690,16 +811,27 @@ package LSP.Messages is
    --	 * a scope collide all definitions can be marked via this property.
    --	 */
    --	relatedInformation?: DiagnosticRelatedInformation[];
+   --
+   --	/**
+   --	 * A data entry field that is preserved between a
+   --	 * `textDocument/publishDiagnostics` notification and
+   --	 * `textDocument/codeAction` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	data?: unknown;
    --}
    --```
    type Diagnostic is record
       span: LSP.Messages.Span;
       severity: Optional_DiagnosticSeverity;
       code: LSP_Number_Or_String;
+      codeDescription: Optional_CodeDescription;
       source: Optional_String;
       message: LSP_String;
       tags: Optional_DiagnosticTagSet;
       relatedInformation: DiagnosticRelatedInformation_Vector;
+      --  data?: unknown;
    end record;
 
    procedure Read_Diagnostic
@@ -768,6 +900,9 @@ package LSP.Messages is
    for Command'Read use Read_Command;
    for Command'Write use Write_Command;
 
+   package Optional_Commands is new LSP.Generic_Optional (Command);
+   type Optional_Command is new Optional_Commands.Optional_Type;
+
    package Command_Vectors is new LSP.Generic_Vectors
      (Command, Write_Empty => LSP.Write_Array);
 
@@ -788,7 +923,7 @@ package LSP.Messages is
    --	newText: string;
    --}
    --```
-   type TextEdit is record
+   type TextEdit is tagged record
       span: LSP.Messages.Span;
       newText: LSP_String;
    end record;
@@ -810,6 +945,53 @@ package LSP.Messages is
      (TextEdit, Write_Empty => LSP.Write_Array);
 
    type TextEdit_Vector is new TextEdit_Vectors.Vector with null record;
+
+   --```typescript
+   --
+   --/**
+   -- * An identifier referring to a change annotation managed by a workspace
+   -- * edit.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export type ChangeAnnotationIdentifier = string;
+   --
+   --
+   --/**
+   -- * A special text edit with an additional change annotation.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface AnnotatedTextEdit extends TextEdit {
+   --	/**
+   --	 * The actual annotation identifier.
+   --	 */
+   --	annotationId: ChangeAnnotationIdentifier;
+   --}
+   --```
+   type AnnotatedTextEdit is new TextEdit with record
+      --  Make id optional to represent both AnnotatedTextEdit and TextEdit
+      annotationId: Optional_String;
+   end record;
+
+   procedure Read_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotatedTextEdit);
+
+   procedure Write_AnnotatedTextEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotatedTextEdit);
+
+   for AnnotatedTextEdit'Read use Read_AnnotatedTextEdit;
+   for AnnotatedTextEdit'Write use Write_AnnotatedTextEdit;
+
+   package AnnotatedTextEdit_Vectors is new LSP.Generic_Vectors
+     (AnnotatedTextEdit, Write_Empty => LSP.Write_Array);
+
+   type AnnotatedTextEdit_Vector is new AnnotatedTextEdit_Vectors.Vector
+     with null record;
+
+   subtype ChangeAnnotationIdentifier is LSP_String;
 
    --
    --```typescript
@@ -837,24 +1019,16 @@ package LSP.Messages is
    --```typescript
    --interface VersionedTextDocumentIdentifier extends TextDocumentIdentifier {
    --	/**
-   --	 * The version number of this document. If a versioned text document identifier
-   --	 * is sent from the server to the client and the file is not open in the editor
-   --	 * (the server has not received an open notification before) the server can send
-   --	 * `null` to indicate that the version is known and the content on disk is the
-   --	 * master (as speced with document content ownership).
+   --	 * The version number of this document.
    --	 *
-   --	 * The version number of a document will increase after each change, including
-   --	 * undo/redo. The number doesn't need to be consecutive.
+   --	 * The version number of a document will increase after each change,
+   --	 * including undo/redo. The number doesn't need to be consecutive.
    --	 */
-   --	version: number | null;
+   --	version: integer;
    --}
    --```
-   package Nullable_Numbers is new LSP.Generic_Optional
-     (LSP_Number, Write_Unset_As_Null => True);
-   type Nullable_Number is new Nullable_Numbers.Optional_Type;
-
    type VersionedTextDocumentIdentifier is new TextDocumentIdentifier with record
-      version: Nullable_Number;
+      version: LSP_Number;
    end record;
 
    procedure Read_VersionedTextDocumentIdentifier
@@ -869,22 +1043,61 @@ package LSP.Messages is
    for VersionedTextDocumentIdentifier'Write use
      Write_VersionedTextDocumentIdentifier;
 
+   package Nullable_Numbers is new LSP.Generic_Optional
+     (LSP_Number, Write_Unset_As_Null => True);
+   type Nullable_Number is new Nullable_Numbers.Optional_Type;
+
+   --```typescript
+   --interface OptionalVersionedTextDocumentIdentifier extends TextDocumentIdentifier {
+   --	/**
+   --	 * The version number of this document. If an optional versioned text document
+   --	 * identifier is sent from the server to the client and the file is not
+   --	 * open in the editor (the server has not received an open notification
+   --	 * before) the server can send `null` to indicate that the version is
+   --	 * known and the content on disk is the master (as specified with document
+   --	 * content ownership).
+   --	 *
+   --	 * The version number of a document will increase after each change,
+   --	 * including undo/redo. The number doesn't need to be consecutive.
+   --	 */
+   --	version: integer | null;
+   --}
+   --```
+   type OptionalVersionedTextDocumentIdentifier is new TextDocumentIdentifier with record
+      version: Nullable_Number;
+   end record;
+
+   procedure Read_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out OptionalVersionedTextDocumentIdentifier);
+   for OptionalVersionedTextDocumentIdentifier'Read use
+     Read_OptionalVersionedTextDocumentIdentifier;
+
+   procedure Write_OptionalVersionedTextDocumentIdentifier
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : OptionalVersionedTextDocumentIdentifier);
+   for OptionalVersionedTextDocumentIdentifier'Write use
+     Write_OptionalVersionedTextDocumentIdentifier;
+
    --```typescript
    --export interface TextDocumentEdit {
    --	/**
    --	 * The text document to change.
    --	 */
-   --	textDocument: VersionedTextDocumentIdentifier;
+   --	textDocument: OptionalVersionedTextDocumentIdentifier;
    --
    --	/**
    --	 * The edits to be applied.
+   --	 *
+   --	 * @since 3.16.0 - support for AnnotatedTextEdit. This is guarded by the
+   --	 * client capability `workspace.workspaceEdit.changeAnnotationSupport`
    --	 */
-   --	edits: TextEdit[];
+   --	edits: (TextEdit | AnnotatedTextEdit)[];
    --}
    --```
    type TextDocumentEdit is record
-      textDocument: VersionedTextDocumentIdentifier;
-      edits: TextEdit_Vector;
+      textDocument: OptionalVersionedTextDocumentIdentifier;
+      edits: AnnotatedTextEdit_Vector;
    end record;
 
    procedure Read_TextDocumentEdit
@@ -912,6 +1125,7 @@ package LSP.Messages is
    --	 * Overwrite existing file. Overwrite wins over `ignoreIfExists`
    --	 */
    --	overwrite?: boolean;
+   --
    --	/**
    --	 * Ignore if exists.
    --	 */
@@ -926,14 +1140,23 @@ package LSP.Messages is
    --	 * A create
    --	 */
    --	kind: 'create';
+   --
    --	/**
    --	 * The resource to create.
    --	 */
    --	uri: DocumentUri;
+   --
    --	/**
    --	 * Additional options
    --	 */
    --	options?: CreateFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --
    --/**
@@ -944,6 +1167,7 @@ package LSP.Messages is
    --	 * Overwrite target if existing. Overwrite wins over `ignoreIfExists`
    --	 */
    --	overwrite?: boolean;
+   --
    --	/**
    --	 * Ignores if target exists.
    --	 */
@@ -958,18 +1182,28 @@ package LSP.Messages is
    --	 * A rename
    --	 */
    --	kind: 'rename';
+   --
    --	/**
    --	 * The old (existing) location.
    --	 */
    --	oldUri: DocumentUri;
+   --
    --	/**
    --	 * The new location.
    --	 */
    --	newUri: DocumentUri;
+   --
    --	/**
    --	 * Rename options.
    --	 */
    --	options?: RenameFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --
    --/**
@@ -980,6 +1214,7 @@ package LSP.Messages is
    --	 * Delete the content recursively if a folder is denoted.
    --	 */
    --	recursive?: boolean;
+   --
    --	/**
    --	 * Ignore the operation if the file doesn't exist.
    --	 */
@@ -994,14 +1229,23 @@ package LSP.Messages is
    --	 * A delete
    --	 */
    --	kind: 'delete';
+   --
    --	/**
    --	 * The file to delete.
    --	 */
    --	uri: DocumentUri;
+   --
    --	/**
    --	 * Delete options.
    --	 */
    --	options?: DeleteFileOptions;
+   --
+   --	/**
+   --	 * An optional annotation identifer describing the operation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	annotationId?: ChangeAnnotationIdentifier;
    --}
    --```
 
@@ -1013,6 +1257,7 @@ package LSP.Messages is
    type CreateFile is record
       uri     : DocumentUri;
       options : CreateFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type RenameFileOptions is record
@@ -1024,6 +1269,7 @@ package LSP.Messages is
       oldUri  : DocumentUri;
       newUri  : DocumentUri;
       options : RenameFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type DeleteFileOptions is record
@@ -1034,6 +1280,7 @@ package LSP.Messages is
    type DeleteFile is record
       uri     : DocumentUri;
       options : DeleteFileOptions;
+      annotationId: Optional_String;
    end record;
 
    type Document_Change_Kind is
@@ -1070,6 +1317,55 @@ package LSP.Messages is
      new Document_Change_Vectors.Vector with null record;
 
    --```typescript
+   --/**
+   -- * Additional information that describes document changes.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ChangeAnnotation {
+   --	/**
+   --	 * A human-readable string describing the actual change. The string
+   --	 * is rendered prominent in the user interface.
+   --	 */
+   --	label: string;
+   --
+   --	/**
+   --	 * A flag which indicates that user confirmation is needed
+   --	 * before applying the change.
+   --	 */
+   --	needsConfirmation?: boolean;
+   --
+   --	/**
+   --	 * A human-readable string which is rendered less prominent in
+   --	 * the user interface.
+   --	 */
+   --	description?: string;
+   --}
+   --```
+   type ChangeAnnotation is record
+      label: LSP_String;
+      needsConfirmation: Optional_Boolean;
+      description: Optional_String;
+   end record;
+
+   procedure Read_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ChangeAnnotation);
+
+   procedure Write_ChangeAnnotation
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ChangeAnnotation);
+
+   for ChangeAnnotation'Read use Read_ChangeAnnotation;
+   for ChangeAnnotation'Write use Write_ChangeAnnotation;
+
+   package ChangeAnnotation_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => ChangeAnnotationIdentifier,
+      Element_Type    => ChangeAnnotation,
+      Hash            => LSP.Types.Hash,
+      Equivalent_Keys => LSP.Types."=");
+
+   --```typescript
    --export interface WorkspaceEdit {
    --	/**
    --	 * Holds changes to existing resources.
@@ -1077,23 +1373,44 @@ package LSP.Messages is
    --	changes?: { [uri: DocumentUri]: TextEdit[]; };
    --
    --	/**
-   --	 * Depending on the client capability `workspace.workspaceEdit.resourceOperations` document changes
-   --	 * are either an array of `TextDocumentEdit`s to express changes to n different text documents
-   --	 * where each text document edit addresses a specific version of a text document. Or it can contain
-   --	 * above `TextDocumentEdit`s mixed with create, rename and delete file / folder operations.
+   --	 * Depending on the client capability
+   --	 * `workspace.workspaceEdit.resourceOperations` document changes are either
+   --	 * an array of `TextDocumentEdit`s to express changes to n different text
+   --	 * documents where each text document edit addresses a specific version of
+   --	 * a text document. Or it can contain above `TextDocumentEdit`s mixed with
+   --	 * create, rename and delete file / folder operations.
    --	 *
    --	 * Whether a client supports versioned document edits is expressed via
    --	 * `workspace.workspaceEdit.documentChanges` client capability.
    --	 *
-   --	 * If a client neither supports `documentChanges` nor `workspace.workspaceEdit.resourceOperations` then
-   --	 * only plain `TextEdit`s using the `changes` property are supported.
+   --	 * If a client neither supports `documentChanges` nor
+   --	 * `workspace.workspaceEdit.resourceOperations` then only plain `TextEdit`s
+   --	 * using the `changes` property are supported.
    --	 */
-   --	documentChanges?: (TextDocumentEdit[] | (TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]);
+   --	documentChanges?: (
+   --		TextDocumentEdit[] |
+   --		(TextDocumentEdit | CreateFile | RenameFile | DeleteFile)[]
+   --	);
+   --
+   --	/**
+   --	 * A map of change annotations that can be referenced in
+   --	 * `AnnotatedTextEdit`s or create, rename and delete file / folder
+   --	 * operations.
+   --	 *
+   --	 * Whether clients honor this property depends on the client capability
+   --	 * `workspace.changeAnnotationSupport`.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	changeAnnotations?: {
+   --		[id: string /* ChangeAnnotationIdentifier */]: ChangeAnnotation;
+   --	}
    --}
    --```
    type WorkspaceEdit is record
       changes: TextDocumentEdit_Maps.Map;
       documentChanges: Document_Change_Vector;
+      changeAnnotations: ChangeAnnotation_Maps.Map;
    end record;
 
    procedure Read_WorkspaceEdit
@@ -1125,7 +1442,7 @@ package LSP.Messages is
    --	 * The version number of this document (it will increase after each
    --	 * change, including undo/redo).
    --	 */
-   --	version: number;
+   --	version: integer;
    --
    --	/**
    --	 * The content of the opened text document.
@@ -1207,9 +1524,13 @@ package LSP.Messages is
    --	 * - `*` to match one or more characters in a path segment
    --	 * - `?` to match on one character in a path segment
    --	 * - `**` to match any number of path segments, including none
-   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
-   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
+   --	 *   not `example.0`)
    --	 */
    --	pattern?: string;
    --}
@@ -1265,6 +1586,31 @@ package LSP.Messages is
    --	 * @since 3.13.0
    --	 */
    --	failureHandling?: FailureHandlingKind;
+   --
+   --	/**
+   --	 * Whether the client normalizes line endings to the client specific
+   --	 * setting.
+   --	 * If set to `true` the client will normalize line ending characters
+   --	 * in a workspace edit to the client specific new line character(s).
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	normalizesLineEndings?: boolean;
+   --
+   --	/**
+   --	 * Whether the client in general supports change annotations on text edits,
+   --	 * create file, rename file and delete file changes.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	changeAnnotationSupport?: {
+   --        /**
+   --         * Whether the client groups edits with equal labels into tree nodes,
+   --         * for instance all edits labelled with "Changes in Strings" would
+   --         * be a tree node.
+   --         */
+   --        groupsOnLabel?: boolean;
+   --	};
    --}
    --
    --/**
@@ -1290,13 +1636,15 @@ package LSP.Messages is
    --	export const Delete: ResourceOperationKind = 'delete';
    --}
    --
-   --export type FailureHandlingKind = 'abort' | 'transactional' | 'undo' | 'textOnlyTransactional';
+   --export type FailureHandlingKind = 'abort' | 'transactional' | 'undo'
+   --	| 'textOnlyTransactional';
    --
    --export namespace FailureHandlingKind {
    --
    --	/**
-   --	 * Applying the workspace change is simply aborted if one of the changes provided
-   --	 * fails. All operations executed before the failing operation stay executed.
+   --	 * Applying the workspace change is simply aborted if one of the changes
+   --	 * provided fails. All operations executed before the failing operation
+   --	 * stay executed.
    --	 */
    --	export const Abort: FailureHandlingKind = 'abort';
    --
@@ -1308,11 +1656,12 @@ package LSP.Messages is
    --
    --
    --	/**
-   --	 * If the workspace edit contains only textual file changes they are executed transactional.
-   --	 * If resource changes (create, rename or delete file) are part of the change the failure
-   --	 * handling strategy is abort.
+   --	 * If the workspace edit contains only textual file changes they are
+   --	 * executed transactional. If resource changes (create, rename or delete
+   --	 * file) are part of the change the failure handling strategy is abort.
    --	 */
-   --	export const TextOnlyTransactional: FailureHandlingKind = 'textOnlyTransactional';
+   --	export const TextOnlyTransactional: FailureHandlingKind
+   --		= 'textOnlyTransactional';
    --
    --	/**
    --	 * The client tries to undo the operations already executed. But there is no
@@ -1336,7 +1685,7 @@ package LSP.Messages is
    for ResourceOperationKind'Write use Write_ResourceOperationKind;
 
    package ResourceOperationKindSets is
-     new LSP.Generic_Sets (ResourceOperationKind);
+     new LSP.Generic_Sets (ResourceOperationKind, LSP.Write_Array);
 
    type ResourceOperationKindSet is new ResourceOperationKindSets.Set;
 
@@ -1367,10 +1716,33 @@ package LSP.Messages is
    type Optional_FailureHandlingKind is
      new Optional_FailureHandlingKinds.Optional_Type;
 
+   type AnnotationSupport is record
+      groupsOnLabel: Optional_Boolean;
+   end record;
+
+   procedure Read_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out AnnotationSupport);
+
+   procedure Write_AnnotationSupport
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : AnnotationSupport);
+
+   for AnnotationSupport'Read use Read_AnnotationSupport;
+   for AnnotationSupport'Write use Write_AnnotationSupport;
+
+   package Optional_AnnotationSupports is
+     new LSP.Generic_Optional (AnnotationSupport);
+
+   type Optional_AnnotationSupport is
+     new Optional_AnnotationSupports.Optional_Type;
+
    type WorkspaceEditClientCapabilities is record
       documentChanges : Optional_Boolean;
       resourceOperations : Optional_ResourceOperationKindSet;
       failureHandling : Optional_FailureHandlingKind;
+      normalizesLineEndings : Optional_Boolean;
+      changeAnnotationSupport : Optional_AnnotationSupport;
    end record;
 
    procedure Read_WorkspaceEditClientCapabilities
@@ -1400,9 +1772,9 @@ package LSP.Messages is
    --```typescript
    --export interface DidChangeWatchedFilesClientCapabilities {
    --	/**
-   --	 * Did change watched files notification supports dynamic registration. Please note
-   --	 * that the current protocol doesn't support static configuration for file changes
-   --	 * from the server side.
+   --	 * Did change watched files notification supports dynamic registration.
+   --	 * Please note that the current protocol doesn't support static
+   --	 * configuration for file changes from the server side.
    --	 */
    --	dynamicRegistration?: boolean;
    --}
@@ -1417,7 +1789,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol` request.
+   --	 * Specific capabilities for the `SymbolKind` in the `workspace/symbol`
+   --	 * request.
    --	 */
    --	symbolKind?: {
    --		/**
@@ -1431,6 +1804,19 @@ package LSP.Messages is
    --		 * the initial version of the protocol.
    --		 */
    --		valueSet?: SymbolKind[];
+   --	}
+   --
+   --	/**
+   --	 * The client supports tags on `SymbolInformation`.
+   --	 * Clients supporting tags have to handle unknown tags gracefully.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tagSupport?: {
+   --		/**
+   --		 * The tags supported by the client.
+   --		 */
+   --		valueSet: SymbolTag[]
    --	}
    --}
    --```
@@ -1474,7 +1860,7 @@ package LSP.Messages is
    for SymbolKind'Read use Read_SymbolKind;
    for SymbolKind'Write use Write_SymbolKind;
 
-   package SymbolKindSets is new LSP.Generic_Sets (SymbolKind);
+   package SymbolKindSets is new LSP.Generic_Sets (SymbolKind, LSP.Write_Array);
 
    type SymbolKindSet is new SymbolKindSets.Set;
 
@@ -1508,6 +1894,40 @@ package LSP.Messages is
    type Optional_symbolKindCapabilities is
      new Optional_symbolKindCapabilities_Package.Optional_Type;
 
+   type SymbolTag is (Deprecated);
+
+   procedure Read_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SymbolTag);
+   procedure Write_SymbolTag
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SymbolTag);
+   for SymbolTag'Read use Read_SymbolTag;
+   for SymbolTag'Write use Write_SymbolTag;
+
+   package SymbolTagSets is new LSP.Generic_Sets (SymbolTag, LSP.Skip);
+   type SymbolTagSet is new SymbolTagSets.Set;
+
+   type tagSupportCapability is record
+      valueSet: SymbolTagSet;
+   end record;
+
+   procedure Read_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out tagSupportCapability);
+
+   procedure Write_tagSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : tagSupportCapability);
+
+   for tagSupportCapability'Read use Read_tagSupportCapability;
+   for tagSupportCapability'Write use Write_tagSupportCapability;
+
+   package Optional_tagSupportCapability_Package is
+     new LSP.Generic_Optional (tagSupportCapability);
+   type Optional_tagSupportCapability is
+     new Optional_tagSupportCapability_Package.Optional_Type;
+
    type Als_Visibility is
      (Als_Public,
       Als_Protected,
@@ -1533,6 +1953,7 @@ package LSP.Messages is
    type WorkspaceSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_symbolKindCapabilities;
+      tagSupport: Optional_tagSupportCapability;
    end record;
 
    procedure Read_WorkspaceSymbolClientCapabilities
@@ -1565,6 +1986,81 @@ package LSP.Messages is
    --```
    subtype ExecuteCommandClientCapabilities is dynamicRegistration;
 
+   --```typescript
+   --export interface SemanticTokensWorkspaceClientCapabilities {
+   --	/**
+   --	 * Whether the client implementation supports a refresh request sent from
+   --	 * the server to the client.
+   --	 *
+   --	 * Note that this event is global and will force the client to refresh all
+   --	 * semantic tokens currently shown. It should be used with absolute care
+   --	 * and is useful for situation where a server for example detect a project
+   --	 * wide change that requires such a calculation.
+   --	 */
+   --	refreshSupport?: boolean;
+   --}
+   --```
+   type SemanticTokensWorkspaceClientCapabilities is record
+      refreshSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensWorkspaceClientCapabilities);
+
+   procedure Write_SemanticTokensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensWorkspaceClientCapabilities);
+
+   for SemanticTokensWorkspaceClientCapabilities'Read use
+     Read_SemanticTokensWorkspaceClientCapabilities;
+
+   for SemanticTokensWorkspaceClientCapabilities'Write use
+     Write_SemanticTokensWorkspaceClientCapabilities;
+
+   package Optional_SemanticTokensWorkspaceClientCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensWorkspaceClientCapabilities);
+
+   type Optional_SemanticTokensWorkspaceClientCapabilities is
+     new Optional_SemanticTokensWorkspaceClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --export interface CodeLensWorkspaceClientCapabilities {
+   --	/**
+   --	 * Whether the client implementation supports a refresh request sent from the
+   --	 * server to the client.
+   --	 *
+   --	 * Note that this event is global and will force the client to refresh all
+   --	 * code lenses currently shown. It should be used with absolute care and is
+   --	 * useful for situation where a server for example detect a project wide
+   --	 * change that requires such a calculation.
+   --	 */
+   --	refreshSupport?: boolean;
+   --}
+   --```
+   type CodeLensWorkspaceClientCapabilities is record
+      refreshSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CodeLensWorkspaceClientCapabilities);
+   procedure Write_CodeLensWorkspaceClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CodeLensWorkspaceClientCapabilities);
+
+   for CodeLensWorkspaceClientCapabilities'Read use
+     Read_CodeLensWorkspaceClientCapabilities;
+
+   for CodeLensWorkspaceClientCapabilities'Write use
+     Write_CodeLensWorkspaceClientCapabilities;
+
+   package Optional_CodeLensWorkspaceClientCapabilities_Package is
+     new LSP.Generic_Optional (CodeLensWorkspaceClientCapabilities);
+
+   type Optional_CodeLensWorkspaceClientCapabilities is
+     new Optional_CodeLensWorkspaceClientCapabilities_Package.Optional_Type;
+
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
       workspaceEdit: WorkspaceEditClientCapabilities;
@@ -1574,6 +2070,8 @@ package LSP.Messages is
       executeCommand: ExecuteCommandClientCapabilities;
       workspaceFolders: Optional_Boolean;
       configuration: Optional_Boolean;
+      semanticTokens: Optional_SemanticTokensWorkspaceClientCapabilities;
+      codeLens: Optional_CodeLensWorkspaceClientCapabilities;
    end record;
 
    procedure Read_WorkspaceClientCapabilities
@@ -1609,13 +2107,15 @@ package LSP.Messages is
    --export type MarkupKind = 'plaintext' | 'markdown';
    --
    --/**
-   -- * A `MarkupContent` literal represents a string value which content is interpreted base on its
-   -- * kind flag. Currently the protocol supports `plaintext` and `markdown` as markup kinds.
+   -- * A `MarkupContent` literal represents a string value which content is
+   -- * interpreted base on its kind flag. Currently the protocol supports
+   -- * `plaintext` and `markdown` as markup kinds.
    -- *
-   -- * If the kind is `markdown` then the value can contain fenced code blocks like in GitHub issues.
-   -- * See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+   -- * If the kind is `markdown` then the value can contain fenced code blocks like
+   -- * in GitHub issues.
    -- *
-   -- * Here is an example how such a string can be constructed using JavaScript / TypeScript:
+   -- * Here is an example how such a string can be constructed using
+   -- * JavaScript / TypeScript:
    -- * ```typescript
    -- * let markdown: MarkdownContent = {
    -- *  kind: MarkupKind.Markdown,
@@ -1629,8 +2129,8 @@ package LSP.Messages is
    -- * };
    -- * ```
    -- *
-   -- * *Please Note* that clients might sanitize the return markdown. A client could decide to
-   -- * remove HTML from the markdown to avoid script execution.
+   -- * *Please Note* that clients might sanitize the return markdown. A client could
+   -- * decide to remove HTML from the markdown to avoid script execution.
    -- */
    --export interface MarkupContent {
    --	/**
@@ -1734,6 +2234,107 @@ package LSP.Messages is
    type Optional_SaveOptions is
      new Optional_SaveOptions_Package.Optional_Type;
 
+   --
+   --```typescript
+   --/**
+   -- * Defines how the host (editor) should sync document changes to the language
+   -- * server.
+   -- */
+   --export namespace TextDocumentSyncKind {
+   --	/**
+   --	 * Documents should not be synced at all.
+   --	 */
+   --	export const None = 0;
+   --
+   --	/**
+   --	 * Documents are synced by always sending the full content
+   --	 * of the document.
+   --	 */
+   --	export const Full = 1;
+   --
+   --	/**
+   --	 * Documents are synced by sending the full content on open.
+   --	 * After that only incremental updates to the document are
+   --	 * send.
+   --	 */
+   --	export const Incremental = 2;
+   --}
+   --
+   --export interface TextDocumentSyncOptions {
+   --	/**
+   --	 * Open and close notifications are sent to the server. If omitted open
+   --	 * close notification should not be sent.
+   --	 */
+   --	openClose?: boolean;
+   --
+   --	/**
+   --	 * Change notifications are sent to the server. See
+   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+   --	 * TextDocumentSyncKind.None.
+   --	 */
+   --	change?: TextDocumentSyncKind;
+   --}
+   --```
+   --  LSP 3.15 has two definitions for TextDocumentSyncKind and TextDocumentSyncOptions
+   --  Put the shorter one first. This TextDocumentSyncOptions definition is incomplete.
+   type TextDocumentSyncKind is (None, Full, Incremental);
+
+   procedure Read_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncKind);
+   for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
+
+   procedure Write_TextDocumentSyncKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncKind);
+   for TextDocumentSyncKind'Write use Write_TextDocumentSyncKind;
+
+   package Optional_TextDocumentSyncKinds is new LSP.Generic_Optional (TextDocumentSyncKind);
+   type Optional_TextDocumentSyncKind is new Optional_TextDocumentSyncKinds.Optional_Type;
+
+   type TextDocumentSyncOptions is record
+      openClose: Optional_Boolean;
+      change: Optional_TextDocumentSyncKind;
+      willSave: Optional_Boolean;
+      willSaveWaitUntil: Optional_Boolean;
+      save: Optional_SaveOptions;
+   end record;
+
+   procedure Read_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextDocumentSyncOptions);
+   procedure Write_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextDocumentSyncOptions);
+   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
+   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
+
+   type Optional_TextDocumentSyncOptions
+     (Is_Set    : Boolean := False;
+      Is_Number : Boolean := False) is
+      record
+         case Is_Set is
+            when True =>
+               case Is_Number is
+                  when True =>
+                     Value : TextDocumentSyncKind;
+                  when False =>
+                     Options : TextDocumentSyncOptions;
+               end case;
+            when False => null;
+         end case;
+   end record;
+
+   procedure Read_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Optional_TextDocumentSyncOptions);
+   procedure Write_Optional_TextDocumentSyncOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Optional_TextDocumentSyncOptions);
+   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
+   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
+
    --```typescript
    --export interface TextDocumentSyncClientCapabilities {
    --	/**
@@ -1760,7 +2361,8 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Defines how the host (editor) should sync document changes to the language server.
+   -- * Defines how the host (editor) should sync document changes to the language
+   -- * server.
    -- */
    --export namespace TextDocumentSyncKind {
    --	/**
@@ -1782,32 +2384,36 @@ package LSP.Messages is
    --	export const Incremental = 2;
    --}
    --
+   --export type TextDocumentSyncKind = 0 | 1 | 2;
+   --
    --export interface TextDocumentSyncOptions {
    --	/**
-   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
-   --	 * be sent.
+   --	 * Open and close notifications are sent to the server. If omitted open
+   --	 * close notification should not be sent.
    --	 */
    --	openClose?: boolean;
    --	/**
-   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
+   --	 * Change notifications are sent to the server. See
+   --	 * TextDocumentSyncKind.None, TextDocumentSyncKind.Full and
+   --	 * TextDocumentSyncKind.Incremental. If omitted it defaults to
+   --	 * TextDocumentSyncKind.None.
    --	 */
-   --	change?: number;
+   --	change?: TextDocumentSyncKind;
    --	/**
-   --	 * If present will save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
+   --	 * If present will save notifications are sent to the server. If omitted
+   --	 * the notification should not be sent.
    --	 */
    --	willSave?: boolean;
    --	/**
-   --	 * If present will save wait until requests are sent to the server. If omitted the request should not be
-   --	 * sent.
+   --	 * If present will save wait until requests are sent to the server. If
+   --	 * omitted the request should not be sent.
    --	 */
    --	willSaveWaitUntil?: boolean;
    --	/**
-   --	 * If present save notifications are sent to the server. If omitted the notification should not be
-   --	 * sent.
+   --	 * If present save notifications are sent to the server. If omitted the
+   --	 * notification should not be sent.
    --	 */
-   --	save?: SaveOptions;
+   --	save?: boolean | SaveOptions;
    --}
    --```
    type TextDocumentSyncClientCapabilities is record
@@ -1848,8 +2454,8 @@ package LSP.Messages is
    --		 *
    --		 * A snippet can define tab stops and placeholders with `$1`, `$2`
    --		 * and `${3:foo}`. `$0` defines the final tab stop, it defaults to
-   --		 * the end of the snippet. Placeholders with equal identifiers are linked,
-   --		 * that is typing in one will update others too.
+   --		 * the end of the snippet. Placeholders with equal identifiers are
+   --		 * linked, that is typing in one will update others too.
    --		 */
    --		snippetSupport?: boolean;
    --
@@ -1859,7 +2465,7 @@ package LSP.Messages is
    --		commitCharactersSupport?: boolean
    --
    --		/**
-   --		 * Client supports the follow content formats for the documentation
+   --		 * Client supports the following content formats for the documentation
    --		 * property. The order describes the preferred format of the client.
    --		 */
    --		documentationFormat?: MarkupKind[];
@@ -1875,10 +2481,10 @@ package LSP.Messages is
    --		preselectSupport?: boolean;
    --
    --		/**
-   --		 * Client supports the tag property on a completion item. Clients supporting
-   --		 * tags have to handle unknown tags gracefully. Clients especially need to
-   --		 * preserve unknown tags when sending a completion item back to the server in
-   --		 * a resolve call.
+   --		 * Client supports the tag property on a completion item. Clients
+   --		 * supporting tags have to handle unknown tags gracefully. Clients
+   --		 * especially need to preserve unknown tags when sending a completion
+   --		 * item back to the server in a resolve call.
    --		 *
    --		 * @since 3.15.0
    --		 */
@@ -1887,6 +2493,39 @@ package LSP.Messages is
    --			 * The tags supported by the client.
    --			 */
    --			valueSet: CompletionItemTag[]
+   --		}
+   --
+   --		/**
+   --		 * Client supports insert replace edit to control different behavior if
+   --		 * a completion item is inserted in the text or should replace text.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		insertReplaceSupport?: boolean;
+   --
+   --		/**
+   --		 * Indicates which properties a client can resolve lazily on a
+   --		 * completion item. Before version 3.16.0 only the predefined properties
+   --		 * `documentation` and `details` could be resolved lazily.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		resolveSupport?: {
+   --			/**
+   --			 * The properties that a client can resolve lazily.
+   --			 */
+   --			properties: string[];
+   --		};
+   --
+   --		/**
+   --		 * The client supports the `insertTextMode` property on
+   --		 * a completion item to override the whitespace handling mode
+   --		 * as defined by the client (see `insertTextMode`).
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		insertTextModeSupport?: {
+   --			valueSet: InsertTextMode[];
    --		}
    --	};
    --
@@ -1925,7 +2564,7 @@ package LSP.Messages is
    for CompletionItemTag'Read use Read_CompletionItemTag;
    for CompletionItemTag'Write use Write_CompletionItemTag;
 
-   package CompletionItemTagSets is new LSP.Generic_Sets (CompletionItemTag);
+   package CompletionItemTagSets is new LSP.Generic_Sets (CompletionItemTag, LSP.Write_Array);
 
    type CompletionItemTagSet is new CompletionItemTagSets.Set;
 
@@ -1956,6 +2595,70 @@ package LSP.Messages is
    type Optional_CompletionItemTagSupport is
      new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
+   type resolveSupportCapability is record
+      properties: LSP_String_Vector;
+   end record;
+
+   procedure Read_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out resolveSupportCapability);
+
+   procedure Write_resolveSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : resolveSupportCapability);
+
+   for resolveSupportCapability'Read use Read_resolveSupportCapability;
+   for resolveSupportCapability'Write use Write_resolveSupportCapability;
+
+   package Optional_resolveSupportCapability_Package is
+     new LSP.Generic_Optional (resolveSupportCapability);
+
+   type Optional_resolveSupportCapability is
+     new Optional_resolveSupportCapability_Package.Optional_Type;
+
+   type InsertTextMode is (asIs, adjustIndentation);
+
+   procedure Read_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertTextMode);
+   procedure Write_InsertTextMode
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertTextMode);
+
+   for InsertTextMode'Read use Read_InsertTextMode;
+   for InsertTextMode'Write use Write_InsertTextMode;
+
+   package Optional_InsertTextMode_Package is
+     new LSP.Generic_Optional (InsertTextMode);
+   type Optional_InsertTextMode is
+     new Optional_InsertTextMode_Package.Optional_Type;
+
+   package InsertTextModeSets is
+     new LSP.Generic_Sets (InsertTextMode, LSP.Write_Array);
+   type InsertTextModeSet is new InsertTextModeSets.Set;
+
+   type insertTextModeSupportCapability is record
+      valueSet: InsertTextModeSet;
+   end record;
+
+   procedure Read_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out insertTextModeSupportCapability);
+   procedure Write_insertTextModeSupportCapability
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : insertTextModeSupportCapability);
+
+   for insertTextModeSupportCapability'Read
+     use Read_insertTextModeSupportCapability;
+   for insertTextModeSupportCapability'Write
+     use Write_insertTextModeSupportCapability;
+
+   package Optional_insertTextModeSupportCapability_Package is
+     new LSP.Generic_Optional (insertTextModeSupportCapability);
+
+   type Optional_insertTextModeSupportCapability is
+     new Optional_insertTextModeSupportCapability_Package.Optional_Type;
+
    type completionItemCapability is record
       snippetSupport : Optional_Boolean;
       commitCharactersSupport : Optional_Boolean;
@@ -1963,6 +2666,9 @@ package LSP.Messages is
       deprecatedSupport : Optional_Boolean;
       preselectSupport : Optional_Boolean;
       tagSupport : Optional_CompletionItemTagSupport;
+      insertReplaceSupport : Optional_Boolean;
+      resolveSupport : Optional_resolveSupportCapability;
+      insertTextModeSupport: Optional_insertTextModeSupportCapability;
    end record;
 
    procedure Read_completionItemCapability
@@ -2018,7 +2724,10 @@ package LSP.Messages is
    for CompletionItemKind'Read use Read_CompletionItemKind;
    for CompletionItemKind'Write use Write_CompletionItemKind;
 
-   package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind);
+   package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
+   type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
+
+   package CompletionItemKindSets is new LSP.Generic_Sets (CompletionItemKind, LSP.Write_Array);
 
    type CompletionItemKindSet is new CompletionItemKindSets.Set;
 
@@ -2078,8 +2787,9 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Client supports the follow content formats for the content
-   --	 * property. The order describes the preferred format of the client.
+   --	 * Client supports the following content formats if the content
+   --	 * property refers to a `literal of type MarkupContent`.
+   --	 * The order describes the preferred format of the client.
    --	 */
    --	contentFormat?: MarkupKind[];
    --}
@@ -2119,7 +2829,7 @@ package LSP.Messages is
    --	 */
    --	signatureInformation?: {
    --		/**
-   --		 * Client supports the follow content formats for the documentation
+   --		 * Client supports the following content formats for the documentation
    --		 * property. The order describes the preferred format of the client.
    --		 */
    --		documentationFormat?: MarkupKind[];
@@ -2136,6 +2846,14 @@ package LSP.Messages is
    --			 */
    --			labelOffsetSupport?: boolean;
    --		};
+   --
+   --		/**
+   --		 * The client supports the `activeParameter` property on
+   --		 * `SignatureInformation` literal.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		activeParameterSupport?: boolean;
    --	};
    --
    --	/**
@@ -2175,6 +2893,7 @@ package LSP.Messages is
    type signatureInformation_Capability is record
       documentationFormat: Optional_MarkupKind_Vector;
       parameterInformation: Optional_parameterInformation_Capability;
+      activeParameterSupport: Optional_Boolean;
    end record;
 
    procedure Read_signatureInformation_Capability
@@ -2227,7 +2946,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --
    --	/**
-   --	 * Specific capabilities for the `SymbolKind` in the `textDocument/documentSymbol` request.
+   --	 * Specific capabilities for the `SymbolKind` in the
+   --	 * `textDocument/documentSymbol` request.
    --	 */
    --	symbolKind?: {
    --		/**
@@ -2247,12 +2967,36 @@ package LSP.Messages is
    --	 * The client supports hierarchical document symbols.
    --	 */
    --	hierarchicalDocumentSymbolSupport?: boolean;
+   --
+   --	/**
+   --	 * The client supports tags on `SymbolInformation`. Tags are supported on
+   --	 * `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
+   --	 * Clients supporting tags have to handle unknown tags gracefully.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tagSupport?: {
+   --		/**
+   --		 * The tags supported by the client.
+   --		 */
+   --		valueSet: SymbolTag[]
+   --	}
+   --
+   --	/**
+   --	 * The client supports an additional label presented in the UI when
+   --	 * registering a document symbol provider.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	labelSupport?: boolean;
    --}
    --```
    type DocumentSymbolClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       symbolKind: Optional_symbolKindCapabilities;
+      labelSupport: Optional_Boolean;
       hierarchicalDocumentSymbolSupport: Optional_Boolean;
+      tagSupport: Optional_tagSupportCapability;
    end record;
 
    procedure Read_DocumentSymbolClientCapabilities
@@ -2275,9 +3019,9 @@ package LSP.Messages is
    --```typescript
    --export interface DeclarationClientCapabilities {
    --	/**
-   --	 * Whether declaration supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `DeclarationRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether declaration supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `DeclarationRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2329,9 +3073,9 @@ package LSP.Messages is
    --```typescript
    --export interface TypeDefinitionClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `TypeDefinitionRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `TypeDefinitionRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2349,9 +3093,9 @@ package LSP.Messages is
    --```typescript
    --export interface ImplementationClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration. If this is set to `true`
-   --	 * the client supports the new `ImplementationRegistrationOptions` return value
-   --	 * for the corresponding server capability as well.
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `ImplementationRegistrationOptions`
+   --	 * return value for the corresponding server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --
@@ -2418,9 +3162,51 @@ package LSP.Messages is
    --
    --	/**
    --	 * Whether code action supports the `isPreferred` property.
+   --	 *
    --	 * @since 3.15.0
    --	 */
    --	isPreferredSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether code action supports the `disabled` property.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	disabledSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether code action supports the `data` property which is
+   --	 * preserved between a `textDocument/codeAction` and a
+   --	 * `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	dataSupport?: boolean;
+   --
+   --
+   --	/**
+   --	 * Whether the client supports resolving additional code action
+   --	 * properties via a separate `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	resolveSupport?: {
+   --		/**
+   --		 * The properties that a client can resolve lazily.
+   --		*/
+   --		properties: string[];
+   --	};
+   --
+   --	/**
+   --	 * Whether the client honors the change annotations in
+   --	 * text edits and resource operations returned via the
+   --	 * `CodeAction#edit` property by for example presenting
+   --	 * the workspace edit in the user interface and asking
+   --	 * for confirmation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	honorsChangeAnnotations?: boolean;
    --}
    --```
    type codeActionKindCapability is record
@@ -2463,6 +3249,10 @@ package LSP.Messages is
       dynamicRegistration: Optional_Boolean;
       codeActionLiteralSupport: Optional_codeActionLiteralSupport_Capability;
       isPreferredSupport: Optional_Boolean;
+      disabledSupport: Optional_Boolean;
+      dataSupport: Optional_Boolean;
+      resolveSupport : Optional_resolveSupportCapability;
+      honorsChangeAnnotations: Optional_Boolean;
    end record;
 
    procedure Read_CodeActionClientCapabilities
@@ -2570,6 +3360,13 @@ package LSP.Messages is
    subtype DocumentOnTypeFormattingClientCapabilities is dynamicRegistration;
 
    --```typescript
+   --export namespace PrepareSupportDefaultBehavior {
+   --	/**
+   --	 * The client's default behavior is to select the identifier
+   --	 * according the to language's syntax rule.
+   --	 */
+   --	 export const Identifier: 1 = 1;
+   --}
    --export interface RenameClientCapabilities {
    --	/**
    --	 * Whether rename supports dynamic registration.
@@ -2580,14 +3377,57 @@ package LSP.Messages is
    --	 * Client supports testing for validity of rename operations
    --	 * before execution.
    --	 *
-   --	 * @since version 3.12.0
+   --	 * @since 3.12.0
    --	 */
    --	prepareSupport?: boolean;
+   --
+   --	/**
+   --	 * Client supports the default behavior result
+   --	 * (`{ defaultBehavior: boolean }`).
+   --	 *
+   --	 * The value indicates the default behavior used by the
+   --	 * client.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	prepareSupportDefaultBehavior?: PrepareSupportDefaultBehavior;
+   --
+   --	/**
+   --	 * Whether th client honors the change annotations in
+   --	 * text edits and resource operations returned via the
+   --	 * rename request's workspace edit by for example presenting
+   --	 * the workspace edit in the user interface and asking
+   --	 * for confirmation.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	honorsChangeAnnotations?: boolean;
    --}
    --```
+   type PrepareSupportDefaultBehavior is (Identifier);
+
+   procedure Read_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out PrepareSupportDefaultBehavior);
+
+   procedure Write_PrepareSupportDefaultBehavior
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : PrepareSupportDefaultBehavior);
+
+   for PrepareSupportDefaultBehavior'Read use Read_PrepareSupportDefaultBehavior;
+   for PrepareSupportDefaultBehavior'Write use Write_PrepareSupportDefaultBehavior;
+
+   package Optional_PrepareSupportDefaultBehavior_Package is
+     new LSP.Generic_Optional (PrepareSupportDefaultBehavior);
+
+   type Optional_PrepareSupportDefaultBehavior is
+     new Optional_PrepareSupportDefaultBehavior_Package.Optional_Type;
+
    type RenameClientCapabilities is record
       dynamicRegistration: Optional_Boolean;
       prepareSupport: Optional_Boolean;
+      prepareSupportDefaultBehavior: Optional_PrepareSupportDefaultBehavior;
+      honorsChangeAnnotations: Optional_Boolean;
    end record;
 
    procedure Read_RenameClientCapabilities
@@ -2634,6 +3474,22 @@ package LSP.Messages is
    --	 * @since 3.15.0
    --	 */
    --	versionSupport?: boolean;
+   --
+   --	/**
+   --	 * Client supports a codeDescription property
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	codeDescriptionSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether code action supports the `data` property which is
+   --	 * preserved between a `textDocument/publishDiagnostics` and
+   --	 * `textDocument/codeAction` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	dataSupport?: boolean;
    --}
    --```
    type DiagnosticTagSupport is record
@@ -2661,6 +3517,8 @@ package LSP.Messages is
       relatedInformation : Optional_Boolean;
       tagSupport: Optional_DiagnosticTagSupport;
       versionSupport: Optional_Boolean;
+      codeDescriptionSupport: Optional_Boolean;
+      dataSupport: Optional_Boolean;
    end record;
 
    procedure Read_PublishDiagnosticsClientCapabilities
@@ -2683,19 +3541,22 @@ package LSP.Messages is
    --```typescript
    --export interface FoldingRangeClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration for folding range providers. If this is set to `true`
-   --	 * the client supports the new `FoldingRangeRegistrationOptions` return value for the corresponding server
-   --	 * capability as well.
+   --	 * Whether implementation supports dynamic registration for folding range
+   --	 * providers. If this is set to `true` the client supports the new
+   --	 * `FoldingRangeRegistrationOptions` return value for the corresponding
+   --	 * server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --	/**
-   --	 * The maximum number of folding ranges that the client prefers to receive per document. The value serves as a
-   --	 * hint, servers are free to follow the limit.
+   --	 * The maximum number of folding ranges that the client prefers to receive
+   --	 * per document. The value serves as a hint, servers are free to follow the
+   --	 * limit.
    --	 */
-   --	rangeLimit?: number;
+   --	rangeLimit?: uinteger;
    --	/**
-   --	 * If set, the client signals that it only supports folding complete lines. If set, client will
-   --	 * ignore specified `startCharacter` and `endCharacter` properties in a FoldingRange.
+   --	 * If set, the client signals that it only supports folding complete lines.
+   --	 * If set, client will ignore specified `startCharacter` and `endCharacter`
+   --	 * properties in a FoldingRange.
    --	 */
    --	lineFoldingOnly?: boolean;
    --}
@@ -2726,16 +3587,314 @@ package LSP.Messages is
    --```typescript
    --export interface SelectionRangeClientCapabilities {
    --	/**
-   --	 * Whether implementation supports dynamic registration for selection range providers. If this is set to `true`
-   --	 * the client supports the new `SelectionRangeRegistrationOptions` return value for the corresponding server
-   --	 * capability as well.
+   --	 * Whether implementation supports dynamic registration for selection range
+   --	 * providers. If this is set to `true` the client supports the new
+   --	 * `SelectionRangeRegistrationOptions` return value for the corresponding
+   --	 * server capability as well.
    --	 */
    --	dynamicRegistration?: boolean;
    --}
    --```
    subtype SelectionRangeClientCapabilities is dynamicRegistration;
 
+   --```typescript
+   --export interface LinkedEditingRangeClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration.
+   --	 * If this is set to `true` the client supports the new
+   --	 * `(TextDocumentRegistrationOptions & StaticRegistrationOptions)`
+   --	 * return value for the corresponding server capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype LinkedEditingRangeClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --interface CallHierarchyClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
    subtype CallHierarchyClientCapabilities is dynamicRegistration;
+
+   --```typescript
+   --export enum SemanticTokenTypes {
+   --	namespace = 'namespace',
+   --	/**
+   --	 * Represents a generic type. Acts as a fallback for types which
+   --	 * can't be mapped to a specific type like class or enum.
+   --	 */
+   --	type = 'type',
+   --	class = 'class',
+   --	enum = 'enum',
+   --	interface = 'interface',
+   --	struct = 'struct',
+   --	typeParameter = 'typeParameter',
+   --	parameter = 'parameter',
+   --	variable = 'variable',
+   --	property = 'property',
+   --	enumMember = 'enumMember',
+   --	event = 'event',
+   --	function = 'function',
+   --	method = 'method',
+   --	macro = 'macro',
+   --	keyword = 'keyword',
+   --	modifier = 'modifier',
+   --	comment = 'comment',
+   --	string = 'string',
+   --	number = 'number',
+   --	regexp = 'regexp',
+   --	operator = 'operator'
+   --}
+   --
+   --export enum SemanticTokenModifiers {
+   --	declaration = 'declaration',
+   --	definition = 'definition',
+   --	readonly = 'readonly',
+   --	static = 'static',
+   --	deprecated = 'deprecated',
+   --	abstract = 'abstract',
+   --	async = 'async',
+   --	modification = 'modification',
+   --	documentation = 'documentation',
+   --	defaultLibrary = 'defaultLibrary'
+   --}
+   --```
+   type SemanticTokenTypes is
+     (a_type,
+      class,
+      enum,
+      an_interface,
+      struct,
+      typeParameter,
+      parameter,
+      variable,
+      property,
+      enumMember,
+      event,
+      a_function,
+      method,
+      macro,
+      keyword,
+      modifier,
+      comment,
+      a_string,
+      number,
+      regexp,
+      operator);
+
+   procedure Read_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenTypes);
+   procedure Write_SemanticTokenTypes
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenTypes);
+   for SemanticTokenTypes'Write use Write_SemanticTokenTypes;
+   for SemanticTokenTypes'Read use Read_SemanticTokenTypes;
+
+   package SemanticTokenTypes_Vectors is new LSP.Generic_Vectors
+     (SemanticTokenTypes, Write_Empty => LSP.Write_Array);
+   type SemanticTokenTypes_Vector is new SemanticTokenTypes_Vectors.Vector
+     with null record;
+
+   type SemanticTokenModifiers is
+     (declaration,
+      definition,
+      readonly,
+      static,
+      deprecated,
+      an_abstract,
+      async,
+      modification,
+      documentation,
+      defaultLibrary);
+
+   procedure Read_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokenModifiers);
+   procedure Write_SemanticTokenModifiers
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokenModifiers);
+   for SemanticTokenModifiers'Write use Write_SemanticTokenModifiers;
+   for SemanticTokenModifiers'Read use Read_SemanticTokenModifiers;
+
+   package SemanticTokenModifiers_Vectors is new LSP.Generic_Vectors
+     (SemanticTokenModifiers, Write_Empty => LSP.Write_Array);
+   type SemanticTokenModifiers_Vector is
+     new SemanticTokenModifiers_Vectors.Vector with null record;
+
+   --```typescript
+   --export namespace TokenFormat {
+   --	export const Relative: 'relative' = 'relative';
+   --}
+   --
+   --export type TokenFormat = 'relative';
+   --```
+   type TokenFormat is (relative);
+
+   procedure Read_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TokenFormat);
+
+   procedure Write_TokenFormat
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TokenFormat);
+
+   for TokenFormat'Read use Read_TokenFormat;
+   for TokenFormat'Write use Write_TokenFormat;
+
+   package TokenFormatSets is new LSP.Generic_Sets (TokenFormat, LSP.Write_Array);
+   type TokenFormatSet is new TokenFormatSets.Set;
+
+   type SemanticTokensFullCapabilities is record
+      diff: Optional_Boolean;  --  "delta" is a reserver word in Ada
+   end record;
+
+   procedure Read_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensFullCapabilities);
+
+   procedure Write_SemanticTokensFullCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensFullCapabilities);
+
+   for SemanticTokensFullCapabilities'Read use Read_SemanticTokensFullCapabilities;
+   for SemanticTokensFullCapabilities'Write use Write_SemanticTokensFullCapabilities;
+
+   package Optional_SemanticTokensFullCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensFullCapabilities);
+
+   type Optional_SemanticTokensFullCapabilities is
+     new Optional_SemanticTokensFullCapabilities_Package.Optional_Type;
+
+   type SemanticTokensRequestCapabilities is record
+      span: Optional_Boolean;
+      full: Optional_SemanticTokensFullCapabilities;
+   end record;
+
+   procedure Read_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRequestCapabilities);
+
+   procedure Write_SemanticTokensRequestCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRequestCapabilities);
+
+   for SemanticTokensRequestCapabilities'Read use Read_SemanticTokensRequestCapabilities;
+   for SemanticTokensRequestCapabilities'Write use Write_SemanticTokensRequestCapabilities;
+
+   --```typescript
+   --interface SemanticTokensClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --
+   --	/**
+   --	 * Which requests the client supports and might send to the server
+   --	 * depending on the server's capability. Please note that clients might not
+   --	 * show semantic tokens or degrade some of the user experience if a range
+   --	 * or full request is advertised by the client but not provided by the
+   --	 * server. If for example the client capability `requests.full` and
+   --	 * `request.range` are both set to true but the server only provides a
+   --	 * range provider the client might not render a minimap correctly or might
+   --	 * even decide to not show any semantic tokens at all.
+   --	 */
+   --	requests: {
+   --		/**
+   --		 * The client will send the `textDocument/semanticTokens/range` request
+   --		 * if the server provides a corresponding handler.
+   --		 */
+   --		range?: boolean | {
+   --		};
+   --
+   --		/**
+   --		 * The client will send the `textDocument/semanticTokens/full` request
+   --		 * if the server provides a corresponding handler.
+   --		 */
+   --		full?: boolean | {
+   --			/**
+   --			 * The client will send the `textDocument/semanticTokens/full/delta`
+   --			 * request if the server provides a corresponding handler.
+   --			*/
+   --			delta?: boolean
+   --		}
+   --	}
+   --
+   --	/**
+   --	 * The token types that the client supports.
+   --	 */
+   --	tokenTypes: string[];
+   --
+   --	/**
+   --	 * The token modifiers that the client supports.
+   --	 */
+   --	tokenModifiers: string[];
+   --
+   --	/**
+   --	 * The formats the clients supports.
+   --	 */
+   --	formats: TokenFormat[];
+   --
+   --	/**
+   --	 * Whether the client supports tokens that can overlap each other.
+   --	 */
+   --	overlappingTokenSupport?: boolean;
+   --
+   --	/**
+   --	 * Whether the client supports tokens that can span multiple lines.
+   --	 */
+   --	multilineTokenSupport?: boolean;
+   --}
+   --```
+   type SemanticTokensClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      requests: SemanticTokensRequestCapabilities;
+      tokenTypes: SemanticTokenTypes_Vector;
+      tokenModifiers: SemanticTokenModifiers_Vector;
+      formats: TokenFormatSet;
+      overlappingTokenSupport: Optional_Boolean;
+      multilineTokenSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensClientCapabilities);
+
+   procedure Write_SemanticTokensClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensClientCapabilities);
+
+   for SemanticTokensClientCapabilities'Read use Read_SemanticTokensClientCapabilities;
+   for SemanticTokensClientCapabilities'Write use Write_SemanticTokensClientCapabilities;
+
+   package Optional_SemanticTokensClientCapabilities_Package is
+     new LSP.Generic_Optional (SemanticTokensClientCapabilities);
+
+   type Optional_SemanticTokensClientCapabilities is
+     new Optional_SemanticTokensClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --interface MonikerClientCapabilities {
+   --	/**
+   --	 * Whether implementation supports dynamic registration. If this is set to
+   --	 * `true` the client supports the new `(TextDocumentRegistrationOptions &
+   --	 * StaticRegistrationOptions)` return value for the corresponding server
+   --	 * capability as well.
+   --	 */
+   --	dynamicRegistration?: boolean;
+   --}
+   --```
+   subtype MonikerClientCapabilities is dynamicRegistration;
 
    --```typescript
    --/**
@@ -2845,7 +4004,8 @@ package LSP.Messages is
    --	rename?: RenameClientCapabilities;
    --
    --	/**
-   --	 * Capabilities specific to the `textDocument/publishDiagnostics` notification.
+   --	 * Capabilities specific to the `textDocument/publishDiagnostics`
+   --	 * notification.
    --	 */
    --	publishDiagnostics?: PublishDiagnosticsClientCapabilities;
    --
@@ -2862,6 +4022,34 @@ package LSP.Messages is
    --	 * @since 3.15.0
    --	 */
    --	selectionRange?: SelectionRangeClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/linkedEditingRange` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	linkedEditingRange?: LinkedEditingRangeClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the various call hierarchy requests.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	callHierarchy?: CallHierarchyClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the various semantic token requests.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	semanticTokens?: SemanticTokensClientCapabilities;
+   --
+   --	/**
+   --	 * Capabilities specific to the `textDocument/moniker` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	moniker?: MonikerClientCapabilities;
    --}
    --```
    type TextDocumentClientCapabilities is record
@@ -2887,7 +4075,10 @@ package LSP.Messages is
       publishDiagnostics : Optional_PublishDiagnosticsClientCapabilities;
       foldingRange       : Optional_FoldingRangeClientCapabilities;
       selectionRange     : SelectionRangeClientCapabilities;
+      linkedEditingRange : LinkedEditingRangeClientCapabilities;
       callHierarchy      : CallHierarchyClientCapabilities;
+      semanticTokens     : Optional_SemanticTokensClientCapabilities;
+      moniker            : MonikerClientCapabilities;
    end record;
 
    procedure Read_TextDocumentClientCapabilities
@@ -2902,18 +4093,115 @@ package LSP.Messages is
    for TextDocumentClientCapabilities'Write use Write_TextDocumentClientCapabilities;
 
    --```typescript
+   --/**
+   -- * Client capabilities for the show document request.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentClientCapabilities {
+   --	/**
+   --	 * The client has support for the show document
+   --	 * request.
+   --	 */
+   --	support: boolean;
+   --}
+   --```
+   type ShowDocumentClientCapabilities is record
+      support: Boolean;
+   end record;
+
+   procedure Read_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentClientCapabilities);
+   procedure Write_ShowDocumentClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentClientCapabilities);
+
+   for ShowDocumentClientCapabilities'Read use Read_ShowDocumentClientCapabilities;
+   for ShowDocumentClientCapabilities'Write use Write_ShowDocumentClientCapabilities;
+
+   package Optional_ShowDocumentClientCapabilities_Package is
+     new LSP.Generic_Optional (ShowDocumentClientCapabilities);
+
+   type Optional_ShowDocumentClientCapabilities is
+     new Optional_ShowDocumentClientCapabilities_Package.Optional_Type;
+
+   type MessageActionItemCapabilities is record
+      additionalPropertiesSupport: Optional_Boolean;
+   end record;
+
+   procedure Read_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MessageActionItemCapabilities);
+   procedure Write_MessageActionItemCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MessageActionItemCapabilities);
+
+   for MessageActionItemCapabilities'Read use Read_MessageActionItemCapabilities;
+   for MessageActionItemCapabilities'Write use Write_MessageActionItemCapabilities;
+
+   package Optional_MessageActionItemCapabilities_Package is
+     new LSP.Generic_Optional (MessageActionItemCapabilities);
+
+   type Optional_MessageActionItemCapabilities is
+     new Optional_MessageActionItemCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --/**
+   -- * Show message request client capabilities
+   -- */
+   --export interface ShowMessageRequestClientCapabilities {
+   --	/**
+   --	 * Capabilities specific to the `MessageActionItem` type.
+   --	 */
+   --	messageActionItem?: {
+   --		/**
+   --		 * Whether the client supports additional attributes which
+   --		 * are preserved and sent back to the server in the
+   --		 * request's response.
+   --		 */
+   --		additionalPropertiesSupport?: boolean;
+   --	}
+   --}
+   --```
+   type ShowMessageRequestClientCapabilities is record
+      messageActionItem: Optional_MessageActionItemCapabilities;
+   end record;
+
+   procedure Read_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowMessageRequestClientCapabilities);
+   procedure Write_ShowMessageRequestClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowMessageRequestClientCapabilities);
+
+   for ShowMessageRequestClientCapabilities'Read
+     use Read_ShowMessageRequestClientCapabilities;
+   for ShowMessageRequestClientCapabilities'Write
+     use Write_ShowMessageRequestClientCapabilities;
+
+   package Optional_ShowMessageRequestClientCapabilities_Package is
+     new LSP.Generic_Optional (ShowMessageRequestClientCapabilities);
+
+   type Optional_ShowMessageRequestClientCapabilities is
+     new Optional_ShowMessageRequestClientCapabilities_Package.Optional_Type;
+
+   --```typescript
    --	/**
    --	 * Window specific client capabilities.
    --	 */
    --	window?: {
    --		/**
-   --		 * Whether client supports handling progress notifications.
+   --		 * Whether client supports server initiated progress using the
+   --		 * `window/workDoneProgress/create` request.
    --		 */
    --		workDoneProgress?: boolean;
    --	}
    --```
    type WindowClientCapabilities is record
       workDoneProgress: Optional_Boolean;
+      showMessage: Optional_ShowMessageRequestClientCapabilities;
+      showDocument: Optional_ShowDocumentClientCapabilities;
    end record;
 
    procedure Read_WindowClientCapabilities
@@ -2934,56 +4222,244 @@ package LSP.Messages is
      new Optional_WindowClientCapabilities_Package.Optional_Type;
 
    --```typescript
+   --/**
+   -- * Client capabilities specific to the used markdown parser.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface MarkdownClientCapabilities {
+   --	/**
+   --	 * The name of the parser.
+   --	 */
+   --	parser: string;
+   --
+   --	/**
+   --	 * The version of the parser.
+   --	 */
+   --	version?: string;
+   --}
+   --```
+   type MarkdownClientCapabilities is record
+      parser: LSP_String;
+      version: Optional_String;
+   end record;
+
+   procedure Read_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MarkdownClientCapabilities);
+
+   procedure Write_MarkdownClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MarkdownClientCapabilities);
+
+   for MarkdownClientCapabilities'Read use Read_MarkdownClientCapabilities;
+   for MarkdownClientCapabilities'Write use Write_MarkdownClientCapabilities;
+
+   package Optional_MarkdownClientCapabilities_Package is
+     new LSP.Generic_Optional (MarkdownClientCapabilities);
+
+   type Optional_MarkdownClientCapabilities is
+     new Optional_MarkdownClientCapabilities_Package.Optional_Type;
+
+   --```typescript
+   --/**
+   -- * Client capabilities specific to regular expressions.
+   -- */
+   --export interface RegularExpressionsClientCapabilities {
+   --	/**
+   --	 * The engine's name.
+   --	 */
+   --	engine: string;
+   --
+   --	/**
+   --	 * The engine's version.
+   --	 */
+   --	version?: string;
+   --}
+   --```
+   type RegularExpressionsClientCapabilities is record
+      engine: LSP_String;
+      version: Optional_String;
+   end record;
+
+   procedure Read_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RegularExpressionsClientCapabilities);
+
+   procedure Write_RegularExpressionsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RegularExpressionsClientCapabilities);
+
+   for RegularExpressionsClientCapabilities'Read use Read_RegularExpressionsClientCapabilities;
+   for RegularExpressionsClientCapabilities'Write use Write_RegularExpressionsClientCapabilities;
+
+   package Optional_RegularExpressionsClientCapabilities_Package is
+     new LSP.Generic_Optional (RegularExpressionsClientCapabilities);
+
+   type Optional_RegularExpressionsClientCapabilities is
+     new Optional_RegularExpressionsClientCapabilities_Package.Optional_Type;
+
+   type GeneralClientCapabilities is record
+      regularExpressions: Optional_RegularExpressionsClientCapabilities;
+      markdown: Optional_MarkdownClientCapabilities;
+   end record;
+
+   procedure Read_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GeneralClientCapabilities);
+
+   procedure Write_GeneralClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GeneralClientCapabilities);
+
+   for GeneralClientCapabilities'Read use Read_GeneralClientCapabilities;
+   for GeneralClientCapabilities'Write use Write_GeneralClientCapabilities;
+
+   package Optional_GeneralClientCapabilities_Package is
+     new LSP.Generic_Optional (GeneralClientCapabilities);
+
+   type Optional_GeneralClientCapabilities is
+     new Optional_GeneralClientCapabilities_Package.Optional_Type;
+
+   type fileOperationsClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      didCreate: Optional_Boolean;
+      willCreate: Optional_Boolean;
+      didRename: Optional_Boolean;
+      willRename: Optional_Boolean;
+      didDelete: Optional_Boolean;
+      willDelete: Optional_Boolean;
+   end record;
+
+   procedure Read_fileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out fileOperationsClientCapabilities);
+
+   procedure Write_fileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : fileOperationsClientCapabilities);
+
+   for fileOperationsClientCapabilities'Read use Read_fileOperationsClientCapabilities;
+   for fileOperationsClientCapabilities'Write use Write_fileOperationsClientCapabilities;
+
+   package Optional_fileOperationsClientCapabilities_Package is
+     new LSP.Generic_Optional (fileOperationsClientCapabilities);
+
+   type Optional_fileOperationsClientCapabilities is
+     new Optional_fileOperationsClientCapabilities_Package.Optional_Type;
+
+   --```typescript
    --interface ClientCapabilities {
    --	/**
    --	 * Workspace specific client capabilities.
    --	 */
    --	workspace?: {
    --		/**
-   --		* The client supports applying batch edits
-   --		* to the workspace by supporting the request
-   --		* 'workspace/applyEdit'
-   --		*/
+   --		 * The client supports applying batch edits
+   --		 * to the workspace by supporting the request
+   --		 * 'workspace/applyEdit'
+   --		 */
    --		applyEdit?: boolean;
    --
    --		/**
-   --		* Capabilities specific to `WorkspaceEdit`s
-   --		*/
+   --		 * Capabilities specific to `WorkspaceEdit`s
+   --		 */
    --		workspaceEdit?: WorkspaceEditClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/didChangeConfiguration` notification.
-   --		*/
+   --		 * Capabilities specific to the `workspace/didChangeConfiguration`
+   --		 * notification.
+   --		 */
    --		didChangeConfiguration?: DidChangeConfigurationClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/didChangeWatchedFiles` notification.
-   --		*/
+   --		 * Capabilities specific to the `workspace/didChangeWatchedFiles`
+   --		 * notification.
+   --		 */
    --		didChangeWatchedFiles?: DidChangeWatchedFilesClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/symbol` request.
-   --		*/
+   --		 * Capabilities specific to the `workspace/symbol` request.
+   --		 */
    --		symbol?: WorkspaceSymbolClientCapabilities;
    --
    --		/**
-   --		* Capabilities specific to the `workspace/executeCommand` request.
-   --		*/
+   --		 * Capabilities specific to the `workspace/executeCommand` request.
+   --		 */
    --		executeCommand?: ExecuteCommandClientCapabilities;
    --
    --		/**
-   --		* The client has support for workspace folders.
-   --		*
-   --		* Since 3.6.0
-   --		*/
+   --		 * The client has support for workspace folders.
+   --		 *
+   --		 * @since 3.6.0
+   --		 */
    --		workspaceFolders?: boolean;
    --
    --		/**
-   --		* The client supports `workspace/configuration` requests.
-   --		*
-   --		* Since 3.6.0
-   --		*/
+   --		 * The client supports `workspace/configuration` requests.
+   --		 *
+   --		 * @since 3.6.0
+   --		 */
    --		configuration?: boolean;
+   --
+   --		/**
+   --		 * Capabilities specific to the semantic token requests scoped to the
+   --		 * workspace.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		 semanticTokens?: SemanticTokensWorkspaceClientCapabilities;
+   --
+   --		/**
+   --		 * Capabilities specific to the code lens requests scoped to the
+   --		 * workspace.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		codeLens?: CodeLensWorkspaceClientCapabilities;
+   --
+   --		/**
+   --		 * The client has support for file requests/notifications.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		fileOperations?: {
+   --			/**
+   --			 * Whether the client supports dynamic registration for file
+   --			 * requests/notifications.
+   --			 */
+   --			dynamicRegistration?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didCreateFiles notifications.
+   --			 */
+   --			didCreate?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willCreateFiles requests.
+   --			 */
+   --			willCreate?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didRenameFiles notifications.
+   --			 */
+   --			didRename?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willRenameFiles requests.
+   --			 */
+   --			willRename?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending didDeleteFiles notifications.
+   --			 */
+   --			didDelete?: boolean;
+   --
+   --			/**
+   --			 * The client has support for sending willDeleteFiles requests.
+   --			 */
+   --			willDelete?: boolean;
+   --		}
    --	};
    --
    --	/**
@@ -2996,12 +4472,48 @@ package LSP.Messages is
    --	 */
    --	window?: {
    --		/**
-   --		 * Whether client supports handling progress notifications. If set servers are allowed to
-   --		 * report in `workDoneProgress` property in the request specific server capabilities.
+   --		 * Whether client supports handling progress notifications. If set
+   --		 * servers are allowed to report in `workDoneProgress` property in the
+   --		 * request specific server capabilities.
    --		 *
-   --		 * Since 3.15.0
+   --		 * @since 3.15.0
    --		 */
    --		workDoneProgress?: boolean;
+   --
+   --		/**
+   --		 * Capabilities specific to the showMessage request
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		showMessage?: ShowMessageRequestClientCapabilities;
+   --
+   --		/**
+   --		 * Client capabilities for the show document request.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		showDocument?: ShowDocumentClientCapabilities;
+   --	}
+   --
+   --	/**
+   --	 * General client capabilities.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	general?: {
+   --		/**
+   --		 * Client capabilities specific to regular expressions.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		regularExpressions?: RegularExpressionsClientCapabilities;
+   --
+   --		/**
+   --		 * Client capabilities specific to the client's markdown parser.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		markdown?: MarkdownClientCapabilities;
    --	}
    --
    --	/**
@@ -3014,6 +4526,7 @@ package LSP.Messages is
       workspace: WorkspaceClientCapabilities;
       textDocument: TextDocumentClientCapabilities;
       window: Optional_WindowClientCapabilities;
+      general: Optional_GeneralClientCapabilities;
       --  experimental?: any;
    end record;
 
@@ -3067,7 +4580,8 @@ package LSP.Messages is
    type Optional_WorkspaceFolder_Vector is new Optional_WorkspaceFolder_Vectors.Optional_Type;
 
    --```typescript
-   --type ProgressToken = number | string;
+   --type ProgressToken = integer | string;
+   --
    --interface ProgressParams<T> {
    --	/**
    --	 * The progress token provided by the client or server.
@@ -3133,8 +4647,8 @@ package LSP.Messages is
    --```typescript
    --export interface PartialResultParams {
    --	/**
-   --	 * An optional token that a server can use to report partial results (e.g. streaming) to
-   --	 * the client.
+   --	 * An optional token that a server can use to report partial results (e.g.
+   --	 * streaming) to the client.
    --	 */
    --	partialResultToken?: ProgressToken;
    --}
@@ -3193,24 +4707,27 @@ package LSP.Messages is
    type Optional_ProgramInfo is
      new Optional_ProgramInfo_Package.Optional_Type;
 
-   type Trace_Kind is (off, messages_trace, verbose);
+   --```typescript
+   --export type TraceValue = 'off' | 'message' | 'verbose'
+   --```
+   type TraceValue is (off, messages_trace, verbose);
 
-   procedure Read_Trace_Kind
+   procedure Read_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Trace_Kind);
+      V : out TraceValue);
 
-   procedure Write_Trace_Kind
+   procedure Write_TraceValue
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Trace_Kind);
+      V : TraceValue);
 
-   for Trace_Kind'Read use Read_Trace_Kind;
-   for Trace_Kind'Write use Write_Trace_Kind;
+   for TraceValue'Read use Read_TraceValue;
+   for TraceValue'Write use Write_TraceValue;
 
-   package Optional_Trace_Kind_Package is
-     new LSP.Generic_Optional (Trace_Kind);
+   package Optional_TraceValue_Package is
+     new LSP.Generic_Optional (TraceValue);
 
-   type Optional_Trace_Kind is
-     new Optional_Trace_Kind_Package.Optional_Type;
+   type Optional_TraceValue is
+     new Optional_TraceValue_Package.Optional_Type;
 
    package Optional_Nullable_Strings is
      new LSP.Generic_Optional (Nullable_String);
@@ -3221,11 +4738,12 @@ package LSP.Messages is
    --```typescript
    --interface InitializeParams extends WorkDoneProgressParams {
    --	/**
-   --	 * The process Id of the parent process that started
-   --	 * the server. Is null if the process has not been started by another process.
-   --	 * If the parent process is not alive then the server should exit (see exit notification) its process.
+   --	 * The process Id of the parent process that started the server. Is null if
+   --	 * the process has not been started by another process. If the parent
+   --	 * process is not alive then the server should exit (see exit notification)
+   --	 * its process.
    --	 */
-   --	processId: number | null;
+   --	processId: integer | null;
    --
    --	/**
    --	 * Information about the client
@@ -3245,10 +4763,22 @@ package LSP.Messages is
    --	};
    --
    --	/**
+   --	 * The locale the client is currently showing the user interface
+   --	 * in. This must not necessarily be the locale of the operating
+   --	 * system.
+   --	 *
+   --	 * Uses IETF language tags as the value's syntax
+   --	 * (See https://en.wikipedia.org/wiki/IETF_language_tag)
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	locale?: string;
+   --
+   --	/**
    --	 * The rootPath of the workspace. Is null
    --	 * if no folder is open.
    --	 *
-   --	 * @deprecated in favour of rootUri.
+   --	 * @deprecated in favour of `rootUri`.
    --	 */
    --	rootPath?: string | null;
    --
@@ -3256,6 +4786,8 @@ package LSP.Messages is
    --	 * The rootUri of the workspace. Is null if no
    --	 * folder is open. If both `rootPath` and `rootUri` are set
    --	 * `rootUri` wins.
+   --	 *
+   --	 * @deprecated in favour of `workspaceFolders`
    --	 */
    --	rootUri: DocumentUri | null;
    --
@@ -3272,7 +4804,7 @@ package LSP.Messages is
    --	/**
    --	 * The initial trace setting. If omitted trace is disabled ('off').
    --	 */
-   --	trace?: 'off' | 'messages' | 'verbose';
+   --	trace?: TraceValue;
    --
    --	/**
    --	 * The workspace folders configured in the client when the server starts.
@@ -3288,11 +4820,12 @@ package LSP.Messages is
    type InitializeParams is new WorkDoneProgressParams with record
       processId: Optional_Number;
       clientInfo: Optional_ProgramInfo;
+      locale: Optional_String;
       rootPath: Optional_Nullable_String;
       rootUri: Nullable_String;
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
-      trace: Optional_Trace_Kind;
+      trace: Optional_TraceValue;
       workspaceFolders: Optional_WorkspaceFolder_Vector;
    end record;
 
@@ -3333,128 +4866,33 @@ package LSP.Messages is
    type Optional_WorkDoneProgressOptions is
      new Optional_WorkDoneProgressOptions_Package.Optional_Type;
 
-   --
-   --```typescript
-   --/**
-   -- * Defines how the host (editor) should sync document changes to the language server.
-   -- */
-   --export namespace TextDocumentSyncKind {
-   --	/**
-   --	 * Documents should not be synced at all.
-   --	 */
-   --	export const None = 0;
-   --
-   --	/**
-   --	 * Documents are synced by always sending the full content
-   --	 * of the document.
-   --	 */
-   --	export const Full = 1;
-   --
-   --	/**
-   --	 * Documents are synced by sending the full content on open.
-   --	 * After that only incremental updates to the document are
-   --	 * send.
-   --	 */
-   --	export const Incremental = 2;
-   --}
-   --
-   --export interface TextDocumentSyncOptions {
-   --	/**
-   --	 * Open and close notifications are sent to the server. If omitted open close notification should not
-   --	 * be sent.
-   --	 */
-   --	openClose?: boolean;
-   --
-   --	/**
-   --	 * Change notifications are sent to the server. See TextDocumentSyncKind.None, TextDocumentSyncKind.Full
-   --	 * and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
-   --	 */
-   --	change?: TextDocumentSyncKind;
-   --}
-   --```
-   --  LSP 3.15 has two definitions for TextDocumentSyncKind and TextDocumentSyncOptions
-   --  This TextDocumentSyncOptions definition is incomplete.
-   type TextDocumentSyncKind is (None, Full, Incremental);
-
-   procedure Read_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncKind);
-   for TextDocumentSyncKind'Read use Read_TextDocumentSyncKind;
-
-   procedure Write_TextDocumentSyncKind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncKind);
-   for TextDocumentSyncKind'Write use Write_TextDocumentSyncKind;
-
-   package Optional_TextDocumentSyncKinds is new LSP.Generic_Optional (TextDocumentSyncKind);
-   type Optional_TextDocumentSyncKind is new Optional_TextDocumentSyncKinds.Optional_Type;
-
-   type TextDocumentSyncOptions is record
-      openClose: Optional_Boolean;
-      change: Optional_TextDocumentSyncKind;
-      willSave: Optional_Boolean;
-      willSaveWaitUntil: Optional_Boolean;
-      save: Optional_SaveOptions;
-   end record;
-
-   procedure Read_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out TextDocumentSyncOptions);
-   procedure Write_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : TextDocumentSyncOptions);
-   for TextDocumentSyncOptions'Read use Read_TextDocumentSyncOptions;
-   for TextDocumentSyncOptions'Write use Write_TextDocumentSyncOptions;
-
-   type Optional_TextDocumentSyncOptions
-     (Is_Set    : Boolean := False;
-      Is_Number : Boolean := False) is
-      record
-         case Is_Set is
-            when True =>
-               case Is_Number is
-                  when True =>
-                     Value : TextDocumentSyncKind;
-                  when False =>
-                     Options : TextDocumentSyncOptions;
-               end case;
-            when False => null;
-         end case;
-   end record;
-
-   procedure Read_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Optional_TextDocumentSyncOptions);
-   procedure Write_Optional_TextDocumentSyncOptions
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Optional_TextDocumentSyncOptions);
-   for Optional_TextDocumentSyncOptions'Read use Read_Optional_TextDocumentSyncOptions;
-   for Optional_TextDocumentSyncOptions'Write use Write_Optional_TextDocumentSyncOptions;
-
    --```typescript
    --/**
    -- * Completion options.
    -- */
    --export interface CompletionOptions extends WorkDoneProgressOptions {
    --	/**
-   --	 * Most tools trigger completion request automatically without explicitly requesting
-   --	 * it using a keyboard shortcut (e.g. Ctrl+Space). Typically they do so when the user
-   --	 * starts to type an identifier. For example if the user types `c` in a JavaScript file
-   --	 * code complete will automatically pop up present `console` besides others as a
-   --	 * completion item. Characters that make up identifiers don't need to be listed here.
+   --	 * Most tools trigger completion request automatically without explicitly
+   --	 * requesting it using a keyboard shortcut (e.g. Ctrl+Space). Typically they
+   --	 * do so when the user starts to type an identifier. For example if the user
+   --	 * types `c` in a JavaScript file code complete will automatically pop up
+   --	 * present `console` besides others as a completion item. Characters that
+   --	 * make up identifiers don't need to be listed here.
    --	 *
-   --	 * If code complete should automatically be trigger on characters not being valid inside
-   --	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
+   --	 * If code complete should automatically be trigger on characters not being
+   --	 * valid inside an identifier (for example `.` in JavaScript) list them in
+   --	 * `triggerCharacters`.
    --	 */
    --	triggerCharacters?: string[];
    --
    --	/**
-   --	 * The list of all possible characters that commit a completion. This field can be used
-   --	 * if clients don't support individual commit characters per completion item. See
-   --	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`.
+   --	 * The list of all possible characters that commit a completion. This field
+   --	 * can be used if clients don't support individual commit characters per
+   --	 * completion item. See client capability
+   --	 * `completion.completionItem.commitCharactersSupport`.
    --	 *
-   --	 * If a server provides both `allCommitCharacters` and commit characters on an individual
-   --	 * completion item the ones on the completion item win.
+   --	 * If a server provides both `allCommitCharacters` and commit characters on
+   --	 * an individual completion item the ones on the completion item win.
    --	 *
    --	 * @since 3.2.0
    --	 */
@@ -3506,8 +4944,9 @@ package LSP.Messages is
    --	/**
    --	 * List of characters that re-trigger signature help.
    --	 *
-   --	 * These trigger characters are only active when signature help is already showing. All trigger characters
-   --	 * are also counted as re-trigger characters.
+   --	 * These trigger characters are only active when signature help is already
+   --	 * showing. All trigger characters are also counted as re-trigger
+   --	 * characters.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -3543,8 +4982,8 @@ package LSP.Messages is
    -- */
    --export interface TextDocumentRegistrationOptions {
    --	/**
-   --	 * A document selector to identify the scope of the registration. If set to null
-   --	 * the document selector provided on the client side will be used.
+   --	 * A document selector to identify the scope of the registration. If set to
+   --	 * null the document selector provided on the client side will be used.
    --	 */
    --	documentSelector: DocumentSelector | null;
    --}
@@ -3637,7 +5076,8 @@ package LSP.Messages is
    subtype DeclarationOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface DeclarationRegistrationOptions extends DeclarationOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions  {
+   --export interface DeclarationRegistrationOptions extends DeclarationOptions,
+   --	TextDocumentRegistrationOptions, StaticRegistrationOptions  {
    --}
    --```
 
@@ -3648,7 +5088,8 @@ package LSP.Messages is
    subtype DefinitionOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DefinitionRegistrationOptions extends TextDocumentRegistrationOptions, DefinitionOptions {
+   --export interface DefinitionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DefinitionOptions {
    --}
    --```
 
@@ -3659,7 +5100,9 @@ package LSP.Messages is
    subtype TypeDefinitionOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface TypeDefinitionRegistrationOptions extends TextDocumentRegistrationOptions, TypeDefinitionOptions, StaticRegistrationOptions {
+   --export interface TypeDefinitionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, TypeDefinitionOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3670,7 +5113,9 @@ package LSP.Messages is
    subtype ImplementationOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface ImplementationRegistrationOptions extends TextDocumentRegistrationOptions, ImplementationOptions, StaticRegistrationOptions {
+   --export interface ImplementationRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, ImplementationOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3681,7 +5126,8 @@ package LSP.Messages is
    subtype ReferenceOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface ReferenceRegistrationOptions extends TextDocumentRegistrationOptions, ReferenceOptions {
+   --export interface ReferenceRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, ReferenceOptions {
    --}
    --```
 
@@ -3692,18 +5138,46 @@ package LSP.Messages is
    subtype DocumentHighlightOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentHighlightRegistrationOptions extends TextDocumentRegistrationOptions, DocumentHighlightOptions {
+   --export interface DocumentHighlightRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentHighlightOptions {
    --}
    --```
 
    --```typescript
    --export interface DocumentSymbolOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * A human-readable string that is shown when multiple outlines trees
+   --	 * are shown for the same document.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	label?: string;
    --}
    --```
-   subtype DocumentSymbolOptions is Optional_WorkDoneProgressOptions;
+   type DocumentSymbolOptions is new WorkDoneProgressOptions with record
+      label: Optional_String;
+   end record;
+
+   procedure Read_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DocumentSymbolOptions);
+
+   procedure Write_DocumentSymbolOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DocumentSymbolOptions);
+
+   for DocumentSymbolOptions'Read use Read_DocumentSymbolOptions;
+   for DocumentSymbolOptions'Write use Write_DocumentSymbolOptions;
+
+   package Optional_DocumentSymbolOptions_Package is
+     new LSP.Generic_Optional (DocumentSymbolOptions);
+
+   type Optional_DocumentSymbolOptions is
+     new Optional_DocumentSymbolOptions_Package.Optional_Type;
 
    --```typescript
-   --export interface DocumentSymbolRegistrationOptions extends TextDocumentRegistrationOptions, DocumentSymbolOptions {
+   --export interface DocumentSymbolRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentSymbolOptions {
    --}
    --```
 
@@ -3712,14 +5186,23 @@ package LSP.Messages is
    --	/**
    --	 * CodeActionKinds that this server may return.
    --	 *
-   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`, or the server
-   --	 * may list out every specific kind they provide.
+   --	 * The list of kinds may be generic, such as `CodeActionKind.Refactor`,
+   --	 * or the server may list out every specific kind they provide.
    --	 */
    --	codeActionKinds?: CodeActionKind[];
+   --
+   --	/**
+   --	 * The server provides support to resolve additional
+   --	 * information for a code action.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	resolveProvider?: boolean;
    --}
    --```
    type CodeActionOptions is new WorkDoneProgressOptions with record
       codeActionKinds: Optional_CodeActionKindSet;
+      resolveProvider: Optional_Boolean;
    end record;
 
    procedure Read_CodeActionOptions
@@ -3770,7 +5253,9 @@ package LSP.Messages is
    subtype DocumentColorOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface DocumentColorRegistrationOptions extends TextDocumentRegistrationOptions, StaticRegistrationOptions, DocumentColorOptions {
+   --export interface DocumentColorRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, StaticRegistrationOptions,
+   --	DocumentColorOptions {
    --}
    --```
 
@@ -3781,18 +5266,21 @@ package LSP.Messages is
    subtype DocumentFormattingOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentFormattingOptions {
+   --export interface DocumentFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentFormattingOptions {
    --}
    --```
 
    --```typescript
-   --export interface DocumentRangeFormattingOptions extends WorkDoneProgressOptions {
+   --export interface DocumentRangeFormattingOptions extends
+   --	WorkDoneProgressOptions {
    --}
    --```
    subtype DocumentRangeFormattingOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface DocumentRangeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentRangeFormattingOptions {
+   --export interface DocumentRangeFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentRangeFormattingOptions {
    --}
    --```
 
@@ -3893,7 +5381,9 @@ package LSP.Messages is
    subtype FoldingRangeOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface FoldingRangeRegistrationOptions extends TextDocumentRegistrationOptions, FoldingRangeOptions, StaticRegistrationOptions {
+   --export interface FoldingRangeRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, FoldingRangeOptions,
+   --	StaticRegistrationOptions {
    --}
    --```
 
@@ -3930,7 +5420,8 @@ package LSP.Messages is
    subtype WorkspaceSymbolOptions is Optional_WorkDoneProgressOptions;
 
    --```typescript
-   --export interface WorkspaceSymbolRegistrationOptions extends WorkspaceSymbolOptions {
+   --export interface WorkspaceSymbolRegistrationOptions
+   --	extends WorkspaceSymbolOptions {
    --}
    --```
 
@@ -3982,8 +5473,233 @@ package LSP.Messages is
    type Optional_WorkspaceFoldersServerCapabilities is
      new Optional_WorkspaceFoldersServerCapabilities_Package.Optional_Type;
 
+   --```typescript
+   --/**
+   -- * The options to register for file operations.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --interface FileOperationRegistrationOptions {
+   --	/**
+   --	 * The actual filters.
+   --	 */
+   --	filters: FileOperationFilter[];
+   --}
+   --
+   --/**
+   -- * A pattern kind describing if a glob pattern matches a file a folder or
+   -- * both.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace FileOperationPatternKind {
+   --	/**
+   --	 * The pattern matches a file only.
+   --	 */
+   --	export const file: 'file' = 'file';
+   --
+   --	/**
+   --	 * The pattern matches a folder only.
+   --	 */
+   --	export const folder: 'folder' = 'folder';
+   --}
+   --
+   --export type FileOperationPatternKind = 'file' | 'folder';
+   --
+   --/**
+   -- * Matching options for the file operation pattern.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileOperationPatternOptions {
+   --
+   --	/**
+   --	 * The pattern should be matched ignoring casing.
+   --	 */
+   --	ignoreCase?: boolean;
+   --}
+   --
+   --/**
+   -- * A pattern to describe in which file operation requests or notifications
+   -- * the server is interested in.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --interface FileOperationPattern {
+   --	/**
+   --	 * The glob pattern to match. Glob patterns can have the following syntax:
+   --	 * - `*` to match one or more characters in a path segment
+   --	 * - `?` to match on one character in a path segment
+   --	 * - `**` to match any number of path segments, including none
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but
+   --	 *   not `example.0`)
+   --	 */
+   --	glob: string;
+   --
+   --	/**
+   --	 * Whether to match files or folders with this pattern.
+   --	 *
+   --	 * Matches both if undefined.
+   --	 */
+   --	matches?: FileOperationPatternKind;
+   --
+   --	/**
+   --	 * Additional options used during matching.
+   --	 */
+   --	options?: FileOperationPatternOptions;
+   --}
+   --
+   --/**
+   -- * A filter to describe in which file operation requests or notifications
+   -- * the server is interested in.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileOperationFilter {
+   --
+   --	/**
+   --	 * A Uri like `file` or `untitled`.
+   --	 */
+   --	scheme?: string;
+   --
+   --	/**
+   --	 * The actual file operation pattern.
+   --	 */
+   --	pattern: FileOperationPattern;
+   --}
+   --```
+   type FileOperationPatternKind is (file, folder);
+
+   procedure Read_FileOperationPatternKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPatternKind);
+   procedure Write_FileOperationPatternKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPatternKind);
+
+   for FileOperationPatternKind'Write use
+     Write_FileOperationPatternKind;
+   for FileOperationPatternKind'Read use
+     Read_FileOperationPatternKind;
+
+   package Optional_FileOperationPatternKind_Package is
+     new LSP.Generic_Optional (FileOperationPatternKind);
+
+   type Optional_FileOperationPatternKind is
+     new Optional_FileOperationPatternKind_Package.Optional_Type;
+
+   type FileOperationPatternOptions is record
+      ignoreCase: Optional_Boolean;
+   end record;
+
+   procedure Read_FileOperationPatternOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPatternOptions);
+   procedure Write_FileOperationPatternOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPatternOptions);
+
+   for FileOperationPatternOptions'Write use Write_FileOperationPatternOptions;
+   for FileOperationPatternOptions'Read use Read_FileOperationPatternOptions;
+
+   package Optional_FileOperationPatternOptions_Package is
+     new LSP.Generic_Optional (FileOperationPatternOptions);
+
+   type Optional_FileOperationPatternOptions is
+     new Optional_FileOperationPatternOptions_Package.Optional_Type;
+
+   type FileOperationPattern is record
+      glob: LSP_String;
+      matches: Optional_FileOperationPatternKind;
+      options: Optional_FileOperationPatternOptions;
+   end record;
+
+   procedure Read_FileOperationPattern
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationPattern);
+   procedure Write_FileOperationPattern
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationPattern);
+
+   for FileOperationPattern'Write use Write_FileOperationPattern;
+   for FileOperationPattern'Read use Read_FileOperationPattern;
+
+   type FileOperationFilter is record
+      scheme: Optional_String;
+      pattern: FileOperationPattern;
+   end record;
+
+   procedure Read_FileOperationFilter
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationFilter);
+   procedure Write_FileOperationFilter
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationFilter);
+
+   for FileOperationFilter'Write use Write_FileOperationFilter;
+   for FileOperationFilter'Read use Read_FileOperationFilter;
+
+   package FileOperationFilter_Vectors is new LSP.Generic_Vectors
+     (FileOperationFilter, Write_Empty => LSP.Write_Array);
+   type FileOperationFilter_Vector is new FileOperationFilter_Vectors.Vector with null record;
+
+   type FileOperationRegistrationOptions is record
+      filters: FileOperationFilter_Vector;
+   end record;
+
+   procedure Read_FileOperationRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationRegistrationOptions);
+   procedure Write_FileOperationRegistrationOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationRegistrationOptions);
+
+   for FileOperationRegistrationOptions'Write use
+     Write_FileOperationRegistrationOptions;
+   for FileOperationRegistrationOptions'Read use
+     Read_FileOperationRegistrationOptions;
+
+   package Optional_FileOperationRegistrationOptions_Package is
+     new LSP.Generic_Optional (FileOperationRegistrationOptions);
+
+   type Optional_FileOperationRegistrationOptions is
+     new Optional_FileOperationRegistrationOptions_Package.Optional_Type;
+
+   type fileOperationsServerCapabilities is record
+      didCreate: Optional_FileOperationRegistrationOptions;
+      willCreate: Optional_FileOperationRegistrationOptions;
+      didRename: Optional_FileOperationRegistrationOptions;
+      willRename: Optional_FileOperationRegistrationOptions;
+      didDelete: Optional_FileOperationRegistrationOptions;
+      willDelete: Optional_FileOperationRegistrationOptions;
+   end record;
+
+   procedure Read_fileOperationsServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out fileOperationsServerCapabilities);
+   procedure Write_fileOperationsServerCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : fileOperationsServerCapabilities);
+
+   for fileOperationsServerCapabilities'Write use
+     Write_fileOperationsServerCapabilities;
+   for fileOperationsServerCapabilities'Read use
+     Read_fileOperationsServerCapabilities;
+
+   package Optional_fileOperationsServerCapabilities_Package is
+     new LSP.Generic_Optional (fileOperationsServerCapabilities);
+
+   type Optional_fileOperationsServerCapabilities is
+     new Optional_fileOperationsServerCapabilities_Package.Optional_Type;
+
    type workspace_Options is record
       workspaceFolders: Optional_WorkspaceFoldersServerCapabilities;
+      fileOperations: Optional_fileOperationsServerCapabilities;
    end record;
 
    procedure Read_workspace_Options
@@ -4007,10 +5723,127 @@ package LSP.Messages is
    --```
    subtype SelectionRangeOptions is Optional_Provider_Options;
 
+   --```typescript
+   --export interface SelectionRangeRegistrationOptions extends
+   --	SelectionRangeOptions, TextDocumentRegistrationOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface LinkedEditingRangeOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype LinkedEditingRangeOptions is Optional_Provider_Options;
+
+   --```typescript
+   --export interface LinkedEditingRangeRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, LinkedEditingRangeOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface CallHierarchyOptions extends WorkDoneProgressOptions {
+   --}
+   --```
    subtype CallHierarchyOptions is Optional_Provider_Options;
 
    --```typescript
-   --export interface SelectionRangeRegistrationOptions extends SelectionRangeOptions, TextDocumentRegistrationOptions, StaticRegistrationOptions {
+   --export interface CallHierarchyRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CallHierarchyOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface SemanticTokensLegend {
+   --	/**
+   --	 * The token types a server uses.
+   --	 */
+   --	tokenTypes: string[];
+   --
+   --	/**
+   --	 * The token modifiers a server uses.
+   --	 */
+   --	tokenModifiers: string[];
+   --}
+   --```
+   type SemanticTokensLegend is record
+      tokenTypes: LSP_String_Vector;
+      tokenModifiers: LSP_String_Vector;
+   end record;
+
+   procedure Read_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensLegend);
+   procedure Write_SemanticTokensLegend
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensLegend);
+   for SemanticTokensLegend'Write use Write_SemanticTokensLegend;
+   for SemanticTokensLegend'Read use Read_SemanticTokensLegend;
+
+   --```typescript
+   --export interface SemanticTokensOptions extends WorkDoneProgressOptions {
+   --	/**
+   --	 * The legend used by the server
+   --	 */
+   --	legend: SemanticTokensLegend;
+   --
+   --	/**
+   --	 * Server supports providing semantic tokens for a specific range
+   --	 * of a document.
+   --	 */
+   --	range?: boolean | {
+   --	};
+   --
+   --	/**
+   --	 * Server supports providing semantic tokens for a full document.
+   --	 */
+   --	full?: boolean | {
+   --		/**
+   --		 * The server supports deltas for full documents.
+   --		 */
+   --		delta?: boolean;
+   --	}
+   --}
+   --```
+   type SemanticTokensOptions is new WorkDoneProgressOptions with record
+      legend: SemanticTokensLegend;
+      span: Optional_Boolean;    --  Range is a reserved Ada keyword
+      full: Optional_SemanticTokensFullCapabilities;
+   end record;
+
+   procedure Read_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensOptions);
+   procedure Write_SemanticTokensOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensOptions);
+   for SemanticTokensOptions'Write use Write_SemanticTokensOptions;
+   for SemanticTokensOptions'Read use Read_SemanticTokensOptions;
+
+   package Optional_SemanticTokensOptions_Package is
+     new LSP.Generic_Optional (SemanticTokensOptions);
+   type Optional_SemanticTokensOptions is
+     new Optional_SemanticTokensOptions_Package.Optional_Type;
+
+   --```typescript
+   --export interface SemanticTokensRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, SemanticTokensOptions,
+   --	StaticRegistrationOptions {
+   --}
+   --```
+
+   --```typescript
+   --export interface MonikerOptions extends WorkDoneProgressOptions {
+   --}
+   --```
+   subtype MonikerOptions is Optional_WorkDoneProgressOptions;
+
+   --```typescript
+   --export interface MonikerRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, MonikerOptions {
    --}
    --```
 
@@ -4018,10 +5851,12 @@ package LSP.Messages is
    --```typescript
    --interface ServerCapabilities {
    --	/**
-   --	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
-   --	 * for backwards compatibility the TextDocumentSyncKind number. If omitted it defaults to `TextDocumentSyncKind.None`.
+   --	 * Defines how text documents are synced. Is either a detailed structure
+   --	 * defining each notification or for backwards compatibility the
+   --	 * TextDocumentSyncKind number. If omitted it defaults to
+   --	 * `TextDocumentSyncKind.None`.
    --	 */
-   --	textDocumentSync?: TextDocumentSyncOptions | number;
+   --	textDocumentSync?: TextDocumentSyncOptions | TextDocumentSyncKind;
    --
    --	/**
    --	 * The server provides completion support.
@@ -4043,7 +5878,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.14.0
    --	 */
-   --	declarationProvider?: boolean | DeclarationOptions | DeclarationRegistrationOptions;
+   --	declarationProvider?: boolean | DeclarationOptions
+   --		| DeclarationRegistrationOptions;
    --
    --	/**
    --	 * The server provides goto definition support.
@@ -4055,14 +5891,16 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	typeDefinitionProvider?: boolean | TypeDefinitionOptions | TypeDefinitionRegistrationOptions;
+   --	typeDefinitionProvider?: boolean | TypeDefinitionOptions
+   --		| TypeDefinitionRegistrationOptions;
    --
    --	/**
    --	 * The server provides goto implementation support.
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	implementationProvider?: boolean | ImplementationOptions | ImplementationRegistrationOptions;
+   --	implementationProvider?: boolean | ImplementationOptions
+   --		| ImplementationRegistrationOptions;
    --
    --	/**
    --	 * The server provides find references support.
@@ -4080,9 +5918,9 @@ package LSP.Messages is
    --	documentSymbolProvider?: boolean | DocumentSymbolOptions;
    --
    --	/**
-   --	 * The server provides code actions. The `CodeActionOptions` return type is only
-   --	 * valid if the client signals code action literal support via the property
-   --	 * `textDocument.codeAction.codeActionLiteralSupport`.
+   --	 * The server provides code actions. The `CodeActionOptions` return type is
+   --	 * only valid if the client signals code action literal support via the
+   --	 * property `textDocument.codeAction.codeActionLiteralSupport`.
    --	 */
    --	codeActionProvider?: boolean | CodeActionOptions;
    --
@@ -4101,7 +5939,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.6.0
    --	 */
-   --	colorProvider?: boolean | DocumentColorOptions | DocumentColorRegistrationOptions;
+   --	colorProvider?: boolean | DocumentColorOptions
+   --		| DocumentColorRegistrationOptions;
    --
    --	/**
    --	 * The server provides document formatting.
@@ -4130,7 +5969,8 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.10.0
    --	 */
-   --	foldingRangeProvider?: boolean | FoldingRangeOptions | FoldingRangeRegistrationOptions;
+   --	foldingRangeProvider?: boolean | FoldingRangeOptions
+   --		| FoldingRangeRegistrationOptions;
    --
    --	/**
    --	 * The server provides execute command support.
@@ -4142,12 +5982,44 @@ package LSP.Messages is
    --	 *
    --	 * @since 3.15.0
    --	 */
-   --	selectionRangeProvider?: boolean | SelectionRangeOptions | SelectionRangeRegistrationOptions;
+   --	selectionRangeProvider?: boolean | SelectionRangeOptions
+   --		| SelectionRangeRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides linked editing range support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	linkedEditingRangeProvider?: boolean | LinkedEditingRangeOptions
+   --		| LinkedEditingRangeRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides call hierarchy support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	callHierarchyProvider?: boolean | CallHierarchyOptions
+   --		| CallHierarchyRegistrationOptions;
+   --
+   --	/**
+   --	 * The server provides semantic tokens support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	semanticTokensProvider?: SemanticTokensOptions
+   --		| SemanticTokensRegistrationOptions;
+   --
+   --	/**
+   --	 * Whether server provides moniker support.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --    monikerProvider?: boolean | MonikerOptions | MonikerRegistrationOptions;
    --
    --	/**
    --	 * The server provides workspace symbol support.
    --	 */
-   --	workspaceSymbolProvider?: boolean;
+   --	workspaceSymbolProvider?: boolean | WorkspaceSymbolOptions;
    --
    --	/**
    --	 * Workspace specific server capabilities
@@ -4159,6 +6031,47 @@ package LSP.Messages is
    --		 * @since 3.6.0
    --		 */
    --		workspaceFolders?: WorkspaceFoldersServerCapabilities;
+   --
+   --		/**
+   --		 * The server is interested in file notifications/requests.
+   --		 *
+   --		 * @since 3.16.0
+   --		 */
+   --		fileOperations?: {
+   --			/**
+   --			 * The server is interested in receiving didCreateFiles
+   --			 * notifications.
+   --			 */
+   --			didCreate?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willCreateFiles requests.
+   --			 */
+   --			willCreate?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving didRenameFiles
+   --			 * notifications.
+   --			 */
+   --			didRename?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willRenameFiles requests.
+   --			 */
+   --			willRename?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving didDeleteFiles file
+   --			 * notifications.
+   --			 */
+   --			didDelete?: FileOperationRegistrationOptions;
+   --
+   --			/**
+   --			 * The server is interested in receiving willDeleteFiles file
+   --			 * requests.
+   --			 */
+   --			willDelete?: FileOperationRegistrationOptions;
+   --		}
    --	}
    --
    --	/**
@@ -4178,7 +6091,7 @@ package LSP.Messages is
       implementationProvider: ImplementationOptions;
       referencesProvider: ReferenceOptions;
       documentHighlightProvider: DocumentHighlightOptions;
-      documentSymbolProvider: DocumentSymbolOptions;
+      documentSymbolProvider: Optional_DocumentSymbolOptions;
       codeActionProvider: Optional_CodeActionOptions;
       codeLensProvider: Optional_CodeLensOptions;
       documentLinkProvider: Optional_DocumentLinkOptions;
@@ -4190,6 +6103,9 @@ package LSP.Messages is
       foldingRangeProvider: FoldingRangeOptions;
       executeCommandProvider: Optional_ExecuteCommandOptions;
       selectionRangeProvider: SelectionRangeOptions;
+      linkedEditingRangeProvider: LinkedEditingRangeOptions;
+      semanticTokensProvider: Optional_SemanticTokensOptions;
+      monikerProvider: MonikerOptions;
       workspaceSymbolProvider: WorkspaceSymbolOptions;
       workspace: Optional_workspace_Options;
       callHierarchyProvider: CallHierarchyOptions;
@@ -4273,11 +6189,13 @@ package LSP.Messages is
    -- */
    --export namespace InitializeError {
    --	/**
-   --	 * If the protocol version provided by the client can't be handled by the server.
-   --	 * @deprecated This initialize error got replaced by client capabilities. There is
-   --	 * no version handshake in version 3.0x
+   --	 * If the protocol version provided by the client can't be handled by the
+   --	 * server.
+   --	 *
+   --	 * @deprecated This initialize error got replaced by client capabilities.
+   --	 * There is no version handshake in version 3.0x
    --	 */
-   --	export const unknownProtocolVersion: number = 1;
+   --	export const unknownProtocolVersion: 1 = 1;
    --}
    --```
    unknownProtocolVersion: constant := 1;
@@ -4317,6 +6235,8 @@ package LSP.Messages is
    --	 */
    --	export const Log = 4;
    --}
+   --
+   --export type MessageType = 1 | 2 | 3 | 4;
    --```
    type MessageType is (Error, Warning, Info, Log);
 
@@ -4334,7 +6254,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}.
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message.
@@ -4343,7 +6263,7 @@ package LSP.Messages is
    --}
    --```
    type ShowMessageParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
    end record;
 
@@ -4361,7 +6281,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message
@@ -4375,7 +6295,7 @@ package LSP.Messages is
    --}
    --```
    type ShowMessageRequestParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
       actions: MessageActionItem_Vector;
    end record;
@@ -4395,7 +6315,7 @@ package LSP.Messages is
    --	/**
    --	 * The message type. See {@link MessageType}
    --	 */
-   --	type: number;
+   --	type: MessageType;
    --
    --	/**
    --	 * The actual message
@@ -4404,7 +6324,7 @@ package LSP.Messages is
    --}
    --```
    type LogMessageParams is record
-      the_type: MessageType;  --  type: is reserver word
+      a_type: MessageType;  --  type: is reserver word
       message: LSP_String;
    end record;
 
@@ -4421,7 +6341,8 @@ package LSP.Messages is
    --/**
    -- * Describe options to be used when registering for text document change events.
    -- */
-   --export interface TextDocumentChangeRegistrationOptions extends TextDocumentRegistrationOptions {
+   --export interface TextDocumentChangeRegistrationOptions
+   --	extends TextDocumentRegistrationOptions {
    --	/**
    --	 * How documents are synced to the server. See TextDocumentSyncKind.Full
    --	 * and TextDocumentSyncKind.Incremental.
@@ -4445,7 +6366,8 @@ package LSP.Messages is
    for TextDocumentChangeRegistrationOptions'Write use Write_TextDocumentChangeRegistrationOptions;
 
    --```typescript
-   --export interface TextDocumentSaveRegistrationOptions extends TextDocumentRegistrationOptions {
+   --export interface TextDocumentSaveRegistrationOptions
+   --	extends TextDocumentRegistrationOptions {
    --	/**
    --	 * The client is supposed to include the content on save.
    --	 */
@@ -4467,7 +6389,8 @@ package LSP.Messages is
    for TextDocumentSaveRegistrationOptions'Write use Write_TextDocumentSaveRegistrationOptions;
 
    --```typescript
-   --export interface CompletionRegistrationOptions extends TextDocumentRegistrationOptions, CompletionOptions {
+   --export interface CompletionRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, CompletionOptions {
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4486,7 +6409,8 @@ package LSP.Messages is
    for CompletionRegistrationOptions'Write use Write_CompletionRegistrationOptions;
 
    --```typescript
-   --export interface SignatureHelpRegistrationOptions extends TextDocumentRegistrationOptions, SignatureHelpOptions {
+   --export interface SignatureHelpRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, SignatureHelpOptions {
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4504,7 +6428,8 @@ package LSP.Messages is
    for SignatureHelpRegistrationOptions'Write use Write_SignatureHelpRegistrationOptions;
 
    --```typescript
-   --export interface CodeLensRegistrationOptions extends TextDocumentRegistrationOptions, CodeLensOptions {
+   --export interface CodeLensRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CodeLensOptions {
    --}
    --```
    type CodeLensRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4521,13 +6446,15 @@ package LSP.Messages is
    for CodeLensRegistrationOptions'Write use Write_CodeLensRegistrationOptions;
 
    --```typescript
-   --export interface DocumentLinkRegistrationOptions extends TextDocumentRegistrationOptions, DocumentLinkOptions {
+   --export interface DocumentLinkRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentLinkOptions {
    --}
    --```
    subtype DocumentLinkRegistrationOptions is CodeLensRegistrationOptions;
 
    --```typescript
-   --export interface DocumentOnTypeFormattingRegistrationOptions extends TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
+   --export interface DocumentOnTypeFormattingRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, DocumentOnTypeFormattingOptions {
    --}
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4548,7 +6475,8 @@ package LSP.Messages is
    --/**
    -- * Execute command registration options.
    -- */
-   --export interface ExecuteCommandRegistrationOptions extends ExecuteCommandOptions {
+   --export interface ExecuteCommandRegistrationOptions
+   --	extends ExecuteCommandOptions {
    --}
    --```
    type ExecuteCommandRegistrationOptions is record
@@ -4583,9 +6511,13 @@ package LSP.Messages is
    --	 * - `*` to match one or more characters in a path segment
    --	 * - `?` to match on one character in a path segment
    --	 * - `**` to match any number of path segments, including none
-   --	 * - `{}` to group conditions (e.g. `**​/*.{ts,js}` matches all TypeScript and JavaScript files)
-   --	 * - `[]` to declare a range of characters to match in a path segment (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
-   --	 * - `[!...]` to negate a range of characters to match in a path segment (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not `example.0`)
+   --	 * - `{}` to group sub patterns into an OR expression. (e.g. `**​/*.{ts,js}`
+   --	 *   matches all TypeScript and JavaScript files)
+   --	 * - `[]` to declare a range of characters to match in a path segment
+   --	 *   (e.g., `example.[0-9]` to match on `example.0`, `example.1`, …)
+   --	 * - `[!...]` to negate a range of characters to match in a path segment
+   --	 *   (e.g., `example.[!0-9]` to match on `example.a`, `example.b`, but not
+   --	 *   `example.0`)
    --	 */
    --	globPattern: string;
    --
@@ -4594,7 +6526,7 @@ package LSP.Messages is
    --	 * to WatchKind.Create | WatchKind.Change | WatchKind.Delete
    --	 * which is 7.
    --	 */
-   --	kind?: number;
+   --	kind?: uinteger;
    --}
    --
    --export namespace WatchKind {
@@ -4662,7 +6594,8 @@ package LSP.Messages is
    for DidChangeWatchedFilesRegistrationOptions'Write use Write_DidChangeWatchedFilesRegistrationOptions;
 
    --```typescript
-   --export interface CodeActionRegistrationOptions extends TextDocumentRegistrationOptions, CodeActionOptions {
+   --export interface CodeActionRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, CodeActionOptions {
    --}
    --```
    type CodeActionRegistrationOptions is
@@ -4681,7 +6614,8 @@ package LSP.Messages is
    for CodeActionRegistrationOptions'Write use Write_CodeActionRegistrationOptions;
 
    --```typescript
-   --export interface RenameRegistrationOptions extends TextDocumentRegistrationOptions, RenameOptions {
+   --export interface RenameRegistrationOptions extends
+   --	TextDocumentRegistrationOptions, RenameOptions {
    --}
    --```
    type RenameRegistrationOptions is new TextDocumentRegistrationOptions with record
@@ -4905,24 +6839,26 @@ package LSP.Messages is
    --	textDocument: VersionedTextDocumentIdentifier;
    --
    --	/**
-   --	 * The actual content changes. The content changes describe single state changes
-   --	 * to the document. So if there are two content changes c1 (at array index 0) and
-   --	 * c2 (at array index 1) for a document in state S then c1 moves the document from
-   --	 * S to S' and c2 from S' to S''. So c1 is computed on the state S and c2 is computed
-   --	 * on the state S'.
+   --	 * The actual content changes. The content changes describe single state
+   --	 * changes to the document. So if there are two content changes c1 (at
+   --	 * array index 0) and c2 (at array index 1) for a document in state S then
+   --	 * c1 moves the document from S to S' and c2 from S' to S''. So c1 is
+   --	 * computed on the state S and c2 is computed on the state S'.
    --	 *
-   --	 * To mirror the content of a document using change events use the following approach:
+   --	 * To mirror the content of a document using change events use the following
+   --	 * approach:
    --	 * - start with the same initial content
-   --	 * - apply the 'textDocument/didChange' notifications in the order you recevie them.
-   --	 * - apply the `TextDocumentContentChangeEvent`s in a single notification in the order
-   --	 *   you receive them.
+   --	 * - apply the 'textDocument/didChange' notifications in the order you
+   --	 *   receive them.
+   --	 * - apply the `TextDocumentContentChangeEvent`s in a single notification
+   --	 *   in the order you receive them.
    --	 */
    --	contentChanges: TextDocumentContentChangeEvent[];
    --}
    --
    --/**
-   -- * An event describing a change to a text document. If range and rangeLength are omitted
-   -- * the new text is considered to be the full content of the document.
+   -- * An event describing a change to a text document. If range and rangeLength are
+   -- * omitted the new text is considered to be the full content of the document.
    -- */
    --export type TextDocumentContentChangeEvent = {
    --	/**
@@ -4935,7 +6871,7 @@ package LSP.Messages is
    --	 *
    --	 * @deprecated use range instead.
    --	 */
-   --	rangeLength?: number;
+   --	rangeLength?: uinteger;
    --
    --	/**
    --	 * The new text for the provided range.
@@ -4996,7 +6932,7 @@ package LSP.Messages is
    --	/**
    --	 * The 'TextDocumentSaveReason'.
    --	 */
-   --	reason: number;
+   --	reason: TextDocumentSaveReason;
    --}
    --
    --/**
@@ -5005,8 +6941,8 @@ package LSP.Messages is
    --export namespace TextDocumentSaveReason {
    --
    --	/**
-   --	 * Manually triggered, e.g. by the user pressing save, by starting debugging,
-   --	 * or by an API call.
+   --	 * Manually triggered, e.g. by the user pressing save, by starting
+   --	 * debugging, or by an API call.
    --	 */
    --	export const Manual = 1;
    --
@@ -5020,6 +6956,8 @@ package LSP.Messages is
    --	 */
    --	export const FocusOut = 3;
    --}
+   --
+   --export type TextDocumentSaveReason = 1 | 2 | 3;
    --```
    type TextDocumentSaveReason is (Manual, AfterDelay, FocusOut);
 
@@ -5099,7 +7037,7 @@ package LSP.Messages is
    --	/**
    --	 * The change type.
    --	 */
-   --	type: number;
+   --	type: uinteger;
    --}
    --
    --/**
@@ -5133,7 +7071,7 @@ package LSP.Messages is
 
    type FileEvent is record
       uri: DocumentUri;
-      the_type : FileChangeType;  -- type: is reserver word
+      a_type : FileChangeType;  -- type: is reserver word
    end record;
 
    procedure Read_FileEvent
@@ -5179,11 +7117,12 @@ package LSP.Messages is
    --	uri: DocumentUri;
    --
    --	/**
-   --	 * Optional the version number of the document the diagnostics are published for.
+   --	 * Optional the version number of the document the diagnostics are published
+   --	 * for.
    --	 *
    --	 * @since 3.15.0
    --	 */
-   --	version?: number;
+   --	version?: uinteger;
    --
    --	/**
    --	 * An array of diagnostic information items.
@@ -5208,8 +7147,8 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * Represents a collection of [completion items](#CompletionItem) to be presented
-   -- * in the editor.
+   -- * Represents a collection of [completion items](#CompletionItem) to be
+   -- * presented in the editor.
    -- */
    --export interface CompletionList {
    --	/**
@@ -5248,8 +7187,8 @@ package LSP.Messages is
    --export type InsertTextFormat = 1 | 2;
    --
    --/**
-   -- * Completion item tags are extra annotations that tweak the rendering of a completion
-   -- * item.
+   -- * Completion item tags are extra annotations that tweak the rendering of a
+   -- * completion item.
    -- *
    -- * @since 3.15.0
    -- */
@@ -5261,6 +7200,58 @@ package LSP.Messages is
    --}
    --
    --export type CompletionItemTag = 1;
+   --
+   --/**
+   -- * A special text edit to provide an insert and a replace operation.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface InsertReplaceEdit {
+   --	/**
+   --	 * The string to be inserted.
+   --	 */
+   --	newText: string;
+   --
+   --	/**
+   --	 * The range if the insert is requested
+   --	 */
+   --	insert: Range;
+   --
+   --	/**
+   --	 * The range if the replace is requested.
+   --	 */
+   --	replace: Range;
+   --}
+   --
+   --/**
+   -- * How whitespace and indentation is handled during completion
+   -- * item insertion.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace InsertTextMode {
+   --	/**
+   --	 * The insertion or replace strings is taken as it is. If the
+   --	 * value is multi line the lines below the cursor will be
+   --	 * inserted using the indentation defined in the string value.
+   --	 * The client will not apply any kind of adjustments to the
+   --	 * string.
+   --	 */
+   --	export const asIs: 1 = 1;
+   --
+   --	/**
+   --	 * The editor adjusts leading whitespace of new lines so that
+   --	 * they match the indentation up to the cursor of the line for
+   --	 * which the item is accepted.
+   --	 *
+   --	 * Consider a line like this: <2tabs><cursor><3tabs>foo. Accepting a
+   --	 * multi line completion item is indented using 2 tabs and all
+   --	 * following lines inserted will be indented using 2 tabs as well.
+   --	 */
+   --	export const adjustIndentation: 2 = 2;
+   --}
+   --
+   --export type InsertTextMode = 1 | 2;
    --
    --export interface CompletionItem {
    --	/**
@@ -5275,7 +7266,7 @@ package LSP.Messages is
    --	 * an icon is chosen by the editor. The standardized set
    --	 * of available values is defined in `CompletionItemKind`.
    --	 */
-   --	kind?: number;
+   --	kind?: CompletionItemKind;
    --
    --	/**
    --	 * Tags for this completion item.
@@ -5329,51 +7320,79 @@ package LSP.Messages is
    --	 *
    --	 * The `insertText` is subject to interpretation by the client side.
    --	 * Some tools might not take the string literally. For example
-   --	 * VS Code when code complete is requested in this example `con<cursor position>`
-   --	 * and a completion item with an `insertText` of `console` is provided it
-   --	 * will only insert `sole`. Therefore it is recommended to use `textEdit` instead
-   --	 * since it avoids additional client side interpretation.
+   --	 * VS Code when code complete is requested in this example
+   --	 * `con<cursor position>` and a completion item with an `insertText` of
+   --	 * `console` is provided it will only insert `sole`. Therefore it is
+   --	 * recommended to use `textEdit` instead since it avoids additional client
+   --	 * side interpretation.
    --	 */
    --	insertText?: string;
    --
    --	/**
-   --	 * The format of the insert text. The format applies to both the `insertText` property
-   --	 * and the `newText` property of a provided `textEdit`. If omitted defaults to
-   --	 * `InsertTextFormat.PlainText`.
+   --	 * The format of the insert text. The format applies to both the
+   --	 * `insertText` property and the `newText` property of a provided
+   --	 * `textEdit`. If omitted defaults to `InsertTextFormat.PlainText`.
    --	 */
    --	insertTextFormat?: InsertTextFormat;
    --
    --	/**
-   --	 * An edit which is applied to a document when selecting this completion. When an edit is provided the value of
-   --	 * `insertText` is ignored.
+   --	 * How whitespace and indentation is handled during completion
+   --	 * item insertion. If not provided the client's default value depends on
+   --	 * the `textDocument.completion.insertTextMode` client capability.
    --	 *
-   --	 * *Note:* The range of the edit must be a single line range and it must contain the position at which completion
-   --	 * has been requested.
+   --	 * @since 3.16.0
    --	 */
-   --	textEdit?: TextEdit;
+   --	insertTextMode?: InsertTextMode;
+   --
+   --	/**
+   --	 * An edit which is applied to a document when selecting this completion.
+   --	 * When an edit is provided the value of `insertText` is ignored.
+   --	 *
+   --	 * *Note:* The range of the edit must be a single line range and it must
+   --	 * contain the position at which completion has been requested.
+   --	 *
+   --	 * Most editors support two different operations when accepting a completion
+   --	 * item. One is to insert a completion text and the other is to replace an
+   --	 * existing text with a completion text. Since this can usually not be
+   --	 * predetermined by a server it can report both ranges. Clients need to
+   --	 * signal support for `InsertReplaceEdits` via the
+   --	 * `textDocument.completion.insertReplaceSupport` client capability
+   --	 * property.
+   --	 *
+   --	 * *Note 1:* The text edit's range as well as both ranges from an insert
+   --	 * replace edit must be a [single line] and they must contain the position
+   --	 * at which completion has been requested.
+   --	 * *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
+   --	 * must be a prefix of the edit's replace range, that means it must be
+   --	 * contained and starting at the same position.
+   --	 *
+   --	 * @since 3.16.0 additional type `InsertReplaceEdit`
+   --	 */
+   --	textEdit?: TextEdit | InsertReplaceEdit;
    --
    --	/**
    --	 * An optional array of additional text edits that are applied when
-   --	 * selecting this completion. Edits must not overlap (including the same insert position)
-   --	 * with the main edit nor with themselves.
+   --	 * selecting this completion. Edits must not overlap (including the same
+   --	 * insert position) with the main edit nor with themselves.
    --	 *
-   --	 * Additional text edits should be used to change text unrelated to the current cursor position
-   --	 * (for example adding an import statement at the top of the file if the completion item will
-   --	 * insert an unqualified type).
+   --	 * Additional text edits should be used to change text unrelated to the
+   --	 * current cursor position (for example adding an import statement at the
+   --	 * top of the file if the completion item will insert an unqualified type).
    --	 */
    --	additionalTextEdits?: TextEdit[];
    --
    --	/**
-   --	 * An optional set of characters that when pressed while this completion is active will accept it first and
-   --	 * then type that character. *Note* that all commit characters should have `length=1` and that superfluous
-   --	 * characters will be ignored.
+   --	 * An optional set of characters that when pressed while this completion is
+   --	 * active will accept it first and then type that character. *Note* that all
+   --	 * commit characters should have `length=1` and that superfluous characters
+   --	 * will be ignored.
    --	 */
    --	commitCharacters?: string[];
    --
    --	/**
-   --	 * An optional command that is executed *after* inserting this completion. *Note* that
-   --	 * additional modifications to the current document should be described with the
-   --	 * additionalTextEdits-property.
+   --	 * An optional command that is executed *after* inserting this completion.
+   --	 * *Note* that additional modifications to the current document should be
+   --	 * described with the additionalTextEdits-property.
    --	 */
    --	command?: Command;
    --
@@ -5429,11 +7448,45 @@ package LSP.Messages is
    package Optional_InsertTextFormats is new LSP.Generic_Optional (InsertTextFormat);
    type Optional_InsertTextFormat is new Optional_InsertTextFormats.Optional_Type;
 
-   package Optional_CompletionItemKinds is new LSP.Generic_Optional (CompletionItemKind);
-   type Optional_CompletionItemKind is new Optional_CompletionItemKinds.Optional_Type;
+   type InsertReplaceEdit is record
+     newText: LSP_String;
+     insert: Span;
+     replace: Span;
+   end record;
 
-   package Optional_Commands is new LSP.Generic_Optional (Command);
-   type Optional_Command is new Optional_Commands.Optional_Type;
+   procedure Read_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out InsertReplaceEdit);
+   procedure Write_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : InsertReplaceEdit);
+   for InsertReplaceEdit'Read use Read_InsertReplaceEdit;
+   for InsertReplaceEdit'Write use Write_InsertReplaceEdit;
+
+   type TextEdit_Or_InsertReplaceEdit (Is_TextEdit : Boolean := True) is record
+      case Is_TextEdit is
+         when True =>
+            TextEdit : LSP.Messages.TextEdit;
+         when False =>
+            InsertReplaceEdit : LSP.Messages.InsertReplaceEdit;
+      end case;
+   end record;
+
+   procedure Read_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out TextEdit_Or_InsertReplaceEdit);
+   procedure Write_TextEdit_Or_InsertReplaceEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : TextEdit_Or_InsertReplaceEdit);
+   for TextEdit_Or_InsertReplaceEdit'Read
+     use Read_TextEdit_Or_InsertReplaceEdit;
+   for TextEdit_Or_InsertReplaceEdit'Write
+     use Write_TextEdit_Or_InsertReplaceEdit;
+
+   package Optional_TextEdit_Or_InsertReplaceEdits is
+     new LSP.Generic_Optional (TextEdit_Or_InsertReplaceEdit);
+   type Optional_TextEdit_Or_InsertReplaceEdit is
+     new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
       label: LSP_String;
@@ -5447,7 +7500,8 @@ package LSP.Messages is
       filterText: Optional_String;
       insertText: Optional_String;
       insertTextFormat: Optional_InsertTextFormat;
-      textEdit: Optional_TextEdit;
+      insertTextMode: Optional_InsertTextMode;
+      textEdit: Optional_TextEdit_Or_InsertReplaceEdit;
       additionalTextEdits: TextEdit_Vector;
       commitCharacters: Optional_LSP_String_Vector;
       command: Optional_Command;
@@ -5485,19 +7539,21 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * MarkedString can be used to render human readable text. It is either a markdown string
-   -- * or a code-block that provides a language and a code snippet. The language identifier
-   -- * is semantically equal to the optional language identifier in fenced code blocks in GitHub
-   -- * issues. See https://help.github.com/articles/creating-and-highlighting-code-blocks/#syntax-highlighting
+   -- * MarkedString can be used to render human readable text. It is either a
+   -- * markdown string or a code-block that provides a language and a code snippet.
+   -- * The language identifier is semantically equal to the optional language
+   -- * identifier in fenced code blocks in GitHub issues.
    -- *
    -- * The pair of a language and a value is an equivalent to markdown:
    -- * ```${language}
    -- * ${value}
    -- * ```
    -- *
-   -- * Note that markdown strings will be sanitized - that means html will be escaped.
-   --* @deprecated use MarkupContent instead.
-   --*/
+   -- * Note that markdown strings will be sanitized - that means html will be
+   -- * escaped.
+   -- *
+   -- * @deprecated use MarkupContent instead.
+   -- */
    --type MarkedString = string | { language: string; value: string };
    --```
    type MarkedString (Is_String : Boolean := True) is record
@@ -5586,20 +7642,23 @@ package LSP.Messages is
    -- */
    --export interface SignatureHelp {
    --	/**
-   --	 * One or more signatures.
+   --	 * One or more signatures. If no signatures are available the signature help
+   --	 * request should return `null`.
    --	 */
    --	signatures: SignatureInformation[];
    --
    --	/**
    --	 * The active signature. If omitted or the value lies outside the
    --	 * range of `signatures` the value defaults to zero or is ignored if
-   --	 * `signatures.length === 0`. Whenever possible implementors should
-   --	 * make an active decision about the active signature and shouldn't
-   --	 * rely on a default value.
+   --	 * the `SignatureHelp` has no signatures.
+   --	 *
+   --	 * Whenever possible implementors should make an active decision about
+   --	 * the active signature and shouldn't rely on a default value.
+   --	 *
    --	 * In future version of the protocol this property might become
    --	 * mandatory to better express this.
    --	 */
-   --	activeSignature?: number;
+   --	activeSignature?: uinteger;
    --
    --	/**
    --	 * The active parameter of the active signature. If omitted or the value
@@ -5610,7 +7669,7 @@ package LSP.Messages is
    --	 * mandatory to better express the active parameter if the
    --	 * active signature does have any.
    --	 */
-   --	activeParameter?: number;
+   --	activeParameter?: uinteger;
    --}
    --
    --/**
@@ -5635,6 +7694,15 @@ package LSP.Messages is
    --	 * The parameters of this signature.
    --	 */
    --	parameters?: ParameterInformation[];
+   --
+   --	/**
+   --	 * The index of the active parameter.
+   --	 *
+   --	 * If provided, this is used in place of `SignatureHelp.activeParameter`.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	activeParameter?: uinteger;
    --}
    --
    --/**
@@ -5646,14 +7714,16 @@ package LSP.Messages is
    --	/**
    --	 * The label of this parameter information.
    --	 *
-   --	 * Either a string or an inclusive start and exclusive end offsets within its containing
-   --	 * signature label. (see SignatureInformation.label). The offsets are based on a UTF-16
-   --	 * string representation as `Position` and `Range` does.
+   --	 * Either a string or an inclusive start and exclusive end offsets within
+   --	 * its containing signature label. (see SignatureInformation.label). The
+   --	 * offsets are based on a UTF-16 string representation as `Position` and
+   --	 * `Range` does.
    --	 *
-   --	 * *Note*: a label of type string should be a substring of its containing signature label.
-   --	 * Its intended use case is to highlight the parameter label part in the `SignatureInformation.label`.
+   --	 * *Note*: a label of type string should be a substring of its containing
+   --	 * signature label. Its intended use case is to highlight the parameter
+   --	 * label part in the `SignatureInformation.label`.
    --	 */
-   --	label: string | [number, number];
+   --	label: string | [uinteger, uinteger];
    --
    --	/**
    --	 * The human-readable doc-comment of this parameter. Will be shown
@@ -5703,6 +7773,7 @@ package LSP.Messages is
       label: LSP_String;
       documentation: Optional_String_Or_MarkupContent;
       parameters: ParameterInformation_Vector;
+      activeParameter: Optional_uinteger;
    end record;
 
    procedure Read_SignatureInformation
@@ -5735,7 +7806,8 @@ package LSP.Messages is
    for SignatureHelp'Read use Read_SignatureHelp;
 
    --```typescript
-   --export interface ReferenceParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface ReferenceParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --	context: ReferenceContext
    --}
    --
@@ -5788,7 +7860,7 @@ package LSP.Messages is
    --	/**
    --	 * The highlight kind, default is DocumentHighlightKind.Text.
    --	 */
-   --	kind?: number;
+   --	kind?: DocumentHighlightKind;
    --}
    --
    --/**
@@ -5810,6 +7882,8 @@ package LSP.Messages is
    --	 */
    --	export const Write = 3;
    --}
+   --
+   --export type DocumentHighlightKind = 1 | 2 | 3;
    --```
    type DocumentHighlightKind is (Text, Read, Write);
 
@@ -5848,7 +7922,8 @@ package LSP.Messages is
      new DocumentHighlight_Vectors.Vector with null record;
 
    --```typescript
-   --export interface DocumentSymbolParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface DocumentSymbolParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -5902,15 +7977,33 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
-   -- * hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
-   -- * e.g. the range of an identifier.
+   -- * Symbol tags are extra annotations that tweak the rendering of a symbol.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export namespace SymbolTag {
+   --
+   --	/**
+   --	 * Render a symbol as obsolete, usually using a strike-out.
+   --	 */
+   --	export const Deprecated: 1 = 1;
+   --}
+   --
+   --export type SymbolTag = 1;
+   --
+   --
+   --/**
+   -- * Represents programming constructs like variables, classes, interfaces etc.
+   -- * that appear in a document. Document symbols can be hierarchical and they
+   -- * have two ranges: one that encloses its definition and one that points to its
+   -- * most interesting range, e.g. the range of an identifier.
    -- */
    --export interface DocumentSymbol {
    --
    --	/**
-   --	 * The name of this symbol. Will be displayed in the user interface and therefore must not be
-   --	 * an empty string or a string only consisting of white spaces.
+   --	 * The name of this symbol. Will be displayed in the user interface and
+   --	 * therefore must not be an empty string or a string only consisting of
+   --	 * white spaces.
    --	 */
    --	name: string;
    --
@@ -5925,20 +8018,30 @@ package LSP.Messages is
    --	kind: SymbolKind;
    --
    --	/**
+   --	 * Tags for this document symbol.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tags?: SymbolTag[];
+   --
+   --	/**
    --	 * Indicates if this symbol is deprecated.
+   --	 *
+   --	 * @deprecated Use tags instead
    --	 */
    --	deprecated?: boolean;
    --
    --	/**
-   --	 * The range enclosing this symbol not including leading/trailing whitespace but everything else
-   --	 * like comments. This information is typically used to determine if the clients cursor is
-   --	 * inside the symbol to reveal in the symbol in the UI.
+   --	 * The range enclosing this symbol not including leading/trailing whitespace
+   --	 * but everything else like comments. This information is typically used to
+   --	 * determine if the clients cursor is inside the symbol to reveal in the
+   --	 * symbol in the UI.
    --	 */
    --	range: Range;
    --
    --	/**
-   --	 * The range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
-   --	 * Must be contained by the `range`.
+   --	 * The range that should be selected and revealed when this symbol is being
+   --	 * picked, e.g. the name of a function. Must be contained by the `range`.
    --	 */
    --	selectionRange: Range;
    --
@@ -5964,7 +8067,16 @@ package LSP.Messages is
    --	kind: SymbolKind;
    --
    --	/**
+   --	 * Tags for this completion item.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	tags?: SymbolTag[];
+   --
+   --	/**
    --	 * Indicates if this symbol is deprecated.
+   --	 *
+   --	 * @deprecated Use tags instead
    --	 */
    --	deprecated?: boolean;
    --
@@ -5994,6 +8106,7 @@ package LSP.Messages is
       name: LSP_String;
       detail: Optional_String;
       kind: SymbolKind;
+      tags: SymbolTagSet;
       deprecated: Optional_Boolean;
       span: LSP.Messages.Span;
       selectionRange: LSP.Messages.Span;
@@ -6022,6 +8135,7 @@ package LSP.Messages is
       name: LSP_String;
       kind: SymbolKind;
       alsIsAdaProcedure : Optional_Boolean;
+      tags: SymbolTagSet;
       deprecated: Optional_Boolean;
       location: LSP.Messages.Location;
       containerName: Optional_String;
@@ -6064,7 +8178,8 @@ package LSP.Messages is
    --/**
    -- * The parameters of a Workspace Symbol Request.
    -- */
-   --interface WorkspaceSymbolParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface WorkspaceSymbolParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * A query string to filter symbols by. Clients may send an empty
    --	 * string here to request all symbols.
@@ -6089,7 +8204,8 @@ package LSP.Messages is
    --/**
    -- * Params for the CodeActionRequest
    -- */
-   --export interface CodeActionParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface CodeActionParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The document in which the command was invoked.
    --	 */
@@ -6109,10 +8225,11 @@ package LSP.Messages is
    --/**
    -- * The kind of a code action.
    -- *
-   -- * Kinds are a hierarchical list of identifiers separated by `.`, e.g. `"refactor.extract.function"`.
+   -- * Kinds are a hierarchical list of identifiers separated by `.`,
+   -- * e.g. `"refactor.extract.function"`.
    -- *
-   -- * The set of kinds is open and client needs to announce the kinds it supports to the server during
-   -- * initialization.
+   -- * The set of kinds is open and client needs to announce the kinds it supports
+   -- * to the server during initialization.
    -- */
    --export type CodeActionKind = string;
    --
@@ -6183,9 +8300,11 @@ package LSP.Messages is
    --	export const Source: CodeActionKind = 'source';
    --
    --	/**
-   --	 * Base kind for an organize imports source action: `source.organizeImports`.
+   --	 * Base kind for an organize imports source action:
+   --	 * `source.organizeImports`.
    --	 */
-   --	export const SourceOrganizeImports: CodeActionKind = 'source.organizeImports';
+   --	export const SourceOrganizeImports: CodeActionKind =
+   --		'source.organizeImports';
    --}
    --
    --/**
@@ -6194,10 +8313,11 @@ package LSP.Messages is
    -- */
    --export interface CodeActionContext {
    --	/**
-   --	 * An array of diagnostics known on the client side overlapping the range provided to the
-   --	 * `textDocument/codeAction` request. They are provided so that the server knows which
-   --	 * errors are currently presented to the user for the given range. There is no guarantee
-   --	 * that these accurately reflect the error state of the resource. The primary parameter
+   --	 * An array of diagnostics known on the client side overlapping the range
+   --	 * provided to the `textDocument/codeAction` request. They are provided so
+   --	 * that the server knows which errors are currently presented to the user
+   --	 * for the given range. There is no guarantee that these accurately reflect
+   --	 * the error state of the resource. The primary parameter
    --	 * to compute code actions is the provided range.
    --	 */
    --	diagnostics: Diagnostic[];
@@ -6205,8 +8325,8 @@ package LSP.Messages is
    --	/**
    --	 * Requested kind of actions to return.
    --	 *
-   --	 * Actions not of this kind are filtered out by the client before being shown. So servers
-   --	 * can omit computing them.
+   --	 * Actions not of this kind are filtered out by the client before being
+   --	 * shown. So servers can omit computing them.
    --	 */
    --	only?: CodeActionKind[];
    --}
@@ -6257,12 +8377,14 @@ package LSP.Messages is
    -- * A code lens represents a command that should be shown along with
    -- * source text, like the number of references, a way to run tests, etc.
    -- *
-   -- * A code lens is _unresolved_ when no command is associated to it. For performance
-   -- * reasons the creation of a code lens and resolving should be done in two stages.
+   -- * A code lens is _unresolved_ when no command is associated to it. For
+   -- * performance reasons the creation of a code lens and resolving should be done
+   -- * in two stages.
    -- */
    --interface CodeLens {
    --	/**
-   --	 * The range in which this code lens is valid. Should only span a single line.
+   --	 * The range in which this code lens is valid. Should only span a single
+   --	 * line.
    --	 */
    --	range: Range;
    --
@@ -6285,7 +8407,8 @@ package LSP.Messages is
    end record;
 
    --```typescript
-   --interface DocumentLinkParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface DocumentLinkParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The document to provide document links for.
    --	 */
@@ -6298,8 +8421,8 @@ package LSP.Messages is
 
    --```typescript
    --/**
-   -- * A document link is a range in a text document that links to an internal or external resource, like another
-   -- * text document or a web site.
+   -- * A document link is a range in a text document that links to an internal or
+   -- * external resource, like another text document or a web site.
    -- */
    --interface DocumentLink {
    --	/**
@@ -6315,9 +8438,10 @@ package LSP.Messages is
    --	/**
    --	 * The tooltip text when you hover over this link.
    --	 *
-   --	 * If a tooltip is provided, is will be displayed in a string that includes instructions on how to
-   --	 * trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
-   --	 * user settings, and localization.
+   --	 * If a tooltip is provided, is will be displayed in a string that includes
+   --	 * instructions on how to trigger the link, such as `{0} (ctrl + click)`.
+   --	 * The specific instructions vary depending on OS, user settings, and
+   --	 * localization.
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -6362,7 +8486,7 @@ package LSP.Messages is
    --	/**
    --	 * Size of a tab in spaces.
    --	 */
-   --	tabSize: number;
+   --	tabSize: uinteger;
    --
    --	/**
    --	 * Prefer spaces over tabs.
@@ -6393,7 +8517,7 @@ package LSP.Messages is
    --	/**
    --	 * Signature for further properties.
    --	 */
-   --	[key: string]: boolean | number | string;
+   --	[key: string]: boolean | integer | string;
    --}
    --```
    type FormattingOptions is record
@@ -6491,7 +8615,8 @@ package LSP.Messages is
      Write_DocumentOnTypeFormattingParams;
 
    --```typescript
-   --interface RenameParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --interface RenameParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --	/**
    --	 * The new name of the symbol. If the given name is not valid the
    --	 * request must return a [ResponseError](#ResponseError) with an
@@ -6577,16 +8702,24 @@ package LSP.Messages is
    --
    --	/**
    --	 * An optional textual description for why the edit was not applied.
-   --	 * This may be used may be used by the server for diagnostic
-   --	 * logging or to provide a suitable error for a request that
-   --	 * triggered the edit.
+   --	 * This may be used by the server for diagnostic logging or to provide
+   --	 * a suitable error for a request that triggered the edit.
    --	 */
    --	failureReason?: string;
+   --
+   --	/**
+   --	 * Depending on the client's failure handling strategy `failedChange`
+   --	 * might contain the index of the change that failed. This property is
+   --	 * only available if the client signals a `failureHandlingStrategy`
+   --	 * in its client capabilities.
+   --	 */
+   --	failedChange?: uinteger;
    --}
    --```
    type ApplyWorkspaceEditResult is record
       applied: Boolean;
       failureReason: Optional_String;
+      failedChange: Optional_uinteger;
    end record;
 
    procedure Read_ApplyWorkspaceEditResult
@@ -6613,8 +8746,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * Controls if a cancel button should show to allow the user to cancel the
-   --	 * long running operation. Clients that don't support cancellation are allowed
-   --	 * to ignore the setting.
+   --	 * long running operation. Clients that don't support cancellation are
+   --	 * allowed to ignore the setting.
    --	 */
    --	cancellable?: boolean;
    --
@@ -6633,9 +8766,9 @@ package LSP.Messages is
    --	 * to ignore the `percentage` value in subsequent in report notifications.
    --	 *
    --	 * The value should be steadily rising. Clients are free to ignore values
-   --	 * that are not following this rule.
+   --	 * that are not following this rule. The value range is [0, 100]
    --	 */
-   --	percentage?: number;
+   --	percentage?: uinteger;
    --}
    --```
    type WorkDoneProgressBegin is record
@@ -6652,11 +8785,11 @@ package LSP.Messages is
    --	kind: 'report';
    --
    --	/**
-   --	 * Controls enablement state of a cancel button. This property is only valid if a cancel
-   --	 * button got requested in the `WorkDoneProgressStart` payload.
+   --	 * Controls enablement state of a cancel button. This property is only valid
+   --	 *  if a cancel button got requested in the `WorkDoneProgressStart` payload.
    --	 *
-   --	 * Clients that don't support cancellation or don't support control the button's
-   --	 * enablement state are allowed to ignore the setting.
+   --	 * Clients that don't support cancellation or don't support control the
+   --	 * button's enablement state are allowed to ignore the setting.
    --	 */
    --	cancellable?: boolean;
    --
@@ -6675,9 +8808,9 @@ package LSP.Messages is
    --	 * to ignore the `percentage` value in subsequent in report notifications.
    --	 *
    --	 * The value should be steadily rising. Clients are free to ignore values
-   --	 * that are not following this rule.
+   --	 * that are not following this rule. The value range is [0, 100]
    --	 */
-   --	percentage?: number;
+   --	percentage?: uinteger;
    --}
    --```
    type WorkDoneProgressReport is record
@@ -6877,10 +9010,12 @@ package LSP.Messages is
    for ConfigurationParams'Write use Write_ConfigurationParams;
 
    --```typescript
-   --export interface CompletionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface CompletionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --	/**
    --	 * The completion context. This is only available if the client specifies
-   --	 * to send this using `ClientCapabilities.textDocument.completion.contextSupport === true`
+   --	 * to send this using the client capability
+   --	 * `completion.contextSupport === true`
    --	 */
    --	context?: CompletionContext;
    --}
@@ -6897,7 +9032,8 @@ package LSP.Messages is
    --
    --	/**
    --	 * Completion was triggered by a trigger character specified by
-   --	 * the `triggerCharacters` properties of the `CompletionRegistrationOptions`.
+   --	 * the `triggerCharacters` properties of the
+   --	 * `CompletionRegistrationOptions`.
    --	 */
    --	export const TriggerCharacter: 2 = 2;
    --
@@ -6910,7 +9046,8 @@ package LSP.Messages is
    --
    --
    --/**
-   -- * Contains additional information about the context in which a completion request is triggered.
+   -- * Contains additional information about the context in which a completion
+   -- * request is triggered.
    -- */
    --export interface CompletionContext {
    --	/**
@@ -6919,8 +9056,9 @@ package LSP.Messages is
    --	triggerKind: CompletionTriggerKind;
    --
    --	/**
-   --	 * The trigger character (a single character) that has trigger code complete.
-   --	 * Is undefined if `triggerKind !== CompletionTriggerKind.TriggerCharacter`
+   --	 * The trigger character (a single character) that has trigger code
+   --	 * complete. Is undefined if
+   --	 * `triggerKind !== CompletionTriggerKind.TriggerCharacter`
    --	 */
    --	triggerCharacter?: string;
    --}
@@ -6968,12 +9106,29 @@ package LSP.Messages is
    for CompletionParams'Read use Read_CompletionParams;
    for CompletionParams'Write use Write_CompletionParams;
 
+   type Disable_Reason is record
+      reason: LSP_String;
+   end record;
+
+   procedure Read_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Disable_Reason);
+   procedure Write_Disable_Reason
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Disable_Reason);
+   for Disable_Reason'Read use Read_Disable_Reason;
+   for Disable_Reason'Write use Write_Disable_Reason;
+
+   package Optional_Disable_Reasons is new LSP.Generic_Optional (Disable_Reason);
+   type Optional_Disable_Reason is new Optional_Disable_Reasons.Optional_Type;
+
    --```typescript
    --/**
-   -- * A code action represents a change that can be performed in code, e.g. to fix a problem or
-   -- * to refactor code.
+   -- * A code action represents a change that can be performed in code, e.g. to fix
+   -- * a problem or to refactor code.
    -- *
-   -- * A CodeAction must set either `edit` and/or a `command`. If both are supplied, the `edit` is applied first, then the `command` is executed.
+   -- * A CodeAction must set either `edit` and/or a `command`. If both are supplied,
+   -- * the `edit` is applied first, then the `command` is executed.
    -- */
    --export interface CodeAction {
    --
@@ -6995,15 +9150,46 @@ package LSP.Messages is
    --	diagnostics?: Diagnostic[];
    --
    --	/**
-   --	 * Marks this as a preferred action. Preferred actions are used by the `auto fix` command and can be targeted
-   --	 * by keybindings.
+   --	 * Marks this as a preferred action. Preferred actions are used by the
+   --	 * `auto fix` command and can be targeted by keybindings.
    --	 *
-   --	 * A quick fix should be marked preferred if it properly addresses the underlying error.
-   --	 * A refactoring should be marked preferred if it is the most reasonable choice of actions to take.
+   --	 * A quick fix should be marked preferred if it properly addresses the
+   --	 * underlying error. A refactoring should be marked preferred if it is the
+   --	 * most reasonable choice of actions to take.
    --	 *
    --	 * @since 3.15.0
    --	 */
    --	isPreferred?: boolean;
+   --
+   --	/**
+   --	 * Marks that the code action cannot currently be applied.
+   --	 *
+   --	 * Clients should follow the following guidelines regarding disabled code
+   --	 * actions:
+   --	 *
+   --	 * - Disabled code actions are not shown in automatic lightbulbs code
+   --	 *   action menus.
+   --	 *
+   --	 * - Disabled actions are shown as faded out in the code action menu when
+   --	 *   the user request a more specific type of code action, such as
+   --	 *   refactorings.
+   --	 *
+   --	 * - If the user has a keybinding that auto applies a code action and only
+   --	 *   a disabled code actions are returned, the client should show the user
+   --	 *   an error message with `reason` in the editor.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	disabled?: {
+   --
+   --		/**
+   --		 * Human readable description of why the code action is currently
+   --		 * disabled.
+   --		 *
+   --		 * This is displayed in the code actions UI.
+   --		 */
+   --		reason: string;
+   --	};
    --
    --	/**
    --	 * The workspace edit this code action performs.
@@ -7016,6 +9202,14 @@ package LSP.Messages is
    --	 * executed and then the command.
    --	 */
    --	command?: Command;
+   --
+   --	/**
+   --	 * A data entry field that is preserved on a code action between
+   --	 * a `textDocument/codeAction` and a `codeAction/resolve` request.
+   --	 *
+   --	 * @since 3.16.0
+   --	 */
+   --	data?: any
    --}
    --```
    type CodeAction is record
@@ -7023,6 +9217,7 @@ package LSP.Messages is
       kind: Optional_CodeActionKind;
       diagnostics: Optional_Diagnostic_Vector;
       isPreferred: Optional_Boolean;
+      disabled: Optional_Disable_Reason;
       edit: Optional_WorkspaceEdit;
       command: Optional_Command;
    end record;
@@ -7064,22 +9259,22 @@ package LSP.Messages is
    --	/**
    --	 * The red component of this color in the range [0-1].
    --	 */
-   --	readonly red: number;
+   --	readonly red: decimal;
    --
    --	/**
    --	 * The green component of this color in the range [0-1].
    --	 */
-   --	readonly green: number;
+   --	readonly green: decimal;
    --
    --	/**
    --	 * The blue component of this color in the range [0-1].
    --	 */
-   --	readonly blue: number;
+   --	readonly blue: decimal;
    --
    --	/**
    --	 * The alpha component of this color in the range [0-1].
    --	 */
-   --	readonly alpha: number;
+   --	readonly alpha: decimal;
    --}
    --```
    type RGBA_Color is record
@@ -7119,7 +9314,8 @@ package LSP.Messages is
      new ColorInformation_Vectors.Vector with null record;
 
    --```typescript
-   --interface ColorPresentationParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface ColorPresentationParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7155,19 +9351,20 @@ package LSP.Messages is
    --interface ColorPresentation {
    --	/**
    --	 * The label of this color presentation. It will be shown on the color
-   --	 * picker header. By default this is also the text that is inserted when selecting
-   --	 * this color presentation.
+   --	 * picker header. By default this is also the text that is inserted when
+   --	 * selecting this color presentation.
    --	 */
    --	label: string;
    --	/**
    --	 * An [edit](#TextEdit) which is applied to a document when selecting
-   --	 * this presentation for the color.  When `falsy` the [label](#ColorPresentation.label)
-   --	 * is used.
+   --	 * this presentation for the color.  When `falsy` the
+   --	 * [label](#ColorPresentation.label) is used.
    --	 */
    --	textEdit?: TextEdit;
    --	/**
-   --	 * An optional array of additional [text edits](#TextEdit) that are applied when
-   --	 * selecting this color presentation. Edits must not overlap with the main [edit](#ColorPresentation.textEdit) nor with themselves.
+   --	 * An optional array of additional [text edits](#TextEdit) that are applied
+   --	 * when selecting this color presentation. Edits must not overlap with the
+   --	 * main [edit](#ColorPresentation.textEdit) nor with themselves.
    --	 */
    --	additionalTextEdits?: TextEdit[];
    --}
@@ -7194,7 +9391,8 @@ package LSP.Messages is
      new ColorPresentation_Vectors.Vector with null record;
 
    --```typescript
-   --export interface FoldingRangeParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface FoldingRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7234,34 +9432,43 @@ package LSP.Messages is
    --}
    --
    --/**
-   -- * Represents a folding range.
+   -- * Represents a folding range. To be valid, start and end line must be bigger
+   -- * than zero and smaller than the number of lines in the document. Clients
+   -- * are free to ignore invalid ranges.
    -- */
    --export interface FoldingRange {
    --
    --	/**
-   --	 * The zero-based line number from where the folded range starts.
+   --	 * The zero-based start line of the range to fold. The folded area starts
+   --	 * after the line's last character. To be valid, the end must be zero or
+   --	 * larger and smaller than the number of lines in the document.
    --	 */
-   --	startLine: number;
+   --	startLine: uinteger;
    --
    --	/**
-   --	 * The zero-based character offset from where the folded range starts. If not defined, defaults to the length of the start line.
+   --	 * The zero-based character offset from where the folded range starts. If
+   --	 * not defined, defaults to the length of the start line.
    --	 */
-   --	startCharacter?: number;
+   --	startCharacter?: uinteger;
    --
    --	/**
-   --	 * The zero-based line number where the folded range ends.
+   --	 * The zero-based end line of the range to fold. The folded area ends with
+   --	 * the line's last character. To be valid, the end must be zero or larger
+   --	 * and smaller than the number of lines in the document.
    --	 */
-   --	endLine: number;
+   --	endLine: uinteger;
    --
    --	/**
-   --	 * The zero-based character offset before the folded range ends. If not defined, defaults to the length of the end line.
+   --	 * The zero-based character offset before the folded range ends. If not
+   --	 * defined, defaults to the length of the end line.
    --	 */
-   --	endCharacter?: number;
+   --	endCharacter?: uinteger;
    --
    --	/**
-   --	 * Describes the kind of the folding range such as `comment` or `region`. The kind
-   --	 * is used to categorize folding ranges and used by commands like 'Fold all comments'. See
-   --	 * [FoldingRangeKind](#FoldingRangeKind) for an enumeration of standardized kinds.
+   --	 * Describes the kind of the folding range such as `comment` or `region`.
+   --	 * The kind is used to categorize folding ranges and used by commands like
+   --	 * 'Fold all comments'. See [FoldingRangeKind](#FoldingRangeKind) for an
+   --	 * enumeration of standardized kinds.
    --	 */
    --	kind?: string;
    --}
@@ -7290,13 +9497,14 @@ package LSP.Messages is
      new FoldingRange_Vectors.Vector with null record;
 
    subtype FoldingRangeKind is LSP_String;
-
-   Comment : constant FoldingRangeKind := +"comment";
+   --  FIXME: replace with enumeration type???
+   function Comment return FoldingRangeKind is (+"comment");
    Imports : constant FoldingRangeKind := +"imports";
    Region  : constant FoldingRangeKind := +"region";
 
    --```typescript
-   --interface DocumentColorParams extends WorkDoneProgressParams, PartialResultParams {
+   --interface DocumentColorParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7317,21 +9525,25 @@ package LSP.Messages is
    for DocumentColorParams'Write use Write_DocumentColorParams;
 
    --```typescript
-   --export interface HoverRegistrationOptions extends TextDocumentRegistrationOptions, HoverOptions {
+   --export interface HoverRegistrationOptions
+   --	extends TextDocumentRegistrationOptions, HoverOptions {
    --}
    --```
 
    --```typescript
-   --export interface HoverParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --export interface HoverParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --}
    --```
    type HoverParams is new Text_Progress_Params with null record;
 
    --```typescript
-   --export interface SignatureHelpParams extends TextDocumentPositionParams, WorkDoneProgressParams {
+   --export interface SignatureHelpParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
    --	/**
-   --	 * The signature help context. This is only available if the client specifies
-   --	 * to send this using the client capability  `textDocument.signatureHelp.contextSupport === true`
+   --	 * The signature help context. This is only available if the client
+   --	 * specifies to send this using the client capability
+   --	 * `textDocument.signatureHelp.contextSupport === true`
    --	 *
    --	 * @since 3.15.0
    --	 */
@@ -7353,14 +9565,16 @@ package LSP.Messages is
    --	 */
    --	export const TriggerCharacter: 2 = 2;
    --	/**
-   --	 * Signature help was triggered by the cursor moving or by the document content changing.
+   --	 * Signature help was triggered by the cursor moving or by the document
+   --	 * content changing.
    --	 */
    --	export const ContentChange: 3 = 3;
    --}
    --export type SignatureHelpTriggerKind = 1 | 2 | 3;
    --
    --/**
-   -- * Additional information about the context in which a signature help request was triggered.
+   -- * Additional information about the context in which a signature help request
+   -- * was triggered.
    -- *
    -- * @since 3.15.0
    -- */
@@ -7373,23 +9587,25 @@ package LSP.Messages is
    --	/**
    --	 * Character that caused signature help to be triggered.
    --	 *
-   --	 * This is undefined when `triggerKind !== SignatureHelpTriggerKind.TriggerCharacter`
+   --	 * This is undefined when triggerKind !==
+   --	 * SignatureHelpTriggerKind.TriggerCharacter
    --	 */
    --	triggerCharacter?: string;
    --
    --	/**
    --	 * `true` if signature help was already showing when it was triggered.
    --	 *
-   --	 * Retriggers occur when the signature help is already active and can be caused by actions such as
-   --	 * typing a trigger character, a cursor move, or document content changes.
+   --	 * Retriggers occur when the signature help is already active and can be
+   --	 * caused by actions such as typing a trigger character, a cursor move, or
+   --	 * document content changes.
    --	 */
    --	isRetrigger: boolean;
    --
    --	/**
    --	 * The currently active `SignatureHelp`.
    --	 *
-   --	 * The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field updated based on
-   --	 * the user navigating through available signatures.
+   --	 * The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field
+   --	 * updated based on the user navigating through available signatures.
    --	 */
    --	activeSignatureHelp?: SignatureHelp;
    --}
@@ -7412,37 +9628,43 @@ package LSP.Messages is
    for NavigationRequestParams'Write use Write_NavigationRequestParams;
 
    --```typescript
-   --export interface DeclarationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DeclarationParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DeclarationParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface DefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DefinitionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DefinitionParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface TypeDefinitionParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface TypeDefinitionParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type TypeDefinitionParams is new Text_Progress_Partial_Params with null record;
 
    --```typescript
-   --export interface ImplementationParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface ImplementationParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type ImplementationParams is new NavigationRequestParams with null record;
 
    --```typescript
-   --export interface DocumentHighlightParams extends TextDocumentPositionParams, WorkDoneProgressParams, PartialResultParams {
+   --export interface DocumentHighlightParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
    --}
    --```
    type DocumentHighlightParams is new Text_Progress_Partial_Params with null record;
 
    --```typescript
-   --export interface SelectionRangeParams extends WorkDoneProgressParams, PartialResultParams {
+   --export interface SelectionRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
    --	/**
    --	 * The text document.
    --	 */
@@ -7475,7 +9697,8 @@ package LSP.Messages is
    --     */
    --    range: Range;
    --    /**
-   --     * The parent selection range containing this range. Therefore `parent.range` must contain `this.range`.
+   --     * The parent selection range containing this range. Therefore
+   --	 * `parent.range` must contain `this.range`.
    --     */
    --    parent?: SelectionRange;
    --}
@@ -7501,6 +9724,43 @@ package LSP.Messages is
      with null record;
 
    --```typescript
+   --export interface LinkedEditingRangeParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
+   --}
+   --```
+   subtype LinkedEditingRangeParams is Text_Progress_Params;
+
+   --```typescript
+   --export interface LinkedEditingRanges {
+   --	/**
+   --	 * A list of ranges that can be renamed together. The ranges must have
+   --	 * identical length and contain identical text content. The ranges cannot overlap.
+   --	 */
+   --	ranges: Range[];
+   --
+   --	/**
+   --	 * An optional word pattern (regular expression) that describes valid contents for
+   --	 * the given ranges. If no pattern is provided, the client configuration's word
+   --	 * pattern will be used.
+   --	 */
+   --	wordPattern?: string;
+   --}
+   --```
+   type LinkedEditingRanges is record
+      ranges: Span_Vector;
+      wordPattern: Optional_String;
+   end record;
+
+   procedure Read_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LinkedEditingRanges);
+   procedure Write_LinkedEditingRanges
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LinkedEditingRanges);
+   for LinkedEditingRanges'Read use Read_LinkedEditingRanges;
+   for LinkedEditingRanges'Write use Write_LinkedEditingRanges;
+
+   --```typescript
    --export interface WorkDoneProgressCancelParams {
    --	/**
    --	 * The token to be used to report progress.
@@ -7515,56 +9775,69 @@ package LSP.Messages is
    --```
    subtype PrepareRenameParams is TextDocumentPositionParams;
 
-   --  CallHierarchy is LSP 3.16 draft feature
-
+   --```typescript
+   --export interface CallHierarchyPrepareParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams {
+   --}
+   --```
    type CallHierarchyPrepareParams is new Text_Progress_Params with null record;
 
-   --  export interface CallHierarchyItem {
-   --  	/**
-   --  	 * The name of this item.
-   --  	 */
-   --  	name: string;
+   --```typescript
+   --export interface CallHierarchyItem {
+   --	/**
+   --	 * The name of this item.
+   --	 */
+   --	name: string;
    --
-   --  	/**
-   --  	 * The kind of this item.
-   --  	 */
-   --  	kind: SymbolKind;
+   --	/**
+   --	 * The kind of this item.
+   --	 */
+   --	kind: SymbolKind;
    --
-   --  	/**
-   --  	 * Tags for this item.
-   --  	 */
-   --  	tags?: SymbolTag[];
+   --	/**
+   --	 * Tags for this item.
+   --	 */
+   --	tags?: SymbolTag[];
    --
-   --  	/**
-   --  	 * More detail for this item, e.g. the signature of a function.
-   --  	 */
-   --  	detail?: string;
+   --	/**
+   --	 * More detail for this item, e.g. the signature of a function.
+   --	 */
+   --	detail?: string;
    --
-   --  	/**
-   --  	 * The resource identifier of this item.
-   --  	 */
-   --  	uri: DocumentUri;
+   --	/**
+   --	 * The resource identifier of this item.
+   --	 */
+   --	uri: DocumentUri;
    --
-   --  	/**
-   --  	 * The range enclosing this symbol not including leading/trailing whitespace but everything else, e.g. comments and code.
-   --  	 */
-   --  	range: Range;
+   --	/**
+   --	 * The range enclosing this symbol not including leading/trailing whitespace
+   --	 * but everything else, e.g. comments and code.
+   --	 */
+   --	range: Range;
    --
-   --  	/**
-   --  	 * The range that should be selected and revealed when this symbol is being picked, e.g. the name of a function.
-   --  	 * Must be contained by the [`range`](#CallHierarchyItem.range).
-   --  	 */
-   --  	selectionRange: Range;
-   --  }
-
+   --	/**
+   --	 * The range that should be selected and revealed when this symbol is being
+   --	 * picked, e.g. the name of a function. Must be contained by the
+   --	 * [`range`](#CallHierarchyItem.range).
+   --	 */
+   --	selectionRange: Range;
+   --
+   --	/**
+   --	 * A data entry field that is preserved between a call hierarchy prepare and
+   --	 * incoming calls or outgoing calls requests.
+   --	 */
+   --	data?: unknown;
+   --}
+   --```
    type CallHierarchyItem is record
       name: LSP_String;
       kind: SymbolKind;
-      --  tags?: SymbolTag[];
+      tags: SymbolTagSet;
       detail: Optional_String;
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word
       selectionRange: LSP.Messages.Span;
+      --  data?: unknown;
    end record;
 
    procedure Read_CallHierarchyItem
@@ -7582,10 +9855,12 @@ package LSP.Messages is
    type CallHierarchyItem_Vector is
      new CallHierarchyItem_Vectors.Vector with null record;
 
-   --  export interface CallHierarchyIncomingCallsParams extends WorkDoneProgressParams, PartialResultParams {
-   --  	item: CallHierarchyItem;
-   --  }
-
+   --```typescript
+   --export interface CallHierarchyIncomingCallsParams extends
+   --	WorkDoneProgressParams, PartialResultParams {
+   --	item: CallHierarchyItem;
+   --}
+   --```
    type CallHierarchyIncomingCallsParams is new Progress_Partial_Params with record
       item: CallHierarchyItem;
    end record;
@@ -7599,28 +9874,26 @@ package LSP.Messages is
    for CallHierarchyIncomingCallsParams'Read use Read_CallHierarchyIncomingCallsParams;
    for CallHierarchyIncomingCallsParams'Write use Write_CallHierarchyIncomingCallsParams;
 
-   package Span_Vectors is new LSP.Generic_Vectors
-     (Span, Write_Empty => LSP.Write_Array);
-
-   type Span_Vector is new Span_Vectors.Vector with null record;
-
-   --  export interface CallHierarchyIncomingCall {
+   --```typescript
+   --export interface CallHierarchyIncomingCall {
    --
-   --  	/**
-   --  	 * The item that makes the call.
-   --  	 */
-   --  	from: CallHierarchyItem;
+   --	/**
+   --	 * The item that makes the call.
+   --	 */
+   --	from: CallHierarchyItem;
    --
-   --  	/**
-   --  	 * The ranges at which the calls appear. This is relative to the caller
-   --  	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
-   --  	 */
-   --  	fromRanges: Range[];
-   --  }
+   --	/**
+   --	 * The ranges at which the calls appear. This is relative to the caller
+   --	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
+   --	 */
+   --	fromRanges: Range[];
+   --}
+   --```
    type CallHierarchyIncomingCall is record
       from: CallHierarchyItem;
       fromRanges: Span_Vector;
    end record;
+
    procedure Read_CallHierarchyIncomingCall
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CallHierarchyIncomingCall);
@@ -7636,26 +9909,34 @@ package LSP.Messages is
    type CallHierarchyIncomingCall_Vector is
      new CallHierarchyIncomingCall_Vectors.Vector with null record;
 
+   --```typescript
+   --export interface CallHierarchyOutgoingCallsParams extends
+   --	WorkDoneProgressParams, PartialResultParams {
+   --	item: CallHierarchyItem;
+   --}
+   --```
    subtype CallHierarchyOutgoingCallsParams is CallHierarchyIncomingCallsParams;
 
-   --  export interface CallHierarchyOutgoingCall {
+   --```typescript
+   --export interface CallHierarchyOutgoingCall {
    --
-   --  	/**
-   --  	 * The item that is called.
-   --  	 */
-   --  	to: CallHierarchyItem;
+   --	/**
+   --	 * The item that is called.
+   --	 */
+   --	to: CallHierarchyItem;
    --
-   --  	/**
-   --  	 * The range at which this item is called. This is the range relative to the caller, e.g the item
-   --  	 * passed to [`provideCallHierarchyOutgoingCalls`](#CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls)
-   --  	 * and not [`this.to`](#CallHierarchyOutgoingCall.to).
-   --  	 */
-   --  	fromRanges: Range[];
-   --  }
+   --	/**
+   --	 * The range at which this item is called. This is the range relative to
+   --	 * the caller, e.g the item passed to `callHierarchy/outgoingCalls` request.
+   --	 */
+   --	fromRanges: Range[];
+   --}
+   --```
    type CallHierarchyOutgoingCall is record
       to: CallHierarchyItem;
       fromRanges: Span_Vector;
    end record;
+
    procedure Read_CallHierarchyOutgoingCall
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out CallHierarchyOutgoingCall);
@@ -7670,6 +9951,635 @@ package LSP.Messages is
 
    type CallHierarchyOutgoingCall_Vector is
      new CallHierarchyOutgoingCall_Vectors.Vector with null record;
+
+   --```typescript
+   --export interface SemanticTokensParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --}
+   --```
+   subtype SemanticTokensParams is DocumentSymbolParams;
+
+   --```typescript
+   --export interface SemanticTokens {
+   --	/**
+   --	 * An optional result id. If provided and clients support delta updating
+   --	 * the client will include the result id in the next semantic token request.
+   --	 * A server can then instead of computing all semantic tokens again simply
+   --	 * send a delta.
+   --	 */
+   --	resultId?: string;
+   --
+   --	/**
+   --	 * The actual tokens.
+   --	 */
+   --	data: uinteger[];
+   --}
+   --```
+   type SemanticTokens is record
+      resultId: Optional_String;
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokens);
+   procedure Write_SemanticTokens
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokens);
+   for SemanticTokens'Read use Read_SemanticTokens;
+   for SemanticTokens'Write use Write_SemanticTokens;
+
+   --```typescript
+   --export interface SemanticTokensPartialResult {
+   --	data: uinteger[];
+   --}
+   --```
+   type SemanticTokensPartialResult is record
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensPartialResult);
+   procedure Write_SemanticTokensPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensPartialResult);
+   for SemanticTokensPartialResult'Read use Read_SemanticTokensPartialResult;
+   for SemanticTokensPartialResult'Write use Write_SemanticTokensPartialResult;
+
+   --```typescript
+   --export interface SemanticTokensDeltaParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The result id of a previous response. The result Id can either point to
+   --	 * a full response or a delta response depending on what was received last.
+   --	 */
+   --	previousResultId: string;
+   --}
+   --```
+   type SemanticTokensDeltaParams is new Progress_Partial_Params with record
+      textDocument: TextDocumentIdentifier;
+      previousResultId: LSP_String;
+   end record;
+
+   procedure Read_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaParams);
+   procedure Write_SemanticTokensDeltaParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaParams);
+   for SemanticTokensDeltaParams'Read use Read_SemanticTokensDeltaParams;
+   for SemanticTokensDeltaParams'Write use Write_SemanticTokensDeltaParams;
+
+   --```typescript
+   --export interface SemanticTokensDelta {
+   --	readonly resultId?: string;
+   --	/**
+   --	 * The semantic token edits to transform a previous result into a new
+   --	 * result.
+   --	 */
+   --	edits: SemanticTokensEdit[];
+   --}
+   --
+   --export interface SemanticTokensEdit {
+   --	/**
+   --	 * The start offset of the edit.
+   --	 */
+   --	start: uinteger;
+   --
+   --	/**
+   --	 * The count of elements to remove.
+   --	 */
+   --	deleteCount: uinteger;
+   --
+   --	/**
+   --	 * The elements to insert.
+   --	 */
+   --	data?: uinteger[];
+   --}
+   --```
+   type SemanticTokensEdit is record
+      start: uinteger;
+      deleteCount: uinteger;
+      data: uinteger_Vector;
+   end record;
+
+   procedure Read_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensEdit);
+   procedure Write_SemanticTokensEdit
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensEdit);
+   for SemanticTokensEdit'Read use Read_SemanticTokensEdit;
+   for SemanticTokensEdit'Write use Write_SemanticTokensEdit;
+
+   package SemanticTokensEdit_Vectors is new LSP.Generic_Vectors
+     (SemanticTokensEdit, Write_Empty => LSP.Write_Array);
+   type SemanticTokensEdit_Vector is new SemanticTokensEdit_Vectors.Vector
+     with null record;
+
+   type SemanticTokensDelta is record
+      resultId: Optional_String;
+      edits: SemanticTokensEdit_Vector;
+   end record;
+
+   procedure Read_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDelta);
+   procedure Write_SemanticTokensDelta
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDelta);
+   for SemanticTokensDelta'Read use Read_SemanticTokensDelta;
+   for SemanticTokensDelta'Write use Write_SemanticTokensDelta;
+
+   --```typescript
+   --export interface SemanticTokensDeltaPartialResult {
+   --	edits: SemanticTokensEdit[]
+   --}
+   --```
+   type SemanticTokensDeltaPartialResult is record
+      edits: SemanticTokensEdit_Vector;
+   end record;
+
+   procedure Read_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensDeltaPartialResult);
+   procedure Write_SemanticTokensDeltaPartialResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensDeltaPartialResult);
+   for SemanticTokensDeltaPartialResult'Read use Read_SemanticTokensDeltaPartialResult;
+   for SemanticTokensDeltaPartialResult'Write use Write_SemanticTokensDeltaPartialResult;
+
+   --```typescript
+   --export interface SemanticTokensRangeParams extends WorkDoneProgressParams,
+   --	PartialResultParams {
+   --	/**
+   --	 * The text document.
+   --	 */
+   --	textDocument: TextDocumentIdentifier;
+   --
+   --	/**
+   --	 * The range the semantic tokens are requested for.
+   --	 */
+   --	range: Range;
+   --}
+   --```
+   type SemanticTokensRangeParams is new Progress_Partial_Params with record
+      textDocument: TextDocumentIdentifier;
+      span: LSP.Messages.Span;  --  range: is reserved word
+   end record;
+
+   procedure Read_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensRangeParams);
+   procedure Write_SemanticTokensRangeParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensRangeParams);
+   for SemanticTokensRangeParams'Read use Read_SemanticTokensRangeParams;
+   for SemanticTokensRangeParams'Write use Write_SemanticTokensRangeParams;
+
+   --```typescript
+   --export interface MonikerParams extends TextDocumentPositionParams,
+   --	WorkDoneProgressParams, PartialResultParams {
+   --}
+   --```
+   type MonikerParams is new Text_Progress_Partial_Params with null record;
+
+   --```typescript
+   --/**
+   --  * Moniker uniqueness level to define scope of the moniker.
+   --  */
+   --export enum UniquenessLevel {
+   --	/**
+   --	 * The moniker is only unique inside a document
+   --	 */
+   --	document = 'document',
+   --
+   --	/**
+   --	 * The moniker is unique inside a project for which a dump got created
+   --	 */
+   --	project = 'project',
+   --
+   --	/**
+   --	 * The moniker is unique inside the group to which a project belongs
+   --	 */
+   --	group = 'group',
+   --
+   --	/**
+   --	 * The moniker is unique inside the moniker scheme.
+   --	 */
+   --	scheme = 'scheme',
+   --
+   --	/**
+   --	 * The moniker is globally unique
+   --	 */
+   --	global = 'global'
+   --}
+   --
+   --/**
+   -- * The moniker kind.
+   -- */
+   --export enum MonikerKind {
+   --	/**
+   --	 * The moniker represent a symbol that is imported into a project
+   --	 */
+   --	import = 'import',
+   --
+   --	/**
+   --	 * The moniker represents a symbol that is exported from a project
+   --	 */
+   --	export = 'export',
+   --
+   --	/**
+   --	 * The moniker represents a symbol that is local to a project (e.g. a local
+   --	 * variable of a function, a class not visible outside the project, ...)
+   --	 */
+   --	local = 'local'
+   --}
+   --
+   --/**
+   -- * Moniker definition to match LSIF 0.5 moniker definition.
+   -- */
+   --export interface Moniker {
+   --	/**
+   --	 * The scheme of the moniker. For example tsc or .Net
+   --	 */
+   --	scheme: string;
+   --
+   --	/**
+   --	 * The identifier of the moniker. The value is opaque in LSIF however
+   --	 * schema owners are allowed to define the structure if they want.
+   --	 */
+   --	identifier: string;
+   --
+   --	/**
+   --	 * The scope in which the moniker is unique
+   --	 */
+   --	unique: UniquenessLevel;
+   --
+   --	/**
+   --	 * The moniker kind if known.
+   --	 */
+   --	kind?: MonikerKind;
+   --}
+   --```
+   type UniquenessLevel is (document, project, group, scheme, global);
+
+   procedure Read_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out UniquenessLevel);
+   procedure Write_UniquenessLevel
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : UniquenessLevel);
+   for UniquenessLevel'Read use Read_UniquenessLevel;
+   for UniquenessLevel'Write use Write_UniquenessLevel;
+
+   type MonikerKind is (import, export, local);
+
+   procedure Read_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out MonikerKind);
+   procedure Write_MonikerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : MonikerKind);
+   for MonikerKind'Read use Read_MonikerKind;
+   for MonikerKind'Write use Write_MonikerKind;
+
+   package Optional_MonikerKinds is new LSP.Generic_Optional (MonikerKind);
+   type Optional_MonikerKind is new Optional_MonikerKinds.Optional_Type;
+
+   type Moniker is record
+      scheme: LSP_String;
+      identifier: LSP_String;
+      unique: UniquenessLevel;
+      kind: Optional_MonikerKind;
+   end record;
+
+   procedure Read_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Moniker);
+   procedure Write_Moniker
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Moniker);
+   for Moniker'Read use Read_Moniker;
+   for Moniker'Write use Write_Moniker;
+
+   package Moniker_Vectors is new LSP.Generic_Vectors
+     (Moniker, Write_Empty => LSP.Write_Array);
+   type Moniker_Vector is new Moniker_Vectors.Vector with null record;
+
+   --```typescript
+   --/**
+   -- * Params to show a document.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentParams {
+   --	/**
+   --	 * The document uri to show.
+   --	 */
+   --	uri: URI;
+   --
+   --	/**
+   --	 * Indicates to show the resource in an external program.
+   --	 * To show for example `https://code.visualstudio.com/`
+   --	 * in the default WEB browser set `external` to `true`.
+   --	 */
+   --	external?: boolean;
+   --
+   --	/**
+   --	 * An optional property to indicate whether the editor
+   --	 * showing the document should take focus or not.
+   --	 * Clients might ignore this property if an external
+   --	 * program is started.
+   --	 */
+   --	takeFocus?: boolean;
+   --
+   --	/**
+   --	 * An optional selection range if the document is a text
+   --	 * document. Clients might ignore the property if an
+   --	 * external program is started or the file is not a text
+   --	 * file.
+   --	 */
+   --	selection?: Range;
+   --}
+   --```
+   type ShowDocumentParams is record
+      uri: LSP_String;
+      external: Optional_Boolean;
+      takeFocus: Optional_Boolean;
+      selection: Optional_Span;
+   end record;
+
+   procedure Read_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentParams);
+   procedure Write_ShowDocumentParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentParams);
+   for ShowDocumentParams'Read use Read_ShowDocumentParams;
+   for ShowDocumentParams'Write use Write_ShowDocumentParams;
+
+   --```typescript
+   --/**
+   -- * The result of an show document request.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface ShowDocumentResult {
+   --	/**
+   --	 * A boolean indicating if the show was successful.
+   --	 */
+   --	success: boolean;
+   --}
+   --```
+   type ShowDocumentResult is record
+      success: Boolean;
+   end record;
+
+   procedure Read_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ShowDocumentResult);
+   procedure Write_ShowDocumentResult
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ShowDocumentResult);
+   for ShowDocumentResult'Read use Read_ShowDocumentResult;
+   for ShowDocumentResult'Write use Write_ShowDocumentResult;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated creation
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface CreateFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders created in this operation.
+   --	 */
+   --	files: FileCreate[];
+   --}
+   --/**
+   -- * Represents information on a file/folder create.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileCreate {
+   --
+   --	/**
+   --	 * A file:// URI for the location of the file/folder being created.
+   --	 */
+   --	uri: string;
+   --}
+   --```
+   type FileCreate is record
+      uri: LSP_String;
+   end record;
+
+   procedure Read_FileCreate
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileCreate);
+   procedure Write_FileCreate
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileCreate);
+   for FileCreate'Read use Read_FileCreate;
+   for FileCreate'Write use Write_FileCreate;
+
+   package FileCreate_Vectors is new LSP.Generic_Vectors
+     (FileCreate, Write_Empty => LSP.Write_Array);
+   type FileCreate_Vector is new FileCreate_Vectors.Vector with null record;
+
+   type CreateFilesParams is record
+      files: FileCreate_Vector;
+   end record;
+
+   procedure Read_CreateFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CreateFilesParams);
+   procedure Write_CreateFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CreateFilesParams);
+   for CreateFilesParams'Read use Read_CreateFilesParams;
+   for CreateFilesParams'Write use Write_CreateFilesParams;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated renames
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface RenameFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders renamed in this operation. When a folder
+   --	 * is renamed, only the folder will be included, and not its children.
+   --	 */
+   --	files: FileRename[];
+   --}
+   --/**
+   -- * Represents information on a file/folder rename.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileRename {
+   --
+   --	/**
+   --	 * A file:// URI for the original location of the file/folder being renamed.
+   --	 */
+   --	oldUri: string;
+   --
+   --	/**
+   --	 * A file:// URI for the new location of the file/folder being renamed.
+   --	 */
+   --	newUri: string;
+   --}
+   --```
+   type FileRename is record
+      oldUri: LSP_String;
+      newUri: LSP_String;
+   end record;
+
+   procedure Read_FileRename
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileRename);
+   procedure Write_FileRename
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileRename);
+   for FileRename'Read use Read_FileRename;
+   for FileRename'Write use Write_FileRename;
+
+   package FileRename_Vectors is new LSP.Generic_Vectors
+     (FileRename, Write_Empty => LSP.Write_Array);
+   type FileRename_Vector is new FileRename_Vectors.Vector with null record;
+
+   type RenameFilesParams is record
+      files: FileRename_Vector;
+   end record;
+
+   procedure Read_RenameFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameFilesParams);
+   procedure Write_RenameFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameFilesParams);
+   for RenameFilesParams'Read use Read_RenameFilesParams;
+   for RenameFilesParams'Write use Write_RenameFilesParams;
+
+   --```typescript
+   --/**
+   -- * The parameters sent in notifications/requests for user-initiated deletes
+   -- * of files.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface DeleteFilesParams {
+   --
+   --	/**
+   --	 * An array of all files/folders deleted in this operation.
+   --	 */
+   --	files: FileDelete[];
+   --}
+   --/**
+   -- * Represents information on a file/folder delete.
+   -- *
+   -- * @since 3.16.0
+   -- */
+   --export interface FileDelete {
+   --
+   --	/**
+   --	 * A file:// URI for the location of the file/folder being deleted.
+   --	 */
+   --	uri: string;
+   --}
+   --```
+   type FileDelete is record
+      uri: LSP_String;
+   end record;
+
+   procedure Read_FileDelete
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileDelete);
+   procedure Write_FileDelete
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileDelete);
+   for FileDelete'Read use Read_FileDelete;
+   for FileDelete'Write use Write_FileDelete;
+
+   package FileDelete_Vectors is new LSP.Generic_Vectors
+     (FileDelete, Write_Empty => LSP.Write_Array);
+   type FileDelete_Vector is new FileDelete_Vectors.Vector with null record;
+
+   type DeleteFilesParams is record
+      files: FileDelete_Vector;
+   end record;
+
+   procedure Read_DeleteFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DeleteFilesParams);
+   procedure Write_DeleteFilesParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DeleteFilesParams);
+   for DeleteFilesParams'Read use Read_DeleteFilesParams;
+   for DeleteFilesParams'Write use Write_DeleteFilesParams;
+
+   --```typescript
+   --interface LogTraceParams {
+   --	/**
+   --	 * The message to be logged.
+   --	 */
+   --	message: string;
+   --	/**
+   --	 * Additional information that can be computed if the `trace` configuration
+   --	 * is set to `'verbose'`
+   --	 */
+   --	verbose?: string;
+   --}
+   --```
+   type LogTraceParams is record
+      message: LSP_String;
+      verbose: Optional_String;
+   end record;
+
+   procedure Read_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LogTraceParams);
+   procedure Write_LogTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LogTraceParams);
+   for LogTraceParams'Read use Read_LogTraceParams;
+   for LogTraceParams'Write use Write_LogTraceParams;
+
+   --```typescript
+   --interface SetTraceParams {
+   --	/**
+   --	 * The new value that should be assigned to the trace setting.
+   --	 */
+   --	value: TraceValue;
+   --}
+   --```
+   type SetTraceParams is record
+      value: TraceValue;
+   end record;
+
+   procedure Read_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SetTraceParams);
+   procedure Write_SetTraceParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SetTraceParams);
+   for SetTraceParams'Read use Read_SetTraceParams;
+   for SetTraceParams'Write use Write_SetTraceParams;
 
    -----------------------------------------
    -- ALS-specific messages and responses --
@@ -7814,5 +10724,62 @@ private
    function Method_To_Tag
      (Map    : Maps.Map;
       Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+
+   --  Here are useless typescript snippets from LSP specification, such as
+   --  examples. We keep them to be able to restore all snippets and compare
+   --  them to the LSP specification on upgrading LSP version.
+   --
+   --```typescript
+   --{
+   --    start: { line: 5, character: 23 },
+   --    end : { line: 6, character: 0 }
+   --}
+   --```
+   --```typescript
+   --textDocument.codeAction.resolveSupport = { properties: ['edit']};
+   --```
+   --```typescript
+   --{
+   --    "title": "Do Foo"
+   --}
+   --```
+   --```typescript
+   --{ line: 2, startChar:  5, length: 3, tokenType: "property",
+   --	tokenModifiers: ["private", "static"]
+   --},
+   --{ line: 2, startChar: 10, length: 4, tokenType: "type", tokenModifiers: [] },
+   --{ line: 5, startChar:  2, length: 7, tokenType: "class", tokenModifiers: [] }
+   --```
+   --```typescript
+   --{
+   --   tokenTypes: ['property', 'type', 'class'],
+   --   tokenModifiers: ['private', 'static']
+   --}
+   --```
+   --```typescript
+   --{ line: 2, startChar:  5, length: 3, tokenType: 0, tokenModifiers: 3 },
+   --{ line: 2, startChar: 10, length: 4, tokenType: 1, tokenModifiers: 0 },
+   --{ line: 5, startChar:  2, length: 7, tokenType: 2, tokenModifiers: 0 }
+   --```
+   --```typescript
+   --{ deltaLine: 2, deltaStartChar: 5, length: 3, tokenType: 0, tokenModifiers: 3 },
+   --{ deltaLine: 0, deltaStartChar: 5, length: 4, tokenType: 1, tokenModifiers: 0 },
+   --{ deltaLine: 3, deltaStartChar: 2, length: 7, tokenType: 2, tokenModifiers: 0 }
+   --```
+   --```typescript
+   --// 1st token,  2nd token,  3rd token
+   --[  2,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0 ]
+   --```
+   --```typescript
+   --{ line: 3, startChar:  5, length: 3, tokenType: "property",
+   --	tokenModifiers: ["private", "static"]
+   --},
+   --{ line: 3, startChar: 10, length: 4, tokenType: "type", tokenModifiers: [] },
+   --{ line: 6, startChar:  2, length: 7, tokenType: "class", tokenModifiers: [] }
+   --```
+   --```typescript
+   --// 1st token,  2nd token,  3rd token
+   --[  3,5,3,0,3,  0,5,4,1,0,  3,2,7,2,0]
+   --```
 
 end LSP.Messages;
