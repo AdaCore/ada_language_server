@@ -3,7 +3,17 @@ image:
 
 tasks:
   - init: echo "hello"
+    command: |
+      mkdir -p $HOME/adalib
+      curl -L https://bintray.com/reznikmm/libadalang/download_file\?file_path=libadalang-Linux-stable-static.tar.gz \
+      | tar xzf - -C $HOME/adalib
+      git -C subprojects clone https://github.com/AdaCore/VSS.git
+      git -C subprojects clone https://github.com/AdaCore/spawn.git
+      git -C subprojects clone https://github.com/AdaCore/libadalang-tools.git
+      gp open doc/gitpod.md
+      echo make LIBRARY_TYPE=static
 
 vscode:
   extensions:
     - adacore.ada@22.0.5:b56gZDvQ5KBm6u34IBzm1g==
+    - webfreak.debug@0.25.0:F9uLpAOde6r0l7rgMC8LTQ==
