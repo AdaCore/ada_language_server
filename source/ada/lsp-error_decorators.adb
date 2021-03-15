@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+
+with Ada.Assertions;
 with Libadalang.Common;
 
 package body LSP.Error_Decorators is
@@ -44,14 +46,30 @@ package body LSP.Error_Decorators is
    begin
       return On_Request (Handler'Class (Self.Handler.all)'Access, Value);
    exception
-      when E : Libadalang.Common.Property_Error =>
-         Self.Trace.Trace ("Uncaught Property_Error");
+      when E :
+         --  Libadalang / Langkit might raise these when working on
+         --  invalid Ada Code
+         Libadalang.Common.Property_Error
+         |  Libadalang.Common.Precondition_Failure
+
+         --  Some versions of Libadalang_Tools raise Assertion_Error
+         --  on invalid Ada Code
+         | Ada.Assertions.Assertion_Error
+         =>
+
+         --  For these exceptions, add traces in the log...
+         Self.Trace.Trace
+           ("Uncaught exception probably linked to invalid Ada code");
          Self.Trace.Trace (E);
+
+         --  ... and send an empty response to the request: we do not
+         --  want the exception to reach the user.
          pragma Warnings (Off, "is read but never assigned");
          return Result : Response (Is_Error => False);
          pragma Warnings (On, "is read but never assigned");
+
       when E : others =>
-         --  Property errors are expected to happen in the normal flow
+         --  The exceptions above are expected to happen in the normal flow
          --  of events in LAL. However, for any other error than a
          --  property error, we want to reload the context.
          Self.On_Error (E);

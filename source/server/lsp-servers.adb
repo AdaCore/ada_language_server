@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Assertions;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
@@ -34,8 +33,6 @@ with LSP.Servers.Decode_Request;
 with LSP.Servers.Handle_Request;
 
 with GNATCOLL.Traces;           use GNATCOLL.Traces;
-
-with Libadalang.Common;         use Libadalang.Common;
 
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Buffers;
@@ -1102,13 +1099,6 @@ package body LSP.Servers is
          Server       : not null LSP.Server_Backends.Server_Backend_Access);
       --  Initializes internal data structures
 
-      function Process_Exception
-        (Message : String; E : Exception_Occurrence) return Boolean;
-      --  Process the exception: depending on the type of exception, send a
-      --  response to the user or store it in the log.
-      --  Return True if the exception is known to be raised by Libadalang
-      --  when processing invalid Ada code.
-
       procedure Process_Message (Message : in out Message_Access);
 
       ----------------
@@ -1128,34 +1118,6 @@ package body LSP.Servers is
          Server_Backend := Server;
       end Initialize;
 
-      -----------------------
-      -- Process_Exception --
-      -----------------------
-
-      function Process_Exception
-        (Message : String; E : Exception_Occurrence) return Boolean is
-      begin
-         --  Always log an exception in the traces
-         Server.Server_Trace.Trace
-           ("Exception (" & Message & "):" & ASCII.LF
-            & Exception_Name (E) & ASCII.LF &
-              Symbolic_Traceback (E));
-
-         if Exception_Identity (E) in
-           --  Libadalang / Langkit might raise these when working on
-           --  invalid Ada Code
-           Property_Error'Identity | Precondition_Failure'Identity
-
-           --  Some versions of Libadalang_Tools raise Assertion_Error
-           --  on invalid Ada Code
-             | Ada.Assertions.Assertion_Error'Identity
-         then
-            return True;
-         end if;
-
-         return False;
-      end Process_Exception;
-
       ---------------------
       -- Process_Message --
       ---------------------
@@ -1173,14 +1135,11 @@ package body LSP.Servers is
                Server_Backend.After_Work (Message.all);
             exception
                when E : others =>
-                  declare
-                     Ignored : Boolean;
-                  begin
-                     Ignored := Process_Exception
-                       ("processing notification "
-                        & Ada.Tags.External_Tag (Message'Tag),
-                        E);
-                  end;
+                  --  Always log an exception in the traces
+                  Server.Server_Trace.Trace
+                    ("Exception (processing notification):" & ASCII.LF
+                     & Exception_Name (E) & ASCII.LF &
+                       Symbolic_Traceback (E));
             end;
 
             Free (Message);
@@ -1217,19 +1176,12 @@ package body LSP.Servers is
          exception
             --  If we reach this exception handler, this means an exception
             --  was raised when processing the request.
-            --
+            --  If this is an "exception that's expected for invalid Ada", it
+            --  should have been caught by the Error_Decorator.
             when E : others =>
-               --  Trace the exception
-               if not Process_Exception
-                 ("processing request " & Ada.Tags.External_Tag (Message'Tag),
-                  E)
-               then
-                  --  If Process_Exception returned False, this is not a
-                  --  known LAL-on-invalid-code exception: warn the user.
-                  Send_Exception_Response
-                    (Server.all, E,
-                     Ada.Tags.External_Tag (Message'Tag), Request.id);
-               end if;
+               Send_Exception_Response
+                 (Server.all, E,
+                  Ada.Tags.External_Tag (Message'Tag), Request.id);
                Server.Destroy_Queue.Enqueue (Message);
          end;
 
