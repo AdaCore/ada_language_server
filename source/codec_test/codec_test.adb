@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,17 +29,16 @@ with Ada.Streams.Stream_IO;
 
 with GNATCOLL.JSON;
 
-with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
-with VSS.Stream_Element_Buffers;
 with VSS.JSON.Streams.Readers.Simple;
 
 procedure Codec_Test is
 
    type Test_Access is access function
-     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
-      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
+     (Input : VSS.Stream_Element_Vectors.Stream_Element_Vector)
+      return VSS.Stream_Element_Vectors.Stream_Element_Vector;
    --  A function that converts Input to an Ada type and then converts it back
    --  to Stream_Element_Buffer.
 
@@ -51,7 +50,7 @@ procedure Codec_Test is
    --  It prints found differences and set failure exit status if test fails.
 
    function Read_File (File_Name : String)
-      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
+      return VSS.Stream_Element_Vectors.Stream_Element_Vector;
    --  Read content of the file and return it as a string
 
    procedure Register_Tests;
@@ -63,8 +62,8 @@ procedure Codec_Test is
    generic
       type Response is new LSP.Messages.ResponseMessage with private;
    function Generic_Response_Test
-     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
-      return VSS.Stream_Element_Buffers.Stream_Element_Buffer;
+     (Input : VSS.Stream_Element_Vectors.Stream_Element_Vector)
+      return VSS.Stream_Element_Vectors.Stream_Element_Vector;
    --  Generic codec for a response.
 
    package Test_Maps is new Ada.Containers.Indefinite_Hashed_Maps
@@ -81,8 +80,8 @@ procedure Codec_Test is
    ---------------------------
 
    function Generic_Response_Test
-     (Input : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
-      return VSS.Stream_Element_Buffers.Stream_Element_Buffer
+     (Input : VSS.Stream_Element_Vectors.Stream_Element_Vector)
+      return VSS.Stream_Element_Vectors.Stream_Element_Vector
    is
       Text_Input : aliased
         VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
@@ -244,22 +243,22 @@ procedure Codec_Test is
      (File_Name : String;
       Type_Name : String)
    is
-      In_Buffer : constant VSS.Stream_Element_Buffers.Stream_Element_Buffer
+      In_Buffer : constant VSS.Stream_Element_Vectors.Stream_Element_Vector
         := Read_File (File_Name);
 
-      Out_Buffer : VSS.Stream_Element_Buffers.Stream_Element_Buffer;
+      Out_Buffer : VSS.Stream_Element_Vectors.Stream_Element_Vector;
    begin
       Out_Buffer := Test_Map (Type_Name).all (In_Buffer);
 
       declare
          Input : constant GNATCOLL.JSON.JSON_Value :=
            GNATCOLL.JSON.Read
-             (VSS.Stream_Element_Buffers.Conversions.Unchecked_To_String
+             (VSS.Stream_Element_Vectors.Conversions.Unchecked_To_String
                 (In_Buffer),  File_Name);
 
          Output : constant GNATCOLL.JSON.JSON_Value :=
            GNATCOLL.JSON.Read
-             (VSS.Stream_Element_Buffers.Conversions.Unchecked_To_String
+             (VSS.Stream_Element_Vectors.Conversions.Unchecked_To_String
                 (Out_Buffer));
       begin
          if not Compare (Input, Output) then
@@ -276,12 +275,12 @@ procedure Codec_Test is
    ---------------
 
    function Read_File (File_Name : String)
-      return VSS.Stream_Element_Buffers.Stream_Element_Buffer
+      return VSS.Stream_Element_Vectors.Stream_Element_Vector
    is
       use type Ada.Streams.Stream_Element_Count;
 
       Input  : Ada.Streams.Stream_IO.File_Type;
-      Result : VSS.Stream_Element_Buffers.Stream_Element_Buffer;
+      Result : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Data   : Ada.Streams.Stream_Element_Array (1 .. 256);
       Last   : Ada.Streams.Stream_Element_Count;
    begin

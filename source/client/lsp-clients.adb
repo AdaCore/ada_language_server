@@ -18,7 +18,7 @@
 with Ada.Strings.Wide_Unbounded;
 
 with VSS.JSON.Streams.Readers.Simple;
-with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
@@ -671,7 +671,7 @@ package body LSP.Clients is
       --  First, cleanup error message from previous value.
 
       Memory.Set_Data
-        (VSS.Stream_Element_Buffers.Conversions.Unchecked_From_Unbounded_String
+        (VSS.Stream_Element_Vectors.Conversions.Unchecked_From_Unbounded_String
            (Data));
 
       Look_Ahead (Id, Method, Is_Error);
