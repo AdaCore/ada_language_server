@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,7 +21,7 @@ with Ada.Strings.UTF_Encoding;
 
 with VSS.Strings;
 
-with VSS.Stream_Element_Buffers;
+with VSS.Stream_Element_Vectors;
 
 with Spawn.Environments;
 with Spawn.Processes;
@@ -104,7 +104,7 @@ package LSP.Raw_Clients is
 
    procedure Send_Buffer
      (Self : in out Raw_Client'Class;
-      Text : VSS.Stream_Element_Buffers.Stream_Element_Buffer);
+      Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
    --  Send a request to LSP server. Text should contain valid JSON in
    --  UTF-8 encoding.
 
