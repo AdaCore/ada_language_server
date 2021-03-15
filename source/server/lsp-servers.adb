@@ -35,8 +35,7 @@ with LSP.Servers.Handle_Request;
 with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with VSS.JSON.Streams.Readers.Simple;
-with VSS.Stream_Element_Buffers;
-with VSS.Stream_Element_Buffers.Conversions;
+with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
@@ -384,7 +383,7 @@ package body LSP.Servers is
          Error      : LSP.Messages.Optional_ResponseError;
       begin
          Memory.Set_Data
-           (VSS.Stream_Element_Buffers.Conversions
+           (VSS.Stream_Element_Vectors.Conversions
               .Unchecked_From_Unbounded_String
                  (Vector));
 
@@ -991,7 +990,7 @@ package body LSP.Servers is
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : VSS.Stream_Element_Buffers.Stream_Element_Buffer);
+         Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector);
       --  Format Vector into a protocol string including the header,
       --  and send it to Stream.
 
@@ -1001,7 +1000,7 @@ package body LSP.Servers is
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
-         Vector : VSS.Stream_Element_Buffers.Stream_Element_Buffer)
+         Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector)
       is
          Image  : constant String := Ada.Streams.Stream_Element_Count'Image
            (Vector.Length);
@@ -1010,13 +1009,13 @@ package body LSP.Servers is
 
       begin
          String'Write (Stream, Header);
-         VSS.Stream_Element_Buffers.Stream_Element_Buffer'Write
+         VSS.Stream_Element_Vectors.Stream_Element_Vector'Write
            (Stream, Vector);
 
          if Server.Out_Trace.Is_Active then
             declare
                Aux  : Ada.Strings.Unbounded.String_Access :=
-                 new String'(VSS.Stream_Element_Buffers.Conversions
+                 new String'(VSS.Stream_Element_Vectors.Conversions
                                .Unchecked_To_String (Vector));
             begin
                Server.Out_Trace.Trace (Aux.all);
