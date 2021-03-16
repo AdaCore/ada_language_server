@@ -36,6 +36,7 @@ COVERAGE_INSTR=gnatcov instrument --level stmt $(LIBRARY_FLAGS) \
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
    PLATFORM=win32
+   PYTHON=python.exe
 else
    UNAME_S := $(shell uname -s)
    ifeq ($(UNAME_S),Linux)
@@ -46,6 +47,7 @@ else
       PLATFORM=darwin
       OS=osx
    endif
+   PYTHON=python3
 endif
 
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
@@ -129,7 +131,7 @@ vscode-test:
 
 check: all
 	set -e; \
-        if [ `python -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
+        if [ `$(PYTHON) -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
            (cd testsuite ; sh run.sh ) ; \
         else \
            for a in $(TD)/*/*.json; do \
