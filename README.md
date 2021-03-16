@@ -1,9 +1,9 @@
-[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/AdaCore/ada_language_server)
 
 # Ada Language Server
 
 [![Build binaries](https://github.com/AdaCore/ada_language_server/workflows/Build%20binaries/badge.svg)](https://github.com/AdaCore/ada_language_server/actions)
-[ ![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
+[![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/AdaCore/ada_language_server/tree/edge)
 
 This repository contains an implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
 for Ada/SPARK.
