@@ -68,6 +68,8 @@ package body LSP.Preprocessor is
       --  branches are dropped - see above.
 
       procedure Process_One_Line (Line : Virtual_String) is
+         Send_This_Line_To_Libadalang : Boolean := False;
+         --  Whether to add the line to the buffer passed to Libadalang
       begin
          if Line.Starts_With (To_Virtual_String ("#if")) then
             Currently_Preprocessing := True;
@@ -76,15 +78,17 @@ package body LSP.Preprocessor is
             This_branch_Evaluates_To_True := Eval (Line);
          elsif Line.Starts_With (To_Virtual_String (("#end"))) then
             Currently_Preprocessing := False;
+         else
+            Send_This_Line_To_Libadalang := (not Currently_Preprocessing)
+              or else This_branch_Evaluates_To_True;
          end if;
 
-         if (not Currently_Preprocessing)
-           or else This_branch_Evaluates_To_True
-         then
-            Append
-              (Result,
-               VSS.Strings.Conversions.To_UTF_8_String (Line) & LT.all);
+         if Send_This_Line_To_Libadalang then
+            Append (Result,
+                    VSS.Strings.Conversions.To_UTF_8_String (Line) & LT.all);
          else
+            --  If we're not sending the line to Libadalang, send an empty
+            --  line to preserve line numbers.
             Append (Result, "" & LT.all);
          end if;
       end Process_One_Line;
