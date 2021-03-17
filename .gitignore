@@ -99,3 +99,6 @@ integration/vscode/ada/linux/
 
 # GNAT Studio clangd options
 .clang-format
+
+# Subprojects
+subprojects/
