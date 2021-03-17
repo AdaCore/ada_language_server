@@ -519,6 +519,8 @@ package body LSP.Ada_Documents is
             begin
                --  Iterate to the end of the line to compute UTF16 offset of
                --  the last character
+               --  XXX Can be rewritten with String.Last_Character and
+               --  Iterator.Last_UTF16_Offset once they are implemented.
 
                while Iterator.Forward loop
                   null;
@@ -527,7 +529,7 @@ package body LSP.Ada_Documents is
                --  Replace the wrong location by the end of the buffer
                Element.span.last :=
                  (line      => Line_Number (Old_Lines.Length - 1),
-                  character => Iterator.UTF16_Offset);
+                  character => Iterator.First_UTF16_Offset);
                Edit.Replace_Element (Edit.Last, Element);
             end;
          end if;
