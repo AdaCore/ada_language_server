@@ -16,14 +16,17 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Handling;
+with Ada.Characters.Wide_Wide_Latin_1;
 
 with GNAT.Strings;
 
 with GNATCOLL.VFS;   use GNATCOLL.VFS;
 with GNATCOLL.Iconv; use GNATCOLL.Iconv;
 
+with VSS.Characters;
 with VSS.Strings.Conversions;
 with VSS.String_Vectors;
+with VSS.Strings.Cursors.Iterators.Characters;
 
 package body LSP.Preprocessor is
 
@@ -34,6 +37,9 @@ package body LSP.Preprocessor is
    is
       Vect       : VSS.String_Vectors.Virtual_String_Vector;
       Result     : Unbounded_String := Null_Unbounded_String;
+
+      LT : GNAT.Strings.String_Access;
+      --  The line terminator found in the non-processed buffer
 
       procedure Process_One_Line (Line : Virtual_String);
       --  Process one line of decoded output. This is the function that handles
@@ -77,18 +83,69 @@ package body LSP.Preprocessor is
          then
             Append
               (Result,
-               VSS.Strings.Conversions.To_UTF_8_String (Line) & ASCII.LF);
+               VSS.Strings.Conversions.To_UTF_8_String (Line) & LT.all);
          else
-            Append (Result, "" & ASCII.LF);
+            Append (Result, "" & LT.all);
          end if;
       end Process_One_Line;
 
    begin
+      --  Easy handle of the empty string
+      if Buffer.Is_Empty then
+         return Result;
+      end if;
+
+      --  Figure out which is the line terminator in the original buffer
+      declare
+         use VSS.Strings.Cursors.Iterators.Characters;
+         use VSS.Characters;
+         Found_CR : Boolean := False;
+         Found_LF : Boolean := False;
+         It       : Character_Iterator := Buffer.First_Character;
+      begin
+         while It.Has_Element loop
+            if It.Element =
+              Virtual_Character (Ada.Characters.Wide_Wide_Latin_1.LF)
+            then
+               Found_LF := True;
+            elsif It.Element =
+              Virtual_Character (Ada.Characters.Wide_Wide_Latin_1.CR)
+            then
+               Found_CR := True;
+            else
+               if Found_CR or else Found_LF then
+                  --  We have found a non-terminator character after
+                  --  having found a terminator one: we can stop
+                  --  iterating.
+                  exit;
+               end if;
+            end if;
+
+            exit when not It.Forward;
+         end loop;
+
+         if Found_LF then
+            if Found_CR then
+               LT := new String'(ASCII.CR & ASCII.LF);
+            else
+               LT := new String'((1 => ASCII.LF));
+            end if;
+         elsif Found_CR then
+            LT := new String'((1 => ASCII.CR));
+         else
+            --  It can happen that we never found a line terminator
+            --  (empty files or one-liners): default to LF
+            LT := new String'((1 => ASCII.LF));
+         end if;
+      end;
+
       Vect := Buffer.Split_Lines;
 
       for Line of Vect loop
          Process_One_Line (Line);
       end loop;
+
+      GNAT.Strings.Free (LT);
 
       return Result;
    end Preprocess_Buffer;
