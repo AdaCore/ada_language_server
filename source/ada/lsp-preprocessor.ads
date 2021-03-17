@@ -32,9 +32,6 @@ package LSP.Preprocessor is
    --  return a modified version that we want Libadalang to see.
    --  Buffer must be encoded in UTF-8.
    --  The resulting string is also encoded in UTF-8.
-   --  Right now this does the following:
-   --     - convert CR / CRLF line terminators to LF
-   --     - handle pre-processing directives
    --  Note: at the moment this returns an Unbounded_String because this
    --  is what's most suitable for Libadalang.
 
