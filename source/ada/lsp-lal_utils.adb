@@ -350,6 +350,140 @@ package body LSP.Lal_Utils is
       return LSP.Messages.A_Null;
    end Get_Decl_Kind;
 
+   ------------------------
+   -- Get_Call_Expr_Name --
+   ------------------------
+
+   procedure Get_Call_Expr_Name
+     (Node            : Libadalang.Analysis.Ada_Node'Class;
+      Active_Position : out LSP.Types.LSP_Number;
+      Designator      : out Libadalang.Analysis.Ada_Node;
+      Name_Node       : out Libadalang.Analysis.Name)
+   is
+      Cur_Node : Ada_Node := Node.As_Ada_Node;
+   begin
+      Active_Position := 0;
+      Name_Node := Libadalang.Analysis.No_Name;
+
+      --  Find the first Call_Expr node in the parents
+      while not Cur_Node.Is_Null loop
+         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+
+         Cur_Node := Cur_Node.Parent;
+      end loop;
+
+      if Cur_Node.Is_Null then
+         return;
+      end if;
+
+      declare
+         Call_Expr_Node  : constant Libadalang.Analysis.Call_Expr :=
+           Cur_Node.As_Call_Expr;
+         Suffix_Node     : constant Libadalang.Analysis.Ada_Node'Class :=
+           Call_Expr_Node.F_Suffix;
+         Node_Parents    : constant Libadalang.Analysis.Ada_Node_Array :=
+           Node.Parents;
+      begin
+         Name_Node := Call_Expr_Node.F_Name;
+
+         if Suffix_Node = Libadalang.Analysis.No_Ada_Node then
+            return;
+         end if;
+
+         --  Find the position in the Assoc_List
+         if Suffix_Node.Kind in Ada_Assoc_List_Range then
+            for Assoc of Suffix_Node.As_Assoc_List loop
+               Designator := Assoc.As_Param_Assoc.F_Designator;
+               for Parent of Node_Parents loop
+                  exit when Assoc = Parent;
+               end loop;
+               Active_Position := Active_Position + 1;
+            end loop;
+         end if;
+         --  The active position index starts at 0
+         Active_Position := Active_Position - 1;
+      end;
+   end Get_Call_Expr_Name;
+
+   --------------------
+   -- Get_Parameters --
+   --------------------
+
+   procedure Get_Parameters
+     (Node : Libadalang.Analysis.Basic_Decl;
+      Parameters : in out LSP.Messages.ParameterInformation_Vector)
+   is
+      Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
+        Node.P_Subp_Spec_Or_Null;
+   begin
+      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
+         return;
+      end if;
+
+      for Param of Spec.P_Params loop
+         for Id of Param.F_Ids loop
+            declare
+               P : constant LSP.Messages.ParameterInformation :=
+                 (label         =>
+                    (Is_String => True,
+                     String    => To_LSP_String (Id.Text)),
+                  documentation =>
+                    (Is_Set => False)
+                 );
+            begin
+               Parameters.Append (P);
+            end;
+         end loop;
+      end loop;
+   end Get_Parameters;
+
+   --------------------------
+   -- Get_Active_Parameter --
+   --------------------------
+
+   function Get_Active_Parameter
+     (Node       : Libadalang.Analysis.Basic_Decl;
+      Designator : Libadalang.Analysis.Ada_Node;
+      Position   : LSP.Types.LSP_Number)
+      return LSP.Types.LSP_Number
+   is
+      Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
+        Node.P_Subp_Spec_Or_Null;
+      Index : LSP.Types.LSP_Number := 0;
+   begin
+      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
+         return -1;
+
+      elsif Designator = Libadalang.Analysis.No_Ada_Node then
+         --  Check if the given position is a valid index for Node
+         for Param of Spec.P_Params loop
+            for Id of Param.F_Ids loop
+               Index := Index + 1;
+            end loop;
+         end loop;
+         if Position > Index - 1 then
+            return -1;
+         else
+            return Position;
+         end if;
+
+      else
+         --  If we have a designator then try to find the position of a
+         --  parameter with the same name
+         for Param of Spec.P_Params loop
+            for Id of Param.F_Ids loop
+               if Id.Text = Designator.Text then
+                  return Index;
+               end if;
+               Index := Index + 1;
+            end loop;
+         end loop;
+
+         --  No matching designator
+         return -1;
+      end if;
+   end Get_Active_Parameter;
+
    -----------------------
    -- Get_Node_Location --
    -----------------------

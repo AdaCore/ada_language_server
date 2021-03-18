@@ -471,6 +471,30 @@ package body LSP.Ada_Contexts is
          Log (Self.Trace, E, "in Is_Called_By");
    end Find_All_Calls;
 
+   ---------------------------
+   -- Find_All_Env_Elements --
+   ---------------------------
+
+   function Find_All_Env_Elements
+     (Self     : Context;
+      Name     : Libadalang.Analysis.Name;
+      Seq      : Boolean := True;
+      Seq_From : Libadalang.Analysis.Ada_Node'Class :=
+        Libadalang.Analysis.No_Ada_Node)
+     return Libadalang.Analysis.Ada_Node_Array is
+   begin
+      return Libadalang.Analysis.P_All_Env_Elements (Name, Seq, Seq_From);
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Log (Self.Trace, E, "in Find_All_Env_Elements");
+         declare
+            Empty_Node_Array : constant
+              Libadalang.Analysis.Ada_Node_Array (1 .. 0) := (others => <>);
+         begin
+            return Empty_Node_Array;
+         end;
+   end Find_All_Env_Elements;
+
    -------------------------------
    -- Get_Any_Symbol_Completion --
    -------------------------------

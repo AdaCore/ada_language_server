@@ -179,7 +179,7 @@ package LSP.Messages.Server_Requests is
    package Signature_Help_Requests is
      new LSP.Generic_Requests
        (Server_Request,
-        TextDocumentPositionParams,
+        SignatureHelpParams,
         Server_Request_Receiver'Class);
 
    type Signature_Help_Request is
