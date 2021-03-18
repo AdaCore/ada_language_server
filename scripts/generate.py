@@ -283,7 +283,7 @@ REQUESTS = [
     ('textDocument/references', 'References', 'ReferenceParams',
      'Location_Response'),
     ('textDocument/signatureHelp', 'Signature_Help',
-     'TextDocumentPositionParams', 'SignatureHelp_Response'),
+     'SignatureHelpParams', 'SignatureHelp_Response'),
     ('textDocument/documentSymbol', 'Document_Symbols',
      'DocumentSymbolParams', 'Symbol_Response'),
     ('textDocument/rename', 'Rename', 'RenameParams', 'Rename_Response'),

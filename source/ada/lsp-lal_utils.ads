@@ -133,6 +133,29 @@ package LSP.Lal_Utils is
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
 
+   procedure Get_Call_Expr_Name
+     (Node            : Libadalang.Analysis.Ada_Node'Class;
+      Active_Position : out LSP.Types.LSP_Number;
+      Designator      : out Libadalang.Analysis.Ada_Node;
+      Name_Node       : out Libadalang.Analysis.Name);
+   --  If Node is inside a Call_Expr returns the following:
+   --  Active_Position: the index of the parameter in the Call_Expr
+   --  Designator: the designator of the Active_Position
+   --  Name_Node: the name of the Call_Expr
+
+   procedure Get_Parameters
+     (Node : Libadalang.Analysis.Basic_Decl;
+      Parameters : in out LSP.Messages.ParameterInformation_Vector);
+   --  Append all the parameters of Node inside Parameters
+
+   function Get_Active_Parameter
+     (Node       : Libadalang.Analysis.Basic_Decl;
+      Designator : Libadalang.Analysis.Ada_Node;
+      Position   : LSP.Types.LSP_Number)
+      return LSP.Types.LSP_Number;
+   --  Return the position of Designator in the parameters of Node else -1
+   --  If Designator is null try check if Position is a valid parameter index
+
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
       return LSP.Messages.CallHierarchyItem;

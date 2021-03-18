@@ -142,6 +142,17 @@ package LSP.Ada_Contexts is
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.
 
+   function Find_All_Env_Elements
+     (Self     : Context;
+      Name     : Libadalang.Analysis.Name;
+      Seq      : Boolean := True;
+      Seq_From : Libadalang.Analysis.Ada_Node'Class :=
+        Libadalang.Analysis.No_Ada_Node)
+      return Libadalang.Analysis.Ada_Node_Array;
+   --  Return all elements lexically named like Name.
+   --  If Seq is True and Seq_From is not empty, reduce the scope to the
+   --  node above Seq_From.
+
    procedure Get_References_For_Renaming
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;

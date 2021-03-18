@@ -690,6 +690,11 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Incremental
             else
                LSP.Messages.Full));
+      Response.result.capabilities.signatureHelpProvider :=
+        (True,
+         (triggerCharacters   => (True, Empty_Vector & (+",") & (+"(")),
+          retriggerCharacters => (True, Empty_Vector & (+" ")),
+          workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
          (resolveProvider     => LSP.Types.False,
@@ -2788,15 +2793,91 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Signature_Help_Request)
       return LSP.Messages.Server_Responses.SignatureHelp_Response
    is
-      pragma Unreferenced (Self, Request);
+      use Libadalang.Analysis;
+      use LSP.Messages;
+
+      Value   : LSP.Messages.SignatureHelpParams renames
+        Request.params;
       Response : LSP.Messages.Server_Responses.SignatureHelp_Response
-        (Is_Error => True);
+        (Is_Error => False);
+
+      C : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Node : constant Libadalang.Analysis.Ada_Node :=
+        C.Get_Node_At
+          (Get_Open_Document (Self, Value.textDocument.uri),
+           Value);
+      Name_Node       : Libadalang.Analysis.Name;
+      Designator      : Libadalang.Analysis.Ada_Node;
+      Active_Position : LSP.Types.LSP_Number;
+
+      procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl);
+
+      -------------------
+      -- Add_Signature --
+      -------------------
+
+      procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl)
+      is
+         Param_Index : constant LSP.Types.LSP_Number :=
+           Get_Active_Parameter (Decl_Node, Designator, Active_Position);
+      begin
+         if Param_Index = -1 then
+            return;
+         end if;
+
+         declare
+            Signature : LSP.Messages.SignatureInformation :=
+              (label          => Get_Hover_Text (Decl_Node),
+               documentation  =>
+                 (Is_Set => True,
+                  Value  =>
+                    (Is_String => True,
+                     String    =>
+                       To_LSP_String
+                         (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
+                              (Libadalang.Doc_Utils.Get_Documentation
+                                 (Decl_Node).Doc.To_String)
+                         )
+                    )
+                 ),
+               activeParameter =>
+                 (Is_Set => True,
+                  Value  => Param_Index
+                 ),
+               others          => <>
+              );
+         begin
+            Get_Parameters (Decl_Node, Signature.parameters);
+            Response.result.signatures.Append (Signature);
+         end;
+      end Add_Signature;
+
    begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
-          data => <>));
+      Response.result := (others => <>);
+
+      --  Check if we are inside a function call and get the caller name
+      Get_Call_Expr_Name (Node, Active_Position, Designator, Name_Node);
+
+      if Name_Node = Libadalang.Analysis.No_Name then
+         return Response;
+      end if;
+
+      for N of C.Find_All_Env_Elements (Name_Node) loop
+         if N.Kind in Ada_Subp_Decl_Range then
+            Add_Signature (N.As_Basic_Decl);
+         end if;
+      end loop;
+
+      --  Set the active values to default
+      Response.result.activeSignature := (Is_Set => True,
+                                          Value  => 0);
+      --  activeParameter will be ignored because it is properly set in
+      --  the signatures.
+      Response.result.activeParameter := (Is_Set => True,
+                                          Value  => 0);
+
       return Response;
    end On_Signature_Help_Request;
 
