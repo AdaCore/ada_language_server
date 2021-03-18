@@ -30,7 +30,7 @@ package body LSP.Unit_Providers is
 
    type Project_Unit_Provider is new LAL.Unit_Provider_Interface with record
       Tree             : Prj.Project_Tree_Access;
-      Projects         : Prj.Project_Array_Access;
+      Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Is_Project_Owner : Boolean;
    end record;
@@ -50,39 +50,25 @@ package body LSP.Unit_Providers is
       Reparse     : Boolean := False) return LAL.Analysis_Unit'Class;
 
    overriding procedure Release (Provider : in out Project_Unit_Provider);
+
    ----------------------------------
    -- Create_Project_Unit_Provider --
    ----------------------------------
 
    function Create_Project_Unit_Provider
      (Tree             : Prj.Project_Tree_Access;
-      Project          : Prj.Project_Type := Prj.No_Project;
+      Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Is_Project_Owner : Boolean := True)
       return LAL.Unit_Provider_Reference
    is
-      use type Prj.Project_Type;
+      Provider : constant Project_Unit_Provider :=
+        (Tree             => Tree,
+         Project          => Project,
+         Env              => Env,
+         Is_Project_Owner => Is_Project_Owner);
    begin
-      --  Sanity checks
-      if Project = Prj.No_Project then
-         raise Program_Error with
-           "this unit provider requires a project";
-      end if;
-
-      if Project.Is_Aggregate_Project then
-         raise Program_Error with
-           "this unit provider does not support aggregate projects";
-      end if;
-
-      declare
-         Provider : constant Project_Unit_Provider :=
-           (Tree             => Tree,
-            Projects         => new Prj.Project_Array'(1 => Project),
-            Env              => Env,
-            Is_Project_Owner => Is_Project_Owner);
-      begin
-         return LAL.Create_Unit_Provider_Reference (Provider);
-      end;
+      return LAL.Create_Unit_Provider_Reference (Provider);
    end Create_Project_Unit_Provider;
 
    -----------------------
@@ -94,38 +80,30 @@ package body LSP.Unit_Providers is
       Name     : Text_Type;
       Kind     : Analysis_Unit_Kind) return String
    is
-      --  Dummy : GNATCOLL.Locks.Scoped_Lock (Libadalang.GPR_Lock.Lock'Access);
-
       Str_Name : constant String :=
         Libadalang.Unit_Files.Unit_String_Name (Name);
+      File     : constant Filesystem_String := Prj.File_From_Unit
+        (Project   => Provider.Project,
+         Unit_Name => Str_Name,
+         Part      => Convert (Kind),
+         Language  => "Ada");
    begin
       --  Look for a source file corresponding to Name/Kind in all projects
       --  associated to this Provider. Note that unlike what is documented,
       --  it's not because File_From_Unit returns an non-empty string that the
       --  unit does belong to the project, so we must also check
       --  Create_From_Project's result.
-
-      for P of Provider.Projects.all loop
+      if File'Length /= 0 then
          declare
-            File : constant Filesystem_String := Prj.File_From_Unit
-              (Project   => P,
-               Unit_Name => Str_Name,
-               Part      => Convert (Kind),
-               Language  => "Ada");
+            Path : constant GNATCOLL.VFS.Virtual_File :=
+              Prj.Create_From_Project (Provider.Project, File).File;
+            Fullname : constant String := +Path.Full_Name;
          begin
-            if File'Length /= 0 then
-               declare
-                  Path : constant GNATCOLL.VFS.Virtual_File :=
-                    Prj.Create_From_Project (P, File).File;
-                  Fullname : constant String := +Path.Full_Name;
-               begin
-                  if Fullname'Length /= 0 then
-                     return Fullname;
-                  end if;
-               end;
+            if Fullname'Length /= 0 then
+               return Fullname;
             end if;
          end;
-      end loop;
+      end if;
 
       return "";
    end Get_Unit_Filename;
@@ -193,12 +171,12 @@ package body LSP.Unit_Providers is
    is
       --  Dummy : GNATCOLL.Locks.Scoped_Lock (Libadalang.GPR_Lock.Lock'Access);
    begin
-      Prj.Unchecked_Free (Provider.Projects);
       if Provider.Is_Project_Owner then
          Prj.Unload (Provider.Tree.all);
          Prj.Free (Provider.Tree);
          Prj.Free (Provider.Env);
       end if;
+      Provider.Project := Prj.No_Project;
       Provider.Tree := null;
       Provider.Env := null;
       Provider.Is_Project_Owner := False;
