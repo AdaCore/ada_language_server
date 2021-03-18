@@ -58,28 +58,44 @@ spec_footer = """
 end LSP.Predefined_Completion.%s;
 """
 
+MAX_LINES_PER_BIT = 50
+
+
 def convert_to_ada(json_filename, output_file):
     """
     Convert the JSON file content into an hard-coded Ada string that
     will contain it.
     """
+
+    line_counter = 0
+    statement_counter = 1
     with open(json_filename, "r") as json_file:
         output = ""
 
-        output = '   Db : constant String := '
         for line in json_file.readlines():
-            output += '"' + line.strip().replace('"', '""') + \
-                '" & ASCII.LF\n   & '
+            if line_counter % MAX_LINES_PER_BIT == 0:
+                if statement_counter != 1:
+                    output = output[:-6] + ";"
+                output += f"\n\n   Db{statement_counter} : constant String := "
+                statement_counter += 1
 
-        output = output[:-6] + ';'
+            output += '"' + line.strip().replace('"', '""') + '" & ASCII.LF\n   & '
+
+            line_counter += 1
+
+        output = (
+            output[:-6]
+            + f';\n\n   Db : constant String := {" & ".join([f"Db{x}" for x in range(1, statement_counter)])};'
+        )
+
         output_file.write(output)
+
 
 json_filename = sys.argv[1]
 ada_version = os.path.basename(json_filename).replace(".json", "")
-ads_filename = "source/ada/generated/lsp-predefined_completion-%s.ads" \
-    % ada_version
+ads_filename = "source/ada/generated/lsp-predefined_completion-%s.ads" % ada_version
 
-ads = open(ads_filename, "wb")
+ads = open(ads_filename, "w")
 ads.write(spec_header % ada_version.title())
 convert_to_ada(json_filename, ads)
 ads.write(spec_footer % ada_version.title())

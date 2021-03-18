@@ -10,7 +10,7 @@ tasks:
       git -C subprojects clone https://github.com/AdaCore/VSS.git
       git -C subprojects clone https://github.com/AdaCore/spawn.git
       git -C subprojects clone https://github.com/AdaCore/libadalang-tools.git
-      gp open doc/gitpod.md
+      code doc/gitpod.md
       echo make LIBRARY_TYPE=static
 
 vscode:

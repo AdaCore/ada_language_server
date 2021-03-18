@@ -16,7 +16,7 @@ In a gidpod session you can:
   menu
 * start debugger with `/Debug/Start Debugging` menu (or `F5`)
 
-The aditor has a lot of commands build in. Press `F1` to search a command.
+The editor has a lot of commands built in. Press `F1` to search a command.
 
 By default the editor is configured for the `gnat/lsp_server.gpr` project.
 You can switch the project by changing `/File/Settings/Open Preferences` or
