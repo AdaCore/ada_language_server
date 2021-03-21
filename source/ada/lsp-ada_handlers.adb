@@ -46,6 +46,7 @@ with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
+with LSP.Preprocessor;
 with LSP.Servers.FS_Watch;
 with LSP.Types;        use LSP.Types;
 
@@ -1008,7 +1009,11 @@ package body LSP.Ada_Handlers is
                               Filename : constant String := +VF.Full_Name;
                            begin
                               Units_Vector.Append
-                                (Context.LAL_Context.Get_From_File (Filename));
+                                (LSP.Preprocessor.Get_From_File
+                                   (Context.LAL_Context, Filename,
+                                    --  ??? What is the charset for predefined
+                                    --  files?
+                                    ""));
                            end;
                         end loop;
 
