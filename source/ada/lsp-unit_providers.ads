@@ -37,6 +37,7 @@ package LSP.Unit_Providers is
      (Tree             : Prj.Project_Tree_Access;
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
+      Default_Charset  : String;
       Is_Project_Owner : Boolean := True)
       return LAL.Unit_Provider_Reference
       with Pre => Project /= Prj.No_Project
