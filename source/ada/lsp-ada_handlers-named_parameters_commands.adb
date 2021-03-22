@@ -232,7 +232,12 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       function Get_Params_Spec_Array
         (Decl : Libadalang.Analysis.Basic_Decl)
          return Libadalang.Analysis.Param_Spec_Array;
-      --  Return the Param_Spec_Array associated with the given
+      --  Return the Param_Spec_Array associated with the given Decl
+
+      function Get_Subp_Spec
+        (Decl : Libadalang.Analysis.Basic_Decl)
+         return Libadalang.Analysis.Base_Subp_Spec;
+      --  Return the Base_Subp_Spec associated with this Decl
 
       Result : LSP.Types.LSP_String_Vector;
 
@@ -258,46 +263,133 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
         (Decl : Libadalang.Analysis.Basic_Decl)
          return Libadalang.Analysis.Param_Spec_Array
       is
-         use type Libadalang.Analysis.Basic_Decl;
+         Spec   : constant Libadalang.Analysis.Base_Subp_Spec :=
+           Get_Subp_Spec (Decl);
+         Params : constant Libadalang.Analysis.Param_Spec_Array :=
+           Spec.P_Params;
+
       begin
-         if Decl = Libadalang.Analysis.No_Basic_Decl then
+         if Spec.Is_Null or else Params'Length = 0 then
             return (1 .. 0 => <>);
          end if;
 
-         case Decl.Kind is
-
-         when Libadalang.Common.Ada_Base_Subp_Spec =>
-            declare
-               Params : constant Libadalang.Analysis.Param_Spec_Array :=
-                 Decl.As_Base_Subp_Spec.P_Params;
-            begin
-               return Params;
-            end;
-
-         when Libadalang.Common.Ada_Base_Subp_Body =>
-            declare
-               Spec   : constant Libadalang.Analysis.Subp_Spec :=
-                 Decl.As_Base_Subp_Body.F_Subp_Spec;
-               Params : constant Libadalang.Analysis.Param_Spec_Array :=
-                 Spec.P_Params;
-            begin
-               return Params;
-            end;
-
-         when Libadalang.Common.Ada_Basic_Subp_Decl =>
-            declare
-               Spec   : constant Libadalang.Analysis.Base_Subp_Spec :=
-                 Decl.As_Basic_Subp_Decl.P_Subp_Decl_Spec;
-               Params : constant Libadalang.Analysis.Param_Spec_Array :=
-                 Spec.P_Params;
-            begin
-               return Params;
-            end;
-
-         when others =>
-            return (1 .. 0 => <>);
-         end case;
+         return Params;
       end Get_Params_Spec_Array;
+
+      -------------------
+      -- Get_Subp_Spec --
+      -------------------
+
+      function Get_Subp_Spec
+        (Decl : Libadalang.Analysis.Basic_Decl)
+         return Libadalang.Analysis.Base_Subp_Spec
+      is
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Libadalang.Analysis.Base_Subp_Spec;
+         --  Checks if TE is associated to an access of a subprogram, and if
+         --  so, returns its Base_Subp_Spec.
+
+         -----------------------
+         -- Process_Type_Expr --
+         -----------------------
+
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Libadalang.Analysis.Base_Subp_Spec
+         is
+            TD : Libadalang.Analysis.Base_Type_Decl;
+            --  If TE is not an anonymous type then we'll need to know its
+            --  declaration.
+
+         begin
+            if TE.Is_Null then
+               return Libadalang.Analysis.No_Base_Subp_Spec;
+            end if;
+
+            case TE.Kind is
+               when Libadalang.Common.Ada_Subtype_Indication_Range =>
+                  TD := TE.As_Subtype_Indication.P_Designated_Type_Decl;
+
+                  if TD.Is_Null
+                    or else
+                      not (TD.Kind in Libadalang.Common.Ada_Type_Decl_Range)
+                  then
+                     return Libadalang.Analysis.No_Base_Subp_Spec;
+                  end if;
+
+                  if TD.As_Type_Decl.F_Type_Def.Kind in
+                      Libadalang.Common.Ada_Access_To_Subp_Def_Range
+                    and then not TD.As_Type_Decl.F_Type_Def.
+                      As_Access_To_Subp_Def.F_Subp_Spec.Is_Null
+                  then
+                     --  Confirmation that TD is an access to a subprogram
+                     return TD.As_Type_Decl.F_Type_Def.As_Access_To_Subp_Def.
+                       F_Subp_Spec.As_Base_Subp_Spec;
+
+                  elsif TD.As_Type_Decl.F_Type_Def.Kind in
+                      Libadalang.Common.Ada_Array_Type_Def_Range
+                    and then not TD.As_Type_Decl.F_Type_Def.
+                        As_Array_Type_Def.F_Component_Type.F_Type_Expr.Is_Null
+                  then
+                     --  If TD is an array type, then it might be an array
+                     --  of accesses to subprograms. Therefore, recursively
+                     --  call Process_Type_Expr to check the type of the
+                     --  components of the array.
+
+                     return Process_Type_Expr
+                       (TD.As_Type_Decl.F_Type_Def.As_Array_Type_Def.
+                          F_Component_Type.F_Type_Expr);
+
+                  else
+                     return Libadalang.Analysis.No_Base_Subp_Spec;
+                  end if;
+
+               when Libadalang.Common.Ada_Anonymous_Type_Range =>
+                  if TE.As_Anonymous_Type.F_Type_Decl.F_Type_Def.Kind in
+                    Libadalang.Common.Ada_Access_To_Subp_Def_Range
+                  then
+                     return TE.As_Anonymous_Type.F_Type_Decl.F_Type_Def.
+                       As_Access_To_Subp_Def.F_Subp_Spec.As_Base_Subp_Spec;
+
+                  else
+                     return Libadalang.Analysis.No_Base_Subp_Spec;
+                  end if;
+
+               when others =>
+                  return Libadalang.Analysis.No_Base_Subp_Spec;
+            end case;
+         end Process_Type_Expr;
+
+      begin
+         if Decl.Is_Null then
+            return Libadalang.Analysis.No_Base_Subp_Spec;
+         end if;
+
+         --  For Ada_Param_Spec, Ada_Component_Decl or Object_Decl nodes,
+         --  it must be an access to a subprogram, so get its spec.
+
+         case Decl.Kind is
+            when Libadalang.Common.Ada_Base_Subp_Body =>
+               return Decl.As_Base_Subp_Body.F_Subp_Spec.As_Base_Subp_Spec;
+
+            when Libadalang.Common.Ada_Basic_Subp_Decl =>
+               return Decl.As_Basic_Subp_Decl.P_Subp_Decl_Spec;
+
+            when Libadalang.Common.Ada_Param_Spec_Range =>
+               return Process_Type_Expr (Decl.As_Param_Spec.F_Type_Expr);
+
+            when Libadalang.Common.Ada_Component_Decl_Range =>
+               return Process_Type_Expr
+                 (Decl.As_Component_Decl.F_Component_Def.F_Type_Expr);
+
+            when  Libadalang.Common.Ada_Object_Decl_Range =>
+               return Process_Type_Expr (Decl.As_Object_Decl.F_Type_Expr);
+
+            when others =>
+               return Libadalang.Analysis.No_Base_Subp_Spec;
+         end case;
+      end Get_Subp_Spec;
 
       Expr        : constant Libadalang.Analysis.Ada_Node := Args.Parent;
       Name        : Libadalang.Analysis.Name;

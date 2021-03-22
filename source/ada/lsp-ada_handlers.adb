@@ -844,6 +844,65 @@ package body LSP.Ada_Handlers is
         (Node : Libadalang.Analysis.Basic_Assoc_List) return Boolean
       is
          Found : Boolean := False;
+
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Boolean;
+         --  Returns True if TE is associated to an access of a subprogram
+
+         -----------------------
+         -- Process_Type_Expr --
+         -----------------------
+
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Boolean
+         is
+            TD : Libadalang.Analysis.Base_Type_Decl;
+            --  If TE is not an anonymous type then we'll need to know its
+            --  declaration.
+
+         begin
+            case TE.Kind is
+               when Ada_Subtype_Indication_Range =>
+                  TD := TE.As_Subtype_Indication.P_Designated_Type_Decl;
+
+                  if TD.Is_Null
+                    or else not (TD.Kind in Ada_Type_Decl_Range)
+                  then
+                     return False;
+                  end if;
+
+                  case TD.As_Type_Decl.F_Type_Def.Kind is
+                     when Ada_Access_To_Subp_Def_Range =>
+                        --  Confirmation that TD is an access to a subprogram
+
+                        return True;
+
+                     when Ada_Array_Type_Def_Range =>
+                        --  If TD is an array type, then it might be an array
+                        --  of accesses to subprograms. Therefore, recursively
+                        --  call Process_Type_Expr to check the type of the
+                        --  components of the array.
+
+                        return Process_Type_Expr
+                          (TD.As_Type_Decl.F_Type_Def.As_Array_Type_Def.
+                             F_Component_Type.F_Type_Expr);
+
+                     when others =>
+                        return False;
+                  end case;
+
+               when Ada_Anonymous_Type_Range =>
+                  return TE.As_Anonymous_Type.F_Type_Decl.F_Type_Def.Kind in
+                    Ada_Access_To_Subp_Def_Range;
+
+               when others =>
+                  return False;
+
+            end case;
+         end Process_Type_Expr;
+
       begin
          for J of Node loop
             if J.Kind in Libadalang.Common.Ada_Param_Assoc and then
@@ -876,13 +935,29 @@ package body LSP.Ada_Handlers is
                return False;
             end if;
 
+            --  For Ada_Param_Spec, Ada_Component_Decl or Object_Decl nodes,
+            --  check the type definition of Decl. Named parameters can be
+            --  added if Decl's type is a (possibly anonymous) access to a
+            --  subprogram.
+
             case Decl.Kind is
-               when Libadalang.Common.Ada_Base_Subp_Spec =>
+               when Libadalang.Common.Ada_Base_Subp_Body
+                  | Libadalang.Common.Ada_Basic_Subp_Decl =>
                   return True;
-               when Libadalang.Common.Ada_Base_Subp_Body =>
-                  return True;
-               when Libadalang.Common.Ada_Basic_Subp_Decl =>
-                  return True;
+
+               when Libadalang.Common.Ada_Param_Spec_Range =>
+                  return Process_Type_Expr (Decl.As_Param_Spec.F_Type_Expr);
+
+               when Libadalang.Common.Ada_Component_Decl_Range =>
+                  return Process_Type_Expr
+                    (Decl.As_Component_Decl.F_Component_Def.F_Type_Expr);
+
+               when  Libadalang.Common.Ada_Object_Decl_Range =>
+                  --  This can either be an object which type is an access
+                  --  to a subprogram or an array of accesses to
+                  --  subprograms.
+                  return Process_Type_Expr (Decl.As_Object_Decl.F_Type_Expr);
+
                when others =>
                   return False;
             end case;
