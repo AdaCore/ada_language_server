@@ -625,6 +625,7 @@ package body LSP.Ada_Contexts is
           (Tree             => Tree,
            Project          => Root,
            Env              => Get_Environment (Root),
+           Default_Charset  => Charset,
            Is_Project_Owner => False);
 
       Self.Reload;
