@@ -235,16 +235,18 @@ package body LSP.Preprocessor is
       return Libadalang.Analysis.Analysis_Unit is
       Buffer   : Unbounded_String;
    begin
+      --  Preprocessing guarantees that the buffers are known to LAL in
+      --  UTF-8: we can use this safely rather than Charset below.
       if not Reparse
         and then Context.Has_Unit (Filename)
       then
          return LAL.Get_With_Error
-           (Context, Filename, "", Charset);
+           (Context, Filename, "", "utf-8");
       end if;
       Buffer := Preprocess_File (Filename, Charset);
 
       return LAL.Get_From_Buffer
-        (Context, Filename, Charset, Buffer, Rule);
+        (Context, Filename, "utf-8", Buffer, Rule);
    end Get_From_File;
 
 end LSP.Preprocessor;

@@ -33,6 +33,7 @@ package body LSP.Unit_Providers is
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Is_Project_Owner : Boolean;
+      Default_Charset  : Unbounded_String;
    end record;
    --  Unit provider backed up by a project file
 
@@ -59,6 +60,7 @@ package body LSP.Unit_Providers is
      (Tree             : Prj.Project_Tree_Access;
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
+      Default_Charset  : String;
       Is_Project_Owner : Boolean := True)
       return LAL.Unit_Provider_Reference
    is
@@ -66,7 +68,8 @@ package body LSP.Unit_Providers is
         (Tree             => Tree,
          Project          => Project,
          Env              => Env,
-         Is_Project_Owner => Is_Project_Owner);
+         Is_Project_Owner => Is_Project_Owner,
+         Default_Charset  => To_Unbounded_String (Default_Charset));
    begin
       return LAL.Create_Unit_Provider_Reference (Provider);
    end Create_Project_Unit_Provider;
@@ -122,6 +125,14 @@ package body LSP.Unit_Providers is
    is
       Filename : constant String := Provider.Get_Unit_Filename (Name, Kind);
       Buffer   : Unbounded_String;
+
+      --  If a charset has been passed explicitely, use it; otherwise, use
+      --  the default charset provided.
+      Charset_To_Use : constant String :=
+        (if Charset = "" then
+            To_String (Provider.Default_Charset)
+         else
+            Charset);
    begin
       if Filename /= "" then
          -------------------------------------------------------------
@@ -135,14 +146,15 @@ package body LSP.Unit_Providers is
            and then Context.Has_Unit (Filename)
          then
             return LAL.Get_With_Error
-              (Context, Filename, "", Charset);
+              (Context, Filename, "", Charset_To_Use);
          end if;
 
          --  ... otherwise, load the file from disk and preprocess it
-         Buffer := Preprocess_File (Filename, Charset);
+         Buffer := Preprocess_File (Filename, Charset_To_Use);
 
+         --  After preprocessing, buffer is utf-8
          return LAL.Get_From_Buffer
-           (Context, Filename, Charset, Buffer);
+           (Context, Filename, "utf-8", Buffer);
 
          --  /NOTE
          -------------------------------------------------------------
