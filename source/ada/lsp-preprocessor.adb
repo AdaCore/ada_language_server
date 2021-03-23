@@ -174,27 +174,34 @@ package body LSP.Preprocessor is
 
       --  Convert the file if it's not already encoded in utf-8
 
-      if Ada.Characters.Handling.To_Lower (Charset) /= "utf-8" then
+      if Ada.Characters.Handling.To_Lower (Charset) = "utf-8" then
+         Decoded := VSS.Strings.Conversions.To_Virtual_String (Raw.all);
+      else
          declare
             State        : constant Iconv_T := Iconv_Open (UTF8, Charset);
-            Outbuf       : Byte_Sequence (1 .. Raw'Length * 4);
+            Outbuf       : Byte_Sequence (1 .. 4096);
             Input_Index  : Positive := Raw'First;
-            Conv_Result  : Iconv_Result;
-            Output_Index : Positive := 1;
+            Conv_Result  : Iconv_Result := Full_Buffer;
+            Output_Index : Positive;
          begin
-            Iconv (State => State,
-                   Inbuf => Raw.all,
-                   Input_Index => Input_Index,
-                   Outbuf => Outbuf,
-                   Output_Index => Output_Index,
-                   Result => Conv_Result);
+            while Conv_Result = Full_Buffer loop
+               Output_Index := 1;
+               Iconv (State => State,
+                      Inbuf => Raw.all,
+                      Input_Index => Input_Index,
+                      Outbuf => Outbuf,
+                      Output_Index => Output_Index,
+                      Result => Conv_Result);
+               Decoded.Append (VSS.Strings.Conversions.To_Virtual_String
+                               (Outbuf (1 .. Output_Index - 1)));
+            end loop;
 
-            GNAT.Strings.Free (Raw);
+            Iconv_Close (State);
 
             case Conv_Result is
                when Success =>
                   --  The conversion was successful
-                  Raw := new String'(Outbuf (1 .. Output_Index - 1));
+                  null;
                when others =>
                   --  TODO: transmit the result to the user
                   return Null_Unbounded_String;
@@ -208,7 +215,6 @@ package body LSP.Preprocessor is
 
       --  Convert the string to a Virtual_String for easier handling
 
-      Decoded := VSS.Strings.Conversions.To_Virtual_String (Raw.all);
       GNAT.Strings.Free (Raw);
 
       return Preprocess_Buffer (Decoded);
