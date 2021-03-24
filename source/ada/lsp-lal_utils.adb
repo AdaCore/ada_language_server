@@ -93,7 +93,8 @@ package body LSP.Lal_Utils is
    procedure Append_Location
      (Result : in out LSP.Messages.DocumentHighlight_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.Optional_DocumentHighlightKind)
+      Kind   : LSP.Messages.Optional_DocumentHighlightKind;
+      Uri    : LSP.Messages.DocumentUri)
    is
       use LSP.Messages;
 
@@ -101,10 +102,12 @@ package body LSP.Lal_Utils is
         LSP.Lal_Utils.Get_Node_Location
           (Libadalang.Analysis.As_Ada_Node (Node));
    begin
-      Result.Append
-        (DocumentHighlight'
-           (span => Location.span,
-            kind => Kind));
+      if Uri = Location.uri then
+         Result.Append
+           (DocumentHighlight'
+              (span => Location.span,
+               kind => Kind));
+      end if;
    end Append_Location;
 
    --------------------------------

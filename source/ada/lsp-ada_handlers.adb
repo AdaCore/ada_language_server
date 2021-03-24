@@ -1979,7 +1979,8 @@ package body LSP.Ada_Handlers is
             Append_Location
               (Result => Response.Result,
                Node   => Node,
-               Kind   => Get_Highlight_Kind (Node.As_Ada_Node));
+               Kind   => Get_Highlight_Kind (Node.As_Ada_Node),
+               Uri    => Value.textDocument.uri);
          end if;
 
       end Callback;
@@ -1991,10 +1992,19 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
+      --  Find all references will return all the references except the
+      --  declaration ...
       Document.Find_All_References
         (Context    => Context.all,
          Definition => Definition,
          Callback   => Callback'Access);
+
+      --  ... add it manually
+      Append_Location
+        (Result => Response.result,
+         Node   => Definition,
+         Kind   => Get_Highlight_Kind (Definition.As_Ada_Node),
+         Uri    => Value.textDocument.uri);
 
       return Response;
    end On_Highlight_Request;
