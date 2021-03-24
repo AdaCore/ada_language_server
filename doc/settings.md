@@ -13,6 +13,7 @@ Ada Language Server understands these settings:
  * [renameInComments](#renameInComments)
  * [namedNotationThreshold](#namedNotationThreshold)
  * [foldComments](#foldComments)
+ * [followSymlinks](#followSymlinks)
 
 ----
 
@@ -117,4 +118,13 @@ The value is a boolean. The default is `true`.
 ```javascript
     'foldComments': false
 ```
+## followSymlinks
 
+When this setting is `false` the server doesn't do any attempts to normalize file names sent by a client.
+This means that symlinks stay unresolved and character case is unchanged (on case insensitive file systems).
+This setting mainly is for the GNAT Studio integration.
+The value is a boolean. The default is `true`.
+
+```javascript
+    'followSymlinks': false
+```

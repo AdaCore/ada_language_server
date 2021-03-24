@@ -644,9 +644,8 @@ package body LSP.Lal_Utils is
    function Node_Location_Image
      (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String
    is
-      use type GNATCOLL.VFS.Filesystem_String;
       Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
-        GNATCOLL.VFS.Create (+Node.Unit.Get_Filename);
+        GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
 
       Location_Text : constant LSP.Types.LSP_String  := To_LSP_String
         ("at " & Decl_Unit_File.Display_Base_Name & " ("

@@ -29,7 +29,6 @@ limited with LSP.Ada_Contexts;
 with LSP.Ada_Completion_Sets;
 
 with GNATCOLL.Traces;
-with GNATCOLL.VFS;
 with Libadalang.Common;
 
 with Pp.Command_Lines;
@@ -170,7 +169,7 @@ package LSP.Ada_Documents is
    procedure Get_Imported_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Project_URI   : LSP.Types.LSP_String;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector);
    --  Return all the units that import the document's unit.
@@ -180,7 +179,7 @@ package LSP.Ada_Documents is
    procedure Get_Importing_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Project_URI   : LSP.Types.LSP_String;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector);
    --  Return the units that import the document's unit among the given list.

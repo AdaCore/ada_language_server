@@ -389,10 +389,8 @@ package body LSP.Ada_Contexts is
      (Self     : in out Context;
       Document : LSP.Ada_Documents.Document)
    is
-      File : constant Virtual_File := Create
-        (Filesystem_String
-           (LSP.Types.To_UTF_8_String (URI_To_File (Document.URI))),
-         Normalize => True);
+      File : constant Virtual_File := Create_From_UTF8
+        (LSP.Types.To_UTF_8_String (Self.URI_To_File (Document.URI)));
    begin
       --  Make LAL reload file from disk and then update index
       Self.Index_File (File, Reparse => True);
@@ -502,8 +500,10 @@ package body LSP.Ada_Contexts is
    ----------------
 
    procedure Initialize
-     (Self : in out Context) is
+     (Self            : in out Context;
+      Follow_Symlinks : Boolean) is
    begin
+      Self.Follow_Symlinks := Follow_Symlinks;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
         ("iso-8859-1");
       Self.LAL_Context := Libadalang.Analysis.Create_Context
@@ -692,13 +692,27 @@ package body LSP.Ada_Contexts is
    -----------------
 
    function URI_To_File
-     (URI : LSP.Types.LSP_String) return LSP.Types.LSP_String
+     (Self : Context;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
    is
       To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
-      Result : constant String := URIs.Conversions.To_File (To);
+      Result : constant String := URIs.Conversions.To_File
+        (To, Normalize => Self.Follow_Symlinks);
    begin
       return LSP.Types.To_LSP_String (Result);
    end URI_To_File;
+
+   -------------
+   -- To_File --
+   -------------
+
+   function To_File
+     (Self : Context'Class;
+      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File is
+   begin
+      return GNATCOLL.VFS.Create_From_UTF8
+        (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
+   end To_File;
 
    -----------------
    -- Get_Node_At --
@@ -729,17 +743,13 @@ package body LSP.Ada_Contexts is
       if Document /= null then
          return Document.Get_Node_At (Self, Position.position);
       else
-         File := Create
-           (Filesystem_String
-              (LSP.Types.To_UTF_8_String (URI_To_File (URI))),
-            Normalize => True);
+         File := Create_From_UTF8
+           (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
 
-         if not Self.Is_Part_Of_Project (File) then
-            return Libadalang.Analysis.No_Ada_Node;
-         else
+         if Self.Is_Part_Of_Project (File) then
             Unit := LSP.Preprocessor.Get_From_File
               (Self.LAL_Context,
-               LSP.Types.To_UTF_8_String (URI_To_File (URI)),
+               LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
                Charset => Self.Get_Charset);
 
             if Unit.Root = Libadalang.Analysis.No_Ada_Node then
@@ -751,6 +761,8 @@ package body LSP.Ada_Contexts is
                 (Position.position.line) + 1,
                 Column => Langkit_Support.Slocs.Column_Number
                   (Position.position.character) + 1));
+         else
+            return Libadalang.Analysis.No_Ada_Node;
          end if;
       end if;
    end Get_Node_At;
@@ -794,8 +806,9 @@ package body LSP.Ada_Contexts is
      (Self     : Context;
       Document : in out LSP.Ada_Documents.Document)
    is
-      File   : constant LSP.Types.LSP_String := URI_To_File (Document.URI);
-      Unit   : Libadalang.Analysis.Analysis_Unit;
+      File : constant LSP.Types.LSP_String := Self.URI_To_File (Document.URI);
+      Unit : Libadalang.Analysis.Analysis_Unit;
+
       Buffer : Ada.Strings.Unbounded.Unbounded_String;
    begin
       Document.Reset_Symbol_Cache;

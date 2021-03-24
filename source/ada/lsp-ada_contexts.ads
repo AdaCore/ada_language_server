@@ -43,8 +43,10 @@ package LSP.Ada_Contexts is
    --  A context contains a non-aggregate project tree and its associated
    --  libadalang context.
 
-   procedure Initialize (Self : in out Context);
-   --  Initialize the context
+   procedure Initialize
+     (Self            : in out Context;
+      Follow_Symlinks : Boolean);
+   --  Initialize the context, set Follow_Symlinks flag.
 
    procedure Load_Project
      (Self     : in out Context;
@@ -67,12 +69,18 @@ package LSP.Ada_Contexts is
    --  context after calling this.
 
    function URI_To_File
-     (URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+     (Self : Context;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path by stripping schema from it
 
    function File_To_URI
-     (File  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
+
+   function To_File
+     (Self : Context'Class;
+      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
+   --  Turn URI into Virtual_File
 
    function Get_Node_At
      (Self     : Context;
@@ -237,6 +245,9 @@ private
       PP_Options : Utils.Command_Lines.Command_Line
                     (Pp.Command_Lines.Descriptor'Access);
       --  Object to keep gnatpp options
+
+      Follow_Symlinks : Boolean := True;
+      --  See LSP.Ada_Handlers for description
    end record;
 
    function LAL_Context

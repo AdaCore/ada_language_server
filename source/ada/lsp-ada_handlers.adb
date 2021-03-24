@@ -21,14 +21,12 @@ with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Directories;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
-with GNATCOLL.VFS_Utils;         use GNATCOLL.VFS_Utils;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Completion_Sets;
@@ -63,6 +61,8 @@ with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
+
+with URIs;
 
 with VSS.Strings;
 with VSS.Unicode;
@@ -192,10 +192,10 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
+      URI  : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
    --  This function makes sure that the contexts in Self are properly
    --  initialized and a project is loaded. If they are not initialized,
-   --  initialize them. Use custom Root directory if provided.
+   --  initialize them. Use URI to find a custom root directory if provided.
 
    procedure Load_Implicit_Project (Self : access Message_Handler);
    --  Load the implicit project
@@ -228,6 +228,26 @@ package body LSP.Ada_Handlers is
       Element_Type    => Positive,
       Hash            => Hash,
       Equivalent_Keys => LSP.Messages."=");
+
+   function From_File
+     (Self : Message_Handler'Class;
+      File : Virtual_File) return LSP.Messages.DocumentUri;
+   --  Turn Virtual_File to URI
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
+   --  Turn URI into Virtual_File
+
+   function URI_To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+   --  Turn URI into path
+
+   function File_To_URI
+     (Self : Message_Handler'Class;
+      File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+   --  Convert file name to URI
 
    -----------------------
    -- Contexts_For_File --
@@ -267,7 +287,7 @@ package body LSP.Ada_Handlers is
       URI  : LSP.Messages.DocumentUri)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
-      File : constant Virtual_File := To_File (URI);
+      File : constant Virtual_File := Self.To_File (URI);
    begin
       return Self.Contexts_For_File (File);
    end Contexts_For_URI;
@@ -342,7 +362,7 @@ package body LSP.Ada_Handlers is
       Position : LSP.Messages.Position;
       Msg_Type : LSP.Messages.MessageType)
    is
-      File : constant GNATCOLL.VFS.Virtual_File := To_File (URI);
+      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
       Self.Server.On_Show_Message
         ((Msg_Type,
@@ -494,8 +514,9 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
+      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
       Self.Project_Tree := new Project_Tree;
-      C.Initialize;
+      C.Initialize (Self.Follow_Symlinks);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:
@@ -540,7 +561,7 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      Root : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
+      URI  : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
    is
       GPRs_Found : Natural := 0;
       Files      : File_Array_Access;
@@ -554,8 +575,8 @@ package body LSP.Ada_Handlers is
 
       --  If we never passed through Initialize, this might be empty:
       --  initialize it now
-      if Self.Root = No_File and then not LSP.Types.Is_Empty (Root) then
-         Self.Root := Create (+To_UTF_8_String (Root));
+      if Self.Root = No_File and then not LSP.Types.Is_Empty (URI) then
+         Self.Root := Self.To_File (URI).Dir;
       end if;
 
       Self.Trace.Trace ("Project loading ...");
@@ -754,7 +775,7 @@ package body LSP.Ada_Handlers is
       if Value.rootUri.Is_Set
         and then not LSP.Types.Is_Empty (Value.rootUri.Value)
       then
-         Root := URI_To_File (Value.rootUri.Value);
+         Root := Self.URI_To_File (Value.rootUri.Value);
       elsif Value.rootPath.Is_Set and then Value.rootPath.Value.Is_Set then
          --  URI isn't provided, rollback to deprecated rootPath
          Root := Value.rootPath.Value.Value;
@@ -768,7 +789,7 @@ package body LSP.Ada_Handlers is
          Root := +".";
       end if;
 
-      Self.Root := Create (+To_UTF_8_String (Root));
+      Self.Root := Create_From_UTF8 (To_UTF_8_String (Root));
       Self.Client := Value;
 
       --  Log the context root
@@ -1081,11 +1102,11 @@ package body LSP.Ada_Handlers is
                            declare
                               VF : GNATCOLL.VFS.Virtual_File renames
                                 LSP.Ada_File_Sets.File_Sets.Element (F);
-                              Filename : constant String := +VF.Full_Name;
                            begin
                               Units_Vector.Append
                                 (LSP.Preprocessor.Get_From_File
-                                   (Context.LAL_Context, Filename,
+                                   (Context.LAL_Context,
+                                    VF.Display_Full_Name,
                                     --  ??? What is the charset for predefined
                                     --  files?
                                     ""));
@@ -1870,10 +1891,7 @@ package body LSP.Ada_Handlers is
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
       --  project in this directory, if needed.
-      Ensure_Project_Loaded
-        (Self,
-         To_LSP_String (Ada.Directories.Containing_Directory
-           (To_UTF_8_String (URI_To_File (URI)))));
+      Self.Ensure_Project_Loaded (URI);
 
       --  We have received a document: add it to the documents container
       Object.Initialize (URI, Value.textDocument.text);
@@ -1884,7 +1902,7 @@ package body LSP.Ada_Handlers is
 
       if Self.Implicit_Project_Loaded then
          declare
-            Dir : constant Virtual_File := To_File (URI).Dir;
+            Dir : constant Virtual_File := Self.To_File (URI).Dir;
          begin
             if not Self.Project_Dirs_Loaded.Contains (Dir) then
                --  We do need to add this directory
@@ -2715,7 +2733,7 @@ package body LSP.Ada_Handlers is
          when LSP.Messages.Show_Imported =>
             Document.Get_Imported_Units
               (Context       => Context.all,
-               Project_Path  => Self.Root,
+               Project_URI   => Self.From_File (Self.Root),
                Show_Implicit => Params.showImplicit,
                Result        => Response.result);
 
@@ -2727,7 +2745,7 @@ package body LSP.Ada_Handlers is
                for Context of Contexts loop
                   Document.Get_Importing_Units
                     (Context       => Context.all,
-                     Project_Path  => Self.Root,
+                     Project_URI   => Self.From_File (Self.Root),
                      Show_Implicit => Params.showImplicit,
                      Result        => Response.result);
                end loop;
@@ -2947,9 +2965,8 @@ package body LSP.Ada_Handlers is
             Sloc_Range    : Langkit_Support.Slocs.Source_Location_Range)
          is
             Location : constant LSP.Messages.Location :=
-              (uri     => LSP.Ada_Contexts.File_To_URI
-                 (To_Unbounded_Wide_String
-                      (To_Wide_String (Unit_Filename))),
+              (uri     => Self.File_To_URI
+                 (LSP.Types.To_LSP_String (Unit_Filename)),
                span    => To_Span (Sloc_Range),
                alsKind => <>);
             Item     : constant LSP.Messages.TextEdit :=
@@ -3244,6 +3261,8 @@ package body LSP.Ada_Handlers is
         "foldComments";
       displayMethodAncestryOnNavigation : constant String :=
         "displayMethodAncestryOnNavigation";
+      followSymlinks                    : constant String :=
+        "followSymlinks";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : LSP.Types.LSP_String;
@@ -3254,13 +3273,13 @@ package body LSP.Ada_Handlers is
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
-            Relocate := Create
-              (+To_UTF_8_String (+Ada.Get (relocateBuildTree).Get));
+            Relocate := Create_From_UTF8
+              (To_UTF_8_String (+Ada.Get (relocateBuildTree).Get));
          end if;
 
          if Ada.Has_Field (rootDir) then
-            Root := Create
-              (+To_UTF_8_String (+Ada.Get (rootDir).Get));
+            Root := Create_From_UTF8
+              (To_UTF_8_String (+Ada.Get (rootDir).Get));
          end if;
 
          if Ada.Has_Field (projectFile) then
@@ -3268,7 +3287,7 @@ package body LSP.Ada_Handlers is
 
             --  Drop uri scheme if present
             if LSP.Types.Starts_With (File, "file:") then
-               File := URI_To_File (File);
+               File := Self.URI_To_File (File);
             end if;
          end if;
 
@@ -3322,6 +3341,12 @@ package body LSP.Ada_Handlers is
               LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
                 (Ada.Get (displayMethodAncestryOnNavigation));
          end if;
+
+         --  Retrieve the follow symlinks policy.
+
+         if Ada.Has_Field (followSymlinks) then
+            Self.Follow_Symlinks := Ada.Get (followSymlinks);
+         end if;
       end if;
 
       if File /= Empty_LSP_String then
@@ -3329,14 +3354,13 @@ package body LSP.Ada_Handlers is
          --  relative path; if so, we're assuming it's relative
          --  to Self.Root.
          declare
-            Project_File : constant Filesystem_String :=
-              +To_UTF_8_String (File);
+            Project_File : constant String := To_UTF_8_String (File);
             GPR : Virtual_File;
          begin
             if Is_Absolute_Path (Project_File) then
-               GPR := Create (Project_File);
+               GPR := Create_From_UTF8 (Project_File);
             else
-               GPR := Create_From_Dir (Self.Root, Project_File);
+               GPR := Join (Self.Root, Create_From_UTF8 (Project_File));
             end if;
 
             Self.Load_Project
@@ -3395,7 +3419,7 @@ package body LSP.Ada_Handlers is
             --  If there is no document, reindex the file for each
             --  context where it is relevant.
             for C of Self.Contexts_For_URI (Change.uri) loop
-               C.Index_File (To_File (Change.uri));
+               C.Index_File (Self.To_File (Change.uri));
             end loop;
          end if;
       end loop;
@@ -3469,7 +3493,7 @@ package body LSP.Ada_Handlers is
       procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
          C : constant Context_Access := new Context (Self.Trace);
       begin
-         C.Initialize;
+         C.Initialize (Self.Follow_Symlinks);
          C.Load_Project (Tree    => Self.Project_Tree,
                          Root    => P,
                          Charset => Charset);
@@ -3491,6 +3515,8 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
+      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
+
       if Relocate_Build_Tree /= No_File then
          Self.Project_Environment.Set_Build_Tree_Dir
            (Relocate_Build_Tree.Full_Name);
@@ -3681,7 +3707,7 @@ package body LSP.Ada_Handlers is
             Self.Files_To_Index.Delete (Cursor);
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
             if not Self.Open_Documents.Contains
-              (File_To_URI (+File.Display_Full_Name))
+              (Self.File_To_URI (+File.Display_Full_Name))
             then
                Current_Percent := (Self.Total_Files_Indexed * 100)
                  / Self.Total_Files_To_Index;
@@ -4475,5 +4501,57 @@ package body LSP.Ada_Handlers is
          Self.Index_Files;
       end if;
    end After_Work;
+
+   function From_File
+     (Self : Message_Handler'Class;
+      File : Virtual_File) return LSP.Messages.DocumentUri is
+        (LSP.Types.To_LSP_String
+          (URIs.Conversions.From_File (File.Display_Full_Name)));
+
+   -------------
+   -- To_File --
+   -------------
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File is
+   begin
+      return GNATCOLL.VFS.Create_From_UTF8
+        (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
+   end To_File;
+
+   -----------------
+   -- URI_To_File --
+   -----------------
+
+   function URI_To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
+      Result : constant String := URIs.Conversions.To_File
+        (To, Normalize => Self.Follow_Symlinks);
+   begin
+      return LSP.Types.To_LSP_String (Result);
+   end URI_To_File;
+
+   -----------------
+   -- File_To_URI --
+   -----------------
+
+   -----------------
+   -- File_To_URI --
+   -----------------
+
+   function File_To_URI
+     (Self : Message_Handler'Class;
+      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
+   is
+      pragma Unreferenced (Self);
+      Result : constant URIs.URI_String :=
+        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
+   begin
+      return LSP.Types.To_LSP_String (Result);
+   end File_To_URI;
 
 end LSP.Ada_Handlers;

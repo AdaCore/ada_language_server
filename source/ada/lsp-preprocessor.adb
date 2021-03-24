@@ -166,7 +166,7 @@ package body LSP.Preprocessor is
       Decoded    : Virtual_String;
    begin
       --  Read the file (this call uses MMAP)
-      Raw := Create (+Filename).Read_File;
+      Raw := Create_From_UTF8 (Filename).Read_File;
 
       if Raw = null then
          return Null_Unbounded_String;

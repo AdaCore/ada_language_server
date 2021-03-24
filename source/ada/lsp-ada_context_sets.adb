@@ -20,13 +20,8 @@ with Ada.Unchecked_Deallocation;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 
 with LSP.Ada_File_Sets;
-with URIs;
 
 package body LSP.Ada_Context_Sets is
-
-   function To_File (URI : LSP.Messages.DocumentUri) return Virtual_File is
-     (Create (+(URIs.Conversions.To_File (LSP.Types.To_UTF_8_String (URI)))));
-   --  Utility conversion function
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Contexts.Context, Context_Access);
@@ -76,14 +71,16 @@ package body LSP.Ada_Context_Sets is
 
    function Get_Best_Context
      (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Access
-   is
-      File : constant Virtual_File := To_File (URI);
+      URI  : LSP.Messages.DocumentUri) return Context_Access is
    begin
       for Context of Self.Contexts loop
-         if Context.Is_Part_Of_Project (File) then
-            return Context;
-         end if;
+         declare
+            File : constant Virtual_File := Context.To_File (URI);
+         begin
+            if Context.Is_Part_Of_Project (File) then
+               return Context;
+            end if;
+         end;
       end loop;
 
       return Self.Contexts.First_Element;

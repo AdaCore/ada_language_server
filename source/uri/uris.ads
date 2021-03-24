@@ -97,10 +97,18 @@ package URIs is
       function From_File (Full_Path : String) return URI_String
         with Pre => GNAT.OS_Lib.Is_Absolute_Path (Full_Path);
       --  Convert from file to URI in form of file://path
-      --  Argument should be a absolute path (not relative one)
+      --  Argument should be a absolute path (not relative one).
+      --
+      --  On Windows:
+      --  "z:\ar" converted to "file:///z%3A/ar"
+      --  "\\VBOXSVR\tmp\ar" converted to "file://vboxsvr/tmp/ar"
+      --
+      --  On Linux:
+      --  "/tmp/ar" converted to "file:///tmp/ar"
 
-      function To_File (URI : URI_String) return String;
-      --  Convert from file:// URI to file full path
+      function To_File (URI : URI_String; Normalize : Boolean) return String;
+      --  Convert from file:// URI to file full path. If Normalize = True
+      --  then convert result is independ on letter case and symlinks.
    end Conversions;
 
 private

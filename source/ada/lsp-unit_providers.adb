@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with GNATCOLL.VFS;          use GNATCOLL.VFS;
+with GNATCOLL.VFS;
 
 with Libadalang.Unit_Files;
 with Langkit_Support.Text; use Langkit_Support.Text;
@@ -85,7 +85,7 @@ package body LSP.Unit_Providers is
    is
       Str_Name : constant String :=
         Libadalang.Unit_Files.Unit_String_Name (Name);
-      File     : constant Filesystem_String := Prj.File_From_Unit
+      File     : constant GNATCOLL.VFS.Filesystem_String := Prj.File_From_Unit
         (Project   => Provider.Project,
          Unit_Name => Str_Name,
          Part      => Convert (Kind),
@@ -100,7 +100,7 @@ package body LSP.Unit_Providers is
          declare
             Path : constant GNATCOLL.VFS.Virtual_File :=
               Prj.Create_From_Project (Provider.Project, File).File;
-            Fullname : constant String := +Path.Full_Name;
+            Fullname : constant String := Path.Display_Full_Name;
          begin
             if Fullname'Length /= 0 then
                return Fullname;

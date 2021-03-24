@@ -205,6 +205,11 @@ private
       --  such as textDocument/definition, textDocument/declaration
       --  and textDocument/implementation.
 
+      Follow_Symlinks : Boolean := True;
+      --  False if the client disables symlink following. In this case
+      --  URIs from client should match file names reported by LAL and
+      --  GNATCOLL.Project.
+
       ----------------------
       -- Project handling --
       ----------------------
