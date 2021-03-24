@@ -191,15 +191,15 @@
                "result": [
                   {
                      "uri": "$URI{main.adb}",
-                     "projectUri": "$URI{.}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{package_1.adb}",
-                     "projectUri": "$URI{.}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{package_2.ads}",
-                     "projectUri": "$URI{.}"
+                     "projectUri": "$URI{/}"
                   }
                ]
             }
@@ -225,11 +225,11 @@
                "result": [
                   {
                      "uri": "$URI{package_1.ads}",
-                     "projectUri": "$URI{.}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{package_2.ads}",
-                     "projectUri": "$URI{.}"
+                     "projectUri": "$URI{/}"
                   }
                ]
             }

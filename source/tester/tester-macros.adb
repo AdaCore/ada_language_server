@@ -17,9 +17,11 @@
 
 with Ada.Directories;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 
 with GNAT.Regpat;
-
+with GNAT.OS_Lib;
 with URIs;
 
 package body Tester.Macros is
@@ -36,7 +38,12 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${([\W]+)}|\$URI{([^}]+)}");
+     GNAT.Regpat.Compile ("\${([\W]+)}|\$URI{([^}]*)}");
+
+   Replace_Slash : constant Ada.Strings.Maps.Character_Mapping :=
+     Ada.Strings.Maps.To_Mapping
+       (From => "/",
+        To   => GNAT.OS_Lib.Directory_Separator & "");
 
    function Expand
      (Value    : GNATCOLL.JSON.JSON_Value;
@@ -179,14 +186,28 @@ package body Tester.Macros is
 
    function Expand_URI
      (Path     : String;
-      Test_Dir : String) return String is
+      Test_Dir : String) return String
+   is
+      Argument : constant String := Ada.Strings.Fixed.Translate
+        (Path, Replace_Slash);
    begin
-      if Ada.Directories.Full_Name (Path) /= Path then
-         --  Turn Path into absolute path
+      if Path = "" then
+         --  Return normalized Test_Dir
          return URIs.Conversions.From_File
-                  (Ada.Directories.Full_Name (Test_Dir & "/" & Path));
+           (Ada.Directories.Full_Name (Test_Dir));
+
+      elsif Path = "/" then
+         --  Return normalized Test_Dir & '/'
+         return URIs.Conversions.From_File
+           (Ada.Directories.Full_Name (Test_Dir) &
+            GNAT.OS_Lib.Directory_Separator);
+
       else
-         return URIs.Conversions.From_File (Path);
+         --  Turn a relative path into absolute path
+         return URIs.Conversions.From_File
+           (Ada.Directories.Full_Name (Test_Dir) &
+            GNAT.OS_Lib.Directory_Separator &
+            Argument);
       end if;
    end Expand_URI;
 
