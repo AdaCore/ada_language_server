@@ -1,0 +1,741 @@
+[
+    {
+        "comment": [
+            "This test tests the als-named-parameters command when applied in an access to a subprogram"
+        ]
+    },
+    {
+        "start": {
+            "cmd": [
+                "${ALS}"
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-1",
+                "method": "initialize",
+                "params": {
+                    "processId": 44063,
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "workspace": {
+                            "applyEdit": true,
+                            "workspaceEdit": {},
+                            "didChangeConfiguration": {},
+                            "didChangeWatchedFiles": {},
+                            "executeCommand": {}
+                        },
+                        "textDocument": {
+                            "synchronization": {},
+                            "completion": {
+                                "dynamicRegistration": true,
+                                "completionItem": {
+                                    "snippetSupport": true,
+                                    "documentationFormat": [
+                                        "plaintext",
+                                        "markdown"
+                                    ]
+                                }
+                            },
+                            "hover": {},
+                            "signatureHelp": {},
+                            "declaration": {},
+                            "definition": {},
+                            "typeDefinition": {},
+                            "implementation": {},
+                            "references": {},
+                            "documentHighlight": {},
+                            "documentSymbol": {
+                                "hierarchicalDocumentSymbolSupport": true
+                            },
+                            "codeLens": {},
+                            "colorProvider": {},
+                            "formatting": {
+                                "dynamicRegistration": false
+                            },
+                            "rangeFormatting": {
+                                "dynamicRegistration": false
+                            },
+                            "onTypeFormatting": {
+                                "dynamicRegistration": false
+                            },
+                            "foldingRange": {
+                                "lineFoldingOnly": true
+                            },
+                            "selectionRange": {},
+                            "callHierarchy": {}
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": "ada-1",
+                    "result": {
+                        "capabilities": {
+                            "textDocumentSync": 2,
+                            "completionProvider": {
+                                "triggerCharacters": [
+                                    ".",
+                                    "("
+                                ],
+                                "resolveProvider": false
+                            },
+                            "hoverProvider": true,
+                            "declarationProvider": true,
+                            "definitionProvider": true,
+                            "typeDefinitionProvider": true,
+                            "implementationProvider": true,
+                            "referencesProvider": true,
+                            "codeActionProvider": {},
+                            "documentFormattingProvider": true,
+                            "renameProvider": {},
+                            "foldingRangeProvider": true,
+                            "executeCommandProvider": {
+                                "commands": [
+                                    "als-named-parameters",
+                                    "als-refactor-imports",
+                                    "als-refactor-remove-parameters",
+                                    "als-refactor-move-parameter",
+                                    "als-refactor-change-parameter-mode"
+                                ]
+                            },
+                            "workspaceSymbolProvider": true,
+                            "callHierarchyProvider": {},
+                            "alsCalledByProvider": true,
+                            "alsCallsProvider": true,
+                            "alsShowDepsProvider": true,
+                            "alsReferenceKinds": [
+                                "reference",
+                                "access",
+                                "write",
+                                "call",
+                                "dispatching call",
+                                "parent",
+                                "child"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "initialized"
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "projectFile": "default.gpr",
+                            "scenarioVariables": {},
+                            "defaultCharset": "ISO-8859-1"
+                        }
+                    }
+                },
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration"
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "method": "$/progress",
+                    "params": {
+                        "token": "<ANY>",
+                        "value": {
+                            "kind": "end"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "Ada",
+                        "version": 0,
+                        "text": "with Ada.Text_IO; use Ada.Text_IO;\n\nprocedure Main is\n   procedure Foo (I : Integer);\n\n   procedure Foo (I : Integer) is\n   begin\n      Put_Line (I'Image);\n   end Foo;\n\n   type Foo_Access is access procedure (A : Integer);\n\n   type Bar is\n      record\n         Subp_Anonymous_Access : access procedure (A : Integer);\n         Subp_Access           : Foo_Access;\n      end record;\n\n   procedure Qux (Q : access procedure (A : Integer));\n\n   procedure Corge (C : Foo_Access);\n\n   procedure Qux (Q : access procedure (A : Integer)) is\n   begin\n      Q (1);\n   end Qux;\n\n   procedure Corge (C : Foo_Access) is\n   begin\n      C (1);\n   end Corge;\n\n   type Grault is array (Natural range <>) of Foo_Access;\n\n   B : Bar :=\n     Bar'(Subp_Anonymous_Access => Foo'Access, Subp_Access => Foo'Access);\n   C : access procedure (A : Integer) := Foo'Access;\n   D : Foo_Access := Foo'Access;\n   E : Grault (0 .. 1) := (C, D);\n\nbegin\n   Qux (C);\n   Corge (D);\n\n   C (1);\n   B.Subp_Anonymous_Access (1);\n   B.Subp_Access (1);\n   D (1);\n   E (0) (1);\n   E (1) (1);\nend Main;\n"
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "method": "textDocument/publishDiagnostics",
+                    "params": {
+                        "uri": "$URI{main.adb}",
+                        "diagnostics": []
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-1",
+                "method": "textDocument/codeAction",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "range": {
+                        "start": {
+                            "line": 49,
+                            "character": 11
+                        },
+                        "end": {
+                            "line": 49,
+                            "character": 11
+                        }
+                    },
+                    "context": {
+                        "diagnostics": []
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": "ada-1",
+                    "result": [
+                        {
+                            "title": "Name parameters in the call",
+                            "kind": "refactor.rewrite",
+                            "command": {
+                                "title": "",
+                                "command": "als-named-parameters",
+                                "arguments": [
+                                    {
+                                        "context": "Default",
+                                        "where": {
+                                            "textDocument": {
+                                                "uri": "$URI{main.adb}"
+                                            },
+                                            "position": {
+                                                "line": 49,
+                                                "character": 10
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-3",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 49,
+                                    "character": 10
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 49,
+                                                    "character": 10
+                                                },
+                                                "end": {
+                                                    "line": 49,
+                                                    "character": 10
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-4",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 48,
+                                    "character": 10
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 48,
+                                                    "character": 10
+                                                },
+                                                "end": {
+                                                    "line": 48,
+                                                    "character": 10
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-5",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 47,
+                                    "character": 6
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 47,
+                                                    "character": 6
+                                                },
+                                                "end": {
+                                                    "line": 47,
+                                                    "character": 6
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-6",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 45,
+                                    "character": 28
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 45,
+                                                    "character": 28
+                                                },
+                                                "end": {
+                                                    "line": 45,
+                                                    "character": 28
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-7",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 44,
+                                    "character": 6
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 44,
+                                                    "character": 6
+                                                },
+                                                "end": {
+                                                    "line": 44,
+                                                    "character": 6
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-8",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 29,
+                                    "character": 9
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 29,
+                                                    "character": 9
+                                                },
+                                                "end": {
+                                                    "line": 29,
+                                                    "character": 9
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-9",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 29,
+                                    "character": 9
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 9,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 29,
+                                                    "character": 9
+                                                },
+                                                "end": {
+                                                    "line": 29,
+                                                    "character": 9
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": "ada-10",
+                "method": "workspace/executeCommand",
+                "params": {
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                },
+                                "position": {
+                                    "line": 24,
+                                    "character": 9
+                                }
+                            }
+                        }
+                    ],
+                    "command": "als-named-parameters"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 10,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 24,
+                                                    "character": 9
+                                                },
+                                                "end": {
+                                                    "line": 24,
+                                                    "character": 9
+                                                }
+                                            },
+                                            "newText": "A => "
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
