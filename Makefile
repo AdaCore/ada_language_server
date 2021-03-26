@@ -129,7 +129,12 @@ vscode-test:
 	# This contains no useful test, so deactivated for now.
 	# cd integration/vscode/ada; npm run compile && node out/runTests.js
 
-check: all
+prepare:
+	#  Create a symbol link required by a test
+	[ -e testsuite/ada_lsp/project_symlinks/link ] || \
+	  (cd testsuite/ada_lsp/project_symlinks; ln -s prj link)
+
+check: all prepare
 	set -e; \
         if [ `$(PYTHON) -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
            (cd testsuite ; sh run.sh ) ; \
