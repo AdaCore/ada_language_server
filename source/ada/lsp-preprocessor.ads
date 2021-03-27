@@ -38,6 +38,7 @@ package LSP.Preprocessor is
    function Preprocess_File
      (Filename : String; Charset : String) return Unbounded_String;
    --  Load a file form disk and preprocess it with Preprocess_Buffer
+   --  The Filename has UTF-8 encoding.
 
    function Get_From_File
      (Context  : Libadalang.Analysis.Analysis_Context;
@@ -48,5 +49,6 @@ package LSP.Preprocessor is
       return Libadalang.Analysis.Analysis_Unit;
    --  Behaves like Libadalang.Analysis.Get_From_File, but preprocesses
    --  the file using Preprocess_Buffer above.
+   --  The Filename has UTF-8 encoding.
 
 end LSP.Preprocessor;

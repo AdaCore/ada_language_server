@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Directories;
 with Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Wide_Wide_Characters.Handling;
@@ -28,20 +27,24 @@ package body URIs is
       UNC : constant GNAT.Regpat.Pattern_Matcher :=  --  \\host\share\path
         GNAT.Regpat.Compile ("^\\\\([^\\]*)\\");
 
+      Slash : constant String :=
+        GNAT.Regpat.Quote ((1 => GNAT.OS_Lib.Directory_Separator));
+
+      Segment : constant GNAT.Regpat.Pattern_Matcher :=
+        GNAT.Regpat.Compile (Slash);
+
       ---------------
       -- From_File --
       ---------------
 
       function From_File (Full_Path : String) return URI_String is
 
-         Standardized_Full_Path : constant String :=
-           Ada.Directories.Full_Name (Full_Path);
+         use type GNAT.Regpat.Match_Location;
 
          procedure Add_All_Paths
            (URI  : in out URIs.URI;
-            Path : String;
-            Root : String);
-         --  Add each directory of Path to URI.Path recursively until Root
+            Path : String);
+         --  Add each directory of Path to URI.Path
 
          -------------------
          -- Add_All_Paths --
@@ -49,52 +52,41 @@ package body URIs is
 
          procedure Add_All_Paths
            (URI  : in out URIs.URI;
-            Path : String;
-            Root : String)
+            Path : String)
          is
-            Name : constant String := Ada.Directories.Simple_Name (Path);
+            Found : GNAT.Regpat.Match_Array (0 .. 0);
          begin
-            if Name /= Root
-            --  The semantics of Ada.Directories.Containing_Directory has
-            --  changed: in older versions, Simple_Name ("/") on Unix and
-            --  Simple_Name ("X:\") on Windows would return "", whereas,
-            --  in more recent versions, this raises Use_Error.
-            --  Add an explicit test here to support both versions.
-              and then
-                not (Root = "" and then
-                       (Name = "/"
-                        or else (Name'Length = 3 and then
-                                 Name (Name'First + 1 .. Name'Last) = ":\")))
-            then
-               Add_All_Paths
-                 (URI, Ada.Directories.Containing_Directory (Path), Root);
+            GNAT.Regpat.Match (Segment, Path, Found);
 
-               URI.Add_Path_Segment (Name);
+            if Found (0) = GNAT.Regpat.No_Match then
+               URI.Add_Path_Segment (Path);
 
-            elsif Root = "" and then Path'Length > 1 then
-               --  Found top dir in form of 'C:\', so add 'C:'
-               URI.Add_Path_Segment (Path (Path'First .. Path'Last - 1));
+               return;
+
+            elsif Found (0).First > Path'First then
+               URI.Add_Path_Segment (Path (Path'First .. Found (0).First - 1));
             end if;
-         end Add_All_Paths;
 
-         use type GNAT.Regpat.Match_Location;
+            Add_All_Paths (URI, Path (Found (0).Last + 1 .. Path'Last));
+         end Add_All_Paths;
 
          URI   : URIs.URI;
          Found : GNAT.Regpat.Match_Array (0 .. 1);
       begin
-         GNAT.Regpat.Match (UNC, Standardized_Full_Path, Found);
+         GNAT.Regpat.Match (UNC, Full_Path, Found);
          --  Check if we have path in form of UNC:  \\host\share\path
 
          if Found (0) = GNAT.Regpat.No_Match then
-            Add_All_Paths (URI, Standardized_Full_Path, "");
+            Add_All_Paths (URI, Full_Path);
 
          else  --  UNC form, extract Host
             declare
                Host : constant String :=
-                 Standardized_Full_Path (Found (1).First .. Found (1).Last);
+                 Full_Path (Found (1).First .. Found (1).Last);
             begin
                URI.Set_Host (Host);
-               Add_All_Paths (URI, Standardized_Full_Path, Host);
+               Add_All_Paths
+                 (URI, Full_Path (Found (1).Last + 1 .. Full_Path'Last));
             end;
          end if;
 
@@ -107,7 +99,7 @@ package body URIs is
       -- To_File --
       -------------
 
-      function To_File (URI : URI_String) return String is
+      function To_File (URI : URI_String; Normalize : Boolean) return String is
 
          procedure Append_Path (Path : String);
          --  Append Path to Result
@@ -156,7 +148,12 @@ package body URIs is
             raise Constraint_Error with "Invalid URI: " & URI;
          end if;
 
-         return Ada.Strings.Unbounded.To_String (Result);
+         if Normalize then
+            return GNAT.OS_Lib.Normalize_Pathname
+              (Ada.Strings.Unbounded.To_String (Result));
+         else
+            return Ada.Strings.Unbounded.To_String (Result);
+         end if;
       end To_File;
 
    end Conversions;

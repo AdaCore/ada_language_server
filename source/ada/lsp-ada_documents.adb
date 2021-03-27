@@ -25,7 +25,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Strings;
 
 with GNATCOLL.Utils;
-with GNATCOLL.VFS;        use GNATCOLL.VFS;
+with GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Symbols;
@@ -161,12 +161,11 @@ package body LSP.Ada_Documents is
       Version : LSP.Types.LSP_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
-      File : constant String :=
-        Types.To_UTF_8_String (URI_To_File (Self.URI));
+      URI : constant String := Types.To_UTF_8_String (Self.URI);
       Dummy : Libadalang.Analysis.Analysis_Unit;
       use LSP.Types;
    begin
-      Self.Trace.Trace ("Applying changes for document " & File);
+      Self.Trace.Trace ("Applying changes for document " & URI);
 
       Self.Version := Version;
 
@@ -236,7 +235,7 @@ package body LSP.Ada_Documents is
             Self.Recompute_Indexes;
          end if;
       end loop;
-      Self.Trace.Trace ("Done applying changes for document " & File);
+      Self.Trace.Trace ("Done applying changes for document " & URI);
    end Apply_Changes;
 
    -----------------
@@ -652,7 +651,7 @@ package body LSP.Ada_Documents is
    procedure Get_Imported_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Project_URI   : LSP.Types.LSP_String;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -676,9 +675,9 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Common.From_File
-                      (GNATCOLL.VFS.Create (+Unit.Unit.Get_Filename)),
-                  projectUri => LSP.Common.From_File (Project_Path)));
+                 (uri        => LSP.Ada_Contexts.File_To_URI
+                      (LSP.Types.To_LSP_String (Unit.Unit.Get_Filename)),
+                  projectUri => Project_URI));
          end loop;
       end Append_Units;
 
@@ -723,7 +722,7 @@ package body LSP.Ada_Documents is
    procedure Get_Importing_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_Path  : GNATCOLL.VFS.Virtual_File;
+      Project_URI   : LSP.Types.LSP_String;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -743,9 +742,9 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Common.From_File
-                      (GNATCOLL.VFS.Create (+Unit.Get_Filename)),
-                  projectUri => LSP.Common.From_File (Project_Path)));
+                 (uri        => LSP.Ada_Contexts.File_To_URI
+                      (LSP.Types.To_LSP_String (Unit.Get_Filename)),
+                  projectUri => Project_URI));
          end loop;
       end Append_Units;
 
@@ -1669,7 +1668,7 @@ package body LSP.Ada_Documents is
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
-      Decl_Unit_File : Virtual_File;
+      Decl_Unit_File : GNATCOLL.VFS.Virtual_File;
       Doc_Text       : LSP_String;
       Loc_Text       : LSP_String;
    begin
@@ -1698,7 +1697,8 @@ package body LSP.Ada_Documents is
          --  In addition, append the project's name if we are dealing with an
          --  aggregate project.
 
-         Decl_Unit_File := GNATCOLL.VFS.Create (+BD.Unit.Get_Filename);
+         Decl_Unit_File :=
+           GNATCOLL.VFS.Create_From_UTF8 (BD.Unit.Get_Filename);
 
          if Doc_Text /= Empty_LSP_String then
             Loc_Text := To_LSP_String (ASCII.LF & ASCII.LF);
@@ -2520,7 +2520,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit
    is
-      File : constant LSP.Types.LSP_String := URI_To_File (Self.URI);
+      File : constant LSP.Types.LSP_String := Context.URI_To_File (Self.URI);
    begin
       return LSP.Preprocessor.Get_From_File
         (Context.LAL_Context,
