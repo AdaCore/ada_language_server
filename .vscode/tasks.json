@@ -8,7 +8,7 @@
             "args": [
                 "-p",
                 "-P",
-                "${workspaceFolder}/gnat/lsp_server.gpr",
+                "${config:ada.projectFile}",
                 "-cargs",
                 "-gnatef"
             ],
@@ -17,6 +17,13 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "Run tests",
+            "type": "shell",
+            "command": "make check",
+            "problemMatcher": ["$ada"],
+            "group": "test"
         }
     ]
 }
