@@ -59,9 +59,11 @@ Property value - an object:
        composite sort key.
 
 Where _wait_ object is expected server answer. Each property of this object
-should be in server response, but some string values have a special meaning:
- * `<ANY>`  - matches any string value
- * `<ABSENT>` - ensures that there is no such property at all
+should be in server response, but some values have a special meaning:
+ * string `<ANY>`  - matches any string value
+ * string `<ABSENT>` - ensures that there is no such property at all
+ * array `['<HAS>', item1, item2, ...]` - ensures that all given items are
+   included into the array, any other array items are considered irrelevant and ignored
 
 ### Command `comment`
 
