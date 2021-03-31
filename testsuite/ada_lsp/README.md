@@ -8,10 +8,35 @@ Tester accepts a test scenario described in JSON file.
 Test running
 ------------
 
+Before you start the tester put into the `ALS` environment
+variable the language server command line:
+
+```
+export ALS=.objs/server/ada_language_server
+```
+
 To start a test provide JSON file as argument to tester-run:
 ```
 tester-run test.json
 ```
+
+If you want to debug the server with the `GDB`, then use
+`--debug` option:
+```
+$ tester-run --debug test.json
+Language server is running. You can attach it with GDB.
+Press ENTER to continue.
+```
+
+In this case the `tester-run` pauses the execution after
+launching the server and let you attach `gdb` to it.
+Just find PID of the server and invoke GDB:
+```
+gdb --pid=<PID> .obj/server/ada_language_server
+```
+
+Press `ENTER` to signal the tester to continue.
+
 
 JSON file format
 ----------------
@@ -59,9 +84,11 @@ Property value - an object:
        composite sort key.
 
 Where _wait_ object is expected server answer. Each property of this object
-should be in server response, but some string values have a special meaning:
- * `<ANY>`  - matches any string value
- * `<ABSENT>` - ensures that there is no such property at all
+should be in server response, but some values have a special meaning:
+ * string `<ANY>`  - matches any string value
+ * string `<ABSENT>` - ensures that there is no such property at all
+ * array `['<HAS>', item1, item2, ...]` - ensures that all given items are
+   included into the array, any other array items are considered irrelevant and ignored
 
 ### Command `comment`
 
