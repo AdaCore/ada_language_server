@@ -31,6 +31,6 @@ package Tester.Macros is
    --  * ${NAME} - expands with environment variable NAME from Env
    --
    --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
-   --  directory (Path) if x isn't an absolute path
+   --  directory (Path)
 
 end Tester.Macros;

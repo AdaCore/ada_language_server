@@ -8,10 +8,35 @@ Tester accepts a test scenario described in JSON file.
 Test running
 ------------
 
+Before you start the tester put into the `ALS` environment
+variable the language server command line:
+
+```
+export ALS=.objs/server/ada_language_server
+```
+
 To start a test provide JSON file as argument to tester-run:
 ```
 tester-run test.json
 ```
+
+If you want to debug the server with the `GDB`, then use
+`--debug` option:
+```
+$ tester-run --debug test.json
+Language server is running. You can attach it with GDB.
+Press ENTER to continue.
+```
+
+In this case the `tester-run` pauses the execution after
+launching the server and let you attach `gdb` to it.
+Just find PID of the server and invoke GDB:
+```
+gdb --pid=<PID> .obj/server/ada_language_server
+```
+
+Press `ENTER` to signal the tester to continue.
+
 
 JSON file format
 ----------------

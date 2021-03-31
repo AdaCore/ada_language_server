@@ -32,26 +32,34 @@ procedure Tester.Run is
 
    JSON : GNATCOLL.JSON.JSON_Value;
 begin
-   if Ada.Command_Line.Argument_Count /= 1 then
+   if not (Ada.Command_Line.Argument_Count = 1
+     or else (Ada.Command_Line.Argument_Count = 2
+              and then Ada.Command_Line.Argument (1) = "--debug"))
+   then
       Ada.Text_IO.Put_Line ("Usage:");
       Ada.Text_IO.Put_Line
-        ("   " & Ada.Command_Line.Command_Name & " test.json");
+        ("   " & Ada.Command_Line.Command_Name & " [options] test.json");
+      Ada.Text_IO.New_Line;
+      Ada.Text_IO.Put_Line ("Options are:");
+      Ada.Text_IO.Put_Line
+        ("  --debug  disable timeouts and pause after server start");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
       return;
    end if;
 
    declare
-      Arg   : constant String := Ada.Command_Line.Argument (1);
+      File  : constant String := Ada.Command_Line.Argument
+        (Ada.Command_Line.Argument_Count);
       Input : Ada.Text_IO.File_Type;
       Text  : Ada.Strings.Unbounded.Unbounded_String;
    begin
-      if not Ada.Directories.Exists (Arg) then
-         Ada.Text_IO.Put_Line ("No such file: " & Arg);
+      if not Ada.Directories.Exists (File) then
+         Ada.Text_IO.Put_Line ("No such file: " & File);
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 
-      Ada.Text_IO.Open (Input, Ada.Text_IO.In_File, Arg);
+      Ada.Text_IO.Open (Input, Ada.Text_IO.In_File, File);
 
       while not Ada.Text_IO.End_Of_File (Input) loop
          Ada.Strings.Unbounded.Append
@@ -59,13 +67,13 @@ begin
       end loop;
 
       Ada.Text_IO.Close (Input);
-      JSON := GNATCOLL.JSON.Read (Text, Arg);
-      Tester.Macros.Expand (JSON, Env, Arg);
+      JSON := GNATCOLL.JSON.Read (Text, File);
+      Tester.Macros.Expand (JSON, Env, File);
 
       declare
          Test : Tester.Tests.Test;
       begin
-         Test.Run (JSON.Get);
+         Test.Run (JSON.Get, Debug => Ada.Command_Line.Argument_Count = 2);
       end;
    end;
 end Tester.Run;

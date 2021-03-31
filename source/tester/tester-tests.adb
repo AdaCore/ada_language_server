@@ -107,7 +107,9 @@ package body Tester.Tests is
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
 
          Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
-         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor then
+         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor
+            and then not Self.In_Debug
+         then
             declare
                Text : Spawn.String_Vectors.UTF_8_String_Vector;
             begin
@@ -160,7 +162,8 @@ package body Tester.Tests is
       Args : Spawn.String_Vectors.UTF_8_String_Vector;
    begin
       if Command_Line = null or else Command_Line.all = "" then
-         raise Program_Error with "You must specify the command line in $ALS";
+         raise Program_Error with
+           "You must specify the language server command line in $ALS";
       end if;
 
       declare
@@ -181,6 +184,19 @@ package body Tester.Tests is
          Spawn.Processes.Monitor_Loop (Timeout => 1);
          exit when Self.Is_Server_Running;
       end loop;
+
+      if Self.In_Debug then
+         declare
+            Ignore : Integer;
+         begin
+            Ada.Text_IO.Put_Line
+             ("Language server is running. You can attach it with GDB.");
+            Ada.Text_IO.Put_Line ("Press ENTER to continue.");
+
+            --  Wait for ENTER:
+            Ignore := Ada.Text_IO.Get_Line'Length;
+         end;
+      end if;
    end Do_Start;
 
    -------------
@@ -558,9 +574,13 @@ package body Tester.Tests is
       end Watch_Dog;
 
    begin
-      Command.Map_JSON_Object (Execute'Access);
-
-      Watch_Dog.Cancel;
+      if Self.In_Debug then
+         Watch_Dog.Cancel;  --  Don't use watchdog under debug
+         Command.Map_JSON_Object (Execute'Access);
+      else
+         Command.Map_JSON_Object (Execute'Access);
+         Watch_Dog.Cancel;
+      end if;
    end Execute_Command;
 
    ---------
@@ -569,9 +589,11 @@ package body Tester.Tests is
 
    procedure Run
      (Self     : in out Test;
-      Commands : GNATCOLL.JSON.JSON_Array)
-   is
+      Commands : GNATCOLL.JSON.JSON_Array;
+      Debug    : Boolean) is
    begin
+      Self.In_Debug := Debug;
+
       while Self.Index <= GNATCOLL.JSON.Length (Commands) loop
          declare
             Command : constant GNATCOLL.JSON.JSON_Value :=

@@ -31,7 +31,8 @@ package Tester.Tests is
 
    procedure Run
      (Self     : in out Test;
-      Commands : GNATCOLL.JSON.JSON_Array);
+      Commands : GNATCOLL.JSON.JSON_Array;
+      Debug    : Boolean);
 
 private
 
@@ -40,6 +41,8 @@ private
       Sort_Reply   : GNATCOLL.JSON.JSON_Value;
       Waits        : GNATCOLL.JSON.JSON_Array;
       --  Array of JSON object to wait
+      In_Debug     : Boolean;
+      --  In debug mode (disable timeout, pause after start)
 
       Full_Server_Output : GNATCOLL.JSON.JSON_Array;
       --  Complete output received from the server
