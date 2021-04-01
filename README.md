@@ -169,6 +169,24 @@ specification. See [corresponding document](doc/README.md).
 
 ## How to use the VScode extension
 
+### Auto-detected tasks
+
+The extension includes a task provider. It provides two "auto-detected" tasks:
+* "ada: Build current project" - launch `gprbuild` to build the current GPR project
+* "ada: Check current file" - launch `gprbuild` to check errors in the current editor
+
+You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
+
+```json
+{
+  "key": "alt+v",
+  "command": "workbench.action.tasks.runTask",
+  "args": "ada: Check current file",
+  "when": "editorLangId == ada"
+}
+```
+
+### Launch extension to debug it
 For the moment, this repository includes a vscode extension that is used as the
 reference extension for this implementation.
 
@@ -178,7 +196,9 @@ You can try it by running:
 code --extensionDevelopmentPath=<path_to_this_repo>/integration/vscode/ada <workspace directory>
 ```
 
-You can configure the ALS via the `.vscode/settings.json` settings file.
+### Configuration
+
+You can configure the extension via the `.vscode/settings.json` settings file.
 See the setting list [here](doc/settings.md).
 
 Here is an example config file from the gnatcov project:

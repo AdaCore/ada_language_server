@@ -12,7 +12,8 @@
         "Programming Languages"
     ],
     "activationEvents": [
-        "onLanguage:ada"
+        "onLanguage:ada",
+        "onCommand:workbench.action.tasks.runTask"
     ],
     "main": "./extension",
     "icon": "icons/ada.png",
@@ -188,6 +189,24 @@
                         "message": 5
                     }
                 ]
+            }
+        ],
+        "taskDefinitions": [
+            {
+                "type": "gprbuild",
+                "required": [
+                    "projectFile"
+                ],
+                "properties": {
+                    "projectFile": {
+                        "type": "string",
+                        "description": "The project file"
+                    },
+                    "checkFile": {
+                        "type": "boolean",
+                        "description": "Just check the current file only"
+                    }
+                }
             }
         ]
     },

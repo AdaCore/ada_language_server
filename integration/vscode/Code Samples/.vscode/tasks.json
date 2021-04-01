@@ -10,7 +10,7 @@
             "args": [
                 "-p",
                 "-P",
-                "${workspaceFolder}/hello.gpr",
+                "${config:ada.projectFile}",
                 "-cargs",
                 "-gnatef"
             ],
