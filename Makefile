@@ -14,7 +14,8 @@ CODEC_TEST=.obj/codec_test/codec_test
 # Testsuite directory
 TD=testsuite/ada_lsp
 
-GPRBUILD=gprbuild -j0
+GPRBUILD=gprbuild -j0 -XSUPERPROJECT=
+GPRCLEAN=gprclean -XSUPERPROJECT=
 
 # Installation directory
 prefix ?= /usr/local
@@ -110,10 +111,10 @@ ifneq ($(COVERAGE),)
 endif
 
 clean:
-	gprclean -P gnat/lsp.gpr $(LIBRARY_FLAGS)
-	gprclean -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
-	gprclean -P gnat/tester.gpr $(LIBRARY_FLAGS)
-	gprclean -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
+	$(GPRCLEAN) -P gnat/lsp.gpr $(LIBRARY_FLAGS)
+	$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
+	$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
+	$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
 	rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
