@@ -509,27 +509,20 @@ package body LSP.Ada_Documents is
               Self.Line_To_Index.First_Index .. Self.Line_To_Index.Last_Index
          then
             declare
+               use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
                Element   : LSP.Messages.TextEdit := Edit.Last_Element;
                Last_Line : constant VSS.Strings.Virtual_String :=
                  Old_Lines (Old_Lines.Length);
                Iterator  :
-                 VSS.Strings.Character_Iterators.Character_Iterator :=
-                   Last_Line.First_Character;
+                 constant VSS.Strings.Character_Iterators.Character_Iterator :=
+                   Last_Line.Last_Character;
 
             begin
-               --  Iterate to the end of the line to compute UTF16 offset of
-               --  the last character
-               --  XXX Can be rewritten with String.Last_Character and
-               --  Iterator.Last_UTF16_Offset once they are implemented.
-
-               while Iterator.Forward loop
-                  null;
-               end loop;
-
                --  Replace the wrong location by the end of the buffer
                Element.span.last :=
                  (line      => Line_Number (Old_Lines.Length - 1),
-                  character => Iterator.First_UTF16_Offset);
+                  character => Iterator.Last_UTF16_Offset + 1);
                Edit.Replace_Element (Edit.Last, Element);
             end;
          end if;
