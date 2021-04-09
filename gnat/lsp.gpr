@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,8 @@ project LSP is
    );
    Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
 
+   Superproject := external ("SUPERPROJECT", "");
+
    type Any_Boolean is ("false", "true");
 
    --  By default, treat warnings as errors in dev mode, but not in prod
@@ -49,7 +51,7 @@ project LSP is
    for Source_Dirs use ("../source/protocol", 
                         "../source/protocol/generated",
                         "../source/uri");
-   for Object_Dir use "../.obj/lsp";
+   for Object_Dir use "../.obj/" & Superproject & "/lsp";
    for Main use ();
 
    -- Compute the list of default switches to build Ada unit
