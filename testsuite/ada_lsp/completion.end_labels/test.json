@@ -254,7 +254,7 @@
                            "label": "ASCII",
                            "kind": 9,
                            "detail": "package ASCII ",
-                           "documentation": "at __standard (23:3)",
+                           "documentation": "<ANY>",
                            "additionalTextEdits": [
                            ]
                        },
