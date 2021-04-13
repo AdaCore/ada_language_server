@@ -76,6 +76,16 @@ package body LSP.Messages is
       V : out LSP.Messages.CancelParams)
       renames LSP.Message_IO.Read_CancelParams;
 
+   procedure Read_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFile)
+      renames LSP.Message_IO.Read_CreateFile;
+
+   procedure Read_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFileOptions)
+      renames LSP.Message_IO.Read_CreateFileOptions;
+
    procedure Read_Position
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.Position)
@@ -175,6 +185,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ResourceOperationKind)
       renames LSP.Message_IO.Read_ResourceOperationKind;
+
+   procedure Read_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileResourceChangeKind)
+      renames LSP.Message_IO.Read_FileResourceChangeKind;
 
    procedure Read_FailureHandlingKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -335,6 +350,16 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.RenameClientCapabilities)
       renames LSP.Message_IO.Read_RenameClientCapabilities;
+
+   procedure Read_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFile)
+      renames LSP.Message_IO.Read_RenameFile;
+
+   procedure Read_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFileOptions)
+      renames LSP.Message_IO.Read_RenameFileOptions;
 
    procedure Read_RegularExpressionsClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -746,6 +771,16 @@ package body LSP.Messages is
       V : out DeleteFilesParams)
       renames LSP.Message_IO.Read_DeleteFilesParams;
 
+   procedure Read_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFile)
+   renames LSP.Message_IO.Read_DeleteFile;
+
+   procedure Read_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFileOptions)
+   renames LSP.Message_IO.Read_DeleteFileOptions;
+
    procedure Read_FileEvent
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out FileEvent)
@@ -1121,6 +1156,26 @@ package body LSP.Messages is
       V : ALS_ShowDependenciesParams)
    renames LSP.Message_IO.Write_ALS_ShowDependenciesParams;
 
+   procedure Write_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFile)
+     renames LSP.Message_IO.Write_CreateFile;
+
+   procedure Write_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFileOptions)
+      renames LSP.Message_IO.Write_CreateFileOptions;
+
+   procedure Write_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFile)
+     renames LSP.Message_IO.Write_DeleteFile;
+
+   procedure Write_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFileOptions)
+      renames LSP.Message_IO.Write_DeleteFileOptions;
+
    procedure Write_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.RequestMessage)
@@ -1216,6 +1271,16 @@ package body LSP.Messages is
       V : LSP.Messages.Diagnostic)
       renames LSP.Message_IO.Write_Diagnostic;
 
+   procedure Write_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFile)
+      renames LSP.Message_IO.Write_RenameFile;
+
+   procedure Write_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFileOptions)
+      renames LSP.Message_IO.Write_RenameFileOptions;
+
    procedure Write_TextEdit
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextEdit)
@@ -1255,6 +1320,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ResourceOperationKind)
       renames LSP.Message_IO.Write_ResourceOperationKind;
+
+   procedure Write_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileResourceChangeKind)
+      renames LSP.Message_IO.Write_FileResourceChangeKind;
 
    procedure Write_FailureHandlingKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
