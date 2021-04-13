@@ -30,11 +30,11 @@ types_to_print = {
     'VersionedTextDocumentIdentifier',
     'OptionalVersionedTextDocumentIdentifier',
     'TextDocumentEdit',
-    #  'CreateFileOptions',
+    'CreateFileOptions',
     #  'CreateFile',
-    #  'RenameFileOptions',
+    'RenameFileOptions',
     #  'RenameFile',
-    #  'DeleteFileOptions',
+    'DeleteFileOptions',
     #  'DeleteFile',
     #  'Document_Change_Kind',
     #  'Document_Change',
@@ -524,9 +524,9 @@ def filter(x):
 
 def print_spec(file, node):
     name = node.p_defining_name.token_start.text
-    print name
-    file.write(io_spec.format(type=name, kind='Read', out='out '))
-    file.write(io_spec.format(type=name, kind='Write', out=''))
+    print(name)
+    file.write(io_spec.format(type=name, kind='Read', out='out ').encode(encoding='utf-8'))
+    file.write(io_spec.format(type=name, kind='Write', out='').encode(encoding='utf-8'))
 
 
 def get_components(node):
@@ -542,13 +542,13 @@ def get_components(node):
 
 
 def print_components(file, kind, node, no_components):
-    file.write(read_prolog[kind])
+    file.write(read_prolog[kind].encode(encoding='utf-8'))
 
     if kind == 'Read' and no_components:
         #  Write something compilable
         file.write("""if Key = "" then
                null;
-            els""")
+            els""".encode(encoding='utf-8'))
 
     for x in get_components(node):
         name = x.p_defining_name.token_start.text
@@ -557,15 +557,15 @@ def print_components(file, kind, node, no_components):
                                             kind=kind,
                                             name=name,
                                             type=tp)
-        file.write(txt)
+        file.write(txt.encode(encoding='utf-8'))
 
-    file.write(read_epilog[kind])
+    file.write(read_epilog[kind].encode(encoding='utf-8'))
 
 
 def print_enums(file, kind, type, node):
     if type not in enum_as_string:
         offset = 0 if type == 'TextDocumentSyncKind' else 1
-        file.write('   begin\n')
+        file.write('   begin\n'.encode(encoding='utf-8'))
         txt = io_pos_enum[kind].format(type=type, offset=offset)
     else:
         txt = io_string_enum_header[kind].format(type=type)
@@ -575,7 +575,7 @@ def print_enums(file, kind, type, node):
                                                     key=get_key(name))
         txt += io_string_enum_footer[kind].format(type=type)
 
-    file.write(txt)
+    file.write(txt.encode(encoding='utf-8'))
 
 
 def print_body(file, node):
@@ -588,14 +588,14 @@ def print_body(file, node):
         file.write(io_header.format(type=name,
                                     kind=kind,
                                     out='' if kind == 'Write' else 'out ',
-                                    unref=unref))
+                                    unref=unref).encode(encoding='utf-8'))
         if isinstance(node.f_type_def, lal.EnumTypeDef):
             print_enums(file, kind, name, node.f_type_def)
         else:
             print_components(file, kind, node.f_type_def, unref)
 
         file.write(io_footer.format(type=node.p_defining_name.token_start.text,
-                                    kind=kind))
+                                    kind=kind).encode(encoding='utf-8'))
     print_decls_and_statements('Read')
     print_decls_and_statements('Write')
 
@@ -605,16 +605,17 @@ def print_io():
     ctx = lal.AnalysisContext(unit_provider=up)
     unit = ctx.get_from_file("source/protocol/lsp-messages.ads")
     ads = open("source/protocol/generated/lsp-message_io.ads", 'wb')
-    ads.write(spec_header)
+    ads.write(spec_header.encode(encoding='utf-8'))
     adb = open("source/protocol/generated/lsp-message_io.adb", 'wb')
-    adb.write(body_header)
+    adb.write(body_header.encode(encoding='utf-8'))
 
     for x in unit.root.finditer(filter):
         print_spec(ads, x)
         print_body(adb, x)
 
-    ads.write(file_footer)
-    adb.write(file_footer)
+    ads.write(file_footer.encode(encoding='utf-8'))
+    adb.write(file_footer.encode(encoding='utf-8'))
+
 
 if __name__ == '__main__':
     print_io()
