@@ -1249,39 +1249,114 @@ package LSP.Messages is
    --}
    --```
 
+   type FileResourceChangeKind is (create, rename, delete);
+
+   procedure Read_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileResourceChangeKind);
+   for FileResourceChangeKind'Read use Read_FileResourceChangeKind;
+
+   procedure Write_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileResourceChangeKind);
+   for FileResourceChangeKind'Write use Write_FileResourceChangeKind;
+
    type CreateFileOptions is record
       overwrite      : Optional_Boolean;
       ignoreIfExists : Optional_Boolean;
    end record;
 
+   procedure Read_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFileOptions);
+   for CreateFileOptions'Read use Read_CreateFileOptions;
+
+   procedure Write_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFileOptions);
+   for CreateFileOptions'Write use Write_CreateFileOptions;
+
    type CreateFile is record
+      kind    : FileResourceChangeKind range create .. create := create;
       uri     : DocumentUri;
       options : CreateFileOptions;
       annotationId: Optional_String;
    end record;
+
+   procedure Read_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFile);
+   for CreateFile'Read use Read_CreateFile;
+
+   procedure Write_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFile);
+   for CreateFile'Write use Write_CreateFile;
 
    type RenameFileOptions is record
       overwrite      : Optional_Boolean;
       ignoreIfExists : Optional_Boolean;
    end record;
 
+   procedure Read_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFileOptions);
+   for RenameFileOptions'Read use Read_RenameFileOptions;
+
+   procedure Write_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFileOptions);
+   for RenameFileOptions'Write use Write_RenameFileOptions;
+
    type RenameFile is record
+      kind    : FileResourceChangeKind range rename .. rename := rename;
       oldUri  : DocumentUri;
       newUri  : DocumentUri;
       options : RenameFileOptions;
       annotationId: Optional_String;
    end record;
 
+   procedure Read_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFile);
+   for RenameFile'Read use Read_RenameFile;
+
+   procedure Write_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFile);
+   for RenameFile'Write use Write_RenameFile;
+
    type DeleteFileOptions is record
       recursive         : Optional_Boolean;
       ignoreIfNotExists : Optional_Boolean;
    end record;
 
+   procedure Read_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFileOptions);
+   for DeleteFileOptions'Read use Read_DeleteFileOptions;
+
+   procedure Write_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFileOptions);
+   for DeleteFileOptions'Write use Write_DeleteFileOptions;
+
    type DeleteFile is record
+      kind    : FileResourceChangeKind range delete .. delete := delete;
       uri     : DocumentUri;
       options : DeleteFileOptions;
       annotationId: Optional_String;
    end record;
+
+   procedure Read_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFile);
+   for DeleteFile'Read use Read_DeleteFile;
+
+   procedure Write_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFile);
+   for DeleteFile'Write use Write_DeleteFile;
 
    type Document_Change_Kind is
      (Text_Document_Edit, Create_File, Rename_File, Delete_File);

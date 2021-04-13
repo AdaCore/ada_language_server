@@ -988,6 +988,349 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_TextDocumentEdit;
 
+   procedure Read_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileResourceChangeKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Text : constant Standard.String :=
+        VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
+   begin
+      JS.R.Read_Next;
+      if Text = "create" then
+         V := create;
+      elsif Text = "rename" then
+         V := rename;
+      elsif Text = "delete" then
+         V := delete;
+      else
+         V := FileResourceChangeKind'First;
+      end if;
+   end Read_FileResourceChangeKind;
+
+   procedure Write_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileResourceChangeKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      function To_String
+        (Value : FileResourceChangeKind)
+         return Ada.Strings.UTF_Encoding.UTF_8_String;
+
+      function To_String
+        (Value : FileResourceChangeKind)
+         return Ada.Strings.UTF_Encoding.UTF_8_String is
+      begin
+         case Value is
+            when create =>
+               return "create";
+            when rename =>
+               return "rename";
+            when delete =>
+               return "delete";
+         end case;
+      end To_String;
+
+   begin
+      JS.Write_String (To_String (V));
+   end Write_FileResourceChangeKind;
+
+   procedure Read_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CreateFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "overwrite" then
+               Optional_Boolean'Read (S, V.overwrite);
+            elsif Key = "ignoreIfExists" then
+               Optional_Boolean'Read (S, V.ignoreIfExists);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CreateFileOptions;
+
+   procedure Write_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CreateFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("overwrite");
+      Optional_Boolean'Write (S, V.overwrite);
+      JS.Key ("ignoreIfExists");
+      Optional_Boolean'Write (S, V.ignoreIfExists);
+      JS.End_Object;
+   end Write_CreateFileOptions;
+
+   procedure Read_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out CreateFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "kind" then
+               FileResourceChangeKind'Read (S, V.kind);
+            elsif Key = "uri" then
+               LSP.Types.Read (S, V.uri);
+            elsif Key = "options" then
+               CreateFileOptions'Read (S, V.options);
+            elsif Key = "annotationId" then
+               Optional_String'Read (S, V.annotationId);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_CreateFile;
+
+   procedure Write_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : CreateFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      FileResourceChangeKind'Write (S, V.kind);
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("options");
+      CreateFileOptions'Write (S, V.options);
+      JS.Key ("annotationId");
+      Optional_String'Write (S, V.annotationId);
+      JS.End_Object;
+   end Write_CreateFile;
+
+   procedure Read_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "overwrite" then
+               Optional_Boolean'Read (S, V.overwrite);
+            elsif Key = "ignoreIfExists" then
+               Optional_Boolean'Read (S, V.ignoreIfExists);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_RenameFileOptions;
+
+   procedure Write_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("overwrite");
+      Optional_Boolean'Write (S, V.overwrite);
+      JS.Key ("ignoreIfExists");
+      Optional_Boolean'Write (S, V.ignoreIfExists);
+      JS.End_Object;
+   end Write_RenameFileOptions;
+
+   procedure Read_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out RenameFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "kind" then
+               FileResourceChangeKind'Read (S, V.kind);
+            elsif Key = "oldUri" then
+               LSP.Types.Read (S, V.oldUri);
+            elsif Key = "newUri" then
+               LSP.Types.Read (S, V.newUri);
+            elsif Key = "options" then
+               RenameFileOptions'Read (S, V.options);
+            elsif Key = "annotationId" then
+               Optional_String'Read (S, V.annotationId);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_RenameFile;
+
+   procedure Write_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : RenameFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      FileResourceChangeKind'Write (S, V.kind);
+      JS.Key ("oldUri");
+      LSP.Types.Write (S, V.oldUri);
+      JS.Key ("newUri");
+      LSP.Types.Write (S, V.newUri);
+      JS.Key ("options");
+      RenameFileOptions'Write (S, V.options);
+      JS.Key ("annotationId");
+      Optional_String'Write (S, V.annotationId);
+      JS.End_Object;
+   end Write_RenameFile;
+
+   procedure Read_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DeleteFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "recursive" then
+               Optional_Boolean'Read (S, V.recursive);
+            elsif Key = "ignoreIfNotExists" then
+               Optional_Boolean'Read (S, V.ignoreIfNotExists);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_DeleteFileOptions;
+
+   procedure Write_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DeleteFileOptions)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("recursive");
+      Optional_Boolean'Write (S, V.recursive);
+      JS.Key ("ignoreIfNotExists");
+      Optional_Boolean'Write (S, V.ignoreIfNotExists);
+      JS.End_Object;
+   end Write_DeleteFileOptions;
+
+   procedure Read_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out DeleteFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant String :=
+               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+         begin
+            JS.R.Read_Next;
+            if Key = "kind" then
+               FileResourceChangeKind'Read (S, V.kind);
+            elsif Key = "uri" then
+               LSP.Types.Read (S, V.uri);
+            elsif Key = "options" then
+               DeleteFileOptions'Read (S, V.options);
+            elsif Key = "annotationId" then
+               Optional_String'Read (S, V.annotationId);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_DeleteFile;
+
+   procedure Write_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : DeleteFile)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("kind");
+      FileResourceChangeKind'Write (S, V.kind);
+      JS.Key ("uri");
+      LSP.Types.Write (S, V.uri);
+      JS.Key ("options");
+      DeleteFileOptions'Write (S, V.options);
+      JS.Key ("annotationId");
+      Optional_String'Write (S, V.annotationId);
+      JS.End_Object;
+   end Write_DeleteFile;
+
    procedure Read_ChangeAnnotation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ChangeAnnotation)
