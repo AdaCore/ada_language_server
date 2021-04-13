@@ -105,6 +105,16 @@ package LSP.Lal_Utils is
      with Pre => (if Versioned_Documents then Document_Provider /= null);
    --  Converts an Edit_Map into a WorkspaceEdit
 
+   function To_Workspace_Edit
+     (Edits               : Laltools.Refactor.Refactoring_Edits;
+      Versioned_Documents : Boolean := False;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
+      := null;
+      Rename              : Boolean := False)
+      return LSP.Messages.WorkspaceEdit;
+   --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag
+   --  controls if files that are supposed to be deleted, are renamed instead.
+
    ---------------
    -- Called_By --
    ---------------

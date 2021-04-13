@@ -36,6 +36,7 @@ with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
@@ -56,6 +57,7 @@ with Laltools.Common;
 with Laltools.Refactor_Imports;
 with Laltools.Refactor.Subprogram_Signature;
 with Laltools.Refactor.Rename;
+with Laltools.Refactor.Suppress_Separate;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1237,6 +1239,26 @@ package body LSP.Ada_Handlers is
                      Parameters_Indices => Target_Parameters_Indices,
                      New_Mode           => Alternative);
                end loop;
+
+               Found := True;
+               Done := True;
+            end if;
+         end;
+
+         --  Suppress Subprogram
+         declare
+            use LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+            use Libadalang.Analysis;
+            use Laltools.Refactor.Suppress_Separate;
+
+            Target_Separate           : Basic_Decl := No_Basic_Decl;
+            Suppress_Separate_Command : Command;
+         begin
+            if Is_Suppress_Separate_Available (Node, Target_Separate) then
+               Suppress_Separate_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Target_Separate => Target_Separate);
 
                Found := True;
                Done := True;

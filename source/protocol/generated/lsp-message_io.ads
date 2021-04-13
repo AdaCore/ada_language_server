@@ -172,6 +172,62 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.TextDocumentEdit);
 
+   procedure Read_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileResourceChangeKind);
+
+   procedure Write_FileResourceChangeKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileResourceChangeKind);
+
+   procedure Read_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFileOptions);
+
+   procedure Write_CreateFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFileOptions);
+
+   procedure Read_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.CreateFile);
+
+   procedure Write_CreateFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.CreateFile);
+
+   procedure Read_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFileOptions);
+
+   procedure Write_RenameFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFileOptions);
+
+   procedure Read_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.RenameFile);
+
+   procedure Write_RenameFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.RenameFile);
+
+   procedure Read_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFileOptions);
+
+   procedure Write_DeleteFileOptions
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFileOptions);
+
+   procedure Read_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.DeleteFile);
+
+   procedure Write_DeleteFile
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.DeleteFile);
+
    procedure Read_ChangeAnnotation
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ChangeAnnotation);
