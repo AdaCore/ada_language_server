@@ -1,0 +1,327 @@
+[
+   {
+      "comment": [
+         "Suppress Separate Test"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit":true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ]
+                     },
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeWatchedFiles": {
+                        "dynamicRegistration": true
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     },
+                     "configuration": true,
+                     "fileOperations": {
+                        "dynamicRegistration": true,
+                        "didCreate": true,
+                        "didRename": true,
+                        "didDelete": true,
+                        "willCreate": true,
+                        "willRename": true,
+                        "willDelete": true
+                     }
+                  },
+                  "textDocument": {
+                     "publishDiagnostics": {
+                        "relatedInformation": true,
+                        "versionSupport": false,
+                        "codeDescriptionSupport": true,
+                        "dataSupport": true
+                     },
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "isPreferredSupport": true,
+                        "disabledSupport": true,
+                        "dataSupport": true,
+                        "resolveSupport": {
+                           "properties": [
+                              "edit"
+                           ]
+                        },
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "",
+                                 "quickfix",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite",
+                                 "source",
+                                 "source.organizeImports"
+                              ]
+                           }
+                        },
+                        "honorsChangeAnnotations": false
+                     },
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": true
+                     },
+                     "rename": {
+                        "dynamicRegistration": true,
+                        "prepareSupport": true,
+                        "prepareSupportDefaultBehavior": 1,
+                        "honorsChangeAnnotations": true
+                     }
+                  }
+               },
+               "trace": "verbose"
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-suppress-separate"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "verbose"
+                     },
+                     "projectFile": "",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package body Test is\n   function Baz (A : Integer) return Boolean is separate;\n   procedure Bar is separate;\nend Test;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 2,
+                     "character": 14
+                  },
+                  "end": {
+                     "line": 2,
+                     "character": 14
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 4,
+               "result": [
+                  {
+                     "title": "Suppress separate subprogram Bar",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-suppress-separate",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{test.adb}"
+                                 },
+                                 "position": {
+                                    "line": 2,
+                                    "character": 13
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-suppress-separate",
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{test.adb}"
+                        },
+                        "position": {
+                           "line": 2,
+                           "character": 13
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 5,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{test.adb}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 },
+                                 "newText": "\nwith Ada.Assertions;\nwith Ada.Characters.Conversions;\nwith Ada.Numerics.Elementary_Functions;\n"
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 29
+                                    }
+                                 },
+                                 "newText": "\nis\nuse Ada.Characters.Conversions;\nuse Ada.Numerics.Elementary_Functions;\nB : Boolean;\nbegin\n   Put_Line (\"Separate_Do_Nothing\");\n   Put_Line (Ada.Numerics.Elementary_Functions.Log (10.0)'Image);\n   Ada.Assertions.Assert (1 = 1);\n   Ada.Assertions.Assert (Is_Character (Wide_Character'('a')));\n   B := Baz (2);\nend Bar;\n"
+                              }
+                           ]
+                        },
+                        {
+                           "kind": "rename",
+                           "oldUri": "$URI{test-bar.adb}",
+                           "newUri": "$URI{test-bar.adb.bak}",
+                           "options": {}
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

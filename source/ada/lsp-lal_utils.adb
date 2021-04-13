@@ -673,6 +673,112 @@ package body LSP.Lal_Utils is
       end return;
    end To_Workspace_Edit;
 
+   -----------------------
+   -- To_Workspace_Edit --
+   -----------------------
+
+   function To_Workspace_Edit
+     (Edits               : Laltools.Refactor.Refactoring_Edits;
+      Versioned_Documents : Boolean := False;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
+      := null;
+      Rename              : Boolean := False)
+      return LSP.Messages.WorkspaceEdit
+   is
+      File_URI : LSP.Types.LSP_String;
+
+      Text_Edits : LSP.Messages.TextEdit_Vector;
+
+      use Laltools.Refactor;
+
+      Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor
+        := Edits.Text_Edits.First;
+      File_Deletions_Cursor : Unbounded_String_Ordered_Sets.Cursor
+        := Edits.File_Deletions.First;
+
+   begin
+      return WE : LSP.Messages.WorkspaceEdit do
+         while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
+            Text_Edits.Clear;
+
+            for Edit of Text_Edit_Ordered_Maps.Element (Text_Edits_Cursor) loop
+               Text_Edits.Append (To_TextEdit (Edit));
+            end loop;
+
+            File_URI := LSP.Ada_Contexts.File_To_URI
+              (LSP.Types.To_LSP_String
+                 (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
+
+            if Versioned_Documents then
+               declare
+                  Annotaded_Edits : LSP.Messages.AnnotatedTextEdit_Vector;
+               begin
+                  Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
+                  for X of Text_Edits loop
+                     Annotaded_Edits.Append
+                       (LSP.Messages.AnnotatedTextEdit'
+                          (X with annotationId => <>));
+                  end loop;
+
+                  WE.documentChanges.Append
+                    (LSP.Messages.Document_Change'(
+                     (Kind               => LSP.Messages.Text_Document_Edit,
+                      Text_Document_Edit => LSP.Messages.TextDocumentEdit'
+                        (textDocument => Document_Provider.
+                           Get_Open_Document_Version (File_URI),
+                         edits        => Annotaded_Edits))));
+               end;
+            else
+               WE.changes.Insert (File_URI, Text_Edits);
+            end if;
+
+            Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
+         end loop;
+
+         if not Rename then
+            while Unbounded_String_Ordered_Sets.Has_Element
+              (File_Deletions_Cursor)
+            loop
+
+               File_URI := LSP.Ada_Contexts.File_To_URI
+                 (LSP.Types.To_LSP_String
+                    (Unbounded_String_Ordered_Sets.Element
+                         (File_Deletions_Cursor)));
+
+               WE.documentChanges.Append
+                 (LSP.Messages.Document_Change'(
+                  (Kind        => LSP.Messages.Delete_File,
+                   Delete_File => LSP.Messages.DeleteFile'(
+                     uri    => File_URI,
+                     others => <>
+                    ))));
+
+               Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
+            end loop;
+         else
+            while Unbounded_String_Ordered_Sets.Has_Element
+              (File_Deletions_Cursor)
+            loop
+
+               File_URI := LSP.Ada_Contexts.File_To_URI
+                 (LSP.Types.To_LSP_String
+                    (Unbounded_String_Ordered_Sets.Element
+                         (File_Deletions_Cursor)));
+
+               WE.documentChanges.Append
+                 (LSP.Messages.Document_Change'(
+                  (Kind        => LSP.Messages.Rename_File,
+                   Rename_File => LSP.Messages.RenameFile'
+                     (oldUri       => File_URI,
+                      newUri       => File_URI & ".bak",
+                      others => <>))));
+
+               Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
+            end loop;
+         end if;
+      end return;
+   end To_Workspace_Edit;
+
    ------------------
    -- Canonicalize --
    ------------------
