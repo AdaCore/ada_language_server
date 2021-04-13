@@ -37,6 +37,7 @@ with Libadalang.Iterators;
 
 with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
+with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
@@ -55,6 +56,11 @@ package body LSP.Ada_Documents is
      GNATCOLL.Traces.Create ("ALS.LAL_PP_OUTPUT_ON_FORMATTING",
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
+
+   LSP_New_Line_Function : constant VSS.Strings.Line_Terminator_Set :=
+     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
+      others => False);
+   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
@@ -129,6 +135,14 @@ package body LSP.Ada_Documents is
 
    procedure Recompute_Indexes (Self : in out Document) is
       use LSP.Types;
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+      Text                 : constant VSS.Strings.Virtual_String :=
+        LSP.Types.To_Virtual_String (Self.Text);
+      J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
+        Text.First_Line (LSP_New_Line_Function);
+      Last_Line_Terminated : Boolean := False;
+
    begin
       Self.Line_To_Index.Clear;
 
@@ -143,13 +157,19 @@ package body LSP.Ada_Documents is
       --  The first line (index 0) starts at offset 1
       Self.Line_To_Index.Append (1);
 
-      for Ind in 1 .. Length (Self.Text) loop
-         if Element (Self.Text, Ind) = Ada.Characters.Wide_Latin_1.LF then
-            --  The contents of Line_To_Index is the first character
-            --  in each line, so index Ind + 1 for the start of line.
-            Self.Line_To_Index.Append (Ind + 1);
-         end if;
+      while J.Forward loop
+         Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
+         Last_Line_Terminated := J.Has_Line_Terminator;
       end loop;
+
+      --  XXX Initial implementation depends from index of the line after
+      --  last line terminator, even that this line is not exists actually.
+      --  Thus, append such an index. It will be removed after full switch
+      --  to VSS.
+
+      if Last_Line_Terminated then
+         Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
+      end if;
    end Recompute_Indexes;
 
    -------------------
@@ -275,11 +295,6 @@ package body LSP.Ada_Documents is
    is
       use LSP.Types;
       use LSP.Messages;
-
-      LSP_New_Line_Function : constant VSS.Strings.Line_Terminator_Set :=
-        (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-         others => False);
-      --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
       Old_First_Line : Natural;
       New_First_Line : Natural;
@@ -503,6 +518,10 @@ package body LSP.Ada_Documents is
          --  Handle the edge case where the last location of
          --  the edit is trying to affect a non existent line.
          --  The edits are ordered so we only need to check the last one.
+         --  XXX Initial implementation of "line index cache" has a bug, it
+         --  adds index of the non-existent line after last 'LF' to the
+         --  vector of indices. This related to code below and this code
+         --  probably will be not needed after correction of this issue.
          if not Edit.Is_Empty
             and then not Self.Line_To_Index.Is_Empty
             and then Integer (Edit.Last_Element.span.last.line) not in
