@@ -89,11 +89,8 @@
                           "foldingRangeProvider": true,
                           "executeCommandProvider": {
                               "commands": [
-                                  "als-named-parameters",
-                                  "als-refactor-imports",
-                                  "als-refactor-remove-parameters",
-                                  "als-refactor-move-parameter",
-                                  "als-refactor-change-parameter-mode"
+                                    "<HAS>",
+                                    "als-named-parameters"
                               ]
                           },
                           "alsCalledByProvider": true,
