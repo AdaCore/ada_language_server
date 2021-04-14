@@ -150,9 +150,14 @@ package LSP.Lal_Utils is
      (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
    --  Return "file.adb:line:col" as a string
 
-   function Containing_Entity (Ref : Ada_Node) return Defining_Name;
+   function Containing_Entity
+     (Ref       : Ada_Node;
+      Canonical : Boolean := True) return Defining_Name;
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
+   --  If Canonical is True, the first part of the enclosing entity will be
+   --  returned (i.e: if the enclosing entity is a subprgram body, the function
+   --  will return the spec declaration node).
 
    function To_Unbounded_String
      (Input : Utils.Char_Vectors.Char_Vector)
