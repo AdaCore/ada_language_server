@@ -516,7 +516,10 @@ package body LSP.Lal_Utils is
    -- Containing_Entity --
    -----------------------
 
-   function Containing_Entity (Ref : Ada_Node) return Defining_Name is
+   function Containing_Entity
+     (Ref       : Ada_Node;
+      Canonical : Boolean := True) return Defining_Name
+   is
       Parents : constant Ada_Node_Array := Ref.Parents;
    begin
       for Parent of Parents loop
@@ -527,7 +530,11 @@ package body LSP.Lal_Utils is
                          | Ada_Package_Body
                          | Ada_Package_Decl
          then
-            return Parent.As_Basic_Decl.P_Canonical_Part.P_Defining_Name;
+            if Canonical then
+               return Parent.As_Basic_Decl.P_Canonical_Part.P_Defining_Name;
+            else
+               return Parent.As_Basic_Decl.P_Defining_Name;
+            end if;
          end if;
       end loop;
 

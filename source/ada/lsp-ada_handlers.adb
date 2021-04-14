@@ -4174,7 +4174,8 @@ package body LSP.Ada_Handlers is
             Cancel : in out Boolean)
          is
             From : constant Libadalang.Analysis.Defining_Name :=
-              LSP.Lal_Utils.Containing_Entity (Ref.As_Ada_Node);
+              LSP.Lal_Utils.Containing_Entity
+                (Ref.As_Ada_Node, Canonical => False);
             --  Defining name of the enclosing entity.
 
             Call : constant LSP.Messages.Location :=
