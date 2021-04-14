@@ -31,7 +31,7 @@ package body Tester.Tests is
    Max_Wait : constant := 4_000;
    --  Max number of milliseconds to wait on a given snippet
 
-   type Command_Kind is (Start, Stop, Send, Comment);
+   type Command_Kind is (Start, Stop, Send, Shell, Comment);
 
    procedure Do_Start
      (Self    : in out Test'Class);
@@ -41,6 +41,10 @@ package body Tester.Tests is
       Command : GNATCOLL.JSON.JSON_Value);
 
    procedure Do_Send
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value);
+
+   procedure Do_Shell
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
 
@@ -154,6 +158,96 @@ package body Tester.Tests is
          end if;
       end loop;
    end Do_Send;
+
+   procedure Do_Shell
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value)
+   is
+      pragma Unreferenced (Self);
+
+      function To_Program (Name : String) return String;
+      --  Take base name of the command and find it on PATH
+
+      function To_Program (Name : String) return String is
+         Found : GNAT.OS_Lib.String_Access :=
+           GNAT.OS_Lib.Locate_Exec_On_Path (Name);
+      begin
+         return Result : constant String := Found.all do
+            Free (Found);
+         end return;
+      end To_Program;
+
+      List  : constant GNATCOLL.JSON.JSON_Array := Command.Get;
+      Cmd   : constant String := To_Program (GNATCOLL.JSON.Get (List, 1).Get);
+      Args  : Spawn.String_Vectors.UTF_8_String_Vector;
+
+      type Shell_Listener is new Spawn.Processes.Process_Listener with record
+         Done : Boolean := False;
+      end record;
+
+      overriding procedure Finished
+        (Self      : in out Shell_Listener;
+         Exit_Code : Integer);
+
+      overriding procedure Error_Occurred
+        (Self          : in out Shell_Listener;
+         Process_Error : Integer);
+
+      overriding procedure Error_Occurred
+        (Self          : in out Shell_Listener;
+         Process_Error : Integer) is
+      begin
+         Ada.Text_IO.Put ("Fail to run '");
+         Ada.Text_IO.Put (Cmd);
+
+         for X of Args loop
+            Ada.Text_IO.Put (" ");
+            Ada.Text_IO.Put (X);
+         end loop;
+
+         Ada.Text_IO.Put ("' error ");
+         Ada.Text_IO.Put_Line (Process_Error'Image);
+         Self.Done := True;
+      end Error_Occurred;
+
+      overriding procedure Finished
+        (Self      : in out Shell_Listener;
+         Exit_Code : Integer) is
+      begin
+         if Exit_Code /= 0 then
+            Ada.Text_IO.Put ("Process '");
+            Ada.Text_IO.Put (Cmd);
+
+            for X of Args loop
+               Ada.Text_IO.Put (" ");
+               Ada.Text_IO.Put (X);
+            end loop;
+
+            Ada.Text_IO.Put ("' finished with code ");
+            Ada.Text_IO.Put_Line (Exit_Code'Image);
+         end if;
+
+         Self.Done := True;
+      end Finished;
+
+      Shell : Spawn.Processes.Process;
+
+      Listener : aliased Shell_Listener;
+   begin
+      for J in 2 .. GNATCOLL.JSON.Length (List) loop
+         Args.Append (GNATCOLL.JSON.Get (List, J).Get);
+      end loop;
+
+      Shell.Set_Listener (Listener'Unchecked_Access);
+      Shell.Set_Program (Cmd);
+      Shell.Set_Arguments (Args);
+      Shell.Start;
+
+      loop
+         Spawn.Processes.Monitor_Loop (Timeout => 10);
+         exit when Listener.Done;
+      end loop;
+   end Do_Shell;
 
    --------------
    -- Do_Start --
@@ -591,6 +685,8 @@ package body Tester.Tests is
                Self.Do_Stop (Value);
             when Send =>
                Self.Do_Send (Value);
+            when Shell =>
+               Self.Do_Shell (Value);
             when Comment =>
                null;  --  Do nothing on comments
          end case;

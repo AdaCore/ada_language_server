@@ -6,6 +6,8 @@
             "the 'link/aaa.ads' file shouldn't be referred as 'prj/aaa.ads'"
         ]
     },  {
+        "shell": ["sh", "-c", "rm -rf ${DIR}/link; ln -s prj ${DIR}/link" ]
+    },  {
         "start": {
             "cmd": ["${ALS}"]
         }
