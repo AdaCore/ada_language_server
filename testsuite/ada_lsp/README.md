@@ -90,9 +90,15 @@ should be in server response, but some values have a special meaning:
  * array `['<HAS>', item1, item2, ...]` - ensures that all given items are
    included into the array, any other array items are considered irrelevant and ignored
 
+### Command `shell`
+
+Property value - array of strings.
+
+Tester launches a shell command taking command and arguments from the array.
+
 ### Command `comment`
 
-Property value - array of string or just string.
+Property value - array of strings or just string.
 
 Tester just ignores this command. We use it to add test desription and other
 comments to JSON test script.
@@ -104,7 +110,7 @@ JSON file preprocessing
 
 Before execution Tester does some text substitution in each string literal.
  * Each substring `${NAME}` is replaced by an environment variable with
-given NAME.
+given NAME. The `DIR` environment variable points to test's directory.
 
  * Each substring `$URI{x}` is replaced by corresponding URI `file:///test_dir/x`.
 where `x` should be path relative to the directory where `.json` file is located.

@@ -38,7 +38,7 @@ package body Tester.Macros is
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${([\W]+)}|\$URI{([^}]*)}");
+     GNAT.Regpat.Compile ("\${([\w]+)}|\$URI{([^}]*)}");
 
    Replace_Slash : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
@@ -176,8 +176,10 @@ package body Tester.Macros is
       Full_Name : constant String := Ada.Directories.Full_Name (Path);
       Directory : constant String :=
         Ada.Directories.Containing_Directory (Full_Name);
+      Env_With_Dir : Spawn.Environments.Process_Environment := Env;
    begin
-      Test := Expand (Test, Env, Directory);
+      Env_With_Dir.Insert ("DIR", Directory);
+      Test := Expand (Test, Env_With_Dir, Directory);
    end Expand;
 
    ----------------
