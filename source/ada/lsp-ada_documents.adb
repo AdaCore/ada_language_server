@@ -140,7 +140,7 @@ package body LSP.Ada_Documents is
       Text                 : constant VSS.Strings.Virtual_String :=
         LSP.Types.To_Virtual_String (Self.Text);
       J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
-        Text.First_Line (LSP_New_Line_Function);
+        Text.First_Line (LSP_New_Line_Function, True);
       Last_Line_Terminated : Boolean := False;
 
    begin
@@ -154,13 +154,19 @@ package body LSP.Ada_Documents is
       Self.Line_To_Index.Reserve_Capacity
         (Ada.Containers.Count_Type (Length (Self.Text) / 20));
 
-      --  The first line (index 0) starts at offset 1
-      Self.Line_To_Index.Append (1);
+      if J.Has_Element then
+         loop
+            Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
+            Last_Line_Terminated := J.Has_Line_Terminator;
 
-      while J.Forward loop
-         Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
-         Last_Line_Terminated := J.Has_Line_Terminator;
-      end loop;
+            exit when not J.Forward;
+         end loop;
+
+      else
+         --  Add line mapping for an empty document.
+
+         Self.Line_To_Index.Append (1);
+      end if;
 
       --  XXX Initial implementation depends from index of the line after
       --  last line terminator, even that this line is not exists actually.
