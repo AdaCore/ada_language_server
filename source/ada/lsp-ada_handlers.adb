@@ -4053,7 +4053,7 @@ package body LSP.Ada_Handlers is
           (C.Get_Node_At
             (Get_Open_Document (Self, Value.textDocument.uri), Value));
 
-      Name : Libadalang.Analysis.Defining_Name :=
+      Name : constant Libadalang.Analysis.Defining_Name :=
         Laltools.Common.Resolve_Name
           (Node,
            Self.Trace,
@@ -4063,14 +4063,6 @@ package body LSP.Ada_Handlers is
       if Name.Is_Null then
          return Response;
       end if;
-
-      --  Go to the corresponding body, because only body could have calls
-      declare
-         Bodies : constant Laltools.Common.Bodies_List.List :=
-           Laltools.Common.List_Bodies_Of (Name, Self.Trace, Imprecise);
-      begin
-         Name := Bodies.Last_Element;
-      end;
 
       Response.result.Append (To_Call_Hierarchy_Item (Name));
 
