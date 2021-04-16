@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "This test checks that the 'called_by' request follows rename clauses"
+         "test that callHierarchy/incomingCalls follows rename clauses"
       ]
    },
    {
@@ -18,7 +18,7 @@
             "id": "ada-1",
             "method": "initialize",
             "params": {
-               "processId": 15750,
+               "processId": 220067,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
@@ -66,7 +66,9 @@
                         "lineFoldingOnly": true
                      },
                      "selectionRange": {},
-                     "callHierarchy": {}
+                     "linkedEditingRange": {},
+                     "callHierarchy": {},
+                     "moniker": {}
                   }
                }
             }
@@ -91,11 +93,11 @@
                      "implementationProvider": true,
                      "referencesProvider": true,
                      "documentHighlightProvider": true,
+                     "documentSymbolProvider": {},
                      "codeActionProvider": {},
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {},
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsCalledByProvider": true,
@@ -135,7 +137,8 @@
                   "ada": {
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": false
+                     "enableDiagnostics": false,
+                     "followSymlinks": false
                   }
                }
             }
@@ -164,24 +167,8 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "workspace/didChangeConfiguration",
-            "params": {
-               "settings": {
-                  "ada": {
-                     "foldComments": false
-                  }
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-5",
-            "method": "textDocument/alsCalledBy",
+            "id": "ada-9",
+            "method": "textDocument/prepareCallHierarchy",
             "params": {
                "textDocument": {
                   "uri": "$URI{main.adb}"
@@ -194,10 +181,81 @@
          },
          "wait": [
             {
-               "id": "ada-5",
+               "id": "ada-9",
                "result": [
                   {
-                     "location": {
+                     "name": "My_Proc",
+                     "kind": 12,
+                     "detail": "at main.adb (2:14)",
+                     "uri": "$URI{main.adb}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 29
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 20
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-10",
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{main.adb}",
+                  "range": {
+                     "start": {
+                        "line": 1,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 13
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 1,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 13
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-10",
+               "result": [
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
                         "uri": "$URI{main.adb}",
                         "range": {
                            "start": {
@@ -208,25 +266,28 @@
                               "line": 0,
                               "character": 14
                            }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 0,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 14
+                           }
                         }
                      },
-                     "name": "Main",
-                     "refs": [
+                     "fromRanges": [
                         {
-                           "uri": "$URI{main.adb}",
-                           "range": {
-                              "start": {
-                                 "line": 5,
-                                 "character": 3
-                              },
-                              "end": {
-                                 "line": 5,
-                                 "character": 11
-                              }
+                           "start": {
+                              "line": 5,
+                              "character": 3
                            },
-                           "alsKind": [
-                              "call"
-                           ]
+                           "end": {
+                              "line": 5,
+                              "character": 11
+                           }
                         }
                      ]
                   }
@@ -239,12 +300,109 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-6",
+            "id": "ada-11",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 5,
+                     "character": 4
+                  },
+                  "end": {
+                     "line": 5,
+                     "character": 11
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-12",
+            "method": "textDocument/documentHighlight",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 10
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-11",
+               "result": []
+            },
+            {
+               "id": "ada-12",
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 11
+                        }
+                     },
+                     "kind": 2
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 21
+                        }
+                     },
+                     "kind": 2
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-13",
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": "ada-6",
+               "id": "ada-13",
                "result": null
             }
          ]

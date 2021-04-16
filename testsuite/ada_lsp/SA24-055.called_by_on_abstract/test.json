@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "test automatically generated"
+         "test that callHierarchy/incomingCalls works on abstract subps"
       ]
    },
    {
@@ -14,45 +14,104 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-1",
+            "method": "initialize",
             "params": {
+               "processId": 199805,
+               "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
-                     "applyEdit": false
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {},
+                     "linkedEditingRange": {},
+                     "callHierarchy": {},
+                     "moniker": {}
                   }
-               },
-               "rootUri": "$URI{.}"
-            },
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize"
+               }
+            }
          },
          "wait": [
             {
-               "id": 1,
+               "id": "ada-1",
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                         "access",
-                        "write",
-                        "call",
-                        "dispatching call", "parent", "child"
-                     ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
-                     "renameProvider": {},
-                     "alsCalledByProvider": true,
-                     "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "triggerCharacters": [
-                            ".",
-                            "("
+                           ".",
+                           "("
                         ],
                         "resolveProvider": false
                      },
-                     "documentSymbolProvider": {}
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": {},
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsCalledByProvider": true,
+                     "alsCallsProvider": true,
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ]
                   }
                }
             }
@@ -71,17 +130,18 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
             "params": {
                "settings": {
                   "ada": {
                      "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
                      "enableDiagnostics": false,
-                     "defaultCharset": "ISO-8859-1"
+                     "followSymlinks": false
                   }
                }
-            },
-            "jsonrpc": "2.0",
-            "method": "workspace/didChangeConfiguration"
+            }
          },
          "wait": []
       }
@@ -89,60 +149,97 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-7",
+            "method": "textDocument/prepareCallHierarchy",
             "params": {
                "textDocument": {
-                  "text": "package P is\n   type Root is abstract tagged null record;\n\n   procedure Foo (R : Root) is abstract;\nend P;\n",
-                  "version": 0,
-                  "uri": "$URI{p.ads}",
-                  "languageId": "Ada"
-               }
-            },
-            "jsonrpc": "2.0",
-            "method": "textDocument/didOpen"
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "params": {
+                  "uri": "$URI{p.ads}"
+               },
                "position": {
                   "line": 3,
                   "character": 13
-               },
-               "textDocument": {
-                  "uri": "$URI{p.ads}"
                }
-            },
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "textDocument/alsCalledBy"
+            }
          },
          "wait": [
             {
-               "id": 2,
+               "id": "ada-7",
                "result": [
                   {
-                     "refs": [
-                        {
-                           "range": {
-                              "start": {
-                                 "line": 6,
-                                 "character": 3
-                              },
-                              "end": {
-                                 "line": 6,
-                                 "character": 6
-                              }
-                           },
-                           "alsKind": [
-                              "dispatching call"
-                           ],
-                           "uri": "$URI{main.adb}"
+                     "name": "Foo",
+                     "kind": 12,
+                     "detail": "at p.ads (4:14)",
+                     "uri": "$URI{p.ads}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 40
                         }
-                     ],
-                     "location": {
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 3,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 16
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-8",
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{p.ads}",
+                  "range": {
+                     "start": {
+                        "line": 3,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 3,
+                        "character": 13
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 3,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 3,
+                        "character": 13
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-8",
+               "result": [
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
+                        "uri": "$URI{main.adb}",
                         "range": {
                            "start": {
                               "line": 3,
@@ -153,9 +250,29 @@
                               "character": 14
                            }
                         },
-                        "uri": "$URI{main.adb}"
+                        "selectionRange": {
+                           "start": {
+                              "line": 3,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 14
+                           }
+                        }
                      },
-                     "name": "Main"
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 6,
+                              "character": 3
+                           },
+                           "end": {
+                              "line": 6,
+                              "character": 6
+                           }
+                        }
+                     ]
                   }
                ]
             }
@@ -165,27 +282,13 @@
    {
       "send": {
          "request": {
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p.ads}"
-               }
-            },
             "jsonrpc": "2.0",
-            "method": "textDocument/didClose"
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 3,
+            "id": "ada-9",
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": 3,
+               "id": "ada-9",
                "result": null
             }
          ]
