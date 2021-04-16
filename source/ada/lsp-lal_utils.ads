@@ -111,13 +111,25 @@ package LSP.Lal_Utils is
    -- Called_By --
    ---------------
 
-   function Find_All_Calls
+   function Find_Incoming_Calls
      (Context           : LSP.Ada_Contexts.Context;
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)
       return Laltools.Common.References_By_Subprogram.Map
      with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
    --  Return the list of all the calls made to the subprogram pointed at by
+   --  the node given by Definition, organized by the subprograms in which
+   --  these calls are listed, ordered by the name of these subprograms.
+   --  Imprecise_Results is set to True if we don't know whether the results
+   --  are precise.
+
+   function Find_Outgoing_Calls
+     (Context           : LSP.Ada_Contexts.Context;
+      Definition        : Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Laltools.Common.References_By_Subprogram.Map
+     with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
+   --  Return the list of all the calls made in the subprogram pointed at by
    --  the node given by Definition, organized by the subprograms in which
    --  these calls are listed, ordered by the name of these subprograms.
    --  Imprecise_Results is set to True if we don't know whether the results
@@ -171,6 +183,15 @@ package LSP.Lal_Utils is
       return LSP.Messages.CallHierarchyItem;
    --  Create CallHierarchyItem for the given subprogram
 
+   procedure To_Call_Hierarchy_Result
+     (Node  : Libadalang.Analysis.Defining_Name;
+      Refs  : Laltools.Common.References_Sets.Set;
+      Item  : out LSP.Messages.CallHierarchyItem;
+      Spans : out LSP.Messages.Span_Vector);
+   --  Convert the given Node and the given references to it to the
+   --  corresponding CallHierarchyItem and its associated spans, which contains
+   --  the references. This should be used for the callHierarchy requests.
+
    function To_Unbounded_Text_Type
      (Item : LSP.Types.LSP_String)
       return Langkit_Support.Text.Unbounded_Text_Type;
@@ -189,8 +210,8 @@ package LSP.Lal_Utils is
    --  Return the declaration of the subprogram or task that contains Ref.
    --  Return No_Defining_Name if this fails.
    --  If Canonical is True, the first part of the enclosing entity will be
-   --  returned (i.e: if the enclosing entity is a subprgram body, the function
-   --  will return the spec declaration node).
+   --  returned (i.e: if the enclosing entity is a subprogram body, the
+   --  function will return the spec declaration node).
 
    function To_Unbounded_String
      (Input : Utils.Char_Vectors.Char_Vector)

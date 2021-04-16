@@ -52,7 +52,6 @@ with LSP.Types;        use LSP.Types;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
-with Laltools.Call_Hierarchy;
 with Laltools.Common;
 with Laltools.Refactor_Imports;
 with Laltools.Refactor.Subprogram_Signature;
@@ -2493,7 +2492,8 @@ package body LSP.Ada_Handlers is
          declare
             This_Imprecise : Boolean;
             Called  : constant Laltools.Common.References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Find_All_Calls (C.all, Definition, This_Imprecise);
+              LSP.Lal_Utils.Find_Incoming_Calls
+                (C.all, Definition, This_Imprecise);
 
             use Laltools.Common.References_By_Subprogram;
             C     : Cursor := Called.First;
@@ -2593,54 +2593,11 @@ package body LSP.Ada_Handlers is
 
       procedure Process_Context (C : Context_Access) is
          Definition     : Defining_Name;
-         Calls          : Laltools.Common.References_By_Subprogram.Map;
          Calls_Cursor   : Laltools.Common.References_By_Subprogram.Cursor;
-
-         procedure Callback (Subp_Call : Ada_Node'Class);
-         --  Add Subp_Call to Calls. Subp_Call definition will be the key
-         --  and Subp_Call is added to the list of the corresponding key.
 
          procedure Add_Subprogram
            (Subp : LSP.Messages.ALS_Subprogram_And_References);
          --  Add a subprogram in results, it prevents having duplicates
-
-         --------------
-         -- Callback --
-         --------------
-
-         procedure Callback (Subp_Call : Ada_Node'Class)
-         is
-            Call_Definition : Defining_Name;
-            Subp_Call_Name  : constant Name :=
-              Laltools.Common.Get_Node_As_Name (Subp_Call.As_Ada_Node);
-         begin
-
-            --  First try to resolve the called function
-
-            Call_Definition := Laltools.Common.Resolve_Name
-              (Subp_Call_Name, C.Trace, Imprecise);
-
-            if Call_Definition /= No_Defining_Name then
-               if Calls.Contains (Call_Definition) then
-                  declare
-                     R : constant
-                       Laltools.Common.References_By_Subprogram.
-                         Reference_Type :=
-                           Calls.Reference (Call_Definition);
-                  begin
-                     R.Include (Subp_Call.As_Base_Id);
-                  end;
-               else
-                  declare
-                     L : Laltools.Common.References_Sets.Set;
-                  begin
-                     L.Include (Subp_Call.As_Base_Id);
-                     Calls.Insert (Call_Definition, L);
-                  end;
-               end if;
-            end if;
-
-         end Callback;
 
          --------------------
          -- Add_Subprogram --
@@ -2675,42 +2632,46 @@ package body LSP.Ada_Handlers is
          then
             return;
          end if;
+         declare
+            This_Imprecise : Boolean;
+            Calls   : constant Laltools.Common.References_By_Subprogram.Map :=
+              LSP.Lal_Utils.Find_Outgoing_Calls
+                (C.all, Definition, This_Imprecise);
+         begin
+            Imprecise := Imprecise or This_Imprecise;
 
-         Laltools.Call_Hierarchy.Find_Outgoing_Calls
-           (Definition => Definition,
-            Callback   => Callback'Access,
-            Trace      => C.Trace,
-            Imprecise  => Imprecise);
+            Calls_Cursor := Calls.First;
+            while Laltools.Common.References_By_Subprogram.Has_Element
+              (Calls_Cursor)
+            loop
+               declare
+                  Node          : constant Defining_Name :=
+                    Laltools.Common.References_By_Subprogram.Key
+                      (Calls_Cursor);
+                  Refs      : constant Laltools.Common.References_Sets.Set :=
+                    Laltools.Common.References_By_Subprogram.Element
+                      (Calls_Cursor);
+                  Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
+               begin
+                  Subp_And_Refs.loc  := Get_Node_Location (Node.As_Ada_Node);
+                  Subp_And_Refs.name := To_LSP_String
+                    (Langkit_Support.Text.To_UTF8 (Node.Text));
+                  for Ref of Refs loop
+                     Append_Location (Subp_And_Refs.refs,
+                                      Ref,
+                                      Get_Call_Reference_Kind
+                                        (Ref.As_Name, Self.Trace));
 
-         Calls_Cursor := Calls.First;
-         while Laltools.Common.References_By_Subprogram.Has_Element
-           (Calls_Cursor)
-         loop
-            declare
-               Node : constant Defining_Name :=
-                 Laltools.Common.References_By_Subprogram.Key (Calls_Cursor);
-               Refs : constant Laltools.Common.References_Sets.Set :=
-                 Laltools.Common.References_By_Subprogram.Element
-                   (Calls_Cursor);
-               Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
-            begin
-               Subp_And_Refs.loc  := Get_Node_Location (Node.As_Ada_Node);
-               Subp_And_Refs.name := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Node.Text));
-               for Ref of Refs loop
-                  Append_Location (Subp_And_Refs.refs,
-                                   Ref,
-                                   Get_Call_Reference_Kind
-                                     (Ref.As_Name, Self.Trace));
+                     if Request.Canceled then
+                        return;
+                     end if;
+                  end loop;
 
-                  if Request.Canceled then
-                     return;
-                  end if;
-               end loop;
-               Add_Subprogram (Subp_And_Refs);
-               Laltools.Common.References_By_Subprogram.Next (Calls_Cursor);
-            end;
-         end loop;
+                  Add_Subprogram (Subp_And_Refs);
+                  Laltools.Common.References_By_Subprogram.Next (Calls_Cursor);
+               end;
+            end loop;
+         end;
       end Process_Context;
 
       --  Start of processing for On_ALS_Calls_Request
@@ -4234,6 +4195,8 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
       return LSP.Messages.Server_Responses.IncomingCalls_Response
    is
+      use Libadalang.Analysis;
+
       procedure Process_Context (C : Context_Access);
       --  Process the subprogram found in one context and append corresponding
       --  calls to Response.results.
@@ -4244,95 +4207,87 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Position : constant LSP.Messages.TextDocumentPositionParams :=
+        (textDocument => (uri => Item.uri),
+         position     => Item.selectionRange.first);
+
+      procedure Add_Incoming_Call
+        (Call : LSP.Messages.CallHierarchyIncomingCall);
+      --  Add an incoming call in results, it prevents having duplicates
+
+      -----------------------
+      -- Add_Incoming_Call --
+      -----------------------
+
+      procedure Add_Incoming_Call
+        (Call : LSP.Messages.CallHierarchyIncomingCall)
+      is
+         use LSP.Messages;
+      begin
+         for Cur of Response.result loop
+            if Cur.from.uri = Call.from.uri
+              and then Cur.from.span = Call.from.span
+              and then Cur.from.name = Call.from.name
+            then
+               return;
+            end if;
+         end loop;
+         Response.result.Append (Call);
+      end Add_Incoming_Call;
+
       ---------------------
       -- Process_Context --
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
-         procedure Callback
-           (Ref    : Libadalang.Analysis.Base_Id;
-            Kind   : Libadalang.Common.Ref_Result_Kind;
-            Cancel : in out Boolean);
-         --  Process each call identified by Ref.
-
-         Unique     : Location_Sets.Set;  --  Duplication protection filter
-         Name_Index : Index_Maps.Map;  --  Map from sloc to index in the result
-         Count      : Cancel_Countdown := 0;
-
-         --------------
-         -- Callback --
-         --------------
-
-         procedure Callback
-           (Ref    : Libadalang.Analysis.Base_Id;
-            Kind   : Libadalang.Common.Ref_Result_Kind;
-            Cancel : in out Boolean)
-         is
-            From : constant Libadalang.Analysis.Defining_Name :=
-              LSP.Lal_Utils.Containing_Entity
-                (Ref.As_Ada_Node, Canonical => False);
-            --  Defining name of the enclosing entity.
-
-            Call : constant LSP.Messages.Location :=
-              LSP.Lal_Utils.Get_Node_Location (Ref);
-            --  Sloc of the call node
-
-            Location : LSP.Messages.Location;
-            --  Sloc of the From defining name
-
-            Cursor : Index_Maps.Cursor;
-            --  Cursor to the index in the result vector
-         begin
-            if From.Is_Null or else Unique.Contains (Call) then
-               return;
-            elsif Kind = Libadalang.Common.Imprecise then
-               Imprecise := True;
-            end if;
-
-            Location := LSP.Lal_Utils.Get_Node_Location (From);
-            Cursor := Name_Index.Find (Location);
-
-            if not Index_Maps.Has_Element (Cursor) then
-               declare
-                  Item   : constant LSP.Messages.CallHierarchyIncomingCall :=
-                    (from       => To_Call_Hierarchy_Item (From),
-                     fromRanges => <>);
-                  Ignore : Boolean;
-               begin
-                  Response.result.Append (Item);
-                  Name_Index.Insert
-                    (Location, Response.result.Last_Index, Cursor, Ignore);
-               end;
-            end if;
-
-            Unique.Insert (Call);
-
-            Response.result (Name_Index (Cursor)).fromRanges.Append
-              (Call.span);
-
-            Count := Count - 1;
-            Cancel := Count = 0 and then Request.Canceled;
-         end Callback;
-
-         Position : constant LSP.Messages.TextDocumentPositionParams :=
-           (textDocument => (uri => Item.uri),
-            position     => Item.selectionRange.first);
-
-         Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name
-             (C.Get_Node_At
-               (Self.Get_Open_Document (Item.uri), Position));
-
-         Definition : constant Libadalang.Analysis.Defining_Name :=
-           Laltools.Common.Get_Name_As_Defining (Node);
+         Definition : Defining_Name;
       begin
-         if Definition.Is_Null
+         Self.Imprecise_Resolve_Name (C, Position, Definition);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if Definition = No_Defining_Name
+           or else not Definition.P_Basic_Decl.P_Is_Subprogram
            or else Request.Canceled
          then
             return;
          end if;
 
-         C.Find_All_Calls (Definition, Callback'Access);
+         declare
+            use Laltools.Common;
+
+            This_Imprecise : Boolean;
+            Incoming_Calls : constant References_By_Subprogram.Map :=
+              LSP.Lal_Utils.Find_Incoming_Calls
+                (C.all, Definition, This_Imprecise);
+            C              : References_By_Subprogram.Cursor :=
+              Incoming_Calls.First;
+         begin
+            Imprecise := Imprecise or This_Imprecise;
+
+            --  Iterate through all the results, converting them to protocol
+            --  objects.
+            while References_By_Subprogram.Has_Element (C) loop
+               declare
+                  Node     : constant Defining_Name :=
+                    References_By_Subprogram.Key (C);
+                  Refs     : constant References_Sets.Set :=
+                    References_By_Subprogram.Element (C);
+                  New_Call : LSP.Messages.CallHierarchyIncomingCall;
+               begin
+                  To_Call_Hierarchy_Result
+                    (Node  => Node,
+                     Refs  => Refs,
+                     Item  => New_Call.from,
+                     Spans => New_Call.fromRanges);
+
+                  Add_Incoming_Call (New_Call);
+                  References_By_Subprogram.Next (C);
+               end;
+            end loop;
+         end;
       end Process_Context;
 
    begin
@@ -4361,9 +4316,7 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
       return LSP.Messages.Server_Responses.OutgoingCalls_Response
    is
-      procedure Process_Context (C : Context_Access);
-      --  Process the calls found in one context and append
-      --  them to Response.results.
+      use Libadalang.Analysis;
 
       Item : LSP.Messages.CallHierarchyItem renames
         Request.params.item;
@@ -4371,99 +4324,92 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
       Imprecise  : Boolean := False;
 
+      Position : constant LSP.Messages.TextDocumentPositionParams :=
+           (textDocument => (uri => Item.uri),
+            position     => Item.selectionRange.first);
+
+      procedure Add_Outgoing_Call
+        (Call : LSP.Messages.CallHierarchyOutgoingCall);
+      --  Add a subprogram in results, it prevents having duplicates
+
+      procedure Process_Context (C : Context_Access);
+      --  Process the calls found in one context and append
+      --  them to Response.results.
+
+      -----------------------
+      -- Add_Outgoing_Call --
+      -----------------------
+
+      procedure Add_Outgoing_Call
+        (Call : LSP.Messages.CallHierarchyOutgoingCall)
+      is
+         use LSP.Messages;
+      begin
+         for Cur of Response.result loop
+            if Cur.to.uri = Call.to.uri
+              and then Cur.to.span = Call.to.span
+              and then Cur.to.name = Call.to.name
+            then
+               return;
+            end if;
+         end loop;
+         Response.result.Append (Call);
+      end Add_Outgoing_Call;
+
       ---------------------
       -- Process_Context --
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
-
-         procedure Callback (Node : Libadalang.Analysis.Ada_Node'Class);
-
-         Unique     : Location_Sets.Set;  --  Duplication protection filter
-         Name_Index : Index_Maps.Map;  --  Map from sloc to index in the result
-
-         --------------
-         -- Callback --
-         --------------
-
-         procedure Callback (Node : Libadalang.Analysis.Ada_Node'Class) is
-            Call : constant LSP.Messages.Location :=
-              LSP.Lal_Utils.Get_Node_Location (Node);
-            --  Sloc of the call node
-
-            Name : constant Libadalang.Analysis.Name :=
-              Laltools.Common.Get_Node_As_Name (Node.As_Ada_Node);
-            --  Try to cast call prefix to the name
-
-            Definition : Libadalang.Analysis.Defining_Name :=
-              Laltools.Common.Resolve_Name (Name, C.Trace, Imprecise);
-            --  Corresponding name definition if any
-
-            Location   : LSP.Messages.Location;
-            --  Sloc of the defining name
-
-            Cursor : Index_Maps.Cursor;
-            --  Cursor to the index in the result vector
-         begin
-            if Definition.Is_Null or else Unique.Contains (Call) then
-               return;
-            end if;
-
-            --  Go to the corresponding body, because only body could have call
-            declare
-               Bodies : constant Laltools.Common.Bodies_List.List :=
-                 Laltools.Common.List_Bodies_Of
-                   (Definition, Self.Trace, Imprecise);
-            begin
-               Definition := Bodies.Last_Element;
-               Location := LSP.Lal_Utils.Get_Node_Location (Definition);
-               Cursor := Name_Index.Find (Location);
-            end;
-
-            if not Index_Maps.Has_Element (Cursor) then
-               declare
-                  Item   : constant LSP.Messages.CallHierarchyOutgoingCall :=
-                    (to         => To_Call_Hierarchy_Item (Definition),
-                     fromRanges => <>);
-                  Ignore : Boolean;
-               begin
-                  Response.result.Append (Item);
-                  Name_Index.Insert
-                    (Location, Response.result.Last_Index, Cursor, Ignore);
-               end;
-            end if;
-
-            Unique.Insert (Call);
-
-            Response.result (Name_Index (Cursor)).fromRanges.Append
-              (Call.span);
-         end Callback;
-
-         Position : constant LSP.Messages.TextDocumentPositionParams :=
-           (textDocument => (uri => Item.uri),
-            position     => Item.selectionRange.first);
-
-         Node : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name
-             (C.Get_Node_At
-               (Self.Get_Open_Document (Item.uri), Position));
-
-         Definition : constant Libadalang.Analysis.Defining_Name :=
-           Laltools.Common.Get_Name_As_Defining (Node);
+         Definition : Defining_Name;
       begin
-         if Definition.Is_Null
+         Self.Imprecise_Resolve_Name (C, Position, Definition);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if Definition = No_Defining_Name
+           or else not Definition.P_Basic_Decl.P_Is_Subprogram
            or else Request.Canceled
          then
             return;
          end if;
 
-         Laltools.Call_Hierarchy.Find_Outgoing_Calls
-           (Definition => Definition,
-            Callback   => Callback'Access,
-            Trace      => C.Trace,
-            Imprecise  => Imprecise);
-      end Process_Context;
+         declare
+            use Laltools.Common;
 
+            This_Imprecise : Boolean;
+            Outgoing_Calls : constant References_By_Subprogram.Map :=
+              LSP.Lal_Utils.Find_Outgoing_Calls
+                (C.all, Definition, This_Imprecise);
+            C              : References_By_Subprogram.Cursor :=
+              Outgoing_Calls.First;
+         begin
+            Imprecise := Imprecise or This_Imprecise;
+
+            --  Iterate through all the results, converting them to protocol
+            --  objects.
+            while References_By_Subprogram.Has_Element (C) loop
+               declare
+                  Node     : constant Defining_Name :=
+                    References_By_Subprogram.Key (C);
+                  Refs     : constant References_Sets.Set :=
+                    References_By_Subprogram.Element (C);
+                  New_Call : LSP.Messages.CallHierarchyOutgoingCall;
+               begin
+                  To_Call_Hierarchy_Result
+                    (Node  => Node,
+                     Refs  => Refs,
+                     Item  => New_Call.to,
+                     Spans => New_Call.fromRanges);
+
+                  Add_Outgoing_Call (New_Call);
+                  References_By_Subprogram.Next (C);
+               end;
+            end loop;
+         end;
+      end Process_Context;
    begin
       --  Find the references in all contexts
       for C of Self.Contexts_For_URI (Item.uri) loop
