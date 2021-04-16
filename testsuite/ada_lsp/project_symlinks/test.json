@@ -6,6 +6,8 @@
             "the 'link/aaa.ads' file shouldn't be referred as 'prj/aaa.ads'"
         ]
     },  {
+        "shell": ["${PYTHON}", "${DIR}/makelink.py" ]
+    },  {
         "start": {
             "cmd": ["${ALS}"]
         }

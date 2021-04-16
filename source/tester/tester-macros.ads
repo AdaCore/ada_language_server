@@ -25,7 +25,7 @@ package Tester.Macros is
      (Test : in out GNATCOLL.JSON.JSON_Value;
       Env  : Spawn.Environments.Process_Environment;
       Path : String);
-   --  Expand macros in given JSON test
+   --  Expand macros in given JSON test. The Path is test's path.
    --
    --  Currently only one macro is supported:
    --  * ${NAME} - expands with environment variable NAME from Env

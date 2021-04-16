@@ -33,6 +33,11 @@ package body LSP.Generic_Vectors is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       V.Clear;
+
+      if JS.R.Is_Null_Value then
+         return;
+      end if;
+
       pragma Assert (JS.R.Is_Start_Array);
       JS.R.Read_Next;
 
