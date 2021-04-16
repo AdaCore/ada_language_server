@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "test that callHierarchy/incomingCalls works for task entries"
+         "basic test for callHierarchy/outgoingCalls"
       ]
    },
    {
@@ -18,7 +18,7 @@
             "id": "ada-1",
             "method": "initialize",
             "params": {
-               "processId": 195183,
+               "processId": 197369,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
@@ -98,6 +98,15 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode"
+                        ]
+                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsCalledByProvider": true,
@@ -153,10 +162,10 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{phil.ads}",
+                  "uri": "$URI{main.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "package phil is\n   task type philosopher is\n      entry Start_Eating (Chopstick1 : in Positive;\n                        Chopstick2 : in Positive);\n   end philosopher;\nend Phil;\n"
+                  "text": "with P; use P;\nprocedure Main is\n   function Exprfinmain return Boolean is (Foo = 43);\n   My_Literal : My_Enum := First;\n   My_Other_Literal : My_Enum := P.Second;\nbegin\n   if Foo > 10 then\n      raise Constraint_Error;\n   end if;\n\n   declare\n      package Bla is\n         X : Integer := Foo;\n      end Bla;\n\n      package body Bla is\n         Y : Integer := Foo + 2;\n      begin\n         X := Foo + 3;\n      end Bla;\n   begin\n      if My_Literal in P.First | Second | P.Third\n      then\n         null;\n      end if;\n   end;\nend Main;\n"
                }
             }
          },
@@ -167,64 +176,13 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-9",
-            "method": "textDocument/prepareCallHierarchy",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{phil.ads}"
-               },
-               "position": {
-                  "line": 2,
-                  "character": 12
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-9",
-               "result": [
-                  {
-                     "name": "Start_Eating",
-                     "kind": 12,
-                     "detail": "at phil.ads (3:13)",
-                     "uri": "$URI{phil.ads}",
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 6
-                        },
-                        "end": {
-                           "line": 3,
-                           "character": 50
-                        }
-                     },
-                     "selectionRange": {
-                        "start": {
-                           "line": 2,
-                           "character": 12
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 24
-                        }
-                     }
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-10",
-            "method": "callHierarchy/incomingCalls",
+            "id": "ada-7",
+            "method": "callHierarchy/outgoingCalls",
             "params": {
                "item": {
                   "name": "",
                   "kind": 12,
-                  "uri": "$URI{phil.ads}",
+                  "uri": "$URI{main.adb}",
                   "range": {
                      "start": {
                         "line": 2,
@@ -250,53 +208,43 @@
          },
          "wait": [
             {
-               "id": "ada-10",
+               "id": "ada-7",
                "result": [
                   {
-                     "from": {
-                        "name": "room",
+                     "to": {
+                        "name": "Foo",
                         "kind": 12,
-                        "uri": "$URI{room.adb}",
+                        "uri": "$URI{p.ads}",
                         "range": {
                            "start": {
                               "line": 2,
-                              "character": 10
+                              "character": 12
                            },
                            "end": {
                               "line": 2,
-                              "character": 14
+                              "character": 15
                            }
                         },
                         "selectionRange": {
                            "start": {
                               "line": 2,
-                              "character": 10
+                              "character": 12
                            },
                            "end": {
                               "line": 2,
-                              "character": 14
+                              "character": 15
                            }
                         }
                      },
                      "fromRanges": [
                         {
                            "start": {
-                              "line": 8,
-                              "character": 5
+                              "line": 2,
+                              "character": 43
                            },
                            "end": {
-                              "line": 8,
-                              "character": 17
-                           }
-                        },
-                        {
-                           "start": {
-                              "line": 9,
-                              "character": 5
-                           },
-                           "end": {
-                              "line": 9,
-                              "character": 17
+                              "line": 2,
+                              "character": 46
                            }
                         }
                      ]
@@ -310,107 +258,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "textDocument/didOpen",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{room.adb}",
-                  "languageId": "Ada",
-                  "version": 0,
-                  "text": "with phil;\n\nprocedure room is\n\n   t : phil.philosopher;\n\nbegin\n\n   t.Start_Eating (1, 2);\n   t.Start_Eating (3, 4);\n\nend;\n"
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-20",
-            "method": "textDocument/prepareCallHierarchy",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{room.adb}"
-               },
-               "position": {
-                  "line": 2,
-                  "character": 10
-               }
-            }
+            "id": "ada-8",
+            "method": "shutdown"
          },
          "wait": [
             {
-               "id": "ada-20",
-               "result": [
-                  {
-                     "name": "room",
-                     "kind": 12,
-                     "detail": "at room.adb (3:11)",
-                     "uri": "$URI{room.adb}",
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 0
-                        },
-                        "end": {
-                           "line": 11,
-                           "character": 4
-                        }
-                     },
-                     "selectionRange": {
-                        "start": {
-                           "line": 2,
-                           "character": 10
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 14
-                        }
-                     }
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-21",
-            "method": "callHierarchy/incomingCalls",
-            "params": {
-               "item": {
-                  "name": "",
-                  "kind": 12,
-                  "uri": "$URI{room.adb}",
-                  "range": {
-                     "start": {
-                        "line": 2,
-                        "character": 10
-                     },
-                     "end": {
-                        "line": 2,
-                        "character": 10
-                     }
-                  },
-                  "selectionRange": {
-                     "start": {
-                        "line": 2,
-                        "character": 10
-                     },
-                     "end": {
-                        "line": 2,
-                        "character": 10
-                     }
-                  }
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-21",
+               "id": "ada-8",
                "result": null
             }
          ]
