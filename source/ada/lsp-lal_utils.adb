@@ -25,6 +25,8 @@ with Langkit_Support.Symbols; use Langkit_Support.Symbols;
 with Libadalang.Common;       use Libadalang.Common;
 with Libadalang.Sources;
 
+with Laltools.Call_Hierarchy;
+
 with VSS.Unicode;
 with Libadalang.Lexer;
 with Langkit_Support.Diagnostics;
@@ -781,11 +783,11 @@ package body LSP.Lal_Utils is
       return No_Defining_Name;
    end Containing_Entity;
 
-   --------------------
-   -- Find_All_Calls --
-   --------------------
+   -------------------------
+   -- Find_Incoming_Calls --
+   -------------------------
 
-   function Find_All_Calls
+   function Find_Incoming_Calls
      (Context           : LSP.Ada_Contexts.Context;
       Definition        : Defining_Name;
       Imprecise_Results : out Boolean)
@@ -819,7 +821,8 @@ package body LSP.Lal_Utils is
 
          --  We have a reference, and this a call: find the containing
          --  subprogram or task
-         Containing := Containing_Entity (Ref.As_Ada_Node);
+         Containing := Containing_Entity
+           (Ref.As_Ada_Node, Canonical => False);
 
          if Containing /= No_Defining_Name then
             if Result.Contains (Containing) then
@@ -845,7 +848,73 @@ package body LSP.Lal_Utils is
       Context.Find_All_Calls (Definition, Callback'Access);
 
       return Result;
-   end Find_All_Calls;
+   end Find_Incoming_Calls;
+
+   -------------------------
+   -- Find_Outgoing_Calls --
+   -------------------------
+
+   function Find_Outgoing_Calls
+     (Context           : LSP.Ada_Contexts.Context;
+      Definition        : Defining_Name;
+      Imprecise_Results : out Boolean)
+      return Laltools.Common.References_By_Subprogram.Map
+   is
+      use Laltools.Common.References_By_Subprogram;
+      use Laltools.Common.References_Sets;
+
+      Result : Laltools.Common.References_By_Subprogram.Map;
+
+      procedure Callback (Subp_Call : Ada_Node'Class);
+
+      --------------
+      -- Callback --
+      --------------
+
+      procedure Callback (Subp_Call : Ada_Node'Class)
+      is
+         Call_Definition : Defining_Name;
+         Subp_Call_Name  : constant Name :=
+           Laltools.Common.Get_Node_As_Name (Subp_Call.As_Ada_Node);
+      begin
+
+         --  First try to resolve the called function
+
+         Call_Definition := Laltools.Common.Resolve_Name
+           (Subp_Call_Name, Context.Trace, Imprecise_Results);
+
+         if Call_Definition /= No_Defining_Name then
+            if Result.Contains (Call_Definition) then
+               declare
+                  R              : constant
+                    Laltools.Common.References_By_Subprogram.
+                      Reference_Type :=
+                        Result.Reference (Call_Definition);
+               begin
+                  R.Include (Subp_Call.As_Base_Id);
+               end;
+            else
+               declare
+                  L : Laltools.Common.References_Sets.Set;
+               begin
+                  L.Include (Subp_Call.As_Base_Id);
+                  Result.Insert (Call_Definition, L);
+               end;
+            end if;
+         end if;
+
+      end Callback;
+   begin
+      Imprecise_Results := False;
+
+      Laltools.Call_Hierarchy.Find_Outgoing_Calls
+           (Definition => Definition,
+            Callback   => Callback'Access,
+            Trace      => Context.Trace,
+            Imprecise  => Imprecise_Results);
+
+      return Result;
+   end Find_Outgoing_Calls;
 
    ----------------------------
    -- To_Call_Hierarchy_Item --
@@ -870,6 +939,42 @@ package body LSP.Lal_Utils is
          span           => Where.span,
          selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));
    end To_Call_Hierarchy_Item;
+
+   ------------------------------
+   -- To_Call_Hierarchy_Result --
+   ------------------------------
+
+   procedure To_Call_Hierarchy_Result
+     (Node  : Libadalang.Analysis.Defining_Name;
+      Refs  : Laltools.Common.References_Sets.Set;
+      Item  : out LSP.Messages.CallHierarchyItem;
+      Spans : out LSP.Messages.Span_Vector)
+   is
+      Decl     : constant Libadalang.Analysis.Basic_Decl :=
+        Node.P_Basic_Decl;
+      Location : constant LSP.Messages.Location :=
+        Get_Node_Location (Ada_Node (Node));
+   begin
+      Item := LSP.Messages.CallHierarchyItem'
+        (name           => To_LSP_String (Node.Text),
+         kind           => Get_Decl_Kind (Decl),
+         tags           => <>,
+         detail         => <>,
+         uri            => Location.uri,
+         span           => Location.span,
+         selectionRange => LSP.Lal_Utils.To_Span (Node.Sloc_Range));
+
+      Spans.Clear;
+
+      for Ref of Refs loop
+         declare
+            Ref_Location : constant LSP.Messages.Location :=
+              Get_Node_Location (Ada_Node (Ref));
+         begin
+            Spans.Append (Ref_Location.span);
+         end;
+      end loop;
+   end To_Call_Hierarchy_Result;
 
    ----------------------------
    -- To_Unbounded_Text_Type --
