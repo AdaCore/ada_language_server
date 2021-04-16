@@ -165,7 +165,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
         (Context           => Context.all,
          Where             => ((uri => Where.uri), Where.span.first),
          First_Param_Index => LSP.Types.LSP_Number (Parameters_Indices.First),
-         Last_Param_Index  => LSP.Types.LSP_Number (Parameters_Indices.First),
+         Last_Param_Index  => LSP.Types.LSP_Number (Parameters_Indices.Last),
          New_Mode          => Image (New_Mode));
 
       Pointer.Set (Self);
