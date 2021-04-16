@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "test that callHierarchy/incomingCalls works on abstract subps"
+         "test that callHierarchy/incomingCalls works fine on null subps"
       ]
    },
    {
@@ -18,7 +18,7 @@
             "id": "ada-1",
             "method": "initialize",
             "params": {
-               "processId": 199805,
+               "processId": 217271,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
@@ -159,44 +159,61 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-7",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Pack is\n   procedure Foo is null;\nend Pack;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-9",
             "method": "textDocument/prepareCallHierarchy",
             "params": {
                "textDocument": {
-                  "uri": "$URI{p.ads}"
+                  "uri": "$URI{pack.ads}"
                },
                "position": {
-                  "line": 3,
+                  "line": 1,
                   "character": 13
                }
             }
          },
          "wait": [
             {
-               "id": "ada-7",
+               "id": "ada-9",
                "result": [
                   {
                      "name": "Foo",
                      "kind": 12,
-                     "detail": "at p.ads (4:14)",
-                     "uri": "$URI{p.ads}",
+                     "detail": "at pack.ads (2:14)",
+                     "uri": "$URI{pack.ads}",
                      "range": {
                         "start": {
-                           "line": 3,
+                           "line": 1,
                            "character": 3
                         },
                         "end": {
-                           "line": 3,
-                           "character": 40
+                           "line": 1,
+                           "character": 25
                         }
                      },
                      "selectionRange": {
                         "start": {
-                           "line": 3,
+                           "line": 1,
                            "character": 13
                         },
                         "end": {
-                           "line": 3,
+                           "line": 1,
                            "character": 16
                         }
                      }
@@ -210,30 +227,30 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-8",
+            "id": "ada-10",
             "method": "callHierarchy/incomingCalls",
             "params": {
                "item": {
                   "name": "",
                   "kind": 12,
-                  "uri": "$URI{p.ads}",
+                  "uri": "$URI{pack.ads}",
                   "range": {
                      "start": {
-                        "line": 3,
+                        "line": 1,
                         "character": 13
                      },
                      "end": {
-                        "line": 3,
+                        "line": 1,
                         "character": 13
                      }
                   },
                   "selectionRange": {
                      "start": {
-                        "line": 3,
+                        "line": 1,
                         "character": 13
                      },
                      "end": {
-                        "line": 3,
+                        "line": 1,
                         "character": 13
                      }
                   }
@@ -242,7 +259,7 @@
          },
          "wait": [
             {
-               "id": "ada-8",
+               "id": "ada-10",
                "result": [
                   {
                      "from": {
@@ -251,21 +268,21 @@
                         "uri": "$URI{main.adb}",
                         "range": {
                            "start": {
-                              "line": 3,
+                              "line": 1,
                               "character": 10
                            },
                            "end": {
-                              "line": 3,
+                              "line": 1,
                               "character": 14
                            }
                         },
                         "selectionRange": {
                            "start": {
-                              "line": 3,
+                              "line": 1,
                               "character": 10
                            },
                            "end": {
-                              "line": 3,
+                              "line": 1,
                               "character": 14
                            }
                         }
@@ -273,12 +290,12 @@
                      "fromRanges": [
                         {
                            "start": {
-                              "line": 6,
-                              "character": 3
+                              "line": 3,
+                              "character": 8
                            },
                            "end": {
-                              "line": 6,
-                              "character": 6
+                              "line": 3,
+                              "character": 11
                            }
                         }
                      ]
@@ -292,12 +309,26 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-9",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-11",
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": "ada-9",
+               "id": "ada-11",
                "result": null
             }
          ]
