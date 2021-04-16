@@ -2478,7 +2478,7 @@ package body LSP.Ada_Handlers is
             while Has_Element (C) loop
                declare
                   Node : constant Defining_Name := Key (C);
-                  Refs : constant Laltools.Common.References_List.List :=
+                  Refs : constant Laltools.Common.References_Sets.Set :=
                     Element (C);
                   Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
                begin
@@ -2601,13 +2601,13 @@ package body LSP.Ada_Handlers is
                          Reference_Type :=
                            Calls.Reference (Call_Definition);
                   begin
-                     R.Append (Subp_Call.As_Base_Id);
+                     R.Include (Subp_Call.As_Base_Id);
                   end;
                else
                   declare
-                     L : Laltools.Common.References_List.List;
+                     L : Laltools.Common.References_Sets.Set;
                   begin
-                     L.Append (Subp_Call.As_Base_Id);
+                     L.Include (Subp_Call.As_Base_Id);
                      Calls.Insert (Call_Definition, L);
                   end;
                end if;
@@ -2662,7 +2662,7 @@ package body LSP.Ada_Handlers is
             declare
                Node : constant Defining_Name :=
                  Laltools.Common.References_By_Subprogram.Key (Calls_Cursor);
-               Refs : constant Laltools.Common.References_List.List :=
+               Refs : constant Laltools.Common.References_Sets.Set :=
                  Laltools.Common.References_By_Subprogram.Element
                    (Calls_Cursor);
                Subp_And_Refs : LSP.Messages.ALS_Subprogram_And_References;
