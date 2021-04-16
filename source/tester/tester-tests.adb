@@ -17,12 +17,17 @@
 
 with Ada.Command_Line;
 with Ada.Directories;
+with Ada.Streams;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;           use GNAT.OS_Lib;
 
 with GNATCOLL.Utils; use GNATCOLL.Utils;
 with GNATCOLL.JSON;  use GNATCOLL.JSON;
+
+with VSS.Stream_Element_Vectors;
+with VSS.Strings.Conversions;
+with VSS.Strings.Converters.Decoders;
 
 with Spawn.Processes.Monitor_Loop;
 
@@ -168,6 +173,13 @@ package body Tester.Tests is
       function To_Program (Name : String) return String;
       --  Take base name of the command and find it on PATH
 
+      procedure Print (V : VSS.Stream_Element_Vectors.Stream_Element_Vector);
+      --  Print V as string.
+
+      ----------------
+      -- To_Program --
+      ----------------
+
       function To_Program (Name : String) return String is
          Found : GNAT.OS_Lib.String_Access :=
            GNAT.OS_Lib.Locate_Exec_On_Path (Name);
@@ -181,9 +193,19 @@ package body Tester.Tests is
       Cmd   : constant String := To_Program (GNATCOLL.JSON.Get (List, 1).Get);
       Args  : Spawn.String_Vectors.UTF_8_String_Vector;
 
-      type Shell_Listener is new Spawn.Processes.Process_Listener with record
-         Done : Boolean := False;
+      type Shell_Listener is limited new Spawn.Processes.Process_Listener with
+      record
+         Process : Spawn.Processes.Process;
+         Done    : Boolean := False;
+         Stdout  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
+         Stderr  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       end record;
+
+      overriding procedure Standard_Output_Available
+        (Self : in out Shell_Listener);
+
+      overriding procedure Standard_Error_Available
+        (Self : in out Shell_Listener);
 
       overriding procedure Finished
         (Self      : in out Shell_Listener;
@@ -192,6 +214,10 @@ package body Tester.Tests is
       overriding procedure Error_Occurred
         (Self          : in out Shell_Listener;
          Process_Error : Integer);
+
+      --------------------
+      -- Error_Occurred --
+      --------------------
 
       overriding procedure Error_Occurred
         (Self          : in out Shell_Listener;
@@ -209,6 +235,10 @@ package body Tester.Tests is
          Ada.Text_IO.Put_Line (Process_Error'Image);
          Self.Done := True;
       end Error_Occurred;
+
+      --------------
+      -- Finished --
+      --------------
 
       overriding procedure Finished
         (Self      : in out Shell_Listener;
@@ -230,7 +260,66 @@ package body Tester.Tests is
          Self.Done := True;
       end Finished;
 
-      Shell : Spawn.Processes.Process;
+      -----------
+      -- Print --
+      -----------
+
+      procedure Print (V : VSS.Stream_Element_Vectors.Stream_Element_Vector) is
+         use type Ada.Streams.Stream_Element_Count;
+         Decoder : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
+         Text    : VSS.Strings.Virtual_String;
+      begin
+         if V.Length > 0 then
+            Decoder.Initialize (VSS.Strings.To_Virtual_String ("utf-8"));
+            Text := Decoder.Decode (V);
+            Ada.Text_IO.Put_Line
+              (VSS.Strings.Conversions.To_UTF_8_String (Text));
+         end if;
+      end Print;
+
+      ------------------------------
+      -- Standard_Error_Available --
+      ------------------------------
+
+      overriding procedure Standard_Error_Available
+        (Self : in out Shell_Listener)
+      is
+         use type Ada.Streams.Stream_Element_Count;
+         Data : Ada.Streams.Stream_Element_Array (1 .. 512);
+         Last : Ada.Streams.Stream_Element_Count;
+      begin
+         loop
+            Self.Process.Read_Standard_Error (Data, Last);
+
+            exit when Last < 1;
+
+            for X of Data (1 .. Last) loop
+               Self.Stderr.Append (X);
+            end loop;
+         end loop;
+      end Standard_Error_Available;
+
+      -------------------------------
+      -- Standard_Output_Available --
+      -------------------------------
+
+      overriding procedure Standard_Output_Available
+        (Self : in out Shell_Listener)
+      is
+         use type Ada.Streams.Stream_Element_Count;
+         Data : Ada.Streams.Stream_Element_Array (1 .. 512);
+         Last : Ada.Streams.Stream_Element_Count;
+      begin
+         loop
+            Self.Process.Read_Standard_Output (Data, Last);
+
+            exit when Last < 1;
+
+            for X of Data (1 .. Last) loop
+               Self.Stdout.Append (X);
+            end loop;
+         end loop;
+      end Standard_Output_Available;
 
       Listener : aliased Shell_Listener;
    begin
@@ -238,15 +327,18 @@ package body Tester.Tests is
          Args.Append (GNATCOLL.JSON.Get (List, J).Get);
       end loop;
 
-      Shell.Set_Listener (Listener'Unchecked_Access);
-      Shell.Set_Program (Cmd);
-      Shell.Set_Arguments (Args);
-      Shell.Start;
+      Listener.Process.Set_Listener (Listener'Unchecked_Access);
+      Listener.Process.Set_Program (Cmd);
+      Listener.Process.Set_Arguments (Args);
+      Listener.Process.Start;
 
       loop
          Spawn.Processes.Monitor_Loop (Timeout => 10);
          exit when Listener.Done;
       end loop;
+
+      Print (Listener.Stdout);
+      Print (Listener.Stderr);
    end Do_Shell;
 
    --------------

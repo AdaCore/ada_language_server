@@ -94,7 +94,10 @@ should be in server response, but some values have a special meaning:
 
 Property value - array of strings.
 
-Tester launches a shell command taking command and arguments from the array.
+Tester launches an OS process taking command and arguments from the array.
+The primary purpose is to launch a Python like this:
+
+    "shell": ["${PYTHON}", "${DIR}/makelink.py" ]
 
 ### Command `comment`
 
