@@ -839,7 +839,7 @@ package body LSP.Lal_Utils is
       return Laltools.Common.References_By_Subprogram.Map
    is
       use Laltools.Common.References_By_Subprogram;
-      use Laltools.Common.References_List;
+      use Laltools.Common.References_Sets;
 
       procedure Callback
         (Ref    : Libadalang.Analysis.Base_Id;
@@ -870,12 +870,12 @@ package body LSP.Lal_Utils is
 
          if Containing /= No_Defining_Name then
             if Result.Contains (Containing) then
-               Result (Containing).Append (Ref);
+               Result (Containing).Include (Ref);
             else
                declare
-                  L : List;
+                  L : Set;
                begin
-                  L.Append (Ref);
+                  L.Include (Ref);
                   Result.Insert (Containing, L);
                end;
             end if;
