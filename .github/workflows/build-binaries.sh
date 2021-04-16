@@ -37,6 +37,10 @@ gprinstall --uninstall gnatcoll || true
 gprinstall --uninstall gpr || true
 rm -f -v gnat/spawn*.gpr
 
+which python
+pip install --user e3-testsuite
+python -c "import sys;print('e3' in sys.modules)"
+
 if [ "$DEBUG" = "debug" ]; then
     export BUILD_MODE=dev
 else

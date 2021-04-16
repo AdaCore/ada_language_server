@@ -18,6 +18,10 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
       - name: Initialize TAG and git autocrlf
         shell: bash
         run: |
@@ -69,6 +73,8 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
         run: |
+          # drop python if any
+          rm -rf -v ./cached_gnat/gnat*/bin/python*
           # This is to avoid locking .sh on win that prevents its updating
           cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
           .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
