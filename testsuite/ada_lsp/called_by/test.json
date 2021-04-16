@@ -1,8 +1,7 @@
 [
    {
       "comment": [
-         "test that callHierarchy/incomingCalls works well on aggregate ",
-         "projects"
+         "basic test for callHierarchy/incomingCalls"
       ]
    },
    {
@@ -19,7 +18,7 @@
             "id": "ada-1",
             "method": "initialize",
             "params": {
-               "processId": 441587,
+               "processId": 223237,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
@@ -163,10 +162,10 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{common/common_pack.adb}",
+                  "uri": "$URI{main.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "package body Common_Pack is\n\n   ---------\n   -- Foo --\n   ---------\n\n   procedure Foo is\n   begin\n      Bar;\n   end Foo;\n\n   ---------\n   -- Bar --\n   ---------\n\n   procedure Bar is\n   begin\n      null;\n   end Bar;\n\nend Common_Pack;\n"
+                  "text": "with P; use P;\nprocedure Main is\n   function Exprfinmain return Boolean is (Foo = 43);\nbegin\n   if Foo > 10 then\n      raise Constraint_Error;\n   end if;\n\n   declare\n      package Bla is\n         X : Integer := Foo;\n      end Bla;\n\n      package body Bla is\n         Y : Integer := Foo + 2;\n      begin\n         X := Foo + 3;\n      end Bla;\n   begin\n      null;\n   end;\nend Main;\n"
                }
             }
          },
@@ -177,266 +176,370 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-5",
+            "id": "ada-8",
             "method": "textDocument/prepareCallHierarchy",
             "params": {
                "textDocument": {
-                  "uri": "$URI{common/common_pack.adb}"
+                  "uri": "$URI{main.adb}"
                },
                "position": {
-                  "line": 8,
-                  "character": 6
+                  "line": 2,
+                  "character": 43
                }
             }
-         },
-         "wait": [
-            {
-               "id": "ada-5",
-               "result": [
-                  {
-                     "name": "Bar",
-                     "kind": 12,
-                     "detail": "at common_pack.ads (3:14)",
-                     "uri": "$URI{common/common_pack.ads}",
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 17
-                        }
-                     },
-                     "selectionRange": {
-                        "start": {
-                           "line": 2,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 16
-                        }
-                     }
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-6",
-            "method": "callHierarchy/incomingCalls",
-            "params": {
-               "item": {
-                  "name": "",
-                  "kind": 12,
-                  "uri": "$URI{common/common_pack.ads}",
-                  "range": {
-                     "start": {
-                        "line": 2,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 2,
-                        "character": 13
-                     }
-                  },
-                  "selectionRange": {
-                     "start": {
-                        "line": 2,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 2,
-                        "character": 13
-                     }
-                  }
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-6",
-               "result": [
-                  {
-                     "from": {
-                        "name": "Foo",
-                        "kind": 12,
-                        "uri": "$URI{common/common_pack.adb}",
-                        "range": {
-                           "start": {
-                              "line": 6,
-                              "character": 13
-                           },
-                           "end": {
-                              "line": 6,
-                              "character": 16
-                           }
-                        },
-                        "selectionRange": {
-                           "start": {
-                              "line": 6,
-                              "character": 13
-                           },
-                           "end": {
-                              "line": 6,
-                              "character": 16
-                           }
-                        }
-                     },
-                     "fromRanges": [
-                        {
-                           "start": {
-                              "line": 8,
-                              "character": 6
-                           },
-                           "end": {
-                              "line": 8,
-                              "character": 9
-                           }
-                        }
-                     ]
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-7",
-            "method": "callHierarchy/incomingCalls",
-            "params": {
-               "item": {
-                  "name": "",
-                  "kind": 12,
-                  "uri": "$URI{common/common_pack.adb}",
-                  "range": {
-                     "start": {
-                        "line": 6,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 6,
-                        "character": 13
-                     }
-                  },
-                  "selectionRange": {
-                     "start": {
-                        "line": 6,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 6,
-                        "character": 13
-                     }
-                  }
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-7",
-               "result": [
-                  {
-                     "from": {
-                        "name": "Main",
-                        "kind": 12,
-                        "uri": "$URI{p/main.adb}",
-                        "range": {
-                           "start": {
-                              "line": 1,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 1,
-                              "character": 14
-                           }
-                        },
-                        "selectionRange": {
-                           "start": {
-                              "line": 1,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 1,
-                              "character": 14
-                           }
-                        }
-                     },
-                     "fromRanges": [
-                        {
-                           "start": {
-                              "line": 3,
-                              "character": 3
-                           },
-                           "end": {
-                              "line": 3,
-                              "character": 6
-                           }
-                        }
-                     ]
-                  },
-                  {
-                     "from": {
-                        "name": "Main",
-                        "kind": 12,
-                        "uri": "$URI{q/main.adb}",
-                        "range": {
-                           "start": {
-                              "line": 1,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 1,
-                              "character": 14
-                           }
-                        },
-                        "selectionRange": {
-                           "start": {
-                              "line": 1,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 1,
-                              "character": 14
-                           }
-                        }
-                     },
-                     "fromRanges": [
-                        {
-                           "start": {
-                              "line": 3,
-                              "character": 3
-                           },
-                           "end": {
-                              "line": 3,
-                              "character": 6
-                           }
-                        }
-                     ]
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-8",
-            "method": "shutdown"
          },
          "wait": [
             {
                "id": "ada-8",
+               "result": [
+                  {
+                     "name": "Foo",
+                     "kind": 12,
+                     "detail": "at p.ads (2:13)",
+                     "uri": "$URI{p.ads}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 31
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 1,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 15
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-9",
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{p.ads}",
+                  "range": {
+                     "start": {
+                        "line": 1,
+                        "character": 12
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 12
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 1,
+                        "character": 12
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 12
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-9",
+               "result": [
+                  {
+                     "from": {
+                        "name": "Bla",
+                        "kind": 4,
+                        "uri": "$URI{main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 9,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 9,
+                              "character": 17
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 9,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 9,
+                              "character": 17
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 10,
+                              "character": 24
+                           },
+                           "end": {
+                              "line": 10,
+                              "character": 27
+                           }
+                        }
+                     ]
+                  },
+                  {
+                     "from": {
+                        "name": "Bla",
+                        "kind": 2,
+                        "uri": "$URI{main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 13,
+                              "character": 19
+                           },
+                           "end": {
+                              "line": 13,
+                              "character": 22
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 13,
+                              "character": 19
+                           },
+                           "end": {
+                              "line": 13,
+                              "character": 22
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 14,
+                              "character": 24
+                           },
+                           "end": {
+                              "line": 14,
+                              "character": 27
+                           }
+                        },
+                        {
+                           "start": {
+                              "line": 16,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 16,
+                              "character": 17
+                           }
+                        }
+                     ]
+                  },
+                  {
+                     "from": {
+                        "name": "Foo",
+                        "kind": 12,
+                        "uri": "$URI{p.adb}",
+                        "range": {
+                           "start": {
+                              "line": 1,
+                              "character": 12
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 15
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 1,
+                              "character": 12
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 15
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 3,
+                              "character": 13
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 16
+                           }
+                        }
+                     ]
+                  },
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
+                        "uri": "$URI{main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 1,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 14
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 1,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 14
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 2,
+                              "character": 43
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 46
+                           }
+                        },
+                        {
+                           "start": {
+                              "line": 4,
+                              "character": 6
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 9
+                           }
+                        }
+                     ]
+                  },
+                  {
+                     "from": {
+                        "name": "P",
+                        "kind": 4,
+                        "uri": "$URI{p.ads}",
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 8
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 9
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 0,
+                              "character": 8
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 9
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 2,
+                              "character": 37
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 40
+                           }
+                        },
+                        {
+                           "start": {
+                              "line": 3,
+                              "character": 43
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 46
+                           }
+                        }
+                     ]
+                  },
+                  {
+                     "from": {
+                        "name": "T",
+                        "kind": 2,
+                        "uri": "$URI{p.adb}",
+                        "range": {
+                           "start": {
+                              "line": 7,
+                              "character": 13
+                           },
+                           "end": {
+                              "line": 7,
+                              "character": 14
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 7,
+                              "character": 13
+                           },
+                           "end": {
+                              "line": 7,
+                              "character": 14
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 10,
+                              "character": 11
+                           },
+                           "end": {
+                              "line": 10,
+                              "character": 14
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-10",
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": "ada-10",
                "result": null
             }
          ]
