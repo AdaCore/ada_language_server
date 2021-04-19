@@ -103,7 +103,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
         (Context           => Context.all,
          Where             => ((uri => Where.uri), Where.span.first),
          First_Parameter => LSP.Types.LSP_Number (Parameters_Indices.First),
-         Last_Parameter  => LSP.Types.LSP_Number (Parameters_Indices.First));
+         Last_Parameter  => LSP.Types.LSP_Number (Parameters_Indices.Last));
 
       Pointer.Set (Self);
 
