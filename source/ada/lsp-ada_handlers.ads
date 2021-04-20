@@ -117,8 +117,8 @@ private
    is limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.Server_Backends.Server_Backend
-     and LSP.Ada_Documents.Document_Provider with
-   record
+     and LSP.Ada_Documents.Document_Provider
+   with record
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
       --  There should always be at least one "project" context - if no .gpr
@@ -459,5 +459,10 @@ private
    --  Return the version of an open document for the given URI.
    --  If the document is not opened, then it returns a
    --  VersionedTextDocumentIdentifier with a null version.
+
+   function File_To_URI
+     (Self : Message_Handler'Class;
+      File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+   --  Convert file name to URI
 
 end LSP.Ada_Handlers;

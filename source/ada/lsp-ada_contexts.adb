@@ -28,8 +28,7 @@ with LSP.Common;                  use LSP.Common;
 with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
 with Libadalang.Common;           use Libadalang.Common;
-with LSP.Unit_Providers;
-with LSP.Preprocessor;
+with Libadalang.Project_Provider;
 
 with Laltools.Common;
 
@@ -202,9 +201,8 @@ package body LSP.Ada_Contexts is
       Index : Natural := Source_Units'First;
    begin
       for File in Self.Source_Files.Iterate loop
-         Source_Units (Index) := LSP.Preprocessor.Get_From_File
-           (Self.LAL_Context,
-            LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name,
+         Source_Units (Index) := Self.LAL_Context.Get_From_File
+           (LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name,
             Charset => Self.Get_Charset);
          Index := Index + 1;
       end loop;
@@ -524,10 +522,9 @@ package body LSP.Ada_Contexts is
          Stop : in out Boolean)
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
-           LSP.Preprocessor.Get_From_File
-             (Self.LAL_Context,
-              LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
-              Charset => Self.Get_Charset);
+             Self.LAL_Context.Get_From_File
+               (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+                Charset => Self.Get_Charset);
 
          Name : constant Libadalang.Analysis.Name :=
            Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
@@ -559,13 +556,16 @@ package body LSP.Ada_Contexts is
 
    procedure Initialize
      (Self            : in out Context;
+      File_Reader     : File_Reader_Interface'Class;
       Follow_Symlinks : Boolean) is
    begin
       Self.Follow_Symlinks := Follow_Symlinks;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
         ("iso-8859-1");
+      Self.Reader_Reference := Create_File_Reader_Reference (File_Reader);
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
+         File_Reader   => Self.Reader_Reference,
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
    end Initialize;
@@ -679,11 +679,10 @@ package body LSP.Ada_Contexts is
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
-        LSP.Unit_Providers.Create_Project_Unit_Provider
+        Libadalang.Project_Provider.Create_Project_Unit_Provider
           (Tree             => Tree,
            Project          => Root,
            Env              => Get_Environment (Root),
-           Default_Charset  => Charset,
            Is_Project_Owner => False);
 
       Self.Reload;
@@ -699,6 +698,7 @@ package body LSP.Ada_Contexts is
    begin
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
+         File_Reader   => Self.Reader_Reference,
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
    end Reload;
@@ -805,9 +805,8 @@ package body LSP.Ada_Contexts is
            (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
 
          if Self.Is_Part_Of_Project (File) then
-            Unit := LSP.Preprocessor.Get_From_File
-              (Self.LAL_Context,
-               LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+            Unit := Self.LAL_Context.Get_From_File
+              (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
                Charset => Self.Get_Charset);
 
             if Unit.Root = Libadalang.Analysis.No_Ada_Node then
@@ -844,9 +843,8 @@ package body LSP.Ada_Contexts is
       Reparse : Boolean := True)
    is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        LSP.Preprocessor.Get_From_File
-          (Self.LAL_Context,
-           File.Display_Full_Name,
+        Self.LAL_Context.Get_From_File
+          (File.Display_Full_Name,
            Charset => Self.Get_Charset,
            Reparse => Reparse);
       Name : constant LSP.Types.LSP_String :=
@@ -866,20 +864,15 @@ package body LSP.Ada_Contexts is
    is
       File : constant LSP.Types.LSP_String := Self.URI_To_File (Document.URI);
       Unit : Libadalang.Analysis.Analysis_Unit;
-
-      Buffer : Ada.Strings.Unbounded.Unbounded_String;
    begin
       Document.Reset_Symbol_Cache;
       --  Reset cache of symbols to avoid access to stale references
 
       --  Preprocess the buffer
-      Buffer := LSP.Preprocessor.Preprocess_Buffer (Document.Text);
-
-      Unit := Self.LAL_Context.Get_From_Buffer
+      Unit := Self.LAL_Context.Get_From_File
         (Filename => LSP.Types.To_UTF_8_String (File),
-         --  Buffer is UTF-8
-         Charset  => "utf-8",
-         Buffer   => Buffer);
+         Charset  => Ada.Strings.Unbounded.To_String (Self.Charset),
+         Reparse  => True);
 
       --  After creating an analysis unit, populate the lexical env with it:
       --  we do this to allow Libadalang to do some work in reaction to

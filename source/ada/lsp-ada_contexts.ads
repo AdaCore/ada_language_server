@@ -23,6 +23,8 @@ with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -45,6 +47,7 @@ package LSP.Ada_Contexts is
 
    procedure Initialize
      (Self            : in out Context;
+      File_Reader     : File_Reader_Interface'Class;
       Follow_Symlinks : Boolean);
    --  Initialize the context, set Follow_Symlinks flag.
 
@@ -259,6 +262,9 @@ private
 
       Follow_Symlinks : Boolean := True;
       --  See LSP.Ada_Handlers for description
+
+      Reader_Reference : Langkit_Support.File_Readers.File_Reader_Reference;
+      --  A reference to the file reader created for this context
    end record;
 
    function LAL_Context

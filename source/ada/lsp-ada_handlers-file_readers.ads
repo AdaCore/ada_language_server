@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2021, AdaCore                        --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,29 +15,28 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
---  Provide utilities to preprocess buffers before passing them to Libadalang
-
-with VSS.Strings;           use VSS.Strings;
+--  This package provides a Langkit File_Reader which is able to
+--     - read files from open documents
+--     - preprocess code on the fly
 
 with Langkit_Support.File_Readers;
+with Langkit_Support.Diagnostics;
 
-package LSP.Preprocessor is
+package LSP.Ada_Handlers.File_Readers is
 
-   function Preprocess_Buffer
-     (Buffer : Virtual_String)
-      return Langkit_Support.File_Readers.Decoded_File_Contents;
-   --  Preprocess a buffer for the needs of the Ada Language Server: take the
-   --  whole buffer as parameter as read on disk or in open editors and
-   --  return a modified version that we want Libadalang to see.
-   --  Buffer must be encoded in UTF-8.
-   --  The resulting string is also encoded in UTF-8.
-   --  Note: at the moment this returns a Decoded_File_Contents because this
-   --  is what's most suitable for Libadalang, and avoids one string copy.
+   type LSP_Reader_Interface (Handler : access Message_Handler) is new
+     Langkit_Support.File_Readers.File_Reader_Interface with null record;
 
-   function Preprocess_File
-     (Filename : String; Charset : String)
-      return Langkit_Support.File_Readers.Decoded_File_Contents;
-   --  Load a file form disk and preprocess it with Preprocess_Buffer
-   --  The Filename has UTF-8 encoding.
+   overriding procedure Read
+     (Self        : LSP_Reader_Interface;
+      Filename    : String;
+      Charset     : String;
+      Read_BOM    : Boolean;
+      Contents    : out Langkit_Support.File_Readers.Decoded_File_Contents;
+      Diagnostics : in out
+        Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector);
 
-end LSP.Preprocessor;
+   overriding procedure Release
+     (Self : in out LSP_Reader_Interface) is null;
+
+end LSP.Ada_Handlers.File_Readers;
