@@ -41,11 +41,11 @@ with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
+with LSP.Ada_Handlers.File_Readers;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
-with LSP.Preprocessor;
 with LSP.Servers.FS_Watch;
 with LSP.Types;        use LSP.Types;
 
@@ -244,11 +244,6 @@ package body LSP.Ada_Handlers is
      (Self : Message_Handler'Class;
       URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path
-
-   function File_To_URI
-     (Self : Message_Handler'Class;
-      File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Convert file name to URI
 
    -----------------------
    -- Contexts_For_File --
@@ -504,6 +499,8 @@ package body LSP.Ada_Handlers is
       C    : constant Context_Access := new Context (Self.Trace);
       Attr : GNAT.Strings.String_List (1 .. 1);
       use GNATCOLL.Projects;
+
+      Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
    begin
       --  Unload all the contexts
       Self.Contexts.Cleanup;
@@ -517,7 +514,8 @@ package body LSP.Ada_Handlers is
       Initialize (Self.Project_Environment);
       Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
       Self.Project_Tree := new Project_Tree;
-      C.Initialize (Self.Follow_Symlinks);
+
+      C.Initialize (Reader, Self.Follow_Symlinks);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:
@@ -1110,9 +1108,8 @@ package body LSP.Ada_Handlers is
                                 LSP.Ada_File_Sets.File_Sets.Element (F);
                            begin
                               Units_Vector.Append
-                                (LSP.Preprocessor.Get_From_File
-                                   (Context.LAL_Context,
-                                    VF.Display_Full_Name,
+                                (Context.LAL_Context.Get_From_File
+                                   (VF.Display_Full_Name,
                                     --  ??? What is the charset for predefined
                                     --  files?
                                     ""));
@@ -1876,12 +1873,16 @@ package body LSP.Ada_Handlers is
       if Self.Open_Documents.Contains (Value.textDocument.uri) then
          Document := Self.Open_Documents.Element (URI);
 
+         --  Remove the URI from the set of open documents now: this way,
+         --  the call to Flush_Document below will not attempt to reindex
+         --  from an open document, but from the file on disk.
+         Self.Open_Documents.Delete (URI);
+
          for Context of Self.Contexts_For_URI (URI) loop
             Context.Flush_Document (Document.all);
          end loop;
 
          Unchecked_Free (Document);
-         Self.Open_Documents.Delete (URI);
 
       else
          --  We have received a didCloseTextDocument but the document was
@@ -3565,8 +3566,9 @@ package body LSP.Ada_Handlers is
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
          C : constant Context_Access := new Context (Self.Trace);
+         Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
       begin
-         C.Initialize (Self.Follow_Symlinks);
+         C.Initialize (Reader, Self.Follow_Symlinks);
          C.Load_Project (Tree    => Self.Project_Tree,
                          Root    => P,
                          Charset => Charset);
@@ -4585,10 +4587,6 @@ package body LSP.Ada_Handlers is
    begin
       return LSP.Types.To_LSP_String (Result);
    end URI_To_File;
-
-   -----------------
-   -- File_To_URI --
-   -----------------
 
    -----------------
    -- File_To_URI --

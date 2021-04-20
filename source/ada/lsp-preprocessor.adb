@@ -15,8 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
 with Ada.Characters.Handling;
-with Ada.Characters.Wide_Wide_Latin_1;
+with Ada.Characters.Wide_Wide_Latin_1; use Ada.Characters.Wide_Wide_Latin_1;
 
 with GNAT.Strings;
 
@@ -30,15 +31,45 @@ with VSS.Strings.Cursors.Iterators.Characters;
 
 package body LSP.Preprocessor is
 
-   package LAL renames Libadalang.Analysis;
+   function To_Wide_Wide (S : Virtual_String) return Wide_Wide_String;
+   --  Utility function, until VSS provides this.
+   --  NOTE: not suitable on big strings!
+
+   ------------------
+   -- To_Wide_Wide --
+   ------------------
+
+   function To_Wide_Wide (S : Virtual_String) return Wide_Wide_String is
+      Result : Wide_Wide_String (1 .. Integer (S.Character_Length));
+      It     : VSS.Strings.Cursors.Iterators.Characters.Character_Iterator
+        := S.First_Character;
+      First_Free : Positive := 1;
+      Success : Boolean := True;
+   begin
+      while It.Has_Element and then Success loop
+         Result (First_Free) := Wide_Wide_Character (It.Element);
+         Success := It.Forward;
+         First_Free := First_Free + 1;
+      end loop;
+      return Result (1 .. First_Free - 1);
+   end To_Wide_Wide;
+
+   -----------------------
+   -- Preprocess_Buffer --
+   -----------------------
 
    function Preprocess_Buffer
-     (Buffer : Virtual_String) return Unbounded_String
+     (Buffer : Virtual_String)
+      return Langkit_Support.File_Readers.Decoded_File_Contents
    is
       Vect       : VSS.String_Vectors.Virtual_String_Vector;
-      Result     : Unbounded_String := Null_Unbounded_String;
+      Result     : Langkit_Support.File_Readers.Decoded_File_Contents;
 
-      LT : GNAT.Strings.String_Access;
+      type Wide_Wide_String_Access is access all Wide_Wide_String;
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Wide_Wide_String, Wide_Wide_String_Access);
+
+      LT : Wide_Wide_String_Access;
       --  The line terminator found in the non-processed buffer
 
       procedure Process_One_Line (Line : Virtual_String);
@@ -84,19 +115,30 @@ package body LSP.Preprocessor is
          end if;
 
          if Send_This_Line_To_Libadalang then
-            Append (Result,
-                    VSS.Strings.Conversions.To_UTF_8_String (Line) & LT.all);
+            declare
+               To_Add : constant Wide_Wide_String := To_Wide_Wide (Line);
+            begin
+               Result.Buffer
+                 (Result.Last + 1
+                  .. Result.Last + To_Add'Length + LT'Length)
+                 := To_Add & LT.all;
+               Result.Last := Result.Last + To_Add'Length + LT'Length;
+            end;
          else
             --  If we're not sending the line to Libadalang, send an empty
             --  line to preserve line numbers.
-            Append (Result, "" & LT.all);
+            Result.Buffer (Result.Last + 1 .. Result.Last + LT'Length)
+              := LT.all;
+            Result.Last := Result.Last + LT'Length;
          end if;
       end Process_One_Line;
 
    begin
+      Result := (null, 1, 0);
+
       --  Easy handle of the empty string
       if Buffer.Is_Empty then
-         return Result;
+         return (new Wide_Wide_String'(""), 1, 0);
       end if;
 
       --  Figure out which is the line terminator in the original buffer
@@ -108,12 +150,12 @@ package body LSP.Preprocessor is
          It       : Character_Iterator := Buffer.First_Character;
       begin
          while It.Has_Element loop
-            if It.Element =
-              Virtual_Character (Ada.Characters.Wide_Wide_Latin_1.LF)
+            if It.Element = Virtual_Character
+              (Ada.Characters.Wide_Wide_Latin_1.LF)
             then
                Found_LF := True;
-            elsif It.Element =
-              Virtual_Character (Ada.Characters.Wide_Wide_Latin_1.CR)
+            elsif It.Element = Virtual_Character
+              (Ada.Characters.Wide_Wide_Latin_1.CR)
             then
                Found_CR := True;
             else
@@ -130,26 +172,39 @@ package body LSP.Preprocessor is
 
          if Found_LF then
             if Found_CR then
-               LT := new String'(ASCII.CR & ASCII.LF);
+               LT := new Wide_Wide_String'
+                 (Ada.Characters.Wide_Wide_Latin_1.CR
+                  & Ada.Characters.Wide_Wide_Latin_1.LF);
             else
-               LT := new String'((1 => ASCII.LF));
+               LT := new Wide_Wide_String'
+                 ((1 => Ada.Characters.Wide_Wide_Latin_1.LF));
             end if;
          elsif Found_CR then
-            LT := new String'((1 => ASCII.CR));
+            LT := new Wide_Wide_String'
+              ((1 => Ada.Characters.Wide_Wide_Latin_1.CR));
          else
             --  It can happen that we never found a line terminator
             --  (empty files or one-liners): default to LF
-            LT := new String'((1 => ASCII.LF));
+            LT := new Wide_Wide_String'
+              ((1 => Ada.Characters.Wide_Wide_Latin_1.LF));
          end if;
       end;
 
       Vect := Buffer.Split_Lines;
 
+      --  Allocate the result
+      Result.Buffer := new Wide_Wide_String
+        (1 .. Integer (Buffer.Character_Length)
+         --  Allocate room for a last line terminator
+         + LT'Length);
+      Result.First := 1;
+      Result.Last := 0;
+
       for Line of Vect loop
          Process_One_Line (Line);
       end loop;
 
-      GNAT.Strings.Free (LT);
+      Free (LT);
 
       return Result;
    end Preprocess_Buffer;
@@ -158,8 +213,9 @@ package body LSP.Preprocessor is
    -- Process_File --
    ------------------
 
-   function Preprocess_File (Filename : String; Charset : String)
-                          return Unbounded_String
+   function Preprocess_File
+     (Filename : String; Charset : String)
+      return Langkit_Support.File_Readers.Decoded_File_Contents
    is
       use type GNAT.Strings.String_Access;
       Raw        : GNAT.Strings.String_Access;
@@ -169,7 +225,7 @@ package body LSP.Preprocessor is
       Raw := Create_From_UTF8 (Filename).Read_File;
 
       if Raw = null then
-         return Null_Unbounded_String;
+         return (new Wide_Wide_String'(""), 1, 0);
       end if;
 
       --  Convert the file if it's not already encoded in utf-8
@@ -204,12 +260,12 @@ package body LSP.Preprocessor is
                   null;
                when others =>
                   --  TODO: transmit the result to the user
-                  return Null_Unbounded_String;
+                  return (new Wide_Wide_String'(""), 1, 0);
             end case;
          exception
             when others =>
                --  TODO: transmit the result to the user
-               return Null_Unbounded_String;
+               return (new Wide_Wide_String'(""), 1, 0);
          end;
       end if;
 
@@ -225,34 +281,7 @@ package body LSP.Preprocessor is
          end if;
 
          --  TODO: transmit this to the user
-         return Null_Unbounded_String;
+         return (new Wide_Wide_String'(""), 1, 0);
    end Preprocess_File;
-
-   -------------------
-   -- Get_From_File --
-   -------------------
-
-   function Get_From_File
-     (Context  : Libadalang.Analysis.Analysis_Context;
-      Filename : String;
-      Charset  : String;
-      Reparse  : Boolean := False;
-      Rule     : Grammar_Rule := Default_Grammar_Rule)
-      return Libadalang.Analysis.Analysis_Unit is
-      Buffer   : Unbounded_String;
-   begin
-      --  Preprocessing guarantees that the buffers are known to LAL in
-      --  UTF-8: we can use this safely rather than Charset below.
-      if not Reparse
-        and then Context.Has_Unit (Filename)
-      then
-         return LAL.Get_With_Error
-           (Context, Filename, "", "utf-8");
-      end if;
-      Buffer := Preprocess_File (Filename, Charset);
-
-      return LAL.Get_From_Buffer
-        (Context, Filename, "utf-8", Buffer, Rule);
-   end Get_From_File;
 
 end LSP.Preprocessor;
