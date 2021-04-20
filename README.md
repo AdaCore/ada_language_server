@@ -2,7 +2,9 @@
 # Ada Language Server
 
 [![Build binaries](https://github.com/AdaCore/ada_language_server/workflows/Build%20binaries/badge.svg)](https://github.com/AdaCore/ada_language_server/actions)
-[![Download](https://api.bintray.com/packages/reznikmm/ada-language-server/ada-language-server/images/download.svg) ](https://bintray.com/reznikmm/ada-language-server/ada-language-server/_latestVersion)
+[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/AdaCore/ada_language_server)](https://github.com/AdaCore/ada_language_server/releases)
+[![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/adacore.ada?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada)
+[![Open VSX Registry](https://img.shields.io/open-vsx/v/AdaCore/ada?label=Open%20VSX)](https://open-vsx.org/extension/AdaCore/ada)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/AdaCore/ada_language_server/tree/edge)
 
 This repository contains an implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
@@ -17,9 +19,9 @@ Current features:
  * Code folding and formatting.
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
-extension
-[at the Marketplace](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada) and
-[the latest build as .vsix file](https://dl.bintray.com/reznikmm/ada-language-server/ada-22.0.999.vsix).
+extension at
+[the VS Marketplace](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada) and at
+[the Open VSX Registry](https://open-vsx.org/extension/AdaCore/ada).
 
 ## Table of Contents
  * [Install](#Install)
@@ -42,21 +44,8 @@ extension
 
 ## Install
 
-You can install
-[binary image](https://bintray.com/reznikmm/ada-language-server/ada-language-server#files)
-or build language server from sources.
-
-To install binary image download an archive corresponding to your OS and unpack it
-somewhere. You will find `ada_language_server` inside unpacked folder.
-We provide binaries for
- * Linux x86_64 - take
-[linux.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/linux-latest.tar.gz)
- * Window 64 bit - take
-[win32.zip](https://dl.bintray.com/reznikmm/ada-language-server/win32-latest.zip)
- * Mac OS X - take
-[darwin.tar.gz](https://dl.bintray.com/reznikmm/ada-language-server/darwin-latest.tar.gz)
-
-To build is from source install dependencies and run
+You can build language server from sources.
+To build is from sources install dependencies and run
 ```
 make
 ```
@@ -68,8 +57,9 @@ It will build `.obj/server/ada_language_server` file.
 To build the language server you need:
 
  * A GNAT compiler
- * [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
+ * The [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
    built)
+ * The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
  * The [VSS](https://github.com/AdaCore/VSS) library
  * The a process [spawn](https://github.com/AdaCore/spawn) library
 
@@ -136,7 +126,7 @@ client provides its-own way to set such settings.
 | `textDocument/completion`             | :white_check_mark: |
 | `completionItem/resolve`              |                    |
 | `textDocument/hover`                  | :white_check_mark: |
-| `textDocument/signatureHelp`          |                    |
+| `textDocument/signatureHelp`          | :white_check_mark: |
 | `textDocument/definition`             | :white_check_mark: |
 | `textDocument/declaration`            | :white_check_mark: |
 | `textDocument/typeDefinition`         | :white_check_mark: |
@@ -186,7 +176,7 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 }
 ```
 
-### Launch extension to debug it
+### Launch the extension to debug it
 For the moment, this repository includes a vscode extension that is used as the
 reference extension for this implementation.
 
