@@ -8,6 +8,7 @@ on:
 name: Build binaries
 env:
   DEFAULT_TAG: 22.0.999
+  AWS_DEFAULT_REGION: eu-west-1
 jobs:
   build:
     name: Build and deploy
@@ -72,6 +73,9 @@ jobs:
       - name: Build (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         run: |
           # drop python if any
           rm -rf -v ./cached_gnat/gnat*/bin/python*
@@ -79,6 +83,9 @@ jobs:
           cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
           .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Build (non-Windows)
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         if: ${{ runner.os != 'Windows' }}
         run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Archive ALS binary
@@ -87,18 +94,6 @@ jobs:
         with:
           name: als-${{ runner.os }}-${{ matrix.debug }}
           path: integration/vscode/ada/[ldw]*/*
-      - name: Upload tar-ball to Bintray
-        if: ${{ github.event_name == 'push' }}
-        uses: reznikmm/upload-bintray-action@v4
-        with:
-          subject: reznikmm
-          username: reznikmm
-          repository: ada-language-server
-          package: ada-language-server
-          version: ${{ env.TAG }}
-          sourcePath: '*.tar.gz'
-          override: 1
-          apiKey: ${{secrets.BINTRAY_API_KEY}}
   package:
     if: ${{ github.event_name == 'push' }}
     needs: build
@@ -118,14 +113,8 @@ jobs:
           echo "TAG=$TAG" >> $GITHUB_ENV
           .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
           .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
-      - name: Upload vsix to Bintray
-        uses: reznikmm/upload-bintray-action@v4
+      - name: Archive ALS vsix
+        uses: actions/upload-artifact@v2
         with:
-          subject: reznikmm
-          username: reznikmm
-          repository: ada-language-server
-          package: ada-language-server
-          version: ${{ env.TAG }}
-          sourcePath: '*.vsix'
-          override: 1
-          apiKey: ${{secrets.BINTRAY_API_KEY}}
+          name: als-vsix-${{ matrix.debug }}${{ env.TAG }}
+          path: '*.vsix'

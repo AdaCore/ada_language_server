@@ -30,9 +30,12 @@ if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
     git rebase --verbose origin/edge
 fi
 
+# Get libadalang binaries
 mkdir -p $prefix
-URL=https://bintray.com/reznikmm/libadalang/download_file\?file_path=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
-curl -L $URL | tar xzf - -C $prefix
+FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
+aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/$FILE . --sse=AES256
+tar xzf $FILE -C $prefix
+rm -f -v $FILE
 gprinstall --uninstall gnatcoll || true
 gprinstall --uninstall gpr || true
 rm -f -v gnat/spawn*.gpr
@@ -58,14 +61,9 @@ function fix_rpath ()
     install_name_tool -add_rpath @executable_path $1
 }
 
-if [ $RUNNER_OS = Windows ]; then
-    tar czvf $RUNNER_OS${DEBUG:+-dbg}-$TAG.tar.gz -C integration/vscode/ada/ win32
-elif [ $RUNNER_OS = macOS ]; then
+if [ $RUNNER_OS = macOS ]; then
     cp -v /usr/local/opt/gmp/lib/libgmp.10.dylib integration/vscode/ada/darwin/
     fix_rpath integration/vscode/ada/darwin/ada_language_server
-    tar czvf $RUNNER_OS${DEBUG:+-dbg}-$TAG.tar.gz -C integration/vscode/ada/ darwin
-else
-    tar czvf $RUNNER_OS${DEBUG:+-dbg}-$TAG.tar.gz -C integration/vscode/ada/ linux
 fi
 
 if [ "$DEBUG" != "debug" ]; then
