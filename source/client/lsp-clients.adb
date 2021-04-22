@@ -1167,7 +1167,7 @@ package body LSP.Clients is
    procedure Text_Document_Signature_Help_Request
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number_Or_String;
-      Value   : LSP.Messages.TextDocumentPositionParams)
+      Value   : LSP.Messages.SignatureHelpParams)
    is
       Message : Signature_Help_Request := (params => Value, others => <>);
    begin
