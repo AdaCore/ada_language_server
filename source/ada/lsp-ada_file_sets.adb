@@ -160,7 +160,7 @@ package body LSP.Ada_File_Sets is
       Prefix   : VSS.Strings.Virtual_String;
       Callback : not null access procedure
         (URI  : LSP.Messages.DocumentUri;
-         Name : Libadalang.Analysis.Defining_Name;
+         Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean))
    is
       Stop   : Boolean := False;
@@ -176,7 +176,7 @@ package body LSP.Ada_File_Sets is
             exit Each_Prefix when not Value.Starts_With (Prefix);
 
             for Item of Self.All_Symbols (Cursor) loop
-               Callback (Item.URI, Item.Name, Stop);
+               Callback (Item.URI, Item.Loc, Stop);
                exit Each_Prefix when Stop;
             end loop;
 
@@ -258,8 +258,17 @@ package body LSP.Ada_File_Sets is
 
       while It.Next (Node) loop
          declare
+            Token : constant Libadalang.Common.Token_Reference :=
+              Node.Token_End;
+
+            Sloc_Range : constant Langkit_Support.Slocs.Source_Location_Range
+              := Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token));
+
+            Start_Sloc : constant Langkit_Support.Slocs.Source_Location :=
+              Langkit_Support.Slocs.Start_Sloc (Sloc_Range);
+
             Text : constant Wide_Wide_String :=
-              Libadalang.Common.Text (Node.Token_End);
+              Libadalang.Common.Text (Token);
 
             Canonical : constant Symbolization_Result :=
               Libadalang.Sources.Canonicalize (Text);
@@ -274,7 +283,7 @@ package body LSP.Ada_File_Sets is
                   Cursor,
                   Inserted);
 
-               Self.All_Symbols (Cursor).Append ((URI, Node.As_Defining_Name));
+               Self.All_Symbols (Cursor).Append ((URI, Start_Sloc));
             end if;
          end;
       end loop;
