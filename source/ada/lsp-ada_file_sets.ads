@@ -25,6 +25,7 @@ with Ada.Containers.Vectors;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
+with Langkit_Support.Slocs;
 
 with VSS.Strings;
 
@@ -68,7 +69,7 @@ package LSP.Ada_File_Sets is
       Prefix   : VSS.Strings.Virtual_String;
       Callback : not null access procedure
         (URI  : LSP.Messages.DocumentUri;
-         Name : Libadalang.Analysis.Defining_Name;
+         Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the set and
    --  call Callback for each. Name could contain a stale reference if the File
@@ -77,7 +78,7 @@ package LSP.Ada_File_Sets is
 private
    type Name_Information is record
       URI  : LSP.Messages.DocumentUri;
-      Name : Libadalang.Analysis.Defining_Name;
+      Loc  : Langkit_Support.Slocs.Source_Location;
    end record;
 
    package Name_Vectors is new Ada.Containers.Vectors

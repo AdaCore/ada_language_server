@@ -505,9 +505,43 @@ package body LSP.Ada_Contexts is
       Callback : not null access procedure
         (URI  : LSP.Messages.DocumentUri;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean)) is
+         Stop : in out Boolean))
+   is
+      procedure Adapter
+        (URI  : LSP.Messages.DocumentUri;
+         Loc  : Langkit_Support.Slocs.Source_Location;
+         Stop : in out Boolean);
+      --  Find a Defining_Name at the given location Loc in a unit of URI and
+      --  pass it to Callback procedure call.
+
+      -------------
+      -- Adapter --
+      -------------
+
+      procedure Adapter
+        (URI  : LSP.Messages.DocumentUri;
+         Loc  : Langkit_Support.Slocs.Source_Location;
+         Stop : in out Boolean)
+      is
+         Unit : constant Libadalang.Analysis.Analysis_Unit :=
+           LSP.Preprocessor.Get_From_File
+             (Self.LAL_Context,
+              LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+              Charset => Self.Get_Charset);
+
+         Name : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
+
+         Def_Name : constant Libadalang.Analysis.Defining_Name :=
+           Laltools.Common.Get_Name_As_Defining (Name);
+      begin
+         if not Def_Name.Is_Null then
+            Callback (URI, Def_Name, Stop);
+         end if;
+      end Adapter;
+
    begin
-      Self.Source_Files.Get_Any_Symbol_Completion (Prefix, Callback);
+      Self.Source_Files.Get_Any_Symbol_Completion (Prefix, Adapter'Access);
    end Get_Any_Symbol_Completion;
 
    -----------------
