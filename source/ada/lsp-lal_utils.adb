@@ -538,6 +538,25 @@ package body LSP.Lal_Utils is
       end if;
    end Get_Active_Parameter;
 
+   ------------------
+   -- Get_Location --
+   ------------------
+
+   function Get_Location
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : Langkit_Support.Slocs.Source_Location_Range;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location
+   is
+      File : constant LSP.Types.LSP_String :=
+        LSP.Types.To_LSP_String (Unit.Get_Filename);
+   begin
+      return
+        (uri     => LSP.Ada_Contexts.File_To_URI (File),
+         span    => To_Span (Span),
+         alsKind => Kind);
+   end Get_Location;
+
    -----------------------
    -- Get_Node_Location --
    -----------------------
@@ -545,35 +564,9 @@ package body LSP.Lal_Utils is
    function Get_Node_Location
      (Node : Libadalang.Analysis.Ada_Node'Class;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location
-   is
-      use type VSS.Unicode.UTF16_Code_Unit_Count;
-
-      Start_Sloc_Range                                     :
-      constant Langkit_Support.Slocs.Source_Location_Range :=
-         Sloc_Range (Data (Node.Token_Start));
-      End_Sloc_Range                                       :
-      constant Langkit_Support.Slocs.Source_Location_Range :=
-         Sloc_Range (Data (Node.Token_End));
-
-      First_Position : constant LSP.Messages.Position :=
-                         (Line_Number (Start_Sloc_Range.Start_Line) - 1,
-                          UTF_16_Index (Start_Sloc_Range.Start_Column) - 1);
-      Last_Position  : constant LSP.Messages.Position :=
-                         (Line_Number (End_Sloc_Range.End_Line) - 1,
-                          UTF_16_Index (End_Sloc_Range.End_Column) - 1);
-      --  XXX Code unit offset computation is incorrect here
-
-      File : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Node.Unit.Get_Filename);
-
-      Location : constant LSP.Messages.Location :=
-        (uri     => LSP.Ada_Contexts.File_To_URI (File),
-         span    => LSP.Messages.Span'(First_Position, Last_Position),
-         alsKind => Kind);
-
+      return LSP.Messages.Location is
    begin
-      return Location;
+      return Get_Location (Node.Unit, Node.Sloc_Range, Kind);
    end Get_Node_Location;
 
    ------------------------

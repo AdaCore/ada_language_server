@@ -66,6 +66,14 @@ package LSP.Lal_Utils is
      (Result : in out LSP.Messages.Location_Vector);
    --  Sort Result and remove duplicates from it.
 
+   function Get_Location
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : Langkit_Support.Slocs.Source_Location_Range;
+      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location;
+   --  Return the location in a unit. Populate alsKind field of the result with
+   --  given Kind.
+
    function Get_Node_Location
      (Node : Libadalang.Analysis.Ada_Node'Class;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
