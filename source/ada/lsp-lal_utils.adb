@@ -365,12 +365,35 @@ package body LSP.Lal_Utils is
       Active_Position := 0;
       Name_Node := Libadalang.Analysis.No_Name;
 
-      --  Find the first Call_Expr node in the parents
-      while not Cur_Node.Is_Null loop
-         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+      if not Cur_Node.Is_Null
+        and then Cur_Node.Kind in Ada_Error_Stmt_Range
+      then
+         --  In case of Error_Stmt, find the nearest previous sibling
+         --  which is not also an Error_Stmt
+         while not Cur_Node.Is_Null
+           and then Cur_Node.Kind in Ada_Error_Stmt_Range
+         loop
+            Cur_Node := Cur_Node.Previous_Sibling;
+         end loop;
 
-         Cur_Node := Cur_Node.Parent;
-      end loop;
+         --  Find the nearest Call_Expr node in the children
+         if not Cur_Node.Is_Null then
+            for Child_Node of Cur_Node.Children loop
+               if Child_Node.Kind in Ada_Call_Expr_Range then
+                  Cur_Node := Child_Node;
+                  exit;
+               end if;
+            end loop;
+         end if;
+      else
+
+         --  Find the nearest Call_Expr node in the parents
+         while not Cur_Node.Is_Null loop
+            exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+
+            Cur_Node := Cur_Node.Parent;
+         end loop;
+      end if;
 
       if Cur_Node.Is_Null then
          return;
