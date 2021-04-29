@@ -35,7 +35,7 @@ with Langkit_Support.Token_Data_Handlers;
 
 with Pp.Actions;
 
-with LSP.Types; use LSP.Types;
+with LSP.Types;             use LSP.Types;
 
 package body LSP.Lal_Utils is
 
@@ -356,13 +356,36 @@ package body LSP.Lal_Utils is
 
    procedure Get_Call_Expr_Name
      (Node            : Libadalang.Analysis.Ada_Node'Class;
+      Cursor_Line     : Langkit_Support.Slocs.Line_Number;
+      Cursor_Column   : Langkit_Support.Slocs.Column_Number;
       Active_Position : out LSP.Types.LSP_Number;
       Designator      : out Libadalang.Analysis.Ada_Node;
       Name_Node       : out Libadalang.Analysis.Name)
    is
+      use Langkit_Support.Slocs;
       Cur_Node : Ada_Node := Node.As_Ada_Node;
+
+      function Is_Active (N : Ada_Node) return Boolean;
+      --  Check if N contains the cursor
+
+      ---------------
+      -- Is_Active --
+      ---------------
+
+      function Is_Active (N : Ada_Node) return Boolean
+      is
+         S : constant Langkit_Support.Slocs.Source_Location_Range :=
+           N.Sloc_Range;
+      begin
+         return S.Start_Line <= Cursor_Line
+           and then Cursor_Line <= S.End_Line
+           and then S.Start_Column <= Cursor_Column
+           and then Cursor_Column <= S.End_Column;
+      end Is_Active;
+
    begin
       Active_Position := 0;
+      Designator := Libadalang.Analysis.No_Ada_Node;
       Name_Node := Libadalang.Analysis.No_Name;
 
       if not Cur_Node.Is_Null
@@ -404,10 +427,20 @@ package body LSP.Lal_Utils is
            Cur_Node.As_Call_Expr;
          Suffix_Node     : constant Libadalang.Analysis.Ada_Node'Class :=
            Call_Expr_Node.F_Suffix;
-         Node_Parents    : constant Libadalang.Analysis.Ada_Node_Array :=
-           Node.Parents;
       begin
          Name_Node := Call_Expr_Node.F_Name;
+
+         if Name_Node.Kind in Ada_Dotted_Name_Range then
+            declare
+               Dot_Name : constant Dotted_Name := Name_Node.As_Dotted_Name;
+            begin
+               --  If the prefix is a parameter then increase the
+               --  Active_Position by 1
+               if Dot_Name.P_Is_Dot_Call (Imprecise_Fallback => True) then
+                  Active_Position := Active_Position + 1;
+               end if;
+            end;
+         end if;
 
          if Suffix_Node = Libadalang.Analysis.No_Ada_Node then
             return;
@@ -417,10 +450,8 @@ package body LSP.Lal_Utils is
          if Suffix_Node.Kind in Ada_Assoc_List_Range then
             for Assoc of Suffix_Node.As_Assoc_List loop
                Designator := Assoc.As_Param_Assoc.F_Designator;
-               for Parent of Node_Parents loop
-                  exit when Assoc = Parent;
-               end loop;
                Active_Position := Active_Position + 1;
+               exit when Is_Active (Assoc.As_Ada_Node);
             end loop;
          end if;
          --  The active position index starts at 0
