@@ -50,6 +50,7 @@ project LSP_Server is
    end Compiler;
 
    package Linker is
+      for Driver use "g++";
       case Library_Type is
          when "static" | "static-pic" =>
             case OS is
