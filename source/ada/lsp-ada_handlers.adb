@@ -2777,6 +2777,7 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.SignatureHelp_Response
    is
       use Libadalang.Analysis;
+      use Langkit_Support.Slocs;
       use LSP.Messages;
 
       Value   : LSP.Messages.SignatureHelpParams renames
@@ -2841,7 +2842,15 @@ package body LSP.Ada_Handlers is
       Response.result := (others => <>);
 
       --  Check if we are inside a function call and get the caller name
-      Get_Call_Expr_Name (Node, Active_Position, Designator, Name_Node);
+      Get_Call_Expr_Name
+        (Node            => Node,
+         Cursor_Line     =>
+           Langkit_Support.Slocs.Line_Number (Value.position.line + 1),
+         Cursor_Column   =>
+           Langkit_Support.Slocs.Column_Number (Value.position.character) + 1,
+         Active_Position => Active_Position,
+         Designator      => Designator,
+         Name_Node       => Name_Node);
 
       if Name_Node = Libadalang.Analysis.No_Name then
          return Response;

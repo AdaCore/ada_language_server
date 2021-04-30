@@ -58,4 +58,9 @@ package LSP.Client_Request_Receivers is
       Message : LSP.Messages.Client_Requests.UnregisterCapability_Request)
         is abstract;
 
+   procedure On_ShowDocument_Request
+     (Self    : access Client_Request_Receiver;
+      Message : LSP.Messages.Client_Requests.ShowDocument_Request)
+        is abstract;
+
 end LSP.Client_Request_Receivers;

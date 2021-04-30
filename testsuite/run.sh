@@ -7,4 +7,4 @@ else
 fi
 
 # This is a convenience command-line driver made for development mode
-$PYTHON ./run-tests --loglevel INFO --show-error-output $@
+$PYTHON ./run-tests --failure-exit-code 1 --loglevel INFO --show-error-output $@

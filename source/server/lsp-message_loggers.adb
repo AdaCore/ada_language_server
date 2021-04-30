@@ -1468,6 +1468,20 @@ package body LSP.Message_Loggers is
          & Image (Value));
    end On_WorkspaceFolders_Response;
 
+   -----------------------------
+   -- On_ShowDocument_Request --
+   -----------------------------
+
+   overriding procedure On_ShowDocument_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Client_Requests.ShowDocument_Request) is
+   begin
+      Self.Trace.Trace
+        ("ShowDocument_Request: "
+         & Image (Value)
+         & (+Value.params.uri));
+   end On_ShowDocument_Request;
+
    ----------------------------
    -- On_ShowMessage_Request --
    ----------------------------
