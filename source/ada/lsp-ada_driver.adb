@@ -34,6 +34,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 
 with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Ada_Handlers.Other_File_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
@@ -128,6 +129,8 @@ procedure LSP.Ada_Driver is
 
    procedure Register_Commands is
    begin
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Other_File_Commands.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Commands.Register
