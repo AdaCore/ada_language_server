@@ -641,6 +641,17 @@ package body LSP.Servers is
       Self.Send_Request ("window/showMessageRequest", Message);
    end On_ShowMessage_Request;
 
+   -----------------------------
+   -- On_ShowDocument_Request --
+   -----------------------------
+
+   overriding procedure On_ShowDocument_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.ShowDocument_Request) is
+   begin
+      Self.Send_Request ("window/showDocument", Message);
+   end On_ShowDocument_Request;
+
    -------------------------------------
    -- On_Workspace_Apply_Edit_Request --
    -------------------------------------
