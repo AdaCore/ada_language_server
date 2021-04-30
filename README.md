@@ -176,7 +176,14 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 }
 ```
 
+### Go to other Ada file
+
+The extension contributes a command and a corresponding key binding to
+switch between specification and implementation Ada files.
+The default shortcut is `Alt+O`.
+
 ### Launch the extension to debug it
+
 For the moment, this repository includes a vscode extension that is used as the
 reference extension for this implementation.
 

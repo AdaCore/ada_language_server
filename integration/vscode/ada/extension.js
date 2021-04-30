@@ -46,15 +46,36 @@ function activate(context) {
         }
     };
     // Create the language client and start the client.
-    let disposable = new vscode_languageclient_1.LanguageClient
-      ('ada', 'Ada Language Server', serverOptions, clientOptions).start();
+    let client = new vscode_languageclient_1.LanguageClient
+        ('ada', 'Ada Language Server', serverOptions, clientOptions);
+    let disposable = client.start();
     // Push the disposable to the context's subscriptions so that the 
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
     myTaskProvider = vscode.tasks.registerTaskProvider
       (gprTaskProvider.GPRTaskProvider.gprBuildType,
        new gprTaskProvider.GPRTaskProvider());
+
+    //  Take active editor URI and call execute 'als-other-file' command in LSP
+    function otherFileHandler () {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+          return;
+        }
+        client.sendRequest(
+            vscode_languageclient_1.ExecuteCommandRequest.type,
+            {
+                'command': 'als-other-file',
+                'arguments': [{
+                    'uri': activeEditor.document.uri.toString()
+                }]
+            }
+        );
+    };
+
+    context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
 }
+
 exports.activate = activate;
 
 function deactivate() {
