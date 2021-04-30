@@ -13,7 +13,8 @@
     ],
     "activationEvents": [
         "onLanguage:ada",
-        "onCommand:workbench.action.tasks.runTask"
+        "onCommand:workbench.action.tasks.runTask",
+        "onCommand:ada.otherFile"
     ],
     "main": "./extension",
     "icon": "icons/ada.png",
@@ -208,7 +209,20 @@
                     }
                 }
             }
-        ]
+        ],
+        "commands":[
+            {
+                "command": "ada.otherFile",
+                "title": "Go to other Ada file"
+            }
+        ],
+        "keybindings": [
+            {
+              "command": "ada.otherFile",
+              "key": "Alt+O",
+              "when": "editorLangId == 'ada' && editorTextFocus"
+            }
+          ]
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
