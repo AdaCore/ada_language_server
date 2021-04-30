@@ -40,8 +40,9 @@ This section includes related feature description documents and links to others
 related resources.
 
 ## List of features
- * [Reference kinds](reference_kinds.md)
-
  * [Called by](called_by.md)
-
  * [Calls](calls.md)
+ * [Debug](debug.md)
+ * [Other File](other_file.md)
+ * [Reference kinds](reference_kinds.md)
+ * [Show Dependencies](show_dependencies.md)
