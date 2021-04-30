@@ -358,6 +358,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.ShowMessage_Request);
 
+   overriding procedure On_ShowDocument_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Client_Requests.ShowDocument_Request);
+
    overriding procedure On_Workspace_Folders_Request
      (Self  : access Message_Logger;
       Value : LSP.Messages.Client_Requests.Workspace_Folders_Request);

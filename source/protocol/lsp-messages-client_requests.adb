@@ -22,6 +22,17 @@ package body LSP.Messages.Client_Requests is
    -----------
 
    overriding procedure Visit
+     (Self    : ShowDocument_Request;
+      Reciver : access Client_Request_Receiver'Class) is
+   begin
+      Reciver.On_ShowDocument_Request (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : ShowMessage_Request;
       Reciver : access Client_Request_Receiver'Class) is
    begin

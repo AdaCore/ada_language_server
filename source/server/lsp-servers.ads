@@ -111,6 +111,10 @@ package LSP.Servers is
      (Self    : access Server;
       Message : LSP.Messages.Client_Requests.ShowMessage_Request);
 
+   overriding procedure On_ShowDocument_Request
+     (Self    : access Server;
+      Message : LSP.Messages.Client_Requests.ShowDocument_Request);
+
    overriding procedure On_Workspace_Apply_Edit_Request
      (Self    : access Server;
       Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request);

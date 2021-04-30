@@ -112,4 +112,17 @@ package LSP.Messages.Client_Requests is
      (Self    : UnregisterCapability_Request;
       Reciver : access Client_Request_Receiver'Class);
 
+   package ShowDocument_Requests is
+     new LSP.Generic_Requests
+       (Client_Request,
+        ShowDocumentParams,
+        Client_Request_Receiver'Class);
+
+   type ShowDocument_Request is
+     new ShowDocument_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : ShowDocument_Request;
+      Reciver : access Client_Request_Receiver'Class);
+
 end LSP.Messages.Client_Requests;
