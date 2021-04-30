@@ -2,10 +2,11 @@
 import testsuite
 import os
 import yaml
+import sys
 
 if __name__ == '__main__':
     suite = testsuite.ALSTestsuite(os.path.dirname(__file__))
-    suite.testsuite_main()
+    result = suite.testsuite_main()
     # Print the results that are not OK
     all_ok = True
     for k in suite.results:
@@ -20,3 +21,5 @@ if __name__ == '__main__':
 
     if all_ok:
         print("SUCCESS")
+
+    sys.exit(result)
