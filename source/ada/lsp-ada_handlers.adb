@@ -55,7 +55,7 @@ with Langkit_Support.Text;
 with Laltools.Common;
 with Laltools.Refactor_Imports;
 with Laltools.Refactor.Subprogram_Signature;
-with Laltools.Refactor.Rename;
+with Laltools.Refactor.Safe_Rename;
 with Laltools.Refactor.Suppress_Separate;
 
 with Libadalang.Analysis;
@@ -2995,7 +2995,7 @@ package body LSP.Ada_Handlers is
       Document  : constant LSP.Ada_Documents.Document_Access :=
                    Get_Open_Document (Self, Value.textDocument.uri);
 
-      Refs      : Laltools.Refactor.Rename.Renamable_References;
+      Refs      : Laltools.Refactor.Safe_Rename.Renamable_References;
 
       procedure Process_Context (C : Context_Access);
       --  Process the rename request for the given context, and add the
@@ -3218,7 +3218,7 @@ package body LSP.Ada_Handlers is
             end loop;
          end Process_Comments;
 
-         use Laltools.Refactor.Rename;
+         use Laltools.Refactor.Safe_Rename;
 
          Unit_Cursor : Unit_Slocs_Maps.Cursor;
          Sloc_Cursor : Slocs_Maps.Cursor;
