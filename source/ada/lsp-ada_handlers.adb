@@ -2976,6 +2976,9 @@ package body LSP.Ada_Handlers is
          others   => <>);
    begin
       if Document = null then
+         Self.Show_Message
+           ("Get symbols for no document.", LSP.Messages.Warning);
+
          declare
             Document : LSP.Ada_Documents.Document_Access :=
               Get_Open_Document (Self, Value.textDocument.uri, Force => True);
