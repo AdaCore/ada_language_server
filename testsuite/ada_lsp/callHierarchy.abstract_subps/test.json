@@ -256,16 +256,15 @@
                      "from": {
                         "name": "Main",
                         "kind": 12,
-                        "detail": "at main.adb (4:11)",
                         "uri": "$URI{main.adb}",
                         "range": {
                            "start": {
                               "line": 3,
-                              "character": 0
+                              "character": 10
                            },
                            "end": {
-                              "line": 7,
-                              "character": 4
+                              "line": 3,
+                              "character": 14
                            }
                         },
                         "selectionRange": {
