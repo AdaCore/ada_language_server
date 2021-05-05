@@ -18,12 +18,9 @@ class CodecsTestDriver(ALSTestDriver):
         if self.should_skip():
             return False
 
-        index = os.path.abspath(
-            os.path.join(self.test_env['test_dir'], 'index.txt'))
-        p = self.run_and_log([self.env.codec_test], cwd=self.env.repo_base,
-                             timeout=120, input=index)
+        index = os.path.abspath(os.path.join(self.test_env["test_dir"], "index.txt"))
+        p = self.run_and_log([self.env.codec_test], cwd=self.env.repo_base, input=index)
         self.result.out += p.out
 
-        self.result.set_status(
-            TestStatus.PASS if p.status == 0 else TestStatus.FAIL)
+        self.result.set_status(TestStatus.PASS if p.status == 0 else TestStatus.FAIL)
         self.push_result()
