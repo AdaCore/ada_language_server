@@ -98,15 +98,6 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-named-parameters",
-                           "als-refactor-imports",
-                           "als-refactor-remove-parameters",
-                           "als-refactor-move-parameter",
-                           "als-refactor-change-parameter-mode"
-                        ]
-                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsCalledByProvider": true,
@@ -153,45 +144,7 @@
                }
             }
          },
-         "wait": [
-            {
-               "id": 2,
-               "method": "window/workDoneProgress/create",
-               "params": {
-                  "token": "ada_ls-218358-indexing-1"
-               }
-            },
-            {
-               "method": "$/progress",
-               "params": {
-                  "token": "ada_ls-218358-indexing-1",
-                  "value": {
-                     "kind": "begin",
-                     "title": "Indexing",
-                     "percentage": 0
-                  }
-               }
-            },
-            {
-               "method": "$/progress",
-               "params": {
-                  "token": "ada_ls-218358-indexing-1",
-                  "value": {
-                     "kind": "report",
-                     "percentage": 100
-                  }
-               }
-            },
-            {
-               "method": "$/progress",
-               "params": {
-                  "token": "ada_ls-218358-indexing-1",
-                  "value": {
-                     "kind": "end"
-                  }
-               }
-            }
-         ]
+         "wait": []
       }
    },
    {
