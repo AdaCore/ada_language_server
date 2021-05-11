@@ -20,6 +20,9 @@
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
+with VSS.Strings;
+private with VSS.Strings.Markers;
+
 with LSP.Messages;
 with LSP.Types;
 
@@ -32,8 +35,6 @@ with GNATCOLL.Traces;
 with Libadalang.Common;
 
 with Pp.Command_Lines;
-
-with VSS.Strings;
 
 package LSP.Ada_Documents is
 
@@ -249,11 +250,10 @@ package LSP.Ada_Documents is
 
 private
 
-   package Line_To_Index_Vectors is new Ada.Containers.Vectors
+   package Line_Marker_Vectors is new Ada.Containers.Vectors
      (Index_Type   => Natural,
-      Element_Type => Positive,
-      "="          => "=");
-   use Line_To_Index_Vectors;
+      Element_Type => VSS.Strings.Markers.Character_Marker,
+      "="          => VSS.Strings.Markers."=");
 
    package Name_Vectors is new Ada.Containers.Vectors
      (Positive, Libadalang.Analysis.Defining_Name, Libadalang.Analysis."=");
@@ -271,12 +271,12 @@ private
       Version : LSP.Types.LSP_Number := 1;
       --  Document version
 
-      Text : LSP.Types.LSP_String;
+      Text : VSS.Strings.Virtual_String;
       --  The text of the document
 
-      Line_To_Index : Vector;
+      Line_To_Marker : Line_Marker_Vectors.Vector;
       --  Within text, an array associating a line number (starting at 0) to
-      --  the offset of the first character of that line in Text.
+      --  the marker of the first character of that line in Text.
       --  This serves as cache to be able to modify text ranges in Text
       --  given in line/column coordinates without having to scan the whole
       --  text from the beginning.
@@ -300,6 +300,7 @@ private
 
    function URI (Self : Document) return LSP.Messages.DocumentUri is
      (Self.URI);
-   function Text (Self : Document) return LSP.Types.LSP_String is (Self.Text);
+   function Text (Self : Document) return LSP.Types.LSP_String is
+     (LSP.Types.To_LSP_String (Self.Text));
 
 end LSP.Ada_Documents;
