@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Conversions;
-with Ada.Characters.Wide_Latin_1;
-with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
@@ -49,6 +47,8 @@ with LSP.Lal_Utils;
 
 with Pp.Scanner;
 with Utils.Char_Vectors;
+
+with VSS.Strings.Conversions;
 
 package body LSP.Ada_Documents is
 
@@ -129,54 +129,111 @@ package body LSP.Ada_Documents is
    procedure Recompute_Indexes (Self : in out Document);
    --  Recompute the line-to-offset indexes in Self
 
+   procedure Recompute_Markers
+     (Self         : in out Document'Class;
+      Low_Line     : Natural;
+      Start_Marker : VSS.Strings.Markers.Character_Marker;
+      End_Marker   : VSS.Strings.Markers.Character_Marker);
+   --  Recompute line-to-marker index starting from Start_Marker till
+   --  End_Marker and filling index table starting at Low_Line. End_Marker
+   --  may be invalid marker, in this case indexing down to the end of the
+   --  text.
+
+   procedure Span_To_Markers
+     (Self : Document'Class;
+      Span : LSP.Messages.Span;
+      From : out VSS.Strings.Markers.Character_Marker;
+      To   : out VSS.Strings.Markers.Character_Marker);
+
    -----------------------
    -- Recompute_Indexes --
    -----------------------
 
    procedure Recompute_Indexes (Self : in out Document) is
-      use LSP.Types;
-      use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
-      Text                 : constant VSS.Strings.Virtual_String :=
-        LSP.Types.To_Virtual_String (Self.Text);
-      J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
-        Text.First_Line (LSP_New_Line_Function, True);
-      Last_Line_Terminated : Boolean := False;
+      use type VSS.Strings.Character_Count;
 
    begin
-      Self.Line_To_Index.Clear;
+      Self.Line_To_Marker.Clear;
 
       --  To avoid too many reallocations during the initial filling
       --  of the index vector, pre-allocate it. Give a generous
       --  pre-allocation assuming that there is a line break every
       --  20 characters on average (this file has one line break
       --  every 33 characters).
-      Self.Line_To_Index.Reserve_Capacity
-        (Ada.Containers.Count_Type (Length (Self.Text) / 20));
+      Self.Line_To_Marker.Reserve_Capacity
+        (Ada.Containers.Count_Type (Self.Text.Character_Length / 20));
 
+      declare
+         J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
+           Self.Text.First_Line
+             (Terminators     => LSP_New_Line_Function,
+              Keep_Terminator => True);
+         Last_Line_Terminated : Boolean := False;
+
+      begin
+         if J.Has_Element then
+            loop
+               Self.Line_To_Marker.Append (J.First_Marker);
+               Last_Line_Terminated := J.Has_Line_Terminator;
+
+               exit when not J.Forward;
+            end loop;
+
+         else
+            Last_Line_Terminated := True;
+            --  Force to add one line for an empty document.
+         end if;
+
+         --  Append marker at the end of the text when the last line has line
+         --  terminator sequence or text is empty. It allows to avoid checks
+         --  for corner cases.
+
+         if Last_Line_Terminated then
+            Self.Line_To_Marker.Append (J.First_Marker);
+         end if;
+      end;
+   end Recompute_Indexes;
+
+   -----------------------
+   -- Recompute_Markers --
+   -----------------------
+
+   procedure Recompute_Markers
+     (Self         : in out Document'Class;
+      Low_Line     : Natural;
+      Start_Marker : VSS.Strings.Markers.Character_Marker;
+      End_Marker   : VSS.Strings.Markers.Character_Marker)
+   is
+      use type VSS.Strings.Character_Count;
+
+      M    : VSS.Strings.Markers.Character_Marker;
+      J    : VSS.Strings.Line_Iterators.Line_Iterator :=
+        Self.Text.Line
+          (Position        => Start_Marker,
+           Terminators     => LSP_New_Line_Function,
+           Keep_Terminator => True);
+      Line : Natural := Low_Line;
+
+   begin
       if J.Has_Element then
          loop
-            Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
-            Last_Line_Terminated := J.Has_Line_Terminator;
+            M := J.First_Marker;
+
+            exit
+              when End_Marker.Is_Valid
+                and then M.Character_Index = End_Marker.Character_Index;
+
+            Self.Line_To_Marker.Insert (Line, M);
+            Line := Line + 1;
 
             exit when not J.Forward;
          end loop;
 
-      else
-         --  Add line mapping for an empty document.
-
-         Self.Line_To_Index.Append (1);
+         if not End_Marker.Is_Valid then
+            Self.Line_To_Marker.Append (J.First_Marker);
+         end if;
       end if;
-
-      --  XXX Initial implementation depends from index of the line after
-      --  last line terminator, even that this line is not exists actually.
-      --  Thus, append such an index. It will be removed after full switch
-      --  to VSS.
-
-      if Last_Line_Terminated then
-         Self.Line_To_Index.Append (Integer (J.First_UTF16_Offset + 1));
-      end if;
-   end Recompute_Indexes;
+   end Recompute_Markers;
 
    -------------------
    -- Apply_Changes --
@@ -200,62 +257,80 @@ package body LSP.Ada_Documents is
             --  We're replacing a range
 
             declare
-               Low_Index : constant Natural :=
-                 Self.Line_To_Index.Element
-                   (Natural (Change.span.Value.first.line))
-                 + Natural (Change.span.Value.first.character);
-               High_Index : constant Natural :=
-                 Self.Line_To_Index.Element
-                   (Natural (Change.span.Value.last.line))
-                 + Natural (Change.span.Value.last.character);
-               Chars_Delta : Integer := 0;
+               Low_Line    : Natural :=
+                 Natural (Change.span.Value.first.line);
+               High_Line   : Natural :=
+                 Natural (Change.span.Value.last.line);
+               Delete_High : Integer := High_Line;
+               Start_Index : Natural;
 
-               Orig : constant Line_To_Index_Vectors.Vector :=
-                 Self.Line_To_Index;
+               First_Marker : VSS.Strings.Markers.Character_Marker;
+               Last_Marker  : VSS.Strings.Markers.Character_Marker;
+               Start_Marker : VSS.Strings.Markers.Character_Marker;
+               End_Marker   : VSS.Strings.Markers.Character_Marker;
+
             begin
-               --  Do the actual replacement.
+               --  Do text replacement
 
-               --  Note: do this rather than Self.Text.Slice, to avoid
-               --  allocating a potentially big string on the stack in the
-               --  parameter to Slice.
-               Self.Text := Unbounded_Slice (Self.Text, 1, Low_Index - 1)
-                 & Change.text
-                 & Unbounded_Slice (Self.Text, High_Index,
-                                    Length (Self.Text));
+               Self.Span_To_Markers
+                 (Change.span.Value, First_Marker, Last_Marker);
+               Self.Text.Replace
+                 (First_Marker,
+                  Last_Marker,
+                  To_Virtual_String (Change.text));
 
-               --  Recompute the indexes
-               Self.Line_To_Index.Delete
-                 (Index => Natural (Change.span.Value.first.line) + 1,
-                  Count => Ada.Containers.Count_Type
-                    (Self.Line_To_Index.Last_Index
-                     - Natural (Change.span.Value.first.line)));
+               --  Markers inside modified range of lines need to be
+               --  recomputed, markers outside of this range has been
+               --  recomputed by call to Replace.
 
-               --  This recomputes the line indexes for the characters that
-               --  we've just added.
-               for Ind in
-                 Low_Index .. Low_Index + Length (Change.text) - 1
-               loop
-                  if Element (Self.Text, Ind) =
-                    Ada.Characters.Wide_Latin_1.LF
-                  then
-                     Self.Line_To_Index.Append (Ind + 1);
+               --  Use marker of the line before the first modified line as
+               --  start marker for recompute because marker of the first
+               --  modified line may be ether invalidated or moved by Replace,
+               --  or start from first character of the new text when first
+               --  line was modified.
+
+               if Low_Line /= Self.Line_To_Marker.First_Index then
+                  Low_Line     := Low_Line - 1;
+                  Start_Index  := Low_Line;
+                  Start_Marker := Self.Line_To_Marker (Low_Line);
+
+               else
+                  Start_Index  := Self.Line_To_Marker.First_Index;
+                  Start_Marker := Self.Text.First_Character.Marker;
+               end if;
+
+               --  Use marker of the line after the last modified line as end
+               --  marker for recompute because marker of the last modified
+               --  line may be ether invalidated or moved and not point to the
+               --  beginning of the line, or use invalid marker when last line
+               --  was modified.
+
+               if High_Line /= Self.Line_To_Marker.Last_Index then
+                  Delete_High := High_Line;
+                  High_Line := High_Line + 1;
+                  End_Marker := Self.Line_To_Marker (High_Line);
+               end if;
+
+               if Low_Line = Self.Line_To_Marker.First_Index
+                 and then High_Line = Self.Line_To_Marker.Last_Index
+               then
+                  Self.Recompute_Indexes;
+
+               else
+                  if Delete_High >= Low_Line then
+                     Self.Line_To_Marker.Delete
+                       (Low_Line,
+                        Ada.Containers.Count_Type
+                          (Delete_High - Low_Line + 1));
                   end if;
-               end loop;
 
-               --  The delta in characters is the number of characters added
-               --  minus the number of characters removed
-               Chars_Delta := Length (Change.text) - (High_Index - Low_Index);
-
-               --  All the lines after the change are still there, at an
-               --  index modified by Chars_Delta.
-               for J in
-                 Natural (Change.span.Value.last.line) + 1 .. Orig.Last_Index
-               loop
-                  Self.Line_To_Index.Append (Orig.Element (J) + Chars_Delta);
-               end loop;
+                  Self.Recompute_Markers
+                    (Start_Index, Start_Marker, End_Marker);
+               end if;
             end;
+
          else
-            Self.Text := Change.text;
+            Self.Text := To_Virtual_String (Change.text);
 
             --  We're setting the whole text: compute the indexes now.
             Self.Recompute_Indexes;
@@ -273,19 +348,16 @@ package body LSP.Ada_Documents is
       Start_Pos : LSP.Messages.Position;
       End_Pos   : LSP.Messages.Position) return String
    is
-      use LSP.Types;
+      First_Marker : VSS.Strings.Markers.Character_Marker;
+      Last_Marker  : VSS.Strings.Markers.Character_Marker;
 
-      Start_Index  : constant Natural :=
-        Self.Line_To_Index.Element
-          (Natural (Start_Pos.line))
-            + Natural (Start_Pos.character);
-      End_Index    : constant Natural :=
-        Self.Line_To_Index.Element
-          (Natural (End_Pos.line))
-            + Natural (End_Pos.character);
    begin
-      return To_UTF_8_String
-        (Unbounded_Slice (Self.Text, Start_Index, End_Index));
+      Self.Span_To_Markers
+        ((Start_Pos, End_Pos), First_Marker, Last_Marker);
+
+      return
+        VSS.Strings.Conversions.To_UTF_8_String
+          (Self.Text.Slice (First_Marker, Last_Marker));
    end Get_Text_At;
 
    ----------
@@ -310,11 +382,13 @@ package body LSP.Ada_Documents is
 
    begin
       Old_Lines :=
-        LSP.Types.To_Virtual_String (Self.Text).Split_Lines
-          (LSP_New_Line_Function, True);
+        Self.Text.Split_Lines
+          (Terminators     => LSP_New_Line_Function,
+           Keep_Terminator => True);
       New_Lines :=
         LSP.Types.To_Virtual_String (New_Text).Split_Lines
-          (LSP_New_Line_Function, True);
+          (Terminators     => LSP_New_Line_Function,
+           Keep_Terminator => True);
 
       if Old_Span = Empty_Span then
          Old_First_Line := 1;
@@ -524,14 +598,11 @@ package body LSP.Ada_Documents is
          --  Handle the edge case where the last location of
          --  the edit is trying to affect a non existent line.
          --  The edits are ordered so we only need to check the last one.
-         --  XXX Initial implementation of "line index cache" has a bug, it
-         --  adds index of the non-existent line after last 'LF' to the
-         --  vector of indices. This related to code below and this code
-         --  probably will be not needed after correction of this issue.
+
          if not Edit.Is_Empty
-            and then not Self.Line_To_Index.Is_Empty
+            and then not Self.Line_To_Marker.Is_Empty
             and then Integer (Edit.Last_Element.span.last.line) not in
-              Self.Line_To_Index.First_Index .. Self.Line_To_Index.Last_Index
+              Self.Line_To_Marker.First_Index .. Self.Line_To_Marker.Last_Index
          then
             declare
                use type VSS.Unicode.UTF16_Code_Unit_Offset;
@@ -611,9 +682,7 @@ package body LSP.Ada_Documents is
          end if;
       end if;
 
-      S := new String'
-        (Ada.Strings.Unbounded.To_String
-           (LSP.Types.To_UTF_8_Unbounded_String (Self.Text)));
+      S := new String'(VSS.Strings.Conversions.To_UTF_8_String (Self.Text));
       Input.Append (S.all);
       GNAT.Strings.Free (S);
 
@@ -1611,7 +1680,7 @@ package body LSP.Ada_Documents is
    begin
       Self.URI  := URI;
       Self.Version := 1;
-      Self.Text := Text;
+      Self.Text := LSP.Types.To_Virtual_String (Text);
       Self.Refresh_Symbol_Cache := True;
       Recompute_Indexes (Self);
    end Initialize;
@@ -2443,7 +2512,7 @@ package body LSP.Ada_Documents is
                     character => Position.character - 2),
                End_Pos   => LSP.Messages.Position'
                  (line      => Position.line,
-                  character => Position.character - 2))
+                  character => Position.character - 1))
             else
                "");
       begin
@@ -2528,6 +2597,49 @@ package body LSP.Ada_Documents is
               Names.Length'Image);
       end;
    end Get_Completions_At;
+
+   ---------------------
+   -- Span_To_Markers --
+   ---------------------
+
+   procedure Span_To_Markers
+     (Self : Document'Class;
+      Span : LSP.Messages.Span;
+      From : out VSS.Strings.Markers.Character_Marker;
+      To   : out VSS.Strings.Markers.Character_Marker)
+   is
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+      J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Self.Text.Character (Self.Line_To_Marker (Natural (Span.first.line)));
+      U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+        J1.First_UTF16_Offset;
+
+      J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Self.Text.Character (Self.Line_To_Marker (Natural (Span.last.line)));
+      U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+        J2.First_UTF16_Offset;
+
+      Dummy : Boolean;
+
+   begin
+      while Span.first.character /= J1.First_UTF16_Offset - U1
+        and then J1.Forward
+      loop
+         null;
+      end loop;
+
+      From := J1.Marker;
+
+      while Span.last.character /= J2.First_UTF16_Offset - U2
+        and then J2.Forward
+      loop
+         null;
+      end loop;
+
+      Dummy := J2.Backward;
+      To    := J2.Marker;
+   end Span_To_Markers;
 
    ----------
    -- Unit --
