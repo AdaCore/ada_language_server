@@ -25,6 +25,9 @@ with GNAT.Strings;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 
+with VSS.Characters;
+with VSS.Strings.Conversions;
+
 with Langkit_Support.Slocs;
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
@@ -47,8 +50,6 @@ with LSP.Lal_Utils;
 
 with Pp.Scanner;
 with Utils.Char_Vectors;
-
-with VSS.Strings.Conversions;
 
 package body LSP.Ada_Documents is
 
@@ -144,6 +145,13 @@ package body LSP.Ada_Documents is
       Span : LSP.Messages.Span;
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker);
+
+   function Position_To_Marker
+     (Self     : Document'Class;
+      Position : LSP.Messages.Position)
+      return VSS.Strings.Markers.Character_Marker;
+   --  Return marker pointing to character at right side of the given
+   --  Position.
 
    -----------------------
    -- Recompute_Indexes --
@@ -2513,28 +2521,66 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Previous_Char : constant String :=
-           (if Position.character > 1 then
-               Self.Get_Text_At
-              (Start_Pos => LSP.Messages.Position'
-                   (line      => Position.line,
-                    character => Position.character - 2),
-               End_Pos   => LSP.Messages.Position'
-                 (line      => Position.line,
-                  character => Position.character - 1))
-            else
-               "");
+         Previous_Is_Separator : Boolean := True;
+
       begin
+         if Position.character > 2 then
+            declare
+               J       : VSS.Strings.Character_Iterators.Character_Iterator :=
+                 Self.Text.Character (Self.Position_To_Marker (Position));
+               C       : VSS.Characters.Virtual_Character;
+               Success : Boolean with Unreferenced;
+
+            begin
+               Success := J.Backward;
+               Success := J.Backward;
+
+               if J.Has_Element then
+                  C       := J.Element;
+
+                  --  Ada 2012's RM defines separator as 'separator_space',
+                  --  'format_efector' or end of a line, with some exceptions
+                  --  inside comments.
+                  --
+                  --  'separator_space' is defined as a set of characters with
+                  --  'General Category' defined as 'Separator, Space'.
+                  --
+                  --  'format_effector' is set of characters:
+                  --    - CHARACTER TABULATION
+                  --    - LINE FEED
+                  --    - LINE TABULATION
+                  --    - FORM FEED
+                  --    - CARRIAGE RETURN
+                  --    - NEXT LINE
+                  --    - characters with General Category defined as
+                  --      'Separator, Line'
+                  --    - characters with General Category defined as
+                  --      'Separator, Paragraph'
+                  --
+                  --  XXX Check for 'General Category' can't be implemented
+                  --  due to unavailability of necessary information for now;
+                  --  thus we check for explicitly defined and widely useful
+                  --  characters only.
+
+                  Previous_Is_Separator :=
+                    C in
+                      VSS.Characters.Virtual_Character'Val (16#09#)
+                        | VSS.Characters.Virtual_Character'Val (16#0A#)
+                        | VSS.Characters.Virtual_Character'Val (16#0B#)
+                        | VSS.Characters.Virtual_Character'Val (16#0C#)
+                        | VSS.Characters.Virtual_Character'Val (16#0D#)
+                        | VSS.Characters.Virtual_Character'Val (16#20#)
+                        | VSS.Characters.Virtual_Character'Val (16#85#);
+               end if;
+            end;
+         end if;
+
          --  Propose keyword completion if we are not within and end label
          --  and if there is no previous character of if it's a whitespace (we
          --  don't want to propose keywords after typing '(' to feed subprogram
          --  parameters for instance).
 
-         if not In_End_Label
-           and then (Previous_Char = ""
-                     or else GNATCOLL.Utils.Is_Whitespace
-                       (Previous_Char (Previous_Char'Last)))
-         then
+         if not In_End_Label and then Previous_Is_Separator then
             Get_Keywords_Completion
               (Node   => Node,
                Prefix => Prefix,
@@ -2606,6 +2652,32 @@ package body LSP.Ada_Documents is
               Names.Length'Image);
       end;
    end Get_Completions_At;
+
+   ------------------------
+   -- Position_To_Marker --
+   ------------------------
+
+   function Position_To_Marker
+     (Self     : Document'Class;
+      Position : LSP.Messages.Position)
+      return VSS.Strings.Markers.Character_Marker
+   is
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+      J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Self.Text.Character (Self.Line_To_Marker (Natural (Position.line)));
+      U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+        J1.First_UTF16_Offset;
+
+   begin
+      while Position.character /= J1.First_UTF16_Offset - U1
+        and then J1.Forward
+      loop
+         null;
+      end loop;
+
+      return J1.Marker;
+   end Position_To_Marker;
 
    ---------------------
    -- Span_To_Markers --
