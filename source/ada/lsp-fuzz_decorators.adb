@@ -18,6 +18,7 @@
 with Ada.Characters.Wide_Latin_1; use Ada.Characters.Wide_Latin_1;
 with Ada.Containers.Hashed_Maps;
 
+with VSS.Strings.Conversions;
 with VSS.Unicode;
 
 with LSP.Types; use LSP.Types;
@@ -127,6 +128,7 @@ package body LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidChangeTextDocumentParams)
    is
+      use type VSS.Strings.Virtual_String;
       use type VSS.Unicode.UTF16_Code_Unit_Count;
 
       Doc_Content : LSP_String;
@@ -175,10 +177,10 @@ package body LSP.Fuzz_Decorators is
 
       --  Compare the results of the basic implementation and the real one
       if Self.Doc_Provider.Get_Open_Document (Value.textDocument.uri).Text
-        /= Doc_Content
+        /= LSP.Types.To_Virtual_String (Doc_Content)
       then
          Self.Trace.Trace
-           (To_UTF_8_String
+           (VSS.Strings.Conversions.To_UTF_8_String
               (Self.Doc_Provider.Get_Open_Document
                    (Value.textDocument.uri).Text) &
               ASCII.LF & " /= " & ASCII.LF &

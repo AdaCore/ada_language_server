@@ -873,8 +873,7 @@ package body LSP.Ada_Contexts is
       --  Reset cache of symbols to avoid access to stale references
 
       --  Preprocess the buffer
-      Buffer := LSP.Preprocessor.Preprocess_Buffer
-        (LSP.Types.To_Virtual_String (Document.Text));
+      Buffer := LSP.Preprocessor.Preprocess_Buffer (Document.Text);
 
       Unit := Self.LAL_Context.Get_From_Buffer
         (Filename => LSP.Types.To_UTF_8_String (File),
