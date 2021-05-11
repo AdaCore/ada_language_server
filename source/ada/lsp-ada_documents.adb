@@ -354,7 +354,7 @@ package body LSP.Ada_Documents is
    function Get_Text_At
      (Self      : Document;
       Start_Pos : LSP.Messages.Position;
-      End_Pos   : LSP.Messages.Position) return String
+      End_Pos   : LSP.Messages.Position) return VSS.Strings.Virtual_String
    is
       First_Marker : VSS.Strings.Markers.Character_Marker;
       Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -363,9 +363,7 @@ package body LSP.Ada_Documents is
       Self.Span_To_Markers
         ((Start_Pos, End_Pos), First_Marker, Last_Marker);
 
-      return
-        VSS.Strings.Conversions.To_UTF_8_String
-          (Self.Text.Slice (First_Marker, Last_Marker));
+      return Self.Text.Slice (First_Marker, Last_Marker);
    end Get_Text_At;
 
    ----------
