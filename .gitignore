@@ -102,3 +102,6 @@ integration/vscode/ada/linux/
 
 # Subprojects
 subprojects/
+
+# Temporary testsuite's files and directories
+testsuite/ada_lsp/project_symlinks/link
