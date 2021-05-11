@@ -1440,7 +1440,6 @@ package body LSP.Ada_Documents is
       Is_Function : out Boolean)
       return LSP.Types.LSP_String
    is
-      use Ada.Strings.Wide_Wide_Unbounded;
       use Libadalang.Common;
 
       function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
@@ -1489,64 +1488,74 @@ package body LSP.Ada_Documents is
         (Node : Libadalang.Analysis.Subp_Spec'Class)
          return LSP.Types.LSP_String
       is
-         Result  : Unbounded_Wide_Wide_String;
+         Result  : VSS.Strings.Virtual_String;
          Params  : constant Param_Spec_Array := Node.P_Params;
          Returns : constant Type_Expr := Node.F_Subp_Returns;
+
       begin
          if Params'Length > 0 then
-            Append (Result, "(");
+            Result.Append ('(');
          end if;
 
          for Param of Params loop
             declare
+               use type VSS.Strings.Character_Count;
+
                Names : constant Defining_Name_List := Param.F_Ids;
                Init  : constant Expr := Param.F_Default_Expr;
-               Item  : Unbounded_Wide_Wide_String;
+               Item  : VSS.Strings.Virtual_String;
+
             begin
-               Append (Item, " :");
+               Item.Append (" :");
 
                case Param.F_Mode is
                   when Ada_Mode_Default | Ada_Mode_In =>
-                     Append (Item, " in ");
+                     Item.Append (" in ");
                   when Ada_Mode_In_Out =>
-                     Append (Item, " in out ");
+                     Item.Append (" in out ");
                   when Ada_Mode_Out =>
-                     Append (Item, " out ");
+                     Item.Append (" out ");
                end case;
 
-               Append (Item, To_Text (Param.F_Type_Expr));
+               Item.Append
+                 (VSS.Strings.To_Virtual_String
+                    (To_Text (Param.F_Type_Expr)));
 
                if not Init.Is_Null then
-                  Append (Item, " := ");
-                  Append (Item, To_Text (Init));
+                  Item.Append (" := ");
+                  Item.Append
+                    (VSS.Strings.To_Virtual_String (To_Text (Init)));
                end if;
 
                for J in Names.First_Child_Index .. Names.Last_Child_Index loop
-                  if Length (Result) /= 1 then
-                     Append (Result, "; ");
+                  if Result.Character_Length /= 1 then
+                     Result.Append ("; ");
                   end if;
 
-                  Append (Result, To_Text (Names.Child (J)));
-                  Append (Result, Item);
+                  Result.Append
+                    (VSS.Strings.To_Virtual_String
+                       (To_Text (Names.Child (J))));
+                  Result.Append (Item);
                end loop;
-
             end;
          end loop;
 
          if Params'Length > 0 then
-            Append (Result, ")");
+            Result.Append (')');
          end if;
 
          if not Returns.Is_Null then
             Is_Function := True;
-            Append (Result, " return ");
-            Append (Result, To_Text (Returns));
+            Result.Append (" return ");
+            Result.Append (VSS.Strings.To_Virtual_String (To_Text (Returns)));
          end if;
 
-         return To_LSP_String (To_Wide_Wide_String (Result));
+         return LSP.Types.To_LSP_String (Result);
       end To_Profile;
+
    begin
       Is_Function := False;
+
       case Node.Kind is
          when Ada_Classic_Subp_Decl =>
             return To_Profile (Node.As_Classic_Subp_Decl.F_Subp_Spec);
