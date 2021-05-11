@@ -67,7 +67,7 @@ package LSP.Ada_Documents is
    function Get_Text_At
      (Self      : Document;
       Start_Pos : LSP.Messages.Position;
-      End_Pos   : LSP.Messages.Position) return String;
+      End_Pos   : LSP.Messages.Position) return VSS.Strings.Virtual_String;
    --  Return the text in the specified range.
 
    procedure Apply_Changes
