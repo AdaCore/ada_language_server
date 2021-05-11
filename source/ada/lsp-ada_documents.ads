@@ -61,7 +61,7 @@ package LSP.Ada_Documents is
    function URI (Self : Document) return LSP.Messages.DocumentUri;
    --  Return the URI associated with Self
 
-   function Text (Self : Document) return LSP.Types.LSP_String;
+   function Text (Self : Document) return VSS.Strings.Virtual_String;
    --  Return the text associated with Self
 
    function Get_Text_At
@@ -300,7 +300,7 @@ private
 
    function URI (Self : Document) return LSP.Messages.DocumentUri is
      (Self.URI);
-   function Text (Self : Document) return LSP.Types.LSP_String is
-     (LSP.Types.To_LSP_String (Self.Text));
+   function Text (Self : Document) return VSS.Strings.Virtual_String is
+     (Self.Text);
 
 end LSP.Ada_Documents;
