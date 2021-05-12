@@ -89,7 +89,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Apply  : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
       Edits  : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
 
-      Client_Supports_documentChanges : constant Boolean := True;
+      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
+        LSP.Ada_Handlers.Message_Handler (Handler.all);
 
       ------------
       -- Append --
@@ -107,21 +108,28 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Edit.span := (Loc.span.first, Loc.span.first);
          Edit.newText := Name & " => ";
 
-         if Client_Supports_documentChanges then
+         if Message_Handler.Versioned_Documents then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            Edits.changes (Edits.changes.First).Append
-              (LSP.Messages.TextEdit (Edit));
+            if Edits.changes.Contains (Self.Where.textDocument.uri) then
+               Edits.changes (Self.Where.textDocument.uri).Append
+                 (LSP.Messages.TextEdit (Edit));
+            else
+               declare
+                  Text_Edits : LSP.Messages.TextEdit_Vector;
+               begin
+                  Text_Edits.Append (LSP.Messages.TextEdit (Edit));
+                  Edits.changes.Include
+                    (Self.Where.textDocument.uri, Text_Edits);
+               end;
+            end if;
          end if;
       end Append;
 
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
-
-      Context         : LSP.Ada_Contexts.Context renames
+      Context  : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
-      Document  : constant LSP.Ada_Documents.Document_Access :=
+      Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
       Node : Libadalang.Analysis.Ada_Node :=
@@ -133,7 +141,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Version : constant LSP.Messages.VersionedTextDocumentIdentifier :=
         Document.Versioned_Identifier;
    begin
-      if Client_Supports_documentChanges then
+      if Message_Handler.Versioned_Documents then
          Edits.documentChanges.Append
            (LSP.Messages.Document_Change'
               (Kind               => LSP.Messages.Text_Document_Edit,

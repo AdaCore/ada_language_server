@@ -614,6 +614,29 @@ package body LSP.Lal_Utils is
       return Result;
    end To_Span;
 
+   -------------
+   -- To_Span --
+   -------------
+
+   function To_Span
+     (Value : Langkit_Support.Slocs.Source_Location)
+      return LSP.Messages.Span
+   is
+      use type VSS.Unicode.UTF16_Code_Unit_Count;
+
+      Result : constant LSP.Messages.Span :=
+        (first =>
+           (line      => LSP.Types.Line_Number (Value.Line) - 1,
+            character => LSP.Types.UTF_16_Index
+              (Value.Column) - 1),
+         last =>
+           (line => LSP.Types.Line_Number (Value.Line) - 1,
+            character => LSP.Types.UTF_16_Index
+              (Value.Column) - 1));
+   begin
+      return Result;
+   end To_Span;
+
    -----------------
    -- To_TextEdit --
    -----------------
