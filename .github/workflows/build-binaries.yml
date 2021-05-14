@@ -101,6 +101,8 @@ jobs:
     steps:
       - name: Get als
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
       - name: Pack vscode extension

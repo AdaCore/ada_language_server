@@ -1,0 +1,153 @@
+[
+    {
+        "comment": "Check als-other-file command"
+    },
+    {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0,
+                      "result":{
+                          "capabilities":{
+                              "textDocumentSync": 2,
+                              "executeCommandProvider": {
+                                  "commands": [
+                                      "<HAS>",
+                                      "als-other-file"
+                                  ]
+                              }
+                          }
+                      }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{aaa.ads}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "package Aaa is\n   procedure Proc (X : in out Integer);\nend Aaa;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"sw1",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{aaa.ads}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{aaa.adb}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": "sw1",
+                    "result": null
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"sw2",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{aaa.adb}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{aaa.ads}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": "sw2",
+                    "result": null
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
