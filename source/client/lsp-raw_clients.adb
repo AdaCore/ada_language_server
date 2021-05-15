@@ -55,7 +55,9 @@ package body LSP.Raw_Clients is
    -- Exit_Code --
    ---------------
 
-   function Exit_Code (Self : Raw_Client'Class) return Integer is
+   function Exit_Code
+     (Self : Raw_Client'Class)
+      return Spawn.Processes.Process_Exit_Code is
    begin
       return Self.Server.Exit_Code;
    end Exit_Code;
@@ -381,8 +383,9 @@ package body LSP.Raw_Clients is
    --------------
 
    overriding procedure Finished
-    (Self      : in out Listener;
-     Exit_Code : Integer)
+     (Self        : in out Listener;
+      Exit_Status : Spawn.Processes.Process_Exit_Status;
+      Exit_Code   : Spawn.Processes.Process_Exit_Code)
    is
       pragma Unreferenced (Exit_Code);
 
