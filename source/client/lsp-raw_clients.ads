@@ -93,7 +93,9 @@ package LSP.Raw_Clients is
    procedure Stop (Self : in out Raw_Client'Class);
    --  Stop LSP server
 
-   function Exit_Code (Self : Raw_Client'Class) return Integer;
+   function Exit_Code
+     (Self : Raw_Client'Class)
+      return Spawn.Processes.Process_Exit_Code;
    --  Check is LSP server is running
 
    procedure Send_Message
@@ -125,8 +127,9 @@ private
    overriding procedure Standard_Error_Available (Self : in out Listener);
    overriding procedure Started (Self : in out Listener);
    overriding procedure Finished
-     (Self      : in out Listener;
-      Exit_Code : Integer);
+     (Self        : in out Listener;
+      Exit_Status : Spawn.Processes.Process_Exit_Status;
+      Exit_Code   : Spawn.Processes.Process_Exit_Code);
 
    overriding procedure Exception_Occurred
      (Self       : in out Listener;
