@@ -38,7 +38,8 @@ package LSP.Unit_Providers is
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Default_Charset  : String;
-      Is_Project_Owner : Boolean := True)
+      Is_Project_Owner : Boolean := True;
+      Normalize        : Boolean)
       return LAL.Unit_Provider_Reference
       with Pre => Project /= Prj.No_Project
         and not Project.Is_Aggregate_Project;
@@ -47,6 +48,9 @@ package LSP.Unit_Providers is
    --  If ``Is_Project_Owner`` is true, the result owns ``Tree``, thus the
    --  caller must not deallocate it itself.  Otherwise, the project pointed to
    --  by Project must outlive the returned unit file provider.
+   --
+   --  If Normalize is True, then file names returned from Project are
+   --  normalized with GNAT.OS_Lib.Normalize_Pathname
 
    function Convert
      (Kind : Analysis_Unit_Kind) return GNATCOLL.Projects.Unit_Parts

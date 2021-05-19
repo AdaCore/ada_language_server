@@ -22,6 +22,8 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
+with GNAT.OS_Lib;
+
 with VSS.JSON.Streams.Readers;
 with VSS.Characters;
 with VSS.Strings.Conversions;
@@ -29,11 +31,15 @@ with VSS.Strings.Character_Iterators;
 
 with LSP.JSON_Streams;
 
+with URIs;
+
 package body LSP.Types is
    use type VSS.JSON.Streams.Readers.JSON_Event_Kind;
 
    Chunk_Size    : constant := 512;
    --  When processing strings in chunks, this is the size of the chunk
+
+   Normalize_URI : Boolean := False;
 
    function No_Any return LSP_Any is
      (GNATCOLL.JSON.JSON_Null with null record);
@@ -66,6 +72,15 @@ package body LSP.Types is
       end if;
    end Hash;
 
+   ----------
+   -- Hash --
+   ----------
+
+   overriding function Hash (Self : LSP_URI) return Ada.Containers.Hash_Type is
+   begin
+      return Hash (LSP_String (Self));
+   end Hash;
+
    --------------
    -- Is_Empty --
    --------------
@@ -89,6 +104,36 @@ package body LSP.Types is
       pragma Assert (JS.R.Is_String_Value);
       V := To_LSP_String (JS.R.String_Value);
       JS.R.Read_Next;
+   end Read;
+
+   ----------
+   -- Read --
+   ----------
+
+   overriding procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_URI)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+      Value : constant VSS.Strings.Virtual_String := JS.R.String_Value;
+   begin
+      JS.R.Read_Next;
+
+      if Normalize_URI then
+         declare
+            File : constant String :=
+              URIs.Conversions.To_File
+                (VSS.Strings.Conversions.To_UTF_8_String (Value), True);
+            URI  : constant URIs.URI_String :=
+              URIs.Conversions.From_File (File);
+         begin
+            V := To_LSP_String (URI);
+         end;
+      else
+         V := To_LSP_String (Value);
+      end if;
    end Read;
 
    --------------
@@ -675,6 +720,38 @@ package body LSP.Types is
       return To_Unbounded_Wide_String (UTF_16);
    end To_LSP_String;
 
+   ------------
+   -- To_URI --
+   ------------
+
+   function To_URI
+     (File      : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Normalize : Boolean) return LSP_URI
+   is
+      Value : constant String :=
+        (if Normalize then GNAT.OS_Lib.Normalize_Pathname (File) else File);
+   begin
+      return To_LSP_String (URIs.Conversions.From_File (Value));
+   end To_URI;
+
+   --------------------
+   -- To_Wide_String --
+   --------------------
+
+   overriding function To_Wide_String (Self : LSP_URI) return Wide_String is
+   begin
+      return To_Wide_String (LSP_String (Self));
+   end To_Wide_String;
+
+   ---------------------------
+   -- Normalize_URI_On_Read --
+   ---------------------------
+
+   procedure Normalize_URI_On_Read (Value : Boolean) is
+   begin
+      Normalize_URI := Value;
+   end Normalize_URI_On_Read;
+
    ---------------------
    -- To_UTF_8_String --
    ---------------------
@@ -704,6 +781,23 @@ package body LSP.Types is
          return To_UTF_8_String (Item.String);
       end if;
    end To_UTF_8_String;
+
+   ----------------------
+   -- To_UTF_8_String1 --
+   ----------------------
+
+   function To_UTF_8_String1 (Self : LSP_URI)
+     return Ada.Strings.UTF_Encoding.UTF_8_String is
+   begin
+      return To_UTF_8_String (LSP_String (Self));
+   end To_UTF_8_String1;
+
+   function To_File (Self : LSP_URI)
+     return Ada.Strings.UTF_Encoding.UTF_8_String is
+   begin
+      return URIs.Conversions.To_File
+        (To_UTF_8_String1 (Self), Normalize => False);
+   end To_File;
 
    -------------------------------
    -- To_UTF_8_Unbounded_String --
@@ -846,6 +940,17 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Write_String (V);  --  To_UTF_8_Unbounded_String
+   end Write;
+
+   -----------
+   -- Write --
+   -----------
+
+   overriding procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_URI) is
+   begin
+      Write (S, LSP_String (V));
    end Write;
 
    ---------------

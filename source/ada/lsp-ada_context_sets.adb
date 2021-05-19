@@ -71,16 +71,15 @@ package body LSP.Ada_Context_Sets is
 
    function Get_Best_Context
      (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Access is
+      URI  : LSP.Messages.DocumentUri) return Context_Access
+   is
+      File : constant Virtual_File :=
+        GNATCOLL.VFS.Create_From_UTF8 (LSP.Types.To_File (URI));
    begin
       for Context of Self.Contexts loop
-         declare
-            File : constant Virtual_File := Context.To_File (URI);
-         begin
-            if Context.Is_Part_Of_Project (File) then
-               return Context;
-            end if;
-         end;
+         if Context.Is_Part_Of_Project (File) then
+            return Context;
+         end if;
       end loop;
 
       return Self.Contexts.First_Element;

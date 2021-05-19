@@ -68,20 +68,6 @@ package LSP.Ada_Contexts is
    --  Release the memory associated to Self. You should not use the
    --  context after calling this.
 
-   function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Turn URI into path by stripping schema from it
-
-   function File_To_URI
-     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Convert file name to URI
-
-   function To_File
-     (Self : Context'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
-   --  Turn URI into Virtual_File
-
    function Get_Node_At
      (Self     : Context;
       Document : LSP.Ada_Documents.Document_Access;
@@ -188,7 +174,7 @@ package LSP.Ada_Contexts is
 
    procedure Index_File
      (Self    : in out Context;
-      File    : GNATCOLL.VFS.Virtual_File;
+      URI     : LSP.Types.LSP_URI;
       Reparse : Boolean := True);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.

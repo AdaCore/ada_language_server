@@ -17,12 +17,12 @@
 
 with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
+with GNAT.OS_Lib;
 with GNAT.Strings;
 
 with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
-with URIs;
 with LSP.Ada_Id_Iterators;
 with LSP.Common;                  use LSP.Common;
 with LSP.Lal_Utils;               use LSP.Lal_Utils;
@@ -177,19 +177,6 @@ package body LSP.Ada_Contexts is
       end;
    end Append_Declarations;
 
-   -----------------
-   -- File_To_URI --
-   -----------------
-
-   function File_To_URI
-     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      Result : constant URIs.URI_String :=
-        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end File_To_URI;
-
    --------------------
    -- Analysis_Units --
    --------------------
@@ -202,11 +189,22 @@ package body LSP.Ada_Contexts is
       Index : Natural := Source_Units'First;
    begin
       for File in Self.Source_Files.Iterate loop
-         Source_Units (Index) := LSP.Preprocessor.Get_From_File
-           (Self.LAL_Context,
-            LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name,
-            Charset => Self.Get_Charset);
-         Index := Index + 1;
+         declare
+            Name  : constant String :=
+              LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name;
+
+            Normalized : constant String :=
+              (if Self.Follow_Symlinks
+               then GNAT.OS_Lib.Normalize_Pathname (Name)
+               else Name);
+         begin
+            Source_Units (Index) := LSP.Preprocessor.Get_From_File
+              (Self.LAL_Context,
+               Normalized,
+               Charset => Self.Get_Charset);
+
+            Index := Index + 1;
+         end;
       end loop;
       return Source_Units;
    end Analysis_Units;
@@ -387,13 +385,10 @@ package body LSP.Ada_Contexts is
 
    procedure Flush_Document
      (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document)
-   is
-      File : constant Virtual_File := Create_From_UTF8
-        (LSP.Types.To_UTF_8_String (Self.URI_To_File (Document.URI)));
+      Document : LSP.Ada_Documents.Document) is
    begin
       --  Make LAL reload file from disk and then update index
-      Self.Index_File (File, Reparse => True);
+      Self.Index_File (Document.URI, Reparse => True);
    end Flush_Document;
 
    ---------------------------------
@@ -526,7 +521,7 @@ package body LSP.Ada_Contexts is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
            LSP.Preprocessor.Get_From_File
              (Self.LAL_Context,
-              LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+              LSP.Types.To_File (URI),
               Charset => Self.Get_Charset);
 
          Name : constant Libadalang.Analysis.Name :=
@@ -684,7 +679,8 @@ package body LSP.Ada_Contexts is
            Project          => Root,
            Env              => Get_Environment (Root),
            Default_Charset  => Charset,
-           Is_Project_Owner => False);
+           Is_Project_Owner => False,
+           Normalize        => Self.Follow_Symlinks);
 
       Self.Reload;
       Update_Source_Files;
@@ -746,33 +742,6 @@ package body LSP.Ada_Contexts is
    end Free;
 
    -----------------
-   -- URI_To_File --
-   -----------------
-
-   function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
-      Result : constant String := URIs.Conversions.To_File
-        (To, Normalize => Self.Follow_Symlinks);
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end URI_To_File;
-
-   -------------
-   -- To_File --
-   -------------
-
-   function To_File
-     (Self : Context'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File is
-   begin
-      return GNATCOLL.VFS.Create_From_UTF8
-        (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
-   end To_File;
-
-   -----------------
    -- Get_Node_At --
    -----------------
 
@@ -801,13 +770,12 @@ package body LSP.Ada_Contexts is
       if Document /= null then
          return Document.Get_Node_At (Self, Position.position);
       else
-         File := Create_From_UTF8
-           (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
+         File := Create_From_UTF8 (LSP.Types.To_File (URI));
 
          if Self.Is_Part_Of_Project (File) then
             Unit := LSP.Preprocessor.Get_From_File
               (Self.LAL_Context,
-               LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+               LSP.Types.To_File (URI),
                Charset => Self.Get_Charset);
 
             if Unit.Root = Libadalang.Analysis.No_Ada_Node then
@@ -840,18 +808,17 @@ package body LSP.Ada_Contexts is
 
    procedure Index_File
      (Self    : in out Context;
-      File    : GNATCOLL.VFS.Virtual_File;
+      URI     : LSP.Types.LSP_URI;
       Reparse : Boolean := True)
    is
+      File : constant String := LSP.Types.To_File (URI);
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         LSP.Preprocessor.Get_From_File
           (Self.LAL_Context,
-           File.Display_Full_Name,
+           File,
            Charset => Self.Get_Charset,
            Reparse => Reparse);
-      Name : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Unit.Get_Filename);
-      URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
+
    begin
       Self.Source_Files.Index_File (URI, Unit);
    end Index_File;
@@ -864,7 +831,7 @@ package body LSP.Ada_Contexts is
      (Self     : Context;
       Document : in out LSP.Ada_Documents.Document)
    is
-      File : constant LSP.Types.LSP_String := Self.URI_To_File (Document.URI);
+      File : constant String := LSP.Types.To_File (Document.URI);
       Unit : Libadalang.Analysis.Analysis_Unit;
 
       Buffer : Ada.Strings.Unbounded.Unbounded_String;
@@ -876,7 +843,7 @@ package body LSP.Ada_Contexts is
       Buffer := LSP.Preprocessor.Preprocess_Buffer (Document.Text);
 
       Unit := Self.LAL_Context.Get_From_Buffer
-        (Filename => LSP.Types.To_UTF_8_String (File),
+        (Filename => File,
          --  Buffer is UTF-8
          Charset  => "utf-8",
          Buffer   => Buffer);

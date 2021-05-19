@@ -293,12 +293,15 @@ package LSP.Messages is
    --```typescript
    --type DocumentUri = string;
    --```
-   subtype DocumentUri is LSP.Types.LSP_String;
+   subtype DocumentUri is LSP.Types.LSP_URI;
 
    --```typescript
    --type URI = string;
    --```
-   subtype URI is LSP.Types.LSP_String;
+   subtype URI is LSP.Types.LSP_URI;
+
+   package Optional_URIs is new LSP.Generic_Optional (URI);
+   type Optional_URI is new Optional_URIs.Optional_Type;
 
    --```typescript
    --export const EOL: string[] = ['\n', '\r\n', '\r'];
@@ -4822,7 +4825,7 @@ package LSP.Messages is
       clientInfo: Optional_ProgramInfo;
       locale: Optional_String;
       rootPath: Optional_Nullable_String;
-      rootUri: Nullable_String;
+      rootUri: Optional_URI;
       --  initializationOptions?: any;
       capabilities: ClientCapabilities;
       trace: Optional_TraceValue;
@@ -10314,7 +10317,7 @@ package LSP.Messages is
    --}
    --```
    type ShowDocumentParams is record
-      uri: LSP_String;
+      uri: DocumentUri;
       external: Optional_Boolean;
       takeFocus: Optional_Boolean;
       selection: Optional_Span;

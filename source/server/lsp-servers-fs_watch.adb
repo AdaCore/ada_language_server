@@ -74,8 +74,7 @@ package body LSP.Servers.FS_Watch is
             Message : Message_Access;
             Changes : DidChangeWatchedFilesParams;
             URI     : constant LSP.Messages.DocumentUri :=
-              LSP.Ada_Contexts.File_To_URI (LSP.Types.To_LSP_String
-                                            (File.Display_Full_Name));
+              LSP.Types.To_URI (File.Display_Full_Name, Normalize => False);
          begin
             for F of E.Flags loop
                Changes.changes.Append

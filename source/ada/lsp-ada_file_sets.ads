@@ -92,7 +92,7 @@ private
    --  A map from cannonical writting to vector of name information
 
    package String_Sets is new Ada.Containers.Hashed_Sets
-     (LSP.Types.LSP_String,
+     (LSP.Types.LSP_URI,
       LSP.Types.Hash,
       LSP.Types."=",
       LSP.Types."=");

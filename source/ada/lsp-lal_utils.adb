@@ -119,7 +119,7 @@ package body LSP.Lal_Utils is
    is
       use type VSS.Unicode.UTF16_Code_Unit_Count;
 
-      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean;
+      function URI_Inf (Left, Right : LSP.Types.LSP_URI) return Boolean;
       --  Comparison function for URIs, return True if Left < Right
 
       function "<" (Left, Right : LSP.Messages.Location) return Boolean is
@@ -134,7 +134,7 @@ package body LSP.Lal_Utils is
       -- URI_Inf --
       -------------
 
-      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean is
+      function URI_Inf (Left, Right : LSP.Types.LSP_URI) return Boolean is
 
          function URI_Dir (X : String) return String;
          --  Return the dir in X
@@ -154,8 +154,8 @@ package body LSP.Lal_Utils is
             return X;
          end URI_Dir;
 
-         L : constant String := To_UTF_8_String (Left);
-         R : constant String := To_UTF_8_String (Right);
+         L : constant String := To_UTF_8_String1 (Left);
+         R : constant String := To_UTF_8_String1 (Right);
 
          L_Dir : constant String := URI_Dir (L);
          R_Dir : constant String := URI_Dir (R);
@@ -546,13 +546,10 @@ package body LSP.Lal_Utils is
      (Unit : Libadalang.Analysis.Analysis_Unit;
       Span : Langkit_Support.Slocs.Source_Location_Range;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location
-   is
-      File : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Unit.Get_Filename);
+      return LSP.Messages.Location is
    begin
       return
-        (uri     => LSP.Ada_Contexts.File_To_URI (File),
+        (uri     => LSP.Types.To_URI (Unit.Get_Filename, False),
          span    => To_Span (Span),
          alsKind => Kind);
    end Get_Location;
@@ -625,7 +622,7 @@ package body LSP.Lal_Utils is
       := null)
       return LSP.Messages.WorkspaceEdit
    is
-      File_URI : LSP.Types.LSP_String;
+      File_URI : LSP.Types.LSP_URI;
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
@@ -642,8 +639,8 @@ package body LSP.Lal_Utils is
                Text_Edits.Append (To_TextEdit (Edit));
             end loop;
 
-            File_URI := LSP.Ada_Contexts.File_To_URI
-              (LSP.Types.To_LSP_String (Key (Edits_Cursor)));
+            File_URI := LSP.Types.To_URI
+              (Key (Edits_Cursor), Normalize => False);
 
             if Versioned_Documents then
                declare

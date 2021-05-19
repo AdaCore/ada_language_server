@@ -17,7 +17,6 @@
 
 with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
-with Ada.Strings.Wide_Unbounded;
 
 with Interfaces;
 
@@ -3194,7 +3193,7 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceEdit)
    is
-      procedure Each (Name : VSS.Strings.Virtual_String);
+      procedure Each;
       procedure Each_Annotation (Name : VSS.Strings.Virtual_String);
 
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
@@ -3204,12 +3203,11 @@ package body LSP.Messages is
       -- Each --
       ----------
 
-      procedure Each (Name : VSS.Strings.Virtual_String) is
-         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           VSS.Strings.Conversions.To_UTF_8_String (Name);
+      procedure Each is
+         Name : LSP.Types.LSP_URI;
          Vector : TextEdit_Vector;
       begin
-         JS.R.Read_Next;  --  Skip Key
+         LSP.Types.LSP_URI'Read (S, Name);
          pragma Assert (JS.R.Is_Start_Array);
          JS.R.Read_Next;
 
@@ -3224,7 +3222,7 @@ package body LSP.Messages is
 
          JS.R.Read_Next;
 
-         V.changes.Insert (To_LSP_String (Key), Vector);
+         V.changes.Insert (Name, Vector);
       end Each;
 
       ---------------------
@@ -3259,7 +3257,7 @@ package body LSP.Messages is
 
                while not JS.R.Is_End_Object loop
                   pragma Assert (JS.R.Is_Key_Name);
-                  Each (JS.R.String_Value);
+                  Each;
                end loop;
 
                JS.R.Read_Next;
@@ -3727,8 +3725,7 @@ package body LSP.Messages is
          JS.Start_Object;
          for Cursor in V.changes.Iterate loop
             JS.Key
-              (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String
-                 (TextDocumentEdit_Maps.Key (Cursor)));
+              (LSP.Types.To_Wide_String (TextDocumentEdit_Maps.Key (Cursor)));
             JS.Start_Array;
             for Edit of V.changes (Cursor) loop
                TextEdit'Write (S, Edit);

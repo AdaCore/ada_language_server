@@ -4216,7 +4216,7 @@ package body LSP.Message_IO is
             elsif Key = "rootPath" then
                Optional_Nullable_String'Read (S, V.rootPath);
             elsif Key = "rootUri" then
-               Nullable_String'Read (S, V.rootUri);
+               Optional_URI'Read (S, V.rootUri);
             elsif Key = "capabilities" then
                ClientCapabilities'Read (S, V.capabilities);
             elsif Key = "trace" then
@@ -4250,7 +4250,7 @@ package body LSP.Message_IO is
       JS.Key ("rootPath");
       Optional_Nullable_String'Write (S, V.rootPath);
       JS.Key ("rootUri");
-      Nullable_String'Write (S, V.rootUri);
+      Optional_URI'Write (S, V.rootUri);
       JS.Key ("capabilities");
       ClientCapabilities'Write (S, V.capabilities);
       JS.Key ("trace");

@@ -71,17 +71,14 @@ package body LSP.Ada_Handlers.Other_File_Commands is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
 
-      Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get_Best_Context (Self.URI).all;
-
-      File : constant GNATCOLL.VFS.Virtual_File := Context.To_File (Self.URI);
+      File : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.URI);
 
       Other_File : constant GNATCOLL.VFS.Virtual_File :=
         Message_Handler.Project_Tree.Other_File (File);
 
       URI  : constant LSP.Messages.DocumentUri :=
-        LSP.Ada_Contexts.File_To_URI
-          (LSP.Types.To_LSP_String (Other_File.Display_Full_Name));
+        Message_Handler.From_File (Other_File);
 
       Message : constant LSP.Messages.Client_Requests.ShowDocument_Request :=
         (params =>

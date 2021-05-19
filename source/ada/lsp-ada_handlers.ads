@@ -55,10 +55,21 @@ package LSP.Ada_Handlers is
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
 
+   procedure Initialize (Self : in out Message_Handler'Class);
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
    subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
+
+   function From_File
+     (Self : Message_Handler'Class;
+      File : GNATCOLL.VFS.Virtual_File) return LSP.Types.LSP_URI;
+   --  Turn Virtual_File to URI
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_URI) return GNATCOLL.VFS.Virtual_File;
+   --  Turn URI into Virtual_File
 
 private
 

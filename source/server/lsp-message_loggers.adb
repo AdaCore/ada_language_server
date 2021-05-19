@@ -26,6 +26,8 @@ package body LSP.Message_Loggers is
 
    function "+" (Text : LSP.Types.LSP_String) return String
      renames LSP.Types.To_UTF_8_String;
+   function "+" (Text : LSP.Types.LSP_URI) return String
+     renames LSP.Types.To_UTF_8_String1;
 
    function Image (Value : LSP.Types.LSP_Number_Or_String) return String;
    function Image (Value : LSP.Types.Optional_Boolean) return String;
@@ -628,7 +630,7 @@ package body LSP.Message_Loggers is
       Result : LSP.Types.LSP_String;
    begin
       for Change of Value.changes loop
-         Append (Result, " " & Change.uri & ": " &
+         Append (Result, " " & LSP.Types.To_Wide_String (Change.uri) & ": " &
                    Change.a_type'Wide_Image & ";");
       end loop;
 

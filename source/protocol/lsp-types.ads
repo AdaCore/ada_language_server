@@ -367,4 +367,48 @@ package LSP.Types is
 
    subtype ProgressToken is LSP_Number_Or_String;
 
+   -------------
+   -- LSP_URI --
+   -------------
+
+   type LSP_URI is private;
+   --  A textual representation of a file URI.
+
+   function Hash (Self : LSP_URI) return Ada.Containers.Hash_Type;
+
+   function To_URI
+     (File      : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Normalize : Boolean) return LSP_URI;
+   --  Turn a File name into an URI. If Normalize then file name is normalized
+   --  with GNAT.OS_Lib.Normalize_Pathname.
+
+   function To_UTF_8_String1 (Self : LSP_URI)
+     return Ada.Strings.UTF_Encoding.UTF_8_String;
+   --  Convert given LSP_URI into UTF-8 string
+
+   function To_Wide_String (Self : LSP_URI) return Wide_String;
+   --  Convert given LSP_URI into UTF-8 string
+
+   function To_File (Self : LSP_URI)
+     return Ada.Strings.UTF_Encoding.UTF_8_String;
+   --  Convert given LSP_URI into UTF-8 file namse
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP_URI);
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP_URI);
+
+   for LSP_URI'Read use Read;
+   for LSP_URI'Write use Write;
+
+   procedure Normalize_URI_On_Read (Value : Boolean);
+   --  When it's called with True any value got from stream in Read procedure
+   --  is normalized with GNAT.OS_Lib.Normalize_Pathname
+
+private
+
+   type LSP_URI is new LSP_String;
+
 end LSP.Types;

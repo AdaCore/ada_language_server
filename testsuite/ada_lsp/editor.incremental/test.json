@@ -18,7 +18,7 @@
                "processId": 4928,
                "workspaceFolders": [
                   {
-                     "uri": ".",
+                     "uri": "$URI{/}",
                      "name": "ada_language_server"
                   }
                ],

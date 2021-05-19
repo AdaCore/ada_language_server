@@ -249,7 +249,9 @@ begin
    --  Load predefined completion items
    LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
 
+   Handler.Initialize;
    Server.Initialize (Stream'Unchecked_Access);
+
    begin
       Register_Commands;
       if Fuzzing_Activated then

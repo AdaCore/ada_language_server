@@ -252,7 +252,7 @@ package body LSP.Ada_Documents is
       Version : LSP.Types.LSP_Number;
       Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector)
    is
-      URI : constant String := Types.To_UTF_8_String (Self.URI);
+      URI : constant String := Types.To_UTF_8_String1 (Self.URI);
       Dummy : Libadalang.Analysis.Analysis_Unit;
       use LSP.Types;
    begin
@@ -744,7 +744,7 @@ package body LSP.Ada_Documents is
    procedure Get_Imported_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_URI   : LSP.Types.LSP_String;
+      Project_URI   : LSP.Types.LSP_URI;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -768,8 +768,9 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Ada_Contexts.File_To_URI
-                      (LSP.Types.To_LSP_String (Unit.Unit.Get_Filename)),
+                 (uri        => LSP.Types.To_URI
+                      (Unit.Unit.Get_Filename,
+                       Normalize => False),
                   projectUri => Project_URI));
          end loop;
       end Append_Units;
@@ -815,7 +816,7 @@ package body LSP.Ada_Documents is
    procedure Get_Importing_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_URI   : LSP.Types.LSP_String;
+      Project_URI   : LSP.Types.LSP_URI;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -835,8 +836,7 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Ada_Contexts.File_To_URI
-                      (LSP.Types.To_LSP_String (Unit.Get_Filename)),
+                 (uri        => LSP.Types.To_URI (Unit.Get_Filename, False),
                   projectUri => Project_URI));
          end loop;
       end Append_Units;
@@ -2727,13 +2727,11 @@ package body LSP.Ada_Documents is
    function Unit
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context)
-      return Libadalang.Analysis.Analysis_Unit
-   is
-      File : constant LSP.Types.LSP_String := Context.URI_To_File (Self.URI);
+      return Libadalang.Analysis.Analysis_Unit is
    begin
       return LSP.Preprocessor.Get_From_File
         (Context.LAL_Context,
-         Filename => LSP.Types.To_UTF_8_String (File),
+         Filename => LSP.Types.To_File (Self.URI),
          Charset  => Context.Charset,
          Reparse  => False);
    end Unit;

@@ -17,6 +17,7 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNATCOLL.VFS;
+with GNAT.OS_Lib;
 
 with Libadalang.Unit_Files;
 with Langkit_Support.Text; use Langkit_Support.Text;
@@ -33,6 +34,7 @@ package body LSP.Unit_Providers is
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Is_Project_Owner : Boolean;
+      Normalize        : Boolean;
       Default_Charset  : Unbounded_String;
    end record;
    --  Unit provider backed up by a project file
@@ -61,7 +63,8 @@ package body LSP.Unit_Providers is
       Project          : Prj.Project_Type;
       Env              : Prj.Project_Environment_Access;
       Default_Charset  : String;
-      Is_Project_Owner : Boolean := True)
+      Is_Project_Owner : Boolean := True;
+      Normalize        : Boolean)
       return LAL.Unit_Provider_Reference
    is
       Provider : constant Project_Unit_Provider :=
@@ -69,6 +72,7 @@ package body LSP.Unit_Providers is
          Project          => Project,
          Env              => Env,
          Is_Project_Owner => Is_Project_Owner,
+         Normalize        => Normalize,
          Default_Charset  => To_Unbounded_String (Default_Charset));
    begin
       return LAL.Create_Unit_Provider_Reference (Provider);
@@ -103,7 +107,11 @@ package body LSP.Unit_Providers is
             Fullname : constant String := Path.Display_Full_Name;
          begin
             if Fullname'Length /= 0 then
-               return Fullname;
+               if Provider.Normalize then
+                  return GNAT.OS_Lib.Normalize_Pathname (Fullname);
+               else
+                  return Fullname;
+               end if;
             end if;
          end;
       end if;
