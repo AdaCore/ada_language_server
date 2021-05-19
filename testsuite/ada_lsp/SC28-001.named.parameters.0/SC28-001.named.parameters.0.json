@@ -23,7 +23,9 @@
                     "capabilities": {
                         "workspace": {
                             "applyEdit": true,
-                            "workspaceEdit": {},
+                            "workspaceEdit": {
+                               "documentChanges": true
+                            },
                             "didChangeConfiguration": {},
                             "didChangeWatchedFiles": {},
                             "executeCommand": {}
