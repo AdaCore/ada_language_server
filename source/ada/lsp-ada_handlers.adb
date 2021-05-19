@@ -3016,9 +3016,6 @@ package body LSP.Ada_Handlers is
 
          Empty     : LSP.Messages.TextEdit_Vector;
 
-         --  Analysis unit of the reference that is being added to Response
-         Unit      : Analysis_Unit;
-
          procedure Process_Comments
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri);
@@ -3026,8 +3023,8 @@ package body LSP.Ada_Handlers is
          --  they contain a renamed word.
 
          procedure Process_Reference
-           (Unit_Filename : String;
-            Sloc_Range    : Langkit_Support.Slocs.Source_Location_Range);
+           (Unit       : Libadalang.Analysis.Analysis_Unit;
+            Sloc_Range : Langkit_Support.Slocs.Source_Location_Range);
          --  Add a reference to Response if it has not been added yet
 
          -----------------------
@@ -3035,14 +3032,11 @@ package body LSP.Ada_Handlers is
          -----------------------
 
          procedure Process_Reference
-           (Unit_Filename : String;
-            Sloc_Range    : Langkit_Support.Slocs.Source_Location_Range)
+           (Unit       : Libadalang.Analysis.Analysis_Unit;
+            Sloc_Range : Langkit_Support.Slocs.Source_Location_Range)
          is
             Location : constant LSP.Messages.Location :=
-              (uri     => Self.File_To_URI
-                 (LSP.Types.To_LSP_String (Unit_Filename)),
-               span    => To_Span (Sloc_Range),
-               alsKind => <>);
+              LSP.Lal_Utils.Get_Location (Unit, Sloc_Range);
             Item     : constant LSP.Messages.TextEdit :=
               (span    => Location.span,
                newText => Value.newName);
@@ -3254,7 +3248,6 @@ package body LSP.Ada_Handlers is
 
          Unit_Cursor := Refs.References.First;
          while Has_Element (Unit_Cursor) loop
-            Unit := Key (Unit_Cursor);
             Sloc_Cursor :=
               Refs.References.Constant_Reference (Unit_Cursor).First;
             while Has_Element (Sloc_Cursor) loop
@@ -3262,7 +3255,7 @@ package body LSP.Ada_Handlers is
                  Refs.References.Constant_Reference (Unit_Cursor).
                  Constant_Reference (Sloc_Cursor)
                loop
-                  Process_Reference (Key (Unit_Cursor).Get_Filename, Sloc);
+                  Process_Reference (Key (Unit_Cursor), Sloc);
                end loop;
                Next (Sloc_Cursor);
             end loop;
@@ -3781,9 +3774,8 @@ package body LSP.Ada_Handlers is
             File := File_Sets.Element (Cursor);
             Self.Files_To_Index.Delete (Cursor);
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
-            if not Self.Open_Documents.Contains
-              (Self.File_To_URI (+File.Display_Full_Name))
-            then
+
+            if not Self.Open_Documents.Contains (Self.From_File (File)) then
                Current_Percent := (Self.Total_Files_Indexed * 100)
                  / Self.Total_Files_To_Index;
                --  If the value of the indexing increased by at least one
