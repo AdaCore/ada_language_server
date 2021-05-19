@@ -91,6 +91,11 @@ package LSP.Lal_Utils is
       return LSP.Messages.Span;
    --  Convert Source_Location_Range to Span
 
+   function To_Span
+     (Value : Langkit_Support.Slocs.Source_Location)
+      return LSP.Messages.Span;
+   --  Convert Source_Location to Span
+
    function To_TextEdit
      (E : Laltools.Refactor.Text_Edit)
       return LSP.Messages.TextEdit;

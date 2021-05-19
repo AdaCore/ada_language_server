@@ -18,6 +18,8 @@ with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Wide_Unbounded;
 
+with Laltools.Common;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -37,11 +39,11 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
    ----------------
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.TextDocumentPositionParams;
+     (Self         : in out Command'Class;
+      Context      : LSP.Ada_Contexts.Context;
+      Where        : LSP.Messages.TextDocumentPositionParams;
       With_Clause  : LSP.Types.LSP_String;
-      Prefix  : LSP.Types.LSP_String) is
+      Prefix       : LSP.Types.LSP_String) is
    begin
       Self.Context := Context.Id;
       Self.Where := Where;
@@ -176,6 +178,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Error : in out LSP.Errors.Optional_ResponseError)
    is
       use type Libadalang.Common.Ada_Node_Kind_Type;
+      use type Libadalang.Slocs.Source_Location;
+      use type LSP.Types.LSP_String;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -190,22 +194,24 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Loc      : LSP.Messages.Location;
       Edit     : LSP.Messages.AnnotatedTextEdit;
 
-      Client_Supports_documentChanges : constant Boolean := True;
-
       Edits    : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
       Version  : constant LSP.Messages.VersionedTextDocumentIdentifier :=
         Document.Versioned_Identifier;
    begin
-      Edits.documentChanges.Append
-        (LSP.Messages.Document_Change'
-           (Kind               => LSP.Messages.Text_Document_Edit,
-            Text_Document_Edit =>
-              (textDocument => (Version.uri, (True, Version.version)),
-               edits        => <>)));
+      if Message_Handler.Versioned_Documents then
+         Edits.documentChanges.Append
+           (LSP.Messages.Document_Change'
+              (Kind               => LSP.Messages.Text_Document_Edit,
+               Text_Document_Edit =>
+                 (textDocument => (Version.uri, (True, Version.version)),
+                  edits        => <>)));
+      end if;
 
       --  Add prefix.
 
-      if Node.Kind = Libadalang.Common.Ada_Identifier then
+      if not LSP.Types.Is_Empty (Self.Prefix)
+        and then Node.Kind = Libadalang.Common.Ada_Identifier
+      then
          --  If this is a DottedName them remove the current prefix and replace
          --  it by the suggested one. Otherwise, just add the prepend the
          --  prefix
@@ -227,11 +233,21 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
             Edit.newText := Self.Prefix;
          end if;
 
-         if Client_Supports_documentChanges then
+         if Message_Handler.Versioned_Documents then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            Edits.changes (Edits.changes.First).Append
-              (LSP.Messages.TextEdit (Edit));
+            if Edits.changes.Contains (Self.Where.textDocument.uri) then
+               Edits.changes (Self.Where.textDocument.uri).Append
+                 (LSP.Messages.TextEdit (Edit));
+            else
+               declare
+                  Text_Edits : LSP.Messages.TextEdit_Vector;
+               begin
+                  Text_Edits.Append (LSP.Messages.TextEdit (Edit));
+                  Edits.changes.Include
+                    (Self.Where.textDocument.uri, Text_Edits);
+               end;
+            end if;
          end if;
       end if;
 
@@ -239,56 +255,45 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
 
       if not LSP.Types.Is_Empty (Self.With_Clause) then
          declare
-            Withed_List : constant Libadalang.Analysis.Ada_Node
-              := Node.Unit.Root.Children (1);
-            Already_Imported : Boolean := False;
-            use type LSP.Types.LSP_String;
+            Last : Boolean;
+            S    : constant Libadalang.Slocs.Source_Location :=
+              Laltools.Common.Get_Insert_With_Location
+                (Node      => Laltools.Common.Get_Compilation_Unit (Node),
+                 Pack_Name =>
+                   Langkit_Support.Text.From_UTF8
+                     (LSP.Types.To_UTF_8_String (Self.With_Clause)),
+                 Last      => Last);
          begin
-            Loc := LSP.Lal_Utils.Get_Node_Location (Withed_List);
-
-            if Node.Unit.Root.Children (1).Children'Length = 0 then
-               --  If this compilation unit does not have 'with' clauses, then
-               --  simply add the 'with' statement.
-
-               Edit.span := (Loc.span.first,
-                             Loc.span.first);
-               Edit.newText := LSP.Types.To_LSP_String
-                 (LSP.Types.To_UTF_8_String ("with " & Self.With_Clause & ";")
-                  & ASCII.LF);
-            else
-               --  Otherwise, check if it already imports the seggested unit,
-               --  and if not, add the 'with' statement.
-
-               Edit.span := (Loc.span.last,
-                             Loc.span.last);
-
-               Already_Imported_Loop :
-               for With_Clause of Withed_List.Children loop
-                  if Self.With_Clause = LSP.Types.To_LSP_String
-                    (Langkit_Support.Text.To_UTF8
-                       (With_Clause.As_With_Clause.F_Packages.Text))
-                  then
-                     Already_Imported := True;
-                     exit Already_Imported_Loop;
-                  end if;
-               end loop Already_Imported_Loop;
-
-               if not Already_Imported then
-
+            if S /= Libadalang.Slocs.No_Source_Location then
+               Edit.span := LSP.Lal_Utils.To_Span (S);
+               if Last then
                   Edit.newText := LSP.Types.To_LSP_String
-                    (ASCII.LF & LSP.Types.To_UTF_8_String
+                    ("" & ASCII.LF
+                     & LSP.Types.To_UTF_8_String
                        ("with " & Self.With_Clause & ";"));
                else
-                  Edit.newText := LSP.Types.Empty_LSP_String;
+                  Edit.newText := LSP.Types.To_LSP_String
+                    (LSP.Types.To_UTF_8_String
+                       ("with " & Self.With_Clause & ";") & ASCII.LF);
                end if;
-            end if;
 
-            if Client_Supports_documentChanges then
-               Edits.documentChanges (1).Text_Document_Edit.edits.Append
-                 (Edit);
-            else
-               Edits.changes (Edits.changes.First).Append
-                 (LSP.Messages.TextEdit (Edit));
+               if Message_Handler.Versioned_Documents then
+                  Edits.documentChanges (1).Text_Document_Edit.edits.Append
+                    (Edit);
+               else
+                  if Edits.changes.Contains (Self.Where.textDocument.uri) then
+                     Edits.changes (Self.Where.textDocument.uri).Append
+                       (LSP.Messages.TextEdit (Edit));
+                  else
+                     declare
+                        Text_Edits : LSP.Messages.TextEdit_Vector;
+                     begin
+                        Text_Edits.Append (LSP.Messages.TextEdit (Edit));
+                        Edits.changes.Include
+                          (Self.Where.textDocument.uri, Text_Edits);
+                     end;
+                  end if;
+               end if;
             end if;
          end;
       end if;

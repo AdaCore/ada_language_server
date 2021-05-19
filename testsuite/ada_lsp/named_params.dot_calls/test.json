@@ -16,7 +16,6 @@
          "request": {
             "params": {
                "processId": 24348,
-               "rootPath": "/home/leonardo/Development/ancr/src/gnatstudio/ada_language_server/testsuite/ada_lsp/named_params.dot_calls/",
                "capabilities": {
                   "textDocument": {
                      "completion": {
@@ -49,10 +48,12 @@
                      "colorProvider": {}
                   },
                   "workspace": {
+                     "workspaceEdit": {
+                       "documentChanges": true
+                     },
                      "applyEdit": true,
                      "executeCommand": {},
                      "didChangeWatchedFiles": {},
-                     "workspaceEdit": {},
                      "didChangeConfiguration": {}
                   }
                },

@@ -1,0 +1,604 @@
+[
+   {
+      "comment": [
+         "Test codeaction import refactor"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           " "
+                        ]
+                     },
+                     "definitionProvider": true,
+                     "alsCalledByProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}", 
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "--  These with and use clauses will be parsed by the codefix\nwith Ada.Text_IO; use Ada.Text_IO;\n\nprocedure Foo is\n   package Nested is\n      function Hello return Integer is (1);\n   end Nested;\n\n   Res : Integer := Hello + Foo_Bar;\nbegin\n   null;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{bar.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Bar is\n   function Foo_Bar return Integer is (2);\nend Bar;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-2",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{bar.ads}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 0,
+                     "character": 0
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-7",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 5,
+                     "character": 17
+                  },
+                  "end": {
+                     "line": 5,
+                     "character": 17
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-9",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 8,
+                     "character": 30
+                  },
+                  "end": {
+                     "line": 8,
+                     "character": 30
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-9",
+               "result": [
+                  {
+                     "title": "Add 'with' clause for Bar and prefix the object with Bar.",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-imports",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{foo.adb}"
+                                 },
+                                 "position": {
+                                    "line": 8,
+                                    "character": 28
+                                 }
+                              },
+                              "with_clause": "Bar",
+                              "prefix": "Bar."
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-11",
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{foo.adb}"
+                        },
+                        "position": {
+                           "line": 8,
+                           "character": 28
+                        }
+                     },
+                     "with_clause": "Bar",
+                     "prefix": "Bar."
+                  }
+               ],
+               "command": "als-refactor-imports"
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "changes": {
+                        "$URI{foo.adb}": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 8,
+                                    "character": 28
+                                 },
+                                 "end": {
+                                    "line": 8,
+                                    "character": 28
+                                 }
+                              },
+                              "newText": "Bar."
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 1,
+                                    "character": 34
+                                 },
+                                 "end": {
+                                    "line": 1,
+                                    "character": 34
+                                 }
+                              },
+                              "newText": "\nwith Bar;"
+                           }
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 28
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 28
+                        }
+                     },
+                     "text": "Bar."
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 34
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 34
+                        }
+                     },
+                     "text": "\nwith Bar;"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-12",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 2,
+                     "character": 9
+                  },
+                  "end": {
+                     "line": 2,
+                     "character": 9
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-17",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 9,
+                     "character": 23
+                  },
+                  "end": {
+                     "line": 9,
+                     "character": 23
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-17",
+               "result": [
+                  {
+                     "title": "Prefix the object with Nested.",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-imports",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{foo.adb}"
+                                 },
+                                 "position": {
+                                    "line": 9,
+                                    "character": 20
+                                 }
+                              },
+                              "with_clause": "",
+                              "prefix": "Nested."
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-19",
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{foo.adb}"
+                        },
+                        "position": {
+                           "line": 9,
+                           "character": 20
+                        }
+                     },
+                     "with_clause": "",
+                     "prefix": "Nested."
+                  }
+               ],
+               "command": "als-refactor-imports"
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "changes": {
+                        "$URI{foo.adb}": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 9,
+                                    "character": 20
+                                 },
+                                 "end": {
+                                    "line": 9,
+                                    "character": 20
+                                 }
+                              },
+                              "newText": "Nested."
+                           }
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 9,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 9,
+                           "character": 20
+                        }
+                     },
+                     "text": "Nested."
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-20",
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 9,
+                     "character": 27
+                  },
+                  "end": {
+                     "line": 9,
+                     "character": 27
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{bar.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
