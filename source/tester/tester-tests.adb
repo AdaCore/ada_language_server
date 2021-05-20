@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -208,8 +208,9 @@ package body Tester.Tests is
         (Self : in out Shell_Listener);
 
       overriding procedure Finished
-        (Self      : in out Shell_Listener;
-         Exit_Code : Integer);
+        (Self        : in out Shell_Listener;
+         Exit_Status : Spawn.Processes.Process_Exit_Status;
+         Exit_Code   : Spawn.Processes.Process_Exit_Code);
 
       overriding procedure Error_Occurred
         (Self          : in out Shell_Listener;
@@ -241,8 +242,12 @@ package body Tester.Tests is
       --------------
 
       overriding procedure Finished
-        (Self      : in out Shell_Listener;
-         Exit_Code : Integer) is
+        (Self        : in out Shell_Listener;
+         Exit_Status : Spawn.Processes.Process_Exit_Status;
+         Exit_Code   : Spawn.Processes.Process_Exit_Code)
+      is
+         use type Spawn.Processes.Process_Exit_Code;
+
       begin
          if Exit_Code /= 0 then
             Ada.Text_IO.Put ("Process '");
@@ -416,10 +421,14 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value)
    is
-      Exit_Code : constant Integer := Command.Get ("exit_code").Get;
+      use type Spawn.Processes.Process_Exit_Code;
 
+      Exit_Code   : constant Spawn.Processes.Process_Exit_Code :=
+        Spawn.Processes.Process_Exit_Code
+          (Integer'(Command.Get ("exit_code").Get));
       Stop_Client : constant GNATCOLL.JSON.JSON_Value :=
         Command.Get ("close_stdin");
+
    begin
       if Stop_Client.Kind not in GNATCOLL.JSON.JSON_Boolean_Type
         or else Stop_Client.Get = True
