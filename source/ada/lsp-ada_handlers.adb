@@ -78,6 +78,12 @@ package body LSP.Ada_Handlers is
                              GNATCOLL.Traces.On);
    --  Trace to activate the support for incremental text changes.
 
+   Notifications_For_Imprecise : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.NOTIFICATIONS_FOR_IMPRECISE_NAVIGATION",
+                             GNATCOLL.Traces.Off);
+   --  Whether to send notifications to the client for "imprecise"
+   --  navigation operations.
+
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
       As_Flags => (LSP.Messages.Parent => True, others => False));
@@ -116,6 +122,12 @@ package body LSP.Ada_Handlers is
       Text : String;
       Mode : LSP.Messages.MessageType := LSP.Messages.Error);
    --  Convenience function to send a message to the user.
+
+   procedure Show_Imprecise_Reference_Warning
+     (Self      : access Message_Handler;
+      Operation : String);
+   --  Convenience function to send the warning that the navigation is
+   --  imprecise.
 
    function Get_Unique_Progress_Token
      (Self      : access Message_Handler;
@@ -1372,9 +1384,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The result of 'declaration' is approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("declaration");
       end if;
 
       Sort_And_Remove_Duplicates (Response.result.Locations);
@@ -1512,9 +1522,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The result of 'implementation' is approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("implementation");
       end if;
 
       Sort_And_Remove_Duplicates (Response.result.Locations);
@@ -1666,9 +1674,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The result of 'definition' is approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("definition");
       end if;
 
       Sort_And_Remove_Duplicates (Response.result.Locations);
@@ -2369,9 +2375,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'references' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("references");
       end if;
 
       Sort_And_Remove_Duplicates (Response.result);
@@ -2541,9 +2545,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'called by' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("called by");
       end if;
 
       for Loc of Response.result loop
@@ -2671,9 +2673,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'calls' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("calls");
       end if;
 
       for Loc of Response.result loop
@@ -4119,9 +4119,7 @@ package body LSP.Ada_Handlers is
       Response.result.Append (To_Call_Hierarchy_Item (Name));
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'prepareCallHierarchy' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("prepareCallHierarchy");
       end if;
 
       return Response;
@@ -4287,9 +4285,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'incomingCalls' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("incomingCalls");
       end if;
 
       return Response;
@@ -4407,9 +4403,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Imprecise then
-         Self.Show_Message
-           ("The results of 'outgoingCalls' are approximate.",
-            LSP.Messages.Warning);
+         Self.Show_Imprecise_Reference_Warning ("outgoingCalls");
       end if;
 
       return Response;
@@ -4490,6 +4484,21 @@ package body LSP.Ada_Handlers is
    begin
       Self.Server.On_Show_Message ((Mode, +Text));
    end Show_Message;
+
+   --------------------------------------
+   -- Show_Imprecise_Reference_Warning --
+   --------------------------------------
+
+   procedure Show_Imprecise_Reference_Warning
+     (Self      : access Message_Handler;
+      Operation : String) is
+   begin
+      if Notifications_For_Imprecise.Is_Active then
+         Self.Server.On_Show_Message
+           ((LSP.Messages.Warning,
+            +("The result of '" & Operation & "' is approximate.")));
+      end if;
+   end Show_Imprecise_Reference_Warning;
 
    -----------------
    -- Before_Work --
