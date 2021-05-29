@@ -215,21 +215,6 @@ package body LSP.Ada_Handlers is
    --  Mark all sources in all projects for indexing. This factorizes code
    --  between Load_Project and Load_Implicit_Project.
 
-   function Hash
-     (Value : LSP.Messages.Location) return Ada.Containers.Hash_Type;
-
-   package Location_Sets is new Ada.Containers.Hashed_Sets
-     (LSP.Messages.Location,
-      Hash,
-      LSP.Messages."=",
-      LSP.Messages."=");
-
-   package Index_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Messages.Location,
-      Element_Type    => Positive,
-      Hash            => Hash,
-      Equivalent_Keys => LSP.Messages."=");
-
    function From_File
      (Self : Message_Handler'Class;
       File : Virtual_File) return LSP.Messages.DocumentUri;
@@ -4493,22 +4478,6 @@ package body LSP.Ada_Handlers is
       --  Reload the contexts in case of unexpected errors.
       Self.Contexts.Reload_All_Contexts;
    end Handle_Error;
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash (Value : LSP.Messages.Location)
-                        return Ada.Containers.Hash_Type
-   is
-      use type Ada.Containers.Hash_Type;
-
-      Prime : constant := 2027;
-   begin
-      return LSP.Types.Hash (Value.uri)
-        + Ada.Containers.Hash_Type'Mod (Value.span.first.character)
-        + Prime * Ada.Containers.Hash_Type'Mod (Value.span.first.line);
-   end Hash;
 
    ------------------
    -- Show_Message --
