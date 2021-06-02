@@ -230,14 +230,6 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Outgoing_Calls_Request);
 
-   overriding procedure On_ALS_Called_By_Request
-     (Self   : access Message_Logger;
-      Value  : LSP.Messages.Server_Requests.ALS_Called_By_Request);
-
-   overriding procedure On_ALS_Calls_Request
-     (Self   : access Message_Logger;
-      Value  : LSP.Messages.Server_Requests.ALS_Calls_Request);
-
    overriding procedure On_ALS_Show_Dependencies_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request);
@@ -313,14 +305,6 @@ private
    overriding procedure On_Location_Link_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Location_Link_Response);
-
-   overriding procedure On_ALS_Called_By_Response
-     (Self   : in out Message_Logger;
-      Value  : LSP.Messages.Server_Responses.ALS_Called_By_Response);
-
-   overriding procedure On_ALS_Calls_Response
-     (Self   : in out Message_Logger;
-      Value  : LSP.Messages.Server_Responses.ALS_Calls_Response);
 
    overriding procedure On_ALS_ShowDependencies_Response
      (Self   : in out Message_Logger;

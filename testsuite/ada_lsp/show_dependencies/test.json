@@ -93,7 +93,6 @@
                           },
                           "foldingRangeProvider": true,
                           "executeCommandProvider": {},
-                          "alsCalledByProvider": true,
                           "alsShowDepsProvider": true,
                           "alsReferenceKinds": [
                               "reference",

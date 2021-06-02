@@ -349,30 +349,6 @@ begin
          end;
       end if;
 
-      if Request in ALS_Called_By_Request'Class then
-         declare
-            R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_ALS_Called_By_Request
-                  (ALS_Called_By_Request (Request));
-         begin
-            R.jsonrpc := +"2.0";
-            R.id := Request.id;
-            return R;
-         end;
-      end if;
-
-      if Request in ALS_Calls_Request'Class then
-         declare
-            R : LSP.Messages.ResponseMessage'Class :=
-               Self.On_ALS_Calls_Request
-                  (ALS_Calls_Request (Request));
-         begin
-            R.jsonrpc := +"2.0";
-            R.id := Request.id;
-            return R;
-         end;
-      end if;
-
       if Request in ALS_Show_Dependencies_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

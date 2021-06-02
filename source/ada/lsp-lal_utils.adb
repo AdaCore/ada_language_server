@@ -980,7 +980,7 @@ package body LSP.Lal_Utils is
       return LSP.Messages.CallHierarchyItem'
         (name           => To_LSP_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
-         tags           => LSP.Messages.Empty,
+         tags           => (Is_Set => False),
          detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
          uri            => Where.uri,
          span           => Where.span,

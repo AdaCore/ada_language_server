@@ -1983,6 +1983,12 @@ package LSP.Messages is
    package SymbolTagSets is new LSP.Generic_Sets (SymbolTag, LSP.Skip);
    type SymbolTagSet is new SymbolTagSets.Set;
 
+   package Optional_SymbolTagSets is
+     new LSP.Generic_Optional (SymbolTagSet);
+
+   type Optional_SymbolTagSet is
+     new Optional_SymbolTagSets.Optional_Type;
+
    type tagSupportCapability is record
       valueSet: SymbolTagSet;
    end record;
@@ -6187,8 +6193,6 @@ package LSP.Messages is
       --	experimental?: any;
 
       --  ALS-specific capabilities
-      alsCalledByProvider     : Optional_Boolean;
-      alsCallsProvider        : Optional_Boolean;
       alsShowDepsProvider     : Optional_Boolean;
       alsReferenceKinds       : Optional_AlsReferenceKind_Set;
    end record;
@@ -9907,7 +9911,7 @@ package LSP.Messages is
    type CallHierarchyItem is record
       name: LSP_String;
       kind: SymbolKind;
-      tags: SymbolTagSet;
+      tags: Optional_SymbolTagSet;
       detail: Optional_String;
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word

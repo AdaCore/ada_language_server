@@ -315,10 +315,6 @@ REQUESTS = [
      'ExecuteCommandParams', 'ExecuteCommand_Response'),
 
     # ALS-specific requests
-    ('textDocument/alsCalledBy', 'ALS_Called_By', 'TextDocumentPositionParams',
-     'ALS_Called_By_Response'),
-    ('textDocument/alsCalls', 'ALS_Calls', 'TextDocumentPositionParams',
-     'ALS_Calls_Response'),
     ('textDocument/alsShowDependencies', 'ALS_Show_Dependencies',
      'ALS_ShowDependenciesParams',
      'ALS_ShowDependencies_Response'),

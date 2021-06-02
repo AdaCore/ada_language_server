@@ -53,8 +53,7 @@
                            " "
                         ]
                      },
-                     "definitionProvider": true,
-                     "alsCalledByProvider": true
+                     "definitionProvider": true
                   }
                }
             }]

@@ -5643,10 +5643,6 @@ package body LSP.Message_IO is
                Optional_workspace_Options'Read (S, V.workspace);
             elsif Key = "callHierarchyProvider" then
                CallHierarchyOptions'Read (S, V.callHierarchyProvider);
-            elsif Key = "alsCalledByProvider" then
-               Optional_Boolean'Read (S, V.alsCalledByProvider);
-            elsif Key = "alsCallsProvider" then
-               Optional_Boolean'Read (S, V.alsCallsProvider);
             elsif Key = "alsShowDepsProvider" then
                Optional_Boolean'Read (S, V.alsShowDepsProvider);
             elsif Key = "alsReferenceKinds" then
@@ -5723,10 +5719,6 @@ package body LSP.Message_IO is
       Optional_workspace_Options'Write (S, V.workspace);
       JS.Key ("callHierarchyProvider");
       CallHierarchyOptions'Write (S, V.callHierarchyProvider);
-      JS.Key ("alsCalledByProvider");
-      Optional_Boolean'Write (S, V.alsCalledByProvider);
-      JS.Key ("alsCallsProvider");
-      Optional_Boolean'Write (S, V.alsCallsProvider);
       JS.Key ("alsShowDepsProvider");
       Optional_Boolean'Write (S, V.alsShowDepsProvider);
       JS.Key ("alsReferenceKinds");
@@ -9288,7 +9280,7 @@ package body LSP.Message_IO is
             elsif Key = "kind" then
                SymbolKind'Read (S, V.kind);
             elsif Key = "tags" then
-               SymbolTagSet'Read (S, V.tags);
+               Optional_SymbolTagSet'Read (S, V.tags);
             elsif Key = "detail" then
                Optional_String'Read (S, V.detail);
             elsif Key = "uri" then
@@ -9318,7 +9310,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
       JS.Key ("tags");
-      SymbolTagSet'Write (S, V.tags);
+      Optional_SymbolTagSet'Write (S, V.tags);
       JS.Key ("detail");
       Optional_String'Write (S, V.detail);
       JS.Key ("uri");

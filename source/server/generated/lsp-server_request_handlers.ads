@@ -182,18 +182,6 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.ExecuteCommand_Response
         is abstract;
 
-   function On_ALS_Called_By_Request
-     (Self    : access Server_Request_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Called_By_Request)
-      return LSP.Messages.Server_Responses.ALS_Called_By_Response
-        is abstract;
-
-   function On_ALS_Calls_Request
-     (Self    : access Server_Request_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Calls_Request)
-      return LSP.Messages.Server_Responses.ALS_Calls_Response
-        is abstract;
-
    function On_ALS_Show_Dependencies_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
