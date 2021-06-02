@@ -6207,8 +6207,6 @@ package LSP.Messages is
       --	experimental?: any;
 
       --  ALS-specific capabilities
-      alsCalledByProvider     : Optional_Boolean;
-      alsCallsProvider        : Optional_Boolean;
       alsShowDepsProvider     : Optional_Boolean;
       alsReferenceKinds       : Optional_AlsReferenceKind_Set;
    end record;

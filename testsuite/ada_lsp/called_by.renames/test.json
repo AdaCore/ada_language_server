@@ -100,8 +100,6 @@
                      "foldingRangeProvider": true,
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
-                     "alsCalledByProvider": true,
-                     "alsCallsProvider": true,
                      "alsShowDepsProvider": true,
                      "alsReferenceKinds": [
                         "reference",

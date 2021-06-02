@@ -196,36 +196,6 @@ package body LSP.Message_Loggers is
       Self.Trace := Trace;
    end Initialize;
 
-   ------------------------------
-   -- On_ALS_Called_By_Request --
-   ------------------------------
-
-   overriding procedure On_ALS_Called_By_Request
-     (Self  : access Message_Logger;
-      Value : LSP.Messages.Server_Requests.ALS_Called_By_Request)
-   is
-   begin
-      Self.Trace.Trace
-        ("ALS_Called_By_Request: "
-         & Image (Value)
-         & Image (Value.params));
-   end On_ALS_Called_By_Request;
-
-   --------------------------
-   -- On_ALS_Calls_Request --
-   --------------------------
-
-   overriding procedure On_ALS_Calls_Request
-     (Self  : access Message_Logger;
-      Value : LSP.Messages.Server_Requests.ALS_Calls_Request)
-   is
-   begin
-      Self.Trace.Trace
-        ("ALS_Calls_Request: "
-         & Image (Value)
-         & Image (Value.params));
-   end On_ALS_Calls_Request;
-
    --------------------------------------
    -- On_ALS_Show_Dependencies_Request --
    --------------------------------------
@@ -239,50 +209,6 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Image (Value.params.textDocument));
    end On_ALS_Show_Dependencies_Request;
-
-   -------------------------------
-   -- On_ALS_Called_By_Response --
-   -------------------------------
-
-   overriding procedure On_ALS_Called_By_Response
-     (Self   : in out Message_Logger;
-      Value  : LSP.Messages.Server_Responses.ALS_Called_By_Response) is
-   begin
-      if Value.Is_Error then
-         Self.Trace.Trace
-           ("ALS_Called_By_Response: "
-            & Image (Value)
-            & " Error");
-         return;
-      end if;
-
-      Self.Trace.Trace
-        ("ALS_Called_By_Response: "
-         & Image (Value)
-         & Ada.Containers.Count_Type'Image (Value.result.Length));
-   end On_ALS_Called_By_Response;
-
-   ---------------------------
-   -- On_ALS_Calls_Response --
-   ---------------------------
-
-   overriding procedure On_ALS_Calls_Response
-     (Self   : in out Message_Logger;
-      Value  : LSP.Messages.Server_Responses.ALS_Calls_Response) is
-   begin
-      if Value.Is_Error then
-         Self.Trace.Trace
-           ("ALS_Calls_Response: "
-            & Image (Value)
-            & " Error");
-         return;
-      end if;
-
-      Self.Trace.Trace
-        ("ALS_Calls_Response: "
-         & Image (Value)
-         & Ada.Containers.Count_Type'Image (Value.result.Length));
-   end On_ALS_Calls_Response;
 
    --------------------------------------
    -- On_ALS_ShowDependencies_Response --
