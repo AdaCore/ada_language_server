@@ -60,8 +60,6 @@
                                 ]
                             },
                             "workspaceSymbolProvider": true,
-                            "alsCalledByProvider": true,
-                            "alsCallsProvider": true,
                             "alsShowDepsProvider": true,
                             "alsReferenceKinds": [
                                 "reference",

@@ -56,7 +56,6 @@
                      },
                      "foldingRangeProvider": true,
                      "executeCommandProvider": {},
-                     "alsCalledByProvider": true,
                      "alsReferenceKinds": [
                         "reference",
                          "access",

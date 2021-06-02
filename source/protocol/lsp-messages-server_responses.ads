@@ -230,28 +230,6 @@ package LSP.Messages.Server_Responses is
      (Self    : OutgoingCalls_Response;
       Handler : access Server_Response_Sender'Class);
 
-   package ALS_Called_By_Responses is new LSP.Generic_Responses
-     (ResponseMessage => Server_Response,
-      T               => ALS_Subprogram_And_References_Vector);
-
-   type ALS_Called_By_Response is new ALS_Called_By_Responses.Response with
-     null record;
-
-   overriding procedure Visit
-     (Self    : ALS_Called_By_Response;
-      Handler : access Server_Response_Sender'Class);
-
-   package ALS_Calls_Responses is new LSP.Generic_Responses
-     (ResponseMessage => Server_Response,
-      T               => ALS_Subprogram_And_References_Vector);
-
-   type ALS_Calls_Response is new ALS_Calls_Responses.Response with
-     null record;
-
-   overriding procedure Visit
-     (Self    : ALS_Calls_Response;
-      Handler : access Server_Response_Sender'Class);
-
    package ALS_ShowDependencies_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Unit_Description_Vector);
