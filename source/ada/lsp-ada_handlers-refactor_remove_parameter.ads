@@ -26,7 +26,8 @@ with LSP.JSON_Streams;
 
 with Libadalang.Analysis;
 
-with Laltools.Common; use Laltools.Common;
+with Laltools.Refactor.Subprogram_Signature;
+use Laltools.Refactor.Subprogram_Signature;
 
 package LSP.Ada_Handlers.Refactor_Remove_Parameter is
 
