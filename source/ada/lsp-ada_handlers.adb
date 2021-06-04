@@ -1169,7 +1169,6 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Remove_Parameter;
             use Libadalang.Analysis;
-            use Laltools.Common;
             use Laltools.Refactor.Subprogram_Signature;
 
             Target_Subp              : Basic_Decl := No_Basic_Decl;
@@ -1226,7 +1225,6 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
             use Libadalang.Analysis;
-            use Laltools.Common;
             use Laltools.Refactor.Subprogram_Signature;
 
             Target_Subp                   : Basic_Decl := No_Basic_Decl;

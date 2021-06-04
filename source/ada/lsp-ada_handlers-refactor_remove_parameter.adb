@@ -21,8 +21,7 @@ with Ada.Strings.UTF_Encoding;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
+with Laltools.Common; use Laltools.Common;
 
 with LSP.Messages;
 with LSP.Messages.Client_Requests;
