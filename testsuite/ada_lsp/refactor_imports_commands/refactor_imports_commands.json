@@ -18,6 +18,9 @@
                     "processId": 13950,
                     "capabilities": {
                         "workspace": {
+                            "workspaceEdit": {
+                               "documentChanges": true
+                            },
                             "applyEdit": false
                         }
                     },
