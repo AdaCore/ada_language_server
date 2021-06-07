@@ -4267,7 +4267,8 @@ package body LSP.Ada_Handlers is
                     (Node  => Node,
                      Refs  => Refs,
                      Item  => New_Call.from,
-                     Spans => New_Call.fromRanges);
+                     Spans => New_Call.fromRanges,
+                     Kinds => New_Call.kinds);
 
                   Add_Incoming_Call (New_Call);
                   References_By_Subprogram.Next (C);
@@ -4386,7 +4387,8 @@ package body LSP.Ada_Handlers is
                     (Node  => Node,
                      Refs  => Refs,
                      Item  => New_Call.to,
-                     Spans => New_Call.fromRanges);
+                     Spans => New_Call.fromRanges,
+                     Kinds => New_Call.kinds);
 
                   Add_Outgoing_Call (New_Call);
                   References_By_Subprogram.Next (C);
