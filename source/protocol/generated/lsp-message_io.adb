@@ -9288,7 +9288,7 @@ package body LSP.Message_IO is
             elsif Key = "kind" then
                SymbolKind'Read (S, V.kind);
             elsif Key = "tags" then
-               SymbolTagSet'Read (S, V.tags);
+               Optional_SymbolTagSet'Read (S, V.tags);
             elsif Key = "detail" then
                Optional_String'Read (S, V.detail);
             elsif Key = "uri" then
@@ -9318,7 +9318,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
       JS.Key ("tags");
-      SymbolTagSet'Write (S, V.tags);
+      Optional_SymbolTagSet'Write (S, V.tags);
       JS.Key ("detail");
       Optional_String'Write (S, V.detail);
       JS.Key ("uri");
@@ -9399,6 +9399,8 @@ package body LSP.Message_IO is
                CallHierarchyItem'Read (S, V.from);
             elsif Key = "fromRanges" then
                Span_Vector'Read (S, V.fromRanges);
+            elsif Key = "kinds" then
+               AlsReferenceKind_Vector'Read (S, V.kinds);
             else
                JS.Skip_Value;
             end if;
@@ -9419,6 +9421,8 @@ package body LSP.Message_IO is
       CallHierarchyItem'Write (S, V.from);
       JS.Key ("fromRanges");
       Span_Vector'Write (S, V.fromRanges);
+      JS.Key ("kinds");
+      AlsReferenceKind_Vector'Write (S, V.kinds);
       JS.End_Object;
    end Write_CallHierarchyIncomingCall;
 
@@ -9443,6 +9447,8 @@ package body LSP.Message_IO is
                CallHierarchyItem'Read (S, V.to);
             elsif Key = "fromRanges" then
                Span_Vector'Read (S, V.fromRanges);
+            elsif Key = "kinds" then
+               AlsReferenceKind_Vector'Read (S, V.kinds);
             else
                JS.Skip_Value;
             end if;
@@ -9463,6 +9469,8 @@ package body LSP.Message_IO is
       CallHierarchyItem'Write (S, V.to);
       JS.Key ("fromRanges");
       Span_Vector'Write (S, V.fromRanges);
+      JS.Key ("kinds");
+      AlsReferenceKind_Vector'Write (S, V.kinds);
       JS.End_Object;
    end Write_CallHierarchyOutgoingCall;
 

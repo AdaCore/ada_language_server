@@ -204,7 +204,8 @@ package LSP.Lal_Utils is
      (Node  : Libadalang.Analysis.Defining_Name;
       Refs  : Laltools.Common.References_Sets.Set;
       Item  : out LSP.Messages.CallHierarchyItem;
-      Spans : out LSP.Messages.Span_Vector);
+      Spans : out LSP.Messages.Span_Vector;
+      Kinds : out LSP.Messages.AlsReferenceKind_Vector);
    --  Convert the given Node and the given references to it to the
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.

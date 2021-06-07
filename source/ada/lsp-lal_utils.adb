@@ -1003,7 +1003,7 @@ package body LSP.Lal_Utils is
       return LSP.Messages.CallHierarchyItem'
         (name           => To_LSP_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
-         tags           => LSP.Messages.Empty,
+         tags           => (Is_Set => False),
          detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
          uri            => Where.uri,
          span           => Where.span,
@@ -1018,7 +1018,8 @@ package body LSP.Lal_Utils is
      (Node  : Libadalang.Analysis.Defining_Name;
       Refs  : Laltools.Common.References_Sets.Set;
       Item  : out LSP.Messages.CallHierarchyItem;
-      Spans : out LSP.Messages.Span_Vector)
+      Spans : out LSP.Messages.Span_Vector;
+      Kinds : out LSP.Messages.AlsReferenceKind_Vector)
    is
       Decl     : constant Libadalang.Analysis.Basic_Decl :=
         Node.P_Basic_Decl;
@@ -1035,6 +1036,7 @@ package body LSP.Lal_Utils is
          selectionRange => LSP.Lal_Utils.To_Span (Node.Sloc_Range));
 
       Spans.Clear;
+      Kinds.Clear;
 
       for Ref of Refs loop
          declare
@@ -1042,6 +1044,11 @@ package body LSP.Lal_Utils is
               Get_Node_Location (Ada_Node (Ref));
          begin
             Spans.Append (Ref_Location.span);
+            if Ref.P_Is_Dispatching_Call then
+               Kinds.Append (LSP.Messages.Dispatching_Call);
+            else
+               Kinds.Append (LSP.Messages.Simple);
+            end if;
          end;
       end loop;
    end To_Call_Hierarchy_Result;
