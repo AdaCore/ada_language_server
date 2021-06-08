@@ -293,13 +293,15 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       URI   : LSP.Messages.DocumentUri;
       Force : Boolean := False)
-      return LSP.Ada_Documents.Document_Access is
+      return LSP.Ada_Documents.Document_Access
+   is
+      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
       Self.Ensure_Project_Loaded;
 
-      if Self.Open_Documents.Contains (URI) then
+      if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
-           (Self.Open_Documents.Element (URI));
+           (Self.Open_Documents.Element (File));
       elsif Force then
          declare
             Document : constant Internal_Document_Access :=
@@ -1858,16 +1860,17 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidCloseTextDocumentParams)
    is
       URI      : LSP.Messages.DocumentUri renames Value.textDocument.uri;
+      File     : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       Diag     : LSP.Messages.PublishDiagnosticsParams;
       Document : Internal_Document_Access;
    begin
-      if Self.Open_Documents.Contains (Value.textDocument.uri) then
-         Document := Self.Open_Documents.Element (URI);
+      if Self.Open_Documents.Contains (File) then
+         Document := Self.Open_Documents.Element (File);
 
          --  Remove the URI from the set of open documents now: this way,
          --  the call to Flush_Document below will not attempt to reindex
          --  from an open document, but from the file on disk.
-         Self.Open_Documents.Delete (URI);
+         Self.Open_Documents.Delete (File);
 
          for Context of Self.Contexts_For_URI (URI) loop
             Context.Flush_Document (Document.all);
@@ -1900,6 +1903,7 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidOpenTextDocumentParams)
    is
       URI    : LSP.Messages.DocumentUri renames Value.textDocument.uri;
+      File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self.Trace);
    begin
@@ -1913,7 +1917,7 @@ package body LSP.Ada_Handlers is
 
       --  We have received a document: add it to the documents container
       Object.Initialize (URI, Value.textDocument.text);
-      Self.Open_Documents.Insert (URI, Object);
+      Self.Open_Documents.Insert (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
@@ -1942,7 +1946,7 @@ package body LSP.Ada_Handlers is
               and then not Diags_Already_Published
             then
                Object.Get_Errors (Context.all, Diag.diagnostics);
-               Diag.uri := Value.textDocument.uri;
+               Diag.uri := URI;
                Self.Server.On_Publish_Diagnostics (Diag);
 
                --  Publish diagnostics only for one context,
@@ -3754,13 +3758,13 @@ package body LSP.Ada_Handlers is
       while not Self.Files_To_Index.Is_Empty loop
          declare
             Cursor : File_Sets.Cursor := Self.Files_To_Index.First;
-            File   : GNATCOLL.VFS.Virtual_File;
+            File   : constant GNATCOLL.VFS.Virtual_File :=
+              File_Sets.Element (Cursor);
          begin
-            File := File_Sets.Element (Cursor);
             Self.Files_To_Index.Delete (Cursor);
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
 
-            if not Self.Open_Documents.Contains (Self.From_File (File)) then
+            if not Self.Open_Documents.Contains (File) then
                Current_Percent := (Self.Total_Files_Indexed * 100)
                  / Self.Total_Files_To_Index;
                --  If the value of the indexing increased by at least one
@@ -3871,10 +3875,11 @@ package body LSP.Ada_Handlers is
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean)
       is
+         File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       begin
          --  Skip all names in open documents, because they could have
          --  stale references. Then skip already provided results.
-         if not Self.Open_Documents.Contains (URI)
+         if not Self.Open_Documents.Contains (File)
            and then not Names.Contains (Name)
          then
             Names.Insert
@@ -3956,11 +3961,13 @@ package body LSP.Ada_Handlers is
       procedure On_Inaccessible_Name
         (URI  : LSP.Messages.DocumentUri;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean) is
+         Stop : in out Boolean)
+      is
+         File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       begin
          --  Skip all names in open documents, because they could have
          --  stale references. Then skip already provided results.
-         if not Self.Open_Documents.Contains (URI)
+         if not Self.Open_Documents.Contains (File)
            and then not Names.Contains (Name)
          then
             Names.Insert
