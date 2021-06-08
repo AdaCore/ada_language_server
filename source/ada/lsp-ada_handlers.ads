@@ -90,10 +90,10 @@ private
 
    --  Container for documents indexed by URI
    package Document_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Messages.DocumentUri,
+     (Key_Type        => GNATCOLL.VFS.Virtual_File,
       Element_Type    => Internal_Document_Access,
-      Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
+      Hash            => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Keys => GNATCOLL.VFS."=");
 
    --  Container for the predefined source files
    package File_Sets is new Ada.Containers.Hashed_Sets
