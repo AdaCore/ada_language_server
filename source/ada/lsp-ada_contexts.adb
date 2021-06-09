@@ -53,6 +53,13 @@ package body LSP.Ada_Contexts is
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
 
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_URI)
+      return Ada.Strings.UTF_Encoding.UTF_8_String
+        is (URIs.Conversions.To_File (LSP.Types.To_UTF_8_String (URI),
+            Self.Follow_Symlinks));
+
    -------------------------
    -- Append_Declarations --
    -------------------------
@@ -175,19 +182,6 @@ package body LSP.Ada_Contexts is
          Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
       end;
    end Append_Declarations;
-
-   -----------------
-   -- File_To_URI --
-   -----------------
-
-   function File_To_URI
-     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      Result : constant URIs.URI_String :=
-        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end File_To_URI;
 
    --------------------
    -- Analysis_Units --
@@ -384,11 +378,8 @@ package body LSP.Ada_Contexts is
    --------------------
 
    procedure Flush_Document
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document)
-   is
-      File : constant Virtual_File := Create_From_UTF8
-        (LSP.Types.To_UTF_8_String (Self.URI_To_File (Document.URI)));
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File) is
    begin
       --  Make LAL reload file from disk and then update index
       Self.Index_File (File, Reparse => True);
@@ -746,33 +737,6 @@ package body LSP.Ada_Contexts is
    end Free;
 
    -----------------
-   -- URI_To_File --
-   -----------------
-
-   function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
-      Result : constant String := URIs.Conversions.To_File
-        (To, Normalize => Self.Follow_Symlinks);
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end URI_To_File;
-
-   -------------
-   -- To_File --
-   -------------
-
-   function To_File
-     (Self : Context'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File is
-   begin
-      return GNATCOLL.VFS.Create_From_UTF8
-        (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
-   end To_File;
-
-   -----------------
    -- Get_Node_At --
    -----------------
 
@@ -789,8 +753,10 @@ package body LSP.Ada_Contexts is
 
       Unit : Libadalang.Analysis.Analysis_Unit;
 
-      URI : constant LSP.Messages.DocumentUri := Position.textDocument.uri;
-      File : Virtual_File;
+      URI  : constant LSP.Messages.DocumentUri := Position.textDocument.uri;
+      Name : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        Self.URI_To_File (URI);
+      File : constant Virtual_File := Create_From_UTF8 (Name);
    begin
       --  We're about to get a node from an analysis unit. Either the document
       --  is open for it, in which case we read the document, or the
@@ -800,14 +766,10 @@ package body LSP.Ada_Contexts is
 
       if Document /= null then
          return Document.Get_Node_At (Self, Position.position);
-      else
-         File := Create_From_UTF8
-           (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
-
-         if Self.Is_Part_Of_Project (File) then
-            Unit := Self.LAL_Context.Get_From_File
-              (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
-               Charset => Self.Get_Charset);
+      elsif Self.Is_Part_Of_Project (File) then
+         Unit := Self.LAL_Context.Get_From_File
+           (Name,
+            Charset => Self.Get_Charset);
 
             if Unit.Root = Libadalang.Analysis.No_Ada_Node then
                return Libadalang.Analysis.No_Ada_Node;
@@ -818,9 +780,8 @@ package body LSP.Ada_Contexts is
                 (Position.position.line) + 1,
                 Column => Langkit_Support.Slocs.Column_Number
                   (Position.position.character) + 1));
-         else
-            return Libadalang.Analysis.No_Ada_Node;
-         end if;
+      else
+         return Libadalang.Analysis.No_Ada_Node;
       end if;
    end Get_Node_At;
 
@@ -859,7 +820,8 @@ package body LSP.Ada_Contexts is
      (Self     : Context;
       Document : in out LSP.Ada_Documents.Document)
    is
-      File : constant LSP.Types.LSP_String := Self.URI_To_File (Document.URI);
+      File : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        Self.URI_To_File (Document.URI);
       Unit : Libadalang.Analysis.Analysis_Unit;
    begin
       Document.Reset_Symbol_Cache;
@@ -867,7 +829,7 @@ package body LSP.Ada_Contexts is
 
       --  Preprocess the buffer
       Unit := Self.LAL_Context.Get_From_File
-        (Filename => LSP.Types.To_UTF_8_String (File),
+        (Filename => File,
          Charset  => Ada.Strings.Unbounded.To_String (Self.Charset),
          Reparse  => True);
 

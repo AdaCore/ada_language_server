@@ -18,6 +18,7 @@
 --  This package provides a context of Ada Language server.
 
 with Ada.Strings.Unbounded;
+with Ada.Strings.UTF_Encoding;
 
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
@@ -73,17 +74,8 @@ package LSP.Ada_Contexts is
 
    function URI_To_File
      (Self : Context;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Turn URI into path by stripping schema from it
-
-   function File_To_URI
-     (File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Convert file name to URI
-
-   function To_File
-     (Self : Context'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
-   --  Turn URI into Virtual_File
+      URI  : LSP.Types.LSP_URI)
+      return Ada.Strings.UTF_Encoding.UTF_8_String;
 
    function Get_Node_At
      (Self     : Context;
@@ -202,9 +194,9 @@ package LSP.Ada_Contexts is
    --  Index/reindex the given document in this context
 
    procedure Flush_Document
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document);
-   --  Revert Document to the state of the file discarding any changes
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File);
+   --  Revert a document to the state of the file discarding any changes
 
    procedure Append_Declarations
      (Self                    : Context;

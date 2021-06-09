@@ -17,7 +17,6 @@
 
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
-with GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with Langkit_Support;
@@ -96,18 +95,17 @@ package body LSP.Lal_Utils is
      (Result : in out LSP.Messages.DocumentHighlight_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.Optional_DocumentHighlightKind;
-      Uri    : LSP.Messages.DocumentUri)
+      File   : GNATCOLL.VFS.Virtual_File)
    is
-      use LSP.Messages;
+      use type GNATCOLL.VFS.Virtual_File;
 
-      Location : constant LSP.Messages.Location :=
-        LSP.Lal_Utils.Get_Node_Location
-          (Libadalang.Analysis.As_Ada_Node (Node));
+      Node_File : constant GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
    begin
-      if Uri = Location.uri then
+      if File = Node_File then
          Result.Append
-           (DocumentHighlight'
-              (span => Location.span,
+           (LSP.Messages.DocumentHighlight'
+              (span => LSP.Lal_Utils.Get_Node_Location (Node).span,
                kind => Kind));
       end if;
    end Append_Location;
@@ -121,12 +119,12 @@ package body LSP.Lal_Utils is
    is
       use type VSS.Unicode.UTF16_Code_Unit_Count;
 
-      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean;
+      function URI_Inf (Left, Right : LSP.Types.LSP_URI) return Boolean;
       --  Comparison function for URIs, return True if Left < Right
 
       function "<" (Left, Right : LSP.Messages.Location) return Boolean is
         (URI_Inf (Left.uri, Right.uri) or else
-           (Left.uri = Right.uri
+           (LSP.Types.Equal (Left.uri, Right.uri)
             and then (Left.span.first.line < Right.span.first.line
                       or else (Left.span.first.line = Right.span.first.line
                                and then Left.span.first.character <
@@ -136,7 +134,7 @@ package body LSP.Lal_Utils is
       -- URI_Inf --
       -------------
 
-      function URI_Inf (Left, Right : LSP.Types.LSP_String) return Boolean is
+      function URI_Inf (Left, Right : LSP.Types.LSP_URI) return Boolean is
 
          function URI_Dir (X : String) return String;
          --  Return the dir in X
@@ -548,13 +546,10 @@ package body LSP.Lal_Utils is
      (Unit : Libadalang.Analysis.Analysis_Unit;
       Span : Langkit_Support.Slocs.Source_Location_Range;
       Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location
-   is
-      File : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Unit.Get_Filename);
+      return LSP.Messages.Location is
    begin
       return
-        (uri     => LSP.Ada_Contexts.File_To_URI (File),
+        (uri     => LSP.Types.File_To_URI (Unit.Get_Filename),
          span    => To_Span (Span),
          alsKind => Kind);
    end Get_Location;
@@ -650,7 +645,7 @@ package body LSP.Lal_Utils is
       := null)
       return LSP.Messages.WorkspaceEdit
    is
-      File_URI : LSP.Types.LSP_String;
+      File_URI : LSP.Messages.DocumentUri;
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
@@ -667,8 +662,7 @@ package body LSP.Lal_Utils is
                Text_Edits.Append (To_TextEdit (Edit));
             end loop;
 
-            File_URI := LSP.Ada_Contexts.File_To_URI
-              (LSP.Types.To_LSP_String (Key (Edits_Cursor)));
+            File_URI := LSP.Types.File_To_URI (Key (Edits_Cursor));
 
             if Versioned_Documents then
                declare
@@ -710,7 +704,7 @@ package body LSP.Lal_Utils is
       Rename              : Boolean := False)
       return LSP.Messages.WorkspaceEdit
    is
-      File_URI : LSP.Types.LSP_String;
+      File_URI : LSP.Types.LSP_URI;
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
@@ -730,9 +724,8 @@ package body LSP.Lal_Utils is
                Text_Edits.Append (To_TextEdit (Edit));
             end loop;
 
-            File_URI := LSP.Ada_Contexts.File_To_URI
-              (LSP.Types.To_LSP_String
-                 (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
+            File_URI := LSP.Types.File_To_URI
+              (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor));
 
             if Versioned_Documents then
                declare
@@ -765,10 +758,9 @@ package body LSP.Lal_Utils is
               (File_Deletions_Cursor)
             loop
 
-               File_URI := LSP.Ada_Contexts.File_To_URI
-                 (LSP.Types.To_LSP_String
-                    (Unbounded_String_Ordered_Sets.Element
-                         (File_Deletions_Cursor)));
+               File_URI := LSP.Types.File_To_URI
+                 (Unbounded_String_Ordered_Sets.Element
+                    (File_Deletions_Cursor));
 
                WE.documentChanges.Append
                  (LSP.Messages.Document_Change'(
@@ -785,10 +777,9 @@ package body LSP.Lal_Utils is
               (File_Deletions_Cursor)
             loop
 
-               File_URI := LSP.Ada_Contexts.File_To_URI
-                 (LSP.Types.To_LSP_String
-                    (Unbounded_String_Ordered_Sets.Element
-                         (File_Deletions_Cursor)));
+               File_URI := LSP.Types.File_To_URI
+                 (Unbounded_String_Ordered_Sets.Element
+                    (File_Deletions_Cursor));
 
                WE.documentChanges.Append
                  (LSP.Messages.Document_Change'(
