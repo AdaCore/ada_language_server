@@ -649,9 +649,13 @@ package body LSP.Ada_Contexts is
       -- Pretty_Printer_Setup --
       --------------------------
 
-      procedure Pretty_Printer_Setup is
-         Options : GNAT.Strings.String_List_Access;
-         Default : Boolean;
+      procedure Pretty_Printer_Setup
+      is
+         use type GNAT.Strings.String_Access;
+         Options   : GNAT.Strings.String_List_Access;
+         Validated : GNAT.Strings.String_List_Access;
+         Last      : Integer;
+         Default   : Boolean;
       begin
          Root.Switches
            (In_Pkg           => "Pretty_Printer",
@@ -660,9 +664,29 @@ package body LSP.Ada_Contexts is
             Value            => Options,
             Is_Default_Value => Default);
 
-         --  Initialize an empty gnatpp command line object
+         --  Initialize an gnatpp command line object
+         Last := Options'First - 1;
+         for Item of Options.all loop
+            if Item /= null
+              and then Item.all /= ""
+            then
+               Last := Last + 1;
+            end if;
+         end loop;
+
+         Validated := new GNAT.Strings.String_List (Options'First .. Last);
+         Last      := Options'First - 1;
+         for Item of Options.all loop
+            if Item /= null
+              and then Item.all /= ""
+            then
+               Last := Last + 1;
+               Validated (Last) := new String'(Item.all);
+            end if;
+         end loop;
+
          Utils.Command_Lines.Parse
-           (Options,
+           (Validated,
             Self.PP_Options,
             Phase              => Utils.Command_Lines.Cmd_Line_1,
             Callback           => null,
@@ -670,8 +694,10 @@ package body LSP.Ada_Contexts is
             Ignore_Errors      => True);
 
          GNAT.Strings.Free (Options);
-         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
+         GNAT.Strings.Free (Validated);
+
          --  Set UTF-8 encoding
+         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
       end Pretty_Printer_Setup;
    begin
       Self.Id := LSP.Types.To_LSP_String (Root.Name);
