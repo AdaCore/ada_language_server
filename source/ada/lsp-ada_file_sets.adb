@@ -24,8 +24,8 @@ package body LSP.Ada_File_Sets is
 
    procedure Flush_File_Index
      (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri);
-   --  Remove all names defined in the Unit (identified by URI) from the
+      File : GNATCOLL.VFS.Virtual_File);
+   --  Remove all names defined in the unit (identified by File) from the
    --  internal symbol index.
 
    type In_Private_Or_Body_Predicate is
@@ -131,9 +131,9 @@ package body LSP.Ada_File_Sets is
 
    procedure Flush_File_Index
      (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri)
+      File : GNATCOLL.VFS.Virtual_File)
    is
-      use type LSP.Messages.DocumentUri;
+      use type GNATCOLL.VFS.Virtual_File;
       Index : Positive;
    begin
       --  Delete all Defining_Names with given URI
@@ -141,7 +141,7 @@ package body LSP.Ada_File_Sets is
          Index := 1;
 
          while Index <= Vector.Last_Index loop
-            if Vector (Index).URI = URI then
+            if Vector (Index).File = File then
                Vector.Swap (Index, Vector.Last_Index);
                Vector.Delete_Last;
             else
@@ -159,7 +159,7 @@ package body LSP.Ada_File_Sets is
      (Self     : Indexed_File_Set'Class;
       Prefix   : VSS.Strings.Virtual_String;
       Callback : not null access procedure
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean))
    is
@@ -176,7 +176,7 @@ package body LSP.Ada_File_Sets is
             exit Each_Prefix when not Value.Starts_With (Prefix);
 
             for Item of Self.All_Symbols (Cursor) loop
-               Callback (Item.URI, Item.Loc, Stop);
+               Callback (Item.File, Item.Loc, Stop);
                exit Each_Prefix when Stop;
             end loop;
 
@@ -202,13 +202,13 @@ package body LSP.Ada_File_Sets is
 
    procedure Index_File
      (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
       Unit : Libadalang.Analysis.Analysis_Unit)
    is
       use Libadalang.Iterators;
 
       Inserted   : Boolean;
-      Ignore     : String_Sets.Cursor;
+      Ignore     : Hashed_File_Sets.Cursor;
       Node       : Libadalang.Analysis.Ada_Node;
 
       function In_Private_Or_Body return
@@ -249,11 +249,11 @@ package body LSP.Ada_File_Sets is
              and not In_Private_Or_Body
              and not Restricted_Decl_Kind);
    begin
-      Self.Indexed.Insert (URI, Ignore, Inserted);
+      Self.Indexed.Insert (File, Ignore, Inserted);
 
       if not Inserted then
          --  URI has been indexed already, clear index from names of the unit
-         Self.Flush_File_Index (URI);
+         Self.Flush_File_Index (File);
       end if;
 
       while It.Next (Node) loop
@@ -283,7 +283,7 @@ package body LSP.Ada_File_Sets is
                   Cursor,
                   Inserted);
 
-               Self.All_Symbols (Cursor).Append ((URI, Start_Sloc));
+               Self.All_Symbols (Cursor).Append ((File, Start_Sloc));
             end if;
          end;
       end loop;

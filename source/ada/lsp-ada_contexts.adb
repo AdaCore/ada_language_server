@@ -501,12 +501,12 @@ package body LSP.Ada_Contexts is
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
       Callback : not null access procedure
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean))
    is
       procedure Adapter
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean);
       --  Find a Defining_Name at the given location Loc in a unit of URI and
@@ -517,13 +517,13 @@ package body LSP.Ada_Contexts is
       -------------
 
       procedure Adapter
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean)
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
              Self.LAL_Context.Get_From_File
-               (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+               (File.Display_Full_Name,
                 Charset => Self.Get_Charset);
 
          Name : constant Libadalang.Analysis.Name :=
@@ -533,7 +533,7 @@ package body LSP.Ada_Contexts is
            Laltools.Common.Get_Name_As_Defining (Name);
       begin
          if not Def_Name.Is_Null then
-            Callback (URI, Def_Name, Stop);
+            Callback (File, Def_Name, Stop);
          end if;
       end Adapter;
 
@@ -847,11 +847,8 @@ package body LSP.Ada_Contexts is
           (File.Display_Full_Name,
            Charset => Self.Get_Charset,
            Reparse => Reparse);
-      Name : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Unit.Get_Filename);
-      URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
    begin
-      Self.Source_Files.Index_File (URI, Unit);
+      Self.Source_Files.Index_File (File, Unit);
    end Index_File;
 
    --------------------

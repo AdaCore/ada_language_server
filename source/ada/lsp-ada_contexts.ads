@@ -231,7 +231,7 @@ package LSP.Ada_Contexts is
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
       Callback : not null access procedure
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the context and
