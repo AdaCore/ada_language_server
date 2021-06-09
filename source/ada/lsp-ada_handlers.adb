@@ -169,6 +169,19 @@ package body LSP.Ada_Handlers is
    --  Node is a static or a dispatching call, and format this into an
    --  AlsReferenceKind_Set.
 
+   type File_Span is record
+      File : GNATCOLL.VFS.Virtual_File;
+      Span : LSP.Messages.Span;
+   end record;
+   --  A text range in a file
+
+   function Hash (Value : File_Span) return Ada.Containers.Hash_Type;
+
+   package File_Span_Sets is new Ada.Containers.Hashed_Sets
+     (Element_Type        => File_Span,
+      Hash                => Hash,
+      Equivalent_Elements => "=");
+
    ---------------------
    -- Project loading --
    ---------------------
@@ -203,9 +216,11 @@ package body LSP.Ada_Handlers is
    --  we fallback to loading the project the first time an editor is
    --  open or a request on non-openned file.
 
+   procedure Ensure_Project_Loaded (Self : access Message_Handler);
+
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      URI  : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String);
+      URI  : LSP.Types.LSP_URI);
    --  This function makes sure that the contexts in Self are properly
    --  initialized and a project is loaded. If they are not initialized,
    --  initialize them. Use URI to find a custom root directory if provided.
@@ -226,16 +241,6 @@ package body LSP.Ada_Handlers is
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
    --  between Load_Project and Load_Implicit_Project.
-
-   function From_File
-     (Self : Message_Handler'Class;
-      File : Virtual_File) return LSP.Messages.DocumentUri;
-   --  Turn Virtual_File to URI
-
-   function To_File
-     (Self : Message_Handler'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File;
-   --  Turn URI into Virtual_File
 
    function URI_To_File
      (Self : Message_Handler'Class;
@@ -559,8 +564,24 @@ package body LSP.Ada_Handlers is
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
-      URI  : LSP.Types.LSP_String := LSP.Types.Empty_LSP_String)
+      URI  : LSP.Types.LSP_URI)
    is
+   begin
+      if not Self.Contexts.Is_Empty then
+         --  Rely on the fact that there is at least one context initialized
+         --  as a guarantee that the initialization has been done.
+         return;
+      end if;
+
+      Self.Root := Self.To_File (URI).Dir;
+      Self.Ensure_Project_Loaded;
+   end Ensure_Project_Loaded;
+
+   ---------------------------
+   -- Ensure_Project_Loaded --
+   ---------------------------
+
+   procedure Ensure_Project_Loaded (Self : access Message_Handler) is
       GPRs_Found : Natural := 0;
       Files      : File_Array_Access;
       GPR        : Virtual_File;
@@ -569,12 +590,6 @@ package body LSP.Ada_Handlers is
          --  Rely on the fact that there is at least one context initialized
          --  as a guarantee that the initialization has been done.
          return;
-      end if;
-
-      --  If we never passed through Initialize, this might be empty:
-      --  initialize it now
-      if Self.Root = No_File and then not LSP.Types.Is_Empty (URI) then
-         Self.Root := Self.To_File (URI).Dir;
       end if;
 
       Self.Trace.Trace ("Project loading ...");
@@ -1797,8 +1812,12 @@ package body LSP.Ada_Handlers is
          declare
             Object : DidChangeTextDocument_Notification'Class renames
               DidChangeTextDocument_Notification'Class (Next.all);
+            Object_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Object.params.textDocument.uri);
+            Value_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Value.textDocument.uri);
          begin
-            if Object.params.textDocument.uri /= Value.textDocument.uri then
+            if Object_File /= Value_File then
                return False;
             end if;
          end;
@@ -1873,7 +1892,7 @@ package body LSP.Ada_Handlers is
          Self.Open_Documents.Delete (File);
 
          for Context of Self.Contexts_For_URI (URI) loop
-            Context.Flush_Document (Document.all);
+            Context.Flush_Document (File);
          end loop;
 
          Unchecked_Free (Document);
@@ -2043,6 +2062,8 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       Document   : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
+      File : constant GNATCOLL.VFS.Virtual_File :=
+        Self.To_File (Value.textDocument.uri);
       Response   : LSP.Messages.Server_Responses.Highlight_Response
         (Is_Error => False);
       Imprecise  : Boolean := False;
@@ -2095,7 +2116,7 @@ package body LSP.Ada_Handlers is
               (Result => Response.Result,
                Node   => Node,
                Kind   => Get_Highlight_Kind (Node.As_Ada_Node),
-               Uri    => Value.textDocument.uri);
+               File   => File);
          end if;
 
       end Callback;
@@ -2119,7 +2140,7 @@ package body LSP.Ada_Handlers is
         (Result => Response.result,
          Node   => Definition,
          Kind   => Get_Highlight_Kind (Definition.As_Ada_Node),
-         Uri    => Value.textDocument.uri);
+         File   => File);
 
       return Response;
    end On_Highlight_Request;
@@ -3462,6 +3483,7 @@ package body LSP.Ada_Handlers is
       Value : LSP.Messages.DidChangeWatchedFilesParams)
    is
       Document : LSP.Ada_Documents.Document_Access;
+      File     : GNATCOLL.VFS.Virtual_File;
    begin
       --  Look through each changes
       for Change of Value.changes loop
@@ -3474,8 +3496,10 @@ package body LSP.Ada_Handlers is
          if Document = null then
             --  If there is no document, reindex the file for each
             --  context where it is relevant.
-            for C of Self.Contexts_For_URI (Change.uri) loop
-               C.Index_File (Self.To_File (Change.uri));
+            File := Self.To_File (Change.uri);
+
+            for C of Self.Contexts_For_File (File) loop
+               C.Index_File (File);
             end loop;
          end if;
       end loop;
@@ -4200,28 +4224,29 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.first);
 
+      Filter : File_Span_Sets.Set;
+
       procedure Add_Incoming_Call
-        (Call : LSP.Messages.CallHierarchyIncomingCall);
-      --  Add an incoming call in results, it prevents having duplicates
+        (Filter : in out File_Span_Sets.Set;
+         Call   : LSP.Messages.CallHierarchyIncomingCall);
+      --  Add an incoming call in results. Use Filter to prevent having
+      --  duplicates
 
       -----------------------
       -- Add_Incoming_Call --
       -----------------------
 
       procedure Add_Incoming_Call
-        (Call : LSP.Messages.CallHierarchyIncomingCall)
+        (Filter : in out File_Span_Sets.Set;
+         Call : LSP.Messages.CallHierarchyIncomingCall)
       is
-         use LSP.Messages;
+         Span : constant File_Span :=
+           (Self.To_File (Call.from.uri), Call.from.span);
       begin
-         for Cur of Response.result loop
-            if Cur.from.uri = Call.from.uri
-              and then Cur.from.span = Call.from.span
-              and then Cur.from.name = Call.from.name
-            then
-               return;
-            end if;
-         end loop;
-         Response.result.Append (Call);
+         if not Filter.Contains (Span) then
+            Response.result.Append (Call);
+            Filter.Insert (Span);
+         end if;
       end Add_Incoming_Call;
 
       ---------------------
@@ -4273,7 +4298,7 @@ package body LSP.Ada_Handlers is
                      Spans => New_Call.fromRanges,
                      Kinds => New_Call.kinds);
 
-                  Add_Incoming_Call (New_Call);
+                  Add_Incoming_Call (Filter, New_Call);
                   References_By_Subprogram.Next (C);
                end;
             end loop;
@@ -4316,9 +4341,12 @@ package body LSP.Ada_Handlers is
            (textDocument => (uri => Item.uri),
             position     => Item.selectionRange.first);
 
+      Filter : File_Span_Sets.Set;
+
       procedure Add_Outgoing_Call
-        (Call : LSP.Messages.CallHierarchyOutgoingCall);
-      --  Add a subprogram in results, it prevents having duplicates
+        (Filter : in out File_Span_Sets.Set;
+         Call   : LSP.Messages.CallHierarchyOutgoingCall);
+      --  Add a subprogram in results. Use Filter to prevent having duplicates
 
       procedure Process_Context (C : Context_Access);
       --  Process the calls found in one context and append
@@ -4329,19 +4357,16 @@ package body LSP.Ada_Handlers is
       -----------------------
 
       procedure Add_Outgoing_Call
-        (Call : LSP.Messages.CallHierarchyOutgoingCall)
+        (Filter : in out File_Span_Sets.Set;
+         Call   : LSP.Messages.CallHierarchyOutgoingCall)
       is
-         use LSP.Messages;
+         Span : constant File_Span :=
+           (Self.To_File (Call.to.uri), Call.to.span);
       begin
-         for Cur of Response.result loop
-            if Cur.to.uri = Call.to.uri
-              and then Cur.to.span = Call.to.span
-              and then Cur.to.name = Call.to.name
-            then
-               return;
-            end if;
-         end loop;
-         Response.result.Append (Call);
+         if not Filter.Contains (Span) then
+            Response.result.Append (Call);
+            Filter.Insert (Span);
+         end if;
       end Add_Outgoing_Call;
 
       ---------------------
@@ -4393,7 +4418,7 @@ package body LSP.Ada_Handlers is
                      Spans => New_Call.fromRanges,
                      Kinds => New_Call.kinds);
 
-                  Add_Outgoing_Call (New_Call);
+                  Add_Outgoing_Call (Filter, New_Call);
                   References_By_Subprogram.Next (C);
                end;
             end loop;
@@ -4478,6 +4503,20 @@ package body LSP.Ada_Handlers is
       Self.Contexts.Reload_All_Contexts;
    end Handle_Error;
 
+   function Hash (Value : File_Span) return Ada.Containers.Hash_Type is
+      use type Ada.Containers.Hash_Type;
+      Prime : constant := 271;
+      Name  : constant Ada.Containers.Hash_Type := Value.File.Full_Name_Hash;
+      From  : constant Ada.Containers.Hash_Type :=
+        Prime * Ada.Containers.Hash_Type'Mod (Value.Span.first.line)
+        + Ada.Containers.Hash_Type'Mod (Value.Span.first.character);
+      To    : constant Ada.Containers.Hash_Type :=
+        Prime * Ada.Containers.Hash_Type'Mod (Value.Span.last.line)
+        + Ada.Containers.Hash_Type'Mod (Value.Span.last.character);
+   begin
+      return Name + From + To;
+   end Hash;
+
    ------------------
    -- Show_Message --
    ------------------
@@ -4542,10 +4581,13 @@ package body LSP.Ada_Handlers is
 
    function To_File
      (Self : Message_Handler'Class;
-      URI  : LSP.Types.LSP_String) return GNATCOLL.VFS.Virtual_File is
+      URI  : LSP.Types.LSP_URI) return GNATCOLL.VFS.Virtual_File
+   is
+      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
+      Result : constant String := URIs.Conversions.To_File
+        (To, Normalize => Self.Follow_Symlinks);
    begin
-      return GNATCOLL.VFS.Create_From_UTF8
-        (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)));
+      return GNATCOLL.VFS.Create_From_UTF8 (Result);
    end To_File;
 
    -----------------

@@ -38,8 +38,7 @@ package body LSP.Ada_Handlers.File_Readers is
    begin
       --  First check if the file is an open document
       Doc := Self.Handler.Get_Open_Document
-        (URI   => Self.Handler.File_To_URI
-           (LSP.Types.To_LSP_String (Filename)),
+        (URI   => LSP.Types.File_To_URI (Filename),
          Force => False);
 
       if Doc /= null then

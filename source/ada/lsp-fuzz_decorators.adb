@@ -29,7 +29,7 @@ package body LSP.Fuzz_Decorators is
      (Key_Type        => LSP.Messages.DocumentUri,
       Element_Type    => LSP.Types.LSP_String,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
+      Equivalent_Keys => LSP.Types.Equal);
 
    Open_Docs : Document_Maps.Map;
    --  Container for documents indexed by URI

@@ -60,6 +60,16 @@ package LSP.Ada_Handlers is
 
    subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
 
+   function From_File
+     (Self : Message_Handler'Class;
+      File : Virtual_File) return LSP.Messages.DocumentUri;
+   --  Turn Virtual_File to URI
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_URI) return GNATCOLL.VFS.Virtual_File;
+   --  Turn URI into Virtual_File
+
 private
 
    --  Options for refactoring/renaming

@@ -22,8 +22,6 @@ with Libfswatch;                use Libfswatch;
 
 with GNATCOLL.VFS;              use GNATCOLL.VFS;
 
-with LSP.Ada_Contexts;
-
 package body LSP.Servers.FS_Watch is
 
    Filesystem_Monitoring_Trace : constant GNATCOLL.Traces.Trace_Handle :=
@@ -74,8 +72,7 @@ package body LSP.Servers.FS_Watch is
             Message : Message_Access;
             Changes : DidChangeWatchedFilesParams;
             URI     : constant LSP.Messages.DocumentUri :=
-              LSP.Ada_Contexts.File_To_URI (LSP.Types.To_LSP_String
-                                            (File.Display_Full_Name));
+              LSP.Types.File_To_URI (File.Display_Full_Name);
          begin
             for F of E.Flags loop
                Changes.changes.Append

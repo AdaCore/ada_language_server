@@ -17,6 +17,8 @@
 --
 --  This package provides some Libadalang related utility subprograms.
 
+with GNATCOLL.VFS;
+
 with LSP.Ada_Contexts;
 with LSP.Messages;
 with LSP.Types;
@@ -58,9 +60,9 @@ package LSP.Lal_Utils is
      (Result : in out LSP.Messages.DocumentHighlight_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.Optional_DocumentHighlightKind;
-      Uri    : LSP.Messages.DocumentUri);
-   --  The same for Location_Vector.
-   --  Uri is used to filter out the location not in the Document.
+      File   : GNATCOLL.VFS.Virtual_File);
+   --  The same for DocumentHighlight_Vector.
+   --  File is used to filter out the location not in the Document.
 
    procedure Sort_And_Remove_Duplicates
      (Result : in out LSP.Messages.Location_Vector);
