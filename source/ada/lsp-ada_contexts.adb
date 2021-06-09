@@ -501,12 +501,12 @@ package body LSP.Ada_Contexts is
      (Self   : Context;
       Prefix : VSS.Strings.Virtual_String;
       Callback : not null access procedure
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean))
    is
       procedure Adapter
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean);
       --  Find a Defining_Name at the given location Loc in a unit of URI and
@@ -517,13 +517,13 @@ package body LSP.Ada_Contexts is
       -------------
 
       procedure Adapter
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean)
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
              Self.LAL_Context.Get_From_File
-               (LSP.Types.To_UTF_8_String (Self.URI_To_File (URI)),
+               (File.Display_Full_Name,
                 Charset => Self.Get_Charset);
 
          Name : constant Libadalang.Analysis.Name :=
@@ -533,7 +533,7 @@ package body LSP.Ada_Contexts is
            Laltools.Common.Get_Name_As_Defining (Name);
       begin
          if not Def_Name.Is_Null then
-            Callback (URI, Def_Name, Stop);
+            Callback (File, Def_Name, Stop);
          end if;
       end Adapter;
 
@@ -649,9 +649,13 @@ package body LSP.Ada_Contexts is
       -- Pretty_Printer_Setup --
       --------------------------
 
-      procedure Pretty_Printer_Setup is
-         Options : GNAT.Strings.String_List_Access;
-         Default : Boolean;
+      procedure Pretty_Printer_Setup
+      is
+         use type GNAT.Strings.String_Access;
+         Options   : GNAT.Strings.String_List_Access;
+         Validated : GNAT.Strings.String_List_Access;
+         Last      : Integer;
+         Default   : Boolean;
       begin
          Root.Switches
            (In_Pkg           => "Pretty_Printer",
@@ -660,9 +664,29 @@ package body LSP.Ada_Contexts is
             Value            => Options,
             Is_Default_Value => Default);
 
-         --  Initialize an empty gnatpp command line object
+         --  Initialize an gnatpp command line object
+         Last := Options'First - 1;
+         for Item of Options.all loop
+            if Item /= null
+              and then Item.all /= ""
+            then
+               Last := Last + 1;
+            end if;
+         end loop;
+
+         Validated := new GNAT.Strings.String_List (Options'First .. Last);
+         Last      := Options'First - 1;
+         for Item of Options.all loop
+            if Item /= null
+              and then Item.all /= ""
+            then
+               Last := Last + 1;
+               Validated (Last) := new String'(Item.all);
+            end if;
+         end loop;
+
          Utils.Command_Lines.Parse
-           (Options,
+           (Validated,
             Self.PP_Options,
             Phase              => Utils.Command_Lines.Cmd_Line_1,
             Callback           => null,
@@ -670,8 +694,10 @@ package body LSP.Ada_Contexts is
             Ignore_Errors      => True);
 
          GNAT.Strings.Free (Options);
-         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
+         GNAT.Strings.Free (Validated);
+
          --  Set UTF-8 encoding
+         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
       end Pretty_Printer_Setup;
    begin
       Self.Id := LSP.Types.To_LSP_String (Root.Name);
@@ -847,11 +873,8 @@ package body LSP.Ada_Contexts is
           (File.Display_Full_Name,
            Charset => Self.Get_Charset,
            Reparse => Reparse);
-      Name : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String (Unit.Get_Filename);
-      URI  : constant LSP.Messages.DocumentUri := File_To_URI (Name);
    begin
-      Self.Source_Files.Index_File (URI, Unit);
+      Self.Source_Files.Index_File (File, Unit);
    end Index_File;
 
    --------------------

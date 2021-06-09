@@ -29,9 +29,6 @@ with Langkit_Support.Slocs;
 
 with VSS.Strings;
 
-with LSP.Messages;
-with LSP.Types;
-
 package LSP.Ada_File_Sets is
 
    package File_Sets is new Ada.Containers.Ordered_Sets
@@ -58,7 +55,7 @@ package LSP.Ada_File_Sets is
 
    procedure Index_File
      (Self : in out Indexed_File_Set'Class;
-      URI  : LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
       Unit : Libadalang.Analysis.Analysis_Unit);
    --  Append names defined in the Unit (identified by URI) to internal symbol
    --  index. After that names could be fetched using Get_Any_Symbol_Completion
@@ -68,7 +65,7 @@ package LSP.Ada_File_Sets is
      (Self     : Indexed_File_Set'Class;
       Prefix   : VSS.Strings.Virtual_String;
       Callback : not null access procedure
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the set and
@@ -77,7 +74,7 @@ package LSP.Ada_File_Sets is
 
 private
    type Name_Information is record
-      URI  : LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
       Loc  : Langkit_Support.Slocs.Source_Location;
    end record;
 
@@ -91,17 +88,17 @@ private
       Name_Vectors."=");
    --  A map from cannonical writting to vector of name information
 
-   package String_Sets is new Ada.Containers.Hashed_Sets
-     (LSP.Types.LSP_String,
-      LSP.Types.Hash,
-      LSP.Types."=",
-      LSP.Types."=");
+   package Hashed_File_Sets is new Ada.Containers.Hashed_Sets
+     (GNATCOLL.VFS.Virtual_File,
+      GNATCOLL.VFS.Full_Name_Hash,
+      GNATCOLL.VFS."=",
+      GNATCOLL.VFS."=");
 
    type Indexed_File_Set is tagged limited record
       Files       : File_Sets.Set;
       All_Symbols : Symbol_Maps.Map;
       --  Index of all symbols defined in Files
-      Indexed     : String_Sets.Set;
+      Indexed     : Hashed_File_Sets.Set;
       --  Set of document URIs presented in All_Symbols
    end record;
 

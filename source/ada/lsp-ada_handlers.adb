@@ -3842,7 +3842,7 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Symbol_Response
    is
       procedure On_Inaccessible_Name
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean);
 
@@ -3869,11 +3869,9 @@ package body LSP.Ada_Handlers is
       --------------------------
 
       procedure On_Inaccessible_Name
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean)
-      is
-         File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+         Stop : in out Boolean) is
       begin
          --  Skip all names in open documents, because they could have
          --  stale references. Then skip already provided results.
@@ -3935,7 +3933,7 @@ package body LSP.Ada_Handlers is
       --  project contexts.
 
       procedure On_Inaccessible_Name
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean);
 
@@ -3957,11 +3955,9 @@ package body LSP.Ada_Handlers is
       --------------------------
 
       procedure On_Inaccessible_Name
-        (URI  : LSP.Messages.DocumentUri;
+        (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean)
-      is
-         File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+         Stop : in out Boolean) is
       begin
          --  Skip all names in open documents, because they could have
          --  stale references. Then skip already provided results.
