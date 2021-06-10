@@ -743,7 +743,7 @@ package body LSP.Ada_Documents is
    procedure Get_Imported_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_URI   : LSP.Types.LSP_String;
+      Project_URI   : LSP.Types.LSP_URI;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -767,8 +767,7 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Ada_Contexts.File_To_URI
-                      (LSP.Types.To_LSP_String (Unit.Unit.Get_Filename)),
+                 (uri        => LSP.Types.File_To_URI (Unit.Unit.Get_Filename),
                   projectUri => Project_URI));
          end loop;
       end Append_Units;
@@ -814,7 +813,7 @@ package body LSP.Ada_Documents is
    procedure Get_Importing_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
-      Project_URI   : LSP.Types.LSP_String;
+      Project_URI   : LSP.Types.LSP_URI;
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
@@ -834,8 +833,7 @@ package body LSP.Ada_Documents is
          for Unit of Units loop
             Result.Append
               (LSP.Messages.ALS_Unit_Description'
-                 (uri        => LSP.Ada_Contexts.File_To_URI
-                      (LSP.Types.To_LSP_String (Unit.Get_Filename)),
+                 (uri        => LSP.Types.File_To_URI (Unit.Get_Filename),
                   projectUri => Project_URI));
          end loop;
       end Append_Units;
@@ -2619,18 +2617,20 @@ package body LSP.Ada_Documents is
          Item                : Completion_Item;
          BD                  : Basic_Decl;
          Completion_Count    : Natural := 0;
+         Name                : LSP.Types.LSP_String;
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
             Completion_Count := Completion_Count + 1;
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
+                  Name := To_LSP_String (DN.P_Relative_Name.Text);
 
                   --  If we are not completing a dotted name, filter the
                   --  raw completion results by the node's prefix.
                   if Node.Kind in Ada_Dotted_Name_Range
                     or else Starts_With
-                      (To_LSP_String (DN.P_Relative_Name.Text),
+                      (Name,
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
@@ -2728,10 +2728,10 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit
    is
-      File : constant LSP.Types.LSP_String := Context.URI_To_File (Self.URI);
+      File : constant String := Context.URI_To_File (Self.URI);
    begin
       return Context.LAL_Context.Get_From_File
-        (Filename => LSP.Types.To_UTF_8_String (File),
+        (Filename => File,
          Charset  => Context.Charset,
          Reparse  => False);
    end Unit;

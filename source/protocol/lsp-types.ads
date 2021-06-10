@@ -19,6 +19,7 @@
 
 with Ada.Containers.Vectors;
 with Ada.Streams;
+with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with Ada.Strings.Wide_Wide_Unbounded;
@@ -366,5 +367,21 @@ package LSP.Types is
    -------------------
 
    subtype ProgressToken is LSP_Number_Or_String;
+
+   type LSP_URI is new LSP_String;
+
+   function Equal (Left, Right : LSP_URI) return Boolean renames "=";
+   --  Let's try to avoid URI comparison.
+
+   overriding function "=" (Left, Right : LSP_URI) return Boolean is abstract;
+   --  Disable URI comparison with "=". Two URIs can point the same file
+   --  even when they are distinct. In most case we shouldn't compare URIs,
+   --  but find corresponding files and compare their normalized names.
+
+   function File_To_URI (File : String) return LSP.Types.LSP_URI;
+   --  Turn the File name into an URI
+
+   function File_To_URI
+     (File : Ada.Strings.Unbounded.Unbounded_String) return LSP.Types.LSP_URI;
 
 end LSP.Types;

@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 --
 --  This package provides LSP messages types, request parameters and results
---  types, corresponding encodein/decoding procedures to/from JSON stream.
+--  types, corresponding encoding/decoding procedures to/from JSON stream.
 --
 --  We keep original LSP specification in the comments as TypeScript snippet.
 --  Some of snippets are out of order, because of forward declaration
@@ -293,12 +293,12 @@ package LSP.Messages is
    --```typescript
    --type DocumentUri = string;
    --```
-   subtype DocumentUri is LSP.Types.LSP_String;
+   subtype DocumentUri is LSP.Types.LSP_URI;
 
    --```typescript
    --type URI = string;
    --```
-   subtype URI is LSP.Types.LSP_String;
+   subtype URI is LSP.Types.LSP_URI;
 
    --```typescript
    --export const EOL: string[] = ['\n', '\r\n', '\r'];
@@ -466,6 +466,12 @@ package LSP.Messages is
      new LSP.Generic_Optional (AlsReferenceKind_Set);
    type Optional_AlsReferenceKind_Set is
      new Optional_AlsReferenceKind_Sets.Optional_Type;
+
+   package AlsReferenceKind_Vectors is new LSP.Generic_Vectors
+     (AlsReferenceKind, Write_Empty => LSP.Write_Array);
+
+   type AlsReferenceKind_Vector is new AlsReferenceKind_Vectors.Vector with
+     null record;
 
    --  Display method ancestry on navigation ALS extension:
    --
@@ -1114,7 +1120,7 @@ package LSP.Messages is
      (Key_Type        => DocumentUri,
       Element_Type    => TextEdit_Vector,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
+      Equivalent_Keys => LSP.Types.Equal);
 
    --```typescript
    --/**
@@ -1982,6 +1988,12 @@ package LSP.Messages is
 
    package SymbolTagSets is new LSP.Generic_Sets (SymbolTag, LSP.Skip);
    type SymbolTagSet is new SymbolTagSets.Set;
+
+   package Optional_SymbolTagSets is
+     new LSP.Generic_Optional (SymbolTagSet);
+
+   type Optional_SymbolTagSet is
+     new Optional_SymbolTagSets.Optional_Type;
 
    type tagSupportCapability is record
       valueSet: SymbolTagSet;
@@ -9907,7 +9919,7 @@ package LSP.Messages is
    type CallHierarchyItem is record
       name: LSP_String;
       kind: SymbolKind;
-      tags: SymbolTagSet;
+      tags: Optional_SymbolTagSet;
       detail: Optional_String;
       uri: DocumentUri;
       span: LSP.Messages.Span;  --  range: is reserved word
@@ -9967,6 +9979,7 @@ package LSP.Messages is
    type CallHierarchyIncomingCall is record
       from: CallHierarchyItem;
       fromRanges: Span_Vector;
+      kinds: AlsReferenceKind_Vector;
    end record;
 
    procedure Read_CallHierarchyIncomingCall
@@ -10010,6 +10023,7 @@ package LSP.Messages is
    type CallHierarchyOutgoingCall is record
       to: CallHierarchyItem;
       fromRanges: Span_Vector;
+      kinds: AlsReferenceKind_Vector;
    end record;
 
    procedure Read_CallHierarchyOutgoingCall
@@ -10389,7 +10403,7 @@ package LSP.Messages is
    --}
    --```
    type ShowDocumentParams is record
-      uri: LSP_String;
+      uri: DocumentUri;
       external: Optional_Boolean;
       takeFocus: Optional_Boolean;
       selection: Optional_Span;

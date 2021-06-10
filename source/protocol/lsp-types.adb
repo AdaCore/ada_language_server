@@ -29,6 +29,8 @@ with VSS.Strings.Character_Iterators;
 
 with LSP.JSON_Streams;
 
+with URIs;
+
 package body LSP.Types is
    use type VSS.JSON.Streams.Readers.JSON_Event_Kind;
 
@@ -49,6 +51,23 @@ package body LSP.Types is
    begin
       return Id.Is_Number or else Length (Id.String) > 0;
    end Assigned;
+
+   -----------------
+   -- File_To_URI --
+   -----------------
+
+   function File_To_URI (File : String) return LSP.Types.LSP_URI is
+      Result : constant URIs.URI_String :=
+        URIs.Conversions.From_File (File);
+   begin
+      return LSP.Types.To_LSP_String (Result);
+   end File_To_URI;
+
+   function File_To_URI (File : Ada.Strings.Unbounded.Unbounded_String)
+     return LSP.Types.LSP_URI is
+   begin
+      return File_To_URI (Ada.Strings.Unbounded.To_String (File));
+   end File_To_URI;
 
    ----------
    -- Hash --

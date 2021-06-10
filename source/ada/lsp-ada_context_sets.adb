@@ -75,7 +75,8 @@ package body LSP.Ada_Context_Sets is
    begin
       for Context of Self.Contexts loop
          declare
-            File : constant Virtual_File := Context.To_File (URI);
+            File : constant Virtual_File :=
+              Create_From_UTF8 (Context.URI_To_File (URI));
          begin
             if Context.Is_Part_Of_Project (File) then
                return Context;
