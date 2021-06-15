@@ -47,10 +47,13 @@ package LSP.Ada_Contexts is
    --  libadalang context.
 
    procedure Initialize
-     (Self            : in out Context;
-      File_Reader     : File_Reader_Interface'Class;
-      Follow_Symlinks : Boolean);
+     (Self                : in out Context;
+      File_Reader         : File_Reader_Interface'Class;
+      Follow_Symlinks     : Boolean;
+      As_Fallback_Context : Boolean := False);
    --  Initialize the context, set Follow_Symlinks flag.
+   --  As_Fallback_Context should be set when we are creating the "fallback"
+   --  context based on the empty project.
 
    procedure Load_Project
      (Self     : in out Context;
@@ -240,6 +243,10 @@ private
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
+
+      Is_Fallback_Context : Boolean := False;
+      --  Indicate that this is a "fallback" context, ie the context
+      --  holding any file, in the case no valid project was loaded.
 
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.
