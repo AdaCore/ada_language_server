@@ -519,7 +519,8 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
       Self.Project_Tree := new Project_Tree;
 
-      C.Initialize (Reader, Self.Follow_Symlinks);
+      C.Initialize (Reader, Self.Follow_Symlinks,
+                    As_Fallback_Context => True);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:

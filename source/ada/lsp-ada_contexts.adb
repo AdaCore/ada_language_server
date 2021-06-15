@@ -546,9 +546,10 @@ package body LSP.Ada_Contexts is
    ----------------
 
    procedure Initialize
-     (Self            : in out Context;
-      File_Reader     : File_Reader_Interface'Class;
-      Follow_Symlinks : Boolean) is
+     (Self                : in out Context;
+      File_Reader         : File_Reader_Interface'Class;
+      Follow_Symlinks     : Boolean;
+      As_Fallback_Context : Boolean := False) is
    begin
       Self.Follow_Symlinks := Follow_Symlinks;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
@@ -559,6 +560,7 @@ package body LSP.Ada_Contexts is
          File_Reader   => Self.Reader_Reference,
          With_Trivia   => True,
          Charset       => Self.Get_Charset);
+      Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;
 
    ------------------------
@@ -569,7 +571,8 @@ package body LSP.Ada_Contexts is
      (Self : Context;
       File : Virtual_File) return Boolean is
    begin
-      return Self.Source_Files.Contains (File);
+      return Self.Is_Fallback_Context
+        or else Self.Source_Files.Contains (File);
    end Is_Part_Of_Project;
 
    ------------------
