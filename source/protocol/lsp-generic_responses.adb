@@ -42,7 +42,7 @@ package body LSP.Generic_Responses is
             JS.R.Read_Next;
 
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "id" then
                LSP.Types.LSP_Number_Or_String'Read (S, V.id);
             elsif Key = "error" then

@@ -95,7 +95,9 @@ package LSP.Messages is
    --}
    --```
    type Message is abstract tagged record
-      jsonrpc: LSP_String;
+      jsonrpc: VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
    end record;
 
    --```typescript

@@ -840,7 +840,7 @@ package body LSP.Servers is
       Value : in out Message_Access)
    is
    begin
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Self.Output_Queue.Enqueue (Value);
       Value := null;
    end Send_Notification;
@@ -859,7 +859,7 @@ package body LSP.Servers is
         new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
       --  The Message will be deleted by Output_Task
    begin
-      Message.jsonrpc := +"2.0";
+      Message.jsonrpc := "2.0";
       Self.Last_Request := Self.Last_Request + 1;
       Message.id := (Is_Number => True, Number => Self.Last_Request);
       Message.method := LSP.Types.To_LSP_String (Method);
@@ -875,7 +875,7 @@ package body LSP.Servers is
       Response   : in out Response_Access;
       Request_Id : LSP.Types.LSP_Number_Or_String) is
    begin
-      Response.jsonrpc := +"2.0";
+      Response.jsonrpc := "2.0";
       Response.id := Request_Id;
       Self.Output_Queue.Enqueue (Message_Access (Response));
       Response := null;
