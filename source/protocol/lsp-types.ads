@@ -175,7 +175,7 @@ package LSP.Types is
          when True =>
             Number : LSP_Number;
          when False =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
       end case;
    end record;
 
@@ -198,8 +198,8 @@ package LSP.Types is
    function Hash
      (Item : LSP.Types.LSP_Number_Or_String) return Ada.Containers.Hash_Type;
 
-   function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
-      return Ada.Strings.UTF_Encoding.UTF_8_String;
+   function To_Virtual_String (Item : LSP.Types.LSP_Number_Or_String)
+      return VSS.Strings.Virtual_String;
 
    type LSP_Boolean_Or_String (Is_Boolean : Boolean := False) is record
       case Is_Boolean is

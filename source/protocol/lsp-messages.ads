@@ -231,7 +231,9 @@ package LSP.Messages is
    subtype Optional_ResponseError is LSP.Errors.Optional_ResponseError;
 
    type ResponseMessage (Is_Error : Boolean) is new Message with record
-      id: LSP_Number_Or_String;  --  or null?
+      id: LSP_Number_Or_String := (others => <>);  --  or null?
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
       error: Optional_ResponseError (Is_Error);
    end record;
 

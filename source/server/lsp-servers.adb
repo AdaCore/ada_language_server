@@ -335,8 +335,7 @@ package body LSP.Servers is
                         when String_Value =>
                            Request_Id :=
                              (Is_Number => False,
-                              String    =>
-                                 LSP.Types.To_LSP_String (JS.R.String_Value));
+                              String    => JS.R.String_Value);
                         when Number_Value =>
                            Request_Id :=
                              (Is_Number => True,

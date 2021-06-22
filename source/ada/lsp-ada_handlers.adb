@@ -3702,7 +3702,7 @@ package body LSP.Ada_Handlers is
       --  but the consequences are acceptable.)
       return
         (Is_Number => False,
-         String    => To_LSP_String
+         String    => VSS.Strings.Conversions.To_Virtual_String
            ("ada_ls-"
             & Pid & "-" & Operation & "-"
             & GNATCOLL.Utils.Image (Self.Token_Id, 1)));

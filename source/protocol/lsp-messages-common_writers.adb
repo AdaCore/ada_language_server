@@ -36,7 +36,7 @@ package body LSP.Messages.Common_Writers is
 
       if V.id.Is_Number then
          Write_Number (JS, "id", V.id.Number);
-      elsif not Is_Empty (V.id.String) then
+      elsif not V.id.String.Is_Empty then
          Write_String (JS, "id", V.id.String);
       end if;
 
