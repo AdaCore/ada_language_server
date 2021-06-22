@@ -63,9 +63,16 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
-          key: ${{ runner.os }}-gnat-ce-2020
-          restore-keys: ${{ runner.os }}-gnat-ce-2020
+          key: ${{ runner.os }}-gnat-ce-2021
+          restore-keys: ${{ runner.os }}-gnat-ce-2021
+      - name: Get GNAT Community 2021 toolchain
+        if: ${{ runner.os != 'macOS' }}
+        uses: ada-actions/toolchain@ce2021
+        with:
+          distrib: community
+          install_dir: ./cached_gnat
       - name: Get GNAT Community 2020 toolchain
+        if: ${{ runner.os == 'macOS' }}
         uses: ada-actions/toolchain@ce2020
         with:
           distrib: community
