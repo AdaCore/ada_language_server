@@ -50,7 +50,7 @@ package body LSP.Types is
 
    function Assigned (Id : LSP_Number_Or_String) return Boolean is
    begin
-      return Id.Is_Number or else Length (Id.String) > 0;
+      return Id.Is_Number or else not Id.String.Is_Empty;
    end Assigned;
 
    -----------------
@@ -353,11 +353,11 @@ package body LSP.Types is
          when VSS.JSON.Streams.Readers.Null_Value =>
 
             V := (Is_Number => False,
-                  String    => Empty_LSP_String);
+                  String    => <>);
 
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_Number => False,
-                  String    => To_LSP_String (JS.R.String_Value));
+                  String    => JS.R.String_Value);
 
          when VSS.JSON.Streams.Readers.Number_Value =>
             V := (Is_Number => True,
@@ -736,24 +736,6 @@ package body LSP.Types is
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
    end To_UTF_8_String;
 
-   ---------------------
-   -- To_UTF_8_String --
-   ---------------------
-
-   function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
-      return Ada.Strings.UTF_Encoding.UTF_8_String is
-   begin
-      if Item.Is_Number then
-         declare
-            Image : constant String := LSP_Number'Image (Item.Number);
-         begin
-            return Image (Image'First + 1 .. Image'Last);
-         end;
-      else
-         return To_UTF_8_String (Item.String);
-      end if;
-   end To_UTF_8_String;
-
    -------------------------------
    -- To_UTF_8_Unbounded_String --
    -------------------------------
@@ -881,6 +863,27 @@ package body LSP.Types is
          Free (Aux);
 
          raise;
+   end To_Virtual_String;
+
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String (Item : LSP.Types.LSP_Number_Or_String)
+      return VSS.Strings.Virtual_String is
+   begin
+      if Item.Is_Number then
+         declare
+            Image : constant Wide_Wide_String :=
+              LSP_Number'Wide_Wide_Image (Item.Number);
+         begin
+            return
+              VSS.Strings.To_Virtual_String
+                (Image (Image'First + 1 .. Image'Last));
+         end;
+      else
+         return Item.String;
+      end if;
    end To_Virtual_String;
 
    -----------
@@ -1116,8 +1119,8 @@ package body LSP.Types is
    begin
       if V.Is_Number then
          Write (S, V.Number);
-      elsif not Is_Empty (V.String) then
-         Write (S, V.String);
+      elsif not V.String.Is_Empty then
+         Write_String (S, V.String);
       end if;
    end Write_LSP_Number_Or_String;
 
@@ -1152,7 +1155,7 @@ package body LSP.Types is
    begin
       if Item.Is_Number then
          Write_Number (Stream, Key, Item.Number);
-      elsif not Is_Empty (Item.String) then
+      elsif not Item.String.Is_Empty then
          Write_String (Stream, Key, Item.String);
       end if;
    end Write_Number_Or_String;

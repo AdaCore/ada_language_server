@@ -69,7 +69,7 @@ package body LSP.Message_Loggers is
       if Value.Is_Number then
          return LSP.Types.LSP_Number'Image (Value.Number);
       else
-         return +Value.String;
+         return VSS.Strings.Conversions.To_UTF_8_String (Value.String);
       end if;
    end Image;
 
@@ -93,7 +93,10 @@ package body LSP.Message_Loggers is
       if Value.id.Is_Number then
          return Prefix & LSP.Types.LSP_Number'Image (Value.id.Number) & ' ';
       else
-         return Prefix & (+Value.id.String) & ' ';
+         return
+           Prefix
+           & (VSS.Strings.Conversions.To_UTF_8_String (Value.id.String))
+           & ' ';
       end if;
    end Image;
 
@@ -365,7 +368,9 @@ package body LSP.Message_Loggers is
       Value : LSP.Messages.CancelParams) is
    begin
       Self.Trace.Trace
-        ("On_Cancel_Notification: " & LSP.Types.To_UTF_8_String (Value.id));
+        ("On_Cancel_Notification: "
+         & VSS.Strings.Conversions.To_UTF_8_String
+           (LSP.Types.To_Virtual_String (Value.id)));
    end On_Cancel_Notification;
 
    ----------------------------
@@ -1219,16 +1224,19 @@ package body LSP.Message_Loggers is
       case Params.Kind is
          when Progress_Begin =>
             Self.Trace.Trace ("Progress_Begin: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.Begin_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.Begin_Param.token)));
          when Progress_Report =>
             Self.Trace.Trace ("Progress_Report: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.Report_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.Report_Param.token)));
          when Progress_End =>
             Self.Trace.Trace ("Progress_End: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.End_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.End_Param.token)));
       end case;
    end On_Progress;
 

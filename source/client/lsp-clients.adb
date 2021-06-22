@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Wide_Unbounded;
-
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
@@ -174,22 +172,26 @@ package body LSP.Clients is
    function Allocate_Request_Id
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String
    is
-      Prefix : constant LSP.Types.LSP_String := Self.Request_Id_Prefix;
+      Id : VSS.Strings.Virtual_String := Self.Request_Id_Prefix;
 
    begin
       Self.Request_Id := Self.Request_Id + 1;
 
-      if LSP.Types.Length (Prefix) = 0 then
+      if not Id.Is_Empty then
          return (True, Self.Request_Id);
 
       else
          declare
-            Image : constant Wide_String :=
-              LSP.Types.LSP_Number'Wide_Image (Self.Request_Id);
+            Image : constant Wide_Wide_String :=
+              LSP.Types.LSP_Number'Wide_Wide_Image (Self.Request_Id);
 
          begin
-            return
-              (False, Prefix & '-' & Image (Image'First + 1 .. Image'Last));
+            Id.Append ('-');
+            Id.Append
+              (VSS.Strings.To_Virtual_String
+                 (Image (Image'First + 1 .. Image'Last)));
+
+            return (False, Id);
          end;
       end if;
    end Allocate_Request_Id;
@@ -629,8 +631,7 @@ package body LSP.Clients is
                      when String_Value =>
                         Id :=
                           (Is_Number => False,
-                           String    =>
-                              LSP.Types.To_LSP_String (R.String_Value));
+                           String    => R.String_Value);
                      when Number_Value =>
                         Id :=
                           (Is_Number => True,
@@ -786,9 +787,10 @@ package body LSP.Clients is
                  (Stream'Access, Id, Is_Error, Self.Response_Handler);
             else
                Self.Error_Message :=
-                 VSS.Strings.Conversions.To_Virtual_String
+                 VSS.Strings.To_Virtual_String
                    ("Unknown request id '"
-                    & LSP.Types.To_UTF_8_String (Id)
+                    & VSS.Strings.Conversions.To_Wide_Wide_String
+                      (LSP.Types.To_Virtual_String (Id))
                     & ''');
                Success := False;
             end if;
@@ -815,11 +817,10 @@ package body LSP.Clients is
    -- Request_Id_Prefix --
    -----------------------
 
-   function Request_Id_Prefix (Self : Client) return LSP.Types.LSP_String is
+   function Request_Id_Prefix
+     (Self : Client) return VSS.Strings.Virtual_String is
    begin
-      return
-        LSP.Types.LSP_String
-          (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
+      return VSS.Strings.Empty_Virtual_String;
    end Request_Id_Prefix;
 
    -----------------------

@@ -21,7 +21,7 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
 with Ada.Strings.UTF_Encoding;
 
-private with VSS.Strings;
+with VSS.Strings;
 
 with LSP.Messages;
 with LSP.Server_Notification_Receivers;
@@ -182,7 +182,8 @@ package LSP.Clients is
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String;
    --  Allocates request id.
 
-   function Request_Id_Prefix (Self : Client) return LSP.Types.LSP_String;
+   function Request_Id_Prefix
+     (Self : Client) return VSS.Strings.Virtual_String;
    --  Prefix to generate request id in form "prefix-id".
 
 private
