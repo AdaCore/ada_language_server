@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,20 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
 with Interfaces;
+
+with VSS.Strings;
 
 with LSP.JSON_Streams;
 
-with VSS.JSON.Streams.Readers;
-with VSS.Strings.Conversions;
-
 package body LSP.Errors is
    use type Interfaces.Integer_64;
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    Error_Map : constant array (ErrorCodes) of Interfaces.Integer_64
      :=
@@ -61,8 +55,11 @@ package body LSP.Errors is
 
       while not JS.R.Is_End_Object loop
          declare
-            Key : constant String :=
-              VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            use type VSS.Strings.Virtual_String;
+
+            Key : constant VSS.Strings.Virtual_String :=
+              JS.R.Key_Name;
+
          begin
             JS.R.Read_Next;
 
@@ -106,7 +103,7 @@ package body LSP.Errors is
       JS.Start_Object;
       JS.Key ("code");
       JS.Write_Integer (Error_Map (V.code));
-      Write_String (JS, +"message", V.message);
+      Write_String (JS, "message", V.message);
 
       if not V.data.Is_Empty then
          JS.Key ("data");

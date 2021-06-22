@@ -936,10 +936,10 @@ package body LSP.Types is
 
    procedure Write_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : Boolean) is
    begin
-      Stream.Key (LSP.Types.To_Virtual_String (Key));
+      Stream.Key (Key);
       Stream.Write_Boolean (Item);
    end Write_Boolean;
 
@@ -949,10 +949,10 @@ package body LSP.Types is
 
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_Number) is
    begin
-      Stream.Key (LSP.Types.To_Virtual_String (Key));
+      Stream.Key (Key);
       Stream.Write_Integer (Interfaces.Integer_64 (Item));
    end Write_Number;
 
@@ -978,11 +978,11 @@ package body LSP.Types is
 
    procedure Write_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.Optional_Boolean) is
    begin
       if Item.Is_Set then
-         Stream.Key (LSP.Types.To_Virtual_String (Key));
+         Stream.Key (Key);
          Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
@@ -1041,10 +1041,10 @@ package body LSP.Types is
 
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_String) is
    begin
-      Stream.Key (LSP.Types.To_Virtual_String (Key));
+      Stream.Key (Key);
       Stream.Write_String (Item);
    end Write_String;
 
@@ -1089,7 +1089,7 @@ package body LSP.Types is
 
    procedure Write_Number_Or_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_Number_Or_String) is
    begin
       if Item.Is_Number then
