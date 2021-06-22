@@ -1,7 +1,5 @@
 --  Automatically generated, do not edit.
 
-with Ada.Strings.UTF_Encoding;
-
 package body LSP.Messages.Server_Requests is
 
    --  These messages are sent from client to server.
@@ -247,137 +245,133 @@ package body LSP.Messages.Server_Requests is
       Handler.On_ALS_Debug_Request (Self);
    end Visit;
 
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
 begin
 
    Map.Insert
-     (+"initialize",
+     ("initialize",
       Initialize_Request'Tag);
 
    Map.Insert
-     (+"shutdown",
+     ("shutdown",
       Shutdown_Request'Tag);
 
    Map.Insert
-     (+"textDocument/codeAction",
+     ("textDocument/codeAction",
       CodeAction_Request'Tag);
 
    Map.Insert
-     (+"textDocument/completion",
+     ("textDocument/completion",
       Completion_Request'Tag);
 
    Map.Insert
-     (+"textDocument/definition",
+     ("textDocument/definition",
       Definition_Request'Tag);
 
    Map.Insert
-     (+"textDocument/declaration",
+     ("textDocument/declaration",
       Declaration_Request'Tag);
 
    Map.Insert
-     (+"textDocument/implementation",
+     ("textDocument/implementation",
       Implementation_Request'Tag);
 
    Map.Insert
-     (+"textDocument/typeDefinition",
+     ("textDocument/typeDefinition",
       Type_Definition_Request'Tag);
 
    Map.Insert
-     (+"textDocument/documentHighlight",
+     ("textDocument/documentHighlight",
       Highlight_Request'Tag);
 
    Map.Insert
-     (+"textDocument/hover",
+     ("textDocument/hover",
       Hover_Request'Tag);
 
    Map.Insert
-     (+"textDocument/documentLink",
+     ("textDocument/documentLink",
       Document_Links_Request'Tag);
 
    Map.Insert
-     (+"textDocument/references",
+     ("textDocument/references",
       References_Request'Tag);
 
    Map.Insert
-     (+"textDocument/signatureHelp",
+     ("textDocument/signatureHelp",
       Signature_Help_Request'Tag);
 
    Map.Insert
-     (+"textDocument/documentSymbol",
+     ("textDocument/documentSymbol",
       Document_Symbols_Request'Tag);
 
    Map.Insert
-     (+"textDocument/rename",
+     ("textDocument/rename",
       Rename_Request'Tag);
 
    Map.Insert
-     (+"textDocument/prepareRename",
+     ("textDocument/prepareRename",
       Prepare_Rename_Request'Tag);
 
    Map.Insert
-     (+"textDocument/executeCommand",
+     ("textDocument/executeCommand",
       Execute_Command_Request'Tag);
 
    Map.Insert
-     (+"textDocument/documentColor",
+     ("textDocument/documentColor",
       Document_Color_Request'Tag);
 
    Map.Insert
-     (+"textDocument/colorPresentation",
+     ("textDocument/colorPresentation",
       Color_Presentation_Request'Tag);
 
    Map.Insert
-     (+"textDocument/foldingRange",
+     ("textDocument/foldingRange",
       Folding_Range_Request'Tag);
 
    Map.Insert
-     (+"textDocument/formatting",
+     ("textDocument/formatting",
       Formatting_Request'Tag);
 
    Map.Insert
-     (+"textDocument/rangeFormatting",
+     ("textDocument/rangeFormatting",
       Range_Formatting_Request'Tag);
 
    Map.Insert
-     (+"textDocument/selectionRange",
+     ("textDocument/selectionRange",
       Selection_Range_Request'Tag);
 
    Map.Insert
-     (+"textDocument/prepareCallHierarchy",
+     ("textDocument/prepareCallHierarchy",
       Prepare_Call_Hierarchy_Request'Tag);
 
    Map.Insert
-     (+"callHierarchy/incomingCalls",
+     ("callHierarchy/incomingCalls",
       Incoming_Calls_Request'Tag);
 
    Map.Insert
-     (+"callHierarchy/outgoingCalls",
+     ("callHierarchy/outgoingCalls",
       Outgoing_Calls_Request'Tag);
 
    Map.Insert
-     (+"workspace/symbol",
+     ("workspace/symbol",
       Workspace_Symbols_Request'Tag);
 
    Map.Insert
-     (+"workspace/executeCommand",
+     ("workspace/executeCommand",
       Workspace_Execute_Command_Request'Tag);
 
    Map.Insert
-     (+"textDocument/alsCalledBy",
+     ("textDocument/alsCalledBy",
       ALS_Called_By_Request'Tag);
 
    Map.Insert
-     (+"textDocument/alsCalls",
+     ("textDocument/alsCalls",
       ALS_Calls_Request'Tag);
 
    Map.Insert
-     (+"textDocument/alsShowDependencies",
+     ("textDocument/alsShowDependencies",
       ALS_Show_Dependencies_Request'Tag);
 
    Map.Insert
-     (+"$/alsDebug",
+     ("$/alsDebug",
       ALS_Debug_Request'Tag);
 end LSP.Messages.Server_Requests;

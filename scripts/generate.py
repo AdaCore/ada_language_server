@@ -59,8 +59,6 @@ C_Method_Request_Snippet = """
 
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
-with Ada.Strings.UTF_Encoding;
-
 package body LSP.Messages.Server_{kind}s is
 
    --  These messages are sent from client to server.
@@ -141,7 +139,7 @@ begin
         (Is_Set => True,
          Value  =>
            (code    => LSP.Messages.MethodNotFound,
-            message => +"The {kind} handler doesn't support this",
+            message => "The {kind} handler doesn't support this",
             others  => <>)));
 end LSP.Servers.Handle_{kind};
 """
@@ -176,16 +174,12 @@ C_Handler_Snippet_Procedure_Noparams = """
 """
 
 LSP_Messages_Body_Begin = """
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
 begin"""
 
 LSP_Messages_Insert = """
 
    Map.Insert
-     (+"{protocol_name}",
+     ("{protocol_name}",
       {request_name}_{kind}'Tag);"""
 
 LSP_Messages_Generic_Footer = """

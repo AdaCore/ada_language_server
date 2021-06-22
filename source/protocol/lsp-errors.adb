@@ -17,8 +17,6 @@
 
 with Interfaces;
 
-with VSS.Strings;
-
 with LSP.JSON_Streams;
 
 package body LSP.Errors is
@@ -76,7 +74,7 @@ package body LSP.Errors is
                end loop;
 
             elsif Key = "message" then
-               LSP.Types.Read (S, V.message);
+               LSP.Types.Read_String (S, V.message);
 
             elsif Key = "data" then
                LSP.Types.LSP_Any'Read (S, V.data);

@@ -1,7 +1,5 @@
 --  Automatically generated, do not edit.
 
-with Ada.Strings.UTF_Encoding;
-
 package body LSP.Messages.Server_Notifications is
 
    --  These messages are sent from client to server.
@@ -106,49 +104,45 @@ package body LSP.Messages.Server_Notifications is
       Handler.On_DidCloseTextDocument_Notification (Self.params);
    end Visit;
 
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
 begin
 
    Map.Insert
-     (+"initialized",
+     ("initialized",
       Initialized_Notification'Tag);
 
    Map.Insert
-     (+"exit",
+     ("exit",
       Exit_Notification'Tag);
 
    Map.Insert
-     (+"workspace/didChangeConfiguration",
+     ("workspace/didChangeConfiguration",
       DidChangeConfiguration_Notification'Tag);
 
    Map.Insert
-     (+"workspace/didChangeWorkspaceFolders",
+     ("workspace/didChangeWorkspaceFolders",
       DidChangeWorkspaceFolders_Notification'Tag);
 
    Map.Insert
-     (+"workspace/didChangeWatchedFiles",
+     ("workspace/didChangeWatchedFiles",
       DidChangeWatchedFiles_Notification'Tag);
 
    Map.Insert
-     (+"$/cancelRequest",
+     ("$/cancelRequest",
       Cancel_Notification'Tag);
 
    Map.Insert
-     (+"textDocument/didOpen",
+     ("textDocument/didOpen",
       DidOpenTextDocument_Notification'Tag);
 
    Map.Insert
-     (+"textDocument/didChange",
+     ("textDocument/didChange",
       DidChangeTextDocument_Notification'Tag);
 
    Map.Insert
-     (+"textDocument/didSave",
+     ("textDocument/didSave",
       DidSaveTextDocument_Notification'Tag);
 
    Map.Insert
-     (+"textDocument/didClose",
+     ("textDocument/didClose",
       DidCloseTextDocument_Notification'Tag);
 end LSP.Messages.Server_Notifications;

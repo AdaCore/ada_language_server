@@ -231,11 +231,11 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.InvalidRequest,
-               message => LSP.Types.To_LSP_String (String'
+              (code    => LSP.Errors.InvalidRequest,
+               message => VSS.Strings.To_Virtual_String
                  ("Could not execute Move Parameter command. "
-                  & "The target subprogram could not be resolved precisely.")),
-               data => <>));
+                  & "The target subprogram could not be resolved precisely."),
+               data    => <>));
          return;
       end if;
 
@@ -267,10 +267,10 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => LSP.Types.To_LSP_String
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
                  (Ada.Exceptions.Exception_Information (E)),
-               data => <>));
+               data    => <>));
    end Execute;
 
    -------------------

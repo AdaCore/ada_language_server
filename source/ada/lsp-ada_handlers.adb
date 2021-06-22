@@ -28,6 +28,9 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
+with VSS.Strings.Conversions;
+with VSS.Unicode;
+
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Ada_Completion_Sets;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
@@ -64,9 +67,6 @@ with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
 with URIs;
-
-with VSS.Strings;
-with VSS.Unicode;
 
 package body LSP.Ada_Handlers is
 
@@ -1337,7 +1337,7 @@ package body LSP.Ada_Handlers is
          Response.error :=
            (True,
             (code => LSP.Errors.InternalError,
-             message => +"Not implemented",
+             message => "Not implemented",
              data    => <>));
          return Response;
       end if;
@@ -2017,7 +2017,7 @@ package body LSP.Ada_Handlers is
             Response.error :=
               (True,
                (code => LSP.Errors.InternalError,
-                message => +"Document is not opened",
+                message => "Document is not opened",
                 data => <>));
          end return;
       end if;
@@ -2039,7 +2039,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
+          message => "Not implemented",
           data => <>));
       return Response;
    end On_Selection_Range_Request;
@@ -2900,7 +2900,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
+          message => "Not implemented",
           data => <>));
       return Response;
    end On_Color_Presentation_Request;
@@ -2921,7 +2921,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
+          message => "Not implemented",
           data => <>));
       return Response;
    end On_Document_Color_Request;
@@ -2942,7 +2942,7 @@ package body LSP.Ada_Handlers is
       Response.error :=
         (True,
          (code => LSP.Errors.InternalError,
-          message => +"Not implemented",
+          message => "Not implemented",
           data => <>));
       return Response;
    end On_Document_Links_Request;
@@ -3285,16 +3285,19 @@ package body LSP.Ada_Handlers is
               (Is_Error => True)
             do
                declare
-                  Error_Message : Unbounded_String;
+                  Error_Message : VSS.Strings.Virtual_String;
+
                begin
                   for Problem of Refs.Problems loop
-                     Error_Message := Error_Message
-                       & To_Unbounded_String (Problem.Info & ASCII.LF);
+                     Error_Message.Append
+                       (VSS.Strings.Conversions.To_Virtual_String
+                          (Problem.Info & ASCII.LF));
                   end loop;
+
                   Response.error :=
                     (True,
-                     (code => LSP.Errors.InvalidRequest,
-                      message => +(To_String (Error_Message)),
+                     (code    => LSP.Errors.InvalidRequest,
+                      message => Error_Message,
                       data    => Empty));
                end;
             end return;
@@ -3837,7 +3840,7 @@ package body LSP.Ada_Handlers is
          Response.error :=
            (True,
             (code => LSP.Errors.InternalError,
-             message => +"Not implemented",
+             message => "Not implemented",
              data    => <>));
          return Response;
       end if;
@@ -4077,9 +4080,9 @@ package body LSP.Ada_Handlers is
          do
             Response.error :=
               (True,
-               (code => LSP.Errors.InternalError,
-                message => +"Incorrect code can't be formatted",
-                data => <>));
+               (code    => LSP.Errors.InternalError,
+                message => "Incorrect code can't be formatted",
+                data    => <>));
          end return;
       end if;
 
@@ -4096,9 +4099,9 @@ package body LSP.Ada_Handlers is
          do
             Response.error :=
               (True,
-               (code => LSP.Errors.InternalError,
-                message => +"Internal error",
-                data => <>));
+               (code    => LSP.Errors.InternalError,
+                message => "Internal error",
+                data    => <>));
          end return;
       end if;
 
@@ -4464,9 +4467,9 @@ package body LSP.Ada_Handlers is
          do
             Response.error :=
               (True,
-               (code => LSP.Errors.InternalError,
-                message => +"Incorrect code can't be formatted",
-                data => <>));
+               (code    => LSP.Errors.InternalError,
+                message => "Incorrect code can't be formatted",
+                data    => <>));
          end return;
       end if;
 
@@ -4483,9 +4486,9 @@ package body LSP.Ada_Handlers is
          do
             Response.error :=
               (True,
-               (code => LSP.Errors.InternalError,
-                message => +"Internal error",
-                data => <>));
+               (code    => LSP.Errors.InternalError,
+                message => "Internal error",
+                data    => <>));
          end return;
       end if;
 

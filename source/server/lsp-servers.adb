@@ -400,7 +400,8 @@ package body LSP.Servers is
                Self.Server_Trace.Trace ("Got Error response:");
 
                Self.Server_Trace.Trace
-                 (LSP.Types.To_UTF_8_String (Error.Value.message));
+                 (VSS.Strings.Conversions.To_UTF_8_String
+                    (Error.Value.message));
             end if;
 
             return;
@@ -777,7 +778,10 @@ package body LSP.Servers is
               Value =>
                 (code    => Code,
                  data    => LSP.Types.Empty,
-                 message => LSP.Types.To_LSP_String (Exception_Text))));
+                 message =>
+                   VSS.Strings.Conversions.To_Virtual_String
+                     (Exception_Text))));
+
    begin
       --  Send the response to the output stream
       Send_Response (Self, Response, Request_Id);
@@ -804,7 +808,7 @@ package body LSP.Servers is
          error    =>
            (Is_Set => True,
             Value  => (code    => LSP.Errors.ServerNotInitialized,
-                       message => +"No initialize request was received",
+                       message => "No initialize request was received",
                        others  => <>)));
    begin
       Send_Response (Self, Response, Request_Id);
@@ -821,7 +825,7 @@ package body LSP.Servers is
          error    =>
            (Is_Set => True,
             Value  => (code    => LSP.Errors.RequestCancelled,
-                       message => +"Request was canceled",
+                       message => "Request was canceled",
                        others  => <>)));
    begin
       Send_Response (Self, Response, Request_Id);
