@@ -31,6 +31,8 @@ with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
+with VSS.Strings;
+
 with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
@@ -10804,10 +10806,10 @@ private
    for ShowMessageRequestParams'Read use Read_ShowMessageRequestParams;
 
    package Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_String,
+     (Key_Type        => VSS.Strings.Virtual_String,
       Element_Type    => Ada.Tags.Tag,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
+      Equivalent_Keys => VSS.Strings."=",
       "="             => Ada.Tags."=");
 
    function Method_To_Tag
