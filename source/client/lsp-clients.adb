@@ -35,10 +35,6 @@ with LSP.Messages.Client_Requests;
 
 package body LSP.Clients is
 
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
    package Decoders is
 
       --  Responses
@@ -829,7 +825,7 @@ package body LSP.Clients is
 
    procedure Send_Notification
      (Self   : in out Client'Class;
-      Method : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method : VSS.Strings.Virtual_String;
       Value  : in out LSP.Messages.NotificationMessage'Class)
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
@@ -840,7 +836,7 @@ package body LSP.Clients is
    begin
       JS.Set_Stream (Output'Unchecked_Access);
       Value.jsonrpc := "2.0";
-      Value.method := +Method;
+      Value.method := Method;
       LSP.Messages.NotificationMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
       Self.Send_Buffer (Output.Buffer);

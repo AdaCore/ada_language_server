@@ -80,7 +80,7 @@ package body LSP.Message_IO is
             if Key = "jsonrpc" then
                LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
             else
                JS.Skip_Value;
             end if;
@@ -100,7 +100,7 @@ package body LSP.Message_IO is
       JS.Key ("jsonrpc");
       LSP.Types.Write_String (S, V.jsonrpc);
       JS.Key ("method");
-      LSP.Types.Write (S, V.method);
+      LSP.Types.Write_String (S, V.method);
       JS.End_Object;
    end Write_NotificationMessage;
 

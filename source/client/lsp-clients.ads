@@ -19,7 +19,6 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
-with Ada.Strings.UTF_Encoding;
 
 with VSS.Strings;
 
@@ -236,7 +235,7 @@ private
 
    procedure Send_Notification
      (Self   : in out Client'Class;
-      Method : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method : VSS.Strings.Virtual_String;
       Value  : in out LSP.Messages.NotificationMessage'Class);
 
    procedure Send_Request
