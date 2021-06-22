@@ -60,7 +60,7 @@ package body LSP.Generic_Notifications is
             if Key = "jsonrpc" then
                LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
             elsif Key = "params" then
                T'Read (S, V.params);
             else

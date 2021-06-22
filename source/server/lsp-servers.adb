@@ -182,7 +182,7 @@ package body LSP.Servers is
    is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.LogMessage_Notification'
-           (method  => +"window/logMessage",
+           (method  => "window/logMessage",
             params  => Params,
             jsonrpc => <>);
    begin
@@ -607,7 +607,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
           (jsonrpc => <>,
-           method  => +"textDocument/publishDiagnostics",
+           method  => "textDocument/publishDiagnostics",
            params  => Params);
    begin
       Self.Send_Notification (Message);
@@ -624,7 +624,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.Progress_Notification'
           (jsonrpc => <>,
-           method  => +"$/progress",
+           method  => "$/progress",
            params  => Params);
    begin
       Self.Send_Notification (Message);
@@ -891,7 +891,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.ShowMessage_Notification'
           (jsonrpc => <>,
-           method  => +"window/showMessage",
+           method  => "window/showMessage",
            params  => Params);
    begin
       Self.Send_Notification (Message);

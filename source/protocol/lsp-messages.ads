@@ -261,7 +261,9 @@ package LSP.Messages is
    --}
    --```
    type NotificationMessage is new Message with record
-      method: LSP_String;
+      method: VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
    end record;
 
    procedure Read_NotificationMessage
