@@ -121,7 +121,7 @@ package LSP.Messages is
    --```
    type RequestMessage is new Message with record
       id: LSP_Number_Or_String;
-      method: LSP_String;
+      method: VSS.Strings.Virtual_String;
    end record;
 
    procedure Read_RequestMessage

@@ -241,7 +241,7 @@ private
    procedure Send_Request
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number_Or_String;
-      Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method  : VSS.Strings.Virtual_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class);
 

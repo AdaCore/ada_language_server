@@ -87,7 +87,7 @@ package body LSP.Servers is
 
    procedure Send_Request
      (Self   : in out Server'Class;
-      Method : String;
+      Method : VSS.Strings.Virtual_String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class);
    --  Assign Method to the request and send it to the client.
 
@@ -851,7 +851,7 @@ package body LSP.Servers is
 
    procedure Send_Request
      (Self   : in out Server'Class;
-      Method : String;
+      Method : VSS.Strings.Virtual_String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class)
    is
       use type LSP.Types.LSP_Number;
@@ -862,7 +862,7 @@ package body LSP.Servers is
       Message.jsonrpc := "2.0";
       Self.Last_Request := Self.Last_Request + 1;
       Message.id := (Is_Number => True, Number => Self.Last_Request);
-      Message.method := LSP.Types.To_LSP_String (Method);
+      Message.method := Method;
       Self.Output_Queue.Enqueue (Message_Access (Message));
    end Send_Request;
 
