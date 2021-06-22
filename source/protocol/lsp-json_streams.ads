@@ -83,6 +83,11 @@ package LSP.JSON_Streams is
 
    procedure Write_String
     (Self : in out JSON_Stream'Class;
+     Item : VSS.Strings.Virtual_String);
+   --  The same as Write, but optimized for strings.
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
      Item : String);
    --  The same as Write, but optimized for strings.
 

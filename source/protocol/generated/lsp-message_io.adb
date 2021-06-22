@@ -1,5 +1,4 @@
 --  Automatically generated, do not edit.
-with Ada.Strings.UTF_Encoding;
 with Interfaces;
 
 with VSS.JSON.Streams.Readers;
@@ -272,13 +271,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : CodeActionKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : CodeActionKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Empty =>
@@ -298,10 +297,10 @@ package body LSP.Message_IO is
             when SourceOrganizeImports =>
                return "source.organizeImports";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_CodeActionKind;
 
    procedure Read_AlsReferenceKind
@@ -341,13 +340,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsReferenceKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsReferenceKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Simple =>
@@ -365,10 +364,10 @@ package body LSP.Message_IO is
             when Child =>
                return "child";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_AlsReferenceKind;
 
    procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
@@ -402,13 +401,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Never =>
@@ -420,10 +419,10 @@ package body LSP.Message_IO is
             when Always =>
                return "Always";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_AlsDisplayMethodAncestryOnNavigationPolicy;
 
    procedure Read_Location
@@ -1017,13 +1016,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FileResourceChangeKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FileResourceChangeKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when create =>
@@ -1033,10 +1032,10 @@ package body LSP.Message_IO is
             when delete =>
                return "delete";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FileResourceChangeKind;
 
    procedure Read_CreateFileOptions
@@ -1544,13 +1543,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : ResourceOperationKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : ResourceOperationKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when create =>
@@ -1560,10 +1559,10 @@ package body LSP.Message_IO is
             when delete =>
                return "delete";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_ResourceOperationKind;
 
    procedure Read_FailureHandlingKind
@@ -1597,13 +1596,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FailureHandlingKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FailureHandlingKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when abortApplying =>
@@ -1615,10 +1614,10 @@ package body LSP.Message_IO is
             when textOnlyTransactional =>
                return "textOnlyTransactional";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FailureHandlingKind;
 
    procedure Read_AnnotationSupport
@@ -2091,13 +2090,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : MarkupKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : MarkupKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when plaintext =>
@@ -2105,10 +2104,10 @@ package body LSP.Message_IO is
             when markdown =>
                return "markdown";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_MarkupKind;
 
    procedure Read_MarkupContent
@@ -3421,13 +3420,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenTypes)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenTypes)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when a_type =>
@@ -3473,10 +3472,10 @@ package body LSP.Message_IO is
             when operator =>
                return "operator";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_SemanticTokenTypes;
 
    procedure Read_SemanticTokenModifiers
@@ -3522,13 +3521,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenModifiers)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenModifiers)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when declaration =>
@@ -3552,10 +3551,10 @@ package body LSP.Message_IO is
             when defaultLibrary =>
                return "defaultLibrary";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_SemanticTokenModifiers;
 
    procedure Read_TokenFormat
@@ -3583,22 +3582,22 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : TokenFormat)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : TokenFormat)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when relative =>
                return "relative";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_TokenFormat;
 
    procedure Read_SemanticTokensFullCapabilities
@@ -4509,13 +4508,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : TraceValue)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : TraceValue)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when off =>
@@ -4525,10 +4524,10 @@ package body LSP.Message_IO is
             when verbose =>
                return "verbose";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_TraceValue;
 
    procedure Read_InitializeParams
@@ -5178,13 +5177,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FileOperationPatternKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FileOperationPatternKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when file =>
@@ -5192,10 +5191,10 @@ package body LSP.Message_IO is
             when folder =>
                return "folder";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FileOperationPatternKind;
 
    procedure Read_FileOperationPatternOptions
@@ -9827,13 +9826,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : UniquenessLevel)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : UniquenessLevel)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when document =>
@@ -9847,10 +9846,10 @@ package body LSP.Message_IO is
             when global =>
                return "global";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_UniquenessLevel;
 
    procedure Read_MonikerKind
@@ -9882,13 +9881,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : MonikerKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : MonikerKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when import =>
@@ -9898,10 +9897,10 @@ package body LSP.Message_IO is
             when local =>
                return "local";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_MonikerKind;
 
    procedure Read_Moniker

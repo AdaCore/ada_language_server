@@ -287,7 +287,6 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
-with Ada.Strings.UTF_Encoding;
 with Interfaces;
 
 with VSS.JSON.Streams.Readers;
@@ -385,13 +384,13 @@ io_string_enum_header = {
       JS.R.Read_Next;
       """,
     'Write': """
-      function To_String
+      function To_Virtual_String
         (Value : {type})
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : {type})
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
 """
@@ -414,10 +413,10 @@ io_string_enum_footer = {
 """,
     'Write': """\
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
 """
 }
 
