@@ -88,11 +88,6 @@ package LSP.JSON_Streams is
 
    procedure Write_String
     (Self : in out JSON_Stream'Class;
-     Item : String);
-   --  The same as Write, but optimized for strings.
-
-   procedure Write_String
-    (Self : in out JSON_Stream'Class;
      Item : LSP.Types.LSP_String);
    --  The same as Write, but optimized for strings.
 
