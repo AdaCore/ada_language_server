@@ -85,6 +85,9 @@ all: coverage-instrument
 generate:
 	python scripts/generate.py
 
+generate_io:
+	python scripts/io_gen.py
+
 coverage-instrument:
 ifneq ($(COVERAGE),)
 	# Remove artifacts from previous instrumentations, so that stale units that
