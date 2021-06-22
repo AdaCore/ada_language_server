@@ -405,6 +405,6 @@ begin
         (Is_Set => True,
          Value  =>
            (code    => LSP.Messages.MethodNotFound,
-            message => +"The Request handler doesn't support this",
+            message => "The Request handler doesn't support this",
             others  => <>)));
 end LSP.Servers.Handle_Request;

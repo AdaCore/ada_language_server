@@ -74,6 +74,11 @@ package LSP.Types is
       V : out LSP.Types.LSP_String);
    --  Read string from the stream
 
+   procedure Read_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VSS.Strings.Virtual_String);
+   --  Read string from the stream
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String);
@@ -348,6 +353,11 @@ package LSP.Types is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_String);
+
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : VSS.Strings.Virtual_String;
+     Item   : VSS.Strings.Virtual_String);
 
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;

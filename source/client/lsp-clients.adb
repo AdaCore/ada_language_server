@@ -768,9 +768,11 @@ package body LSP.Clients is
                     (Is_Error => True,
                      error =>
                        (True,
-                        (code => LSP.Messages.MethodNotFound,
-                         message => "Unknown method:" & Method.Value,
-                         data => <>)),
+                        (code    => LSP.Messages.MethodNotFound,
+                         message =>
+                           LSP.Types.To_Virtual_String
+                             ("Unknown method:" & Method.Value),
+                         data    => <>)),
                      others => <>);
                begin
                   Self.Send_Response (Id, Error);

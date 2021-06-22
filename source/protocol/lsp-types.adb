@@ -123,6 +123,23 @@ package body LSP.Types is
       JS.R.Read_Next;
    end Read;
 
+   -----------------
+   -- Read_String --
+   -----------------
+
+   procedure Read_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VSS.Strings.Virtual_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+   begin
+      pragma Assert (JS.R.Is_String_Value);
+      V := JS.R.String_Value;
+      JS.R.Read_Next;
+   end Read_String;
+
    --------------
    -- Read_Any --
    --------------
@@ -1057,6 +1074,19 @@ package body LSP.Types is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_String) is
+   begin
+      Stream.Key (Key);
+      Stream.Write_String (Item);
+   end Write_String;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : VSS.Strings.Virtual_String;
+     Item   : VSS.Strings.Virtual_String) is
    begin
       Stream.Key (Key);
       Stream.Write_String (Item);

@@ -162,11 +162,9 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.InvalidRequest,
-               message => LSP.Types.To_LSP_String
-                 (Wide_Wide_String'
-                      ("This is not a valid position to name parameters.")),
-               data => <>));
+              (code    => LSP.Errors.InvalidRequest,
+               message => "This is not a valid position to name parameters.",
+               data    => <>));
          return;
       end if;
 
@@ -182,11 +180,9 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.InvalidRequest,
-               message => LSP.Types.To_LSP_String
-                 (Wide_Wide_String'
-                      ("Could not resolve this call expression precisely.")),
-               data => <>));
+              (code    => LSP.Errors.InvalidRequest,
+               message => "Could not resolve this call expression precisely.",
+               data    => <>));
          return;
       end if;
 
@@ -214,10 +210,10 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => LSP.Types.To_LSP_String
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
                  (Ada.Exceptions.Exception_Information (E)),
-               data => <>));
+               data    => <>));
    end Execute;
 
    --------------------
