@@ -30,7 +30,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "id" then
                LSP_Number_Or_String'Read (S, V.id);
             elsif Key = "method" then
@@ -52,7 +52,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("jsonrpc");
-      LSP.Types.Write (S, V.jsonrpc);
+      LSP.Types.Write_String (S, V.jsonrpc);
       JS.Key ("id");
       LSP_Number_Or_String'Write (S, V.id);
       JS.Key ("method");
@@ -78,7 +78,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "method" then
                LSP.Types.Read (S, V.method);
             else
@@ -98,7 +98,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("jsonrpc");
-      LSP.Types.Write (S, V.jsonrpc);
+      LSP.Types.Write_String (S, V.jsonrpc);
       JS.Key ("method");
       LSP.Types.Write (S, V.method);
       JS.End_Object;

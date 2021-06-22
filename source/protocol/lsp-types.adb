@@ -1071,6 +1071,20 @@ package body LSP.Types is
    ------------------
 
    procedure Write_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VSS.Strings.Virtual_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write_String (V);
+   end Write_String;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_String) is

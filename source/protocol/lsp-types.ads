@@ -84,6 +84,11 @@ package LSP.Types is
       V : LSP.Types.LSP_String);
    --  Write string to the stream
 
+   procedure Write_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VSS.Strings.Virtual_String);
+   --  Write string to the stream
+
    function Hash
      (Item : VSS.Strings.Virtual_String) return Ada.Containers.Hash_Type;
 

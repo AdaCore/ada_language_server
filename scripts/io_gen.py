@@ -325,6 +325,10 @@ io_footer = """\
 """
 
 write_component = {
+    "VSS.Strings.Virtual_String": """\
+      JS.Key ("{key}");
+      LSP.Types.Write_String (S, V.{name});
+""",
     "LSP_String": """\
       JS.Key ("{key}");
       LSP.Types.Write (S, V.{name});
@@ -347,6 +351,9 @@ write_component = {
 }
 
 read_component = {
+    "VSS.Strings.Virtual_String": """if Key = "{key}" then
+               LSP.Types.Read_String (S, V.{name});
+            els""",
     "LSP_String": """if Key = "{key}" then
                LSP.Types.Read (S, V.{name});
             els""",

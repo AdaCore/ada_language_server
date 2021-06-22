@@ -838,7 +838,7 @@ package body LSP.Clients is
 
    begin
       JS.Set_Stream (Output'Unchecked_Access);
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Value.method := +Method;
       LSP.Messages.NotificationMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
@@ -866,7 +866,7 @@ package body LSP.Clients is
       Request := Self.Allocate_Request_Id;
       Self.Request_Map.Insert (Request, Decoder);
 
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Value.method := +Method;
       Value.id := Request;
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
@@ -941,7 +941,7 @@ package body LSP.Clients is
 
    begin
       JS.Set_Stream (Output'Unchecked_Access);
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Value.id := Request;
       LSP.Messages.ResponseMessage'Class'Write (JS'Access, Value);
       JS.End_Document;

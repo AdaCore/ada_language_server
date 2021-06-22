@@ -81,7 +81,7 @@ package body LSP.Servers.FS_Watch is
             end loop;
             Message := new DidChangeWatchedFiles_Notification'
               (method  => +"workspace/didChangeWatchedFiles",
-               jsonrpc => +"2.0",
+               jsonrpc => "2.0",
                params  => Changes);
 
             Self.The_Server.Input_Queue.Enqueue (Message);

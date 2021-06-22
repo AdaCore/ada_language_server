@@ -119,16 +119,12 @@ end LSP.Servers.Handle_{kind};
 C_Handler_Function_Body = """--  Automatically generated, do not edit.
 
 with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
-with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_{kind}
   (Self    : not null Server_Request_Handlers
      .Server_Request_Handler_Access;
    {kind} : LSP.Messages.{kind}Message'Class)
-      return LSP.Messages.ResponseMessage'Class
-is
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP.Types.LSP_String renames LSP.Types.To_LSP_String;
+      return LSP.Messages.ResponseMessage'Class is
 begin
 {handler_snippets}
    return LSP.Messages.ResponseMessage'
@@ -151,7 +147,7 @@ C_Handler_Snippet_Function = """
                Self.On_{request_name}_{kind}
                   ({request_name}_{kind} ({kind}));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
