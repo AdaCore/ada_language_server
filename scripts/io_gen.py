@@ -287,6 +287,7 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
+
 with Interfaces;
 
 with VSS.JSON.Streams.Readers;
@@ -297,8 +298,11 @@ with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
 
 package body LSP.Message_IO is
+
    pragma Style_Checks ("M175");
+
    use type Interfaces.Integer_64;
+   use type VSS.Strings.Virtual_String;
 """
 
 file_footer = """
@@ -435,8 +439,7 @@ read_prolog = {
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             """,
