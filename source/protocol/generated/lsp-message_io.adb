@@ -3924,7 +3924,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"support", V.support);
+      Write_Boolean (JS, "support", V.support);
       JS.End_Object;
    end Write_ShowDocumentClientCapabilities;
 
@@ -7277,7 +7277,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"isIncomplete", V.isIncomplete);
+      Write_Boolean (JS, "isIncomplete", V.isIncomplete);
       JS.Key ("items");
       CompletionItem_Vector'Write (S, V.items);
       JS.End_Object;
@@ -7506,7 +7506,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"includeDeclaration", V.includeDeclaration);
+      Write_Boolean (JS, "includeDeclaration", V.includeDeclaration);
       JS.End_Object;
    end Write_ReferenceContext;
 
@@ -7936,7 +7936,7 @@ package body LSP.Message_IO is
       JS.Start_Object;
       JS.Key ("tabSize");
       LSP_Number'Write (S, V.tabSize);
-      Write_Boolean (JS, +"insertSpaces", V.insertSpaces);
+      Write_Boolean (JS, "insertSpaces", V.insertSpaces);
       JS.Key ("trimTrailingWhitespace");
       Optional_Boolean'Write (S, V.trimTrailingWhitespace);
       JS.Key ("insertFinalNewline");
@@ -8233,7 +8233,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"applied", V.applied);
+      Write_Boolean (JS, "applied", V.applied);
       JS.Key ("failureReason");
       Optional_String'Write (S, V.failureReason);
       JS.Key ("failedChange");
@@ -10043,7 +10043,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"success", V.success);
+      Write_Boolean (JS, "success", V.success);
       JS.End_Object;
    end Write_ShowDocumentResult;
 
@@ -10487,7 +10487,7 @@ package body LSP.Message_IO is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.Key ("kind");
       ALS_ShowDependenciesKind'Write (S, V.kind);
-      Write_Boolean (JS, +"showImplicit", V.showImplicit);
+      Write_Boolean (JS, "showImplicit", V.showImplicit);
       JS.End_Object;
    end Write_ALS_ShowDependenciesParams;
 

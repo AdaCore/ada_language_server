@@ -335,7 +335,7 @@ write_component = {
       LSP.Types.Write (S, V.{name});
 """,
     "Boolean": """\
-      {kind}_Boolean (JS, +"{key}", V.{name});
+      {kind}_Boolean (JS, "{key}", V.{name});
 """,
     "UTF_16_Index": """\
       JS.Key ("{key}");
