@@ -7,7 +7,7 @@ package body LSP.Messages.Server_Requests is
    Map : Maps.Map;
 
    function Method_To_Tag
-     (Method : LSP.Types.LSP_String) return Ada.Tags.Tag is
+     (Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag is
    begin
       return Method_To_Tag (Map, Method);
    end Method_To_Tag;

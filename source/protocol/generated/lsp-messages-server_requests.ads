@@ -20,7 +20,8 @@ package LSP.Messages.Server_Requests is
      (Self    : Server_Request;
       Handler : access Server_Request_Receiver'Class) is abstract;
 
-   function Method_To_Tag (Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+   function Method_To_Tag
+     (Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag;
    --  For given LSP method return a corresponding message type tag
 
    package Initialize_Requests is

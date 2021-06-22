@@ -10820,7 +10820,7 @@ private
 
    function Method_To_Tag
      (Map    : Maps.Map;
-      Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+      Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag;
 
    --  Here are useless typescript snippets from LSP specification, such as
    --  examples. We keep them to be able to restore all snippets and compare

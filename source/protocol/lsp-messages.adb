@@ -2261,10 +2261,9 @@ package body LSP.Messages is
 
    function Method_To_Tag
      (Map    : Maps.Map;
-      Method : LSP.Types.LSP_String) return Ada.Tags.Tag
+      Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag
    is
-      Cursor : constant Maps.Cursor :=
-        Map.Find (LSP.Types.To_Virtual_String (Method));
+      Cursor : constant Maps.Cursor := Map.Find (Method);
 
    begin
       if Maps.Has_Element (Cursor) then

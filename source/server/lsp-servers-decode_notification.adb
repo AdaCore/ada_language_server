@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,12 +21,11 @@ with Ada.Tags.Generic_Dispatching_Constructor;
 with VSS.JSON.Streams.Readers.Simple;
 
 with LSP.JSON_Streams;
-with LSP.Types; use LSP.Types;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
    (Document : VSS.Text_Streams.Input_Text_Stream_Access;
-    Method   : LSP.Types.LSP_String)
+    Method   : VSS.Strings.Virtual_String)
     return LSP.Messages.Server_Notifications.Server_Notification'Class
 is
 

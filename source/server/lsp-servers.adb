@@ -420,7 +420,9 @@ package body LSP.Servers is
                Request :=
                  new LSP.Messages.Server_Requests.Server_Request'Class'
                    (LSP.Servers.Decode_Request
-                      (Memory'Unchecked_Access, Method.Value));
+                      (Memory'Unchecked_Access,
+                       LSP.Types.To_Virtual_String (Method.Value)));
+
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
@@ -453,7 +455,9 @@ package body LSP.Servers is
                Notification :=
                  new Messages.Server_Notifications.Server_Notification'Class'
                    (LSP.Servers.Decode_Notification
-                      (Memory'Unchecked_Access, Method.Value));
+                      (Memory'Unchecked_Access,
+                       LSP.Types.To_Virtual_String (Method.Value)));
+
             exception
                when E : Unknown_Method =>
                   Self.Server_Trace.Trace

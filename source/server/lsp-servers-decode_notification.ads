@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,12 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Strings;
 with VSS.Text_Streams;
+
 with LSP.Messages.Server_Notifications;
 
 function LSP.Servers.Decode_Notification
   (Document : VSS.Text_Streams.Input_Text_Stream_Access;
-   Method   : LSP.Types.LSP_String)
+   Method   : VSS.Strings.Virtual_String)
    return LSP.Messages.Server_Notifications.Server_Notification'Class;
 --  Decode the request present in the input document. Document is a JSON
 --  representation of the protocol string.
