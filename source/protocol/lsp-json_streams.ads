@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,15 +18,13 @@
 --  This package provides an Ada stream type to serialize Ada object into JSON.
 --
 
-private with VSS.JSON.Streams.Writers;
-private with VSS.Strings;
-
-with Ada.Strings.Wide_Unbounded;
 with Ada.Streams;
 with Interfaces;
 
-with VSS.Text_Streams;
 with VSS.JSON.Streams.Readers;
+private with VSS.JSON.Streams.Writers;
+with VSS.Strings;
+with VSS.Text_Streams;
 
 limited with LSP.Types;
 
@@ -67,14 +65,9 @@ package LSP.JSON_Streams is
 
    procedure Key
     (Self : not null access JSON_Stream'Class;
-     Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String);
+     Key  : VSS.Strings.Virtual_String);
    --  Specify property name before do convertion of an item nested in an JSON
    --  object
-
-   procedure Key
-    (Self : not null access JSON_Stream'Class;
-     Key  : Wide_String);
-   --  The same but with Wide_String type
 
    procedure Set_Stream
      (Self   : in out JSON_Stream'Class;

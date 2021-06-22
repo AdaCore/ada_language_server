@@ -923,7 +923,7 @@ package body LSP.Types is
 
       procedure Write_Field (Key : String; Value : GNATCOLL.JSON.JSON_Value) is
       begin
-         JS.Key (Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Key));
+         JS.Key (VSS.Strings.Conversions.To_Virtual_String (Key));
          Write (Value);
       end Write_Field;
    begin
@@ -939,7 +939,7 @@ package body LSP.Types is
      Key    : LSP.Types.LSP_String;
      Item   : Boolean) is
    begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Key (LSP.Types.To_Virtual_String (Key));
       Stream.Write_Boolean (Item);
    end Write_Boolean;
 
@@ -952,7 +952,7 @@ package body LSP.Types is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_Number) is
    begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Key (LSP.Types.To_Virtual_String (Key));
       Stream.Write_Integer (Interfaces.Integer_64 (Item));
    end Write_Number;
 
@@ -982,7 +982,7 @@ package body LSP.Types is
      Item   : LSP.Types.Optional_Boolean) is
    begin
       if Item.Is_Set then
-         Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+         Stream.Key (LSP.Types.To_Virtual_String (Key));
          Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
@@ -1044,7 +1044,7 @@ package body LSP.Types is
      Key    : LSP.Types.LSP_String;
      Item   : LSP.Types.LSP_String) is
    begin
-      Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
+      Stream.Key (LSP.Types.To_Virtual_String (Key));
       Stream.Write_String (Item);
    end Write_String;
 
