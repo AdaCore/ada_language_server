@@ -79,6 +79,9 @@ package LSP.Types is
       V : LSP.Types.LSP_String);
    --  Write string to the stream
 
+   function Hash
+     (Item : VSS.Strings.Virtual_String) return Ada.Containers.Hash_Type;
+
    --  Now we don't put 'Read/'Write clauses on LSP_String to be able to
    --  switch the LSP_String to the Virtual_String in the future.
    --   for LSP_String'Read use Read;

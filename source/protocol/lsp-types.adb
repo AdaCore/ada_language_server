@@ -19,6 +19,7 @@ with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
@@ -68,6 +69,18 @@ package body LSP.Types is
    begin
       return File_To_URI (Ada.Strings.Unbounded.To_String (File));
    end File_To_URI;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
+     (Item : VSS.Strings.Virtual_String) return Ada.Containers.Hash_Type is
+   begin
+      return
+        Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash
+          (VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String (Item));
+   end Hash;
 
    ----------
    -- Hash --
