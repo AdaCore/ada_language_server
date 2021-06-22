@@ -3908,11 +3908,13 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Progress_Params)
    is
+      use type VSS.Strings.Virtual_String;
+
       procedure Read_Value;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      kind        : LSP_String;
+      kind        : VSS.Strings.Virtual_String;
       title       : LSP_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
@@ -3933,7 +3935,7 @@ package body LSP.Messages is
                JS.R.Read_Next;
 
                if Key = "kind" then
-                  LSP.Types.Read (S, kind);
+                  LSP.Types.Read_String (S, kind);
                elsif Key = "title" then
                   LSP.Types.Read (S, title);
                elsif Key = "cancellable" then
@@ -3973,13 +3975,13 @@ package body LSP.Messages is
       end loop;
       JS.R.Read_Next;
 
-      if kind = +"begin" then
+      if kind = "begin" then
          V := (Progress_Begin,
                (token, (kind, title, cancellable, message, percentage)));
-      elsif kind = +"report" then
+      elsif kind = "report" then
          V := (Progress_Report,
                (token, (kind, cancellable, message, percentage)));
-      elsif kind = +"end" then
+      elsif kind = "end" then
          V := (Progress_End,
                (token, (kind, message)));
       else

@@ -8867,7 +8867,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressBegin is record
-      kind        : LSP_String := +"begin";
+      kind        : VSS.Strings.Virtual_String := "begin";
       title       : LSP_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
@@ -8909,7 +8909,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressReport is record
-      kind        : LSP_String := +"report";
+      kind        : VSS.Strings.Virtual_String := "report";
       cancellable : Optional_Boolean;
       message     : Optional_String;
       percentage  : Optional_Number;
@@ -8928,7 +8928,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressEnd is record
-      kind    : LSP_String := +"end";
+      kind    : VSS.Strings.Virtual_String := "end";
       message : Optional_String;
    end record;
 
