@@ -8258,7 +8258,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "title" then
                LSP.Types.Read (S, V.title);
             elsif Key = "cancellable" then
@@ -8284,7 +8284,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("title");
       LSP.Types.Write (S, V.title);
       JS.Key ("cancellable");
@@ -8314,7 +8314,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
@@ -8338,7 +8338,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
@@ -8366,7 +8366,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "message" then
                Optional_String'Read (S, V.message);
             else
@@ -8386,7 +8386,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("message");
       Optional_String'Write (S, V.message);
       JS.End_Object;
