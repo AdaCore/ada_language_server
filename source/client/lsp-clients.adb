@@ -852,7 +852,7 @@ package body LSP.Clients is
    procedure Send_Request
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number_Or_String;
-      Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method  : VSS.Strings.Virtual_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class)
    is
@@ -867,7 +867,7 @@ package body LSP.Clients is
       Self.Request_Map.Insert (Request, Decoder);
 
       Value.jsonrpc := "2.0";
-      Value.method := +Method;
+      Value.method := Method;
       Value.id := Request;
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
