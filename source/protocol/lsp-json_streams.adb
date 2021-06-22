@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,17 +14,12 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
-with Ada.Strings.UTF_Encoding.Wide_Strings;
 
 with VSS.Strings.Conversions;
+
 with LSP.Types;
 
 package body LSP.JSON_Streams is
-
-   function To_UTF_8_String
-     (Value : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String)
-      return Ada.Strings.UTF_Encoding.UTF_8_String;
-   --  Unbounded_Wide_String (UTF-16) to String (UTF-8) conversion.
 
    procedure Write_Key (Self : in out Write_Stream);
 
@@ -66,22 +61,10 @@ package body LSP.JSON_Streams is
 
    procedure Key
      (Self : not null access JSON_Stream'Class;
-      Key  : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String) is
+      Key  : VSS.Strings.Virtual_String) is
    begin
       pragma Assert (Self.R = null);
-      Self.W.Key := VSS.Strings.Conversions.To_Virtual_String
-        (To_UTF_8_String (Key));
-   end Key;
-
-   ---------
-   -- Key --
-   ---------
-
-   procedure Key
-    (Self : not null access JSON_Stream'Class;
-     Key  : Wide_String) is
-   begin
-      Self.Key (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (Key));
+      Self.W.Key := Key;
    end Key;
 
    ----------
@@ -180,19 +163,6 @@ package body LSP.JSON_Streams is
       Write_Key (Self.W);
       Self.W.Writer.Start_Object;
    end Start_Object;
-
-   ---------------------
-   -- To_UTF_8_String --
-   ---------------------
-
-   function To_UTF_8_String
-     (Value : Ada.Strings.Wide_Unbounded.Unbounded_Wide_String)
-      return Ada.Strings.UTF_Encoding.UTF_8_String is
-   begin
-      return
-        Ada.Strings.UTF_Encoding.Wide_Strings.Encode
-          (Ada.Strings.Wide_Unbounded.To_Wide_String (Value));
-   end To_UTF_8_String;
 
    ---------------
    -- Write_Key --
