@@ -230,6 +230,19 @@ package body LSP.JSON_Streams is
 
    procedure Write_String
     (Self : in out JSON_Stream'Class;
+     Item : VSS.Strings.Virtual_String) is
+   begin
+      pragma Assert (Self.R = null);
+      Write_Key (Self.W);
+      Self.W.Writer.String_Value (Item);
+   end Write_String;
+
+   ------------------
+   -- Write_String --
+   ------------------
+
+   procedure Write_String
+    (Self : in out JSON_Stream'Class;
      Item : String) is
    begin
       pragma Assert (Self.R = null);
