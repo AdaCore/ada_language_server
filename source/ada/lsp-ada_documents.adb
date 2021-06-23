@@ -25,7 +25,6 @@ with GNAT.Strings;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 
-with VSS.Characters;
 with VSS.Strings.Conversions;
 
 with Langkit_Support.Slocs;
@@ -2524,7 +2523,6 @@ package body LSP.Ada_Documents is
             declare
                J       : VSS.Strings.Character_Iterators.Character_Iterator :=
                  Self.Text.Character (Self.Position_To_Marker (Position));
-               C       : VSS.Characters.Virtual_Character;
                Success : Boolean with Unreferenced;
 
             begin
@@ -2532,41 +2530,7 @@ package body LSP.Ada_Documents is
                Success := J.Backward;
 
                if J.Has_Element then
-                  C       := J.Element;
-
-                  --  Ada 2012's RM defines separator as 'separator_space',
-                  --  'format_efector' or end of a line, with some exceptions
-                  --  inside comments.
-                  --
-                  --  'separator_space' is defined as a set of characters with
-                  --  'General Category' defined as 'Separator, Space'.
-                  --
-                  --  'format_effector' is set of characters:
-                  --    - CHARACTER TABULATION
-                  --    - LINE FEED
-                  --    - LINE TABULATION
-                  --    - FORM FEED
-                  --    - CARRIAGE RETURN
-                  --    - NEXT LINE
-                  --    - characters with General Category defined as
-                  --      'Separator, Line'
-                  --    - characters with General Category defined as
-                  --      'Separator, Paragraph'
-                  --
-                  --  XXX Check for 'General Category' can't be implemented
-                  --  due to unavailability of necessary information for now;
-                  --  thus we check for explicitly defined and widely useful
-                  --  characters only.
-
-                  Previous_Is_Separator :=
-                    C in
-                      VSS.Characters.Virtual_Character'Val (16#09#)
-                        | VSS.Characters.Virtual_Character'Val (16#0A#)
-                        | VSS.Characters.Virtual_Character'Val (16#0B#)
-                        | VSS.Characters.Virtual_Character'Val (16#0C#)
-                        | VSS.Characters.Virtual_Character'Val (16#0D#)
-                        | VSS.Characters.Virtual_Character'Val (16#20#)
-                        | VSS.Characters.Virtual_Character'Val (16#85#);
+                  Previous_Is_Separator := Is_Ada_Separator (J.Element);
                end if;
             end;
          end if;
