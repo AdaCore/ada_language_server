@@ -80,8 +80,8 @@ package body LSP.Servers.FS_Watch is
                              a_type => Flag_To_FileChangeType (F)));
             end loop;
             Message := new DidChangeWatchedFiles_Notification'
-              (method  => +"workspace/didChangeWatchedFiles",
-               jsonrpc => +"2.0",
+              (method  => "workspace/didChangeWatchedFiles",
+               jsonrpc => "2.0",
                params  => Changes);
 
             Self.The_Server.Input_Queue.Enqueue (Message);

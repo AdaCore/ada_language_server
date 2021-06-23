@@ -17,7 +17,6 @@
 
 with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
-with Ada.Strings.Wide_Unbounded;
 
 with Interfaces;
 
@@ -2262,9 +2261,10 @@ package body LSP.Messages is
 
    function Method_To_Tag
      (Map    : Maps.Map;
-      Method : LSP.Types.LSP_String) return Ada.Tags.Tag
+      Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag
    is
       Cursor : constant Maps.Cursor := Map.Find (Method);
+
    begin
       if Maps.Has_Element (Cursor) then
          return Maps.Element (Cursor);
@@ -3371,12 +3371,12 @@ package body LSP.Messages is
          Optional_Command'Write (S, V.command);
       else
          JS.Start_Object;
-         Write_String (JS, +"title", V.title);
+         Write_String (JS, "title", V.title);
          JS.Key ("kind");
          Optional_CodeActionKind'Write (S, V.kind);
          JS.Key ("diagnostics");
          Optional_Diagnostic_Vector'Write (S, V.diagnostics);
-         Write_Optional_Boolean (JS, +"isPreferred", V.isPreferred);
+         Write_Optional_Boolean (JS, "isPreferred", V.isPreferred);
          JS.Key ("disabled");
          Optional_Disable_Reason'Write (S, V.disabled);
          JS.Key ("edit");
@@ -3404,16 +3404,16 @@ package body LSP.Messages is
       end if;
 
       JS.Start_Object;
-      Write_String (JS, +"title", V.title);
+      Write_String (JS, "title", V.title);
 
       if V.Is_Unknown then
-         Write_String (JS, +"command", V.command);
+         Write_String (JS, "command", V.command);
          JS.Key ("arguments");
          Optional_Any_Vector'Write (S, V.arguments);
       else
          Write_String
            (JS,
-            +"command",
+            "command",
             +Ada.Tags.External_Tag (V.Custom.Unchecked_Get'Tag));
          JS.Key ("arguments");
          JS.Start_Array;
@@ -3452,22 +3452,22 @@ package body LSP.Messages is
                Item : DocumentSymbol renames DocumentSymbol_Trees.Element (J);
             begin
                JS.Start_Object;
-               Write_String (JS, +"name", Item.name);
+               Write_String (JS, "name", Item.name);
                JS.Key ("detail");
                Optional_String'Write (S, Item.detail);
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
                JS.Key ("tags");
                SymbolTagSet'Write (S, Item.tags);
-               Write_Optional_Boolean (JS, +"deprecated", Item.deprecated);
+               Write_Optional_Boolean (JS, "deprecated", Item.deprecated);
                JS.Key ("range");
                Span'Write (S, Item.span);
                JS.Key ("selectionRange");
                Span'Write (S, Item.selectionRange);
                Write_Optional_Boolean
-                 (JS, +"alsIsDeclaration", Item.alsIsDeclaration);
+                 (JS, "alsIsDeclaration", Item.alsIsDeclaration);
                Write_Optional_Boolean
-                   (JS, +"alsIsAdaProcedure", Item.alsIsAdaProcedure);
+                   (JS, "alsIsAdaProcedure", Item.alsIsAdaProcedure);
                JS.Key ("alsVisibility");
                Optional_Als_Visibility'Write (S, Item.alsVisibility);
 
@@ -3505,14 +3505,14 @@ package body LSP.Messages is
 
       if V.Is_Unknown then
          Optional_Any_Vector'Write (S, V.arguments);
-         Write_String (JS, +"command", V.command);
+         Write_String (JS, "command", V.command);
       else
          JS.Start_Array;
          Temp := LSP.Commands.Command_Access (V.Custom.Unchecked_Get);
          --  This Temp variable prevents compiler from a crash.
          LSP.Commands.Command'Class'Write (S, Temp.all);
          JS.End_Array;
-         Write_String (JS, +"command", V.command);
+         Write_String (JS, "command", V.command);
       end if;
 
       JS.End_Object;
@@ -3563,8 +3563,8 @@ package body LSP.Messages is
          JS.Write_String (V.value);
       else
          JS.Start_Object;
-         Write_String (JS, +"language", V.language);
-         Write_String (JS, +"value", V.value);
+         Write_String (JS, "language", V.language);
+         Write_String (JS, "value", V.value);
          JS.End_Object;
       end if;
    end Write_MarkedString;
@@ -3656,8 +3656,8 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      Write_String (JS, +"jsonrpc", V.jsonrpc);
-      Write_Number_Or_String (JS, +"id", V.id);
+      Write_String (JS, "jsonrpc", V.jsonrpc);
+      Write_Number_Or_String (JS, "id", V.id);
       JS.Key ("error");
       Optional_ResponseError'Write (S, V.error);
    end Write_Response_Prefix;
@@ -3797,7 +3797,7 @@ package body LSP.Messages is
          JS.Start_Object;
          for Cursor in V.changes.Iterate loop
             JS.Key
-              (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String
+              (LSP.Types.To_Virtual_String
                  (TextDocumentEdit_Maps.Key (Cursor)));
             JS.Start_Array;
             for Edit of V.changes (Cursor) loop
@@ -3816,7 +3816,8 @@ package body LSP.Messages is
          JS.Start_Object;
 
          for J in V.changeAnnotations.Iterate loop
-            JS.Key (LSP.Types.To_Wide_String (ChangeAnnotation_Maps.Key (J)));
+            JS.Key
+              (LSP.Types.To_Virtual_String (ChangeAnnotation_Maps.Key (J)));
             ChangeAnnotation'Write (S, ChangeAnnotation_Maps.Element (J));
          end loop;
 
@@ -3870,7 +3871,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Number (JS, +"inputQueueLength", V.inputQueueLength);
+      Write_Number (JS, "inputQueueLength", V.inputQueueLength);
       JS.End_Object;
    end Write_ALSDebugParams;
 
@@ -3893,7 +3894,7 @@ package body LSP.Messages is
          JS.Write_Boolean (True);
       else
          JS.Start_Object;
-         Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
+         Write_Optional_Boolean (JS, "workDoneProgress", V.workDoneProgress);
          JS.End_Object;
       end if;
    end Write_WorkDoneProgressOptions;
@@ -3906,11 +3907,13 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Progress_Params)
    is
+      use type VSS.Strings.Virtual_String;
+
       procedure Read_Value;
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      kind        : LSP_String;
+      kind        : VSS.Strings.Virtual_String;
       title       : LSP_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
@@ -3931,7 +3934,7 @@ package body LSP.Messages is
                JS.R.Read_Next;
 
                if Key = "kind" then
-                  LSP.Types.Read (S, kind);
+                  LSP.Types.Read_String (S, kind);
                elsif Key = "title" then
                   LSP.Types.Read (S, title);
                elsif Key = "cancellable" then
@@ -3971,13 +3974,13 @@ package body LSP.Messages is
       end loop;
       JS.R.Read_Next;
 
-      if kind = +"begin" then
+      if kind = "begin" then
          V := (Progress_Begin,
                (token, (kind, title, cancellable, message, percentage)));
-      elsif kind = +"report" then
+      elsif kind = "report" then
          V := (Progress_Report,
                (token, (kind, cancellable, message, percentage)));
-      elsif kind = +"end" then
+      elsif kind = "end" then
          V := (Progress_End,
                (token, (kind, message)));
       else
@@ -4000,12 +4003,12 @@ package body LSP.Messages is
       JS.Start_Object;
       case V.Kind is
          when Progress_Begin =>
-            Write_Number_Or_String (JS, +"token", V.Begin_Param.token);
+            Write_Number_Or_String (JS, "token", V.Begin_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, +"kind", +"begin");
-            Write_String (JS, +"title", V.Begin_Param.value.title);
-            Write_Optional_Boolean (JS, +"cancellable",
+            Write_String (JS, "kind", +"begin");
+            Write_String (JS, "title", V.Begin_Param.value.title);
+            Write_Optional_Boolean (JS, "cancellable",
                                     V.Begin_Param.value.cancellable);
             JS.Key ("message");
             Optional_String'Write (S, V.Begin_Param.value.message);
@@ -4013,11 +4016,11 @@ package body LSP.Messages is
             Optional_Number'Write (S, V.Begin_Param.value.percentage);
             JS.End_Object;
          when Progress_Report =>
-            Write_Number_Or_String (JS, +"token", V.Report_Param.token);
+            Write_Number_Or_String (JS, "token", V.Report_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, +"kind", +"report");
-            Write_Optional_Boolean (JS, +"cancellable",
+            Write_String (JS, "kind", +"report");
+            Write_Optional_Boolean (JS, "cancellable",
                                     V.Report_Param.value.cancellable);
             JS.Key ("message");
             Optional_String'Write (S, V.Report_Param.value.message);
@@ -4025,10 +4028,10 @@ package body LSP.Messages is
             Optional_Number'Write (S, V.Report_Param.value.percentage);
             JS.End_Object;
          when Progress_End =>
-            Write_Number_Or_String (JS, +"token", V.End_Param.token);
+            Write_Number_Or_String (JS, "token", V.End_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, +"kind", +"end");
+            Write_String (JS, "kind", +"end");
             JS.Key ("message");
             Optional_String'Write (S, V.End_Param.value.message);
             JS.End_Object;

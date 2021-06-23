@@ -1,16 +1,12 @@
 --  Automatically generated, do not edit.
 
 with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
-with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_Request
   (Self    : not null Server_Request_Handlers
      .Server_Request_Handler_Access;
    Request : LSP.Messages.RequestMessage'Class)
-      return LSP.Messages.ResponseMessage'Class
-is
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP.Types.LSP_String renames LSP.Types.To_LSP_String;
+      return LSP.Messages.ResponseMessage'Class is
 begin
 
       if Request in Initialize_Request'Class then
@@ -19,7 +15,7 @@ begin
                Self.On_Initialize_Request
                   (Initialize_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -31,7 +27,7 @@ begin
                Self.On_Shutdown_Request
                   (Shutdown_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -43,7 +39,7 @@ begin
                Self.On_CodeAction_Request
                   (CodeAction_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -55,7 +51,7 @@ begin
                Self.On_Completion_Request
                   (Completion_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -67,7 +63,7 @@ begin
                Self.On_Definition_Request
                   (Definition_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -79,7 +75,7 @@ begin
                Self.On_Declaration_Request
                   (Declaration_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -91,7 +87,7 @@ begin
                Self.On_Implementation_Request
                   (Implementation_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -103,7 +99,7 @@ begin
                Self.On_Type_Definition_Request
                   (Type_Definition_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -115,7 +111,7 @@ begin
                Self.On_Highlight_Request
                   (Highlight_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -127,7 +123,7 @@ begin
                Self.On_Hover_Request
                   (Hover_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -139,7 +135,7 @@ begin
                Self.On_Document_Links_Request
                   (Document_Links_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -151,7 +147,7 @@ begin
                Self.On_References_Request
                   (References_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -163,7 +159,7 @@ begin
                Self.On_Signature_Help_Request
                   (Signature_Help_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -175,7 +171,7 @@ begin
                Self.On_Document_Symbols_Request
                   (Document_Symbols_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -187,7 +183,7 @@ begin
                Self.On_Rename_Request
                   (Rename_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -199,7 +195,7 @@ begin
                Self.On_Prepare_Rename_Request
                   (Prepare_Rename_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -211,7 +207,7 @@ begin
                Self.On_Execute_Command_Request
                   (Execute_Command_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -223,7 +219,7 @@ begin
                Self.On_Document_Color_Request
                   (Document_Color_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -235,7 +231,7 @@ begin
                Self.On_Color_Presentation_Request
                   (Color_Presentation_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -247,7 +243,7 @@ begin
                Self.On_Folding_Range_Request
                   (Folding_Range_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -259,7 +255,7 @@ begin
                Self.On_Formatting_Request
                   (Formatting_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -271,7 +267,7 @@ begin
                Self.On_Range_Formatting_Request
                   (Range_Formatting_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -283,7 +279,7 @@ begin
                Self.On_Selection_Range_Request
                   (Selection_Range_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -295,7 +291,7 @@ begin
                Self.On_Prepare_Call_Hierarchy_Request
                   (Prepare_Call_Hierarchy_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -307,7 +303,7 @@ begin
                Self.On_Incoming_Calls_Request
                   (Incoming_Calls_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -319,7 +315,7 @@ begin
                Self.On_Outgoing_Calls_Request
                   (Outgoing_Calls_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -331,7 +327,7 @@ begin
                Self.On_Workspace_Symbols_Request
                   (Workspace_Symbols_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -343,7 +339,7 @@ begin
                Self.On_Workspace_Execute_Command_Request
                   (Workspace_Execute_Command_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -355,7 +351,7 @@ begin
                Self.On_ALS_Called_By_Request
                   (ALS_Called_By_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -367,7 +363,7 @@ begin
                Self.On_ALS_Calls_Request
                   (ALS_Calls_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -379,7 +375,7 @@ begin
                Self.On_ALS_Show_Dependencies_Request
                   (ALS_Show_Dependencies_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -391,7 +387,7 @@ begin
                Self.On_ALS_Debug_Request
                   (ALS_Debug_Request (Request));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -405,6 +401,6 @@ begin
         (Is_Set => True,
          Value  =>
            (code    => LSP.Messages.MethodNotFound,
-            message => +"The Request handler doesn't support this",
+            message => "The Request handler doesn't support this",
             others  => <>)));
 end LSP.Servers.Handle_Request;

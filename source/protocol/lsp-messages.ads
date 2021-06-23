@@ -31,6 +31,8 @@ with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
+with VSS.Strings;
+
 with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
@@ -93,7 +95,9 @@ package LSP.Messages is
    --}
    --```
    type Message is abstract tagged record
-      jsonrpc: LSP_String;
+      jsonrpc: VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
    end record;
 
    --```typescript
@@ -117,7 +121,7 @@ package LSP.Messages is
    --```
    type RequestMessage is new Message with record
       id: LSP_Number_Or_String;
-      method: LSP_String;
+      method: VSS.Strings.Virtual_String;
    end record;
 
    procedure Read_RequestMessage
@@ -227,7 +231,9 @@ package LSP.Messages is
    subtype Optional_ResponseError is LSP.Errors.Optional_ResponseError;
 
    type ResponseMessage (Is_Error : Boolean) is new Message with record
-      id: LSP_Number_Or_String;  --  or null?
+      id: LSP_Number_Or_String := (others => <>);  --  or null?
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
       error: Optional_ResponseError (Is_Error);
    end record;
 
@@ -255,7 +261,9 @@ package LSP.Messages is
    --}
    --```
    type NotificationMessage is new Message with record
-      method: LSP_String;
+      method: VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+      --  Assignment is needed to suppress compiler warning about uninitialized
+      --  variables.
    end record;
 
    procedure Read_NotificationMessage
@@ -8859,7 +8867,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressBegin is record
-      kind        : LSP_String := +"begin";
+      kind        : VSS.Strings.Virtual_String := "begin";
       title       : LSP_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
@@ -8901,7 +8909,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressReport is record
-      kind        : LSP_String := +"report";
+      kind        : VSS.Strings.Virtual_String := "report";
       cancellable : Optional_Boolean;
       message     : Optional_String;
       percentage  : Optional_Number;
@@ -8920,7 +8928,7 @@ package LSP.Messages is
    --}
    --```
    type WorkDoneProgressEnd is record
-      kind    : LSP_String := +"end";
+      kind    : VSS.Strings.Virtual_String := "end";
       message : Optional_String;
    end record;
 
@@ -10804,15 +10812,15 @@ private
    for ShowMessageRequestParams'Read use Read_ShowMessageRequestParams;
 
    package Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_String,
+     (Key_Type        => VSS.Strings.Virtual_String,
       Element_Type    => Ada.Tags.Tag,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
+      Equivalent_Keys => VSS.Strings."=",
       "="             => Ada.Tags."=");
 
    function Method_To_Tag
      (Map    : Maps.Map;
-      Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+      Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag;
 
    --  Here are useless typescript snippets from LSP specification, such as
    --  examples. We keep them to be able to restore all snippets and compare

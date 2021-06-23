@@ -58,9 +58,9 @@ package body LSP.Generic_Notifications is
             JS.R.Read_Next;
 
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
             elsif Key = "params" then
                T'Read (S, V.params);
             else

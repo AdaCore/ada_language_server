@@ -87,7 +87,7 @@ package body LSP.Servers is
 
    procedure Send_Request
      (Self   : in out Server'Class;
-      Method : String;
+      Method : VSS.Strings.Virtual_String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class);
    --  Assign Method to the request and send it to the client.
 
@@ -182,7 +182,7 @@ package body LSP.Servers is
    is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.LogMessage_Notification'
-           (method  => +"window/logMessage",
+           (method  => "window/logMessage",
             params  => Params,
             jsonrpc => <>);
    begin
@@ -335,8 +335,7 @@ package body LSP.Servers is
                         when String_Value =>
                            Request_Id :=
                              (Is_Number => False,
-                              String    =>
-                                 LSP.Types.To_LSP_String (JS.R.String_Value));
+                              String    => JS.R.String_Value);
                         when Number_Value =>
                            Request_Id :=
                              (Is_Number => True,
@@ -400,7 +399,8 @@ package body LSP.Servers is
                Self.Server_Trace.Trace ("Got Error response:");
 
                Self.Server_Trace.Trace
-                 (LSP.Types.To_UTF_8_String (Error.Value.message));
+                 (VSS.Strings.Conversions.To_UTF_8_String
+                    (Error.Value.message));
             end if;
 
             return;
@@ -420,7 +420,9 @@ package body LSP.Servers is
                Request :=
                  new LSP.Messages.Server_Requests.Server_Request'Class'
                    (LSP.Servers.Decode_Request
-                      (Memory'Unchecked_Access, Method.Value));
+                      (Memory'Unchecked_Access,
+                       LSP.Types.To_Virtual_String (Method.Value)));
+
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
@@ -453,7 +455,9 @@ package body LSP.Servers is
                Notification :=
                  new Messages.Server_Notifications.Server_Notification'Class'
                    (LSP.Servers.Decode_Notification
-                      (Memory'Unchecked_Access, Method.Value));
+                      (Memory'Unchecked_Access,
+                       LSP.Types.To_Virtual_String (Method.Value)));
+
             exception
                when E : Unknown_Method =>
                   Self.Server_Trace.Trace
@@ -607,7 +611,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
           (jsonrpc => <>,
-           method  => +"textDocument/publishDiagnostics",
+           method  => "textDocument/publishDiagnostics",
            params  => Params);
    begin
       Self.Send_Notification (Message);
@@ -624,7 +628,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.Progress_Notification'
           (jsonrpc => <>,
-           method  => +"$/progress",
+           method  => "$/progress",
            params  => Params);
    begin
       Self.Send_Notification (Message);
@@ -777,7 +781,10 @@ package body LSP.Servers is
               Value =>
                 (code    => Code,
                  data    => LSP.Types.Empty,
-                 message => LSP.Types.To_LSP_String (Exception_Text))));
+                 message =>
+                   VSS.Strings.Conversions.To_Virtual_String
+                     (Exception_Text))));
+
    begin
       --  Send the response to the output stream
       Send_Response (Self, Response, Request_Id);
@@ -804,7 +811,7 @@ package body LSP.Servers is
          error    =>
            (Is_Set => True,
             Value  => (code    => LSP.Errors.ServerNotInitialized,
-                       message => +"No initialize request was received",
+                       message => "No initialize request was received",
                        others  => <>)));
    begin
       Send_Response (Self, Response, Request_Id);
@@ -821,7 +828,7 @@ package body LSP.Servers is
          error    =>
            (Is_Set => True,
             Value  => (code    => LSP.Errors.RequestCancelled,
-                       message => +"Request was canceled",
+                       message => "Request was canceled",
                        others  => <>)));
    begin
       Send_Response (Self, Response, Request_Id);
@@ -836,7 +843,7 @@ package body LSP.Servers is
       Value : in out Message_Access)
    is
    begin
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Self.Output_Queue.Enqueue (Value);
       Value := null;
    end Send_Notification;
@@ -847,7 +854,7 @@ package body LSP.Servers is
 
    procedure Send_Request
      (Self   : in out Server'Class;
-      Method : String;
+      Method : VSS.Strings.Virtual_String;
       Value  : LSP.Messages.Client_Requests.Client_Request'Class)
    is
       use type LSP.Types.LSP_Number;
@@ -855,10 +862,10 @@ package body LSP.Servers is
         new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
       --  The Message will be deleted by Output_Task
    begin
-      Message.jsonrpc := +"2.0";
+      Message.jsonrpc := "2.0";
       Self.Last_Request := Self.Last_Request + 1;
       Message.id := (Is_Number => True, Number => Self.Last_Request);
-      Message.method := LSP.Types.To_LSP_String (Method);
+      Message.method := Method;
       Self.Output_Queue.Enqueue (Message_Access (Message));
    end Send_Request;
 
@@ -871,7 +878,7 @@ package body LSP.Servers is
       Response   : in out Response_Access;
       Request_Id : LSP.Types.LSP_Number_Or_String) is
    begin
-      Response.jsonrpc := +"2.0";
+      Response.jsonrpc := "2.0";
       Response.id := Request_Id;
       Self.Output_Queue.Enqueue (Message_Access (Response));
       Response := null;
@@ -888,7 +895,7 @@ package body LSP.Servers is
       Message : Message_Access :=
         new LSP.Messages.Client_Notifications.ShowMessage_Notification'
           (jsonrpc => <>,
-           method  => +"window/showMessage",
+           method  => "window/showMessage",
            params  => Params);
    begin
       Self.Send_Notification (Message);

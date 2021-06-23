@@ -119,7 +119,7 @@ private
    --  textDocument/documentSymbol handler
 
    Empty_Token : LSP.Types.LSP_Number_Or_String :=
-     (Is_Number => False, String => LSP.Types.Empty_LSP_String);
+     (Is_Number => False, String => <>);
 
    type Message_Handler
      (Server  : access LSP.Servers.Server;

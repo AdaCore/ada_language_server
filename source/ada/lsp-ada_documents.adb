@@ -68,7 +68,7 @@ package body LSP.Ada_Documents is
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
       Is_Function : out Boolean)
-      return LSP.Types.LSP_String;
+      return VSS.Strings.Virtual_String;
    --  Return the profile of Node.
 
    function Is_Declaration
@@ -1005,12 +1005,13 @@ package body LSP.Ada_Documents is
 
                         declare
                            Is_Function : Boolean;
-                           Profile : constant LSP.Types.LSP_String :=
+                           Profile : constant VSS.Strings.Virtual_String :=
                              Get_Profile (Decl, Is_Function);
                            Item : constant LSP.Messages.DocumentSymbol :=
                              (name              => To_LSP_String (Name.Text),
                               detail            =>
-                                (Is_Set => True, Value => Profile),
+                                (Is_Set => True,
+                                 Value  => LSP.Types.To_LSP_String (Profile)),
                               kind              => Kind,
                               deprecated        => (Is_Set => False),
                               tags              => LSP.Messages.Empty,
@@ -1441,7 +1442,7 @@ package body LSP.Ada_Documents is
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
       Is_Function : out Boolean)
-      return LSP.Types.LSP_String
+      return VSS.Strings.Virtual_String
    is
       use Libadalang.Common;
 
@@ -1450,7 +1451,7 @@ package body LSP.Ada_Documents is
 
       function To_Profile
         (Node : Libadalang.Analysis.Subp_Spec'Class)
-         return LSP.Types.LSP_String;
+         return VSS.Strings.Virtual_String;
 
       -------------
       -- To_Text --
@@ -1489,7 +1490,7 @@ package body LSP.Ada_Documents is
 
       function To_Profile
         (Node : Libadalang.Analysis.Subp_Spec'Class)
-         return LSP.Types.LSP_String
+         return VSS.Strings.Virtual_String
       is
          Result  : VSS.Strings.Virtual_String;
          Params  : constant Param_Spec_Array := Node.P_Params;
@@ -1553,7 +1554,7 @@ package body LSP.Ada_Documents is
             Result.Append (VSS.Strings.To_Virtual_String (To_Text (Returns)));
          end if;
 
-         return LSP.Types.To_LSP_String (Result);
+         return Result;
       end To_Profile;
 
    begin
@@ -1568,7 +1569,7 @@ package body LSP.Ada_Documents is
             return To_Profile
               (Node.As_Generic_Subp_Decl.F_Subp_Decl.F_Subp_Spec);
          when others =>
-            return LSP.Types.Empty_LSP_String;
+            return VSS.Strings.Empty_Virtual_String;
       end case;
    end Get_Profile;
 

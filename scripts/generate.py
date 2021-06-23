@@ -27,7 +27,8 @@ package LSP.Messages.Server_{kind}s is
      (Self    : Server_{kind};
       Handler : access Server_{kind}_Receiver'Class) is abstract;
 
-   function Method_To_Tag (Method : LSP.Types.LSP_String) return Ada.Tags.Tag;
+   function Method_To_Tag
+     (Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag;
    --  For given LSP method return a corresponding message type tag
 """
 
@@ -59,8 +60,6 @@ C_Method_Request_Snippet = """
 
 LSP_Messages_Generic_Body_Header = """--  Automatically generated, do not edit.
 
-with Ada.Strings.UTF_Encoding;
-
 package body LSP.Messages.Server_{kind}s is
 
    --  These messages are sent from client to server.
@@ -68,7 +67,7 @@ package body LSP.Messages.Server_{kind}s is
    Map : Maps.Map;
 
    function Method_To_Tag
-     (Method : LSP.Types.LSP_String) return Ada.Tags.Tag is
+     (Method : VSS.Strings.Virtual_String) return Ada.Tags.Tag is
    begin
       return Method_To_Tag (Map, Method);
    end Method_To_Tag;
@@ -121,16 +120,12 @@ end LSP.Servers.Handle_{kind};
 C_Handler_Function_Body = """--  Automatically generated, do not edit.
 
 with LSP.Messages.Server_Requests; use LSP.Messages.Server_Requests;
-with Ada.Strings.UTF_Encoding;
 
 function LSP.Servers.Handle_{kind}
   (Self    : not null Server_Request_Handlers
      .Server_Request_Handler_Access;
    {kind} : LSP.Messages.{kind}Message'Class)
-      return LSP.Messages.ResponseMessage'Class
-is
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP.Types.LSP_String renames LSP.Types.To_LSP_String;
+      return LSP.Messages.ResponseMessage'Class is
 begin
 {handler_snippets}
    return LSP.Messages.ResponseMessage'
@@ -141,7 +136,7 @@ begin
         (Is_Set => True,
          Value  =>
            (code    => LSP.Messages.MethodNotFound,
-            message => +"The {kind} handler doesn't support this",
+            message => "The {kind} handler doesn't support this",
             others  => <>)));
 end LSP.Servers.Handle_{kind};
 """
@@ -153,7 +148,7 @@ C_Handler_Snippet_Function = """
                Self.On_{request_name}_{kind}
                   ({request_name}_{kind} ({kind}));
          begin
-            R.jsonrpc := +"2.0";
+            R.jsonrpc := "2.0";
             R.id := Request.id;
             return R;
          end;
@@ -176,16 +171,12 @@ C_Handler_Snippet_Procedure_Noparams = """
 """
 
 LSP_Messages_Body_Begin = """
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
 begin"""
 
 LSP_Messages_Insert = """
 
    Map.Insert
-     (+"{protocol_name}",
+     ("{protocol_name}",
       {request_name}_{kind}'Tag);"""
 
 LSP_Messages_Generic_Footer = """

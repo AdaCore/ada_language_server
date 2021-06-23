@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Wide_Unbounded;
-
 with VSS.JSON.Streams.Readers.Simple;
 with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
@@ -36,10 +34,6 @@ with LSP.Messages.Client_Responses;
 with LSP.Messages.Client_Requests;
 
 package body LSP.Clients is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    package Decoders is
 
@@ -174,22 +168,26 @@ package body LSP.Clients is
    function Allocate_Request_Id
      (Self : in out Client'Class) return LSP.Types.LSP_Number_Or_String
    is
-      Prefix : constant LSP.Types.LSP_String := Self.Request_Id_Prefix;
+      Id : VSS.Strings.Virtual_String := Self.Request_Id_Prefix;
 
    begin
       Self.Request_Id := Self.Request_Id + 1;
 
-      if LSP.Types.Length (Prefix) = 0 then
+      if not Id.Is_Empty then
          return (True, Self.Request_Id);
 
       else
          declare
-            Image : constant Wide_String :=
-              LSP.Types.LSP_Number'Wide_Image (Self.Request_Id);
+            Image : constant Wide_Wide_String :=
+              LSP.Types.LSP_Number'Wide_Wide_Image (Self.Request_Id);
 
          begin
-            return
-              (False, Prefix & '-' & Image (Image'First + 1 .. Image'Last));
+            Id.Append ('-');
+            Id.Append
+              (VSS.Strings.To_Virtual_String
+                 (Image (Image'First + 1 .. Image'Last)));
+
+            return (False, Id);
          end;
       end if;
    end Allocate_Request_Id;
@@ -629,8 +627,7 @@ package body LSP.Clients is
                      when String_Value =>
                         Id :=
                           (Is_Number => False,
-                           String    =>
-                              LSP.Types.To_LSP_String (R.String_Value));
+                           String    => R.String_Value);
                      when Number_Value =>
                         Id :=
                           (Is_Number => True,
@@ -768,9 +765,11 @@ package body LSP.Clients is
                     (Is_Error => True,
                      error =>
                        (True,
-                        (code => LSP.Messages.MethodNotFound,
-                         message => "Unknown method:" & Method.Value,
-                         data => <>)),
+                        (code    => LSP.Messages.MethodNotFound,
+                         message =>
+                           LSP.Types.To_Virtual_String
+                             ("Unknown method:" & Method.Value),
+                         data    => <>)),
                      others => <>);
                begin
                   Self.Send_Response (Id, Error);
@@ -784,9 +783,10 @@ package body LSP.Clients is
                  (Stream'Access, Id, Is_Error, Self.Response_Handler);
             else
                Self.Error_Message :=
-                 VSS.Strings.Conversions.To_Virtual_String
+                 VSS.Strings.To_Virtual_String
                    ("Unknown request id '"
-                    & LSP.Types.To_UTF_8_String (Id)
+                    & VSS.Strings.Conversions.To_Wide_Wide_String
+                      (LSP.Types.To_Virtual_String (Id))
                     & ''');
                Success := False;
             end if;
@@ -813,11 +813,10 @@ package body LSP.Clients is
    -- Request_Id_Prefix --
    -----------------------
 
-   function Request_Id_Prefix (Self : Client) return LSP.Types.LSP_String is
+   function Request_Id_Prefix
+     (Self : Client) return VSS.Strings.Virtual_String is
    begin
-      return
-        LSP.Types.LSP_String
-          (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
+      return VSS.Strings.Empty_Virtual_String;
    end Request_Id_Prefix;
 
    -----------------------
@@ -826,7 +825,7 @@ package body LSP.Clients is
 
    procedure Send_Notification
      (Self   : in out Client'Class;
-      Method : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method : VSS.Strings.Virtual_String;
       Value  : in out LSP.Messages.NotificationMessage'Class)
    is
       JS     : aliased LSP.JSON_Streams.JSON_Stream
@@ -836,8 +835,8 @@ package body LSP.Clients is
 
    begin
       JS.Set_Stream (Output'Unchecked_Access);
-      Value.jsonrpc := +"2.0";
-      Value.method := +Method;
+      Value.jsonrpc := "2.0";
+      Value.method := Method;
       LSP.Messages.NotificationMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
       Self.Send_Buffer (Output.Buffer);
@@ -850,7 +849,7 @@ package body LSP.Clients is
    procedure Send_Request
      (Self    : in out Client'Class;
       Request : out LSP.Types.LSP_Number_Or_String;
-      Method  : Ada.Strings.UTF_Encoding.UTF_8_String;
+      Method  : VSS.Strings.Virtual_String;
       Decoder : Response_Decoder;
       Value   : in out LSP.Messages.RequestMessage'Class)
    is
@@ -864,8 +863,8 @@ package body LSP.Clients is
       Request := Self.Allocate_Request_Id;
       Self.Request_Map.Insert (Request, Decoder);
 
-      Value.jsonrpc := +"2.0";
-      Value.method := +Method;
+      Value.jsonrpc := "2.0";
+      Value.method := Method;
       Value.id := Request;
       LSP.Messages.RequestMessage'Class'Write (JS'Access, Value);
       JS.End_Document;
@@ -939,7 +938,7 @@ package body LSP.Clients is
 
    begin
       JS.Set_Stream (Output'Unchecked_Access);
-      Value.jsonrpc := +"2.0";
+      Value.jsonrpc := "2.0";
       Value.id := Request;
       LSP.Messages.ResponseMessage'Class'Write (JS'Access, Value);
       JS.End_Document;

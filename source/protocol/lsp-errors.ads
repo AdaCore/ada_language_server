@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+
+with VSS.Strings;
 
 with LSP.Generic_Optional;
 with LSP.Types; use LSP.Types;
@@ -36,9 +38,9 @@ package LSP.Errors is
       ContentModified);
 
    type ResponseError is record
-      code : ErrorCodes;
-      message : LSP.Types.LSP_String;
-      data : LSP.Types.LSP_Any;
+      code    : ErrorCodes;
+      message : VSS.Strings.Virtual_String;
+      data    : LSP.Types.LSP_Any;
    end record;
 
    procedure Read_ResponseError

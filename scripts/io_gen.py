@@ -287,7 +287,7 @@ package LSP.Message_IO is
 """
 
 body_header = """--  Automatically generated, do not edit.
-with Ada.Strings.UTF_Encoding;
+
 with Interfaces;
 
 with VSS.JSON.Streams.Readers;
@@ -298,8 +298,11 @@ with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
 
 package body LSP.Message_IO is
+
    pragma Style_Checks ("M175");
+
    use type Interfaces.Integer_64;
+   use type VSS.Strings.Virtual_String;
 """
 
 file_footer = """
@@ -326,6 +329,10 @@ io_footer = """\
 """
 
 write_component = {
+    "VSS.Strings.Virtual_String": """\
+      JS.Key ("{key}");
+      LSP.Types.Write_String (S, V.{name});
+""",
     "LSP_String": """\
       JS.Key ("{key}");
       LSP.Types.Write (S, V.{name});
@@ -335,7 +342,7 @@ write_component = {
       LSP.Types.Write (S, V.{name});
 """,
     "Boolean": """\
-      {kind}_Boolean (JS, +"{key}", V.{name});
+      {kind}_Boolean (JS, "{key}", V.{name});
 """,
     "UTF_16_Index": """\
       JS.Key ("{key}");
@@ -348,6 +355,9 @@ write_component = {
 }
 
 read_component = {
+    "VSS.Strings.Virtual_String": """if Key = "{key}" then
+               LSP.Types.Read_String (S, V.{name});
+            els""",
     "LSP_String": """if Key = "{key}" then
                LSP.Types.Read (S, V.{name});
             els""",
@@ -385,13 +395,13 @@ io_string_enum_header = {
       JS.R.Read_Next;
       """,
     'Write': """
-      function To_String
+      function To_Virtual_String
         (Value : {type})
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : {type})
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
 """
@@ -414,10 +424,10 @@ io_string_enum_footer = {
 """,
     'Write': """\
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
 """
 }
 
@@ -429,8 +439,7 @@ read_prolog = {
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             """,

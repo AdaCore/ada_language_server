@@ -74,10 +74,23 @@ package LSP.Types is
       V : out LSP.Types.LSP_String);
    --  Read string from the stream
 
+   procedure Read_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VSS.Strings.Virtual_String);
+   --  Read string from the stream
+
    procedure Write
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Types.LSP_String);
    --  Write string to the stream
+
+   procedure Write_String
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VSS.Strings.Virtual_String);
+   --  Write string to the stream
+
+   function Hash
+     (Item : VSS.Strings.Virtual_String) return Ada.Containers.Hash_Type;
 
    --  Now we don't put 'Read/'Write clauses on LSP_String to be able to
    --  switch the LSP_String to the Virtual_String in the future.
@@ -162,7 +175,7 @@ package LSP.Types is
          when True =>
             Number : LSP_Number;
          when False =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
       end case;
    end record;
 
@@ -185,8 +198,8 @@ package LSP.Types is
    function Hash
      (Item : LSP.Types.LSP_Number_Or_String) return Ada.Containers.Hash_Type;
 
-   function To_UTF_8_String (Item : LSP.Types.LSP_Number_Or_String)
-      return Ada.Strings.UTF_Encoding.UTF_8_String;
+   function To_Virtual_String (Item : LSP.Types.LSP_Number_Or_String)
+      return VSS.Strings.Virtual_String;
 
    type LSP_Boolean_Or_String (Is_Boolean : Boolean := False) is record
       case Is_Boolean is
@@ -269,12 +282,12 @@ package LSP.Types is
 
    procedure Write_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : Boolean);
 
    procedure Write_Optional_Boolean
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.Optional_Boolean);
 
    ---------------------
@@ -343,12 +356,17 @@ package LSP.Types is
 
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_String);
+
+   procedure Write_String
+    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
+     Key    : VSS.Strings.Virtual_String;
+     Item   : VSS.Strings.Virtual_String);
 
    procedure Write_Number
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+     Key    : VSS.Strings.Virtual_String;
      Item   : LSP.Types.LSP_Number);
 
    --  procedure Read_Number_Or_String
@@ -358,7 +376,7 @@ package LSP.Types is
 
    procedure Write_Number_Or_String
      (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : LSP.Types.LSP_String;
+      Key    : VSS.Strings.Virtual_String;
       Item   : LSP.Types.LSP_Number_Or_String);
    --  Write number or string from the JSON stream
 

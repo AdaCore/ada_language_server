@@ -16,11 +16,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers;
+
+with GNATCOLL.JSON;
+
+with VSS.Strings.Conversions;
+
 with LSP.Types;
 with LSP.Messages; use LSP.Messages;
-
-with Ada.Strings.UTF_Encoding.Wide_Strings;
-with GNATCOLL.JSON;
 
 package body LSP.Message_Loggers is
 
@@ -67,7 +69,7 @@ package body LSP.Message_Loggers is
       if Value.Is_Number then
          return LSP.Types.LSP_Number'Image (Value.Number);
       else
-         return +Value.String;
+         return VSS.Strings.Conversions.To_UTF_8_String (Value.String);
       end if;
    end Image;
 
@@ -91,7 +93,10 @@ package body LSP.Message_Loggers is
       if Value.id.Is_Number then
          return Prefix & LSP.Types.LSP_Number'Image (Value.id.Number) & ' ';
       else
-         return Prefix & (+Value.id.String) & ' ';
+         return
+           Prefix
+           & (VSS.Strings.Conversions.To_UTF_8_String (Value.id.String))
+           & ' ';
       end if;
    end Image;
 
@@ -363,7 +368,9 @@ package body LSP.Message_Loggers is
       Value : LSP.Messages.CancelParams) is
    begin
       Self.Trace.Trace
-        ("On_Cancel_Notification: " & LSP.Types.To_UTF_8_String (Value.id));
+        ("On_Cancel_Notification: "
+         & VSS.Strings.Conversions.To_UTF_8_String
+           (LSP.Types.To_Virtual_String (Value.id)));
    end On_Cancel_Notification;
 
    ----------------------------
@@ -561,37 +568,39 @@ package body LSP.Message_Loggers is
      (Self  : access Message_Logger;
       Value : LSP.Messages.DidChangeConfigurationParams)
    is
-      use all type LSP.Types.LSP_String;
-
       procedure Each (Name : String; Value : GNATCOLL.JSON.JSON_Value);
       --  Append Value image into Image variable
 
-      Image : LSP.Types.LSP_String;
+      Image : VSS.Strings.Virtual_String;
 
       ----------
       -- Each --
       ----------
 
       procedure Each (Name : String; Value : GNATCOLL.JSON.JSON_Value) is
-         Field : constant Wide_String :=
-           Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Name);
+         Field : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String (Name);
+
       begin
-         Append (Image, Field);
-         Append (Image, "=");
+         Image.Append (Field);
+         Image.Append ('=');
 
          case Value.Kind is
             when GNATCOLL.JSON.JSON_String_Type =>
-               Append
-                 (Image,
-                  Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Value.Get));
+               Image.Append
+                 (VSS.Strings.Conversions.To_Virtual_String (Value.Get));
+
             when GNATCOLL.JSON.JSON_Object_Type =>
-               Append (Image, "(");
+               Image.Append ("(");
                Value.Map_JSON_Object (Each'Access);
-               Append (Image, ")");
+               Image.Append (")");
+
             when others =>
-               Append
-                 (Image, "..."
-                  & GNATCOLL.JSON.JSON_Value_Type'Wide_Image (Value.Kind));
+               Image.Append
+                 (VSS.Strings.To_Virtual_String
+                    ("..."
+                     & GNATCOLL.JSON.JSON_Value_Type'Wide_Wide_Image
+                       (Value.Kind)));
          end case;
       end Each;
 
@@ -600,7 +609,7 @@ package body LSP.Message_Loggers is
 
       Self.Trace.Trace
         ("DidChangeConfiguration_Notification: "
-         & (+Image));
+         & (VSS.Strings.Conversions.To_UTF_8_String (Image)));
    end On_DidChangeConfiguration_Notification;
 
    -----------------------------------------------
@@ -1215,16 +1224,19 @@ package body LSP.Message_Loggers is
       case Params.Kind is
          when Progress_Begin =>
             Self.Trace.Trace ("Progress_Begin: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.Begin_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.Begin_Param.token)));
          when Progress_Report =>
             Self.Trace.Trace ("Progress_Report: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.Report_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.Report_Param.token)));
          when Progress_End =>
             Self.Trace.Trace ("Progress_End: "
-                              & (LSP.Types.To_UTF_8_String
-                                (Params.End_Param.token)));
+                              & VSS.Strings.Conversions.To_UTF_8_String
+                                (LSP.Types.To_Virtual_String
+                                   (Params.End_Param.token)));
       end case;
    end On_Progress;
 

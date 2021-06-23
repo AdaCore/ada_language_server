@@ -304,10 +304,10 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => LSP.Types.To_LSP_String
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
                  (Ada.Exceptions.Exception_Information (E)),
-               data => <>));
+               data    => <>));
    end Execute;
 
    -------------------

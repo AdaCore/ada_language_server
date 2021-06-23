@@ -1,5 +1,5 @@
 --  Automatically generated, do not edit.
-with Ada.Strings.UTF_Encoding;
+
 with Interfaces;
 
 with VSS.JSON.Streams.Readers;
@@ -10,8 +10,11 @@ with LSP.Messages;                 use LSP.Messages;
 with LSP.Types;                    use LSP.Types;
 
 package body LSP.Message_IO is
+
    pragma Style_Checks ("M175");
+
    use type Interfaces.Integer_64;
+   use type VSS.Strings.Virtual_String;
 
    procedure Read_RequestMessage
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -26,16 +29,15 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "id" then
                LSP_Number_Or_String'Read (S, V.id);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
             else
                JS.Skip_Value;
             end if;
@@ -53,11 +55,11 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("jsonrpc");
-      LSP.Types.Write (S, V.jsonrpc);
+      LSP.Types.Write_String (S, V.jsonrpc);
       JS.Key ("id");
       LSP_Number_Or_String'Write (S, V.id);
       JS.Key ("method");
-      LSP.Types.Write (S, V.method);
+      LSP.Types.Write_String (S, V.method);
       JS.End_Object;
    end Write_RequestMessage;
 
@@ -74,14 +76,13 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "jsonrpc" then
-               LSP.Types.Read (S, V.jsonrpc);
+               LSP.Types.Read_String (S, V.jsonrpc);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
             else
                JS.Skip_Value;
             end if;
@@ -99,9 +100,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("jsonrpc");
-      LSP.Types.Write (S, V.jsonrpc);
+      LSP.Types.Write_String (S, V.jsonrpc);
       JS.Key ("method");
-      LSP.Types.Write (S, V.method);
+      LSP.Types.Write_String (S, V.method);
       JS.End_Object;
    end Write_NotificationMessage;
 
@@ -118,8 +119,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "id" then
@@ -158,8 +158,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "line" then
@@ -202,8 +201,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "start" then
@@ -272,13 +270,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : CodeActionKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : CodeActionKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Empty =>
@@ -298,10 +296,10 @@ package body LSP.Message_IO is
             when SourceOrganizeImports =>
                return "source.organizeImports";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_CodeActionKind;
 
    procedure Read_AlsReferenceKind
@@ -341,13 +339,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsReferenceKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsReferenceKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Simple =>
@@ -365,10 +363,10 @@ package body LSP.Message_IO is
             when Child =>
                return "child";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_AlsReferenceKind;
 
    procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
@@ -402,13 +400,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : AlsDisplayMethodAncestryOnNavigationPolicy)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when Never =>
@@ -420,10 +418,10 @@ package body LSP.Message_IO is
             when Always =>
                return "Always";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_AlsDisplayMethodAncestryOnNavigationPolicy;
 
    procedure Read_Location
@@ -439,8 +437,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -487,8 +484,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "originSelectionRange" then
@@ -585,8 +581,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "href" then
@@ -625,8 +620,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "location" then
@@ -669,8 +663,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -737,8 +730,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -781,8 +773,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -829,8 +820,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -869,8 +859,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -913,8 +902,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -957,8 +945,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -1017,13 +1004,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FileResourceChangeKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FileResourceChangeKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when create =>
@@ -1033,10 +1020,10 @@ package body LSP.Message_IO is
             when delete =>
                return "delete";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FileResourceChangeKind;
 
    procedure Read_CreateFileOptions
@@ -1052,8 +1039,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "overwrite" then
@@ -1096,8 +1082,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -1148,8 +1133,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "overwrite" then
@@ -1192,8 +1176,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -1248,8 +1231,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "recursive" then
@@ -1292,8 +1274,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -1344,8 +1325,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -1392,8 +1372,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -1444,8 +1423,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -1488,8 +1466,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1544,13 +1521,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : ResourceOperationKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : ResourceOperationKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when create =>
@@ -1560,10 +1537,10 @@ package body LSP.Message_IO is
             when delete =>
                return "delete";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_ResourceOperationKind;
 
    procedure Read_FailureHandlingKind
@@ -1597,13 +1574,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FailureHandlingKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FailureHandlingKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when abortApplying =>
@@ -1615,10 +1592,10 @@ package body LSP.Message_IO is
             when textOnlyTransactional =>
                return "textOnlyTransactional";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FailureHandlingKind;
 
    procedure Read_AnnotationSupport
@@ -1634,8 +1611,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "groupsOnLabel" then
@@ -1674,8 +1650,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentChanges" then
@@ -1751,8 +1726,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -1812,8 +1786,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -1873,8 +1846,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -1921,8 +1893,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "refreshSupport" then
@@ -1961,8 +1932,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "refreshSupport" then
@@ -2001,8 +1971,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "applyEdit" then
@@ -2091,13 +2060,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : MarkupKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : MarkupKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when plaintext =>
@@ -2105,10 +2074,10 @@ package body LSP.Message_IO is
             when markdown =>
                return "markdown";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_MarkupKind;
 
    procedure Read_MarkupContent
@@ -2124,8 +2093,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
@@ -2168,8 +2136,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "includeText" then
@@ -2229,8 +2196,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "openClose" then
@@ -2285,8 +2251,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2358,8 +2323,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -2398,8 +2362,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "properties" then
@@ -2459,8 +2422,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -2499,8 +2461,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "snippetSupport" then
@@ -2592,8 +2553,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -2632,8 +2592,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2684,8 +2643,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2728,8 +2686,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "labelOffsetSupport" then
@@ -2768,8 +2725,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentationFormat" then
@@ -2816,8 +2772,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2864,8 +2819,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2920,8 +2874,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -2964,8 +2917,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -3004,8 +2956,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "codeActionKind" then
@@ -3044,8 +2995,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -3108,8 +3058,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -3173,8 +3122,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -3225,8 +3173,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "valueSet" then
@@ -3265,8 +3212,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "relatedInformation" then
@@ -3321,8 +3267,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -3421,13 +3366,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenTypes)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenTypes)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when a_type =>
@@ -3473,10 +3418,10 @@ package body LSP.Message_IO is
             when operator =>
                return "operator";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_SemanticTokenTypes;
 
    procedure Read_SemanticTokenModifiers
@@ -3522,13 +3467,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenModifiers)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : SemanticTokenModifiers)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when declaration =>
@@ -3552,10 +3497,10 @@ package body LSP.Message_IO is
             when defaultLibrary =>
                return "defaultLibrary";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_SemanticTokenModifiers;
 
    procedure Read_TokenFormat
@@ -3583,22 +3528,22 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : TokenFormat)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : TokenFormat)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when relative =>
                return "relative";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_TokenFormat;
 
    procedure Read_SemanticTokensFullCapabilities
@@ -3614,8 +3559,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "delta" then
@@ -3654,8 +3598,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -3698,8 +3641,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -3762,8 +3704,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "synchronization" then
@@ -3902,8 +3843,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "support" then
@@ -3924,7 +3864,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"support", V.support);
+      Write_Boolean (JS, "support", V.support);
       JS.End_Object;
    end Write_ShowDocumentClientCapabilities;
 
@@ -3941,8 +3881,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "additionalPropertiesSupport" then
@@ -3981,8 +3920,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "messageActionItem" then
@@ -4021,8 +3959,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4069,8 +4006,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "parser" then
@@ -4113,8 +4049,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "engine" then
@@ -4157,8 +4092,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "regularExpressions" then
@@ -4201,8 +4135,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "dynamicRegistration" then
@@ -4265,8 +4198,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workspace" then
@@ -4317,8 +4249,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -4361,8 +4292,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "token" then
@@ -4401,8 +4331,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -4449,8 +4378,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "name" then
@@ -4509,13 +4437,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : TraceValue)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : TraceValue)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when off =>
@@ -4525,10 +4453,10 @@ package body LSP.Message_IO is
             when verbose =>
                return "verbose";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_TraceValue;
 
    procedure Read_InitializeParams
@@ -4544,8 +4472,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -4616,8 +4543,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4668,8 +4594,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4716,8 +4641,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -4756,8 +4680,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4804,8 +4727,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4848,8 +4770,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4896,8 +4817,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4940,8 +4860,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -4988,8 +4907,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -5032,8 +4950,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -5076,8 +4993,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -5120,8 +5036,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "supported" then
@@ -5178,13 +5093,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : FileOperationPatternKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : FileOperationPatternKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when file =>
@@ -5192,10 +5107,10 @@ package body LSP.Message_IO is
             when folder =>
                return "folder";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_FileOperationPatternKind;
 
    procedure Read_FileOperationPatternOptions
@@ -5211,8 +5126,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "ignoreCase" then
@@ -5251,8 +5165,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "glob" then
@@ -5299,8 +5212,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "scheme" then
@@ -5343,8 +5255,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "filters" then
@@ -5383,8 +5294,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "didCreate" then
@@ -5443,8 +5353,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workspaceFolders" then
@@ -5487,8 +5396,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "tokenTypes" then
@@ -5531,8 +5439,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneProgress" then
@@ -5583,8 +5490,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocumentSync" then
@@ -5747,8 +5653,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "capabilities" then
@@ -5793,8 +5698,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "" then
@@ -5854,8 +5758,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -5898,8 +5801,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -5946,8 +5848,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "type" then
@@ -5990,8 +5891,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6034,8 +5934,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6078,8 +5977,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6130,8 +6028,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6178,8 +6075,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6222,8 +6118,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6270,8 +6165,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "commands" then
@@ -6310,8 +6204,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "globPattern" then
@@ -6354,8 +6247,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "watchers" then
@@ -6394,8 +6286,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6438,8 +6329,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "documentSelector" then
@@ -6482,8 +6372,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "id" then
@@ -6530,8 +6419,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "registrations" then
@@ -6570,8 +6458,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "id" then
@@ -6614,8 +6501,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "unregisterations" then
@@ -6654,8 +6540,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "settings" then
@@ -6694,8 +6579,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -6734,8 +6618,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -6782,8 +6665,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -6847,8 +6729,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -6891,8 +6772,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -6952,8 +6832,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -6996,8 +6875,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "changes" then
@@ -7036,8 +6914,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -7105,8 +6982,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "newText" then
@@ -7153,8 +7029,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -7253,8 +7128,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "isIncomplete" then
@@ -7277,7 +7151,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"isIncomplete", V.isIncomplete);
+      Write_Boolean (JS, "isIncomplete", V.isIncomplete);
       JS.Key ("items");
       CompletionItem_Vector'Write (S, V.items);
       JS.End_Object;
@@ -7296,8 +7170,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "contents" then
@@ -7340,8 +7213,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -7384,8 +7256,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -7436,8 +7307,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "signatures" then
@@ -7484,8 +7354,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "includeDeclaration" then
@@ -7506,7 +7375,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"includeDeclaration", V.includeDeclaration);
+      Write_Boolean (JS, "includeDeclaration", V.includeDeclaration);
       JS.End_Object;
    end Write_ReferenceContext;
 
@@ -7523,8 +7392,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -7600,8 +7468,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -7644,8 +7511,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -7692,8 +7558,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "name" then
@@ -7756,8 +7621,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -7804,8 +7668,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "diagnostics" then
@@ -7848,8 +7711,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -7904,8 +7766,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "tabSize" then
@@ -7936,7 +7797,7 @@ package body LSP.Message_IO is
       JS.Start_Object;
       JS.Key ("tabSize");
       LSP_Number'Write (S, V.tabSize);
-      Write_Boolean (JS, +"insertSpaces", V.insertSpaces);
+      Write_Boolean (JS, "insertSpaces", V.insertSpaces);
       JS.Key ("trimTrailingWhitespace");
       Optional_Boolean'Write (S, V.trimTrailingWhitespace);
       JS.Key ("insertFinalNewline");
@@ -7959,8 +7820,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -8007,8 +7867,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -8059,8 +7918,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -8111,8 +7969,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -8163,8 +8020,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -8207,8 +8063,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "applied" then
@@ -8233,7 +8088,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"applied", V.applied);
+      Write_Boolean (JS, "applied", V.applied);
       JS.Key ("failureReason");
       Optional_String'Write (S, V.failureReason);
       JS.Key ("failedChange");
@@ -8254,12 +8109,11 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "title" then
                LSP.Types.Read (S, V.title);
             elsif Key = "cancellable" then
@@ -8285,7 +8139,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("title");
       LSP.Types.Write (S, V.title);
       JS.Key ("cancellable");
@@ -8310,12 +8164,11 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
@@ -8339,7 +8192,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
@@ -8362,12 +8215,11 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "kind" then
-               LSP.Types.Read (S, V.kind);
+               LSP.Types.Read_String (S, V.kind);
             elsif Key = "message" then
                Optional_String'Read (S, V.message);
             else
@@ -8387,7 +8239,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("kind");
-      LSP.Types.Write (S, V.kind);
+      LSP.Types.Write_String (S, V.kind);
       JS.Key ("message");
       Optional_String'Write (S, V.message);
       JS.End_Object;
@@ -8406,8 +8258,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "added" then
@@ -8450,8 +8301,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "event" then
@@ -8490,8 +8340,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "scopeUri" then
@@ -8534,8 +8383,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "items" then
@@ -8595,8 +8443,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "triggerKind" then
@@ -8639,8 +8486,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -8695,8 +8541,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "reason" then
@@ -8735,8 +8580,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "red" then
@@ -8787,8 +8631,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -8831,8 +8674,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -8887,8 +8729,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "label" then
@@ -8935,8 +8776,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -8983,8 +8823,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "startLine" then
@@ -9039,8 +8878,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -9087,8 +8925,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -9143,8 +8980,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -9195,8 +9031,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "range" then
@@ -9235,8 +9070,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "ranges" then
@@ -9279,8 +9113,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "name" then
@@ -9343,8 +9176,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -9391,8 +9223,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "from" then
@@ -9439,8 +9270,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "to" then
@@ -9487,8 +9317,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "resultId" then
@@ -9531,8 +9360,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "data" then
@@ -9571,8 +9399,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -9623,8 +9450,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "start" then
@@ -9671,8 +9497,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "resultId" then
@@ -9715,8 +9540,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "edits" then
@@ -9755,8 +9579,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "workDoneToken" then
@@ -9827,13 +9650,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : UniquenessLevel)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : UniquenessLevel)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when document =>
@@ -9847,10 +9670,10 @@ package body LSP.Message_IO is
             when global =>
                return "global";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_UniquenessLevel;
 
    procedure Read_MonikerKind
@@ -9882,13 +9705,13 @@ package body LSP.Message_IO is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      function To_String
+      function To_Virtual_String
         (Value : MonikerKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String;
+         return VSS.Strings.Virtual_String;
 
-      function To_String
+      function To_Virtual_String
         (Value : MonikerKind)
-         return Ada.Strings.UTF_Encoding.UTF_8_String is
+         return VSS.Strings.Virtual_String is
       begin
          case Value is
             when import =>
@@ -9898,10 +9721,10 @@ package body LSP.Message_IO is
             when local =>
                return "local";
          end case;
-      end To_String;
+      end To_Virtual_String;
 
    begin
-      JS.Write_String (To_String (V));
+      JS.Write_String (To_Virtual_String (V));
    end Write_MonikerKind;
 
    procedure Read_Moniker
@@ -9917,8 +9740,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "scheme" then
@@ -9969,8 +9791,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -10021,8 +9842,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "success" then
@@ -10043,7 +9863,7 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      Write_Boolean (JS, +"success", V.success);
+      Write_Boolean (JS, "success", V.success);
       JS.End_Object;
    end Write_ShowDocumentResult;
 
@@ -10060,8 +9880,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -10100,8 +9919,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "files" then
@@ -10140,8 +9958,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "oldUri" then
@@ -10184,8 +10001,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "files" then
@@ -10224,8 +10040,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
@@ -10264,8 +10079,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "files" then
@@ -10304,8 +10118,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "message" then
@@ -10348,8 +10161,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "value" then
@@ -10388,8 +10200,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "location" then
@@ -10457,8 +10268,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "textDocument" then
@@ -10487,7 +10297,7 @@ package body LSP.Message_IO is
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.Key ("kind");
       ALS_ShowDependenciesKind'Write (S, V.kind);
-      Write_Boolean (JS, +"showImplicit", V.showImplicit);
+      Write_Boolean (JS, "showImplicit", V.showImplicit);
       JS.End_Object;
    end Write_ALS_ShowDependenciesParams;
 
@@ -10504,8 +10314,7 @@ package body LSP.Message_IO is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
-            Key : constant String :=
-               VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
             if Key = "uri" then
