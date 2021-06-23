@@ -22,6 +22,8 @@ with GNAT.OS_Lib;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
+with VSS.Characters;
+
 with LSP.Messages;
 with LSP.Types;             use LSP.Types;
 with Libadalang.Analysis;   use Libadalang.Analysis;
@@ -51,5 +53,10 @@ package LSP.Common is
    --  Return a pretty printed version of the declaration's text to be
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.
+
+   function Is_Ada_Separator
+     (Item : VSS.Characters.Virtual_Character) return Boolean;
+   --  Return True when given character belongs to 'separator' category,
+   --  defined by Ada 2012 Reference Manual.
 
 end LSP.Common;
