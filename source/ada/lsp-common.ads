@@ -26,7 +26,6 @@ with VSS.Characters;
 with VSS.Strings;
 
 with LSP.Messages;
-with LSP.Types;             use LSP.Types;
 with Libadalang.Analysis;   use Libadalang.Analysis;
 
 package LSP.Common is
@@ -35,6 +34,10 @@ package LSP.Common is
      (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
       others => False);
    --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
+
+   Document_LSP_New_Line_Function : constant VSS.Strings.Line_Terminator :=
+     VSS.Strings.LF;
+   --  Line terminator to be used to generate replies. It is fixed to LF now.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
@@ -55,7 +58,8 @@ package LSP.Common is
       Args : GNAT.OS_Lib.Argument_List) return String;
    --  Run the given command line and return the output.
 
-   function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String;
+   function Get_Hover_Text
+     (Decl : Basic_Decl'Class) return VSS.Strings.Virtual_String;
    --  Return a pretty printed version of the declaration's text to be
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.

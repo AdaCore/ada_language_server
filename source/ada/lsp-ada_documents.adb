@@ -93,7 +93,7 @@ package body LSP.Ada_Documents is
    --  Get completion for keywords, filtering them with the given Prefix.
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
 
    function Unit
      (Self    : Document;
@@ -1724,11 +1724,12 @@ package body LSP.Ada_Documents is
    --------------------
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
    is
       use Libadalang.Common;
 
-      Result : LSP.Types.LSP_String;
+      Result : VSS.Strings.Virtual_String;
+
    begin
 
       --  If the basic declaration is an enum literal, display the whole
@@ -1769,7 +1770,9 @@ package body LSP.Ada_Documents is
       Item.label := To_LSP_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
-      Item.detail := (True, Compute_Completion_Detail (BD));
+      Item.detail := (True,
+                      LSP.Types.To_LSP_String
+                        (Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
          Item.sortText := (True, '~' & Item.label);
@@ -2250,8 +2253,9 @@ package body LSP.Ada_Documents is
                     (True, LSP.Messages.Snippet);
                   Item.detail :=
                     (True,
-                     Compute_Completion_Detail
-                       (Aggr_Type.As_Basic_Decl));
+                     LSP.Types.To_LSP_String
+                       (Compute_Completion_Detail
+                            (Aggr_Type.As_Basic_Decl)));
                   Item.insertTextFormat :=
                     Optional_InsertTextFormat'
                       (Is_Set => True,

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,22 +15,86 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
 with Ada.Exceptions;           use Ada.Exceptions;
+with Ada.Strings.Fixed;        use Ada.Strings.Fixed;
 with GNAT.Expect.TTY;
 with GNAT.Strings;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
+
+with VSS.String_Vectors;
+with VSS.Strings.Conversions;
 
 with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
 
 package body LSP.Common is
 
-   function Get_Hover_Text_For_Node (Node : Ada_Node'Class) return LSP_String;
+   function Get_Hover_Text_For_Node
+     (Node : Ada_Node'Class) return VSS.String_Vectors.Virtual_String_Vector;
    --  Return a pretty printed version of the node's text to be
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.
+
+   procedure Append_To_Last_Line
+     (Lines : in out VSS.String_Vectors.Virtual_String_Vector;
+      Item  : VSS.Characters.Virtual_Character);
+   --  Append given Item to the last line of the vector. Append new line when
+   --  vector is empty.
+
+   procedure Append_To_Last_Line
+     (Lines : in out VSS.String_Vectors.Virtual_String_Vector;
+      Item  : VSS.Strings.Virtual_String);
+   --  Append given Item to the last line of the vector. Append new line when
+   --  vector is empty.
+
+   -------------------------
+   -- Append_To_Last_Line --
+   -------------------------
+
+   procedure Append_To_Last_Line
+     (Lines : in out VSS.String_Vectors.Virtual_String_Vector;
+      Item  : VSS.Characters.Virtual_Character)
+   is
+      Line : VSS.Strings.Virtual_String :=
+        (if Lines.Is_Empty
+           then VSS.Strings.Empty_Virtual_String
+           else Lines.Element (Lines.Length));
+
+   begin
+      Line.Append (Item);
+
+      if Lines.Is_Empty then
+         Lines.Append (Line);
+
+      else
+         Lines.Replace (Lines.Length, Line);
+      end if;
+   end Append_To_Last_Line;
+
+   -------------------------
+   -- Append_To_Last_Line --
+   -------------------------
+
+   procedure Append_To_Last_Line
+     (Lines : in out VSS.String_Vectors.Virtual_String_Vector;
+      Item  : VSS.Strings.Virtual_String)
+   is
+      Line : VSS.Strings.Virtual_String :=
+        (if Lines.Is_Empty
+           then VSS.Strings.Empty_Virtual_String
+           else Lines.Element (Lines.Length));
+
+   begin
+      Line.Append (Item);
+
+      if Lines.Is_Empty then
+         Lines.Append (Line);
+
+      else
+         Lines.Replace (Lines.Length, Line);
+      end if;
+   end Append_To_Last_Line;
 
    ---------
    -- Log --
@@ -90,7 +154,8 @@ package body LSP.Common is
    -- Get_Hover_Text_For_Node --
    -----------------------------
 
-   function Get_Hover_Text_For_Node (Node : Ada_Node'Class) return LSP_String
+   function Get_Hover_Text_For_Node
+     (Node : Ada_Node'Class) return VSS.String_Vectors.Virtual_String_Vector
    is
       Text   : constant String := Langkit_Support.Text.To_UTF8
         (Node.Text);
@@ -99,7 +164,7 @@ package body LSP.Common is
          On               => ASCII.LF,
          Omit_Empty_Lines => True);
 
-      Result : LSP_String;
+      Result : VSS.String_Vectors.Virtual_String_Vector;
 
       procedure Get_Basic_Decl_Hover_Text;
       --  Create the hover text for for basic declarations
@@ -170,10 +235,12 @@ package body LSP.Common is
                         end loop;
 
                         if Res_Idx > Text'First then
-                           Result := To_LSP_String
-                             (Tmp (Tmp'First .. Res_Idx - 1));
+                           Result.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (Tmp (Tmp'First .. Res_Idx - 1)));
                         end if;
                      end;
+
                   else
                      declare
                         Blanks_Count_Per_Line : array
@@ -181,7 +248,9 @@ package body LSP.Common is
                         Indent_Blanks_Count   : Natural := Natural'Last;
                         Start_Idx             : Integer;
                      begin
-                        Result := To_LSP_String (Lines (Lines'First).all);
+                        Result.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                             (Lines (Lines'First).all));
 
                         --  Count the blankpaces per line and track how many
                         --  blankspaces we should remove on each line by
@@ -199,9 +268,9 @@ package body LSP.Common is
 
                         for J in Lines'First + 1 .. Lines'Last loop
                            Start_Idx := Lines (J)'First + Indent_Blanks_Count;
-                           Result := Result & To_LSP_String
-                             (ASCII.LF
-                              & Lines (J).all (Start_Idx .. Lines (J)'Last));
+                           Result.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (Lines (J).all (Start_Idx .. Lines (J)'Last)));
                         end loop;
                      end;
                   end if;
@@ -222,19 +291,21 @@ package body LSP.Common is
          --  them by a fixed number of blankspaces.
 
          if Lines'Length = 1 then
-            Result := To_LSP_String (Text);
+            Result.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
+
          else
-            Result := To_LSP_String (Lines (Lines'First).all);
+            Result.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (Lines (Lines'First).all));
 
             for J in Lines'First + 1 .. Lines'Last loop
                Idx := Lines (J)'First;
                Skip_Blanks (Lines (J).all, Idx);
 
-               Result := Result
-                 & To_LSP_String
-                 (ASCII.LF
-                  & (if Lines (J).all (Idx) = '(' then "  " else "   ")
-                  & Lines (J).all (Idx .. Lines (J).all'Last));
+               Result.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    ((if Lines (J).all (Idx) = '(' then "  " else "   ")
+                     & Lines (J).all (Idx .. Lines (J).all'Last)));
             end loop;
          end if;
 
@@ -243,8 +314,7 @@ package body LSP.Common is
          if not Node.Parent.Is_Null
            and then Node.Parent.Kind in Ada_Abstract_Subp_Decl_Range
          then
-            Append (Result, " is abstract");
-            return;
+            Append_To_Last_Line (Result, " is abstract");
          end if;
 
          --  Append "is null" to the resulting hover text if the subprogram
@@ -252,7 +322,7 @@ package body LSP.Common is
          if not Node.Parent.Is_Null
            and then Node.Parent.Kind in Ada_Null_Subp_Decl_Range
          then
-            Append (Result, " is null");
+            Append_To_Last_Line (Result, " is null");
          end if;
       end Get_Subp_Spec_Hover_Text;
 
@@ -261,8 +331,8 @@ package body LSP.Common is
       ---------------------------------
 
       procedure Get_Package_Decl_Hover_Text is
-         Generic_Params : LSP_String;
-         End_Idx        : Natural := Text'First;
+         End_Idx : Natural := Text'First;
+
       begin
          --  Return the first line of the package declaration and its
          --  generic parameters if any.
@@ -274,14 +344,14 @@ package body LSP.Common is
          if Node.Parent /= No_Ada_Node
            and then Node.Parent.Kind in Ada_Generic_Decl
          then
-            Generic_Params := To_LSP_String
-              (Langkit_Support.Text.To_UTF8
-                 (As_Generic_Decl (Node.Parent).F_Formal_Part.Text)
-               & ASCII.LF);
+            Result.Append
+              (VSS.Strings.To_Virtual_String
+                 (As_Generic_Decl (Node.Parent).F_Formal_Part.Text));
          end if;
 
-         Result := Generic_Params
-           & To_LSP_String (Text (Text'First .. End_Idx));
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (Text (Text'First .. End_Idx)));
       end Get_Package_Decl_Hover_Text;
 
       -----------------------------
@@ -289,10 +359,11 @@ package body LSP.Common is
       -----------------------------
 
       procedure Get_Loop_Var_Hover_Text is
-         Parent_Text : constant String := Langkit_Support.Text.To_UTF8
-           (Node.Parent.Text);
+         Parent_Text : constant Wide_Wide_String := Node.Parent.Text;
+
       begin
-         Result := To_LSP_String (Parent_Text);
+         Result.Append
+           (VSS.Strings.To_Virtual_String (Parent_Text));
       end Get_Loop_Var_Hover_Text;
 
       ---------------------------
@@ -308,12 +379,12 @@ package body LSP.Common is
          Skip_Blanks (Lines (Lines'First).all, Idx);
          Indentation := Idx - Lines (Lines'First)'First;
 
-         Result := Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
-           & (2 * " ")  --  Force an indentation of 2 for the first line
-           & To_LSP_String --  Remove the uneeded indentation
-           (Lines (Lines'First).all
-                (Lines (Lines'First)'First + Indentation
-                 .. Lines (Lines'First).all'Last));
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              ((2 * " ")  --  Force an indentation of 2 for the first line
+               &  Lines (Lines'First).all
+                   (Lines (Lines'First)'First + Indentation
+                    .. Lines (Lines'First).all'Last)));
 
          --  The next line should have one more indentation level
          Indentation := Indentation + 3;
@@ -324,15 +395,14 @@ package body LSP.Common is
 
             if Lines (J)'First + Indentation > Idx then
                --  Uncommon indentation: just print the line
-               Result := Result
-                 & Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
-                 & To_LSP_String (Lines (J).all);
+               Result.Append
+                 (VSS.Strings.Conversions.To_Virtual_String (Lines (J).all));
+
             else
-               Result := Result
-                 & Ada.Characters.Handling.To_Wide_Character (ASCII.LF)
-                 & To_LSP_String --  Remove the uneeded indentation
-                 (Lines (J).all
-                      (Lines (J)'First + Indentation .. Lines (J).all'Last));
+               Result.Append  --  Remove the uneeded indentation
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (Lines (J).all
+                       (Lines (J)'First + Indentation .. Lines (J).all'Last)));
             end if;
          end loop;
       end Get_Aspect_Hover_Text;
@@ -345,7 +415,7 @@ package body LSP.Common is
             --  This means that the user is hovering on the package declaration
             --  itself: in this case, return a empty response since all the
             --  relevant information is already visible to the user.
-            return Empty_LSP_String;
+            null;
 
          when Ada_Base_Package_Decl =>
             Get_Package_Decl_Hover_Text;
@@ -372,10 +442,12 @@ package body LSP.Common is
    -- Get_Hover_Text --
    --------------------
 
-   function Get_Hover_Text (Decl : Basic_Decl'Class) return LSP_String is
-      Decl_Text      : LSP_String;
+   function Get_Hover_Text
+     (Decl : Basic_Decl'Class) return VSS.Strings.Virtual_String
+   is
+      Decl_Text      : VSS.String_Vectors.Virtual_String_Vector;
       Subp_Spec_Node : Base_Subp_Spec;
-      Line_Feed      : constant String := "" & ASCII.LF;
+
    begin
       --  Try to retrieve the subprogram spec node, if any : if it's a
       --  subprogram node that does not have any separate declaration we
@@ -388,22 +460,23 @@ package body LSP.Common is
          --  Append the aspects to the declaration text, if any.
          declare
             Aspects      : constant Aspect_Spec := Decl.F_Aspects;
-            Aspects_Text : LSP_String;
+            Aspects_Text : VSS.String_Vectors.Virtual_String_Vector;
+
          begin
             if not Aspects.Is_Null then
                for Aspect of Aspects.F_Aspect_Assocs loop
-                  if Aspects_Text /= Empty_LSP_String then
+                  if not Aspects_Text.Is_Empty then
                      --  need to add "," for the highlighting
-                     Append (Aspects_Text, ",");
+
+                     Append_To_Last_Line (Aspects_Text, ',');
                   end if;
 
-                  Append (Aspects_Text, Get_Hover_Text_For_Node (Aspect));
+                  Aspects_Text.Append (Get_Hover_Text_For_Node (Aspect));
                end loop;
 
-               if Aspects_Text /= Empty_LSP_String then
-                  Decl_Text := Decl_Text
-                    & To_LSP_String (Line_Feed & "with")
-                    & Aspects_Text;
+               if not Aspects_Text.Is_Empty then
+                  Decl_Text.Append ("with");
+                  Decl_Text.Append (Aspects_Text);
                end if;
             end if;
          end;
@@ -412,7 +485,7 @@ package body LSP.Common is
          Decl_Text := Get_Hover_Text_For_Node (Decl);
       end if;
 
-      return Decl_Text;
+      return Decl_Text.Join_Lines (Document_LSP_New_Line_Function, False);
    end Get_Hover_Text;
 
    ----------------------
