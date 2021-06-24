@@ -23,12 +23,18 @@ with GNATCOLL.Traces;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
 with VSS.Characters;
+with VSS.Strings;
 
 with LSP.Messages;
 with LSP.Types;             use LSP.Types;
 with Libadalang.Analysis;   use Libadalang.Analysis;
 
 package LSP.Common is
+
+   LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
+     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
+      others => False);
+   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,

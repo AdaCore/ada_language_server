@@ -56,11 +56,6 @@ package body LSP.Ada_Documents is
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
 
-   LSP_New_Line_Function : constant VSS.Strings.Line_Terminator_Set :=
-     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-      others => False);
-   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
-
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
@@ -172,7 +167,7 @@ package body LSP.Ada_Documents is
       declare
          J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
            Self.Text.First_Line
-             (Terminators     => LSP_New_Line_Function,
+             (Terminators     => LSP_New_Line_Function_Set,
               Keep_Terminator => True);
          Last_Line_Terminated : Boolean := False;
 
@@ -216,7 +211,7 @@ package body LSP.Ada_Documents is
       J    : VSS.Strings.Line_Iterators.Line_Iterator :=
         Self.Text.Line
           (Position        => Start_Marker,
-           Terminators     => LSP_New_Line_Function,
+           Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       Line : Natural := Low_Line;
 
@@ -387,11 +382,11 @@ package body LSP.Ada_Documents is
    begin
       Old_Lines :=
         Self.Text.Split_Lines
-          (Terminators     => LSP_New_Line_Function,
+          (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       New_Lines :=
         LSP.Types.To_Virtual_String (New_Text).Split_Lines
-          (Terminators     => LSP_New_Line_Function,
+          (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
 
       if Old_Span = Empty_Span then
