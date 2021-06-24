@@ -2163,7 +2163,7 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
-      Decl_Text          : LSP_String;
+      Decl_Text          : VSS.Strings.Virtual_String;
       Comments_Text      : LSP_String;
       Location_Text      : LSP_String;
 
@@ -2195,7 +2195,7 @@ package body LSP.Ada_Handlers is
          Decl_Text := Get_Hover_Text (Decl);
       end if;
 
-      if Decl_Text = Empty_LSP_String then
+      if Decl_Text.Is_Empty then
          return Response;
       end if;
 
@@ -2205,7 +2205,7 @@ package body LSP.Ada_Handlers is
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => False,
-            value     => Decl_Text,
+            value     => LSP.Types.To_LSP_String (Decl_Text),
             language  => +"ada"));
 
       --  Append the declaration's location.
@@ -2824,7 +2824,8 @@ package body LSP.Ada_Handlers is
 
          declare
             Signature : LSP.Messages.SignatureInformation :=
-              (label          => Get_Hover_Text (Decl_Node),
+              (label          =>
+                 LSP.Types.To_LSP_String (Get_Hover_Text (Decl_Node)),
                documentation  =>
                  (Is_Set => True,
                   Value  =>
