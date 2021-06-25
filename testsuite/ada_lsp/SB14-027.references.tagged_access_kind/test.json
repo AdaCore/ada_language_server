@@ -62,7 +62,6 @@
                      "hoverProvider": true,
                      "definitionProvider": true,
                      "renameProvider": {},
-                     "alsCalledByProvider": true,
                      "referencesProvider": true,
                      "declarationProvider": true,
                      "textDocumentSync": 2,

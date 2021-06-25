@@ -94,7 +94,6 @@
                                     "als-named-parameters"
                               ]
                           },
-                          "alsCalledByProvider": true,
                           "alsReferenceKinds": [
                               "reference",
                          "access",

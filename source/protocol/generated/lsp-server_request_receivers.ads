@@ -153,16 +153,6 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
         is abstract;
 
-   procedure On_ALS_Called_By_Request
-     (Self  : access Server_Request_Receiver;
-      Value : LSP.Messages.Server_Requests.ALS_Called_By_Request)
-        is abstract;
-
-   procedure On_ALS_Calls_Request
-     (Self  : access Server_Request_Receiver;
-      Value : LSP.Messages.Server_Requests.ALS_Calls_Request)
-        is abstract;
-
    procedure On_ALS_Show_Dependencies_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)

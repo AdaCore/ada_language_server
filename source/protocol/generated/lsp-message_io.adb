@@ -5549,10 +5549,6 @@ package body LSP.Message_IO is
                Optional_workspace_Options'Read (S, V.workspace);
             elsif Key = "callHierarchyProvider" then
                CallHierarchyOptions'Read (S, V.callHierarchyProvider);
-            elsif Key = "alsCalledByProvider" then
-               Optional_Boolean'Read (S, V.alsCalledByProvider);
-            elsif Key = "alsCallsProvider" then
-               Optional_Boolean'Read (S, V.alsCallsProvider);
             elsif Key = "alsShowDepsProvider" then
                Optional_Boolean'Read (S, V.alsShowDepsProvider);
             elsif Key = "alsReferenceKinds" then
@@ -5629,10 +5625,6 @@ package body LSP.Message_IO is
       Optional_workspace_Options'Write (S, V.workspace);
       JS.Key ("callHierarchyProvider");
       CallHierarchyOptions'Write (S, V.callHierarchyProvider);
-      JS.Key ("alsCalledByProvider");
-      Optional_Boolean'Write (S, V.alsCalledByProvider);
-      JS.Key ("alsCallsProvider");
-      Optional_Boolean'Write (S, V.alsCallsProvider);
       JS.Key ("alsShowDepsProvider");
       Optional_Boolean'Write (S, V.alsShowDepsProvider);
       JS.Key ("alsReferenceKinds");
