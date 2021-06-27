@@ -25,7 +25,6 @@ with GNAT.Strings;
 with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 
-with VSS.Characters;
 with VSS.Strings.Conversions;
 
 with Langkit_Support.Slocs;
@@ -56,11 +55,6 @@ package body LSP.Ada_Documents is
      GNATCOLL.Traces.Create ("ALS.LAL_PP_OUTPUT_ON_FORMATTING",
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
-
-   LSP_New_Line_Function : constant VSS.Strings.Line_Terminator_Set :=
-     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-      others => False);
-   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
    function To_LSP_String
      (Value : Wide_Wide_String) return LSP.Types.LSP_String;
@@ -99,7 +93,7 @@ package body LSP.Ada_Documents is
    --  Get completion for keywords, filtering them with the given Prefix.
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String;
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
 
    function Unit
      (Self    : Document;
@@ -173,7 +167,7 @@ package body LSP.Ada_Documents is
       declare
          J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
            Self.Text.First_Line
-             (Terminators     => LSP_New_Line_Function,
+             (Terminators     => LSP_New_Line_Function_Set,
               Keep_Terminator => True);
          Last_Line_Terminated : Boolean := False;
 
@@ -217,7 +211,7 @@ package body LSP.Ada_Documents is
       J    : VSS.Strings.Line_Iterators.Line_Iterator :=
         Self.Text.Line
           (Position        => Start_Marker,
-           Terminators     => LSP_New_Line_Function,
+           Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       Line : Natural := Low_Line;
 
@@ -388,11 +382,11 @@ package body LSP.Ada_Documents is
    begin
       Old_Lines :=
         Self.Text.Split_Lines
-          (Terminators     => LSP_New_Line_Function,
+          (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       New_Lines :=
         LSP.Types.To_Virtual_String (New_Text).Split_Lines
-          (Terminators     => LSP_New_Line_Function,
+          (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
 
       if Old_Span = Empty_Span then
@@ -1730,11 +1724,12 @@ package body LSP.Ada_Documents is
    --------------------
 
    function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return LSP.Types.LSP_String
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
    is
       use Libadalang.Common;
 
-      Result : LSP.Types.LSP_String;
+      Result : VSS.Strings.Virtual_String;
+
    begin
 
       --  If the basic declaration is an enum literal, display the whole
@@ -1775,7 +1770,9 @@ package body LSP.Ada_Documents is
       Item.label := To_LSP_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
-      Item.detail := (True, Compute_Completion_Detail (BD));
+      Item.detail := (True,
+                      LSP.Types.To_LSP_String
+                        (Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
          Item.sortText := (True, '~' & Item.label);
@@ -2256,8 +2253,9 @@ package body LSP.Ada_Documents is
                     (True, LSP.Messages.Snippet);
                   Item.detail :=
                     (True,
-                     Compute_Completion_Detail
-                       (Aggr_Type.As_Basic_Decl));
+                     LSP.Types.To_LSP_String
+                       (Compute_Completion_Detail
+                            (Aggr_Type.As_Basic_Decl)));
                   Item.insertTextFormat :=
                     Optional_InsertTextFormat'
                       (Is_Set => True,
@@ -2524,7 +2522,6 @@ package body LSP.Ada_Documents is
             declare
                J       : VSS.Strings.Character_Iterators.Character_Iterator :=
                  Self.Text.Character (Self.Position_To_Marker (Position));
-               C       : VSS.Characters.Virtual_Character;
                Success : Boolean with Unreferenced;
 
             begin
@@ -2532,41 +2529,7 @@ package body LSP.Ada_Documents is
                Success := J.Backward;
 
                if J.Has_Element then
-                  C       := J.Element;
-
-                  --  Ada 2012's RM defines separator as 'separator_space',
-                  --  'format_efector' or end of a line, with some exceptions
-                  --  inside comments.
-                  --
-                  --  'separator_space' is defined as a set of characters with
-                  --  'General Category' defined as 'Separator, Space'.
-                  --
-                  --  'format_effector' is set of characters:
-                  --    - CHARACTER TABULATION
-                  --    - LINE FEED
-                  --    - LINE TABULATION
-                  --    - FORM FEED
-                  --    - CARRIAGE RETURN
-                  --    - NEXT LINE
-                  --    - characters with General Category defined as
-                  --      'Separator, Line'
-                  --    - characters with General Category defined as
-                  --      'Separator, Paragraph'
-                  --
-                  --  XXX Check for 'General Category' can't be implemented
-                  --  due to unavailability of necessary information for now;
-                  --  thus we check for explicitly defined and widely useful
-                  --  characters only.
-
-                  Previous_Is_Separator :=
-                    C in
-                      VSS.Characters.Virtual_Character'Val (16#09#)
-                        | VSS.Characters.Virtual_Character'Val (16#0A#)
-                        | VSS.Characters.Virtual_Character'Val (16#0B#)
-                        | VSS.Characters.Virtual_Character'Val (16#0C#)
-                        | VSS.Characters.Virtual_Character'Val (16#0D#)
-                        | VSS.Characters.Virtual_Character'Val (16#20#)
-                        | VSS.Characters.Virtual_Character'Val (16#85#);
+                  Previous_Is_Separator := Is_Ada_Separator (J.Element);
                end if;
             end;
          end if;
