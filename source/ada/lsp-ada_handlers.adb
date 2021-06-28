@@ -3371,6 +3371,21 @@ package body LSP.Ada_Handlers is
          Self.Server.On_Show_Message (Errors);
       end if;
 
+      --  TODO: doc
+      for F in Self.Project_Predefined_Sources.Iterate loop
+         declare
+            File : GNATCOLL.VFS.Virtual_File renames
+              LSP.Ada_File_Sets.File_Sets.Element (F);
+         begin
+            for Context of Self.Contexts_For_File (File) loop
+               Context.Index_File
+                 (File    => File,
+                  Reparse => True,
+                  PLE     => True);
+            end loop;
+         end;
+      end loop;
+
       --  Reindex all open documents immediately after project reload, so
       --  that navigation from editors is accurate.
       for Document of Self.Open_Documents loop
