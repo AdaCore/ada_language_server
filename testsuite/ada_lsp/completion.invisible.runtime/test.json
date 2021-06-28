@@ -1,0 +1,255 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+             "${ALS}",
+             "--tracefile=./traces.cfg"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 591974,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {},
+                     "linkedEditingRange": {},
+                     "callHierarchy": {},
+                     "moniker": {}
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": false
+                     },
+                     "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-other-file",
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode",
+                           "als-suppress-separate"
+                        ]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "waitFactor": "4000",
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nprocedure Main is\nbegin\n   Ada.Te\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 9
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "isIncomplete": true,
+                  "items": ["<HAS>",
+                     {
+                        "label": "Text_IO (invisible)",
+                        "kind": 9,
+                        "detail": "package Ada.Text_IO with\n  Abstract_State    => (File_System),\n  Initializes       => (File_System),\n  Initial_Condition => Line_Length = 0 and Page_Length = 0\n",
+                        "documentation": "at a-textio.ads (58:1)\n\nPreconditions in this unit are meant for analysis only, not for run-time\nchecking, so that the expected exceptions are raised. This is enforced by\nsetting the corresponding assertion policy to Ignore. These preconditions\nare partial. They protect fully against Status_Error and Mode_Error,\npartially against Layout_Error (see SPARK User's Guide for details), and\nnot against other types of errors.",
+                        "sortText": "~Text_IO",
+                        "filterText": "Text_IO",
+                        "insertText": "Text_IO",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

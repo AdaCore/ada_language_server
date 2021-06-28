@@ -90,8 +90,11 @@ package body LSP.Ada_Handlers is
    Notifications_For_Imprecise : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.NOTIFICATIONS_FOR_IMPRECISE_NAVIGATION",
                              GNATCOLL.Traces.Off);
-   --  Whether to send notifications to the client for "imprecise"
-   --  navigation operations.
+
+   Runtime_Indexing : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
+                             GNATCOLL.Traces.On);
+   --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
@@ -3358,12 +3361,29 @@ package body LSP.Ada_Handlers is
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler) is
    begin
       Self.Files_To_Index.Clear;
+
+      --  Mark all the project's source files
       for C of Self.Contexts.Each_Context loop
          for F in C.List_Files loop
             Self.Files_To_Index.Include
               (LSP.Ada_File_Sets.File_Sets.Element (F));
          end loop;
       end loop;
+
+      if Runtime_Indexing.Is_Active then
+         --  Mark all the predefined sources too (runtime)
+         for F in Self.Project_Predefined_Sources.Iterate loop
+            declare
+               File : GNATCOLL.VFS.Virtual_File renames
+                 LSP.Ada_File_Sets.File_Sets.Element (F);
+            begin
+               for Context of Self.Contexts_For_File (File) loop
+                  Self.Files_To_Index.Include (File);
+               end loop;
+            end;
+         end loop;
+      end if;
+
       Self.Total_Files_Indexed := 0;
       Self.Total_Files_To_Index := Positive'Max
         (1, Natural (Self.Files_To_Index.Length));
