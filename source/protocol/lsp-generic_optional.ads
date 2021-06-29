@@ -26,6 +26,10 @@ generic
    --  Some TypeScript types are expressed as  `TypeX | null`. Set this to
    --  True to represent such types as an optional type. The `Write` procedure
    --  will encode unset value as `null` JSON value.
+   Write_Default_As_True : Boolean := False;
+   --  Some TypeScript optional properties are expressed as `TypeX | boolean`.
+   --  Set this to True to represent such types as an optional type. The
+   --  `Write` procedure will encode default value as `true` JSON value.
 package LSP.Generic_Optional is
 
    type Optional_Type (Is_Set : Boolean := False) is record

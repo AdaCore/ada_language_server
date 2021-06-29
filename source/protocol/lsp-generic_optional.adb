@@ -67,7 +67,13 @@ package body LSP.Generic_Optional is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_Set then
-         Element_Type'Write (S, V.Value);
+         if Write_Default_As_True
+           and then V = (Is_Set => True, Value => <>)
+         then
+            JS.Write_Boolean (True);
+         else
+            Element_Type'Write (S, V.Value);
+         end if;
       elsif Write_Unset_As_Null then
          JS.Write_Null;
       end if;
