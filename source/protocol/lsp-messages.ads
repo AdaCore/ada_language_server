@@ -5265,7 +5265,10 @@ package LSP.Messages is
    for DocumentSymbolOptions'Write use Write_DocumentSymbolOptions;
 
    package Optional_DocumentSymbolOptions_Package is
-     new LSP.Generic_Optional (DocumentSymbolOptions);
+     new LSP.Generic_Optional
+       (Element_Type          => DocumentSymbolOptions,
+        Write_Default_As_True => True);
+   --  LSP4J 0.10 expects documentSymbolProvider to be boolean.
 
    type Optional_DocumentSymbolOptions is
      new Optional_DocumentSymbolOptions_Package.Optional_Type;
