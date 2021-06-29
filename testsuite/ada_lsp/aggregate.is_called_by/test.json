@@ -94,7 +94,7 @@
                      "implementationProvider": true,
                      "referencesProvider": true,
                      "documentHighlightProvider": true,
-                     "documentSymbolProvider": {},
+                     "documentSymbolProvider": true,
                      "codeActionProvider": {},
                      "documentFormattingProvider": true,
                      "renameProvider": {},

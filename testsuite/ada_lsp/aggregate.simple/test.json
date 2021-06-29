@@ -51,7 +51,7 @@
                         ],
                         "resolveProvider": false
                      },
-                     "documentSymbolProvider": {}
+                     "documentSymbolProvider": true
                   }
                }
             }]

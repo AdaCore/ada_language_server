@@ -86,7 +86,7 @@
                           "typeDefinitionProvider": true,
                           "implementationProvider": true,
                           "referencesProvider": true,
-                          "documentSymbolProvider": {},
+                          "documentSymbolProvider": true,
                           "codeActionProvider": {
                           },
                           "documentFormattingProvider": true,
