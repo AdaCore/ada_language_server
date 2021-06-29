@@ -34,6 +34,7 @@ extension at
    * [Text Document Requests](#Text-Document-Requests)
    * [Protocol extensions](#Protocol-extensions)
  * [How to use the VScode extension](#How-to-use-the-VScode-extension)
+ * [Integration with Coc.NVim](#Integration-with-Coc.NVim)
  * [Integration with LanguageClient-Neovim](#Integration-with-LanguageClient-Neovim)
  * [Integration with Neovim's built-in LSP client](#Integration-with-Neovim's-built-in-LSP-client)
  * [Integration with emacs lsp-mode](#Integration-with-emacs-lsp-mode)
@@ -161,7 +162,8 @@ specification. See [corresponding document](doc/README.md).
 
 ### Auto-detected tasks
 
-The extension includes a task provider. It provides two "auto-detected" tasks:
+The extension includes a task provider. It provides two "auto-detected" tasks
+(under `/Terminal/Run Task...` menu):
 * "ada: Build current project" - launch `gprbuild` to build the current GPR project
 * "ada: Check current file" - launch `gprbuild` to check errors in the current editor
 
@@ -175,6 +177,10 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
   "when": "editorLangId == ada"
 }
 ```
+
+#### Short demo
+[A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
+
 
 ### Go to other Ada file
 
@@ -210,6 +216,32 @@ Here is an example config file from the gnatcov project:
    "ada.defaultCharset": "utf-8",
    "ada.enableDiagnostics": false,
    "ada.renameInComments": false
+}
+```
+
+## Integration with Coc.NVim
+If you want to use the Ada Language Server with Vim/Neovim, you can use the
+[Coc.NVim](https://github.com/neoclide/coc.nvim). You'll have to
+[install](#install) the Ada Language Server manually somewhere on your
+computer. Follow installation instructions on Coc.NVim website and then
+configure the Ada Language Server with `:CocConfig`:
+```json
+{
+  "languageserver": {
+    "ada": {
+      "settings": {
+        "ada": {
+          "projectFile": "gnat/vss_text.gpr"
+        }
+      },
+      "command": "<path>/ada_language_server",
+      "filetypes": [
+        "ads",
+        "adb",
+        "ada"
+      ]
+    }
+  }
 }
 ```
 
