@@ -24,7 +24,7 @@ with Libadalang.Analysis;
 limited with LSP.Ada_Contexts;
 with LSP.Messages;
 
-package LSP.Ada_Completion_Sets is
+package LSP.Ada_Completions is
 
    function Hash (Name : Libadalang.Analysis.Defining_Name)
      return Ada.Containers.Hash_Type is
@@ -60,4 +60,4 @@ package LSP.Ada_Completion_Sets is
      (Names  : Completion_Maps.Map;
       Result : in out LSP.Messages.Symbol_Vector);
 
-end LSP.Ada_Completion_Sets;
+end LSP.Ada_Completions;
