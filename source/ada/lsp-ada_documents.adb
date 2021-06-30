@@ -1945,7 +1945,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map)
+      Result  : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
 
       procedure Refresh_Symbol_Cache;
@@ -2402,7 +2402,7 @@ package body LSP.Ada_Documents is
       Named_Notation_Threshold : Natural;
       Snippets_Enabled      : Boolean;
       Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
+      Names                    : out Ada_Completions.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList)
    is
       use Libadalang.Common;

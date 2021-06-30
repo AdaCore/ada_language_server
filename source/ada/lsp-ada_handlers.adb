@@ -32,7 +32,7 @@ with VSS.Strings.Conversions;
 with VSS.Unicode;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
-with LSP.Ada_Completion_Sets;
+with LSP.Ada_Completions;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
@@ -3568,10 +3568,10 @@ package body LSP.Ada_Handlers is
       function Has_Been_Canceled return Boolean;
 
       procedure Write_Symbols is
-        new LSP.Ada_Completion_Sets.Write_Symbols (Has_Been_Canceled);
+        new LSP.Ada_Completions.Write_Symbols (Has_Been_Canceled);
 
       Count : Cancel_Countdown := 0;
-      Names : LSP.Ada_Completion_Sets.Completion_Maps.Map;
+      Names : LSP.Ada_Completions.Completion_Maps.Map;
 
       -----------------------
       -- Has_Been_Canceled --
@@ -3664,7 +3664,7 @@ package body LSP.Ada_Handlers is
 
       Snippets_Enabled : constant Boolean := Self.Completion_Snippets_Enabled;
 
-      Names     : LSP.Ada_Completion_Sets.Completion_Maps.Map;
+      Names     : LSP.Ada_Completions.Completion_Maps.Map;
       Use_Names : Boolean := False;
 
       Limit : constant := 10;
@@ -3734,7 +3734,7 @@ package body LSP.Ada_Handlers is
          end if;
       end;
 
-      LSP.Ada_Completion_Sets.Write_Completions
+      LSP.Ada_Completions.Write_Completions
         (Context                  => Context.all,
          Names                    => Names,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,

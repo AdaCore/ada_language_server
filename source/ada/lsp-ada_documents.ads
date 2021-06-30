@@ -29,7 +29,7 @@ with LSP.Types;
 with Libadalang.Analysis;
 
 limited with LSP.Ada_Contexts;
-with LSP.Ada_Completion_Sets;
+with LSP.Ada_Completions;
 
 with GNATCOLL.Traces;
 with Libadalang.Common;
@@ -130,7 +130,7 @@ package LSP.Ada_Documents is
       Named_Notation_Threshold : Natural;
       Snippets_Enabled         : Boolean;
       Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
+      Names                    : out Ada_Completions.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList);
    --  Populate Result with completions for given position in the document.
    --  Named_Notation_Threshold defines the number of components at which point
@@ -146,7 +146,7 @@ package LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map);
+      Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
    --  See Contests.Get_Any_Symbol_Completion
 
    procedure Get_Folding_Blocks

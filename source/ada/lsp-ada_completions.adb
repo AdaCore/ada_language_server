@@ -22,7 +22,7 @@ with LSP.Ada_Documents;
 with LSP.Lal_Utils;
 with LSP.Types;
 
-package body LSP.Ada_Completion_Sets is
+package body LSP.Ada_Completions is
 
    --------------
    -- Is_Equal --
@@ -102,4 +102,4 @@ package body LSP.Ada_Completion_Sets is
       end loop;
    end Write_Symbols;
 
-end LSP.Ada_Completion_Sets;
+end LSP.Ada_Completions;
