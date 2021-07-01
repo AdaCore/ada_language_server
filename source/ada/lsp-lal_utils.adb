@@ -19,6 +19,8 @@ with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 with GNATCOLL.Utils;
 
+with VSS.Strings.Conversions;
+
 with Langkit_Support;
 with Langkit_Support.Symbols; use Langkit_Support.Symbols;
 with Libadalang.Common;       use Libadalang.Common;
@@ -1019,7 +1021,10 @@ package body LSP.Lal_Utils is
         (name           => To_LSP_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
          tags           => (Is_Set => False),
-         detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
+         detail         =>
+           (True,
+            LSP.Types.To_LSP_String
+              (LSP.Lal_Utils.Node_Location_Image (Name))),
          uri            => Where.uri,
          span           => Where.span,
          selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));
@@ -1086,21 +1091,30 @@ package body LSP.Lal_Utils is
    -------------------------
 
    function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return VSS.Strings.Virtual_String
    is
       Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
 
-      Location_Text : constant LSP.Types.LSP_String  := To_LSP_String
-        ("at " & Decl_Unit_File.Display_Base_Name & " ("
-         & GNATCOLL.Utils.Image
-           (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)
-         & ":"
-         & GNATCOLL.Utils.Image
-           (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)
-         & ")");
    begin
-      return Location_Text;
+      return Result : VSS.Strings.Virtual_String do
+         Result.Append ("at ");
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (Decl_Unit_File.Display_Base_Name));
+         Result.Append (" (");
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (GNATCOLL.Utils.Image
+                   (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)));
+         Result.Append (':');
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (GNATCOLL.Utils.Image
+                   (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)));
+         Result.Append (')');
+      end return;
    end Node_Location_Image;
 
    -------------

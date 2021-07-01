@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -93,7 +93,7 @@ package body LSP.Ada_Context_Sets is
 
    function Get
      (Self : Context_Set;
-      Id   : LSP.Types.LSP_String) return Context_Access is
+      Id   : VSS.Strings.Virtual_String) return Context_Access is
    begin
       return Self.Map (Id);
    end Get;

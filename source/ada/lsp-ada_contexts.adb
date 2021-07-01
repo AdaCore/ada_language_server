@@ -22,6 +22,8 @@ with GNAT.Strings;
 with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
+with VSS.Strings.Conversions;
+
 with URIs;
 with LSP.Ada_Id_Iterators;
 with LSP.Common;                  use LSP.Common;
@@ -690,8 +692,9 @@ package body LSP.Ada_Contexts is
          --  Set UTF-8 encoding
          Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
       end Pretty_Printer_Setup;
+
    begin
-      Self.Id := LSP.Types.To_LSP_String (Root.Name);
+      Self.Id := VSS.Strings.Conversions.To_Virtual_String (Root.Name);
 
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
@@ -815,7 +818,7 @@ package body LSP.Ada_Contexts is
    -- Id --
    --------
 
-   function Id (Self : Context) return LSP.Types.LSP_String is
+   function Id (Self : Context) return VSS.Strings.Virtual_String is
    begin
       return Self.Id;
    end Id;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,8 @@ with GNATCOLL.VFS;
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
+
+with VSS.Strings;
 
 with LSP.Ada_Contexts;
 with LSP.Messages;
@@ -67,7 +69,7 @@ package LSP.Ada_Context_Sets is
 
    function Get
      (Self : Context_Set;
-      Id   : LSP.Types.LSP_String) return Context_Access;
+      Id   : VSS.Strings.Virtual_String) return Context_Access;
    --  Return context by its Id
 
    type Context_Predicate is access function
@@ -85,10 +87,10 @@ package LSP.Ada_Context_Sets is
 private
 
    package Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_String,
+     (Key_Type        => VSS.Strings.Virtual_String,
       Element_Type    => Context_Access,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
+      Equivalent_Keys => VSS.Strings."=",
       "="             => "=");
 
    type Context_Set is tagged limited record

@@ -221,7 +221,8 @@ package LSP.Lal_Utils is
    --  therefore, a buffer should not be passed to this function.
 
    function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return VSS.Strings.Virtual_String;
    --  Return "file.adb:line:col" as a string
 
    function Containing_Entity

@@ -55,7 +55,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
                JS.R.Read_Next;
 
                if Key = "context" then
-                  LSP.Types.Read (JS, V.Context);
+                  LSP.Types.Read_String (JS, V.Context);
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
                else
@@ -456,7 +456,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    begin
       JS.Start_Object;
       JS.Key ("context");
-      LSP.Types.Write (S, V.Context);
+      LSP.Types.Write_String (S, V.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
       JS.End_Object;
