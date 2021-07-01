@@ -2820,7 +2820,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  Value     => To_LSP_String (JS.R.String_Value));
+                  Value     => JS.R.String_Value);
 
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Object =>
@@ -2839,7 +2839,7 @@ package body LSP.Messages is
                   if Key = "language" then
                      LSP.Types.Read (S, V.language);
                   elsif Key = "value" then
-                     LSP.Types.Read (S, V.value);
+                     LSP.Types.Read_String (S, V.value);
                   else
                      JS.Skip_Value;
                   end if;
@@ -2849,7 +2849,7 @@ package body LSP.Messages is
 
          when others =>
             --  Unexpected JSON event
-            V := (Is_String => True, Value => Empty_LSP_String);
+            V := (Is_String => True, value => <>);
             JS.Skip_Value;
       end case;
    end Read_MarkedString;
@@ -2923,7 +2923,7 @@ package body LSP.Messages is
                   Vector           => <>);
             V.Vector.Append
               (MarkedString'(Is_String => True,
-                             value     => To_LSP_String (JS.R.String_Value)));
+                             value     => JS.R.String_Value));
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Array =>
             V := (Is_MarkupContent => False,
@@ -2976,7 +2976,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  String    => To_LSP_String (JS.R.String_Value));
+                  String    => JS.R.String_Value);
             JS.R.Read_Next;
          when VSS.JSON.Streams.Readers.Start_Array =>
             JS.R.Read_Next;
@@ -3031,7 +3031,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Streams.Readers.String_Value =>
             V := (Is_String => True,
-                  String    => To_LSP_String (JS.R.String_Value));
+                  String    => JS.R.String_Value);
             JS.R.Read_Next;
 
          when VSS.JSON.Streams.Readers.Start_Object =>

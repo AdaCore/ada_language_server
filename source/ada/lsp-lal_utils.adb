@@ -30,6 +30,7 @@ with Libadalang.Sources;
 with Laltools.Call_Hierarchy;
 
 with VSS.Unicode;
+
 with Libadalang.Lexer;
 with Langkit_Support.Diagnostics;
 pragma Warnings (Off, "redundant with clause");
@@ -489,7 +490,7 @@ package body LSP.Lal_Utils is
                P : constant LSP.Messages.ParameterInformation :=
                  (label         =>
                     (Is_String => True,
-                     String    => To_LSP_String (Id.Text)),
+                     String    => VSS.Strings.To_Virtual_String (Id.Text)),
                   documentation =>
                     (Is_Set => False)
                  );

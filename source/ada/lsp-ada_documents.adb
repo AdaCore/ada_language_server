@@ -23,7 +23,6 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Strings;
 
 with GNATCOLL.Utils;
-with GNATCOLL.VFS;
 
 with VSS.Strings.Conversions;
 
@@ -1775,9 +1774,9 @@ package body LSP.Ada_Documents is
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
-      Decl_Unit_File : GNATCOLL.VFS.Virtual_File;
-      Doc_Text       : LSP_String;
-      Loc_Text       : LSP_String;
+      Doc_Text       : VSS.Strings.Virtual_String;
+      Loc_Text       : VSS.Strings.Virtual_String;
+
    begin
       Item.label := To_LSP_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
@@ -1795,38 +1794,30 @@ package body LSP.Ada_Documents is
       --  Property_Errors can occur when calling
       --  Get_Documentation on unsupported docstrings, so
       --  add an exception handler to catch them and recover.
+
       begin
-         Doc_Text := To_LSP_String
-           (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
-              Encode
-                (Libadalang.Doc_Utils.Get_Documentation
-                     (BD).Doc.To_String));
+         Doc_Text :=
+           VSS.Strings.To_Virtual_String
+             (Libadalang.Doc_Utils.Get_Documentation
+                (BD).Doc.To_String);
 
          --  Append the declaration's location.
          --  In addition, append the project's name if we are dealing with an
          --  aggregate project.
 
-         Decl_Unit_File :=
-           GNATCOLL.VFS.Create_From_UTF8 (BD.Unit.Get_Filename);
-
-         if Doc_Text /= Empty_LSP_String then
-            Loc_Text := To_LSP_String (ASCII.LF & ASCII.LF);
+         if not Doc_Text.Is_Empty then
+            Loc_Text :=
+              VSS.Strings.Conversions.To_Virtual_String (ASCII.LF & ASCII.LF);
          end if;
 
-         Loc_Text := To_LSP_String
-           ("at " & Decl_Unit_File.Display_Base_Name & " ("
-            & GNATCOLL.Utils.Image
-              (Integer (BD.Sloc_Range.Start_Line), Min_Width => 1)
-            & ":"
-            & GNATCOLL.Utils.Image
-              (Integer (BD.Sloc_Range.Start_Column), Min_Width => 1)
-            & ")") & Loc_Text;
+         Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
+         Loc_Text.Append (Doc_Text);
 
          Item.documentation :=
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
               (Is_String => True,
-               String    => Loc_Text & Doc_Text));
+               String    => Loc_Text));
 
       exception
          when E : Libadalang.Common.Property_Error =>
