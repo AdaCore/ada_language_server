@@ -28,7 +28,6 @@ with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
-with VSS.Strings;
 with VSS.Strings.Conversions;
 
 package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
@@ -151,7 +150,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
                JS.R.Read_Next;
 
                if Key = "context" then
-                  LSP.Types.Read (JS, V.Context);
+                  LSP.Types.Read_String (JS, V.Context);
 
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
@@ -278,7 +277,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
    begin
       JS.Start_Object;
       JS.Key ("context");
-      LSP.Types.Write (S, C.Context);
+      LSP.Types.Write_String (S, C.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, C.Where);
       JS.Key ("first_parameter");

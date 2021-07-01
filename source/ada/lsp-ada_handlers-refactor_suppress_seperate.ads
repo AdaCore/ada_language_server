@@ -19,6 +19,8 @@
 
 with Ada.Streams;
 
+private with VSS.Strings;
+
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
 with LSP.Errors;
@@ -40,7 +42,7 @@ package LSP.Ada_Handlers.Refactor_Suppress_Seperate is
 private
 
    type Command is new LSP.Commands.Command with record
-      Context : LSP.Types.LSP_String;
+      Context : VSS.Strings.Virtual_String;
       Where   : LSP.Messages.TextDocumentPositionParams;
    end record;
 

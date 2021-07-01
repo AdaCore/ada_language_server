@@ -29,7 +29,6 @@ with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
-with VSS.Strings;
 with VSS.Strings.Conversions;
 
 package body LSP.Ada_Handlers.Refactor_Imports_Commands is
@@ -72,7 +71,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                JS.R.Read_Next;
 
                if Key = "context" then
-                  LSP.Types.Read (JS, V.Context);
+                  LSP.Types.Read_String (JS, V.Context);
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
                elsif Key = "with_clause" then
@@ -323,7 +322,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
    begin
       JS.Start_Object;
       JS.Key ("context");
-      LSP.Types.Write (S, V.Context);
+      LSP.Types.Write_String (S, V.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
       JS.Key ("with_clause");

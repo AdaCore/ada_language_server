@@ -2153,8 +2153,8 @@ package body LSP.Ada_Handlers is
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
       Decl_Text          : VSS.Strings.Virtual_String;
-      Comments_Text      : LSP_String;
-      Location_Text      : LSP_String;
+      Comments_Text      : VSS.Strings.Virtual_String;
+      Location_Text      : VSS.Strings.Virtual_String;
 
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -2204,27 +2204,27 @@ package body LSP.Ada_Handlers is
       Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
       if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
-         Location_Text := Location_Text & " in project " & C.Id;
+         Location_Text.Append (" in project ");
+         Location_Text.Append (C.Id);
       end if;
 
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => True,
-            value     => Location_Text));
+            value     => LSP.Types.To_LSP_String (Location_Text)));
 
       --  Append the comments associated with the basic declaration
       --  if any.
 
-      Comments_Text := To_LSP_String
-        (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-           (Libadalang.Doc_Utils.Get_Documentation
-                (Decl).Doc.To_String));
+      Comments_Text :=
+        VSS.Strings.To_Virtual_String
+           (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
 
-      if Comments_Text /= Empty_LSP_String then
+      if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
-               value     => Comments_Text));
+               value     => LSP.Types.To_LSP_String (Comments_Text)));
       end if;
 
       return Response;
