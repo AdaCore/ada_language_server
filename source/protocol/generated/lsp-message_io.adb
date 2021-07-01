@@ -4999,7 +4999,7 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "commands" then
-               LSP.Types.LSP_String_Vector'Read (S, V.commands);
+               LSP.Types.Read_String_Vector (S, V.commands);
             else
                JS.Skip_Value;
             end if;
@@ -5019,7 +5019,7 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("commands");
-      LSP.Types.LSP_String_Vector'Write (S, V.commands);
+      LSP.Types.Write_String_Vector (S, V.commands);
       JS.End_Object;
    end Write_ExecuteCommandOptions;
 

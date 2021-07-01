@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2020, AdaCore                       --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,7 +24,8 @@
 
 with Ada.Tags;
 
-with LSP.Types;
+with VSS.String_Vectors;
+
 with LSP.Errors;
 with LSP.JSON_Streams;
 limited with LSP.Client_Message_Receivers;
@@ -55,7 +56,7 @@ package LSP.Commands is
    procedure Register (Value : Ada.Tags.Tag);
    --  Register a new command type. The type should be in Command'Class
 
-   function All_Commands return LSP.Types.LSP_String_Vector;
+   function All_Commands return VSS.String_Vectors.Virtual_String_Vector;
    --  Return all registered command names.
 
    package Command_Shared_Pointers is
