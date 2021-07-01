@@ -40,9 +40,11 @@ with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
+with LSP.Ada_Completions.Aggregates;
+with LSP.Ada_Completions.Aspects;
+with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
-with LSP.Predefined_Completion;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 
@@ -72,31 +74,14 @@ package body LSP.Ada_Documents is
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
 
-   procedure Get_Aggregate_Completion
-     (Node                     : Libadalang.Analysis.Aggregate;
-      Context                  : LSP.Ada_Contexts.Context;
-      Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionItem_Vector);
-   --  Return the completion list for the given aggregate node.
-   --  The returned completion list may contain several items if the aggregate
-   --  is used to assign a value to a variant record: in that case, a snippet
-   --  per shape (i.e: a shape corresponds to one of the various forms that a
-   --  discriminated variant record can take) will be proposed to the user.
-   --  Named_Notation_Threshold defines the number of parameters/components at
-   --  which point named notation is used for subprogram/aggregate completion
-   --  snippets.
-
    procedure Get_Keywords_Completion
      (Node   : Libadalang.Analysis.Ada_Node;
       Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
       Result : out LSP.Messages.CompletionItem_Vector);
    --  Get completion for keywords, filtering them with the given Prefix.
 
-   function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
-
    function Unit
-     (Self    : Document;
+     (Self    : Document'Class;
       Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit;
    --  Return the analysis unit for Self in the given context
@@ -145,6 +130,18 @@ package body LSP.Ada_Documents is
       return VSS.Strings.Markers.Character_Marker;
    --  Return marker pointing to character at right side of the given
    --  Position.
+
+   function Get_Source_Location
+     (Self     : Document'Class;
+      Position : LSP.Messages.Position)
+      return Langkit_Support.Slocs.Source_Location;
+
+   function Get_Token_At
+     (Self     : Document'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return Libadalang.Common.Token_Reference;
+   --  Return a token at the given Position.
 
    -----------------------
    -- Recompute_Indexes --
@@ -1623,6 +1620,46 @@ package body LSP.Ada_Documents is
       return LSP.Messages.Als_Public;
    end Get_Visibility;
 
+   -------------------------
+   -- Get_Source_Location --
+   -------------------------
+
+   function Get_Source_Location
+     (Self     : Document'Class;
+      Position : LSP.Messages.Position)
+      return Langkit_Support.Slocs.Source_Location
+   is
+      pragma Unreferenced (Self);
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Where : constant Langkit_Support.Slocs.Source_Location :=
+        (Langkit_Support.Slocs.Line_Number (Position.line) + 1,
+         Langkit_Support.Slocs.Column_Number (Position.character) + 1);
+      --  FIXME: Should take UTF-16 encoding into account
+   begin
+      return Where;
+   end Get_Source_Location;
+
+   ------------------
+   -- Get_Token_At --
+   ------------------
+
+   function Get_Token_At
+     (Self     : Document'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return Libadalang.Common.Token_Reference
+   is
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+
+      Token : constant Libadalang.Common.Token_Reference :=
+        Unit.Lookup_Token (Self.Get_Source_Location (Position));
+   begin
+      return Token;
+   end Get_Token_At;
+
    -----------------
    -- Get_Word_At --
    -----------------
@@ -1719,31 +1756,6 @@ package body LSP.Ada_Documents is
         (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Value));
    end To_LSP_String;
 
-   --------------------
-   -- Compute_Detail --
-   --------------------
-
-   function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
-   is
-      use Libadalang.Common;
-
-      Result : VSS.Strings.Virtual_String;
-
-   begin
-
-      --  If the basic declaration is an enum literal, display the whole
-      --  enumeration type declaration instead.
-      if BD.Kind in Ada_Enum_Literal_Decl then
-         Result := LSP.Common.Get_Hover_Text
-           (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
-      else
-         Result := LSP.Common.Get_Hover_Text (BD);
-      end if;
-
-      return Result;
-   end Compute_Completion_Detail;
-
    -----------------------------
    -- Compute_Completion_Item --
    -----------------------------
@@ -1772,7 +1784,7 @@ package body LSP.Ada_Documents is
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
       Item.detail := (True,
                       LSP.Types.To_LSP_String
-                        (Compute_Completion_Detail (BD)));
+                        (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
          Item.sortText := (True, '~' & Item.label);
@@ -1945,7 +1957,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completion_Sets.Completion_Maps.Map)
+      Result  : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
 
       procedure Refresh_Symbol_Cache;
@@ -2025,340 +2037,6 @@ package body LSP.Ada_Documents is
       end loop Each_Prefix;
    end Get_Any_Symbol_Completion;
 
-   ------------------------------
-   -- Get_Aggregate_Completion --
-   ------------------------------
-
-   procedure Get_Aggregate_Completion
-     (Node                     : Libadalang.Analysis.Aggregate;
-      Context                  : LSP.Ada_Contexts.Context;
-      Named_Notation_Threshold : Natural;
-      Result                   : out LSP.Messages.CompletionItem_Vector)
-   is
-      pragma Unreferenced (Context);
-
-      use Libadalang.Common;
-      use LSP.Messages;
-      use LSP.Types;
-
-      Aggr_Type          : constant Base_Type_Decl :=
-        Node.P_Expression_Type.P_Canonical_Type;
-      Use_Named_Notation : Boolean := False;
-
-      function Get_Snippet_For_Component
-        (Param              : Base_Formal_Param_Decl;
-         Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String;
-      --  Return a snippet for the given component
-
-      function Get_Snippet_For_Discriminant
-        (Disc               : Discriminant_Values;
-         Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String;
-      --  Return a snippet for the given discriminant
-
-      function Get_Label_For_Shape
-        (Discriminants : Discriminant_Values_Array) return LSP_String;
-      --  Return a suitable label for the given shape (i.e: a shape corresponds
-      --  to one of the various forms that a discriminated variant record can
-      --  take).
-
-      -------------------------------
-      -- Get_Snippet_For_Component --
-      -------------------------------
-
-      function Get_Snippet_For_Component
-        (Param              : Base_Formal_Param_Decl;
-         Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String
-      is
-         Snippet    : LSP_String;
-         Param_Ids  : constant Defining_Name_List :=
-           (case Param.Kind is
-               when Ada_Component_Decl_Range =>
-                 As_Component_Decl (Param).F_Ids,
-               when Ada_Discriminant_Spec    =>
-                 As_Discriminant_Spec (Param).F_Ids,
-               when others                   => No_Defining_Name_List);
-         Param_Type : constant Type_Expr :=
-           (case Param.Kind is
-               when Ada_Component_Decl_Range =>
-                 As_Component_Decl (Param).F_Component_Def.F_Type_Expr,
-               when Ada_Discriminant_Spec    =>
-                 As_Discriminant_Spec (Param).F_Type_Expr,
-               when others                   => No_Type_Expr);
-      begin
-         for Id of Param_Ids loop
-            if Use_Named_Notation then
-               Snippet := Snippet & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Id.Text)
-                  & " => ");
-            end if;
-
-            Snippet := Snippet & To_LSP_String
-              ("${"
-               & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-               & ":"
-               & Langkit_Support.Text.To_UTF8 (Id.Text)
-               & " : "
-               & Langkit_Support.Text.To_UTF8
-                 (Param_Type.Text)
-               & "}, ");
-         end loop;
-
-         return Snippet;
-      end Get_Snippet_For_Component;
-
-      ----------------------------------
-      -- Get_Snippet_For_Discriminant --
-      ----------------------------------
-
-      function Get_Snippet_For_Discriminant
-        (Disc               : Discriminant_Values;
-         Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String
-      is
-         Snippet : LSP_String;
-         Values  : constant Alternatives_List'Class :=
-           Libadalang.Analysis.Values (Disc);
-         Value_Node : Ada_Node;
-      begin
-
-         if Use_Named_Notation then
-            if Values.Children_Count = 1 then
-               Value_Node := Values.Child (Values.First_Child_Index);
-
-               Snippet := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Discriminant (Disc).Text))
-                 & " => ";
-
-               if Value_Node.Kind in Ada_Others_Designator_Range then
-                  Snippet := Snippet & To_LSP_String
-                    ("${"
-                     & GNATCOLL.Utils.Image
-                       (Idx, Min_Width => 1)
-                     & ":"
-                     & Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & "}, ");
-               else
-                  Snippet := Snippet & To_LSP_String
-                    (Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & ", ");
-               end if;
-            else
-               Snippet := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Discriminant (Disc).Text)
-                  & " => "
-                  & "${"
-                  & GNATCOLL.Utils.Image
-                    (Idx, Min_Width => 1)
-                  & ":"
-                  & Langkit_Support.Text.To_UTF8 (Values.Text)
-                  & "}, ");
-            end if;
-         else
-            if Values.Children_Count = 1 then
-               Value_Node := Values.Child (Values.First_Child_Index);
-
-               if Value_Node.Kind in Ada_Others_Designator_Range then
-                  Snippet := Snippet & To_LSP_String
-                    ("${"
-                     & GNATCOLL.Utils.Image
-                       (Idx, Min_Width => 1)
-                     & ":"
-                     & Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & "}, ");
-               else
-                  Snippet := Snippet & To_LSP_String
-                    (Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & ", ");
-               end if;
-            else
-               Snippet := To_LSP_String
-                 ("${"
-                  & GNATCOLL.Utils.Image
-                    (Idx, Min_Width => 1)
-                  & ":"
-                  & Langkit_Support.Text.To_UTF8 (Values.Text)
-                  & "}, ");
-            end if;
-         end if;
-
-         return Snippet;
-      end Get_Snippet_For_Discriminant;
-
-      -------------------------
-      -- Get_Label_For_Shape --
-      -------------------------
-
-      function Get_Label_For_Shape
-        (Discriminants : Discriminant_Values_Array) return LSP_String
-      is
-         Label  : LSP_String;
-         Length : constant Integer := Discriminants'Length;
-      begin
-         if Length = 0 then
-            return To_LSP_String
-              ("Aggregate for "
-               & Langkit_Support.Text.To_UTF8 (Aggr_Type.F_Name.Text));
-         end if;
-
-         Label := To_LSP_String (String'("Aggregate when "));
-
-         for Idx in Discriminants'Range loop
-            declare
-               Disc_Values : constant Discriminant_Values :=
-                 Discriminants (Idx);
-            begin
-               Label := Label & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8
-                    (Discriminant (Disc_Values).Text))
-                 & " => ";
-
-               Label := Label & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Values (Disc_Values).Text));
-
-               if Idx < Discriminants'Length then
-                  Label := Label & ", ";
-               end if;
-            end;
-         end loop;
-
-         return Label;
-      end Get_Label_For_Shape;
-
-   begin
-      if Aggr_Type.Kind in Ada_Type_Decl_Range then
-         declare
-            Shapes        : constant Libadalang.Analysis.Shape_Array :=
-              Aggr_Type.P_Shapes
-                (Include_Discriminants => False,
-                 Origin                => Node);
-            Item          : CompletionItem;
-            Idx           : Positive := 1;
-            Nb_Components : Natural := 0;
-            Insert_Text   : LSP_String;
-            Base_Type     : constant Base_Type_Decl := Aggr_Type.P_Base_Type
-              (Origin => Node);
-         begin
-            for Shape of Shapes loop
-               declare
-                  Discriminants : constant Discriminant_Values_Array :=
-                    Discriminants_Values (Shape);
-                  Components    : constant Base_Formal_Param_Decl_Array :=
-                    Libadalang.Analysis.Components (Shape);
-               begin
-                  Item.label := Get_Label_For_Shape (Discriminants);
-                  Item.kind :=
-                    (True, LSP.Messages.Snippet);
-                  Item.detail :=
-                    (True,
-                     LSP.Types.To_LSP_String
-                       (Compute_Completion_Detail
-                            (Aggr_Type.As_Basic_Decl)));
-                  Item.insertTextFormat :=
-                    Optional_InsertTextFormat'
-                      (Is_Set => True,
-                       Value  => Snippet);
-                  Insert_Text := Empty_LSP_String;
-
-                  --  Compute number of components to know if named notation
-                  --  should be used.
-
-                  for Comp of Components loop
-                     Nb_Components := Nb_Components
-                       + As_Component_Decl (Comp).F_Ids.Children_Count;
-                  end loop;
-
-                  Nb_Components := Nb_Components + Discriminants'Length;
-
-                  --  Use the named notation if we need to specify only one
-                  --  component (otherwise it won't compile) or if the number
-                  --  of components is greater or equal than the theshold.
-                  Use_Named_Notation := Named_Notation_Threshold > 0
-                    and then
-                      (Nb_Components = 1
-                          or else Nb_Components >= Named_Notation_Threshold);
-
-                  --  If we are dealing with a derived type that does not have
-                  --  access to its parent full view, we should use the
-                  --  extension aggregate notation (see RM 4.3.2 for more
-                  --  info).
-                  if not Base_Type.Is_Null and then Base_Type.P_Is_Private then
-                     Insert_Text := LSP.Types.To_LSP_String
-                       (Langkit_Support.Text.To_UTF8 (Base_Type.F_Name.Text))
-                       & " with ";
-
-                     declare
-                        Base_Discs : constant Base_Formal_Param_Decl_Array :=
-                          Base_Type.P_Discriminants_List;
-                     begin
-                        --  Take into account the base type discriminants to
-                        --  know if we should use the named notation or not.
-
-                        Nb_Components := Nb_Components + Base_Discs'Length;
-
-                        Use_Named_Notation := Named_Notation_Threshold > 0
-                          and then
-                            (Nb_Components = 1
-                                    or else Nb_Components
-                                    >= Named_Notation_Threshold);
-
-                        for Disc of Base_Discs loop
-                           Insert_Text := Insert_Text
-                             & Get_Snippet_For_Component
-                             (Param              => Disc,
-                              Idx                => Idx,
-                              Use_Named_Notation => Use_Named_Notation);
-
-                           Idx := Idx + 1;
-                        end loop;
-                     end;
-                  end if;
-
-                  --  Compute the snippets for the record discriminants, if any
-                  for Disc of Discriminants loop
-                     Insert_Text := Insert_Text
-                       & Get_Snippet_For_Discriminant
-                       (Disc               => Disc,
-                        Idx                => Idx,
-                        Use_Named_Notation => Use_Named_Notation);
-                     Idx := Idx + 1;
-                  end loop;
-
-                  --  Compute the snippets for the record components
-                  for Comp of Components loop
-                     Insert_Text := Insert_Text
-                       & Get_Snippet_For_Component
-                       (Param              => Comp,
-                        Idx                => Idx,
-                        Use_Named_Notation => Use_Named_Notation);
-
-                     Idx := Idx + 1;
-                  end loop;
-
-                  if Idx > 1 then
-                     --  Remove the "}, " substring that has been
-                     --  appended in the last loop iteration.
-                     Insert_Text := Unbounded_Slice
-                       (Insert_Text,
-                        1,
-                        Length (Insert_Text) - 2);
-
-                     --  Insert '$0' (i.e: the final tab stop) at the
-                     --  end.
-                     Insert_Text := Insert_Text & ")$0";
-                     Item.insertText :=
-                       (Is_Set => True,
-                        Value  => Insert_Text);
-                     Result.Append (Item);
-                  end if;
-               end;
-            end loop;
-         end;
-      end if;
-   end Get_Aggregate_Completion;
-
    -----------------------------
    -- Get_Keywords_Completion --
    -----------------------------
@@ -2402,7 +2080,7 @@ package body LSP.Ada_Documents is
       Named_Notation_Threshold : Natural;
       Snippets_Enabled      : Boolean;
       Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completion_Sets.Completion_Maps.Map;
+      Names                    : out Ada_Completions.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList)
    is
       use Libadalang.Common;
@@ -2435,6 +2113,51 @@ package body LSP.Ada_Documents is
       Use_Snippets : Boolean := Snippets_Enabled;
    begin
       Context.Trace.Trace ("In Get_Completions_At");
+
+      declare
+         type Completion_Provider_Access is access all
+           LSP.Ada_Completions.Completion_Provider'Class;
+
+         P1 : aliased LSP.Ada_Completions.Aggregates
+           .Aggregate_Completion_Provider
+             (Named_Notation_Threshold => Named_Notation_Threshold);
+
+         P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
+         P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
+
+         Providers : constant array (1 .. 3) of Completion_Provider_Access :=
+           (P1'Access, P2'Access, P3'Access);
+
+         Sloc  : constant Langkit_Support.Slocs.Source_Location :=
+           Self.Get_Source_Location (Position);
+
+         Token : constant Libadalang.Common.Token_Reference :=
+           Self.Get_Token_At (Context, Position);
+
+         From  : constant Langkit_Support.Slocs.Source_Location :=
+           Langkit_Support.Slocs.Start_Sloc
+             (Libadalang.Common.Sloc_Range
+               (Libadalang.Common.Data (Token)));
+
+         Root  : constant Libadalang.Analysis.Ada_Node :=
+           Self.Unit (Context).Root;
+
+         Node  : constant Libadalang.Analysis.Ada_Node :=
+           (if Root = No_Ada_Node then Root else Root.Lookup (From));
+      begin
+         for Provider of Providers loop
+            Provider.Propose_Completion
+              (Sloc   => Sloc,
+               Token  => Token,
+               Node   => Node,
+               Names  => Names,
+               Result => Result);
+         end loop;
+
+         if not Result.items.Is_Empty then
+            return;
+         end if;
+      end;
 
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
@@ -2481,38 +2204,6 @@ package body LSP.Ada_Documents is
       --  to disable snippets since end labels don't expect any parameters.
       In_End_Label := not Parent.Is_Null
         and then Parent.Kind in Ada_End_Name_Range;
-
-      --  Check if we are dealing with an aggregate node. If yes, handle it
-      --  separately to propose snipppets to the user, allowing him to fill
-      --  all the needed discriminants/components easily.
-
-      if Node.Kind in Ada_Aggregate_Range then
-         Get_Aggregate_Completion
-           (Node                     => As_Aggregate (Node),
-            Context                  => Context,
-            Named_Notation_Threshold => Named_Notation_Threshold,
-            Result                   => Result.items);
-         return;
-      end if;
-
-      --  Get completion for aspects if we are within an aspect association
-      --  node and return immediatly since we only expect aspects here.
-      if not Parent.Is_Null and then Parent.Kind in Ada_Aspect_Assoc_Range then
-         LSP.Predefined_Completion.Get_Aspects
-           (Prefix => Prefix,
-            Result => Result.items);
-         return;
-      end if;
-
-      --  Get completion for pragmas if we are within an pragma node and return
-      --  immediately, since we don't want to propose other items than pragmas
-      --  when wthin a pragma node.
-      if not Parent.Is_Null and then Parent.Kind in Ada_Pragma_Node_Range then
-         LSP.Predefined_Completion.Get_Pragmas
-           (Prefix => Prefix,
-            Result => Result.items);
-         return;
-      end if;
 
       declare
          Previous_Is_Separator : Boolean := True;
@@ -2688,7 +2379,7 @@ package body LSP.Ada_Documents is
    ----------
 
    function Unit
-     (Self    : Document;
+     (Self    : Document'Class;
       Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit
    is

@@ -36,6 +36,7 @@ with Langkit_Support.Token_Data_Handlers;
 
 with Pp.Actions;
 
+with LSP.Common;
 with LSP.Types;             use LSP.Types;
 
 package body LSP.Lal_Utils is
@@ -814,6 +815,29 @@ package body LSP.Lal_Utils is
          return VSS.Strings.Empty_Virtual_String;
       end if;
    end Canonicalize;
+
+   --------------------
+   -- Compute_Detail --
+   --------------------
+
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
+   is
+      Result : VSS.Strings.Virtual_String;
+
+   begin
+
+      --  If the basic declaration is an enum literal, display the whole
+      --  enumeration type declaration instead.
+      if BD.Kind in Ada_Enum_Literal_Decl then
+         Result := LSP.Common.Get_Hover_Text
+           (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
+      else
+         Result := LSP.Common.Get_Hover_Text (BD);
+      end if;
+
+      return Result;
+   end Compute_Completion_Detail;
 
    -----------------------
    -- Containing_Entity --

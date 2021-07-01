@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,12 +19,14 @@
 
 with Ada.Containers.Hashed_Maps;
 
+with Langkit_Support.Slocs;
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 limited with LSP.Ada_Contexts;
 with LSP.Messages;
 
-package LSP.Ada_Completion_Sets is
+package LSP.Ada_Completions is
 
    function Hash (Name : Libadalang.Analysis.Defining_Name)
      return Ada.Containers.Hash_Type is
@@ -48,6 +50,19 @@ package LSP.Ada_Completion_Sets is
       Equivalent_Keys => Is_Equal,
       "="             => "=");
 
+   type Completion_Provider is abstract tagged limited null record;
+
+   procedure Propose_Completion
+     (Self   : Completion_Provider;
+      Sloc   : Langkit_Support.Slocs.Source_Location;
+      Token  : Libadalang.Common.Token_Reference;
+      Node   : Libadalang.Analysis.Ada_Node;
+      Names  : out Ada_Completions.Completion_Maps.Map;
+      Result : out LSP.Messages.CompletionList) is abstract;
+   --  Populate Names and Result with completions for given Source_Location,
+   --  that could be inside a Token or between the Token and the next token
+   --  if any. The Node is immediate enclosing AST node for the token.
+
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
@@ -60,4 +75,4 @@ package LSP.Ada_Completion_Sets is
      (Names  : Completion_Maps.Map;
       Result : in out LSP.Messages.Symbol_Vector);
 
-end LSP.Ada_Completion_Sets;
+end LSP.Ada_Completions;
