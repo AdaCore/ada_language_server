@@ -457,7 +457,7 @@ package LSP.Messages is
             As_Flags   : AlsReferenceKind_Array := (others => False);
 
          when False =>
-            As_Strings : LSP.Types.LSP_String_Vector;
+            As_Strings : VSS.String_Vectors.Virtual_String_Vector;
       end case;
    end record;
    function Empty_Set return AlsReferenceKind_Set;

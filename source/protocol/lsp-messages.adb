@@ -2307,9 +2307,10 @@ package body LSP.Messages is
             end;
          else
             declare
-               Item : LSP_String;
+               Item : VSS.Strings.Virtual_String;
+
             begin
-               LSP.Types.Read (S, Item);
+               LSP.Types.Read_String (S, Item);
                V.As_Strings.Append (Item);
             end;
          end if;
@@ -2341,7 +2342,7 @@ package body LSP.Messages is
 
             JS.End_Array;
          else
-            LSP_String_Vector'Write (S, V.As_Strings);
+            LSP.Types.Write_String_Vector (S, V.As_Strings);
          end if;
 
       end if;
