@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 
 with GNATCOLL.Utils;
@@ -42,6 +43,11 @@ with LSP.Common;
 with LSP.Types;             use LSP.Types;
 
 package body LSP.Lal_Utils is
+
+   function To_Unbounded_String
+     (Input : Utils.Char_Vectors.Char_Vector)
+       return Ada.Strings.Unbounded.Unbounded_String;
+   --  Convert Input to unbounded string.
 
    ---------------------
    -- Append_Location --

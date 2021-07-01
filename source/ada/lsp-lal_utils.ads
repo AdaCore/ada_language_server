@@ -35,7 +35,6 @@ with Langkit_Support.Text;
 with Utils.Command_Lines;
 with Utils.Char_Vectors;
 with Pp.Scanner;
-with Ada.Strings.Unbounded;
 
 with VSS.Strings;
 with LSP.Ada_Documents;
@@ -233,11 +232,6 @@ package LSP.Lal_Utils is
    --  If Canonical is True, the first part of the enclosing entity will be
    --  returned (i.e: if the enclosing entity is a subprogram body, the
    --  function will return the spec declaration node).
-
-   function To_Unbounded_String
-     (Input : Utils.Char_Vectors.Char_Vector)
-       return Ada.Strings.Unbounded.Unbounded_String;
-   --  Convert Input to unbounded string.
 
    procedure Format_Vector
      (Cmd      : Utils.Command_Lines.Command_Line;
