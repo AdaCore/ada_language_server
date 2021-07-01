@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Libadalang.Common;
-
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
