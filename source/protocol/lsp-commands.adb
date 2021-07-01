@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2020, AdaCore                       --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,18 +15,21 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Strings.Conversions;
+
 package body LSP.Commands is
 
-   Command_Name_List : LSP.Types.LSP_String_Vector;
+   Command_Name_List : VSS.String_Vectors.Virtual_String_Vector;
 
    --------------
    -- Register --
    --------------
 
    procedure Register (Value : Ada.Tags.Tag) is
-      Name : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String
+      Name : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.Conversions.To_Virtual_String
           (Ada.Tags.External_Tag (Value));
+
    begin
       Command_Name_List.Append (Name);
    end Register;
@@ -35,7 +38,7 @@ package body LSP.Commands is
    -- All_Commands --
    ------------------
 
-   function All_Commands return LSP.Types.LSP_String_Vector is
+   function All_Commands return VSS.String_Vectors.Virtual_String_Vector is
    begin
       return Command_Name_List;
    end All_Commands;

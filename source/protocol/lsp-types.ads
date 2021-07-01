@@ -24,6 +24,8 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with Ada.Strings.Wide_Wide_Unbounded;
 with GNATCOLL.JSON;
+
+with VSS.String_Vectors;
 with VSS.Strings;
 with VSS.Unicode;
 
@@ -119,6 +121,14 @@ package LSP.Types is
 
    Empty_Vector : constant LSP_String_Vector :=
      (LSP_String_Vectors.Vector with null record);
+
+   procedure Read_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VSS.String_Vectors.Virtual_String_Vector);
+
+   procedure Write_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VSS.String_Vectors.Virtual_String_Vector);
 
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;

@@ -31,6 +31,7 @@ with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
+with VSS.String_Vectors;
 with VSS.Strings;
 
 with LSP.Commands;
@@ -5494,7 +5495,7 @@ package LSP.Messages is
    --}
    --```
    type ExecuteCommandOptions is new WorkDoneProgressOptions with record
-      commands: LSP.Types.LSP_String_Vector;
+      commands: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_ExecuteCommandOptions
