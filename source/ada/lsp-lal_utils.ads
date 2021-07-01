@@ -248,4 +248,7 @@ package LSP.Lal_Utils is
       Messages : out Pp.Scanner.Source_Message_Vector);
    --  A wrapper around Pp.Actions.Format_Vector that populates Out_Range,
 
+   function Compute_Completion_Detail
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+
 end LSP.Lal_Utils;
