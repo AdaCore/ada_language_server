@@ -2194,7 +2194,7 @@ package body LSP.Ada_Handlers is
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => False,
-            value     => LSP.Types.To_LSP_String (Decl_Text),
+            value     => Decl_Text,
             language  => +"ada"));
 
       --  Append the declaration's location.
@@ -2211,7 +2211,7 @@ package body LSP.Ada_Handlers is
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => True,
-            value     => LSP.Types.To_LSP_String (Location_Text)));
+            value     => Location_Text));
 
       --  Append the comments associated with the basic declaration
       --  if any.
@@ -2224,7 +2224,7 @@ package body LSP.Ada_Handlers is
          Response.result.Value.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
-               value     => LSP.Types.To_LSP_String (Comments_Text)));
+               value     => Comments_Text));
       end if;
 
       return Response;
@@ -2520,13 +2520,9 @@ package body LSP.Ada_Handlers is
                   Value  =>
                     (Is_String => True,
                      String    =>
-                       To_LSP_String
-                         (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-                              (Libadalang.Doc_Utils.Get_Documentation
-                                 (Decl_Node).Doc.To_String)
-                         )
-                    )
-                 ),
+                       VSS.Strings.To_Virtual_String
+                         (Libadalang.Doc_Utils.Get_Documentation
+                              (Decl_Node).Doc.To_String))),
                activeParameter =>
                  (Is_Set => True,
                   Value  => Param_Index

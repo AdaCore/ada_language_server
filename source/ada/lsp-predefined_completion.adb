@@ -2,6 +2,8 @@ with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with GNATCOLL.JSON;     use GNATCOLL.JSON;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
 
+with VSS.Strings.Conversions;
+
 with LSP.Common;
 with LSP.Types;         use LSP.Types;
 with LSP.Predefined_Completion.Ada2012;
@@ -62,8 +64,9 @@ package body LSP.Predefined_Completion is
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
               (Is_String => True,
-               String    => To_LSP_String
-                 (String'(Value.Get ("DOC")))));
+               String    =>
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (String'(Value.Get ("DOC")))));
          Item.kind := (True, Keyword);
 
          Items.Append (Item);

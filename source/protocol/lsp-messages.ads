@@ -2281,7 +2281,7 @@ package LSP.Messages is
    type String_Or_MarkupContent (Is_String : Boolean := False) is record
       case Is_String is
          when True =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
          when False =>
             Content : MarkupContent;
       end case;
@@ -7653,7 +7653,7 @@ package LSP.Messages is
    --type MarkedString = string | { language: string; value: string };
    --```
    type MarkedString (Is_String : Boolean := True) is record
-      value : LSP_String;
+      value : VSS.Strings.Virtual_String;
 
       case Is_String is
          when True =>
@@ -7831,7 +7831,7 @@ package LSP.Messages is
    type Parameter_Label (Is_String : Boolean := True) is record
       case Is_String is
          when True =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
          when False =>
             From, Till : UTF_16_Index;
       end case;
