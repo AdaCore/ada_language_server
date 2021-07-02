@@ -19,7 +19,6 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
