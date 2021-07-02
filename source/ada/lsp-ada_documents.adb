@@ -425,7 +425,7 @@ package body LSP.Ada_Documents is
          --  needed to determine which line number in the old buffer is
          --  changed, deleted or before which new lines are inserted
 
-         Changed_Block_Text : LSP_String;
+         Changed_Block_Text : VSS.Strings.Virtual_String;
          Changed_Block_Span : LSP.Messages.Span := ((0, 0), (0, 0));
 
          procedure Prepare
@@ -451,8 +451,7 @@ package body LSP.Ada_Documents is
             end if;
 
             --  accumulating new text for the changed block
-            Changed_Block_Text :=
-              LSP.Types.To_LSP_String (Text) & Changed_Block_Text;
+            Changed_Block_Text.Prepend (Text);
          end Prepare;
 
          ---------
@@ -473,10 +472,10 @@ package body LSP.Ada_Documents is
             LSP.Messages.Prepend
               (Edit, LSP.Messages.TextEdit'
                  (span    => Changed_Block_Span,
-                  newText => Changed_Block_Text));
+                  newText => To_LSP_String (Changed_Block_Text)));
 
             --  clearing
-            Changed_Block_Text := Empty_LSP_String;
+            Changed_Block_Text.Clear;
             Changed_Block_Span := ((0, 0), (0, 0));
          end Add;
 
@@ -1850,7 +1849,8 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Insert_Text : LSP_String := Item.label;
+         Insert_Text : VSS.Strings.Virtual_String :=
+           LSP.Types.To_Virtual_String (Item.label);
          All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
 
          Params      : constant Param_Spec_Array :=
@@ -1874,7 +1874,7 @@ package body LSP.Ada_Documents is
               (Is_Set => True,
                Value  => Snippet);
 
-            Insert_Text := Insert_Text & " (";
+            Insert_Text.Append (" (");
 
             --  Compute number of params to know if named notation should be
             --  used.
@@ -1889,39 +1889,48 @@ package body LSP.Ada_Documents is
             for Param of Params loop
                for Id of Param.F_Ids loop
                   declare
-                     Mode : constant String :=
-                       Langkit_Support.Text.To_UTF8 (Param.F_Mode.Text);
+                     Mode : constant Langkit_Support.Text.Text_Type :=
+                       Param.F_Mode.Text;
+
                   begin
                      if Use_Named_Notation then
-                        Insert_Text := Insert_Text & To_LSP_String
-                          (Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " => "
-                           & "${"
-                           & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-                           & ":"
-                           &  Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
-                           & (if Mode /= "" then
-                                  Mode & " "
-                             else
-                                "")
-                           & Langkit_Support.Text.To_UTF8
-                             (Param.F_Type_Expr.Text)
-                           & "}, ");
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" => ");
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                            (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then LSP.Lal_Utils.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
+
                      else
-                        Insert_Text := Insert_Text & To_LSP_String
-                          ("${"
-                           & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-                           & ":"
-                           & Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
-                           & (if Mode /= "" then
-                                  Mode & " "
-                             else
-                                "")
-                           & Langkit_Support.Text.To_UTF8
-                             (Param.F_Type_Expr.Text)
-                           & "}, ");
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                             (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then LSP.Lal_Utils.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
                      end if;
 
                      Idx := Idx + 1;
@@ -1929,19 +1938,32 @@ package body LSP.Ada_Documents is
                end loop;
             end loop;
 
-            --  Remove the "}, " substring that has been appended in the last
+            --  Remove the ", " substring that has been appended in the last
             --  loop iteration.
-            Insert_Text := Unbounded_Slice
-              (Insert_Text,
-               1,
-               Length (Insert_Text) - 2);
+
+            declare
+               First   : constant
+                 VSS.Strings.Character_Iterators.Character_Iterator :=
+                   Insert_Text.First_Character;
+               Last    : VSS.Strings.Character_Iterators.Character_Iterator :=
+                 Insert_Text.Last_Character;
+               Success : Boolean with Unreferenced;
+
+            begin
+               Success := Last.Backward;
+               Success := Last.Backward;
+
+               Insert_Text := Insert_Text.Slice (First, Last);
+               --  ??? May be replaced by "Head" like procedure when it will be
+               --  implemented.
+            end;
 
             --  Insert '$0' (i.e: the final tab stop) at the end.
-            Insert_Text := Insert_Text & ")$0";
+            Insert_Text.Append (")$0");
 
             Item.insertText :=
               (Is_Set => True,
-               Value  => Insert_Text);
+               Value  => LSP.Types.To_LSP_String (Insert_Text));
          end if;
       end;
 
