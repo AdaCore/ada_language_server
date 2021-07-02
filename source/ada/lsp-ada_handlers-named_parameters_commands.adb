@@ -251,7 +251,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       begin
          for Param of Params loop
             for Id of Param.F_Ids loop
-               Result.Append (VSS.Strings.To_Virtual_String (Id.Text));
+               Result.Append (LSP.Lal_Utils.To_Virtual_String (Id.Text));
             end loop;
          end loop;
       end Append;

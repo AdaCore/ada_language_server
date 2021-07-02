@@ -489,7 +489,7 @@ package body LSP.Lal_Utils is
                P : constant LSP.Messages.ParameterInformation :=
                  (label         =>
                     (Is_String => True,
-                     String    => VSS.Strings.To_Virtual_String (Id.Text)),
+                     String    => LSP.Lal_Utils.To_Virtual_String (Id.Text)),
                   documentation =>
                     (Is_Set => False)
                  );
@@ -818,7 +818,7 @@ package body LSP.Lal_Utils is
 
    begin
       if Result.Success then
-         return VSS.Strings.To_Virtual_String (Result.Symbol);
+         return LSP.Lal_Utils.To_Virtual_String (Result.Symbol);
       else
          return VSS.Strings.Empty_Virtual_String;
       end if;
