@@ -50,9 +50,12 @@ package LSP.Ada_Documents is
    procedure Initialize
      (Self : in out Document;
       URI  : LSP.Messages.DocumentUri;
-      Text : VSS.Strings.Virtual_String);
+      Text : VSS.Strings.Virtual_String)
+     with Pre => not Text.Is_Null;
    --  Create a new document from a TextDocumentItem. Use LAL as libadalang
    --  context to parse text of the document.
+   --
+   --  Text must be non-null string to be able to construst line indices.
 
    -----------------------
    -- Contents handling --

@@ -304,7 +304,10 @@ package body LSP.Ada_Handlers is
             Document : constant Internal_Document_Access :=
               new LSP.Ada_Documents.Document (Self.Trace);
          begin
-            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String);
+            Document.Initialize (URI, "");
+            --  It is important to pass empty string literal to pass
+            --  precondition.
+
             return LSP.Ada_Documents.Document_Access (Document);
          end;
       else
