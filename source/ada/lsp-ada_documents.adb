@@ -1153,7 +1153,8 @@ package body LSP.Ada_Documents is
          begin
             if Kind /= LSP.Messages.A_Null then
                Item :=
-                 (name              => To_LSP_String (Element.Text),
+                 (name              =>
+                    LSP.Lal_Utils.To_Virtual_String (Element.Text),
                   kind              => Kind,
                   alsIsAdaProcedure => <>,
                   tags              => LSP.Messages.Empty,

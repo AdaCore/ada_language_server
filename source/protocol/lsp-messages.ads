@@ -8229,7 +8229,7 @@ package LSP.Messages is
    for DocumentSymbol_Tree'Write use Write_DocumentSymbol_Tree;
 
    type SymbolInformation is record
-      name: LSP_String;
+      name: VSS.Strings.Virtual_String;
       kind: SymbolKind;
       alsIsAdaProcedure : Optional_Boolean;
       tags: SymbolTagSet;

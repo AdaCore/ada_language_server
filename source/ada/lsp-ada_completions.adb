@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,7 +18,6 @@
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
-with LSP.Types;
 
 package body LSP.Ada_Completions is
 
@@ -84,7 +83,7 @@ package body LSP.Ada_Completions is
             if not Node.Is_Null then
                Result.Vector.Append
                  (LSP.Messages.SymbolInformation'
-                    (name     => LSP.Types.To_LSP_String (Name.Text),
+                    (name     => LSP.Lal_Utils.To_Virtual_String (Name.Text),
                      kind     => LSP.Lal_Utils.Get_Decl_Kind
                                   (Node.As_Basic_Decl),
                      location => LSP.Lal_Utils.Get_Node_Location

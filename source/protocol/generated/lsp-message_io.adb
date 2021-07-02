@@ -7554,7 +7554,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "name" then
-               LSP.Types.Read (S, V.name);
+               LSP.Types.Read_String (S, V.name);
             elsif Key = "kind" then
                SymbolKind'Read (S, V.kind);
             elsif Key = "alsIsAdaProcedure" then
@@ -7584,7 +7584,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("name");
-      LSP.Types.Write (S, V.name);
+      LSP.Types.Write_String (S, V.name);
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
       JS.Key ("alsIsAdaProcedure");
