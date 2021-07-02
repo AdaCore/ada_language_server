@@ -2631,7 +2631,7 @@ package body LSP.Messages is
                JS.R.Read_Next;
 
                if Key = "name" then
-                  LSP.Types.Read (S, Item.name);
+                  LSP.Types.Read_String (S, Item.name);
                elsif Key = "detail" then
                   Optional_String'Read (S, Item.detail);
                elsif Key = "kind" then

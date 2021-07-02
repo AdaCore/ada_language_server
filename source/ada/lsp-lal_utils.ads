@@ -211,14 +211,6 @@ package LSP.Lal_Utils is
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.
 
-   function To_Unbounded_Text_Type
-     (Item : LSP.Types.LSP_String)
-      return Langkit_Support.Text.Unbounded_Text_Type;
-   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
-   --  of this function is to convert names and small strings but not buffers.
-   --  It's dangerous to return a string when the string might be giant,
-   --  therefore, a buffer should not be passed to this function.
-
    function Node_Location_Image
      (Node : Libadalang.Analysis.Ada_Node'Class)
       return VSS.Strings.Virtual_String;
@@ -245,5 +237,18 @@ package LSP.Lal_Utils is
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+
+   function To_Unbounded_Text_Type
+     (Item : LSP.Types.LSP_String)
+      return Langkit_Support.Text.Unbounded_Text_Type;
+   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
+   --  of this function is to convert names and small strings but not buffers.
+   --  It's dangerous to return a string when the string might be giant,
+   --  therefore, a buffer should not be passed to this function.
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Text_Type)
+      return VSS.Strings.Virtual_String;
+   --  Do string type conversion.
 
 end LSP.Lal_Utils;
