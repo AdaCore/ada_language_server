@@ -251,4 +251,9 @@ package LSP.Lal_Utils is
       return VSS.Strings.Virtual_String;
    --  Do string type conversion.
 
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Unbounded_Text_Type)
+      return VSS.Strings.Virtual_String;
+   --  Do string type conversion.
+
 end LSP.Lal_Utils;

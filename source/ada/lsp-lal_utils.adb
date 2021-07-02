@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
+with Ada.Strings.Wide_Wide_Unbounded;
 
 with GNATCOLL.Utils;
 
@@ -1101,6 +1102,19 @@ package body LSP.Lal_Utils is
       return VSS.Strings.Virtual_String is
    begin
       return VSS.Strings.To_Virtual_String (Item);
+   end To_Virtual_String;
+
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Unbounded_Text_Type)
+      return VSS.Strings.Virtual_String is
+   begin
+      return
+        VSS.Strings.To_Virtual_String
+          (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Item));
    end To_Virtual_String;
 
    -------------------------

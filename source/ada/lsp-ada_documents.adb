@@ -17,7 +17,6 @@
 
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
-with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
@@ -913,13 +912,11 @@ package body LSP.Ada_Documents is
          for Error of Unit.Diagnostics loop
             Item.span := LSP.Lal_Utils.To_Span (Error.Sloc_Range);
 
-            Item.message := To_LSP_String
-              (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-                 (Error.Message));
+            Item.message := LSP.Lal_Utils.To_Virtual_String (Error.Message);
 
             --  Filter out diagnostics that simply report "Cannot parse <..>",
             --  as these are generally not useful to the end user.
-            if not LSP.Types.Starts_With (Item.message, "Cannot parse <") then
+            if not Item.message.Starts_With ("Cannot parse <") then
                Errors.Append (Item);
                Nb_Diags := Nb_Diags + 1;
                exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;

@@ -677,7 +677,7 @@ package body LSP.Message_IO is
             elsif Key = "source" then
                Optional_String'Read (S, V.source);
             elsif Key = "message" then
-               LSP.Types.Read (S, V.message);
+               LSP.Types.Read_String (S, V.message);
             elsif Key = "tags" then
                Optional_DiagnosticTagSet'Read (S, V.tags);
             elsif Key = "relatedInformation" then
@@ -709,7 +709,7 @@ package body LSP.Message_IO is
       JS.Key ("source");
       Optional_String'Write (S, V.source);
       JS.Key ("message");
-      LSP.Types.Write (S, V.message);
+      LSP.Types.Write_String (S, V.message);
       JS.Key ("tags");
       Optional_DiagnosticTagSet'Write (S, V.tags);
       JS.Key ("relatedInformation");
