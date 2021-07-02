@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,6 +19,8 @@ with Langkit_Support.Symbols;     use Langkit_Support.Symbols;
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Iterators;
 with Libadalang.Sources;
+
+with LSP.Lal_Utils;
 
 package body LSP.Ada_File_Sets is
 
@@ -278,7 +280,7 @@ package body LSP.Ada_File_Sets is
          begin
             if Canonical.Success then
                Self.All_Symbols.Insert
-                 (VSS.Strings.To_Virtual_String (Canonical.Symbol),
+                 (LSP.Lal_Utils.To_Virtual_String (Canonical.Symbol),
                   Name_Vectors.Empty_Vector,
                   Cursor,
                   Inserted);
