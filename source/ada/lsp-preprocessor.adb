@@ -93,7 +93,7 @@ package body LSP.Preprocessor is
       This_branch_Evaluates_To_True : Boolean := False;
 
       function Eval (Line : Virtual_String) return Boolean is
-         (Line.Starts_With (To_Virtual_String ("#if")));
+         (Line.Starts_With ("#if"));
       --  Placeholder. This is where to insert "real" preprocessor logic.
       --  For now the first branch after #if is considered true, the #else
       --  branches are dropped - see above.
@@ -102,12 +102,12 @@ package body LSP.Preprocessor is
          Send_This_Line_To_Libadalang : Boolean := False;
          --  Whether to add the line to the buffer passed to Libadalang
       begin
-         if Line.Starts_With (To_Virtual_String ("#if")) then
+         if Line.Starts_With ("#if") then
             Currently_Preprocessing := True;
             This_branch_Evaluates_To_True := Eval (Line);
-         elsif Line.Starts_With (To_Virtual_String ("#el")) then
+         elsif Line.Starts_With ("#el") then
             This_branch_Evaluates_To_True := Eval (Line);
-         elsif Line.Starts_With (To_Virtual_String (("#end"))) then
+         elsif Line.Starts_With ("#end") then
             Currently_Preprocessing := False;
          else
             Send_This_Line_To_Libadalang := (not Currently_Preprocessing)
