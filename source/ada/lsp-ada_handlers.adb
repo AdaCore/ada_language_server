@@ -3605,9 +3605,10 @@ package body LSP.Ada_Handlers is
       end On_Inaccessible_Name;
 
       Query : constant VSS.Strings.Virtual_String :=
-        Canonicalize (Request.params.query);
+        Canonicalize (LSP.Types.To_Virtual_String (Request.params.query));
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
+
    begin
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol_Completion
@@ -3713,13 +3714,14 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Word : constant LSP.Types.LSP_String := Document.Get_Word_At
+         Word : constant VSS.Strings.Virtual_String := Document.Get_Word_At
            (Context.all, Value.position);
 
          Canonical_Prefix : constant VSS.Strings.Virtual_String :=
            Canonicalize (Word);
+
       begin
-         if not LSP.Types.Is_Empty (Word) then
+         if not Word.Is_Empty then
             Context.Get_Any_Symbol_Completion
               (Prefix   => Canonical_Prefix,
                Callback => On_Inaccessible_Name'Access);

@@ -120,7 +120,7 @@ package LSP.Ada_Documents is
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position)
-      return LSP.Types.LSP_String;
+      return VSS.Strings.Virtual_String;
    --  Get an identifier at given position in the document or an empty string.
 
    procedure Get_Completions_At
