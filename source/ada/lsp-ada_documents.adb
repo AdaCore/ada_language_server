@@ -1787,7 +1787,7 @@ package body LSP.Ada_Documents is
       Loc_Text       : VSS.Strings.Virtual_String;
 
    begin
-      Item.label := To_LSP_String (DN.P_Relative_Name.Text);
+      Item.label := LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
       Item.detail := (True,
@@ -1795,9 +1795,9 @@ package body LSP.Ada_Documents is
                         (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
-         Item.sortText := (True, '~' & Item.label);
-         Item.insertText := (True, Item.label);
-         Item.label := Item.label & " (invisible)";
+         Item.sortText := (True, '~' & LSP.Types.To_LSP_String (Item.label));
+         Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
+         Item.label.Append (" (invisible)");
       end if;
 
       --  Property_Errors can occur when calling
@@ -1850,8 +1850,7 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Insert_Text : VSS.Strings.Virtual_String :=
-           LSP.Types.To_Virtual_String (Item.label);
+         Insert_Text : VSS.Strings.Virtual_String := Item.label;
          All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
 
          Params      : constant Param_Spec_Array :=
@@ -2072,17 +2071,19 @@ package body LSP.Ada_Documents is
    begin
       for Keyword of Keywords loop
          declare
-            Label : constant Langkit_Support.Text.Text_Type :=
-              Langkit_Support.Text.To_Text (Keyword);
+            Label : constant VSS.Strings.Virtual_String :=
+              LSP.Lal_Utils.To_Virtual_String (Keyword);
+
          begin
             if LSP.Types.Starts_With
-              (Text           => To_LSP_String (Label),
+              (Text           =>
+                 LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Label)),
                Prefix         => Prefix,
                Case_Sensitive => False)
             then
-               Item.label := To_LSP_String (Label);
+               Item.label := Label;
                Item.insertTextFormat := (True, LSP.Messages.PlainText);
-               Item.insertText := (True, Item.label);
+               Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
                Item.kind := (True, LSP.Messages.Keyword);
                Result.Append (Item);
             end if;
