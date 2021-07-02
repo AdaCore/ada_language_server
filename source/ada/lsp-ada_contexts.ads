@@ -61,7 +61,7 @@ package LSP.Ada_Contexts is
    --  tree, as project for this context. Root must be a non-aggregate
    --  project tree representing the root of a hierarchy inside Tree.
 
-   function Id (Self : Context) return LSP.Types.LSP_String;
+   function Id (Self : Context) return VSS.Strings.Virtual_String;
    --  Return unique identifier of the context.
 
    procedure Reload (Self : in out Context);
@@ -236,7 +236,7 @@ package LSP.Ada_Contexts is
 private
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
-      Id             : LSP.Types.LSP_String;
+      Id             : VSS.Strings.Virtual_String;
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;

@@ -333,6 +333,10 @@ write_component = {
       JS.Key ("{key}");
       LSP.Types.Write_String (S, V.{name});
 """,
+    "VSS.String_Vectors.Virtual_String_Vector": """\
+      JS.Key ("{key}");
+      LSP.Types.Write_String_Vector (S, V.{name});
+""",
     "LSP_String": """\
       JS.Key ("{key}");
       LSP.Types.Write (S, V.{name});
@@ -357,6 +361,9 @@ write_component = {
 read_component = {
     "VSS.Strings.Virtual_String": """if Key = "{key}" then
                LSP.Types.Read_String (S, V.{name});
+            els""",
+    "VSS.String_Vectors.Virtual_String_Vector": """if Key = "{key}" then
+               LSP.Types.Read_String_Vector (S, V.{name});
             els""",
     "LSP_String": """if Key = "{key}" then
                LSP.Types.Read (S, V.{name});

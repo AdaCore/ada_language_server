@@ -2,6 +2,8 @@ with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with GNATCOLL.JSON;     use GNATCOLL.JSON;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
 
+with VSS.Strings.Conversions;
+
 with LSP.Common;
 with LSP.Types;         use LSP.Types;
 with LSP.Predefined_Completion.Ada2012;
@@ -55,15 +57,18 @@ package body LSP.Predefined_Completion is
          Item : CompletionItem;
       begin
          Item.insertTextFormat := (True, PlainText);
-         Item.label := To_LSP_String (String'(Value.Get ("_name")));
+         Item.label :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (String'(Value.Get ("_name")));
          Item.detail := (True, To_LSP_String (String'(Value.Get ("_origin"))));
-         Item.insertText := (True, Item.label);
+         Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
          Item.documentation :=
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
               (Is_String => True,
-               String    => To_LSP_String
-                 (String'(Value.Get ("DOC")))));
+               String    =>
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (String'(Value.Get ("DOC")))));
          Item.kind := (True, Keyword);
 
          Items.Append (Item);
@@ -169,7 +174,8 @@ package body LSP.Predefined_Completion is
    begin
       for Item of Items loop
          if Starts_With
-           (Text           => Item.label,
+           (Text           =>
+              LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Item.label)),
             Prefix         => Prefix,
             Case_Sensitive => False)
          then

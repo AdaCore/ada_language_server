@@ -28,6 +28,8 @@ with VSS.Strings.Conversions;
 with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
 
+with LSP.Lal_Utils;
+
 package body LSP.Common is
 
    function Get_Hover_Text_For_Node
@@ -345,7 +347,7 @@ package body LSP.Common is
            and then Node.Parent.Kind in Ada_Generic_Decl
          then
             Result.Append
-              (VSS.Strings.To_Virtual_String
+              (LSP.Lal_Utils.To_Virtual_String
                  (As_Generic_Decl (Node.Parent).F_Formal_Part.Text));
          end if;
 
@@ -359,11 +361,11 @@ package body LSP.Common is
       -----------------------------
 
       procedure Get_Loop_Var_Hover_Text is
-         Parent_Text : constant Wide_Wide_String := Node.Parent.Text;
+         Parent_Text : constant Langkit_Support.Text.Text_Type :=
+           Node.Parent.Text;
 
       begin
-         Result.Append
-           (VSS.Strings.To_Virtual_String (Parent_Text));
+         Result.Append (LSP.Lal_Utils.To_Virtual_String (Parent_Text));
       end Get_Loop_Var_Hover_Text;
 
       ---------------------------

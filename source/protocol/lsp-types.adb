@@ -505,6 +505,40 @@ package body LSP.Types is
       JS.R.Read_Next;
    end Read_Nullable_String;
 
+   ------------------------
+   -- Read_String_Vector --
+   ------------------------
+
+   procedure Read_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out VSS.String_Vectors.Virtual_String_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+   begin
+      V.Clear;
+
+      if JS.R.Is_Start_Array then
+         JS.R.Read_Next;
+
+         while not JS.R.Is_End_Array loop
+            declare
+               Item : VSS.Strings.Virtual_String;
+
+            begin
+               LSP.Types.Read_String (S, Item);
+               V.Append (Item);
+            end;
+         end loop;
+
+      elsif JS.R.Is_String_Value then
+         V.Append (JS.R.String_Value);
+      end if;
+
+      JS.R.Read_Next;
+   end Read_String_Vector;
+
    --------------------------------
    -- Read_UTF16_Code_Unit_Count --
    --------------------------------
@@ -1178,6 +1212,27 @@ package body LSP.Types is
             JS.Write_String (V.String);
       end case;
    end Write_LSP_Boolean_Or_String;
+
+   -------------------------
+   -- Write_String_Vector --
+   -------------------------
+
+   procedure Write_String_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : VSS.String_Vectors.Virtual_String_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+   begin
+      JS.Start_Array;
+
+      for J in 1 .. V.Length loop
+         JS.Write_String (V.Element (J));
+      end loop;
+
+      JS.End_Array;
+   end Write_String_Vector;
 
    ---------------------------------
    -- Write_UTF16_Code_Unit_Count --

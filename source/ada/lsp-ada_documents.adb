@@ -15,16 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Conversions;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
-with Ada.Strings.Wide_Wide_Unbounded;
+with Ada.Characters.Wide_Wide_Latin_1;
+with Ada.Strings.UTF_Encoding;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
 
 with GNATCOLL.Utils;
-with GNATCOLL.VFS;
 
+with VSS.Characters;
 with VSS.Strings.Conversions;
 
 with Langkit_Support.Slocs;
@@ -57,9 +56,6 @@ package body LSP.Ada_Documents is
      GNATCOLL.Traces.Create ("ALS.LAL_PP_OUTPUT_ON_FORMATTING",
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
-
-   function To_LSP_String
-     (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
@@ -362,7 +358,7 @@ package body LSP.Ada_Documents is
 
    procedure Diff
      (Self     : Document;
-      New_Text : LSP.Types.LSP_String;
+      New_Text : VSS.Strings.Virtual_String;
       Old_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       Edit     : out LSP.Messages.TextEdit_Vector)
@@ -382,7 +378,7 @@ package body LSP.Ada_Documents is
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       New_Lines :=
-        LSP.Types.To_Virtual_String (New_Text).Split_Lines
+        New_Text.Split_Lines
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
 
@@ -426,7 +422,7 @@ package body LSP.Ada_Documents is
          --  needed to determine which line number in the old buffer is
          --  changed, deleted or before which new lines are inserted
 
-         Changed_Block_Text : LSP_String;
+         Changed_Block_Text : VSS.Strings.Virtual_String;
          Changed_Block_Span : LSP.Messages.Span := ((0, 0), (0, 0));
 
          procedure Prepare
@@ -452,8 +448,7 @@ package body LSP.Ada_Documents is
             end if;
 
             --  accumulating new text for the changed block
-            Changed_Block_Text :=
-              LSP.Types.To_LSP_String (Text) & Changed_Block_Text;
+            Changed_Block_Text.Prepend (Text);
          end Prepare;
 
          ---------
@@ -474,10 +469,10 @@ package body LSP.Ada_Documents is
             LSP.Messages.Prepend
               (Edit, LSP.Messages.TextEdit'
                  (span    => Changed_Block_Span,
-                  newText => Changed_Block_Text));
+                  newText => To_LSP_String (Changed_Block_Text)));
 
             --  clearing
-            Changed_Block_Text := Empty_LSP_String;
+            Changed_Block_Text.Clear;
             Changed_Block_Span := ((0, 0), (0, 0));
          end Add;
 
@@ -706,7 +701,10 @@ package body LSP.Ada_Documents is
 
       if Span = LSP.Messages.Empty_Span then
          --  diff for the whole document
-         Diff (Self, LSP.Types.To_LSP_String (S.all), Edit => Edit);
+         Diff
+           (Self,
+            VSS.Strings.Conversions.To_Virtual_String (S.all),
+            Edit => Edit);
 
       elsif Out_Sloc = No_Source_Location_Range then
          --  Range formating fails. Do nothing, skip formating altogether
@@ -715,7 +713,12 @@ package body LSP.Ada_Documents is
          --  diff for a part of the document
 
          Out_Span := LSP.Lal_Utils.To_Span (Out_Sloc);
-         Diff (Self, LSP.Types.To_LSP_String (S.all), Span, Out_Span, Edit);
+         Diff
+           (Self,
+            VSS.Strings.Conversions.To_Virtual_String (S.all),
+            Span,
+            Out_Span,
+            Edit);
       end if;
 
       GNAT.Strings.Free (S);
@@ -905,13 +908,11 @@ package body LSP.Ada_Documents is
          for Error of Unit.Diagnostics loop
             Item.span := LSP.Lal_Utils.To_Span (Error.Sloc_Range);
 
-            Item.message := To_LSP_String
-              (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-                 (Error.Message));
+            Item.message := LSP.Lal_Utils.To_Virtual_String (Error.Message);
 
             --  Filter out diagnostics that simply report "Cannot parse <..>",
             --  as these are generally not useful to the end user.
-            if not LSP.Types.Starts_With (Item.message, "Cannot parse <") then
+            if not Item.message.Starts_With ("Cannot parse <") then
                Errors.Append (Item);
                Nb_Diags := Nb_Diags + 1;
                exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;
@@ -999,7 +1000,8 @@ package body LSP.Ada_Documents is
                            Profile : constant VSS.Strings.Virtual_String :=
                              Get_Profile (Decl, Is_Function);
                            Item : constant LSP.Messages.DocumentSymbol :=
-                             (name              => To_LSP_String (Name.Text),
+                             (name              =>
+                                LSP.Lal_Utils.To_Virtual_String (Name.Text),
                               detail            =>
                                 (Is_Set => True,
                                  Value  => LSP.Types.To_LSP_String (Profile)),
@@ -1041,7 +1043,8 @@ package body LSP.Ada_Documents is
                for N of With_Node.F_Packages loop
                   declare
                      Item : constant LSP.Messages.DocumentSymbol :=
-                       (name              => To_LSP_String (N.Text),
+                       (name              =>
+                          LSP.Lal_Utils.To_Virtual_String (N.Text),
                         detail            => (Is_Set => False),
                         kind              => Namespace,
                         tags              => LSP.Messages.Empty,
@@ -1074,11 +1077,13 @@ package body LSP.Ada_Documents is
                  Pragma_Node.F_Id;
                Item        : constant LSP.Messages.DocumentSymbol :=
                  (name              =>
-                    To_LSP_String (Id.Text),
+                    LSP.Lal_Utils.To_Virtual_String (Id.Text),
                   detail            =>
                     (Is_Set => True,
                      Value  =>
-                       To_LSP_String ("(" & (Pragma_Node.F_Args.Text & ")"))),
+                       LSP.Types.To_LSP_String
+                         (LSP.Lal_Utils.To_Virtual_String
+                              ("(" & (Pragma_Node.F_Args.Text & ")")))),
                   kind              => Property,
                   tags              => LSP.Messages.Empty,
                   deprecated        => (Is_Set => False),
@@ -1147,7 +1152,8 @@ package body LSP.Ada_Documents is
          begin
             if Kind /= LSP.Messages.A_Null then
                Item :=
-                 (name              => To_LSP_String (Element.Text),
+                 (name              =>
+                    LSP.Lal_Utils.To_Virtual_String (Element.Text),
                   kind              => Kind,
                   alsIsAdaProcedure => <>,
                   tags              => LSP.Messages.Empty,
@@ -1432,12 +1438,12 @@ package body LSP.Ada_Documents is
 
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
-      Is_Function : out Boolean)
-      return VSS.Strings.Virtual_String
+      Is_Function : out Boolean) return VSS.Strings.Virtual_String
    is
       use Libadalang.Common;
 
-      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
+      function To_Text
+        (Node : Ada_Node'Class) return VSS.Strings.Virtual_String;
       --  Retrieve the node text and format it
 
       function To_Profile
@@ -1448,31 +1454,35 @@ package body LSP.Ada_Documents is
       -- To_Text --
       -------------
 
-      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String
+      function To_Text
+        (Node : Ada_Node'Class) return VSS.Strings.Virtual_String
       is
-         Node_Text : constant String :=
-           Langkit_Support.Text.To_UTF8 (Node.Text);
-         Result    : String  := Node_Text;
+         Node_Text : constant Langkit_Support.Text.Text_Type := Node.Text;
          Was_Space : Boolean := False;
-         Cur       : Integer := Node_Text'First;
+         Result    : VSS.Strings.Virtual_String;
+
       begin
          for I in Node_Text'Range loop
             if Node_Text (I) = ' ' then
                --  Trim multiple whitespace to only keep one
+
                if not Was_Space then
-                  Result (Cur) := Node_Text (I);
-                  Cur := Cur + 1;
+                  Result.Append
+                    (VSS.Characters.Virtual_Character (Node_Text (I)));
                end if;
+
                Was_Space := True;
+
                --  Remove the new line character
-            elsif Node_Text (I) /= ASCII.LF then
+
+            elsif Node_Text (I) /= Ada.Characters.Wide_Wide_Latin_1.LF then
                Was_Space := False;
-               Result (Cur) := Node_Text (I);
-               Cur := Cur + 1;
+                  Result.Append
+                    (VSS.Characters.Virtual_Character (Node_Text (I)));
             end if;
          end loop;
-         return Ada.Characters.Conversions.To_Wide_Wide_String
-           (Result (Result'First .. Cur - 1));
+
+         return Result;
       end To_Text;
 
       ----------------
@@ -1512,14 +1522,11 @@ package body LSP.Ada_Documents is
                      Item.Append (" out ");
                end case;
 
-               Item.Append
-                 (VSS.Strings.To_Virtual_String
-                    (To_Text (Param.F_Type_Expr)));
+               Item.Append (To_Text (Param.F_Type_Expr));
 
                if not Init.Is_Null then
                   Item.Append (" := ");
-                  Item.Append
-                    (VSS.Strings.To_Virtual_String (To_Text (Init)));
+                  Item.Append (To_Text (Init));
                end if;
 
                for J in Names.First_Child_Index .. Names.Last_Child_Index loop
@@ -1527,9 +1534,7 @@ package body LSP.Ada_Documents is
                      Result.Append ("; ");
                   end if;
 
-                  Result.Append
-                    (VSS.Strings.To_Virtual_String
-                       (To_Text (Names.Child (J))));
+                  Result.Append (To_Text (Names.Child (J)));
                   Result.Append (Item);
                end loop;
             end;
@@ -1542,7 +1547,7 @@ package body LSP.Ada_Documents is
          if not Returns.Is_Null then
             Is_Function := True;
             Result.Append (" return ");
-            Result.Append (VSS.Strings.To_Virtual_String (To_Text (Returns)));
+            Result.Append (To_Text (Returns));
          end if;
 
          return Result;
@@ -1668,12 +1673,12 @@ package body LSP.Ada_Documents is
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position)
-      return LSP.Types.LSP_String
+      return VSS.Strings.Virtual_String
    is
       use Langkit_Support.Slocs;
       use all type Libadalang.Common.Token_Kind;
 
-      Result : LSP.Types.LSP_String;
+      Result : VSS.Strings.Virtual_String;
 
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
@@ -1693,7 +1698,7 @@ package body LSP.Ada_Documents is
       Kind : constant Libadalang.Common.Token_Kind :=
         Libadalang.Common.Kind (Data);
 
-      Text : constant Wide_Wide_String :=
+      Text : constant Langkit_Support.Text.Text_Type :=
         Libadalang.Common.Text (Token);
 
       Sloc : constant Source_Location_Range :=
@@ -1701,12 +1706,14 @@ package body LSP.Ada_Documents is
 
       Span : constant Integer :=
         Natural (Where.Column) - Natural (Sloc.Start_Column);
+
    begin
       if Kind in Ada_Identifier .. Ada_Xor
         and then Compare (Sloc, Where) = Inside
       then
-         Result := LSP.Types.To_LSP_String
-           (Text (Text'First .. Text'First + Span));
+         Result :=
+           LSP.Lal_Utils.To_Virtual_String
+             (Text (Text'First .. Text'First + Span));
       end if;
 
       return Result;
@@ -1719,12 +1726,12 @@ package body LSP.Ada_Documents is
    procedure Initialize
      (Self : in out Document;
       URI  : LSP.Messages.DocumentUri;
-      Text : LSP.Types.LSP_String)
+      Text : VSS.Strings.Virtual_String)
    is
    begin
       Self.URI  := URI;
       Self.Version := 1;
-      Self.Text := LSP.Types.To_Virtual_String (Text);
+      Self.Text := Text;
       Self.Refresh_Symbol_Cache := True;
       Recompute_Indexes (Self);
    end Initialize;
@@ -1745,17 +1752,6 @@ package body LSP.Ada_Documents is
       Self.Refresh_Symbol_Cache := True;
    end Reset_Symbol_Cache;
 
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
-     (Value : Wide_Wide_String) return LSP.Types.LSP_String is
-   begin
-      return LSP.Types.To_LSP_String
-        (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Value));
-   end To_LSP_String;
-
    -----------------------------
    -- Compute_Completion_Item --
    -----------------------------
@@ -1775,11 +1771,11 @@ package body LSP.Ada_Documents is
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
-      Decl_Unit_File : GNATCOLL.VFS.Virtual_File;
-      Doc_Text       : LSP_String;
-      Loc_Text       : LSP_String;
+      Doc_Text       : VSS.Strings.Virtual_String;
+      Loc_Text       : VSS.Strings.Virtual_String;
+
    begin
-      Item.label := To_LSP_String (DN.P_Relative_Name.Text);
+      Item.label := LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
       Item.detail := (True,
@@ -1787,46 +1783,38 @@ package body LSP.Ada_Documents is
                         (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
-         Item.sortText := (True, '~' & Item.label);
-         Item.insertText := (True, Item.label);
-         Item.label := Item.label & " (invisible)";
+         Item.sortText := (True, '~' & LSP.Types.To_LSP_String (Item.label));
+         Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
+         Item.label.Append (" (invisible)");
       end if;
 
       --  Property_Errors can occur when calling
       --  Get_Documentation on unsupported docstrings, so
       --  add an exception handler to catch them and recover.
+
       begin
-         Doc_Text := To_LSP_String
-           (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.
-              Encode
-                (Libadalang.Doc_Utils.Get_Documentation
-                     (BD).Doc.To_String));
+         Doc_Text :=
+           VSS.Strings.To_Virtual_String
+             (Libadalang.Doc_Utils.Get_Documentation
+                (BD).Doc.To_String);
 
          --  Append the declaration's location.
          --  In addition, append the project's name if we are dealing with an
          --  aggregate project.
 
-         Decl_Unit_File :=
-           GNATCOLL.VFS.Create_From_UTF8 (BD.Unit.Get_Filename);
-
-         if Doc_Text /= Empty_LSP_String then
-            Loc_Text := To_LSP_String (ASCII.LF & ASCII.LF);
+         if not Doc_Text.Is_Empty then
+            Loc_Text :=
+              VSS.Strings.Conversions.To_Virtual_String (ASCII.LF & ASCII.LF);
          end if;
 
-         Loc_Text := To_LSP_String
-           ("at " & Decl_Unit_File.Display_Base_Name & " ("
-            & GNATCOLL.Utils.Image
-              (Integer (BD.Sloc_Range.Start_Line), Min_Width => 1)
-            & ":"
-            & GNATCOLL.Utils.Image
-              (Integer (BD.Sloc_Range.Start_Column), Min_Width => 1)
-            & ")") & Loc_Text;
+         Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
+         Loc_Text.Append (Doc_Text);
 
          Item.documentation :=
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
               (Is_String => True,
-               String    => Loc_Text & Doc_Text));
+               String    => Loc_Text));
 
       exception
          when E : Libadalang.Common.Property_Error =>
@@ -1850,7 +1838,7 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Insert_Text : LSP_String := Item.label;
+         Insert_Text : VSS.Strings.Virtual_String := Item.label;
          All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
 
          Params      : constant Param_Spec_Array :=
@@ -1874,7 +1862,7 @@ package body LSP.Ada_Documents is
               (Is_Set => True,
                Value  => Snippet);
 
-            Insert_Text := Insert_Text & " (";
+            Insert_Text.Append (" (");
 
             --  Compute number of params to know if named notation should be
             --  used.
@@ -1889,39 +1877,48 @@ package body LSP.Ada_Documents is
             for Param of Params loop
                for Id of Param.F_Ids loop
                   declare
-                     Mode : constant String :=
-                       Langkit_Support.Text.To_UTF8 (Param.F_Mode.Text);
+                     Mode : constant Langkit_Support.Text.Text_Type :=
+                       Param.F_Mode.Text;
+
                   begin
                      if Use_Named_Notation then
-                        Insert_Text := Insert_Text & To_LSP_String
-                          (Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " => "
-                           & "${"
-                           & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-                           & ":"
-                           &  Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
-                           & (if Mode /= "" then
-                                  Mode & " "
-                             else
-                                "")
-                           & Langkit_Support.Text.To_UTF8
-                             (Param.F_Type_Expr.Text)
-                           & "}, ");
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" => ");
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                            (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then LSP.Lal_Utils.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
+
                      else
-                        Insert_Text := Insert_Text & To_LSP_String
-                          ("${"
-                           & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-                           & ":"
-                           & Langkit_Support.Text.To_UTF8 (Id.Text)
-                           & " : "
-                           & (if Mode /= "" then
-                                  Mode & " "
-                             else
-                                "")
-                           & Langkit_Support.Text.To_UTF8
-                             (Param.F_Type_Expr.Text)
-                           & "}, ");
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                             (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then LSP.Lal_Utils.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (LSP.Lal_Utils.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
                      end if;
 
                      Idx := Idx + 1;
@@ -1929,19 +1926,32 @@ package body LSP.Ada_Documents is
                end loop;
             end loop;
 
-            --  Remove the "}, " substring that has been appended in the last
+            --  Remove the ", " substring that has been appended in the last
             --  loop iteration.
-            Insert_Text := Unbounded_Slice
-              (Insert_Text,
-               1,
-               Length (Insert_Text) - 2);
+
+            declare
+               First   : constant
+                 VSS.Strings.Character_Iterators.Character_Iterator :=
+                   Insert_Text.First_Character;
+               Last    : VSS.Strings.Character_Iterators.Character_Iterator :=
+                 Insert_Text.Last_Character;
+               Success : Boolean with Unreferenced;
+
+            begin
+               Success := Last.Backward;
+               Success := Last.Backward;
+
+               Insert_Text := Insert_Text.Slice (First, Last);
+               --  ??? May be replaced by "Head" like procedure when it will be
+               --  implemented.
+            end;
 
             --  Insert '$0' (i.e: the final tab stop) at the end.
-            Insert_Text := Insert_Text & ")$0";
+            Insert_Text.Append (")$0");
 
             Item.insertText :=
               (Is_Set => True,
-               Value  => Insert_Text);
+               Value  => LSP.Types.To_LSP_String (Insert_Text));
          end if;
       end;
 
@@ -1979,20 +1989,18 @@ package body LSP.Ada_Documents is
       begin
          while It.Next (Node) loop
             declare
-               Token : constant Token_Reference := Node.Token_End;
-
-               Text : constant Wide_Wide_String :=
+               Token     : constant Token_Reference := Node.Token_End;
+               Text      : constant Langkit_Support.Text.Text_Type :=
                  Libadalang.Common.Text (Token);
-
                Canonical : constant Symbolization_Result :=
                  Libadalang.Sources.Canonicalize (Text);
-
                Cursor    : Symbol_Maps.Cursor;
                Inserted  : Boolean;
+
             begin
                if Canonical.Success then
                   Self.Symbol_Cache.Insert
-                    (VSS.Strings.To_Virtual_String (Canonical.Symbol),
+                    (LSP.Lal_Utils.To_Virtual_String (Canonical.Symbol),
                      Name_Vectors.Empty_Vector,
                      Cursor,
                      Inserted);
@@ -2051,17 +2059,19 @@ package body LSP.Ada_Documents is
    begin
       for Keyword of Keywords loop
          declare
-            Label : constant Langkit_Support.Text.Text_Type :=
-              Langkit_Support.Text.To_Text (Keyword);
+            Label : constant VSS.Strings.Virtual_String :=
+              LSP.Lal_Utils.To_Virtual_String (Keyword);
+
          begin
             if LSP.Types.Starts_With
-              (Text           => To_LSP_String (Label),
+              (Text           =>
+                 LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Label)),
                Prefix         => Prefix,
                Case_Sensitive => False)
             then
-               Item.label := To_LSP_String (Label);
+               Item.label := Label;
                Item.insertTextFormat := (True, LSP.Messages.PlainText);
-               Item.insertText := (True, Item.label);
+               Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
                Item.kind := (True, LSP.Messages.Keyword);
                Result.Append (Item);
             end if;
@@ -2272,20 +2282,23 @@ package body LSP.Ada_Documents is
          Item                : Completion_Item;
          BD                  : Basic_Decl;
          Completion_Count    : Natural := 0;
-         Name                : LSP.Types.LSP_String;
+         Name                : VSS.Strings.Virtual_String;
+
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
             Completion_Count := Completion_Count + 1;
+
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
-                  Name := To_LSP_String (DN.P_Relative_Name.Text);
+                  Name :=
+                    LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
 
                   --  If we are not completing a dotted name, filter the
                   --  raw completion results by the node's prefix.
                   if Node.Kind in Ada_Dotted_Name_Range
                     or else Starts_With
-                      (Name,
+                      (LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Name)),
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then

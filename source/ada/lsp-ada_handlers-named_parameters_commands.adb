@@ -18,6 +18,7 @@
 with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 
 with LSP.Lal_Utils;
@@ -30,7 +31,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
    function Get_Parameters
      (Args : Libadalang.Analysis.Basic_Assoc_List)
-      return LSP.Types.LSP_String_Vector;
+      return VSS.String_Vectors.Virtual_String_Vector;
    --  Find list of parameter names from given AST node.
 
    ------------
@@ -55,7 +56,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
                JS.R.Read_Next;
 
                if Key = "context" then
-                  LSP.Types.Read (JS, V.Context);
+                  LSP.Types.Read_String (JS, V.Context);
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
                else
@@ -83,7 +84,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    is
       procedure Append
         (Node : Libadalang.Analysis.Ada_Node;
-         Name : LSP.Types.LSP_String);
+         Name : VSS.Strings.Virtual_String);
       --  Create and append a TextEdit to insert Name & " => " before Node.
 
       Apply  : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
@@ -98,15 +99,16 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       procedure Append
         (Node : Libadalang.Analysis.Ada_Node;
-         Name : LSP.Types.LSP_String)
+         Name : VSS.Strings.Virtual_String)
       is
          use type LSP.Types.LSP_String;
          Loc    : constant LSP.Messages.Location :=
            LSP.Lal_Utils.Get_Node_Location (Node);
          Edit   : LSP.Messages.AnnotatedTextEdit;
+
       begin
          Edit.span := (Loc.span.first, Loc.span.first);
-         Edit.newText := Name & " => ";
+         Edit.newText := LSP.Types.To_LSP_String (Name) & " => ";
 
          if Message_Handler.Versioned_Documents then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
@@ -136,10 +138,11 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
         Document.Get_Node_At (Context, Self.Where.position);
 
       Args    : Libadalang.Analysis.Basic_Assoc_List;
-      Params  : LSP.Types.LSP_String_Vector;
+      Params  : VSS.String_Vectors.Virtual_String_Vector;
       Index   : Natural := 0;
       Version : constant LSP.Messages.VersionedTextDocumentIdentifier :=
         Document.Versioned_Identifier;
+
    begin
       if Message_Handler.Versioned_Documents then
          Edits.documentChanges.Append
@@ -189,7 +192,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Index := Args.Children_Count;
 
       for Arg of reverse Args.Children loop
-         exit when Index < Params.First_Index;
+         exit when Index < 1;
 
          case Arg.Kind is
             when Libadalang.Common.Ada_Param_Assoc =>
@@ -222,7 +225,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
    function Get_Parameters
      (Args   : Libadalang.Analysis.Basic_Assoc_List)
-      return LSP.Types.LSP_String_Vector
+      return VSS.String_Vectors.Virtual_String_Vector
    is
       procedure Append (Params : Libadalang.Analysis.Param_Spec_Array);
       --  Append identifiers from Params to Result
@@ -237,7 +240,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          return Libadalang.Analysis.Base_Subp_Spec;
       --  Return the Base_Subp_Spec associated with this Decl
 
-      Result : LSP.Types.LSP_String_Vector;
+      Result : VSS.String_Vectors.Virtual_String_Vector;
 
       ------------
       -- Append --
@@ -248,7 +251,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       begin
          for Param of Params loop
             for Id of Param.F_Ids loop
-               Result.Append (LSP.Types.To_LSP_String (Id.Text));
+               Result.Append (LSP.Lal_Utils.To_Virtual_String (Id.Text));
             end loop;
          end loop;
       end Append;
@@ -400,7 +403,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          when Libadalang.Common.Ada_Call_Expr =>
             Name := Expr.As_Call_Expr.F_Name;
          when others =>
-            return LSP.Types.Empty_Vector;
+            return VSS.String_Vectors.Empty_Virtual_String_Vector;
       end case;
 
       Decl := Name.P_Referenced_Decl;
@@ -456,7 +459,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    begin
       JS.Start_Object;
       JS.Key ("context");
-      LSP.Types.Write (S, V.Context);
+      LSP.Types.Write_String (S, V.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
       JS.End_Object;

@@ -677,7 +677,7 @@ package body LSP.Message_IO is
             elsif Key = "source" then
                Optional_String'Read (S, V.source);
             elsif Key = "message" then
-               LSP.Types.Read (S, V.message);
+               LSP.Types.Read_String (S, V.message);
             elsif Key = "tags" then
                Optional_DiagnosticTagSet'Read (S, V.tags);
             elsif Key = "relatedInformation" then
@@ -709,7 +709,7 @@ package body LSP.Message_IO is
       JS.Key ("source");
       Optional_String'Write (S, V.source);
       JS.Key ("message");
-      LSP.Types.Write (S, V.message);
+      LSP.Types.Write_String (S, V.message);
       JS.Key ("tags");
       Optional_DiagnosticTagSet'Write (S, V.tags);
       JS.Key ("relatedInformation");
@@ -2366,7 +2366,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "properties" then
-               LSP_String_Vector'Read (S, V.properties);
+               LSP.Types.Read_String_Vector (S, V.properties);
             else
                JS.Skip_Value;
             end if;
@@ -2384,7 +2384,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("properties");
-      LSP_String_Vector'Write (S, V.properties);
+      LSP.Types.Write_String_Vector (S, V.properties);
       JS.End_Object;
    end Write_resolveSupportCapability;
 
@@ -4999,7 +4999,7 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "commands" then
-               LSP.Types.LSP_String_Vector'Read (S, V.commands);
+               LSP.Types.Read_String_Vector (S, V.commands);
             else
                JS.Skip_Value;
             end if;
@@ -5019,7 +5019,7 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("commands");
-      LSP.Types.LSP_String_Vector'Write (S, V.commands);
+      LSP.Types.Write_String_Vector (S, V.commands);
       JS.End_Object;
    end Write_ExecuteCommandOptions;
 
@@ -5400,9 +5400,9 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "tokenTypes" then
-               LSP_String_Vector'Read (S, V.tokenTypes);
+               LSP.Types.Read_String_Vector (S, V.tokenTypes);
             elsif Key = "tokenModifiers" then
-               LSP_String_Vector'Read (S, V.tokenModifiers);
+               LSP.Types.Read_String_Vector (S, V.tokenModifiers);
             else
                JS.Skip_Value;
             end if;
@@ -5420,9 +5420,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("tokenTypes");
-      LSP_String_Vector'Write (S, V.tokenTypes);
+      LSP.Types.Write_String_Vector (S, V.tokenTypes);
       JS.Key ("tokenModifiers");
-      LSP_String_Vector'Write (S, V.tokenModifiers);
+      LSP.Types.Write_String_Vector (S, V.tokenModifiers);
       JS.End_Object;
    end Write_SemanticTokensLegend;
 
@@ -6161,7 +6161,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "commands" then
-               LSP_String_Vector'Read (S, V.commands);
+               LSP.Types.Read_String_Vector (S, V.commands);
             else
                JS.Skip_Value;
             end if;
@@ -6179,7 +6179,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("commands");
-      LSP_String_Vector'Write (S, V.commands);
+      LSP.Types.Write_String_Vector (S, V.commands);
       JS.End_Object;
    end Write_ExecuteCommandRegistrationOptions;
 
@@ -7025,7 +7025,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "label" then
-               LSP.Types.Read (S, V.label);
+               LSP.Types.Read_String (S, V.label);
             elsif Key = "kind" then
                Optional_CompletionItemKind'Read (S, V.kind);
             elsif Key = "tags" then
@@ -7073,7 +7073,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("label");
-      LSP.Types.Write (S, V.label);
+      LSP.Types.Write_String (S, V.label);
       JS.Key ("kind");
       Optional_CompletionItemKind'Write (S, V.kind);
       JS.Key ("tags");
@@ -7554,7 +7554,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "name" then
-               LSP.Types.Read (S, V.name);
+               LSP.Types.Read_String (S, V.name);
             elsif Key = "kind" then
                SymbolKind'Read (S, V.kind);
             elsif Key = "alsIsAdaProcedure" then
@@ -7584,7 +7584,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("name");
-      LSP.Types.Write (S, V.name);
+      LSP.Types.Write_String (S, V.name);
       JS.Key ("kind");
       SymbolKind'Write (S, V.kind);
       JS.Key ("alsIsAdaProcedure");

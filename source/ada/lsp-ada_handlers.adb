@@ -19,7 +19,6 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
@@ -28,6 +27,7 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
@@ -304,7 +304,7 @@ package body LSP.Ada_Handlers is
             Document : constant Internal_Document_Access :=
               new LSP.Ada_Documents.Document (Self.Trace);
          begin
-            Document.Initialize (URI, Empty_LSP_String);
+            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String);
             return LSP.Ada_Documents.Document_Access (Document);
          end;
       else
@@ -1922,7 +1922,8 @@ package body LSP.Ada_Handlers is
       Self.Ensure_Project_Loaded (URI);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text);
+      Object.Initialize
+        (URI, LSP.Types.To_Virtual_String (Value.textDocument.text));
       Self.Open_Documents.Insert (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
@@ -2151,8 +2152,8 @@ package body LSP.Ada_Handlers is
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
       Decl_Text          : VSS.Strings.Virtual_String;
-      Comments_Text      : LSP_String;
-      Location_Text      : LSP_String;
+      Comments_Text      : VSS.Strings.Virtual_String;
+      Location_Text      : VSS.Strings.Virtual_String;
 
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -2192,7 +2193,7 @@ package body LSP.Ada_Handlers is
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => False,
-            value     => LSP.Types.To_LSP_String (Decl_Text),
+            value     => Decl_Text,
             language  => +"ada"));
 
       --  Append the declaration's location.
@@ -2202,7 +2203,8 @@ package body LSP.Ada_Handlers is
       Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
       if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
-         Location_Text := Location_Text & " in project " & C.Id;
+         Location_Text.Append (" in project ");
+         Location_Text.Append (C.Id);
       end if;
 
       Response.result.Value.contents.Vector.Append
@@ -2213,12 +2215,11 @@ package body LSP.Ada_Handlers is
       --  Append the comments associated with the basic declaration
       --  if any.
 
-      Comments_Text := To_LSP_String
-        (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-           (Libadalang.Doc_Utils.Get_Documentation
-                (Decl).Doc.To_String));
+      Comments_Text :=
+        VSS.Strings.To_Virtual_String
+           (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
 
-      if Comments_Text /= Empty_LSP_String then
+      if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
            (LSP.Messages.MarkedString'
               (Is_String => True,
@@ -2518,13 +2519,9 @@ package body LSP.Ada_Handlers is
                   Value  =>
                     (Is_String => True,
                      String    =>
-                       To_LSP_String
-                         (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode
-                              (Libadalang.Doc_Utils.Get_Documentation
-                                 (Decl_Node).Doc.To_String)
-                         )
-                    )
-                 ),
+                       VSS.Strings.To_Virtual_String
+                         (Libadalang.Doc_Utils.Get_Documentation
+                              (Decl_Node).Doc.To_String))),
                activeParameter =>
                  (Is_Set => True,
                   Value  => Param_Index
@@ -3227,8 +3224,8 @@ package body LSP.Ada_Handlers is
       Root_Dir            : Virtual_File := No_File)
    is
       use GNATCOLL.Projects;
-      Errors        : LSP.Messages.ShowMessageParams;
-      Error_Text    : LSP.Types.LSP_String_Vector;
+      Errors     : LSP.Messages.ShowMessageParams;
+      Error_Text : VSS.String_Vectors.Virtual_String_Vector;
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type);
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
@@ -3254,7 +3251,7 @@ package body LSP.Ada_Handlers is
 
       procedure On_Error (Text : String) is
       begin
-         LSP.Types.Append (Error_Text, +Text);
+         Error_Text.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
       end On_Error;
 
       --------------------------------------
@@ -3344,7 +3341,7 @@ package body LSP.Ada_Handlers is
       --  Report the errors, if any
       if not Error_Text.Is_Empty then
          for Line of Error_Text loop
-            LSP.Types.Append (Errors.message, Line);
+            LSP.Types.Append (Errors.message, LSP.Types.To_LSP_String (Line));
          end loop;
          Self.Server.On_Show_Message (Errors);
       end if;
@@ -3606,9 +3603,10 @@ package body LSP.Ada_Handlers is
       end On_Inaccessible_Name;
 
       Query : constant VSS.Strings.Virtual_String :=
-        Canonicalize (Request.params.query);
+        Canonicalize (LSP.Types.To_Virtual_String (Request.params.query));
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
+
    begin
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol_Completion
@@ -3714,13 +3712,14 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Word : constant LSP.Types.LSP_String := Document.Get_Word_At
+         Word : constant VSS.Strings.Virtual_String := Document.Get_Word_At
            (Context.all, Value.position);
 
          Canonical_Prefix : constant VSS.Strings.Virtual_String :=
            Canonicalize (Word);
+
       begin
-         if not LSP.Types.Is_Empty (Word) then
+         if not Word.Is_Empty then
             Context.Get_Any_Symbol_Completion
               (Prefix   => Canonical_Prefix,
                Callback => On_Inaccessible_Name'Access);

@@ -31,6 +31,7 @@ with Ada.Streams;
 with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
+with VSS.String_Vectors;
 with VSS.Strings;
 
 with LSP.Commands;
@@ -456,7 +457,7 @@ package LSP.Messages is
             As_Flags   : AlsReferenceKind_Array := (others => False);
 
          when False =>
-            As_Strings : LSP.Types.LSP_String_Vector;
+            As_Strings : VSS.String_Vectors.Virtual_String_Vector;
       end case;
    end record;
    function Empty_Set return AlsReferenceKind_Set;
@@ -842,7 +843,7 @@ package LSP.Messages is
       code: LSP_Number_Or_String;
       codeDescription: Optional_CodeDescription;
       source: Optional_String;
-      message: LSP_String;
+      message: VSS.Strings.Virtual_String;
       tags: Optional_DiagnosticTagSet;
       relatedInformation: DiagnosticRelatedInformation_Vector;
       --  data?: unknown;
@@ -2281,7 +2282,7 @@ package LSP.Messages is
    type String_Or_MarkupContent (Is_String : Boolean := False) is record
       case Is_String is
          when True =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
          when False =>
             Content : MarkupContent;
       end case;
@@ -2691,7 +2692,7 @@ package LSP.Messages is
      new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
    type resolveSupportCapability is record
-      properties: LSP_String_Vector;
+      properties: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_resolveSupportCapability
@@ -5494,7 +5495,7 @@ package LSP.Messages is
    --}
    --```
    type ExecuteCommandOptions is new WorkDoneProgressOptions with record
-      commands: LSP.Types.LSP_String_Vector;
+      commands: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_ExecuteCommandOptions
@@ -5868,8 +5869,8 @@ package LSP.Messages is
    --}
    --```
    type SemanticTokensLegend is record
-      tokenTypes: LSP_String_Vector;
-      tokenModifiers: LSP_String_Vector;
+      tokenTypes: VSS.String_Vectors.Virtual_String_Vector;
+      tokenModifiers: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_SemanticTokensLegend
@@ -6576,7 +6577,7 @@ package LSP.Messages is
    --}
    --```
    type ExecuteCommandRegistrationOptions is record
-      commands: LSP_String_Vector;
+      commands: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_ExecuteCommandRegistrationOptions
@@ -7585,7 +7586,7 @@ package LSP.Messages is
      new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
-      label: LSP_String;
+      label: VSS.Strings.Virtual_String;
       kind : Optional_CompletionItemKind;
       tags: Optional_CompletionItemTagSet;
       detail: Optional_String;
@@ -7653,7 +7654,7 @@ package LSP.Messages is
    --type MarkedString = string | { language: string; value: string };
    --```
    type MarkedString (Is_String : Boolean := True) is record
-      value : LSP_String;
+      value : VSS.Strings.Virtual_String;
 
       case Is_String is
          when True =>
@@ -7831,7 +7832,7 @@ package LSP.Messages is
    type Parameter_Label (Is_String : Boolean := True) is record
       case Is_String is
          when True =>
-            String : LSP_String;
+            String : VSS.Strings.Virtual_String;
          when False =>
             From, Till : UTF_16_Index;
       end case;
@@ -8199,7 +8200,7 @@ package LSP.Messages is
    --}
    --```
    type DocumentSymbol is record
-      name: LSP_String;
+      name: VSS.Strings.Virtual_String;
       detail: Optional_String;
       kind: SymbolKind;
       tags: SymbolTagSet;
@@ -8228,7 +8229,7 @@ package LSP.Messages is
    for DocumentSymbol_Tree'Write use Write_DocumentSymbol_Tree;
 
    type SymbolInformation is record
-      name: LSP_String;
+      name: VSS.Strings.Virtual_String;
       kind: SymbolKind;
       alsIsAdaProcedure : Optional_Boolean;
       tags: SymbolTagSet;

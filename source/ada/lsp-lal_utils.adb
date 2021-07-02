@@ -15,9 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.Unbounded;
+with Ada.Strings.Wide_Wide_Unbounded;
 
 with GNATCOLL.Utils;
+
+with VSS.Strings.Conversions;
 
 with Langkit_Support;
 with Langkit_Support.Symbols; use Langkit_Support.Symbols;
@@ -27,6 +30,7 @@ with Libadalang.Sources;
 with Laltools.Call_Hierarchy;
 
 with VSS.Unicode;
+
 with Libadalang.Lexer;
 with Langkit_Support.Diagnostics;
 pragma Warnings (Off, "redundant with clause");
@@ -40,6 +44,11 @@ with LSP.Common;
 with LSP.Types;             use LSP.Types;
 
 package body LSP.Lal_Utils is
+
+   function To_Unbounded_String
+     (Input : Utils.Char_Vectors.Char_Vector)
+       return Ada.Strings.Unbounded.Unbounded_String;
+   --  Convert Input to unbounded string.
 
    ---------------------
    -- Append_Location --
@@ -481,7 +490,7 @@ package body LSP.Lal_Utils is
                P : constant LSP.Messages.ParameterInformation :=
                  (label         =>
                     (Is_String => True,
-                     String    => To_LSP_String (Id.Text)),
+                     String    => LSP.Lal_Utils.To_Virtual_String (Id.Text)),
                   documentation =>
                     (Is_Set => False)
                  );
@@ -801,16 +810,16 @@ package body LSP.Lal_Utils is
    ------------------
 
    function Canonicalize
-     (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String
+     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
    is
       UTF_32 : constant Wide_Wide_String :=
-        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Decode
-          (LSP.Types.To_UTF_8_String (Text));
+        VSS.Strings.Conversions.To_Wide_Wide_String (Text);
       Result : constant Symbolization_Result :=
         Libadalang.Sources.Canonicalize (UTF_32);
+
    begin
       if Result.Success then
-         return VSS.Strings.To_Virtual_String (Result.Symbol);
+         return LSP.Lal_Utils.To_Virtual_String (Result.Symbol);
       else
          return VSS.Strings.Empty_Virtual_String;
       end if;
@@ -1019,7 +1028,10 @@ package body LSP.Lal_Utils is
         (name           => To_LSP_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
          tags           => (Is_Set => False),
-         detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
+         detail         =>
+           (True,
+            LSP.Types.To_LSP_String
+              (LSP.Lal_Utils.Node_Location_Image (Name))),
          uri            => Where.uri,
          span           => Where.span,
          selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));
@@ -1081,26 +1093,59 @@ package body LSP.Lal_Utils is
       return To_Unbounded_Text (From_UTF8 (To_UTF_8_String (Item)));
    end To_Unbounded_Text_Type;
 
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Text_Type)
+      return VSS.Strings.Virtual_String is
+   begin
+      return VSS.Strings.To_Virtual_String (Item);
+   end To_Virtual_String;
+
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Unbounded_Text_Type)
+      return VSS.Strings.Virtual_String is
+   begin
+      return
+        VSS.Strings.To_Virtual_String
+          (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Item));
+   end To_Virtual_String;
+
    -------------------------
    -- Node_Location_Image --
    -------------------------
 
    function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return VSS.Strings.Virtual_String
    is
       Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
 
-      Location_Text : constant LSP.Types.LSP_String  := To_LSP_String
-        ("at " & Decl_Unit_File.Display_Base_Name & " ("
-         & GNATCOLL.Utils.Image
-           (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)
-         & ":"
-         & GNATCOLL.Utils.Image
-           (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)
-         & ")");
    begin
-      return Location_Text;
+      return Result : VSS.Strings.Virtual_String do
+         Result.Append ("at ");
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (Decl_Unit_File.Display_Base_Name));
+         Result.Append (" (");
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (GNATCOLL.Utils.Image
+                   (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)));
+         Result.Append (':');
+         Result.Append
+           (VSS.Strings.Conversions.To_Virtual_String
+              (GNATCOLL.Utils.Image
+                   (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)));
+         Result.Append (')');
+      end return;
    end Node_Location_Image;
 
    -------------

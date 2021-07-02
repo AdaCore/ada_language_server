@@ -35,7 +35,6 @@ with Langkit_Support.Text;
 with Utils.Command_Lines;
 with Utils.Char_Vectors;
 with Pp.Scanner;
-with Ada.Strings.Unbounded;
 
 with VSS.Strings;
 with LSP.Ada_Documents;
@@ -158,7 +157,7 @@ package LSP.Lal_Utils is
    --  P_Next_Part for tasks: T716-049
 
    function Canonicalize
-     (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
+     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
    --  Return a canonicalized value for Text. This performs case folding and
    --  brackets decoding.
 
@@ -212,16 +211,9 @@ package LSP.Lal_Utils is
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.
 
-   function To_Unbounded_Text_Type
-     (Item : LSP.Types.LSP_String)
-      return Langkit_Support.Text.Unbounded_Text_Type;
-   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
-   --  of this function is to convert names and small strings but not buffers.
-   --  It's dangerous to return a string when the string might be giant,
-   --  therefore, a buffer should not be passed to this function.
-
    function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class) return LSP.Types.LSP_String;
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return VSS.Strings.Virtual_String;
    --  Return "file.adb:line:col" as a string
 
    function Containing_Entity
@@ -232,11 +224,6 @@ package LSP.Lal_Utils is
    --  If Canonical is True, the first part of the enclosing entity will be
    --  returned (i.e: if the enclosing entity is a subprogram body, the
    --  function will return the spec declaration node).
-
-   function To_Unbounded_String
-     (Input : Utils.Char_Vectors.Char_Vector)
-       return Ada.Strings.Unbounded.Unbounded_String;
-   --  Convert Input to unbounded string.
 
    procedure Format_Vector
      (Cmd      : Utils.Command_Lines.Command_Line;
@@ -250,5 +237,23 @@ package LSP.Lal_Utils is
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+
+   function To_Unbounded_Text_Type
+     (Item : LSP.Types.LSP_String)
+      return Langkit_Support.Text.Unbounded_Text_Type;
+   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
+   --  of this function is to convert names and small strings but not buffers.
+   --  It's dangerous to return a string when the string might be giant,
+   --  therefore, a buffer should not be passed to this function.
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Text_Type)
+      return VSS.Strings.Virtual_String;
+   --  Do string type conversion.
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Unbounded_Text_Type)
+      return VSS.Strings.Virtual_String;
+   --  Do string type conversion.
 
 end LSP.Lal_Utils;
