@@ -8200,7 +8200,7 @@ package LSP.Messages is
    --}
    --```
    type DocumentSymbol is record
-      name: LSP_String;
+      name: VSS.Strings.Virtual_String;
       detail: Optional_String;
       kind: SymbolKind;
       tags: SymbolTagSet;

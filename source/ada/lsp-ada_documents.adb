@@ -1006,7 +1006,8 @@ package body LSP.Ada_Documents is
                            Profile : constant VSS.Strings.Virtual_String :=
                              Get_Profile (Decl, Is_Function);
                            Item : constant LSP.Messages.DocumentSymbol :=
-                             (name              => To_LSP_String (Name.Text),
+                             (name              =>
+                                LSP.Lal_Utils.To_Virtual_String (Name.Text),
                               detail            =>
                                 (Is_Set => True,
                                  Value  => LSP.Types.To_LSP_String (Profile)),
@@ -1048,7 +1049,8 @@ package body LSP.Ada_Documents is
                for N of With_Node.F_Packages loop
                   declare
                      Item : constant LSP.Messages.DocumentSymbol :=
-                       (name              => To_LSP_String (N.Text),
+                       (name              =>
+                          LSP.Lal_Utils.To_Virtual_String (N.Text),
                         detail            => (Is_Set => False),
                         kind              => Namespace,
                         tags              => LSP.Messages.Empty,
@@ -1081,7 +1083,7 @@ package body LSP.Ada_Documents is
                  Pragma_Node.F_Id;
                Item        : constant LSP.Messages.DocumentSymbol :=
                  (name              =>
-                    To_LSP_String (Id.Text),
+                    LSP.Lal_Utils.To_Virtual_String (Id.Text),
                   detail            =>
                     (Is_Set => True,
                      Value  =>

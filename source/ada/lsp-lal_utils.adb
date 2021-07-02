@@ -1092,6 +1092,17 @@ package body LSP.Lal_Utils is
       return To_Unbounded_Text (From_UTF8 (To_UTF_8_String (Item)));
    end To_Unbounded_Text_Type;
 
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Item : Langkit_Support.Text.Text_Type)
+      return VSS.Strings.Virtual_String is
+   begin
+      return VSS.Strings.To_Virtual_String (Item);
+   end To_Virtual_String;
+
    -------------------------
    -- Node_Location_Image --
    -------------------------
