@@ -1667,12 +1667,12 @@ package body LSP.Ada_Documents is
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Messages.Position)
-      return LSP.Types.LSP_String
+      return VSS.Strings.Virtual_String
    is
       use Langkit_Support.Slocs;
       use all type Libadalang.Common.Token_Kind;
 
-      Result : LSP.Types.LSP_String;
+      Result : VSS.Strings.Virtual_String;
 
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
@@ -1700,12 +1700,14 @@ package body LSP.Ada_Documents is
 
       Span : constant Integer :=
         Natural (Where.Column) - Natural (Sloc.Start_Column);
+
    begin
       if Kind in Ada_Identifier .. Ada_Xor
         and then Compare (Sloc, Where) = Inside
       then
-         Result := LSP.Types.To_LSP_String
-           (Text (Text'First .. Text'First + Span));
+         Result :=
+           VSS.Strings.To_Virtual_String
+             (Text (Text'First .. Text'First + Span));
       end if;
 
       return Result;

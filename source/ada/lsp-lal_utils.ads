@@ -157,7 +157,7 @@ package LSP.Lal_Utils is
    --  P_Next_Part for tasks: T716-049
 
    function Canonicalize
-     (Text : LSP.Types.LSP_String) return VSS.Strings.Virtual_String;
+     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
    --  Return a canonicalized value for Text. This performs case folding and
    --  brackets decoding.
 
