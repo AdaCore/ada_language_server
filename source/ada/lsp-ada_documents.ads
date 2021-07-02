@@ -50,7 +50,7 @@ package LSP.Ada_Documents is
    procedure Initialize
      (Self : in out Document;
       URI  : LSP.Messages.DocumentUri;
-      Text : LSP.Types.LSP_String);
+      Text : VSS.Strings.Virtual_String);
    --  Create a new document from a TextDocumentItem. Use LAL as libadalang
    --  context to parse text of the document.
 
@@ -289,7 +289,7 @@ private
 
    procedure Diff
      (Self     : Document;
-      New_Text : LSP.Types.LSP_String;
+      New_Text : VSS.Strings.Virtual_String;
       Old_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       Edit     : out LSP.Messages.TextEdit_Vector);

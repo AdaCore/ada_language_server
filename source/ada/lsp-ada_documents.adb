@@ -361,7 +361,7 @@ package body LSP.Ada_Documents is
 
    procedure Diff
      (Self     : Document;
-      New_Text : LSP.Types.LSP_String;
+      New_Text : VSS.Strings.Virtual_String;
       Old_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       Edit     : out LSP.Messages.TextEdit_Vector)
@@ -381,7 +381,7 @@ package body LSP.Ada_Documents is
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       New_Lines :=
-        LSP.Types.To_Virtual_String (New_Text).Split_Lines
+        New_Text.Split_Lines
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
 
@@ -705,7 +705,10 @@ package body LSP.Ada_Documents is
 
       if Span = LSP.Messages.Empty_Span then
          --  diff for the whole document
-         Diff (Self, LSP.Types.To_LSP_String (S.all), Edit => Edit);
+         Diff
+           (Self,
+            VSS.Strings.Conversions.To_Virtual_String (S.all),
+            Edit => Edit);
 
       elsif Out_Sloc = No_Source_Location_Range then
          --  Range formating fails. Do nothing, skip formating altogether
@@ -714,7 +717,12 @@ package body LSP.Ada_Documents is
          --  diff for a part of the document
 
          Out_Span := LSP.Lal_Utils.To_Span (Out_Sloc);
-         Diff (Self, LSP.Types.To_LSP_String (S.all), Span, Out_Span, Edit);
+         Diff
+           (Self,
+            VSS.Strings.Conversions.To_Virtual_String (S.all),
+            Span,
+            Out_Span,
+            Edit);
       end if;
 
       GNAT.Strings.Free (S);
@@ -1720,12 +1728,12 @@ package body LSP.Ada_Documents is
    procedure Initialize
      (Self : in out Document;
       URI  : LSP.Messages.DocumentUri;
-      Text : LSP.Types.LSP_String)
+      Text : VSS.Strings.Virtual_String)
    is
    begin
       Self.URI  := URI;
       Self.Version := 1;
-      Self.Text := LSP.Types.To_Virtual_String (Text);
+      Self.Text := Text;
       Self.Refresh_Symbol_Cache := True;
       Recompute_Indexes (Self);
    end Initialize;
