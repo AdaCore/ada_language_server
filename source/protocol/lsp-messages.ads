@@ -7586,7 +7586,7 @@ package LSP.Messages is
      new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
-      label: LSP_String;
+      label: VSS.Strings.Virtual_String;
       kind : Optional_CompletionItemKind;
       tags: Optional_CompletionItemTagSet;
       detail: Optional_String;

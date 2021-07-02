@@ -7025,7 +7025,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "label" then
-               LSP.Types.Read (S, V.label);
+               LSP.Types.Read_String (S, V.label);
             elsif Key = "kind" then
                Optional_CompletionItemKind'Read (S, V.kind);
             elsif Key = "tags" then
@@ -7073,7 +7073,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("label");
-      LSP.Types.Write (S, V.label);
+      LSP.Types.Write_String (S, V.label);
       JS.Key ("kind");
       Optional_CompletionItemKind'Write (S, V.kind);
       JS.Key ("tags");

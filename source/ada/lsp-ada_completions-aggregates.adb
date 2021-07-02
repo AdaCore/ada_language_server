@@ -17,6 +17,8 @@
 
 with GNATCOLL.Utils;
 
+with VSS.Strings;
+
 with Langkit_Support.Text;
 
 with LSP.Lal_Utils;
@@ -60,7 +62,8 @@ package body LSP.Ada_Completions.Aggregates is
       --  Return a snippet for the given discriminant
 
       function Get_Label_For_Shape
-        (Discriminants : Discriminant_Values_Array) return LSP_String;
+        (Discriminants : Discriminant_Values_Array)
+         return VSS.Strings.Virtual_String;
       --  Return a suitable label for the given shape (i.e: a shape corresponds
       --  to one of the various forms that a discriminated variant record can
       --  take).
@@ -194,39 +197,41 @@ package body LSP.Ada_Completions.Aggregates is
       -------------------------
 
       function Get_Label_For_Shape
-        (Discriminants : Discriminant_Values_Array) return LSP_String
+        (Discriminants : Discriminant_Values_Array)
+         return VSS.Strings.Virtual_String
       is
-         Label  : LSP_String;
+         Result : VSS.Strings.Virtual_String;
          Length : constant Integer := Discriminants'Length;
+
       begin
          if Length = 0 then
-            return To_LSP_String
-              ("Aggregate for "
-               & Langkit_Support.Text.To_UTF8 (Aggr_Type.F_Name.Text));
+            return
+              LSP.Lal_Utils.To_Virtual_String
+                ("Aggregate for " & Aggr_Type.F_Name.Text);
          end if;
 
-         Label := To_LSP_String (String'("Aggregate when "));
+         Result := "Aggregate when ";
 
          for Idx in Discriminants'Range loop
             declare
                Disc_Values : constant Discriminant_Values :=
                  Discriminants (Idx);
             begin
-               Label := Label & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8
-                    (Discriminant (Disc_Values).Text))
-                 & " => ";
+               Result.Append
+                 (LSP.Lal_Utils.To_Virtual_String
+                    (Discriminant (Disc_Values).Text));
+               Result.Append (" => ");
 
-               Label := Label & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Values (Disc_Values).Text));
+               Result.Append
+                 (LSP.Lal_Utils.To_Virtual_String (Values (Disc_Values).Text));
 
                if Idx < Discriminants'Length then
-                  Label := Label & ", ";
+                  Result.Append (", ");
                end if;
             end;
          end loop;
 
-         return Label;
+         return Result;
       end Get_Label_For_Shape;
 
    begin
