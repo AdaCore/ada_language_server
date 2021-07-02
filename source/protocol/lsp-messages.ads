@@ -2692,7 +2692,7 @@ package LSP.Messages is
      new Optional_CompletionItemTagSupport_Package.Optional_Type;
 
    type resolveSupportCapability is record
-      properties: LSP_String_Vector;
+      properties: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_resolveSupportCapability
@@ -5869,8 +5869,8 @@ package LSP.Messages is
    --}
    --```
    type SemanticTokensLegend is record
-      tokenTypes: LSP_String_Vector;
-      tokenModifiers: LSP_String_Vector;
+      tokenTypes: VSS.String_Vectors.Virtual_String_Vector;
+      tokenModifiers: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_SemanticTokensLegend
@@ -6577,7 +6577,7 @@ package LSP.Messages is
    --}
    --```
    type ExecuteCommandRegistrationOptions is record
-      commands: LSP_String_Vector;
+      commands: VSS.String_Vectors.Virtual_String_Vector;
    end record;
 
    procedure Read_ExecuteCommandRegistrationOptions

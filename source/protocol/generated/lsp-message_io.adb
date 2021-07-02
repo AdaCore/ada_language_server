@@ -2366,7 +2366,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "properties" then
-               LSP_String_Vector'Read (S, V.properties);
+               LSP.Types.Read_String_Vector (S, V.properties);
             else
                JS.Skip_Value;
             end if;
@@ -2384,7 +2384,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("properties");
-      LSP_String_Vector'Write (S, V.properties);
+      LSP.Types.Write_String_Vector (S, V.properties);
       JS.End_Object;
    end Write_resolveSupportCapability;
 
@@ -5400,9 +5400,9 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "tokenTypes" then
-               LSP_String_Vector'Read (S, V.tokenTypes);
+               LSP.Types.Read_String_Vector (S, V.tokenTypes);
             elsif Key = "tokenModifiers" then
-               LSP_String_Vector'Read (S, V.tokenModifiers);
+               LSP.Types.Read_String_Vector (S, V.tokenModifiers);
             else
                JS.Skip_Value;
             end if;
@@ -5420,9 +5420,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("tokenTypes");
-      LSP_String_Vector'Write (S, V.tokenTypes);
+      LSP.Types.Write_String_Vector (S, V.tokenTypes);
       JS.Key ("tokenModifiers");
-      LSP_String_Vector'Write (S, V.tokenModifiers);
+      LSP.Types.Write_String_Vector (S, V.tokenModifiers);
       JS.End_Object;
    end Write_SemanticTokensLegend;
 
@@ -6161,7 +6161,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "commands" then
-               LSP_String_Vector'Read (S, V.commands);
+               LSP.Types.Read_String_Vector (S, V.commands);
             else
                JS.Skip_Value;
             end if;
@@ -6179,7 +6179,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("commands");
-      LSP_String_Vector'Write (S, V.commands);
+      LSP.Types.Write_String_Vector (S, V.commands);
       JS.End_Object;
    end Write_ExecuteCommandRegistrationOptions;
 
