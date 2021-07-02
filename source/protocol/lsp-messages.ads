@@ -843,7 +843,7 @@ package LSP.Messages is
       code: LSP_Number_Or_String;
       codeDescription: Optional_CodeDescription;
       source: Optional_String;
-      message: LSP_String;
+      message: VSS.Strings.Virtual_String;
       tags: Optional_DiagnosticTagSet;
       relatedInformation: DiagnosticRelatedInformation_Vector;
       --  data?: unknown;
