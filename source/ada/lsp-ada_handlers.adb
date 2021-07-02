@@ -28,6 +28,7 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
@@ -3225,8 +3226,8 @@ package body LSP.Ada_Handlers is
       Root_Dir            : Virtual_File := No_File)
    is
       use GNATCOLL.Projects;
-      Errors        : LSP.Messages.ShowMessageParams;
-      Error_Text    : LSP.Types.LSP_String_Vector;
+      Errors     : LSP.Messages.ShowMessageParams;
+      Error_Text : VSS.String_Vectors.Virtual_String_Vector;
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type);
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
@@ -3252,7 +3253,7 @@ package body LSP.Ada_Handlers is
 
       procedure On_Error (Text : String) is
       begin
-         LSP.Types.Append (Error_Text, +Text);
+         Error_Text.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
       end On_Error;
 
       --------------------------------------
@@ -3342,7 +3343,7 @@ package body LSP.Ada_Handlers is
       --  Report the errors, if any
       if not Error_Text.Is_Empty then
          for Line of Error_Text loop
-            LSP.Types.Append (Errors.message, Line);
+            LSP.Types.Append (Errors.message, LSP.Types.To_LSP_String (Line));
          end loop;
          Self.Server.On_Show_Message (Errors);
       end if;
