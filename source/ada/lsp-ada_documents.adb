@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Conversions;
+with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
@@ -24,6 +24,7 @@ with GNAT.Strings;
 
 with GNATCOLL.Utils;
 
+with VSS.Characters;
 with VSS.Strings.Conversions;
 
 with Langkit_Support.Slocs;
@@ -1441,12 +1442,12 @@ package body LSP.Ada_Documents is
 
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
-      Is_Function : out Boolean)
-      return VSS.Strings.Virtual_String
+      Is_Function : out Boolean) return VSS.Strings.Virtual_String
    is
       use Libadalang.Common;
 
-      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String;
+      function To_Text
+        (Node : Ada_Node'Class) return VSS.Strings.Virtual_String;
       --  Retrieve the node text and format it
 
       function To_Profile
@@ -1457,31 +1458,35 @@ package body LSP.Ada_Documents is
       -- To_Text --
       -------------
 
-      function To_Text (Node : Ada_Node'Class) return Wide_Wide_String
+      function To_Text
+        (Node : Ada_Node'Class) return VSS.Strings.Virtual_String
       is
-         Node_Text : constant String :=
-           Langkit_Support.Text.To_UTF8 (Node.Text);
-         Result    : String  := Node_Text;
+         Node_Text : constant Langkit_Support.Text.Text_Type := Node.Text;
          Was_Space : Boolean := False;
-         Cur       : Integer := Node_Text'First;
+         Result    : VSS.Strings.Virtual_String;
+
       begin
          for I in Node_Text'Range loop
             if Node_Text (I) = ' ' then
                --  Trim multiple whitespace to only keep one
+
                if not Was_Space then
-                  Result (Cur) := Node_Text (I);
-                  Cur := Cur + 1;
+                  Result.Append
+                    (VSS.Characters.Virtual_Character (Node_Text (I)));
                end if;
+
                Was_Space := True;
+
                --  Remove the new line character
-            elsif Node_Text (I) /= ASCII.LF then
+
+            elsif Node_Text (I) /= Ada.Characters.Wide_Wide_Latin_1.LF then
                Was_Space := False;
-               Result (Cur) := Node_Text (I);
-               Cur := Cur + 1;
+                  Result.Append
+                    (VSS.Characters.Virtual_Character (Node_Text (I)));
             end if;
          end loop;
-         return Ada.Characters.Conversions.To_Wide_Wide_String
-           (Result (Result'First .. Cur - 1));
+
+         return Result;
       end To_Text;
 
       ----------------
@@ -1521,14 +1526,11 @@ package body LSP.Ada_Documents is
                      Item.Append (" out ");
                end case;
 
-               Item.Append
-                 (VSS.Strings.To_Virtual_String
-                    (To_Text (Param.F_Type_Expr)));
+               Item.Append (To_Text (Param.F_Type_Expr));
 
                if not Init.Is_Null then
                   Item.Append (" := ");
-                  Item.Append
-                    (VSS.Strings.To_Virtual_String (To_Text (Init)));
+                  Item.Append (To_Text (Init));
                end if;
 
                for J in Names.First_Child_Index .. Names.Last_Child_Index loop
@@ -1536,9 +1538,7 @@ package body LSP.Ada_Documents is
                      Result.Append ("; ");
                   end if;
 
-                  Result.Append
-                    (VSS.Strings.To_Virtual_String
-                       (To_Text (Names.Child (J))));
+                  Result.Append (To_Text (Names.Child (J)));
                   Result.Append (Item);
                end loop;
             end;
@@ -1551,7 +1551,7 @@ package body LSP.Ada_Documents is
          if not Returns.Is_Null then
             Is_Function := True;
             Result.Append (" return ");
-            Result.Append (VSS.Strings.To_Virtual_String (To_Text (Returns)));
+            Result.Append (To_Text (Returns));
          end if;
 
          return Result;
@@ -1702,7 +1702,7 @@ package body LSP.Ada_Documents is
       Kind : constant Libadalang.Common.Token_Kind :=
         Libadalang.Common.Kind (Data);
 
-      Text : constant Wide_Wide_String :=
+      Text : constant Langkit_Support.Text.Text_Type :=
         Libadalang.Common.Text (Token);
 
       Sloc : constant Source_Location_Range :=
@@ -1716,7 +1716,7 @@ package body LSP.Ada_Documents is
         and then Compare (Sloc, Where) = Inside
       then
          Result :=
-           VSS.Strings.To_Virtual_String
+           LSP.Lal_Utils.To_Virtual_String
              (Text (Text'First .. Text'First + Span));
       end if;
 
@@ -1982,20 +1982,18 @@ package body LSP.Ada_Documents is
       begin
          while It.Next (Node) loop
             declare
-               Token : constant Token_Reference := Node.Token_End;
-
-               Text : constant Wide_Wide_String :=
+               Token     : constant Token_Reference := Node.Token_End;
+               Text      : constant Langkit_Support.Text.Text_Type :=
                  Libadalang.Common.Text (Token);
-
                Canonical : constant Symbolization_Result :=
                  Libadalang.Sources.Canonicalize (Text);
-
                Cursor    : Symbol_Maps.Cursor;
                Inserted  : Boolean;
+
             begin
                if Canonical.Success then
                   Self.Symbol_Cache.Insert
-                    (VSS.Strings.To_Virtual_String (Canonical.Symbol),
+                    (LSP.Lal_Utils.To_Virtual_String (Canonical.Symbol),
                      Name_Vectors.Empty_Vector,
                      Cursor,
                      Inserted);
