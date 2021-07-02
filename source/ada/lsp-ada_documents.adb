@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Wide_Wide_Latin_1;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
+with Ada.Strings.UTF_Encoding;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
@@ -56,9 +56,6 @@ package body LSP.Ada_Documents is
      GNATCOLL.Traces.Create ("ALS.LAL_PP_OUTPUT_ON_FORMATTING",
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
-
-   function To_LSP_String
-     (Value : Wide_Wide_String) return LSP.Types.LSP_String;
 
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
@@ -1084,7 +1081,9 @@ package body LSP.Ada_Documents is
                   detail            =>
                     (Is_Set => True,
                      Value  =>
-                       To_LSP_String ("(" & (Pragma_Node.F_Args.Text & ")"))),
+                       LSP.Types.To_LSP_String
+                         (LSP.Lal_Utils.To_Virtual_String
+                              ("(" & (Pragma_Node.F_Args.Text & ")")))),
                   kind              => Property,
                   tags              => LSP.Messages.Empty,
                   deprecated        => (Is_Set => False),
@@ -1753,17 +1752,6 @@ package body LSP.Ada_Documents is
       Self.Refresh_Symbol_Cache := True;
    end Reset_Symbol_Cache;
 
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
-     (Value : Wide_Wide_String) return LSP.Types.LSP_String is
-   begin
-      return LSP.Types.To_LSP_String
-        (Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Value));
-   end To_LSP_String;
-
    -----------------------------
    -- Compute_Completion_Item --
    -----------------------------
@@ -2294,20 +2282,23 @@ package body LSP.Ada_Documents is
          Item                : Completion_Item;
          BD                  : Basic_Decl;
          Completion_Count    : Natural := 0;
-         Name                : LSP.Types.LSP_String;
+         Name                : VSS.Strings.Virtual_String;
+
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
             Completion_Count := Completion_Count + 1;
+
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
-                  Name := To_LSP_String (DN.P_Relative_Name.Text);
+                  Name :=
+                    LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
 
                   --  If we are not completing a dotted name, filter the
                   --  raw completion results by the node's prefix.
                   if Node.Kind in Ada_Dotted_Name_Range
                     or else Starts_With
-                      (Name,
+                      (LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Name)),
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
