@@ -15,73 +15,74 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
-'use strict';
-Object.defineProperty(exports, "__esModule", { value: true });
-const vscode = require("vscode");
-const vscode_languageclient_1 = require("vscode-languageclient");
-const process = require("process");
-const gprTaskProvider = require("./gprTaskProvider");
-let myTaskProvider;
-function activate(context) {
-    // The server is implemented in node
+import * as vscode from 'vscode';
+import * as vscode_languageclient from 'vscode-languageclient/node';
+import * as process from 'process';
+
+import GPRTaskProvider from './gprTaskProvider';
+
+let alsTaskProvider: undefined | vscode.Disposable = vscode.tasks.registerTaskProvider(
+    GPRTaskProvider.gprBuildType,
+    new GPRTaskProvider()
+);
+
+export function activate(context: vscode.ExtensionContext): void {
     let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
-    // let serverModule = "/tmp/lsp_test";
+    if (process.env.ALS) serverModule = process.env.ALS;
     // The debug options for the server
-    let debugOptions = { execArgv: [] };
+    // let debugOptions = { execArgv: [] };
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
-    let serverOptions = {
+    const serverOptions: vscode_languageclient.ServerOptions = {
         run: { command: serverModule },
-        debug: { command: serverModule }
+        debug: { command: serverModule },
     };
     // Options to control the language client
-    let clientOptions = {
+    const clientOptions: vscode_languageclient.LanguageClientOptions = {
         // Register the server for ada sources documents
         documentSelector: [{ scheme: 'file', language: 'ada' }],
         synchronize: {
             // Synchronize the setting section 'ada' to the server
             configurationSection: 'ada',
             // Notify the server about file changes to '.clientrc files contain in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-        }
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc'),
+        },
     };
+
     // Create the language client and start the client.
-    let client = new vscode_languageclient_1.LanguageClient
-        ('ada', 'Ada Language Server', serverOptions, clientOptions);
-    let disposable = client.start();
-    // Push the disposable to the context's subscriptions so that the 
+    const client = new vscode_languageclient.LanguageClient(
+        'ada',
+        'Ada Language Server',
+        serverOptions,
+        clientOptions
+    );
+    const disposable = client.start();
+    // Push the disposable to the context's subscriptions so that the
     // client can be deactivated on extension deactivation
     context.subscriptions.push(disposable);
-    myTaskProvider = vscode.tasks.registerTaskProvider
-      (gprTaskProvider.GPRTaskProvider.gprBuildType,
-       new gprTaskProvider.GPRTaskProvider());
 
     //  Take active editor URI and call execute 'als-other-file' command in LSP
-    function otherFileHandler () {
+    function otherFileHandler() {
         const activeEditor = vscode.window.activeTextEditor;
         if (!activeEditor) {
-          return;
+            return;
         }
-        client.sendRequest(
-            vscode_languageclient_1.ExecuteCommandRequest.type,
-            {
-                'command': 'als-other-file',
-                'arguments': [{
-                    'uri': activeEditor.document.uri.toString()
-                }]
-            }
-        );
-    };
+        void client.sendRequest(vscode_languageclient.ExecuteCommandRequest.type, {
+            command: 'als-other-file',
+            arguments: [
+                {
+                    uri: activeEditor.document.uri.toString(),
+                },
+            ],
+        });
+    }
 
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
 }
 
-exports.activate = activate;
-
-function deactivate() {
-    if (myTaskProvider) {
-        myTaskProvider.dispose();
-        myTaskProvider = undefined;
+export function deactivate(): void {
+    if (alsTaskProvider) {
+        alsTaskProvider.dispose();
+        alsTaskProvider = undefined;
     }
 }
-exports.deactivate = deactivate;

@@ -16,7 +16,7 @@
         "onCommand:workbench.action.tasks.runTask",
         "onCommand:ada.otherFile"
     ],
-    "main": "./extension",
+    "main": "./out/extension",
     "icon": "icons/ada.png",
     "bugs": "https://github.com/AdaCore/ada_language_server/issues",
     "repository": {
@@ -150,10 +150,11 @@
                             "always"
                         ],
                         "enumDescriptions": [
-                           "Never list overridding and/or overridden suprograms.",
-                           "List overridding and/or overridden suprograms on dispatching calls and on abstract subprogram declarations.",
-                           "List overridding and/or overridden suprograms on declarations only.",
-                           "Always list overridding and/or overridden suprograms when possible."],
+                            "Never list overridding and/or overridden suprograms.",
+                            "List overridding and/or overridden suprograms on dispatching calls and on abstract subprogram declarations.",
+                            "List overridding and/or overridden suprograms on declarations only.",
+                            "Always list overridding and/or overridden suprograms when possible."
+                        ],
                         "default": "usage_and_abstract_only",
                         "description": "Controls the policy for displaying overriding and overridden subprograms on navigation requests such as 'Go To Definition' or 'Go To Implementations'."
                     },
@@ -210,7 +211,7 @@
                 }
             }
         ],
-        "commands":[
+        "commands": [
             {
                 "command": "ada.otherFile",
                 "title": "Go to other Ada file"
@@ -218,30 +219,41 @@
         ],
         "keybindings": [
             {
-              "command": "ada.otherFile",
-              "key": "Alt+O",
-              "when": "editorLangId == 'ada' && editorTextFocus"
+                "command": "ada.otherFile",
+                "key": "Alt+O",
+                "when": "editorLangId == 'ada' && editorTextFocus"
             }
-          ]
+        ]
     },
     "devDependencies": {
-        "@types/glob": "^7.1.1",
-        "@types/mocha": "^2.2.42",
-        "@types/node": "^6.0.88",
-        "@types/vscode": "^1.49.0",
-        "eslint": "^4.6.1",
-        "typescript": "^3.8.3",
-        "glob": "^7.1.4",
-        "vscode-test": "^1.3.0",
-        "vscode-tmgrammar-test": "0.0.9"
+        "@types/glob": "^7.1.3",
+        "@types/mocha": "^8.2.2",
+        "@types/node": "^16.0.0",
+        "@types/vscode": "^1.57.1",
+        "@typescript-eslint/eslint-plugin": "^4.28.1",
+        "@typescript-eslint/parser": "^4.28.1",
+        "eslint": "^7.30.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^3.4.0",
+        "glob": "^7.1.7",
+        "mocha": "^9.0.2",
+        "prettier": "^2.3.2",
+        "prettier-eslint": "^12.0.0",
+        "typescript": "^4.3.5",
+        "vscode-test": "^1.5.2",
+        "vscode-tmgrammar-test": "^0.0.11"
     },
     "scripts": {
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./"
+        "vscode:prepublish": "npm run compile",
+        "compile": "./node_modules/typescript/bin/tsc",
+        "watch": "./node_modules/typescript/bin/tsc -watch",
+        "pretest": "npm run compile",
+        "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet --fix",
+        "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
+        "process": "^0.11.10",
         "vscode-languageclient": "^7.0.0",
-        "ws": "^6.0.0",
-        "process": "^0.10.0"
+        "ws": "^7.5.2"
     }
 }

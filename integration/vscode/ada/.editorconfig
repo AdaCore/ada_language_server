@@ -1,5 +1,0 @@
-root = false
-
-[*.json]
-indent_style = tab
-indent_size = unset
