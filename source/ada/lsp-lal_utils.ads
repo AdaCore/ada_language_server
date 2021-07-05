@@ -171,8 +171,7 @@ package LSP.Lal_Utils is
 
    procedure Get_Call_Expr_Name
      (Node            : Libadalang.Analysis.Ada_Node'Class;
-      Cursor_Line     : Langkit_Support.Slocs.Line_Number;
-      Cursor_Column   : Langkit_Support.Slocs.Column_Number;
+      Cursor          : Langkit_Support.Slocs.Source_Location;
       Active_Position : out LSP.Types.LSP_Number;
       Designator      : out Libadalang.Analysis.Ada_Node;
       Name_Node       : out Libadalang.Analysis.Name);
@@ -180,8 +179,7 @@ package LSP.Lal_Utils is
    --  Active_Position: the index of the parameter in the Call_Expr
    --  Designator: the designator of the Active_Position
    --  Name_Node: the name of the Call_Expr
-   --  Cursor_Line and Cursor_Column the position of the cursor when the
-   --  request was triggered.
+   --  Cursor: the position of the cursor when the request was triggered.
 
    procedure Get_Parameters
      (Node : Libadalang.Analysis.Basic_Decl;

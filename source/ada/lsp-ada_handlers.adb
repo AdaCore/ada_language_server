@@ -2490,10 +2490,15 @@ package body LSP.Ada_Handlers is
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
       Node : constant Libadalang.Analysis.Ada_Node :=
-        C.Get_Node_At
-          (Get_Open_Document (Self, Value.textDocument.uri),
-           Value);
+        C.Get_Node_At (Document, Value);
+
+      Sloc : constant Langkit_Support.Slocs.Source_Location :=
+        Document.Get_Source_Location (Value.position);
+
       Name_Node       : Libadalang.Analysis.Name;
       Designator      : Libadalang.Analysis.Ada_Node;
       Active_Position : LSP.Types.LSP_Number;
@@ -2543,10 +2548,7 @@ package body LSP.Ada_Handlers is
       --  Check if we are inside a function call and get the caller name
       Get_Call_Expr_Name
         (Node            => Node,
-         Cursor_Line     =>
-           Langkit_Support.Slocs.Line_Number (Value.position.line + 1),
-         Cursor_Column   =>
-           Langkit_Support.Slocs.Column_Number (Value.position.character) + 1,
+         Cursor          => Sloc,
          Active_Position => Active_Position,
          Designator      => Designator,
          Name_Node       => Name_Node);
@@ -2709,8 +2711,7 @@ package body LSP.Ada_Handlers is
            (Value.textDocument, Value.position);
 
          Node      : Ada_Node := C.Get_Node_At (Document, Position);
-         Name_Node : Name := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Position));
+         Name_Node : Name := Laltools.Common.Get_Node_As_Name (Node);
 
          Empty     : LSP.Messages.TextEdit_Vector;
 
@@ -2936,8 +2937,7 @@ package body LSP.Ada_Handlers is
          --  units, therefore, Node and Name_Node need to be recomputed.
 
          Node := C.Get_Node_At (Document, Position);
-         Name_Node := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Position));
+         Name_Node := Laltools.Common.Get_Node_As_Name (Node);
 
          --  If problems were found, do not continue processing references.
          if not Refs.Problems.Is_Empty then

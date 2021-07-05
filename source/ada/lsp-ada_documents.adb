@@ -26,7 +26,6 @@ with GNATCOLL.Utils;
 with VSS.Characters;
 with VSS.Strings.Conversions;
 
-with Langkit_Support.Slocs;
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
@@ -126,11 +125,6 @@ package body LSP.Ada_Documents is
       return VSS.Strings.Markers.Character_Marker;
    --  Return marker pointing to character at right side of the given
    --  Position.
-
-   function Get_Source_Location
-     (Self     : Document'Class;
-      Position : LSP.Messages.Position)
-      return Langkit_Support.Slocs.Source_Location;
 
    function Get_Token_At
      (Self     : Document'Class;
@@ -648,11 +642,11 @@ package body LSP.Ada_Documents is
 
       Messages  : Pp.Scanner.Source_Message_Vector;
 
-      Sloc : Source_Location_Range :=
-        (Start_Line => Langkit_Support.Slocs.Line_Number (Span.first.line) + 1,
-         Start_Column => Column_Number (Span.first.character) + 1,
-         End_Line => Langkit_Support.Slocs.Line_Number (Span.last.line) + 1,
-         End_Column => Column_Number (Span.last.character) + 1);
+      Sloc : constant Source_Location_Range :=
+        (if Span = LSP.Messages.Empty_Span
+         then No_Source_Location_Range
+         else Make_Range (Self.Get_Source_Location (Span.first),
+                          Self.Get_Source_Location (Span.last)));
 
       Out_Sloc : Source_Location_Range;
       S : GNAT.Strings.String_Access;
@@ -677,10 +671,6 @@ package body LSP.Ada_Documents is
       S := new String'(VSS.Strings.Conversions.To_UTF_8_String (Self.Text));
       Input.Append (S.all);
       GNAT.Strings.Free (S);
-
-      if Span = LSP.Messages.Empty_Span then
-         Sloc := No_Source_Location_Range;
-      end if;
 
       LSP.Lal_Utils.Format_Vector
         (Cmd       => Cmd,
@@ -1183,16 +1173,15 @@ package body LSP.Ada_Documents is
    is
       use Langkit_Support.Slocs;
 
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Self.Unit (Context);
+      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
+      Sloc : constant Langkit_Support.Slocs.Source_Location :=
+        Self.Get_Source_Location (Position);
    begin
       if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
       end if;
 
-      return Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
+      return Unit.Root.Lookup (Sloc);
    end Get_Node_At;
 
    ------------------------
@@ -1635,16 +1624,28 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Langkit_Support.Slocs.Source_Location
    is
-      pragma Unreferenced (Self);
-      use type Langkit_Support.Slocs.Line_Number;
-      use type Langkit_Support.Slocs.Column_Number;
+      use type LSP.Types.Line_Number;
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+      use type VSS.Strings.Character_Index;
 
-      Where : constant Langkit_Support.Slocs.Source_Location :=
-        (Langkit_Support.Slocs.Line_Number (Position.line) + 1,
-         Langkit_Support.Slocs.Column_Number (Position.character) + 1);
-      --  FIXME: Should take UTF-16 encoding into account
+      Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Self.Text.Character (Self.Line_To_Marker (Position.line));
+
+      Line_Offset : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+        Iterator.First_UTF16_Offset;
+
+      Line_First_Character : constant VSS.Strings.Character_Index :=
+        Iterator.Character_Index;
    begin
-      return Where;
+      while Iterator.First_UTF16_Offset - Line_Offset <= Position.character
+        and then Iterator.Forward
+      loop
+         null;
+      end loop;
+
+      return ((Line   => Langkit_Support.Slocs.Line_Number (Position.line + 1),
+               Column => Langkit_Support.Slocs.Column_Number
+                 (Iterator.Character_Index - Line_First_Character)));
    end Get_Source_Location;
 
    ------------------
@@ -1684,9 +1685,8 @@ package body LSP.Ada_Documents is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
 
-      Where : constant Source_Location :=
-        (Line   => Line_Number (Position.line) + 1,
-         Column => Column_Number (Position.character));
+      Origin : constant Source_Location := Self.Get_Source_Location (Position);
+      Where : constant Source_Location := (Origin.Line, Origin.Column - 1);
       --  Compute the position we want for completion, which is one character
       --  before the cursor.
 
