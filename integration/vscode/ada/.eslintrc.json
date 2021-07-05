@@ -1,24 +1,28 @@
 {
     "env": {
         "browser": false,
+        "node": true,
         "commonjs": true,
         "es6": true,
-        "node": true
+        "es2017": true,
+        "es2020": true,
+        "es2021": true
     },
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": 2018,
         "ecmaFeatures": {
             "jsx": true
         },
-        "sourceType": "module"
+        "project": "tsconfig.json"
     },
-    "rules": {
-        "no-const-assign": "warn",
-        "no-this-before-super": "warn",
-        "no-undef": "warn",
-        "no-unreachable": "warn",
-        "no-unused-vars": "warn",
-        "constructor-super": "warn",
-        "valid-typeof": "warn"
-    }
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:prettier/recommended"
+    ],
+    "ignorePatterns": [
+        "out",
+        "**/*.d.ts"
+    ]
 }
