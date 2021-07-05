@@ -1,2 +1,5 @@
 node_modules
 .vsix
+out
+package-lock.json
+.vscode-test

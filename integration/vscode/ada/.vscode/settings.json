@@ -1,0 +1,26 @@
+{
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/out": true
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": true
+        }
+    },
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.detectIndentation": false,
+        "files.trimFinalNewlines": true,
+        "files.trimTrailingWhitespace": true,
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.detectIndentation": false,
+        "files.trimFinalNewlines": true,
+        "files.trimTrailingWhitespace": true,
+    }
+}
