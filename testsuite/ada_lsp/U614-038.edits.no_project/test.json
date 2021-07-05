@@ -251,7 +251,7 @@
                      "implementationProvider": true,
                      "referencesProvider": true,
                      "documentHighlightProvider": true,
-                     "documentSymbolProvider": {},
+                     "documentSymbolProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
                            "refactor.rewrite"
@@ -275,8 +275,6 @@
                      },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
-                     "alsCalledByProvider": true,
-                     "alsCallsProvider": true,
                      "alsShowDepsProvider": true,
                      "alsReferenceKinds": [
                         "reference",
