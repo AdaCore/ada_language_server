@@ -230,7 +230,7 @@ package LSP.Types is
    for LSP_Boolean_Or_String'Read use Read_LSP_Boolean_Or_String;
    for LSP_Boolean_Or_String'Write use Write_LSP_Boolean_Or_String;
 
-   type Line_Number is new LSP_Number;
+   type Line_Number is new LSP_Number range 0 .. LSP_Number'Last;
    --  Line number. In LSP first line has zero number
    subtype UTF_16_Index is VSS.Unicode.UTF16_Code_Unit_Index;
    --  LSP measures character position in UTF_16 code units starting from zero

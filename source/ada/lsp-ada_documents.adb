@@ -106,7 +106,7 @@ package body LSP.Ada_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : Natural;
+      Low_Line     : LSP.Types.Line_Number;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker);
    --  Recompute line-to-marker index starting from Start_Marker till
@@ -194,10 +194,11 @@ package body LSP.Ada_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : Natural;
+      Low_Line     : LSP.Types.Line_Number;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker)
    is
+      use type LSP.Types.Line_Number;
       use type VSS.Strings.Character_Count;
 
       M    : VSS.Strings.Markers.Character_Marker;
@@ -206,7 +207,7 @@ package body LSP.Ada_Documents is
           (Position        => Start_Marker,
            Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
-      Line : Natural := Low_Line;
+      Line : LSP.Types.Line_Number := Low_Line;
 
    begin
       if J.Has_Element then
@@ -251,12 +252,12 @@ package body LSP.Ada_Documents is
             --  We're replacing a range
 
             declare
-               Low_Line    : Natural :=
-                 Natural (Change.span.Value.first.line);
-               High_Line   : Natural :=
-                 Natural (Change.span.Value.last.line);
-               Delete_High : Integer := High_Line;
-               Start_Index : Natural;
+               Low_Line    : LSP.Types.Line_Number :=
+                 Change.span.Value.first.line;
+               High_Line   : LSP.Types.Line_Number :=
+                 Change.span.Value.last.line;
+               Delete_High : LSP.Types.Line_Number := High_Line;
+               Start_Index : LSP.Types.Line_Number;
 
                First_Marker : VSS.Strings.Markers.Character_Marker;
                Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -592,7 +593,7 @@ package body LSP.Ada_Documents is
 
          if not Edit.Is_Empty
             and then not Self.Line_To_Marker.Is_Empty
-            and then Integer (Edit.Last_Element.span.last.line) not in
+            and then Edit.Last_Element.span.last.line not in
               Self.Line_To_Marker.First_Index .. Self.Line_To_Marker.Last_Index
          then
             declare
@@ -2330,7 +2331,7 @@ package body LSP.Ada_Documents is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Position.line)));
+        Self.Text.Character (Self.Line_To_Marker (Position.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
@@ -2357,12 +2358,12 @@ package body LSP.Ada_Documents is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Span.first.line)));
+        Self.Text.Character (Self.Line_To_Marker (Span.first.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
       J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Span.last.line)));
+        Self.Text.Character (Self.Line_To_Marker (Span.last.line));
       U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J2.First_UTF16_Offset;
 

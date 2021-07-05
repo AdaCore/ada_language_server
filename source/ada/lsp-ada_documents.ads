@@ -251,7 +251,7 @@ package LSP.Ada_Documents is
 private
 
    package Line_Marker_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => Natural,
+     (Index_Type   => LSP.Types.Line_Number,
       Element_Type => VSS.Strings.Markers.Character_Marker,
       "="          => VSS.Strings.Markers."=");
 
