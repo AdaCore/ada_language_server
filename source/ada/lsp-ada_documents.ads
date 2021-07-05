@@ -23,18 +23,18 @@ with Ada.Containers.Vectors;
 with VSS.Strings;
 private with VSS.Strings.Markers;
 
-with LSP.Messages;
-with LSP.Types;
-
 with Libadalang.Analysis;
+with Libadalang.Common;
+with Langkit_Support.Slocs;
+
+with GNATCOLL.Traces;
+
+with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completions;
-
-with GNATCOLL.Traces;
-with Libadalang.Common;
-
-with Pp.Command_Lines;
+with LSP.Messages;
+with LSP.Types;
 
 package LSP.Ada_Documents is
 
@@ -247,6 +247,12 @@ package LSP.Ada_Documents is
    --  named notation is used for subprogram completion snippets.
    --  Is_Dot_Call is used to know if we should omit the first parameter
    --  when computing subprogram snippets.
+
+   function Get_Source_Location
+     (Self     : Document'Class;
+      Position : LSP.Messages.Position)
+      return Langkit_Support.Slocs.Source_Location;
+   --  Convert a Positon to a Source_Location
 
 private
 
