@@ -59,9 +59,13 @@ package LSP.Ada_Completions is
       Node   : Libadalang.Analysis.Ada_Node;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList) is abstract;
-   --  Populate Names and Result with completions for given Source_Location,
-   --  that could be inside a Token or between the Token and the next token
-   --  if any. The Node is immediate enclosing AST node for the token.
+   --  Populate Names and Result with completions for given Source_Location.
+   --  Names works for defining name completions to create snippets and to
+   --  avoid duplicates. The Token's span encloses Sloc or Sloc can be at the
+   --  next character after the Token if the token not a trivia.
+   --  Consider `abc;` or `abc<space>` and Sloc is a character after `c`, then
+   --  Token is `abc`, because a user expect it to te completed. The Node is
+   --  immediate enclosing AST node for the token.
 
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;
@@ -74,5 +78,11 @@ package LSP.Ada_Completions is
    procedure Write_Symbols
      (Names  : Completion_Maps.Map;
       Result : in out LSP.Messages.Symbol_Vector);
+
+   type Completion_Provider_Access is access all
+     LSP.Ada_Completions.Completion_Provider'Class;
+
+   type Completion_Provider_List is array (Positive range <>) of
+     Completion_Provider_Access;
 
 end LSP.Ada_Completions;

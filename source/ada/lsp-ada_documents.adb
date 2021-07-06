@@ -37,11 +37,6 @@ with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
-with LSP.Ada_Completions.Aggregates;
-with LSP.Ada_Completions.Aspects;
-with LSP.Ada_Completions.Keywords;
-with LSP.Ada_Completions.Names;
-with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
@@ -2039,18 +2034,14 @@ package body LSP.Ada_Documents is
    ------------------------
 
    procedure Get_Completions_At
-     (Self                     : Document;
-      Context                  : LSP.Ada_Contexts.Context;
-      Position                 : LSP.Messages.Position;
-      Named_Notation_Threshold : Natural;
-      Snippets_Enabled         : Boolean;
-      Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completions.Completion_Maps.Map;
-      Result                   : out LSP.Messages.CompletionList)
+     (Self      : Document;
+      Providers : LSP.Ada_Completions.Completion_Provider_List;
+      Context   : LSP.Ada_Contexts.Context;
+      Position  : LSP.Messages.Position;
+      Names     : out Ada_Completions.Completion_Maps.Map;
+      Result    : out LSP.Messages.CompletionList)
    is
       use Libadalang.Common;
-      use LSP.Types;
-      use type VSS.Unicode.UTF16_Code_Unit_Count;
 
       function Completion_Token
         (Sloc  : Langkit_Support.Slocs.Source_Location)
@@ -2070,123 +2061,65 @@ package body LSP.Ada_Documents is
       is
          use type Langkit_Support.Slocs.Source_Location;
 
-         Token : Libadalang.Common.Token_Reference :=
+         Token : constant Libadalang.Common.Token_Reference :=
            Self.Get_Token_At (Context, Position);
-         Data  : constant Libadalang.Common.Token_Data_Type :=
-           Libadalang.Common.Data (Token);
-         Start : constant Langkit_Support.Slocs.Source_Location :=
-           Langkit_Support.Slocs.Start_Sloc
-             (Libadalang.Common.Sloc_Range (Data));
+
+         Prev  : constant Libadalang.Common.Token_Reference :=
+           (if Token = Libadalang.Common.No_Token
+            then Token
+            else Libadalang.Common.Previous (Token));
+
       begin
-         if Libadalang.Common.Is_Trivia (Token) and then Start = Sloc then
-            Token := Libadalang.Common.Previous (Token);
+         if Libadalang.Common.No_Token not in Token | Prev
+           and then not Libadalang.Common.Is_Trivia (Prev)
+         then
+            declare
+               Data  : constant Libadalang.Common.Token_Data_Type :=
+                 Libadalang.Common.Data (Token);
+
+               Start : constant Langkit_Support.Slocs.Source_Location :=
+                 Langkit_Support.Slocs.Start_Sloc
+                   (Libadalang.Common.Sloc_Range (Data));
+            begin
+               if Start = Sloc then
+                  return Prev;
+               end if;
+            end;
          end if;
 
          return Token;
       end Completion_Token;
 
-      Real_Pos : constant LSP.Messages.Position :=
-        (Position.line,
-         UTF_16_Index'Max (0, Position.character - 1));
-      --  Compute the position we want for completion, which is one character
-      --  before the cursor.
+      Sloc  : constant Langkit_Support.Slocs.Source_Location :=
+        Self.Get_Source_Location (Position);
 
-      Node       : Libadalang.Analysis.Ada_Node :=
-        Self.Get_Node_At (Context, Real_Pos);
-      --  Get the corresponding LAL node
+      Token : constant Libadalang.Common.Token_Reference :=
+        Completion_Token (Sloc);
 
+      From  : constant Langkit_Support.Slocs.Source_Location :=
+        Langkit_Support.Slocs.Start_Sloc
+          (Libadalang.Common.Sloc_Range
+             (Libadalang.Common.Data (Token)));
+
+      Root  : constant Libadalang.Analysis.Ada_Node :=
+        Self.Unit (Context).Root;
+
+      Node  : constant Libadalang.Analysis.Ada_Node :=
+        (if Root = No_Ada_Node then Root else Root.Lookup (From));
    begin
-      Context.Trace.Trace ("In Get_Completions_At");
-
-      declare
-         type Completion_Provider_Access is access all
-           LSP.Ada_Completions.Completion_Provider'Class;
-
-         P1 : aliased LSP.Ada_Completions.Aggregates
-           .Aggregate_Completion_Provider
-             (Named_Notation_Threshold => Named_Notation_Threshold);
-
-         P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
-         P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
-         P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
-         P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
-           (Snippets_Enabled);
-
-         Providers : constant array (1 .. 5) of Completion_Provider_Access :=
-           (P1'Access, P2'Access, P3'Access, P4'Access, P5'Access);
-
-         Sloc  : constant Langkit_Support.Slocs.Source_Location :=
-           Self.Get_Source_Location (Position);
-
-         Token : constant Libadalang.Common.Token_Reference :=
-           Completion_Token (Sloc);
-
-         From  : constant Langkit_Support.Slocs.Source_Location :=
-           Langkit_Support.Slocs.Start_Sloc
-             (Libadalang.Common.Sloc_Range
-               (Libadalang.Common.Data (Token)));
-
-         Root  : constant Libadalang.Analysis.Ada_Node :=
-           Self.Unit (Context).Root;
-
-         Node  : constant Libadalang.Analysis.Ada_Node :=
-           (if Root = No_Ada_Node then Root else Root.Lookup (From));
-      begin
-         for Provider of Providers loop
-            Provider.Propose_Completion
-              (Sloc   => Sloc,
-               Token  => Token,
-               Node   => Node,
-               Names  => Names,
-               Result => Result);
-         end loop;
-      end;
-
-      --  Get the outermost dotted name of which node is a prefix, so that when
-      --  completing in a situation such as the following:
-      --
-      --      Ada.Tex|
-      --             ^ Cursor here
-      --
-      --  we get the DottedName node rather than just the "Tex" BaseId. We want
-      --  the DottedName rather than the Id so as to get the proper completions
-      --  (all elements in the "Ada" namespace).
-
-      while not Node.Is_Null
-        and then Node.Kind in Ada_Single_Tok_Node | Ada_Dotted_Name
-      loop
-         if Node.Parent.Kind = Ada_Dotted_Name
-           and then Node.Parent.As_Dotted_Name.F_Suffix = Node
-         then
-            Node := Node.Parent;
-         else
-            exit;
-         end if;
-      end loop;
-
-      --  Return immediately if we are dealing with a null node or if the
-      --  node's parent is a Defining_Name, meaning that we are declaring a
-      --  new symbol.
-
-      if Node.Is_Null or else
-        (not Node.Parent.Is_Null
-                and then Node.Parent.Kind in Ada_Defining_Name_Range)
-      then
-         return;
-      end if;
-
       Context.Trace.Trace
         ("Getting completions, Pos = ("
-         & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
+         & Sloc.Line'Image & ", " & Sloc.Column'Image & ") Node = "
          & Image (Node));
 
-      --  Return without asing Libadalang for completion results we are dealing
-      --  with a syntax error.
-      if Node.Kind in Ada_Error_Decl_Range then
-         return;
-      end if;
-
-      Should_Use_Names := True;  --  Let's use defining names for completion
+      for Provider of Providers loop
+         Provider.Propose_Completion
+           (Sloc   => Sloc,
+            Token  => Token,
+            Node   => Node,
+            Names  => Names,
+            Result => Result);
+      end loop;
 
       Context.Trace.Trace
         ("Number of filtered completions : " & Names.Length'Image);

@@ -124,22 +124,15 @@ package LSP.Ada_Documents is
    --  Get an identifier at given position in the document or an empty string.
 
    procedure Get_Completions_At
-     (Self                     : Document;
-      Context                  : LSP.Ada_Contexts.Context;
-      Position                 : LSP.Messages.Position;
-      Named_Notation_Threshold : Natural;
-      Snippets_Enabled         : Boolean;
-      Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completions.Completion_Maps.Map;
-      Result                   : out LSP.Messages.CompletionList);
-   --  Populate Result with completions for given position in the document.
-   --  Named_Notation_Threshold defines the number of components at which point
-   --  named notation is used for aggregate completion snippets.
-   --  If Use_Snippets is True, completion for subprograms and aggregates
-   --  will be given in the form of snippets when it makes sense.
-   --  In case when no defining names could be used for completion (for
-   --  instange inside aggregates, pragmas, keywords, etc) set Should_Use_Names
-   --  to False. Otherwise set it to True and populate Names instead of Result.
+     (Self      : Document;
+      Providers : LSP.Ada_Completions.Completion_Provider_List;
+      Context   : LSP.Ada_Contexts.Context;
+      Position  : LSP.Messages.Position;
+      Names     : out Ada_Completions.Completion_Maps.Map;
+      Result    : out LSP.Messages.CompletionList);
+   --  Populate Result/Names with completions for given position in the
+   --  document. Names works for defining name completions to create snippets
+   --  and to avoid duplicates.
 
    procedure Get_Any_Symbol_Completion
      (Self    : in out Document;
@@ -147,7 +140,7 @@ package LSP.Ada_Documents is
       Prefix  : VSS.Strings.Virtual_String;
       Limit   : Ada.Containers.Count_Type;
       Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
-   --  See Contests.Get_Any_Symbol_Completion
+   --  See Contexts.Get_Any_Symbol_Completion
 
    procedure Get_Folding_Blocks
      (Self       : Document;
