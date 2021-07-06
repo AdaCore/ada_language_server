@@ -833,7 +833,8 @@ package body LSP.Ada_Contexts is
    procedure Index_File
      (Self    : in out Context;
       File    : GNATCOLL.VFS.Virtual_File;
-      Reparse : Boolean := True)
+      Reparse : Boolean := True;
+      PLE     : Boolean := True)
    is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.LAL_Context.Get_From_File
@@ -842,6 +843,12 @@ package body LSP.Ada_Contexts is
            Reparse => Reparse);
    begin
       Self.Source_Files.Index_File (File, Unit);
+
+      if PLE then
+         Libadalang.Analysis.Populate_Lexical_Env (Unit);
+      end if;
+
+      Self.Trace.Trace ("Indexing " & File.Display_Base_Name);
    end Index_File;
 
    --------------------
@@ -849,27 +856,21 @@ package body LSP.Ada_Contexts is
    --------------------
 
    procedure Index_Document
-     (Self     : Context;
+     (Self     : in out Context;
       Document : in out LSP.Ada_Documents.Document)
    is
-      File : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+      Filename : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Self.URI_To_File (Document.URI);
-      Unit : Libadalang.Analysis.Analysis_Unit;
    begin
-      Document.Reset_Symbol_Cache;
       --  Reset cache of symbols to avoid access to stale references
+      Document.Reset_Symbol_Cache;
 
-      --  Preprocess the buffer
-      Unit := Self.LAL_Context.Get_From_File
-        (Filename => File,
-         Charset  => Ada.Strings.Unbounded.To_String (Self.Charset),
-         Reparse  => True);
-
-      --  After creating an analysis unit, populate the lexical env with it:
-      --  we do this to allow Libadalang to do some work in reaction to
-      --  a file being open in the IDE, in order to speed up the response
-      --  to user queries.
-      Libadalang.Analysis.Populate_Lexical_Env (Unit);
+      --  Index the file, calling Populate_Lexical_Env on it to speed up the
+      --  response to user queries.
+      Self.Index_File
+        (File    => Create_From_UTF8 (Filename),
+         Reparse => True,
+         PLE     => True);
    end Index_Document;
 
    -------------

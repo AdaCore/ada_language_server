@@ -187,12 +187,15 @@ package LSP.Ada_Contexts is
    procedure Index_File
      (Self    : in out Context;
       File    : GNATCOLL.VFS.Virtual_File;
-      Reparse : Boolean := True);
+      Reparse : Boolean := True;
+      PLE     : Boolean := True);
    --  Index the given file. This translates to refreshing the Libadalang
    --  Analysis_Unit associated to it.
+   --  If PLE is True, Populate_Lexcial_Env is called at the end, which will
+   --  increase the speef of semantic requests.
 
    procedure Index_Document
-     (Self     : Context;
+     (Self     : in out Context;
       Document : in out LSP.Ada_Documents.Document);
    --  Index/reindex the given document in this context
 

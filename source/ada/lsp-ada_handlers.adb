@@ -3349,6 +3349,21 @@ package body LSP.Ada_Handlers is
          Self.Server.On_Show_Message (Errors);
       end if;
 
+      --  TODO: doc
+      for F in Self.Project_Predefined_Sources.Iterate loop
+         declare
+            File : GNATCOLL.VFS.Virtual_File renames
+              LSP.Ada_File_Sets.File_Sets.Element (F);
+         begin
+            for Context of Self.Contexts_For_File (File) loop
+               Context.Index_File
+                 (File    => File,
+                  Reparse => True,
+                  PLE     => True);
+            end loop;
+         end;
+      end loop;
+
       --  Reindex all open documents immediately after project reload, so
       --  that navigation from editors is accurate.
       for Document of Self.Open_Documents loop
@@ -3653,7 +3668,7 @@ package body LSP.Ada_Handlers is
       procedure On_Inaccessible_Name
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean);
+         Stop : in out Boolean) with Unreferenced;
 
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
@@ -3714,25 +3729,25 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      declare
-         Word : constant VSS.Strings.Virtual_String := Document.Get_Word_At
-           (Context.all, Value.position);
-
-         Canonical_Prefix : constant VSS.Strings.Virtual_String :=
-           Canonicalize (Word);
-
-      begin
-         if not Word.Is_Empty then
-            Context.Get_Any_Symbol_Completion
-              (Prefix   => Canonical_Prefix,
-               Callback => On_Inaccessible_Name'Access);
-
-            for Doc of Self.Open_Documents loop
-               Doc.Get_Any_Symbol_Completion
-                 (Context.all, Canonical_Prefix, Limit, Names);
-            end loop;
-         end if;
-      end;
+      --  declare
+      --     Word : constant VSS.Strings.Virtual_String := Document.Get_Word_At
+      --       (Context.all, Value.position);
+      --
+      --     Canonical_Prefix : constant VSS.Strings.Virtual_String :=
+      --       Canonicalize (Word);
+      --
+      --  begin
+      --     if not Word.Is_Empty then
+      --        Context.Get_Any_Symbol_Completion
+      --          (Prefix   => Canonical_Prefix,
+      --           Callback => On_Inaccessible_Name'Access);
+      --
+      --        for Doc of Self.Open_Documents loop
+      --           Doc.Get_Any_Symbol_Completion
+      --             (Context.all, Canonical_Prefix, Limit, Names);
+      --        end loop;
+      --     end if;
+      --  end;
 
       LSP.Ada_Completions.Write_Completions
         (Context                  => Context.all,
