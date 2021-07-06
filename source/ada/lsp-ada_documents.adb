@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Wide_Wide_Latin_1;
-with Ada.Strings.UTF_Encoding;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
@@ -41,6 +40,7 @@ with VSS.Unicode;
 with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Keywords;
+with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
@@ -2043,7 +2043,7 @@ package body LSP.Ada_Documents is
       Context                  : LSP.Ada_Contexts.Context;
       Position                 : LSP.Messages.Position;
       Named_Notation_Threshold : Natural;
-      Snippets_Enabled      : Boolean;
+      Snippets_Enabled         : Boolean;
       Should_Use_Names         : in out Boolean;
       Names                    : out Ada_Completions.Completion_Maps.Map;
       Result                   : out LSP.Messages.CompletionList)
@@ -2095,20 +2095,6 @@ package body LSP.Ada_Documents is
         Self.Get_Node_At (Context, Real_Pos);
       --  Get the corresponding LAL node
 
-      Parent   : Libadalang.Analysis.Ada_Node;
-      --  The parent of the node to complete.
-
-      Sibling  : Libadalang.Analysis.Ada_Node;
-      --  The right sibling of the node to complete.
-
-      In_End_Label : Boolean := False;
-      --  Set to True if we are completing an end label
-      --  (e.g: end <Subp_Name>);
-
-      Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        Langkit_Support.Text.To_UTF8 (Node.Text);
-
-      Use_Snippets : Boolean := Snippets_Enabled;
    begin
       Context.Trace.Trace ("In Get_Completions_At");
 
@@ -2123,9 +2109,11 @@ package body LSP.Ada_Documents is
          P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
          P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
          P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
+         P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
+           (Snippets_Enabled);
 
-         Providers : constant array (1 .. 4) of Completion_Provider_Access :=
-           (P1'Access, P2'Access, P3'Access, P4'Access);
+         Providers : constant array (1 .. 5) of Completion_Provider_Access :=
+           (P1'Access, P2'Access, P3'Access, P4'Access, P5'Access);
 
          Sloc  : constant Langkit_Support.Slocs.Source_Location :=
            Self.Get_Source_Location (Position);
@@ -2192,14 +2180,6 @@ package body LSP.Ada_Documents is
          & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
          & Image (Node));
 
-      Parent := Node.Parent;
-      Sibling := Node.Next_Sibling;
-
-      --  Check if we are completing an end label. If it's the case, we want
-      --  to disable snippets since end labels don't expect any parameters.
-      In_End_Label := not Parent.Is_Null
-        and then Parent.Kind in Ada_End_Name_Range;
-
       --  Return without asing Libadalang for completion results we are dealing
       --  with a syntax error.
       if Node.Kind in Ada_Error_Decl_Range then
@@ -2208,66 +2188,8 @@ package body LSP.Ada_Documents is
 
       Should_Use_Names := True;  --  Let's use defining names for completion
 
-      if In_End_Label
-        or else not Sibling.Is_Null
-        or else
-          (not Parent.Is_Null and then Parent.Kind in Ada_Param_Assoc_Range)
-      then
-         --  Snippets should not be used in the following cases:
-         --
-         --   . The Use_Snippets parameter if set to False
-         --
-         --   . When the queried node is within an end label
-         --
-         --   . When the queried node has a sibling: this is to avoid proposing
-         --     snippets when a list of parameters is already present on the
-         --     right of the completion point for instance.
-         --
-         --   . When we are providing an actual parameter to a subprogram call
-
-         Use_Snippets := False;
-      end if;
-
-      declare
-         Raw_Completions     : constant Completion_Item_Iterator :=
-           Node.P_Complete;
-         Item                : Completion_Item;
-         BD                  : Basic_Decl;
-         Completion_Count    : Natural := 0;
-         Name                : VSS.Strings.Virtual_String;
-
-      begin
-         while Next (Raw_Completions, Item) loop
-            BD := Decl (Item).As_Basic_Decl;
-            Completion_Count := Completion_Count + 1;
-
-            if not BD.Is_Null then
-               for DN of BD.P_Defining_Names loop
-                  Name :=
-                    LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
-
-                  --  If we are not completing a dotted name, filter the
-                  --  raw completion results by the node's prefix.
-                  if Node.Kind in Ada_Dotted_Name_Range
-                    or else Starts_With
-                      (LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Name)),
-                       Prefix         => Prefix,
-                       Case_Sensitive => False)
-                  then
-                     Names.Include
-                       (DN, (Is_Dot_Call (Item), True, Use_Snippets));
-                  end if;
-               end loop;
-            end if;
-         end loop;
-
-         Context.Trace.Trace
-           ("Number of LAL completions : " & Completion_Count'Image);
-
-         Context.Trace.Trace
-           ("Number of filtered completions : " &
-              Names.Length'Image);
-      end;
+      Context.Trace.Trace
+        ("Number of filtered completions : " & Names.Length'Image);
    end Get_Completions_At;
 
    ---------------------
