@@ -366,8 +366,7 @@ package body LSP.Lal_Utils is
 
    procedure Get_Call_Expr_Name
      (Node            : Libadalang.Analysis.Ada_Node'Class;
-      Cursor_Line     : Langkit_Support.Slocs.Line_Number;
-      Cursor_Column   : Langkit_Support.Slocs.Column_Number;
+      Cursor          : Langkit_Support.Slocs.Source_Location;
       Active_Position : out LSP.Types.LSP_Number;
       Designator      : out Libadalang.Analysis.Ada_Node;
       Name_Node       : out Libadalang.Analysis.Name)
@@ -387,10 +386,11 @@ package body LSP.Lal_Utils is
          S : constant Langkit_Support.Slocs.Source_Location_Range :=
            N.Sloc_Range;
       begin
-         return S.Start_Line <= Cursor_Line
-           and then Cursor_Line <= S.End_Line
-           and then S.Start_Column <= Cursor_Column
-           and then Cursor_Column <= S.End_Column;
+         --  XXX: Shall we use Langkit_Support.Slocs.Compare instead?
+         return S.Start_Line <= Cursor.Line
+           and then Cursor.Line <= S.End_Line
+           and then S.Start_Column <= Cursor.Column
+           and then Cursor.Column <= S.End_Column;
       end Is_Active;
 
    begin

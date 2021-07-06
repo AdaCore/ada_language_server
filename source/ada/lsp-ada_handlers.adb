@@ -28,17 +28,24 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with VSS.String_Vectors;
+with VSS.Strings;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
-with LSP.Ada_Completions;
 with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
+with LSP.Ada_Completions;
+with LSP.Ada_Completions.Aggregates;
+with LSP.Ada_Completions.Aspects;
+with LSP.Ada_Completions.Keywords;
+with LSP.Ada_Completions.Names;
+with LSP.Ada_Completions.Pragmas;
+with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Handlers.Refactor_Imports_Commands;
-with LSP.Ada_Handlers.Refactor_Remove_Parameter;
-with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor_Imports_Commands;
+with LSP.Ada_Handlers.Refactor_Move_Parameter;
+with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
@@ -2488,10 +2495,15 @@ package body LSP.Ada_Handlers is
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
       Node : constant Libadalang.Analysis.Ada_Node :=
-        C.Get_Node_At
-          (Get_Open_Document (Self, Value.textDocument.uri),
-           Value);
+        C.Get_Node_At (Document, Value);
+
+      Sloc : constant Langkit_Support.Slocs.Source_Location :=
+        Document.Get_Source_Location (Value.position);
+
       Name_Node       : Libadalang.Analysis.Name;
       Designator      : Libadalang.Analysis.Ada_Node;
       Active_Position : LSP.Types.LSP_Number;
@@ -2541,10 +2553,7 @@ package body LSP.Ada_Handlers is
       --  Check if we are inside a function call and get the caller name
       Get_Call_Expr_Name
         (Node            => Node,
-         Cursor_Line     =>
-           Langkit_Support.Slocs.Line_Number (Value.position.line + 1),
-         Cursor_Column   =>
-           Langkit_Support.Slocs.Column_Number (Value.position.character) + 1,
+         Cursor          => Sloc,
          Active_Position => Active_Position,
          Designator      => Designator,
          Name_Node       => Name_Node);
@@ -2707,8 +2716,7 @@ package body LSP.Ada_Handlers is
            (Value.textDocument, Value.position);
 
          Node      : Ada_Node := C.Get_Node_At (Document, Position);
-         Name_Node : Name := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Position));
+         Name_Node : Name := Laltools.Common.Get_Node_As_Name (Node);
 
          Empty     : LSP.Messages.TextEdit_Vector;
 
@@ -2934,8 +2942,7 @@ package body LSP.Ada_Handlers is
          --  units, therefore, Node and Name_Node need to be recomputed.
 
          Node := C.Get_Node_At (Document, Position);
-         Name_Node := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Position));
+         Name_Node := Laltools.Common.Get_Node_As_Name (Node);
 
          --  If problems were found, do not continue processing references.
          if not Refs.Problems.Is_Empty then
@@ -3648,89 +3655,50 @@ package body LSP.Ada_Handlers is
       --  be to return only results that are available for all
       --  project contexts.
 
-      procedure On_Inaccessible_Name
-        (File : GNATCOLL.VFS.Virtual_File;
-         Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean);
-
       Value    : LSP.Messages.TextDocumentPositionParams renames
         Request.params;
 
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
-      Snippets_Enabled : constant Boolean := Self.Completion_Snippets_Enabled;
-
       Names     : LSP.Ada_Completions.Completion_Maps.Map;
-      Use_Names : Boolean := False;
 
       Limit : constant := 10;
 
-      --------------------------
-      -- On_Inaccessible_Name --
-      --------------------------
+      P1 : aliased LSP.Ada_Completions.Aggregates
+        .Aggregate_Completion_Provider
+          (Named_Notation_Threshold => Self.Named_Notation_Threshold);
 
-      procedure On_Inaccessible_Name
-        (File : GNATCOLL.VFS.Virtual_File;
-         Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean) is
-      begin
-         --  Skip all names in open documents, because they could have
-         --  stale references. Then skip already provided results.
-         if not Self.Open_Documents.Contains (File)
-           and then not Names.Contains (Name)
-         then
-            Names.Insert
-              (Name,
-               (Is_Dot_Call  => False,
-                Is_Visible   => False,
-                Use_Snippets => False));
+      P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
+      P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
+      P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
+      P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
+        (Self.Completion_Snippets_Enabled);
 
-            Stop := Names.Length >= Limit;
-         end if;
-      end On_Inaccessible_Name;
+      P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
+        (Self, Context);
+
+      Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
+        (P1'Unchecked_Access,
+         P2'Unchecked_Access,
+         P3'Unchecked_Access,
+         P4'Unchecked_Access,
+         P5'Unchecked_Access,
+         P6'Unchecked_Access);
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
+
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
 
       Document.Get_Completions_At
         (Context                  => Context.all,
+         Providers                => Providers,
          Position                 => Value.position,
-         Named_Notation_Threshold => Self.Named_Notation_Threshold,
-         Snippets_Enabled         => Snippets_Enabled,
-         Should_Use_Names         => Use_Names,
          Names                    => Names,
          Result                   => Response.result);
-
-      --  We are not expecting a defining name: it means that we are completing
-      --  a pragma, an aspect or an attribute. In this case, we don't want to
-      --  search for invisible symbols since it's costly so return immediately.
-      if not Use_Names then
-         return Response;
-      end if;
-
-      declare
-         Word : constant VSS.Strings.Virtual_String := Document.Get_Word_At
-           (Context.all, Value.position);
-
-         Canonical_Prefix : constant VSS.Strings.Virtual_String :=
-           Canonicalize (Word);
-
-      begin
-         if not Word.Is_Empty then
-            Context.Get_Any_Symbol_Completion
-              (Prefix   => Canonical_Prefix,
-               Callback => On_Inaccessible_Name'Access);
-
-            for Doc of Self.Open_Documents loop
-               Doc.Get_Any_Symbol_Completion
-                 (Context.all, Canonical_Prefix, Limit, Names);
-            end loop;
-         end if;
-      end;
 
       LSP.Ada_Completions.Write_Completions
         (Context                  => Context.all,

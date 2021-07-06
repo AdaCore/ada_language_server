@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Wide_Wide_Latin_1;
-with Ada.Strings.UTF_Encoding;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
@@ -26,7 +25,6 @@ with GNATCOLL.Utils;
 with VSS.Characters;
 with VSS.Strings.Conversions;
 
-with Langkit_Support.Slocs;
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
@@ -39,9 +37,6 @@ with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
-with LSP.Ada_Completions.Aggregates;
-with LSP.Ada_Completions.Aspects;
-with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
@@ -69,12 +64,6 @@ package body LSP.Ada_Documents is
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
-
-   procedure Get_Keywords_Completion
-     (Node   : Libadalang.Analysis.Ada_Node;
-      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Messages.CompletionItem_Vector);
-   --  Get completion for keywords, filtering them with the given Prefix.
 
    function Unit
      (Self    : Document'Class;
@@ -106,7 +95,7 @@ package body LSP.Ada_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : Natural;
+      Low_Line     : LSP.Types.Line_Number;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker);
    --  Recompute line-to-marker index starting from Start_Marker till
@@ -119,18 +108,6 @@ package body LSP.Ada_Documents is
       Span : LSP.Messages.Span;
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker);
-
-   function Position_To_Marker
-     (Self     : Document'Class;
-      Position : LSP.Messages.Position)
-      return VSS.Strings.Markers.Character_Marker;
-   --  Return marker pointing to character at right side of the given
-   --  Position.
-
-   function Get_Source_Location
-     (Self     : Document'Class;
-      Position : LSP.Messages.Position)
-      return Langkit_Support.Slocs.Source_Location;
 
    function Get_Token_At
      (Self     : Document'Class;
@@ -194,10 +171,11 @@ package body LSP.Ada_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : Natural;
+      Low_Line     : LSP.Types.Line_Number;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker)
    is
+      use type LSP.Types.Line_Number;
       use type VSS.Strings.Character_Count;
 
       M    : VSS.Strings.Markers.Character_Marker;
@@ -206,7 +184,7 @@ package body LSP.Ada_Documents is
           (Position        => Start_Marker,
            Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
-      Line : Natural := Low_Line;
+      Line : LSP.Types.Line_Number := Low_Line;
 
    begin
       if J.Has_Element then
@@ -251,12 +229,12 @@ package body LSP.Ada_Documents is
             --  We're replacing a range
 
             declare
-               Low_Line    : Natural :=
-                 Natural (Change.span.Value.first.line);
-               High_Line   : Natural :=
-                 Natural (Change.span.Value.last.line);
-               Delete_High : Integer := High_Line;
-               Start_Index : Natural;
+               Low_Line    : LSP.Types.Line_Number :=
+                 Change.span.Value.first.line;
+               High_Line   : LSP.Types.Line_Number :=
+                 Change.span.Value.last.line;
+               Delete_High : LSP.Types.Line_Number := High_Line;
+               Start_Index : LSP.Types.Line_Number;
 
                First_Marker : VSS.Strings.Markers.Character_Marker;
                Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -592,7 +570,7 @@ package body LSP.Ada_Documents is
 
          if not Edit.Is_Empty
             and then not Self.Line_To_Marker.Is_Empty
-            and then Integer (Edit.Last_Element.span.last.line) not in
+            and then Edit.Last_Element.span.last.line not in
               Self.Line_To_Marker.First_Index .. Self.Line_To_Marker.Last_Index
          then
             declare
@@ -647,11 +625,11 @@ package body LSP.Ada_Documents is
 
       Messages  : Pp.Scanner.Source_Message_Vector;
 
-      Sloc : Source_Location_Range :=
-        (Start_Line => Langkit_Support.Slocs.Line_Number (Span.first.line) + 1,
-         Start_Column => Column_Number (Span.first.character) + 1,
-         End_Line => Langkit_Support.Slocs.Line_Number (Span.last.line) + 1,
-         End_Column => Column_Number (Span.last.character) + 1);
+      Sloc : constant Source_Location_Range :=
+        (if Span = LSP.Messages.Empty_Span
+         then No_Source_Location_Range
+         else Make_Range (Self.Get_Source_Location (Span.first),
+                          Self.Get_Source_Location (Span.last)));
 
       Out_Sloc : Source_Location_Range;
       S : GNAT.Strings.String_Access;
@@ -676,10 +654,6 @@ package body LSP.Ada_Documents is
       S := new String'(VSS.Strings.Conversions.To_UTF_8_String (Self.Text));
       Input.Append (S.all);
       GNAT.Strings.Free (S);
-
-      if Span = LSP.Messages.Empty_Span then
-         Sloc := No_Source_Location_Range;
-      end if;
 
       LSP.Lal_Utils.Format_Vector
         (Cmd       => Cmd,
@@ -1182,16 +1156,15 @@ package body LSP.Ada_Documents is
    is
       use Langkit_Support.Slocs;
 
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Self.Unit (Context);
+      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
+      Sloc : constant Langkit_Support.Slocs.Source_Location :=
+        Self.Get_Source_Location (Position);
    begin
       if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
       end if;
 
-      return Unit.Root.Lookup
-        ((Line   => Line_Number (Position.line) + 1,
-          Column => Column_Number (Position.character) + 1));
+      return Unit.Root.Lookup (Sloc);
    end Get_Node_At;
 
    ------------------------
@@ -1634,16 +1607,28 @@ package body LSP.Ada_Documents is
       Position : LSP.Messages.Position)
       return Langkit_Support.Slocs.Source_Location
    is
-      pragma Unreferenced (Self);
-      use type Langkit_Support.Slocs.Line_Number;
-      use type Langkit_Support.Slocs.Column_Number;
+      use type LSP.Types.Line_Number;
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+      use type VSS.Strings.Character_Index;
 
-      Where : constant Langkit_Support.Slocs.Source_Location :=
-        (Langkit_Support.Slocs.Line_Number (Position.line) + 1,
-         Langkit_Support.Slocs.Column_Number (Position.character) + 1);
-      --  FIXME: Should take UTF-16 encoding into account
+      Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Self.Text.Character (Self.Line_To_Marker (Position.line));
+
+      Line_Offset : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+        Iterator.First_UTF16_Offset;
+
+      Line_First_Character : constant VSS.Strings.Character_Index :=
+        Iterator.Character_Index;
    begin
-      return Where;
+      while Iterator.First_UTF16_Offset - Line_Offset <= Position.character
+        and then Iterator.Forward
+      loop
+         null;
+      end loop;
+
+      return ((Line   => Langkit_Support.Slocs.Line_Number (Position.line + 1),
+               Column => Langkit_Support.Slocs.Column_Number
+                 (Iterator.Character_Index - Line_First_Character)));
    end Get_Source_Location;
 
    ------------------
@@ -1683,9 +1668,8 @@ package body LSP.Ada_Documents is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
 
-      Where : constant Source_Location :=
-        (Line   => Line_Number (Position.line) + 1,
-         Column => Column_Number (Position.character));
+      Origin : constant Source_Location := Self.Get_Source_Location (Position);
+      Where : constant Source_Location := (Origin.Line, Origin.Column - 1);
       --  Compute the position we want for completion, which is one character
       --  before the cursor.
 
@@ -2045,304 +2029,101 @@ package body LSP.Ada_Documents is
       end loop Each_Prefix;
    end Get_Any_Symbol_Completion;
 
-   -----------------------------
-   -- Get_Keywords_Completion --
-   -----------------------------
-
-   procedure Get_Keywords_Completion
-     (Node   : Libadalang.Analysis.Ada_Node;
-      Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result : out LSP.Messages.CompletionItem_Vector)
-   is
-      Keywords : constant Unbounded_Text_Type_Array := Node.P_Valid_Keywords;
-      Item     : LSP.Messages.CompletionItem;
-   begin
-      for Keyword of Keywords loop
-         declare
-            Label : constant VSS.Strings.Virtual_String :=
-              LSP.Lal_Utils.To_Virtual_String (Keyword);
-
-         begin
-            if LSP.Types.Starts_With
-              (Text           =>
-                 LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Label)),
-               Prefix         => Prefix,
-               Case_Sensitive => False)
-            then
-               Item.label := Label;
-               Item.insertTextFormat := (True, LSP.Messages.PlainText);
-               Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
-               Item.kind := (True, LSP.Messages.Keyword);
-               Result.Append (Item);
-            end if;
-         end;
-      end loop;
-   end Get_Keywords_Completion;
-
    ------------------------
    -- Get_Completions_At --
    ------------------------
 
    procedure Get_Completions_At
-     (Self                     : Document;
-      Context                  : LSP.Ada_Contexts.Context;
-      Position                 : LSP.Messages.Position;
-      Named_Notation_Threshold : Natural;
-      Snippets_Enabled      : Boolean;
-      Should_Use_Names         : in out Boolean;
-      Names                    : out Ada_Completions.Completion_Maps.Map;
-      Result                   : out LSP.Messages.CompletionList)
+     (Self      : Document;
+      Providers : LSP.Ada_Completions.Completion_Provider_List;
+      Context   : LSP.Ada_Contexts.Context;
+      Position  : LSP.Messages.Position;
+      Names     : out Ada_Completions.Completion_Maps.Map;
+      Result    : out LSP.Messages.CompletionList)
    is
       use Libadalang.Common;
-      use LSP.Types;
-      use type VSS.Unicode.UTF16_Code_Unit_Count;
 
-      Real_Pos : constant LSP.Messages.Position :=
-        (Position.line,
-         UTF_16_Index'Max (0, Position.character - 1));
-      --  Compute the position we want for completion, which is one character
-      --  before the cursor.
+      function Completion_Token
+        (Sloc  : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Common.Token_Reference;
+      --  Get token under completion for given cursor position.
+      --  If cursor at the first symbol of a trivia return previous token:
+      --  XXX___
+      --     ^ cursor just after a token mean user is completion XXX token.
 
-      Node       : Libadalang.Analysis.Ada_Node :=
-        Self.Get_Node_At (Context, Real_Pos);
-      --  Get the corresponding LAL node
+      ----------------------
+      -- Completion_Token --
+      ----------------------
 
-      Parent   : Libadalang.Analysis.Ada_Node;
-      --  The parent of the node to complete.
-
-      Sibling  : Libadalang.Analysis.Ada_Node;
-      --  The right sibling of the node to complete.
-
-      In_End_Label : Boolean := False;
-      --  Set to True if we are completing an end label
-      --  (e.g: end <Subp_Name>);
-
-      Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        Langkit_Support.Text.To_UTF8 (Node.Text);
-
-      Use_Snippets : Boolean := Snippets_Enabled;
-   begin
-      Context.Trace.Trace ("In Get_Completions_At");
-
-      declare
-         type Completion_Provider_Access is access all
-           LSP.Ada_Completions.Completion_Provider'Class;
-
-         P1 : aliased LSP.Ada_Completions.Aggregates
-           .Aggregate_Completion_Provider
-             (Named_Notation_Threshold => Named_Notation_Threshold);
-
-         P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
-         P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
-
-         Providers : constant array (1 .. 3) of Completion_Provider_Access :=
-           (P1'Access, P2'Access, P3'Access);
-
-         Sloc  : constant Langkit_Support.Slocs.Source_Location :=
-           Self.Get_Source_Location (Position);
+      function Completion_Token
+        (Sloc  : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Common.Token_Reference
+      is
+         use type Langkit_Support.Slocs.Source_Location;
 
          Token : constant Libadalang.Common.Token_Reference :=
            Self.Get_Token_At (Context, Position);
 
-         From  : constant Langkit_Support.Slocs.Source_Location :=
-           Langkit_Support.Slocs.Start_Sloc
-             (Libadalang.Common.Sloc_Range
-               (Libadalang.Common.Data (Token)));
+         Prev  : constant Libadalang.Common.Token_Reference :=
+           (if Token = Libadalang.Common.No_Token
+            then Token
+            else Libadalang.Common.Previous (Token));
 
-         Root  : constant Libadalang.Analysis.Ada_Node :=
-           Self.Unit (Context).Root;
-
-         Node  : constant Libadalang.Analysis.Ada_Node :=
-           (if Root = No_Ada_Node then Root else Root.Lookup (From));
       begin
-         for Provider of Providers loop
-            Provider.Propose_Completion
-              (Sloc   => Sloc,
-               Token  => Token,
-               Node   => Node,
-               Names  => Names,
-               Result => Result);
-         end loop;
-
-         if not Result.items.Is_Empty then
-            return;
-         end if;
-      end;
-
-      --  Get the outermost dotted name of which node is a prefix, so that when
-      --  completing in a situation such as the following:
-      --
-      --      Ada.Tex|
-      --             ^ Cursor here
-      --
-      --  we get the DottedName node rather than just the "Tex" BaseId. We want
-      --  the DottedName rather than the Id so as to get the proper completions
-      --  (all elements in the "Ada" namespace).
-
-      while not Node.Is_Null
-        and then Node.Kind in Ada_Single_Tok_Node | Ada_Dotted_Name
-      loop
-         if Node.Parent.Kind = Ada_Dotted_Name
-           and then Node.Parent.As_Dotted_Name.F_Suffix = Node
+         if Libadalang.Common.No_Token not in Token | Prev
+           and then not Libadalang.Common.Is_Trivia (Prev)
          then
-            Node := Node.Parent;
-         else
-            exit;
-         end if;
-      end loop;
-
-      --  Return immediately if we are dealing with a null node or if the
-      --  node's parent is a Defining_Name, meaning that we are declaring a
-      --  new symbol.
-
-      if Node.Is_Null or else
-        (not Node.Parent.Is_Null
-                and then Node.Parent.Kind in Ada_Defining_Name_Range)
-      then
-         return;
-      end if;
-
-      Context.Trace.Trace
-        ("Getting completions, Pos = ("
-         & Real_Pos.line'Image & ", " & Real_Pos.character'Image & ") Node = "
-         & Image (Node));
-
-      Parent := Node.Parent;
-      Sibling := Node.Next_Sibling;
-
-      --  Check if we are completing an end label. If it's the case, we want
-      --  to disable snippets since end labels don't expect any parameters.
-      In_End_Label := not Parent.Is_Null
-        and then Parent.Kind in Ada_End_Name_Range;
-
-      declare
-         Previous_Is_Separator : Boolean := True;
-
-      begin
-         if Position.character > 2 then
             declare
-               J       : VSS.Strings.Character_Iterators.Character_Iterator :=
-                 Self.Text.Character (Self.Position_To_Marker (Position));
-               Success : Boolean with Unreferenced;
+               Data  : constant Libadalang.Common.Token_Data_Type :=
+                 Libadalang.Common.Data (Token);
 
+               Start : constant Langkit_Support.Slocs.Source_Location :=
+                 Langkit_Support.Slocs.Start_Sloc
+                   (Libadalang.Common.Sloc_Range (Data));
             begin
-               Success := J.Backward;
-               Success := J.Backward;
-
-               if J.Has_Element then
-                  Previous_Is_Separator := Is_Ada_Separator (J.Element);
+               if Start = Sloc then
+                  return Prev;
                end if;
             end;
          end if;
 
-         --  Propose keyword completion if we are not within and end label
-         --  and if there is no previous character of if it's a whitespace (we
-         --  don't want to propose keywords after typing '(' to feed subprogram
-         --  parameters for instance).
+         return Token;
+      end Completion_Token;
 
-         if not In_End_Label and then Previous_Is_Separator then
-            Get_Keywords_Completion
-              (Node   => Node,
-               Prefix => Prefix,
-               Result => Result.items);
-         end if;
-      end;
+      Sloc  : constant Langkit_Support.Slocs.Source_Location :=
+        Self.Get_Source_Location (Position);
 
-      --  Return without asing Libadalang for completion results we are dealing
-      --  with a syntax error.
-      if Node.Kind in Ada_Error_Decl_Range then
-         return;
-      end if;
+      Token : constant Libadalang.Common.Token_Reference :=
+        Completion_Token (Sloc);
 
-      Should_Use_Names := True;  --  Let's use defining names for completion
+      From  : constant Langkit_Support.Slocs.Source_Location :=
+        Langkit_Support.Slocs.Start_Sloc
+          (Libadalang.Common.Sloc_Range
+             (Libadalang.Common.Data (Token)));
 
-      if In_End_Label
-        or else not Sibling.Is_Null
-        or else
-          (not Parent.Is_Null and then Parent.Kind in Ada_Param_Assoc_Range)
-      then
-         --  Snippets should not be used in the following cases:
-         --
-         --   . The Use_Snippets parameter if set to False
-         --
-         --   . When the queried node is within an end label
-         --
-         --   . When the queried node has a sibling: this is to avoid proposing
-         --     snippets when a list of parameters is already present on the
-         --     right of the completion point for instance.
-         --
-         --   . When we are providing an actual parameter to a subprogram call
+      Root  : constant Libadalang.Analysis.Ada_Node :=
+        Self.Unit (Context).Root;
 
-         Use_Snippets := False;
-      end if;
-
-      declare
-         Raw_Completions     : constant Completion_Item_Iterator :=
-           Node.P_Complete;
-         Item                : Completion_Item;
-         BD                  : Basic_Decl;
-         Completion_Count    : Natural := 0;
-         Name                : VSS.Strings.Virtual_String;
-
-      begin
-         while Next (Raw_Completions, Item) loop
-            BD := Decl (Item).As_Basic_Decl;
-            Completion_Count := Completion_Count + 1;
-
-            if not BD.Is_Null then
-               for DN of BD.P_Defining_Names loop
-                  Name :=
-                    LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
-
-                  --  If we are not completing a dotted name, filter the
-                  --  raw completion results by the node's prefix.
-                  if Node.Kind in Ada_Dotted_Name_Range
-                    or else Starts_With
-                      (LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Name)),
-                       Prefix         => Prefix,
-                       Case_Sensitive => False)
-                  then
-                     Names.Include
-                       (DN, (Is_Dot_Call (Item), True, Use_Snippets));
-                  end if;
-               end loop;
-            end if;
-         end loop;
-
-         Context.Trace.Trace
-           ("Number of LAL completions : " & Completion_Count'Image);
-
-         Context.Trace.Trace
-           ("Number of filtered completions : " &
-              Names.Length'Image);
-      end;
-   end Get_Completions_At;
-
-   ------------------------
-   -- Position_To_Marker --
-   ------------------------
-
-   function Position_To_Marker
-     (Self     : Document'Class;
-      Position : LSP.Messages.Position)
-      return VSS.Strings.Markers.Character_Marker
-   is
-      use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
-      J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Position.line)));
-      U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
-        J1.First_UTF16_Offset;
-
+      Node  : constant Libadalang.Analysis.Ada_Node :=
+        (if Root = No_Ada_Node then Root else Root.Lookup (From));
    begin
-      while Position.character /= J1.First_UTF16_Offset - U1
-        and then J1.Forward
-      loop
-         null;
+      Context.Trace.Trace
+        ("Getting completions, Pos = ("
+         & Sloc.Line'Image & ", " & Sloc.Column'Image & ") Node = "
+         & Image (Node));
+
+      for Provider of Providers loop
+         Provider.Propose_Completion
+           (Sloc   => Sloc,
+            Token  => Token,
+            Node   => Node,
+            Names  => Names,
+            Result => Result);
       end loop;
 
-      return J1.Marker;
-   end Position_To_Marker;
+      Context.Trace.Trace
+        ("Number of filtered completions : " & Names.Length'Image);
+   end Get_Completions_At;
 
    ---------------------
    -- Span_To_Markers --
@@ -2357,12 +2138,12 @@ package body LSP.Ada_Documents is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Span.first.line)));
+        Self.Text.Character (Self.Line_To_Marker (Span.first.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
       J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Natural (Span.last.line)));
+        Self.Text.Character (Self.Line_To_Marker (Span.last.line));
       U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J2.First_UTF16_Offset;
 
