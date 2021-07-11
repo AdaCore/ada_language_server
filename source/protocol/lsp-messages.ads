@@ -6224,6 +6224,7 @@ package LSP.Messages is
       --  ALS-specific capabilities
       alsShowDepsProvider     : Optional_Boolean;
       alsReferenceKinds       : Optional_AlsReferenceKind_Set;
+      alsCheckSyntaxProvider  : Optional_Boolean;
    end record;
 
    procedure Read_ServerCapabilities
@@ -10909,6 +10910,33 @@ package LSP.Messages is
 
    type ALS_Unit_Description_Vector is
      new ALS_Unit_Description_Vectors.Vector with null record;
+
+   type ALS_Check_Syntax_Params is record
+      Input : VSS.Strings.Virtual_String;
+      Rules : VSS.String_Vectors.Virtual_String_Vector;
+   end record;
+
+   procedure Read_ALS_Check_Syntax_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Check_Syntax_Params);
+   for ALS_Check_Syntax_Params'Read use Read_ALS_Check_Syntax_Params;
+
+   procedure Write_ALS_Check_Syntax_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Check_Syntax_Params);
+   for ALS_Check_Syntax_Params'Write use Write_ALS_Check_Syntax_Params;
+
+   type ALS_Check_Syntax_Result is new Optional_Virtual_String;
+
+   procedure Read_ALS_Check_Syntax_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Check_Syntax_Result);
+   for ALS_Check_Syntax_Result'Read use Read_ALS_Check_Syntax_Result;
+
+   procedure Write_ALS_Check_Syntax_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Check_Syntax_Result);
+   for ALS_Check_Syntax_Result'Write use Write_ALS_Check_Syntax_Result;
 
 private
 

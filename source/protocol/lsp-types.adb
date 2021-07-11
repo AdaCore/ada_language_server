@@ -1247,4 +1247,45 @@ package body LSP.Types is
       Stream.Write_Integer (Interfaces.Integer_64 (Item));
    end Write_UTF16_Code_Unit_Count;
 
+   ----------------------------------
+   -- Read_Optional_Virtual_String --
+   ----------------------------------
+
+   procedure Read_Optional_Virtual_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out Optional_Virtual_String)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+   begin
+      case JS.R.Event_Kind is
+         when VSS.JSON.Pull_Readers.Null_Value =>
+
+            Item := (Is_Set => False);
+
+         when VSS.JSON.Pull_Readers.String_Value =>
+            Item := (Is_Set => True,
+                     Value  => JS.R.String_Value);
+
+         when others =>
+            raise Constraint_Error;
+      end case;
+
+      JS.R.Read_Next;
+   end Read_Optional_Virtual_String;
+
+   -----------------------------------
+   -- Write_Optional_Virtual_String --
+   -----------------------------------
+
+   procedure Write_Optional_Virtual_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : Optional_Virtual_String) is
+   begin
+      if Item.Is_Set then
+         Write_String (S, Item.Value);
+      end if;
+   end Write_Optional_Virtual_String;
+
 end LSP.Types;

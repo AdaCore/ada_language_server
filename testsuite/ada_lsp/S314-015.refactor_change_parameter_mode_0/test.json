@@ -318,54 +318,7 @@
             {
                "id": 5,
                "result": [
-                  {
-                     "title": "Remove parameter A",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-remove-parameters",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Move A forward",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "parameter_index": 1,
-                              "direction": "forward"
-                           }
-                        ]
-                     }
-                  },
+                  "<HAS>",
                   {
                      "title": "Change parameter A mode to in",
                      "kind": "refactor.rewrite",

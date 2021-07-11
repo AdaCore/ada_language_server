@@ -196,7 +196,7 @@
                      "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
-			   "<HAS>",
+                           "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
@@ -319,30 +319,7 @@
                "jsonrpc": "2.0",
                "id": 3,
                "result": [
-                  {
-                     "title": "Remove parameters A and B",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-remove-parameters",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 2
-                           }
-                        ]
-                     }
-                  },
+                  "<HAS>",
                   {
                      "title": "Change parameters A and B mode to in",
                      "kind": "refactor.rewrite",
