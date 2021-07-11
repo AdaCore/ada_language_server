@@ -578,4 +578,20 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.Range_Formatting_Response
         renames Range_Formatting_Request;
 
+   ---------------------------------
+   -- On_ALS_Check_Syntax_Request --
+   ---------------------------------
+
+   function ALS_Check_Syntax_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.ALS_Check_Syntax_Request,
+      Response   => LSP.Messages.Server_Responses.ALS_Check_Syntax_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_ALS_Check_Syntax_Request);
+
+   overriding function On_ALS_Check_Syntax_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
+      return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response
+        renames ALS_Check_Syntax_Request;
+
 end LSP.Error_Decorators;

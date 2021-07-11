@@ -256,7 +256,7 @@
                      "documentSymbolProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
-			   "<HAS>",
+                           "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
@@ -265,17 +265,6 @@
                         "prepareProvider": true
                      },
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-other-file",
-                           "als-named-parameters",
-                           "als-refactor-imports",
-                           "als-refactor-remove-parameters",
-                           "als-refactor-move-parameter",
-                           "als-refactor-change-parameter-mode",
-                           "als-suppress-separate"
-                        ]
-                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,

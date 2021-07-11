@@ -292,4 +292,15 @@ package LSP.Messages.Server_Responses is
      (Self    : Range_Formatting_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package ALS_Check_Syntax_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => ALS_Check_Syntax_Result);
+
+   type ALS_Check_Syntax_Response is
+     new ALS_Check_Syntax_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : ALS_Check_Syntax_Response;
+      Handler : access Server_Response_Sender'Class);
+
 end LSP.Messages.Server_Responses;
