@@ -21,7 +21,7 @@
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
-                     "applyEdit":true,
+                     "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
                         "resourceOperations": [
@@ -198,6 +198,7 @@
                "jsonrpc": "2.0",
                "id": 4,
                "result": [
+                  "<HAS>",
                   {
                      "title": "Suppress separate subprogram Bar",
                      "kind": "refactor.rewrite",

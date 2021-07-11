@@ -4309,4 +4309,109 @@ package body LSP.Messages is
       JS.R.Read_Next;
    end Read_Registration;
 
+   ----------------------------------
+   -- Read_ALS_Check_Syntax_Params --
+   ----------------------------------
+
+   procedure Read_ALS_Check_Syntax_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Check_Syntax_Params)
+   is
+      use type VSS.Strings.Virtual_String;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "input" then
+               LSP.Types.Read_String (S, V.Input);
+            elsif Key = "rules" then
+               LSP.Types.Read_String_Vector (S, V.Rules);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_ALS_Check_Syntax_Params;
+
+   -----------------------------------
+   -- Write_ALS_Check_Syntax_Params --
+   -----------------------------------
+
+   procedure Write_ALS_Check_Syntax_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Check_Syntax_Params)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("input");
+      LSP.Types.Write_String (S, V.Input);
+      JS.Key ("rules");
+      LSP.Types.Write_String_Vector (S, V.Rules);
+      JS.End_Object;
+   end Write_ALS_Check_Syntax_Params;
+
+   ----------------------------------
+   -- Read_ALS_Check_Syntax_Result --
+   ----------------------------------
+
+   procedure Read_ALS_Check_Syntax_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Check_Syntax_Result)
+   is
+      use type VSS.Strings.Virtual_String;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "diagnostic" then
+               V := (Is_Set => True, Value => <>);
+               Read_String (S, V.Value);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_ALS_Check_Syntax_Result;
+
+   -----------------------------------
+   -- Write_ALS_Check_Syntax_Result --
+   -----------------------------------
+
+   procedure Write_ALS_Check_Syntax_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Check_Syntax_Result)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      if V.Is_Set then
+         JS.Key ("diagnostic");
+         Write_String (S, V.Value);
+      end if;
+      JS.End_Object;
+   end Write_ALS_Check_Syntax_Result;
+
 end LSP.Messages;

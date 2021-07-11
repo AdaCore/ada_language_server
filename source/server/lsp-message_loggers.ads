@@ -440,4 +440,12 @@ private
      (Self     : in out Message_Logger;
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response);
 
+   overriding procedure On_ALS_Check_Syntax_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request);
+
+   overriding procedure On_ALS_Check_Syntax_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.ALS_Check_Syntax_Response);
+
 end LSP.Message_Loggers;

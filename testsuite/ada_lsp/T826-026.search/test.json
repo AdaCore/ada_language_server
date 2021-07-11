@@ -109,17 +109,6 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-other-file",
-                           "als-named-parameters",
-                           "als-refactor-imports",
-                           "als-refactor-remove-parameters",
-                           "als-refactor-move-parameter",
-                           "als-refactor-change-parameter-mode",
-                           "als-suppress-separate"
-                        ]
-                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,
@@ -166,16 +155,16 @@
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -226,7 +215,9 @@
                "kind": 1
             }
          },
-         "sortReply": { "result": "name" },
+         "sortReply": {
+            "result": "name"
+         },
          "wait": [
             {
                "id": 6,
@@ -364,7 +355,9 @@
                "kind": 2
             }
          },
-         "sortReply": { "result": "name" },
+         "sortReply": {
+            "result": "name"
+         },
          "wait": [
             {
                "id": 14,

@@ -517,4 +517,9 @@ private
       File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Convert file name to URI
 
+   overriding function On_ALS_Check_Syntax_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
+      return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response;
+
 end LSP.Ada_Handlers;

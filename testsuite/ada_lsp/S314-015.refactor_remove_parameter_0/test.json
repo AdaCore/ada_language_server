@@ -196,7 +196,7 @@
                      "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
-			   "<HAS>",
+                           "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
@@ -309,6 +309,7 @@
             {
                "id": 4,
                "result": [
+                  "<HAS>",
                   {
                      "title": "Remove parameter A",
                      "kind": "refactor.rewrite",
@@ -329,105 +330,6 @@
                               },
                               "first_parameter": 1,
                               "last_parameter": 1
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Move A forward",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "parameter_index": 1,
-                              "direction": "forward"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to in",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "out"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to in out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in out"
                            }
                         ]
                      }
@@ -628,6 +530,7 @@
             {
                "id": 10,
                "result": [
+                  "<HAS>",
                   {
                      "title": "Remove parameter B",
                      "kind": "refactor.rewrite",
@@ -648,105 +551,6 @@
                               },
                               "first_parameter": 1,
                               "last_parameter": 1
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Move B forward",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "parameter_index": 1,
-                              "direction": "forward"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter B mode to in",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter B mode to out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "out"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter B mode to in out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in out"
                            }
                         ]
                      }
@@ -1065,6 +869,7 @@
             {
                "id": 20,
                "result": [
+                  "<HAS>",
                   {
                      "title": "Remove parameter A",
                      "kind": "refactor.rewrite",
@@ -1085,105 +890,6 @@
                               },
                               "first_parameter": 1,
                               "last_parameter": 1
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Move A forward",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "parameter_index": 1,
-                              "direction": "forward"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to in",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "out"
-                           }
-                        ]
-                     }
-                  },
-                  {
-                     "title": "Change parameter A mode to in out",
-                     "kind": "refactor.rewrite",
-                     "command": {
-                        "title": "",
-                        "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
-                              },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in out"
                            }
                         ]
                      }

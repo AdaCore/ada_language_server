@@ -16,11 +16,18 @@
 ----------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as vscode_languageclient from 'vscode-languageclient/node';
+import {
+    ExecuteCommandRequest,
+    LanguageClient,
+    LanguageClientOptions,
+    Middleware,
+    ServerOptions,
+} from 'vscode-languageclient/node';
 import * as process from 'process';
 
 import GPRTaskProvider from './gprTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
+import { alsCommandExecuter } from './alsExecuteCommand';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
@@ -38,12 +45,12 @@ export function activate(context: vscode.ExtensionContext): void {
     // let debugOptions = { execArgv: [] };
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
-    const serverOptions: vscode_languageclient.ServerOptions = {
+    const serverOptions: ServerOptions = {
         run: { command: serverModule },
         debug: { command: serverModule },
     };
     // Options to control the language client
-    const clientOptions: vscode_languageclient.LanguageClientOptions = {
+    const clientOptions: LanguageClientOptions = {
         // Register the server for ada sources documents
         documentSelector: [{ scheme: 'file', language: 'ada' }],
         synchronize: {
@@ -53,14 +60,13 @@ export function activate(context: vscode.ExtensionContext): void {
             fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc'),
         },
     };
-
     // Create the language client and start the client.
-    const client = new vscode_languageclient.LanguageClient(
-        'ada',
-        'Ada Language Server',
-        serverOptions,
-        clientOptions
-    );
+    const client = new LanguageClient('ada', 'Ada Language Server', serverOptions, clientOptions);
+    const alsMiddleware: Middleware = {
+        executeCommand: alsCommandExecuter(client),
+    };
+    client.clientOptions.middleware = alsMiddleware;
+
     const disposable = client.start();
     // Push the disposable to the context's subscriptions so that the
     // client can be deactivated on extension deactivation
@@ -72,7 +78,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!activeEditor) {
             return;
         }
-        void client.sendRequest(vscode_languageclient.ExecuteCommandRequest.type, {
+        void client.sendRequest(ExecuteCommandRequest.type, {
             command: 'als-other-file',
             arguments: [
                 {
