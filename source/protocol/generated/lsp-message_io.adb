@@ -5552,6 +5552,8 @@ package body LSP.Message_IO is
                Optional_Boolean'Read (S, V.alsShowDepsProvider);
             elsif Key = "alsReferenceKinds" then
                Optional_AlsReferenceKind_Set'Read (S, V.alsReferenceKinds);
+            elsif Key = "alsCheckSyntaxProvider" then
+               Optional_Boolean'Read (S, V.alsCheckSyntaxProvider);
             else
                JS.Skip_Value;
             end if;
@@ -5628,6 +5630,8 @@ package body LSP.Message_IO is
       Optional_Boolean'Write (S, V.alsShowDepsProvider);
       JS.Key ("alsReferenceKinds");
       Optional_AlsReferenceKind_Set'Write (S, V.alsReferenceKinds);
+      JS.Key ("alsCheckSyntaxProvider");
+      Optional_Boolean'Write (S, V.alsCheckSyntaxProvider);
       JS.End_Object;
    end Write_ServerCapabilities;
 

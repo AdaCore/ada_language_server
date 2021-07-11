@@ -412,4 +412,30 @@ package LSP.Types is
    function File_To_URI
      (File : Ada.Strings.Unbounded.Unbounded_String) return LSP.Types.LSP_URI;
 
+   -----------------------------
+   -- Optional_Virtual_String --
+   -----------------------------
+
+   type Optional_Virtual_String (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when True =>
+            Value : VSS.Strings.Virtual_String;
+         when False =>
+            null;
+      end case;
+   end record;
+
+   procedure Read_Optional_Virtual_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out Optional_Virtual_String);
+   --  Read an optional VSS.Strings.Virtual_String from the JSON stream
+
+   procedure Write_Optional_Virtual_String
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : Optional_Virtual_String);
+   --  Read an optional VSS.Strings.Virtual_String to the JSON stream
+
+   for Optional_Virtual_String'Read use Read_Optional_Virtual_String;
+   for Optional_Virtual_String'Write use Write_Optional_Virtual_String;
+
 end LSP.Types;

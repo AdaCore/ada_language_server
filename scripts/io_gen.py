@@ -280,6 +280,8 @@ types_to_print = {
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
     'Search_Kind',
+    #  'ALS_Check_Syntax_Params',
+    #  'ALS_Check_Syntax_Result',
     }
 
 spec_header = """--  Automatically generated, do not edit.

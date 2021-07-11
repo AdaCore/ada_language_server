@@ -45,6 +45,7 @@ with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor_Add_Parameter;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
@@ -765,6 +766,8 @@ package body LSP.Ada_Handlers is
       Self.Resource_Operations :=
         Value.capabilities.workspace.workspaceEdit.resourceOperations;
 
+      Response.result.capabilities.alsCheckSyntaxProvider := True;
+
       --  Client capability to support versioned document changes in
       --  `WorkspaceEdit`s.
       Self.Versioned_Documents :=
@@ -1196,6 +1199,52 @@ package body LSP.Ada_Handlers is
          end case;
 
          --  Refactoring Code Actions
+
+         --  Add Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor_Add_Parameter;
+            use Libadalang.Analysis;
+            use Laltools.Refactor.Subprogram_Signature;
+            use Langkit_Support.Slocs;
+            use type LSP.Messages.Position;
+
+            --  This code action is not available when a range of text is
+            --  selected.
+
+            Single_Location             : constant Boolean :=
+              Params.span.first = Params.span.last;
+            Location                    : constant Source_Location :=
+              (if Single_Location then
+                 (Langkit_Support.Slocs.Line_Number
+                      (Params.span.first.line) + 1,
+                  Column_Number (Params.span.first.character) + 1)
+               else
+                  No_Source_Location);
+
+            Requires_Full_Specification : Boolean;
+
+            Add_Parameter_Commad : Command;
+
+         begin
+            if Single_Location
+              and then Is_Add_Parameter_Available
+                         (Node.Unit,
+                          Location,
+                          Requires_Full_Specification)
+            then
+               Add_Parameter_Commad.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (Params.textDocument.uri,
+                     Params.span,
+                     LSP.Messages.Empty_Set),
+                  Requires_Full_Specification => Requires_Full_Specification);
+
+               Found := True;
+               Done := True;
+            end if;
+         end;
 
          --  Remove Parameter
          declare
@@ -4781,5 +4830,83 @@ package body LSP.Ada_Handlers is
    begin
       return LSP.Types.To_LSP_String (Result);
    end File_To_URI;
+
+   ---------------------------------
+   -- On_ALS_Check_Syntax_Request --
+   ---------------------------------
+
+   overriding function On_ALS_Check_Syntax_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
+      return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response
+   is
+      use Ada.Strings.UTF_Encoding;
+      use Libadalang.Analysis;
+      use LSP.Messages.Server_Responses;
+      use VSS.Strings;
+
+      function "+"
+        (Item : Virtual_String'Class)
+         return UTF_8_String
+         renames VSS.Strings.Conversions.To_UTF_8_String;
+
+      Invalid_Rule_Error_Message : constant Virtual_String :=
+        "Error parsing the grammar rules for the syntax check";
+
+      Input : constant UTF_8_String := +Request.params.Input;
+
+      Valid : Boolean := False;
+
+   begin
+      if Request.params.Rules.Length = 0 then
+         --  We need at least one rule in order to validate the input
+
+         raise Constraint_Error;
+      end if;
+
+      --  The input cannot be empty and only needs to be valid against one of
+      --  the rules.
+
+      if Input /= "" then
+         for Rule_Image of Request.params.Rules loop
+            declare
+               Rule : constant Grammar_Rule :=
+                 Grammar_Rule'Value (+Rule_Image);
+               --  A Constraint_Error can be raised here is an invalid rule
+               --  is received in the request parameters.
+
+               Unit : constant Analysis_Unit :=
+                 Create_Context.Get_From_Buffer
+                   (Filename => "", Buffer => Input, Rule => Rule);
+
+            begin
+               Valid := not Unit.Has_Diagnostics;
+            end;
+
+            exit when Valid;
+         end loop;
+      end if;
+
+      if Valid then
+         return Response : ALS_Check_Syntax_Response (Is_Error => False) do
+            Response.result := (Is_Set => False);
+         end return;
+
+      else
+         return Response : ALS_Check_Syntax_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => "Invalid Syntax");
+         end return;
+      end if;
+
+   exception
+      when Constraint_Error =>
+         return Response : ALS_Check_Syntax_Response (Is_Error => True) do
+            Response.error :=
+              (Is_Set => True,
+               Value  => (code    => LSP.Errors.InvalidRequest,
+                          message => Invalid_Rule_Error_Message,
+                          data    => <>));
+         end return;
+   end On_ALS_Check_Syntax_Request;
 
 end LSP.Ada_Handlers;

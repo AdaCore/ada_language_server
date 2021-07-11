@@ -145,4 +145,9 @@ package LSP.Server_Response_Senders is
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.ALS_Debug_Response) is abstract;
 
+   procedure On_ALS_Check_Syntax_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.ALS_Check_Syntax_Response)
+       is abstract;
+
 end LSP.Server_Response_Senders;

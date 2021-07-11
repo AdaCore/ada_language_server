@@ -22,6 +22,7 @@ with Ada.Strings.Unbounded;
 with GNATCOLL.JSON;
 
 with VSS.Strings.Conversions;
+with VSS.String_Vectors;
 
 with LSP.Messages; use LSP.Messages;
 
@@ -51,6 +52,10 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String;
    function Image
      (Value : LSP.Messages.CompletionItem) return String;
+   function Image
+     (Value : LSP.Messages.ALS_Check_Syntax_Params) return String;
+   function Image
+     (Value : LSP.Messages.ALS_Check_Syntax_Result) return String;
 
    -----------
    -- Image --
@@ -196,6 +201,69 @@ package body LSP.Message_Loggers is
    function Image (Value : LSP.Messages.TextEdit_Vector) return String is
    begin
       return Ada.Containers.Count_Type'Image (Value.Length);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.ALS_Check_Syntax_Params) return String
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+      use VSS.String_Vectors;
+
+      function Reduce_Rules return String;
+      --  Joins the string elements seperated by a comma
+
+      ------------------
+      -- Reduce_Rules --
+      ------------------
+
+      function Reduce_Rules return String is
+         I : constant Reversible_Iterator := Value.Rules.Iterate;
+         L : constant Cursor := Last (I);
+         C : Cursor := First (I);
+         R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+
+      begin
+         if Has_Element (C) then
+            while C /= L loop
+               Append (R, Value.Rules.Element (C));
+               Append (R, ", ");
+               C := Next (I, C);
+            end loop;
+
+            if Has_Element (C) then
+               Append (R, Value.Rules.Element (C));
+            end if;
+         end if;
+
+         return To_UTF_8_String (R);
+      end Reduce_Rules;
+
+   begin
+      return "Input: "
+        & To_UTF_8_String (Value.Input)
+        & "; Rules : ["
+        & Reduce_Rules
+        & "]";
+        --  & Value.Rules.Length'Image;
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.ALS_Check_Syntax_Result) return String is
+   begin
+      if Value.Is_Set then
+         return VSS.Strings.Conversions.To_UTF_8_String (Value.Value);
+      else
+         return "";
+      end if;
    end Image;
 
    ----------------
@@ -1864,5 +1932,45 @@ package body LSP.Message_Loggers is
         ("Range_Formatting_Response: "
          & Image (Response) & Image (Response.result));
    end On_Range_Formatting_Response;
+
+   ---------------------------------
+   -- On_ALS_Check_Syntax_Request --
+   ---------------------------------
+
+   overriding procedure On_ALS_Check_Syntax_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request) is
+   begin
+      Self.Trace.Trace
+        ("ALS_Check_Syntax_Request: "
+         & Image (Value)
+         & " "
+         & Image (Value.params));
+   end On_ALS_Check_Syntax_Request;
+
+   ----------------------------------
+   -- On_ALS_Check_Syntax_Response --
+   ----------------------------------
+
+   overriding procedure On_ALS_Check_Syntax_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.ALS_Check_Syntax_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("ALS_Check_Syntax_Response: " & Image (Response) & " Error");
+      else
+         if Response.result.Is_Set then
+            Self.Trace.Trace
+              ("ALS_Check_Syntax_Response: "
+               & Image (Response)
+               & " "
+               & Image (Response.result));
+         else
+            Self.Trace.Trace
+              ("ALS_Check_Syntax_Response: " & Image (Response));
+         end if;
+      end if;
+   end On_ALS_Check_Syntax_Response;
 
 end LSP.Message_Loggers;

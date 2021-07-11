@@ -424,4 +424,17 @@ package LSP.Messages.Server_Requests is
      (Self    : ALS_Debug_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package ALS_Check_Syntax_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        ALS_Check_Syntax_Params,
+        Server_Request_Receiver'Class);
+
+   type ALS_Check_Syntax_Request is
+     new ALS_Check_Syntax_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : ALS_Check_Syntax_Request;
+      Handler : access Server_Request_Receiver'Class);
+
 end LSP.Messages.Server_Requests;

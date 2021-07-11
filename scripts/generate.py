@@ -16,8 +16,7 @@ use LSP.Server_{kind}_Receivers;
 
 package LSP.Messages.Server_{kind}s is
 
-   type Server_{kind} is abstract new LSP.Messages.{kind}Message
-     with null record;
+   type Server_{kind} is abstract new LSP.Messages.{kind}Message{record};
 
    function Decode
      (JS : not null access LSP.JSON_Streams.JSON_Stream)
@@ -312,6 +311,8 @@ REQUESTS = [
      'ALS_ShowDependenciesParams',
      'ALS_ShowDependencies_Response'),
     ('$/alsDebug', 'ALS_Debug', 'ALSDebugParams', 'ALS_Debug_Response'),
+    ('$/alsCheckSyntax', 'ALS_Check_Syntax', 'ALS_Check_Syntax_Params',
+     'ALS_Check_Syntax_Response'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name,
 #   response name)
@@ -343,12 +344,12 @@ NOTIFICATIONS = [
 def write_message_types():
     """ Write source/protocol/lsp-messages-request.* """
 
-    def write_package(data_array, kind, ads_name, handler_is_procedure):
+    def write_package(data_array, kind, record, ads_name, handler_is_procedure):
         """Factorization function"""
 
         # Write the .ads
         with open(ads_name, 'w') as ads:
-            ads.write(LSP_Messages_Generic_Header.format(kind=kind))
+            ads.write(LSP_Messages_Generic_Header.format(kind=kind, record=record))
 
             for l in data_array:
                 request_name = l[1]
@@ -410,9 +411,10 @@ def write_message_types():
 
     gen_dir = join(basedir, 'source', 'protocol', 'generated')
     write_package(REQUESTS, 'Request',
+                  """ with record\n      Canceled : Boolean := False with Atomic;\n   end record""",
                   join(gen_dir, 'lsp-messages-server_requests.ads'),
                   False)
-    write_package(NOTIFICATIONS, 'Notification',
+    write_package(NOTIFICATIONS, 'Notification', '\n     with null record',
                   join(gen_dir, 'lsp-messages-server_notifications.ads'),
                   True)
     write_body(NOTIFICATIONS, 'Notification',
