@@ -1786,12 +1786,14 @@ package body LSP.Ada_Documents is
          --  In addition, append the project's name if we are dealing with an
          --  aggregate project.
 
+         Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
+
          if not Doc_Text.Is_Empty then
-            Loc_Text :=
-              VSS.Strings.Conversions.To_Virtual_String (ASCII.LF & ASCII.LF);
+            Loc_Text.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (ASCII.LF & ASCII.LF));
          end if;
 
-         Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
          Loc_Text.Append (Doc_Text);
 
          Item.documentation :=
