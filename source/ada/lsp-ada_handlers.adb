@@ -3617,9 +3617,10 @@ package body LSP.Ada_Handlers is
 
    begin
       for Context of Self.Contexts.Each_Context loop
-         Context.Get_Any_Symbol_Completion
-           (Prefix   => Query,
-            Callback => On_Inaccessible_Name'Access);
+         Context.Get_Any_Symbol
+           (Prefix      => Query,
+            Only_Public => False,
+            Callback    => On_Inaccessible_Name'Access);
 
          exit when Request.Canceled;
       end loop;
@@ -3629,8 +3630,12 @@ package body LSP.Ada_Handlers is
             Context : constant Context_Access :=
               Self.Contexts.Get_Best_Context (Doc.URI);
          begin
-            Doc.Get_Any_Symbol_Completion
-              (Context.all, Query, Ada.Containers.Count_Type'Last, Names);
+            Doc.Get_Any_Symbol
+              (Context.all,
+               Query,
+               Ada.Containers.Count_Type'Last,
+               False,
+               Names);
          end;
       end loop;
 

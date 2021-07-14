@@ -61,21 +61,24 @@ package LSP.Ada_File_Sets is
    --  index. After that names could be fetched using Get_Any_Symbol_Completion
    --  function.
 
-   procedure Get_Any_Symbol_Completion
-     (Self     : Indexed_File_Set'Class;
-      Prefix   : VSS.Strings.Virtual_String;
+   procedure Get_Any_Symbol
+     (Self        : Indexed_File_Set'Class;
+      Prefix      : VSS.Strings.Virtual_String;
+      Only_Public : Boolean;
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Loc  : Langkit_Support.Slocs.Source_Location;
          Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the set and
    --  call Callback for each. Name could contain a stale reference if the File
-   --  was updated since last indexing operation.
+   --  was updated since last indexing operation. If Only_Public is True it
+   --  will skip any "private" symbols (like symbols in private part or body).
 
 private
    type Name_Information is record
-      File : GNATCOLL.VFS.Virtual_File;
-      Loc  : Langkit_Support.Slocs.Source_Location;
+      File      : GNATCOLL.VFS.Virtual_File;
+      Loc       : Langkit_Support.Slocs.Source_Location;
+      Is_Public : Boolean;
    end record;
 
    package Name_Vectors is new Ada.Containers.Vectors

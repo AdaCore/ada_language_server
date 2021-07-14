@@ -28,6 +28,7 @@ with Laltools.Refactor;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Iterators;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -253,5 +254,25 @@ package LSP.Lal_Utils is
      (Item : Langkit_Support.Text.Unbounded_Text_Type)
       return VSS.Strings.Virtual_String;
    --  Do string type conversion.
+
+   --  Global symbol index predicates.
+
+   function Is_Restricted_Kind return Libadalang.Iterators.Ada_Node_Predicate;
+   --  A node under query doesn't participate in global symbol index. It's a
+   --  defining name of a declaration such as
+   --  * a loop parameter specification
+   --  * parameter declaration
+   --  * discriminant/component declaration
+   --  * return object declaration
+   --  * entry/entry-index declaration
+   --  * formal parameter declaration
+   --  * etc
+   --  It also includes any symbols local to some non-package body.
+   --  These symbols isn't very useful in "invisible symbol completion" and
+   --  in "Go to workspace symbol" requests.
+
+   function Is_Global_Visible return Libadalang.Iterators.Ada_Node_Predicate;
+   --  A node under query is a defined name visible at a library level, such
+   --  as declaration in a public part of a library level project.
 
 end LSP.Lal_Utils;
