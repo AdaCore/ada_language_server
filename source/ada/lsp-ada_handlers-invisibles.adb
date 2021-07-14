@@ -123,13 +123,18 @@ package body LSP.Ada_Handlers.Invisibles is
 
       begin
          if not Word.Is_Empty then
-            Self.Context.Get_Any_Symbol_Completion
-              (Prefix   => Canonical_Prefix,
-               Callback => On_Inaccessible_Name'Access);
+            Self.Context.Get_Any_Symbol
+              (Prefix      => Canonical_Prefix,
+               Only_Public => True,
+               Callback    => On_Inaccessible_Name'Access);
 
             for Doc of Self.Handler.Open_Documents loop
-               Doc.Get_Any_Symbol_Completion
-                 (Self.Context.all, Canonical_Prefix, Limit, Names);
+               Doc.Get_Any_Symbol
+                 (Self.Context.all,
+                  Canonical_Prefix,
+                  Limit,
+                  True,
+                  Names);
             end loop;
          end if;
       end;

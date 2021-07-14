@@ -1944,16 +1944,17 @@ package body LSP.Ada_Documents is
       return Item;
    end Compute_Completion_Item;
 
-   -------------------------------
-   -- Get_Any_Symbol_Completion --
-   -------------------------------
+   --------------------
+   -- Get_Any_Symbol --
+   --------------------
 
-   procedure Get_Any_Symbol_Completion
-     (Self    : in out Document;
-      Context : LSP.Ada_Contexts.Context;
-      Prefix  : VSS.Strings.Virtual_String;
-      Limit   : Ada.Containers.Count_Type;
-      Result  : in out LSP.Ada_Completions.Completion_Maps.Map)
+   procedure Get_Any_Symbol
+     (Self        : in out Document;
+      Context     : LSP.Ada_Contexts.Context;
+      Prefix      : VSS.Strings.Virtual_String;
+      Limit       : Ada.Containers.Count_Type;
+      Only_Public : Boolean;
+      Result      : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
 
       procedure Refresh_Symbol_Cache;
@@ -1965,13 +1966,23 @@ package body LSP.Ada_Documents is
       procedure Refresh_Symbol_Cache is
          use Langkit_Support.Symbols;
          use Libadalang.Common;
+         use Libadalang.Iterators;
 
          Node : Libadalang.Analysis.Ada_Node;
 
+         Global_Visible : constant Libadalang.Iterators.Ada_Node_Predicate :=
+           LSP.Lal_Utils.Is_Global_Visible;
+
+         Restricted_Kind : constant Libadalang.Iterators.Ada_Node_Predicate :=
+           LSP.Lal_Utils.Is_Restricted_Kind;
+
+         --  Find all definings names excluding private parts and bodies
          It : Libadalang.Iterators.Traverse_Iterator'Class :=
            Libadalang.Iterators.Find
              (Self.Unit (Context).Root,
-              Libadalang.Iterators.Kind_Is (Ada_Defining_Name));
+              Libadalang.Iterators.Kind_Is (Ada_Defining_Name)
+              and not Restricted_Kind);
+
       begin
          while It.Next (Node) loop
             declare
@@ -1992,7 +2003,9 @@ package body LSP.Ada_Documents is
                      Inserted);
                end if;
 
-               Self.Symbol_Cache (Cursor).Append (Node.As_Defining_Name);
+               Self.Symbol_Cache (Cursor).Append
+                 ((Node.As_Defining_Name,
+                   Global_Visible.Unchecked_Get.Evaluate (Node)));
             end;
          end loop;
       end Refresh_Symbol_Cache;
@@ -2016,10 +2029,12 @@ package body LSP.Ada_Documents is
          begin
             exit Each_Prefix when not Key.Starts_With (Prefix);
 
-            for Name of Self.Symbol_Cache (Cursor) loop
-               if not Result.Contains (Name) then
+            for Item of Self.Symbol_Cache (Cursor) loop
+               if not Result.Contains (Item.Name) and then
+                 (not Only_Public or else Item.Is_Public)
+               then
                   Result.Insert
-                    (Name,
+                    (Item.Name,
                      (Is_Dot_Call  => False,
                       Is_Visible   => False,
                       Use_Snippets => False));
@@ -2029,7 +2044,7 @@ package body LSP.Ada_Documents is
             Symbol_Maps.Next (Cursor);
          end;
       end loop Each_Prefix;
-   end Get_Any_Symbol_Completion;
+   end Get_Any_Symbol;
 
    ------------------------
    -- Get_Completions_At --
