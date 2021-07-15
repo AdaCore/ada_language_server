@@ -486,13 +486,10 @@ package body LSP.Ada_Contexts is
          end;
    end Find_All_Env_Elements;
 
-   -------------------------------
-   -- Get_Any_Symbol_Completion --
-   -------------------------------
-
-   procedure Get_Any_Symbol_Completion
-     (Self   : Context;
-      Prefix : VSS.Strings.Virtual_String;
+   procedure Get_Any_Symbol
+     (Self        : Context;
+      Prefix      : VSS.Strings.Virtual_String;
+      Only_Public : Boolean;
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
@@ -531,8 +528,8 @@ package body LSP.Ada_Contexts is
       end Adapter;
 
    begin
-      Self.Source_Files.Get_Any_Symbol_Completion (Prefix, Adapter'Access);
-   end Get_Any_Symbol_Completion;
+      Self.Source_Files.Get_Any_Symbol (Prefix, Only_Public, Adapter'Access);
+   end Get_Any_Symbol;
 
    -----------------
    -- Get_Charset --

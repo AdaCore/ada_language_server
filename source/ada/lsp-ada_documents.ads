@@ -134,13 +134,14 @@ package LSP.Ada_Documents is
    --  document. Names works for defining name completions to create snippets
    --  and to avoid duplicates.
 
-   procedure Get_Any_Symbol_Completion
-     (Self    : in out Document;
-      Context : LSP.Ada_Contexts.Context;
-      Prefix  : VSS.Strings.Virtual_String;
-      Limit   : Ada.Containers.Count_Type;
+   procedure Get_Any_Symbol
+     (Self        : in out Document;
+      Context     : LSP.Ada_Contexts.Context;
+      Prefix      : VSS.Strings.Virtual_String;
+      Limit       : Ada.Containers.Count_Type;
+      Only_Public : Boolean;
       Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
-   --  See Contexts.Get_Any_Symbol_Completion
+   --  See Contexts.Get_Any_Symbol
 
    procedure Get_Folding_Blocks
      (Self       : Document;
@@ -254,8 +255,13 @@ private
       Element_Type => VSS.Strings.Markers.Character_Marker,
       "="          => VSS.Strings.Markers."=");
 
+   type Name_Information is record
+      Name      : Libadalang.Analysis.Defining_Name;
+      Is_Public : Boolean;
+   end record;
+
    package Name_Vectors is new Ada.Containers.Vectors
-     (Positive, Libadalang.Analysis.Defining_Name, Libadalang.Analysis."=");
+     (Positive, Name_Information);
 
    package Symbol_Maps is new Ada.Containers.Ordered_Maps
      (Key_Type     => VSS.Strings.Virtual_String,

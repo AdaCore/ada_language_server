@@ -222,16 +222,18 @@ package LSP.Ada_Contexts is
      (Self : Context) return Libadalang.Analysis.Analysis_Context;
    --  Return the LAL context corresponding to Self
 
-   procedure Get_Any_Symbol_Completion
-     (Self   : Context;
-      Prefix : VSS.Strings.Virtual_String;
+   procedure Get_Any_Symbol
+     (Self        : Context;
+      Prefix      : VSS.Strings.Virtual_String;
+      Only_Public : Boolean;
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the context and
    --  call Callback for each. Name could contain a stale reference if the File
-   --  was updated since last indexing operation.
+   --  was updated since last indexing operation. If Only_Public is True it
+   --  will skip any "private" symbols (like symbols in private part or body).
 
    function Charset (Self : Context) return String;
    --  Return the charset for this context
