@@ -3503,7 +3503,9 @@ package body LSP.Ada_Handlers is
                --  Check whether another request is pending. If so, pause
                --  the indexing; it will be resumed later as part of
                --  After_Request.
-               if Self.Server.Has_Pending_Work then
+               if not Self.Files_To_Index.Is_Empty
+                 and then Self.Server.Has_Pending_Work
+               then
                   return;
                end if;
             end if;
