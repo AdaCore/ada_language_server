@@ -17,6 +17,7 @@
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
+with Ada.Exceptions;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -3000,6 +3001,19 @@ package body LSP.Ada_Handlers is
       end loop;
 
       return Response;
+
+   exception
+      when E : others =>
+         return Response : LSP.Messages.Server_Responses.Rename_Response
+           (Is_Error => True)
+         do
+            Response.Error :=
+              (True,
+               (code    => LSP.Errors.InternalError,
+                message => VSS.Strings.Conversions.To_Virtual_String
+                  (Ada.Exceptions.Exception_Information (E)),
+                data    => <>));
+         end return;
    end On_Rename_Request;
 
    --------------------------------------------
@@ -3503,7 +3517,9 @@ package body LSP.Ada_Handlers is
                --  Check whether another request is pending. If so, pause
                --  the indexing; it will be resumed later as part of
                --  After_Request.
-               if Self.Server.Has_Pending_Work then
+               if not Self.Files_To_Index.Is_Empty
+                 and then Self.Server.Has_Pending_Work
+               then
                   return;
                end if;
             end if;
