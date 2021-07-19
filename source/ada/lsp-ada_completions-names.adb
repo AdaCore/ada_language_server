@@ -160,7 +160,10 @@ package body LSP.Ada_Completions.Names is
                        Case_Sensitive => False)
                   then
                      Names.Include
-                       (DN, (Is_Dot_Call (Item), True, Use_Snippets));
+                       (DN,
+                        (Is_Dot_Call (Item),
+                         Is_Visible (Item),
+                         Use_Snippets));
                   end if;
                end loop;
             end if;

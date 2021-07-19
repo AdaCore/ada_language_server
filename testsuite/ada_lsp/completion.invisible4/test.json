@@ -1,0 +1,187 @@
+[
+   {
+      "comment": [
+          "Check Is_Visible result from libadalang completion property"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 "("
+                             ],
+                             "resolveProvider": false
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile":"default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "text": "with Pkg_1.Child;\n\nprocedure Testcomp is\nbegin\n   Pkg_1.;\n   --% list(node.f_call.p_complete)\n   Pkg_1.Child.;\n   --% list(node.f_call.p_complete)\n   Pkg_1.Child2.;\n   --% list(node.f_call.p_complete)\n   -- TODO: for the moment this doesn't return any results, rt. returning the\n   --       elements of Pkg_1.Child2.*, which are loaded. For that we need to\n   --       have a special mode ignoring the results of `has_visibility`, maybe\n   --       via a dynamic var.\nend Testcomp;\n",
+                  "version": 1,
+                  "uri": "$URI{testcomp.adb}",
+                  "languageId": "ada"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{testcomp.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 9
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Child",
+                        "kind": 9,
+                        "detail": "package Pkg_1.Child ",
+                        "documentation": "at pkg_1-child.ads (3:1)",
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Child2 (invisible)",
+                        "kind": 9,
+                        "detail": "package Pkg_1.Child2 ",
+                        "documentation": "at pkg_1-child2.ads (1:1)",
+                        "sortText": "~Child2",
+                        "insertText": "Child2",
+                        "additionalTextEdits": [
+                        ]
+                      }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 44,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
