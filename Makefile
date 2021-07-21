@@ -79,7 +79,7 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
 	mkdir -p integration/vscode/ada/$(PLATFORM)
-	cp -f .obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
+	ln -s -f $(PWD)/.obj/server/ada_language_server integration/vscode/ada/$(PLATFORM) ||\
 	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
 
 generate:
@@ -121,7 +121,7 @@ clean:
 	rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
-	cd integration/vscode/ada; npm install
+	cd integration/vscode/ada; npm install && npm run compile
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
