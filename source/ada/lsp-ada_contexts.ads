@@ -30,7 +30,6 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with Utils.Command_Lines;
-with Pp.Command_Lines;
 
 with VSS.Strings;
 
@@ -92,6 +91,7 @@ package LSP.Ada_Contexts is
    procedure Format
      (Self     : in out Context;
       Document : LSP.Ada_Documents.Document_Access;
+      Project  : GNATCOLL.Projects.Project_Type;
       Span     : LSP.Messages.Span;
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
@@ -257,16 +257,18 @@ private
       --  All the source dirs in the loaded project, not including
       --  the externally built projects
 
-      PP_Options : Utils.Command_Lines.Command_Line
-                    (Pp.Command_Lines.Descriptor'Access);
-      --  Object to keep gnatpp options
-
       Follow_Symlinks : Boolean := True;
       --  See LSP.Ada_Handlers for description
 
       Reader_Reference : Langkit_Support.File_Readers.File_Reader_Reference;
       --  A reference to the file reader created for this context
    end record;
+
+   procedure Get_PP_Options
+     (Self       : Context;
+      Project    : GNATCOLL.Projects.Project_Type;
+      File       : GNATCOLL.VFS.Virtual_File;
+      PP_Options : in out Utils.Command_Lines.Command_Line);
 
    function LAL_Context
      (Self : Context) return Libadalang.Analysis.Analysis_Context is

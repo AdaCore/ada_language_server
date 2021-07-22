@@ -247,6 +247,13 @@ package body LSP.Ada_Handlers is
       URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
    --  Turn URI into path
 
+   function Get_Project
+     (Self : access Message_Handler;
+      Uri  : LSP.Messages.DocumentUri)
+      return GNATCOLL.Projects.Project_Type;
+   --  Retrieve the project that the file belongs to. Root project is returned
+   --  if the file is not a source of any project.
+
    -----------------------
    -- Contexts_For_File --
    -----------------------
@@ -3732,6 +3739,58 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Completion_Request;
 
+   -----------------
+   -- Get_Project --
+   -----------------
+
+   function Get_Project
+     (Self : access Message_Handler;
+      Uri  : LSP.Messages.DocumentUri)
+      return GNATCOLL.Projects.Project_Type
+   is
+      use GNATCOLL.Projects;
+      File : constant Virtual_File := Self.To_File (Uri);
+   begin
+      if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
+         declare
+            Aggregated : Project_Array_Access :=
+              Self.Project_Tree.Root_Project.Aggregated_Projects;
+            Iter       : Project_Iterator;
+            Result     : Project_Type;
+         begin
+            Result := Self.Project_Tree.Root_Project;
+
+            Main_Loop : for P of Aggregated.all loop
+               Iter := Start (P);
+               while Current (Iter) /= No_Project loop
+                  declare
+                     Sources : File_Array_Access :=
+                       Current (Iter).Source_Files;
+                  begin
+                     for J in Sources'Range loop
+                        if Sources (J) = File then
+                           Result := Current (Iter);
+                           Unchecked_Free (Sources);
+                           exit Main_Loop;
+                        end if;
+                     end loop;
+                     Unchecked_Free (Sources);
+                  end;
+
+                  Next (Iter);
+               end loop;
+            end loop Main_Loop;
+
+            Unchecked_Free (Aggregated);
+            return Result;
+         end;
+
+      else
+         return Project
+           (Info (Self.Project_Tree.all, File), Root_If_Not_Found => True);
+      end if;
+   end Get_Project;
+
    ---------------------------
    -- On_Formatting_Request --
    ---------------------------
@@ -3765,6 +3824,7 @@ package body LSP.Ada_Handlers is
 
       Context.Format
         (Document,
+         Self.Get_Project (Request.params.textDocument.uri),
          LSP.Messages.Empty_Span,
          Request.params.options,
          Response.result,
@@ -4152,6 +4212,7 @@ package body LSP.Ada_Handlers is
 
       Context.Format
         (Document,
+         Self.Get_Project (Request.params.textDocument.uri),
          Request.params.span,
          Request.params.options,
          Response.result,

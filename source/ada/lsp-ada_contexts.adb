@@ -36,6 +36,7 @@ with Laltools.Common;
 
 with Langkit_Support.Slocs;
 
+with Pp.Command_Lines;
 with Utils.Command_Lines.Common;
 
 package body LSP.Ada_Contexts is
@@ -586,8 +587,6 @@ package body LSP.Ada_Contexts is
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
-      procedure Pretty_Printer_Setup;
-      --  Setup PP_Options object
 
       -------------------------
       -- Update_Source_Files --
@@ -638,61 +637,6 @@ package body LSP.Ada_Contexts is
          end loop;
       end Update_Source_Files;
 
-      --------------------------
-      -- Pretty_Printer_Setup --
-      --------------------------
-
-      procedure Pretty_Printer_Setup
-      is
-         use type GNAT.Strings.String_Access;
-         Options   : GNAT.Strings.String_List_Access;
-         Validated : GNAT.Strings.String_List_Access;
-         Last      : Integer;
-         Default   : Boolean;
-      begin
-         Root.Switches
-           (In_Pkg           => "Pretty_Printer",
-            File             => GNATCOLL.VFS.No_File,
-            Language         => "ada",
-            Value            => Options,
-            Is_Default_Value => Default);
-
-         --  Initialize an gnatpp command line object
-         Last := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-            end if;
-         end loop;
-
-         Validated := new GNAT.Strings.String_List (Options'First .. Last);
-         Last      := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-               Validated (Last) := new String'(Item.all);
-            end if;
-         end loop;
-
-         Utils.Command_Lines.Parse
-           (Validated,
-            Self.PP_Options,
-            Phase              => Utils.Command_Lines.Cmd_Line_1,
-            Callback           => null,
-            Collect_File_Names => False,
-            Ignore_Errors      => True);
-
-         GNAT.Strings.Free (Options);
-         GNAT.Strings.Free (Validated);
-
-         --  Set UTF-8 encoding
-         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
-      end Pretty_Printer_Setup;
-
    begin
       Self.Id := VSS.Strings.Conversions.To_Virtual_String (Root.Name);
 
@@ -707,7 +651,6 @@ package body LSP.Ada_Contexts is
 
       Self.Reload;
       Update_Source_Files;
-      Pretty_Printer_Setup;
    end Load_Project;
 
    ------------
@@ -730,27 +673,38 @@ package body LSP.Ada_Contexts is
    procedure Format
      (Self     : in out Context;
       Document : LSP.Ada_Documents.Document_Access;
+      Project  : GNATCOLL.Projects.Project_Type;
       Span     : LSP.Messages.Span;
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
       Success  : out Boolean)
    is
+      File : constant Virtual_File :=
+        Create_From_UTF8 (Self.URI_To_File (Document.URI));
+
+      PP_Options : Utils.Command_Lines.Command_Line
+        (Pp.Command_Lines.Descriptor'Access);
+
    begin
+      Self.Get_PP_Options (Project, File, PP_Options);
+
       Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-        (Self.PP_Options,
+        (PP_Options,
          Pp.Command_Lines.Indentation,
          Natural (Options.tabSize));
 
       Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-        (Self.PP_Options,
+        (PP_Options,
          Pp.Command_Lines.No_Tab,
          Options.insertSpaces);
 
       Success := Document.Formatting
         (Context => Self,
          Span    => Span,
-         Cmd     => Self.PP_Options,
+         Cmd     => PP_Options,
          Edit    => Edit);
+
+      Utils.Command_Lines.Clear (PP_Options);
    end Format;
 
    ----------
@@ -761,8 +715,6 @@ package body LSP.Ada_Contexts is
    begin
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
-      --  Destroy GnatPP command line
-      Utils.Command_Lines.Clear (Self.PP_Options);
    end Free;
 
    -----------------
@@ -813,6 +765,67 @@ package body LSP.Ada_Contexts is
          return Libadalang.Analysis.No_Ada_Node;
       end if;
    end Get_Node_At;
+
+   --------------------
+   -- Get_PP_Options --
+   --------------------
+
+   procedure Get_PP_Options
+     (Self       : Context;
+      Project    : GNATCOLL.Projects.Project_Type;
+      File       : GNATCOLL.VFS.Virtual_File;
+      PP_Options : in out Utils.Command_Lines.Command_Line)
+   is
+      use type GNAT.Strings.String_Access;
+
+      Options   : GNAT.Strings.String_List_Access;
+      Validated : GNAT.Strings.String_List_Access;
+      Last      : Integer;
+      Default   : Boolean;
+
+   begin
+      Project.Switches
+        (In_Pkg           => "Pretty_Printer",
+         File             => File,
+         Language         => "ada",
+         Value            => Options,
+         Is_Default_Value => Default);
+
+      --  Initialize an gnatpp command line object
+      Last := Options'First - 1;
+      for Item of Options.all loop
+         if Item /= null
+           and then Item.all /= ""
+         then
+            Last := Last + 1;
+         end if;
+      end loop;
+
+      Validated := new GNAT.Strings.String_List (Options'First .. Last);
+      Last      := Options'First - 1;
+      for Item of Options.all loop
+         if Item /= null
+           and then Item.all /= ""
+         then
+            Last := Last + 1;
+            Validated (Last) := new String'(Item.all);
+         end if;
+      end loop;
+
+      Utils.Command_Lines.Parse
+        (Validated,
+         PP_Options,
+         Phase              => Utils.Command_Lines.Cmd_Line_1,
+         Callback           => null,
+         Collect_File_Names => False,
+         Ignore_Errors      => True);
+
+      GNAT.Strings.Free (Options);
+      GNAT.Strings.Free (Validated);
+
+      --  Set UTF-8 encoding
+      Utils.Command_Lines.Common.Set_WCEM (PP_Options, "8");
+   end Get_PP_Options;
 
    --------
    -- Id --
