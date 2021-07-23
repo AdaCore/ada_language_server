@@ -2564,7 +2564,10 @@ package body LSP.Ada_Handlers is
       end if;
 
       for N of C.Find_All_Env_Elements (Name_Node) loop
-         if N.Kind in Ada_Subp_Decl_Range then
+         if N.Kind in Ada_Subp_Decl_Range
+           | Ada_Null_Subp_Decl_Range
+           | Ada_Expr_Function_Range
+         then
             Add_Signature (N.As_Basic_Decl);
          end if;
       end loop;
