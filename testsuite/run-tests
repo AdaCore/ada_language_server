@@ -7,17 +7,16 @@ import sys
 if __name__ == '__main__':
     suite = testsuite.ALSTestsuite(os.path.dirname(__file__))
     result = suite.testsuite_main()
+    index = suite.report_index
     # Print the results that are not OK
     all_ok = True
     for k in suite.results:
-        status = suite.results[k].name
+        entry = index.entries[k]
+        status = entry.status.name
         if status not in ('PASS', 'XFAIL'):
             all_ok = False
             print("--- {} : {} ---".format(k, status))
-            with open(os.path.join(suite.output_dir,
-                                   "{}.yaml".format(k)), 'rb') as f:
-                y = f.read()
-                print(yaml.safe_load(y).out)
+            print(entry.load().out)
 
     if all_ok:
         print("SUCCESS")
