@@ -103,8 +103,6 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
---    Should_Use_Names := True;  --  Let's use defining names for completion
-
       if In_End_Label
         or else not Sibling.Is_Null
         or else

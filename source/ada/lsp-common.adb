@@ -304,10 +304,12 @@ package body LSP.Common is
                Idx := Lines (J)'First;
                Skip_Blanks (Lines (J).all, Idx);
 
-               Result.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    ((if Lines (J).all (Idx) = '(' then "  " else "   ")
-                     & Lines (J).all (Idx .. Lines (J).all'Last)));
+               if Idx <= Lines (J)'Last then
+                  Result.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       ((if Lines (J).all (Idx) = '(' then "  " else "   ")
+                        & Lines (J).all (Idx .. Lines (J).all'Last)));
+               end if;
             end loop;
          end if;
 
