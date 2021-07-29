@@ -32,8 +32,6 @@ with LSP.Lal_Utils;               use LSP.Lal_Utils;
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Project_Provider;
 
-with Laltools.Common;
-
 with Langkit_Support.Slocs;
 
 with Utils.Command_Lines.Common;
@@ -472,19 +470,33 @@ package body LSP.Ada_Contexts is
       Seq      : Boolean := True;
       Seq_From : Libadalang.Analysis.Ada_Node'Class :=
         Libadalang.Analysis.No_Ada_Node)
-     return Libadalang.Analysis.Ada_Node_Array is
+      return Laltools.Common.Node_Vectors.Vector
+   is
+      No_Duplicate : Laltools.Common.Node_Sets.Set :=
+        Laltools.Common.Node_Sets.Empty_Set;
+      Res          : Laltools.Common.Node_Vectors.Vector :=
+        Laltools.Common.Node_Vectors.Empty_Vector;
    begin
-      return Libadalang.Analysis.P_All_Env_Elements (Name, Seq, Seq_From);
+      for U_Node of
+        Libadalang.Analysis.P_All_Env_Elements (Name, Seq, Seq_From)
+      loop
+         --  For performance reason use a Set to detect duplicate and ignore
+         --  them.
+         if not No_Duplicate.Contains (U_Node) then
+            No_Duplicate.Insert (U_Node);
+            Res.Append (U_Node);
+         end if;
+      end loop;
+      return Res;
    exception
       when E : Libadalang.Common.Property_Error =>
          Log (Self.Trace, E, "in Find_All_Env_Elements");
-         declare
-            Empty_Node_Array : constant
-              Libadalang.Analysis.Ada_Node_Array (1 .. 0) := (others => <>);
-         begin
-            return Empty_Node_Array;
-         end;
+         return Laltools.Common.Node_Vectors.Empty_Vector;
    end Find_All_Env_Elements;
+
+   --------------------
+   -- Get_Any_Symbol --
+   --------------------
 
    procedure Get_Any_Symbol
      (Self        : Context;
