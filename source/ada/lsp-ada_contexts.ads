@@ -25,6 +25,7 @@ with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
+with Laltools.Common;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -146,8 +147,9 @@ package LSP.Ada_Contexts is
       Seq      : Boolean := True;
       Seq_From : Libadalang.Analysis.Ada_Node'Class :=
         Libadalang.Analysis.No_Ada_Node)
-      return Libadalang.Analysis.Ada_Node_Array;
-   --  Return all elements lexically named like Name.
+      return Laltools.Common.Node_Vectors.Vector;
+   --  Return all elements lexically named like Name, removing all duplicate
+   --  and keeping the order given by LAL.
    --  If Seq is True and Seq_From is not empty, reduce the scope to the
    --  node above Seq_From.
 

@@ -440,16 +440,16 @@ package body LSP.Lal_Utils is
                end if;
             end loop;
          end if;
-      else
-
-         --  Find the nearest Call_Expr node in the parents
-         while not Cur_Node.Is_Null loop
-            exit when Cur_Node.Kind in Ada_Call_Expr_Range;
-
-            Cur_Node := Cur_Node.Parent;
-         end loop;
       end if;
 
+      --  Find the nearest Call_Expr node in the parents or itself
+      while not Cur_Node.Is_Null loop
+         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+
+         Cur_Node := Cur_Node.Parent;
+      end loop;
+
+      --  At this point we have null or a Call_Expr
       if Cur_Node.Is_Null then
          return;
       end if;
