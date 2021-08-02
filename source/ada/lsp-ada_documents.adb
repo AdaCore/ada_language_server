@@ -1767,9 +1767,15 @@ package body LSP.Ada_Documents is
                         (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
       if not Is_Visible then
-         Item.sortText := (True, '~' & LSP.Types.To_LSP_String (Item.label));
-         Item.insertText := (True, LSP.Types.To_LSP_String (Item.label));
-         Item.label.Append (" (invisible)");
+         declare
+            Base_Label : constant LSP_String := LSP.Types.To_LSP_String
+              (Item.label);
+         begin
+            Item.sortText := (True, '~' & Base_Label);
+            Item.insertText := (True, Base_Label);
+            Item.label.Append (" (invisible)");
+            Item.filterText := (True, Base_Label);
+         end;
       end if;
 
       --  Property_Errors can occur when calling
