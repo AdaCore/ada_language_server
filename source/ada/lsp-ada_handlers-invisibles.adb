@@ -36,8 +36,7 @@ package body LSP.Ada_Handlers.Invisibles is
       Result : out LSP.Messages.CompletionList)
    is
       pragma Unreferenced (Result);
-      use all type Libadalang.Analysis.Base_Id;
-      use all type Libadalang.Common.Ada_Node_Kind_Type;
+      use all type Libadalang.Common.Token_Kind;
       use type Ada.Containers.Count_Type;
 
       procedure On_Inaccessible_Name
@@ -71,36 +70,24 @@ package body LSP.Ada_Handlers.Invisibles is
          end if;
       end On_Inaccessible_Name;
 
-      Dotted_Node : Libadalang.Analysis.Ada_Node := Node;
-   begin
-      --  Get the outermost dotted name of which node is a prefix, so that when
-      --  completing in a situation such as the following:
-      --
-      --      Ada.Tex|
-      --             ^ Cursor here
-      --
-      --  we get the DottedName node rather than just the "Tex" BaseId. We want
-      --  the DottedName rather than the Id so as to get the proper completions
-      --  (all elements in the "Ada" namespace).
+      Dot_Token   : constant Libadalang.Common.Token_Data_Type :=
+        Libadalang.Common.Data
+          (if Libadalang.Common.Is_Trivia (Token)
+           then Libadalang.Common.Previous (Token, True)
+           else Token);
 
-      while not Dotted_Node.Is_Null and then Dotted_Node.Kind in
-        Libadalang.Common.Ada_Single_Tok_Node | Ada_Dotted_Name
-      loop
-         if Dotted_Node.Parent.Kind = Ada_Dotted_Name
-           and then Dotted_Node.Parent.As_Dotted_Name.F_Suffix = Dotted_Node
-         then
-            Dotted_Node := Dotted_Node.Parent;
-         else
-            exit;
-         end if;
-      end loop;
+   begin
+      if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
+         --  Don't provide completion after a dot
+         return;
+      end if;
 
       --  Return immediately if we are dealing with a null node or if the
       --  node's parent is a Defining_Name, meaning that we are declaring a
       --  new symbol.
 
-      if Dotted_Node.Is_Null or else
-        (not Dotted_Node.Parent.Is_Null and then Dotted_Node.Parent.Kind in
+      if Node.Is_Null or else
+        (not Node.Parent.Is_Null and then Node.Parent.Kind in
            Libadalang.Common.Ada_Defining_Name_Range)
       then
          return;
@@ -108,7 +95,7 @@ package body LSP.Ada_Handlers.Invisibles is
 
       --  Return without asing Libadalang for completion results we are dealing
       --  with a syntax error.
-      if Dotted_Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
+      if Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
          return;
       end if;
 
