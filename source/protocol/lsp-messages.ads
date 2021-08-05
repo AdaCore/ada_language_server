@@ -7902,6 +7902,11 @@ package LSP.Messages is
    for SignatureHelp'Write use Write_SignatureHelp;
    for SignatureHelp'Read use Read_SignatureHelp;
 
+   package Optional_SignatureHelps is
+     new LSP.Generic_Optional (SignatureHelp);
+   type Optional_SignatureHelp is new
+     Optional_SignatureHelps.Optional_Type;
+
    --```typescript
    --export interface ReferenceParams extends TextDocumentPositionParams,
    --	WorkDoneProgressParams, PartialResultParams {
@@ -9646,7 +9651,7 @@ package LSP.Messages is
    --	 */
    --	context?: SignatureHelpContext;
    --}
-   --
+
    --/**
    -- * How a signature help was triggered.
    -- *
@@ -9668,7 +9673,17 @@ package LSP.Messages is
    --	export const ContentChange: 3 = 3;
    --}
    --export type SignatureHelpTriggerKind = 1 | 2 | 3;
-   --
+   type SignatureHelpTriggerKind is
+     (Invoked, TriggerCharacter, ContentChange);
+   procedure Read_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpTriggerKind);
+   procedure Write_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpTriggerKind);
+   for SignatureHelpTriggerKind'Read use Read_SignatureHelpTriggerKind;
+   for SignatureHelpTriggerKind'Write use Write_SignatureHelpTriggerKind;
+
    --/**
    -- * Additional information about the context in which a signature help request
    -- * was triggered.
@@ -9707,7 +9722,37 @@ package LSP.Messages is
    --	activeSignatureHelp?: SignatureHelp;
    --}
    --```
-   type SignatureHelpParams is new Text_Progress_Params with null record;
+   type SignatureHelpContext is record
+      triggerKind         : SignatureHelpTriggerKind;
+      triggerCharacter    : Optional_String;
+      isRetrigger         : Boolean;
+      activeSignatureHelp : Optional_SignatureHelp;
+   end record;
+   procedure Read_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpContext);
+   procedure Write_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpContext);
+   for SignatureHelpContext'Read use Read_SignatureHelpContext;
+   for SignatureHelpContext'Write use Write_SignatureHelpContext;
+
+   package Optional_SignatureHelpContexts is new Generic_Optional
+     (SignatureHelpContext);
+   type Optional_SignatureHelpContext
+   is new Optional_SignatureHelpContexts.Optional_Type;
+
+   type SignatureHelpParams is new Text_Progress_Params with record
+      context : Optional_SignatureHelpContext;
+   end record;
+   procedure Read_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpParams);
+   procedure Write_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpParams);
+   for SignatureHelpParams'Read use Read_SignatureHelpParams;
+   for SignatureHelpParams'Write use Write_SignatureHelpParams;
 
    --  Base class for navigation requests, embedding an optional flag to
    --  control whether or now we should list overriding/overridden subprograms.

@@ -8904,6 +8904,128 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_DocumentColorParams;
 
+   procedure Read_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpTriggerKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := SignatureHelpTriggerKind'Val (JS.R.Number_Value.Integer_Value - 1);
+      JS.R.Read_Next;
+   end Read_SignatureHelpTriggerKind;
+
+   procedure Write_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpTriggerKind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write_Integer ((SignatureHelpTriggerKind'Pos (V)) + 1);
+   end Write_SignatureHelpTriggerKind;
+
+   procedure Read_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "triggerKind" then
+               SignatureHelpTriggerKind'Read (S, V.triggerKind);
+            elsif Key = "triggerCharacter" then
+               Optional_String'Read (S, V.triggerCharacter);
+            elsif Key = "isRetrigger" then
+               LSP.Types.Read_Boolean (JS, V.isRetrigger);
+            elsif Key = "activeSignatureHelp" then
+               Optional_SignatureHelp'Read (S, V.activeSignatureHelp);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_SignatureHelpContext;
+
+   procedure Write_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpContext)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("triggerKind");
+      SignatureHelpTriggerKind'Write (S, V.triggerKind);
+      JS.Key ("triggerCharacter");
+      Optional_String'Write (S, V.triggerCharacter);
+      Write_Boolean (JS, "isRetrigger", V.isRetrigger);
+      JS.Key ("activeSignatureHelp");
+      Optional_SignatureHelp'Write (S, V.activeSignatureHelp);
+      JS.End_Object;
+   end Write_SignatureHelpContext;
+
+   procedure Read_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "textDocument" then
+               TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "position" then
+               LSP.Messages.Position'Read (S, V.position);
+            elsif Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "context" then
+               Optional_SignatureHelpContext'Read (S, V.context);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_SignatureHelpParams;
+
+   procedure Write_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("position");
+      LSP.Messages.Position'Write (S, V.position);
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.Key ("context");
+      Optional_SignatureHelpContext'Write (S, V.context);
+      JS.End_Object;
+   end Write_SignatureHelpParams;
+
    procedure Read_NavigationRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out NavigationRequestParams)
