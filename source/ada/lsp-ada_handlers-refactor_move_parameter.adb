@@ -224,6 +224,9 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       use type LSP.Types.LSP_String;
 
    begin
+      Apply.params.label :=
+        (Is_Set => True,
+         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
       Target_Subp := Resolve_Name_Precisely (Get_Node_As_Name (Node));
 
       if Target_Subp.Is_Null then

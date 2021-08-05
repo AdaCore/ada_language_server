@@ -26,6 +26,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with LSP.Messages.Client_Requests;
+with LSP.Types;
 
 package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
@@ -144,6 +145,10 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
         Document.Versioned_Identifier;
 
    begin
+      Apply.params.label :=
+        (Is_Set => True,
+         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
+
       if Message_Handler.Versioned_Documents then
          Edits.documentChanges.Append
            (LSP.Messages.Document_Change'
