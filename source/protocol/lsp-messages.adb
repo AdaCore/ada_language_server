@@ -925,6 +925,21 @@ package body LSP.Messages is
       V : out LSP.Messages.DocumentFormattingParams)
       renames LSP.Message_IO.Read_DocumentFormattingParams;
 
+   procedure Read_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpTriggerKind)
+      renames LSP.Message_IO.Read_SignatureHelpTriggerKind;
+
+   procedure Read_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpContext)
+      renames LSP.Message_IO.Read_SignatureHelpContext;
+
+   procedure Read_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SignatureHelpParams)
+      renames LSP.Message_IO.Read_SignatureHelpParams;
+
    procedure Read_NavigationRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out NavigationRequestParams)
@@ -2029,6 +2044,21 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DocumentFormattingParams)
       renames LSP.Message_IO.Write_DocumentFormattingParams;
+
+   procedure Write_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpTriggerKind)
+      renames LSP.Message_IO.Write_SignatureHelpTriggerKind;
+
+   procedure Write_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpContext)
+      renames LSP.Message_IO.Write_SignatureHelpContext;
+
+   procedure Write_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SignatureHelpParams)
+     renames LSP.Message_IO.Write_SignatureHelpParams;
 
    procedure Write_NavigationRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

@@ -1548,6 +1548,30 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.DocumentColorParams);
 
+   procedure Read_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpTriggerKind);
+
+   procedure Write_SignatureHelpTriggerKind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpTriggerKind);
+
+   procedure Read_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpContext);
+
+   procedure Write_SignatureHelpContext
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpContext);
+
+   procedure Read_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SignatureHelpParams);
+
+   procedure Write_SignatureHelpParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SignatureHelpParams);
+
    procedure Read_NavigationRequestParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.NavigationRequestParams);
