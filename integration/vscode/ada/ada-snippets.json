@@ -4,7 +4,7 @@
         "scope": "ada",
         "body": [
             "accept ${1:Name} do",
-            "   $0",
+            "\t$0",
             "end ${1:Name};"
         ],
         "description": "Accept Statement"
@@ -38,7 +38,7 @@
 		"scope": "ada",
 		"body": [
 			"case ${1:Variable} is",
-			"   $0",
+			"\t$0",
 			"end case;"
 		],
 		"description": "Case Statement"
@@ -47,7 +47,7 @@
         "prefix": "return",
         "body": [
             "return ${1:Result} : $2 do",
-            "   $0",
+            "\t$0",
             "end return;"
         ],
         "description": "Extended Return Statement"
@@ -56,9 +56,9 @@
         "prefix": "declare",
         "body": [
             "declare",
-            "   $1",
+            "\t$1",
             "begin",
-            "   $0",
+            "\t$0",
             "end;"
         ],
         "description": "Declare Statement"
@@ -68,7 +68,7 @@
 		"scope": "ada",
 		"body": [
 			"elsif ${1:Condition} then",
-			"   $0"
+			"\t$0"
 		],
 		"description": "Elsif Statement"
     },
@@ -85,9 +85,9 @@
 		"scope": "ada",
 		"body": [
 			"entry ${1:Name} when ${2:Guard_Condition} is",
-			"   $3",
+			"\t$3",
 			"begin",
-			"   $0",
+			"\t$0",
 			"end ${1:Name};"
 		],
 		"description": "Entry Body"
@@ -104,7 +104,7 @@
 		"prefix": "exit",
 		"scope":"ada",
 		"body": [
-			"exit ${1:Loop Name};"	
+			"exit ${1:Loop Name};"
 		],
 		"description": "Exit statement"
 	},
@@ -120,7 +120,7 @@
         "prefix": "for",
         "body": [
             "for ${1:J} ${2|in,in reverse,of,of reverse|} loop",
-            "   $0",
+            "\t$0",
             "end loop;"
         ],
         "description": "For Loop Statement"
@@ -136,9 +136,9 @@
         "prefix": "function",
         "body": [
             "${1|function,overriding function,not overriding function|} ${2:Name} ($3) return ${4:Return_Type} is",
-            "   $5",
+            "\t$5",
             "begin",
-            "   $0",
+            "\t$0",
             "end ${2:Name};"
         ],
         "description": "Function Body"
@@ -148,7 +148,7 @@
 		"scope": "ada",
 		"body": [
 			"generic",
-			"   $1",
+			"\t$1",
 			"$0"
 		],
 		"description": "Generic Formal Part"
@@ -158,7 +158,7 @@
 		"scope": "ada",
 		"body": [
 			"if ${1:Condition} then",
-			"   $0",
+			"\t$0",
 			"end if;"
 		],
 		"description": "If Statement"
@@ -176,7 +176,7 @@
 		"scope": "ada",
 		"body": [
 			"loop",
-			"   $0",
+			"\t$0",
 			"end loop;"
 		],
 		"description": "Loop Statement"
@@ -194,9 +194,9 @@
 		"scope": "ada",
 		"body": [
 			"function \"${1|and,or,xor,=,<,<=,>,>=,+,-,&,*,/,mod,rem,**,not,abs|}\"($2) return ${3:Return_Type} is",
-			"   $2",
+			"\t$2",
 			"begin",
-			"   $0",
+			"\t$0",
 			"end ${1:Name};"
 		],
 		"description": "Operator Body"
@@ -205,7 +205,7 @@
         "prefix": "package",
         "body": [
             "${1|package,package body|} ${2:Name} is",
-            "   ${3|pragma Preelaborate;,pragma Pure;|}$0",
+            "\t${3|pragma Preelaborate;,pragma Pure;|}$0",
             "private",
             "end ${2:Name};"
         ],
@@ -230,9 +230,9 @@
         "prefix": "procedure",
         "body": [
             "${1|procedure,overriding procedure,not overriding procedure|} ${2:Name} ($3) is",
-            "   $4",
+            "\t$4",
             "begin",
-            "   $0",
+            "\t$0",
             "end ${2:Name};"
         ],
         "description": "Procedure Body"
@@ -242,9 +242,9 @@
 		"scope": "ada",
 		"body": [
 			"protected ${1:Name} is",
-			"   $0",
+			"\t$0",
 			"private",
-			"   ",
+			"\t",
 			"end ${1:Name};"
 		],
 		"description": "Protected Declaration"
@@ -254,7 +254,7 @@
 		"scope": "ada",
 		"body": [
 			"protected body ${1:Name} is",
-			"   $0",
+			"\t$0",
 			"end ${1:Name};"
 		],
 		"description": "Protected Body"
@@ -264,7 +264,7 @@
 		"scope": "ada",
 		"body": [
 			"type ${1:Name} is ${2|record,tagged record,abstract tagged record,limited record,tagged limited record,abstract tagged limited record|}",
-			"   $0",
+			"\t$0",
 			"end record;"
 		],
 		"description": "Record Type Definition"
@@ -274,9 +274,9 @@
 		"scope": "ada",
 		"body": [
 			"select",
-			"   $0",
+			"\t$0",
 			"${1|or,else|}",
-			"   ",
+			"\t",
 			"end select;"
 		],
 		"description": "Select Statement"
@@ -286,9 +286,9 @@
 		"scope": "ada",
 		"body": [
 			"select",
-			"   $0",
+			"\t$0",
 			"then abort",
-			"   ",
+			"\t",
 			"end select;"
 		],
 		"description": "Asynchronous Select Statement"
@@ -298,9 +298,9 @@
 		"scope": "ada",
 		"body": [
 			"select",
-			"   $0",
+			"\t$0",
 			"or",
-			"   delay ${1:Delay_Amount};",
+			"\tdelay ${1:Delay_Amount};",
 			"end select;"
 		],
 		"description": "Timed Select Statement"
@@ -310,9 +310,9 @@
 		"scope": "ada",
 		"body": [
 			"${1|task,task type|} ${2:Name} is",
-			"   $0",
+			"\t$0",
 			"private",
-			"   ",
+			"\t",
 			"end ${2:Name};"
 		],
 		"description": "Task Definition"
@@ -322,9 +322,9 @@
 		"scope": "ada",
 		"body": [
 			"task body ${1:Name} is",
-			"   $2",
+			"\t$2",
 			"begin",
-			"   $0",
+			"\t$0",
 			"end ${1:Name};"
 		],
 		"description": "Task body"
@@ -333,7 +333,7 @@
         "prefix": "while",
         "body": [
             "while ${1:Condition} loop",
-            "   $0",
+            "\t$0",
             "end loop;"
         ],
         "description": "While Loop Statement"

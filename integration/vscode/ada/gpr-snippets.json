@@ -4,10 +4,10 @@
 		"scope": "gpr",
 		"body": [
 			"case ${1:Variable} is",
-			"   when \"${3:Condition}\" =>",
-			"      $0",
-			"   when others =>",
-			"      $2",
+			"\twhen \"${3:Condition}\" =>",
+			"\t\t$0",
+			"\twhen others =>",
+			"\t\t$2",
 			"end case;"
 		],
 		"description": "Case Statement"
@@ -17,7 +17,7 @@
 		"scope": "gpr",
 		"body": [
 			"package ${1|Binder,Builder,Check,Clean,Compiler,Cross_Reference,Documentation,Eliminate,Finder,Gnatls,Gnatstub,IDE,Install,Linker,Metrics,Naming,Pretty_Printer,Remote,Stack,Synchronize|} is",
-			"   $0",
+			"\t$0",
 			"end $1;"
 		],
 		"description": "Package Declaration"
@@ -27,8 +27,8 @@
 		"scope": "gpr",
 		"body": [
 			"package ${1:Name} extends ${2} is",
-			"   $0",
-			"end $1;"	
+			"\t$0",
+			"end $1;"
 		],
 		"description": "Package Extension"
 	},
@@ -37,7 +37,7 @@
         "scope": "gpr",
         "body": [
             "${1|project,abstract project,aggregate project,library project|} ${2:Name} ${3|is,extends \"\" is|}",
-            "   $0",
+            "\t$0",
             "end ${2:Name};"
         ],
         "description": "Project Declaration"
