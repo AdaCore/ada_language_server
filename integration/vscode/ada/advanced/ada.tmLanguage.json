@@ -395,6 +395,7 @@
 						"0": { "name": "keyword.ada" }
 					},
 					"patterns": [
+						{ "include": "#body" },
 						{ "include": "#basic_declarative_item" }
 					]
 				},
@@ -1423,7 +1424,7 @@
 					},
 					"end": "(?i)(?=(\\bbegin\\b|\\bend\\b))",
 					"patterns": [
-						{ 
+						{
 							"match": "(?i)\\bprivate\\b",
 							"name": "keyword.ada"
 						},
@@ -1476,7 +1477,7 @@
 								{ "include": "#actual_parameter_part" }
 							]
 						},
-						{ 
+						{
 							"match": "(?i)\\bprivate\\b",
 							"name": "keyword.ada"
 						},
@@ -1890,7 +1891,7 @@
 						"0": { "name": "keyword.ada" }
 					},
 					"patterns": [
-						
+
 						{ "include": "#type_definition" }
 					]
 				},
