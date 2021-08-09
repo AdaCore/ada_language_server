@@ -34,9 +34,9 @@ extension at
    * [Text Document Requests](#Text-Document-Requests)
    * [Protocol extensions](#Protocol-extensions)
  * [How to use the VScode extension](#How-to-use-the-VScode-extension)
- * [Integration with Coc.NVim](#Integration-with-Coc.NVim)
+ * [Integration with Coc.NVim](#integration-with-cocnvim)
  * [Integration with LanguageClient-Neovim](#Integration-with-LanguageClient-Neovim)
- * [Integration with Neovim's built-in LSP client](#Integration-with-Neovim's-built-in-LSP-client)
+ * [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
  * [Integration with emacs lsp-mode](#Integration-with-emacs-lsp-mode)
  * [Integration with QtCreator](#Integration-with-QtCreator)
  * [Authors & Contributors](#Authors--Contributors)
@@ -159,6 +159,9 @@ The Ada Language Server supports some features that are not in the official
 specification. See [corresponding document](doc/README.md).
 
 ## How to use the VScode extension
+
+### Getting started
+[Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started).
 
 ### Auto-detected tasks
 
