@@ -109,7 +109,7 @@
         "configuration": [
             {
                 "type": "object",
-                "title": "Ada configuration",
+                "title": "Ada",
                 "properties": {
                     "ada.trace.server": {
                         "scope": "window",
