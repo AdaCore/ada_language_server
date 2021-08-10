@@ -2285,6 +2285,16 @@ package body LSP.Messages is
       V : RenameRegistrationOptions)
       renames LSP.Message_IO.Write_RenameRegistrationOptions;
 
+   procedure Read_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Search_Kind)
+      renames LSP.Message_IO.Read_Search_Kind;
+
+   procedure Write_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Search_Kind)
+     renames LSP.Message_IO.Write_Search_Kind;
+
    -------------------
    -- Method_To_Tag --
    -------------------

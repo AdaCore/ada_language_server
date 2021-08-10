@@ -28,6 +28,7 @@ with Libadalang.Analysis;
 with Langkit_Support.Slocs;
 
 with VSS.Strings;
+with LSP.Search;
 
 package LSP.Ada_File_Sets is
 
@@ -62,17 +63,23 @@ package LSP.Ada_File_Sets is
    --  function.
 
    procedure Get_Any_Symbol
-     (Self        : Indexed_File_Set'Class;
-      Prefix      : VSS.Strings.Virtual_String;
-      Only_Public : Boolean;
-      Callback : not null access procedure
+     (Self              : Indexed_File_Set'Class;
+      Pattern           : LSP.Search.Search_Pattern'Class;
+      Only_Public       : Boolean;
+      Get_Defining_Name : not null access function
         (File : GNATCOLL.VFS.Virtual_File;
-         Loc  : Langkit_Support.Slocs.Source_Location;
-         Stop : in out Boolean));
+         Loc  : Langkit_Support.Slocs.Source_Location)
+      return Libadalang.Analysis.Defining_Name;
+      Callback          : not null access procedure
+        (File          : GNATCOLL.VFS.Virtual_File;
+         Defining_Name : Libadalang.Analysis.Defining_Name;
+         Stop          : in out Boolean));
    --  Find symbols starting with given Prefix in all files of the set and
-   --  call Callback for each. Name could contain a stale reference if the File
-   --  was updated since last indexing operation. If Only_Public is True it
-   --  will skip any "private" symbols (like symbols in private part or body).
+   --  call Callback for each. Get_Defining_Name callback is used for getting
+   --  the Defining_Name at the given location Loc in a unit.
+   --  Name could contain a stale reference if the File was updated since
+   --  last indexing operation. If Only_Public is True it will skip any
+   --  "private" symbols (like symbols in private part or body).
 
 private
    type Name_Information is record

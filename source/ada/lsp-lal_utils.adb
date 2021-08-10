@@ -1420,6 +1420,7 @@ package body LSP.Lal_Utils is
       Decl : constant Libadalang.Analysis.Basic_Decl :=
         Node.As_Defining_Name.P_Basic_Decl;
       Next : Libadalang.Analysis.Ada_Node := Decl.Parent;
+
    begin
       if not Decl.Is_Null and then
         Decl.Kind in Libadalang.Common.Ada_For_Loop_Var_Decl
@@ -1433,6 +1434,7 @@ package body LSP.Lal_Utils is
           | Libadalang.Common.Ada_Entry_Decl
       then
          return True;
+
       elsif not Decl.Is_Null and then
         Decl.Kind in Libadalang.Common.Ada_Object_Decl and then
         Decl.Parent.Kind = Libadalang.Common.Ada_Generic_Formal_Obj_Decl
@@ -1442,8 +1444,10 @@ package body LSP.Lal_Utils is
       end if;
 
       while not Next.Is_Null loop
-         if Next.Kind in Libadalang.Common.Ada_Body_Node and then
-           not (Next.Parent.Kind in Libadalang.Common.Ada_Package_Body and then
+         if Next.Kind in Libadalang.Common.Ada_Body_Node
+         and then Next.Parent.Kind not in Libadalang.Common.Ada_Library_Item
+           and then not
+             (Next.Parent.Kind in Libadalang.Common.Ada_Package_Body and then
                 Next.Parent.Parent.Kind in Libadalang.Common.Ada_Library_Item)
          then
             return True;

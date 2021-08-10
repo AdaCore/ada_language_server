@@ -488,28 +488,27 @@ package body LSP.Ada_Contexts is
 
    procedure Get_Any_Symbol
      (Self        : Context;
-      Prefix      : VSS.Strings.Virtual_String;
+      Pattern     : LSP.Search.Search_Pattern'Class;
       Only_Public : Boolean;
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean))
    is
-      procedure Adapter
+      function Get_Defining_Name
         (File : GNATCOLL.VFS.Virtual_File;
-         Loc  : Langkit_Support.Slocs.Source_Location;
-         Stop : in out Boolean);
-      --  Find a Defining_Name at the given location Loc in a unit of URI and
-      --  pass it to Callback procedure call.
+         Loc  : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Analysis.Defining_Name;
+      --  Find a Defining_Name at the given location Loc in a unit of File
 
-      -------------
-      -- Adapter --
-      -------------
+      -----------------------
+      -- Get_Defining_Name --
+      -----------------------
 
-      procedure Adapter
+      function Get_Defining_Name
         (File : GNATCOLL.VFS.Virtual_File;
-         Loc  : Langkit_Support.Slocs.Source_Location;
-         Stop : in out Boolean)
+         Loc  : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Analysis.Defining_Name
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
              Self.LAL_Context.Get_From_File
@@ -518,17 +517,13 @@ package body LSP.Ada_Contexts is
 
          Name : constant Libadalang.Analysis.Name :=
            Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
-
-         Def_Name : constant Libadalang.Analysis.Defining_Name :=
-           Laltools.Common.Get_Name_As_Defining (Name);
       begin
-         if not Def_Name.Is_Null then
-            Callback (File, Def_Name, Stop);
-         end if;
-      end Adapter;
+         return Laltools.Common.Get_Name_As_Defining (Name);
+      end Get_Defining_Name;
 
    begin
-      Self.Source_Files.Get_Any_Symbol (Prefix, Only_Public, Adapter'Access);
+      Self.Source_Files.Get_Any_Symbol
+        (Pattern, Only_Public, Get_Defining_Name'Access, Callback);
    end Get_Any_Symbol;
 
    -----------------

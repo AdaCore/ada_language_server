@@ -1324,6 +1324,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.SymbolInformation);
 
+   procedure Read_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.Search_Kind);
+
+   procedure Write_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.Search_Kind);
+
    procedure Read_WorkspaceSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.WorkspaceSymbolParams);
