@@ -21,6 +21,7 @@ with Libadalang.Iterators;
 with Libadalang.Sources;
 
 with LSP.Lal_Utils;
+with LSP.Messages;                use LSP.Messages;
 
 package body LSP.Ada_File_Sets is
 
@@ -81,36 +82,79 @@ package body LSP.Ada_File_Sets is
    --------------------
 
    procedure Get_Any_Symbol
-     (Self        : Indexed_File_Set'Class;
-      Prefix      : VSS.Strings.Virtual_String;
-      Only_Public : Boolean;
-      Callback : not null access procedure
+     (Self              : Indexed_File_Set'Class;
+      Pattern           : LSP.Search.Search_Pattern'Class;
+      Only_Public       : Boolean;
+      Get_Defining_Name : not null access function
         (File : GNATCOLL.VFS.Virtual_File;
-         Loc  : Langkit_Support.Slocs.Source_Location;
-         Stop : in out Boolean))
+         Loc  : Langkit_Support.Slocs.Source_Location)
+      return Libadalang.Analysis.Defining_Name;
+      Callback          : not null access procedure
+        (File          : GNATCOLL.VFS.Virtual_File;
+         Defining_Name : Libadalang.Analysis.Defining_Name;
+         Stop          : in out Boolean))
    is
-      Stop   : Boolean := False;
-      Cursor : Symbol_Maps.Cursor :=
-        Self.All_Symbols.Ceiling (Prefix);
+      Stop          : Boolean := False;
+      Cursor        : Symbol_Maps.Cursor;
+      Defining_Name : Libadalang.Analysis.Defining_Name;
+      Use_Celling   : constant Boolean :=
+        not Pattern.Get_Case_Sensitive
+        and then not Pattern.Get_Negate
+        and then ((Pattern.Get_Kind = LSP.Messages.Full_Text
+                   and then Pattern.Get_Whole_Word)
+                  or else Pattern.Get_Kind = LSP.Messages.Start_Word_Text);
+
    begin
+      if Use_Celling then
+         Cursor := Self.All_Symbols.Ceiling (Pattern.Get_Canonical_Pattern);
+      else
+         Cursor := Self.All_Symbols.First;
+      end if;
+
       Each_Prefix :
       while Symbol_Maps.Has_Element (Cursor) loop
-         declare
-            Value : constant VSS.Strings.Virtual_String :=
-              Symbol_Maps.Key (Cursor);
-         begin
-            exit Each_Prefix when not Value.Starts_With (Prefix);
-
+         if Pattern.Get_Case_Sensitive then
+            --  Match each element individually because
+            --  All_Symbols is case insensitive
             for Item of Self.All_Symbols (Cursor) loop
-               if not Only_Public or else Item.Is_Public then
-                  Callback (Item.File, Item.Loc, Stop);
-               end if;
+               Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
 
-               exit Each_Prefix when Stop;
+               if not Defining_Name.Is_Null
+                 and then Pattern.Match
+                   (LSP.Lal_Utils.To_Virtual_String
+                      (Defining_Name.As_Ada_Node.Text))
+               then
+                  if not Only_Public or else Item.Is_Public then
+                     Callback (Item.File, Defining_Name, Stop);
+                  end if;
+
+                  exit Each_Prefix when Stop;
+               end if;
             end loop;
 
-            Symbol_Maps.Next (Cursor);
-         end;
+         else
+            if Pattern.Match (Symbol_Maps.Key (Cursor)) then
+               --  All_Symbols is case insensitive so if the key is matched
+               --  this means that all elements are also matched the pattern
+               for Item of Self.All_Symbols (Cursor) loop
+                  if not Only_Public or else Item.Is_Public then
+                     Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
+                     if not Defining_Name.Is_Null then
+                        Callback (Item.File, Defining_Name, Stop);
+                     end if;
+                  end if;
+
+                  exit Each_Prefix when Stop;
+               end loop;
+
+            else
+               --  All_Symbols is ordered so we will not find any
+               --  matches more
+               exit Each_Prefix when Use_Celling;
+            end if;
+         end if;
+
+         Symbol_Maps.Next (Cursor);
       end loop Each_Prefix;
    end Get_Any_Symbol;
 

@@ -34,6 +34,7 @@ with Pp.Command_Lines;
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completions;
 with LSP.Messages;
+with LSP.Search;
 with LSP.Types;
 
 package LSP.Ada_Documents is
@@ -137,7 +138,7 @@ package LSP.Ada_Documents is
    procedure Get_Any_Symbol
      (Self        : in out Document;
       Context     : LSP.Ada_Contexts.Context;
-      Prefix      : VSS.Strings.Virtual_String;
+      Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
       Result  : in out LSP.Ada_Completions.Completion_Maps.Map);

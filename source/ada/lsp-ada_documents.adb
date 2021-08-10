@@ -41,9 +41,12 @@ with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
+with LSP.Messages; use LSP.Messages;
 
 with Pp.Scanner;
 with Utils.Char_Vectors;
+
+with LSP.Search; use LSP.Search;
 
 package body LSP.Ada_Documents is
 
@@ -342,7 +345,6 @@ package body LSP.Ada_Documents is
       Edit     : out LSP.Messages.TextEdit_Vector)
    is
       use LSP.Types;
-      use LSP.Messages;
 
       Old_First_Line : Natural;
       New_First_Line : Natural;
@@ -614,7 +616,6 @@ package body LSP.Ada_Documents is
       use Utils.Char_Vectors;
       use Utils.Char_Vectors.Char_Vectors;
       use LSP.Types;
-      use LSP.Messages;
       use Langkit_Support.Slocs;
       use type LSP.Types.Line_Number;
       use type LSP.Types.UTF_16_Index;
@@ -715,8 +716,6 @@ package body LSP.Ada_Documents is
       Show_Implicit : Boolean;
       Result        : out LSP.Messages.ALS_Unit_Description_Vector)
    is
-      use LSP.Messages;
-
       Unit     : constant Libadalang.Analysis.Analysis_Unit :=
         LSP.Ada_Documents.Unit (Self    => Self,
                                 Context => Context);
@@ -916,8 +915,6 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
-      use LSP.Messages;
-
       procedure Walk
         (Node         : Libadalang.Analysis.Ada_Node;
          Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
@@ -1101,7 +1098,6 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
-      use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
 
       Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
@@ -1752,7 +1748,6 @@ package body LSP.Ada_Documents is
       Completions_Count           : Natural)
       return LSP.Messages.CompletionItem
    is
-      use LSP.Messages;
       use LSP.Types;
 
       Item           : CompletionItem;
@@ -1997,13 +1992,14 @@ package body LSP.Ada_Documents is
    procedure Get_Any_Symbol
      (Self        : in out Document;
       Context     : LSP.Ada_Contexts.Context;
-      Prefix      : VSS.Strings.Virtual_String;
+      Pattern     : Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
       Result      : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
 
       procedure Refresh_Symbol_Cache;
+      procedure Insert (Item : Name_Information);
 
       --------------------------
       -- Refresh_Symbol_Cache --
@@ -2027,7 +2023,7 @@ package body LSP.Ada_Documents is
            Libadalang.Iterators.Find
              (Self.Unit (Context).Root,
               Libadalang.Iterators.Kind_Is (Ada_Defining_Name)
-              and not Restricted_Kind);
+                and not Restricted_Kind);
 
       begin
          while It.Next (Node) loop
@@ -2047,16 +2043,36 @@ package body LSP.Ada_Documents is
                      Name_Vectors.Empty_Vector,
                      Cursor,
                      Inserted);
-               end if;
 
-               Self.Symbol_Cache (Cursor).Append
-                 ((Node.As_Defining_Name,
-                   Global_Visible.Unchecked_Get.Evaluate (Node)));
+                  Self.Symbol_Cache (Cursor).Append
+                    ((Node.As_Defining_Name,
+                     Global_Visible.Unchecked_Get.Evaluate (Node)));
+               end if;
             end;
          end loop;
       end Refresh_Symbol_Cache;
 
-      Cursor : Symbol_Maps.Cursor;
+      procedure Insert (Item : Name_Information) is
+      begin
+         if not Result.Contains (Item.Name) and then
+           (not Only_Public or else Item.Is_Public)
+         then
+            Result.Insert
+              (Item.Name,
+               (Is_Dot_Call  => False,
+                Is_Visible   => False,
+                Use_Snippets => False,
+                Pos          => <>));
+         end if;
+      end Insert;
+
+      Cursor      : Symbol_Maps.Cursor;
+      Use_Celling : constant Boolean :=
+        not Pattern.Get_Case_Sensitive
+        and then not Pattern.Get_Negate
+        and then ((Pattern.Get_Kind = LSP.Messages.Full_Text
+                   and then Pattern.Get_Whole_Word)
+                  or else Pattern.Get_Kind = LSP.Messages.Start_Word_Text);
 
    begin
       if Self.Refresh_Symbol_Cache then
@@ -2064,33 +2080,42 @@ package body LSP.Ada_Documents is
          Self.Refresh_Symbol_Cache := False;
       end if;
 
-      Cursor := Self.Symbol_Cache.Ceiling (Prefix);
+      if Use_Celling then
+         Cursor := Self.Symbol_Cache.Ceiling (Pattern.Get_Canonical_Pattern);
+      else
+         Cursor := Self.Symbol_Cache.First;
+      end if;
 
-      Each_Prefix :
       while Symbol_Maps.Has_Element (Cursor) loop
-         declare
-            Key : constant VSS.Strings.Virtual_String :=
-              Symbol_Maps.Key (Cursor);
-
-         begin
-            exit Each_Prefix when not Key.Starts_With (Prefix);
-
+         if Pattern.Get_Case_Sensitive then
+            --  Match each element individually because
+            --  Symbol_Cache is case insensitive
             for Item of Self.Symbol_Cache (Cursor) loop
-               if not Result.Contains (Item.Name) and then
-                 (not Only_Public or else Item.Is_Public)
+               if Pattern.Match
+                 (LSP.Lal_Utils.To_Virtual_String
+                    (Item.Name.As_Ada_Node.Text))
                then
-                  Result.Insert
-                    (Item.Name,
-                     (Is_Dot_Call  => False,
-                      Is_Visible   => False,
-                      Use_Snippets => False,
-                      Pos          => <>));
+                  Insert (Item);
                end if;
             end loop;
 
-            Symbol_Maps.Next (Cursor);
-         end;
-      end loop Each_Prefix;
+         else
+            if Pattern.Match (Symbol_Maps.Key (Cursor)) then
+               --  Symbol_Cache is case insensitive so if the key is matched
+               --  this means that all elements are also matched the pattern
+               for Item of Self.Symbol_Cache (Cursor) loop
+                  Insert (Item);
+               end loop;
+
+            else
+               --  Symbol_Cache is ordered so we will not find any
+               --  matches more
+               exit when Use_Celling;
+            end if;
+         end if;
+
+         Symbol_Maps.Next (Cursor);
+      end loop;
    end Get_Any_Symbol;
 
    ------------------------
