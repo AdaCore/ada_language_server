@@ -16,14 +16,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;           use Ada.Exceptions;
-with Ada.Strings.Fixed;        use Ada.Strings.Fixed;
 with GNAT.Expect.TTY;
-with GNAT.Strings;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
 
 with VSS.String_Vectors;
-with VSS.Strings.Conversions;
+with VSS.Strings.Character_Iterators;
 
 with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
@@ -159,14 +157,20 @@ package body LSP.Common is
    function Get_Hover_Text_For_Node
      (Node : Ada_Node'Class) return VSS.String_Vectors.Virtual_String_Vector
    is
-      Text   : constant String := Langkit_Support.Text.To_UTF8
-        (Node.Text);
-      Lines  : GNAT.Strings.String_List_Access := Split
-        (Text,
-         On               => ASCII.LF,
-         Omit_Empty_Lines => True);
-
       Result : VSS.String_Vectors.Virtual_String_Vector;
+
+      function Is_Space
+        (Char : VSS.Characters.Virtual_Character) return Boolean;
+      --  Check if given character is a whitespace
+
+      function Get_Indent
+        (Line : VSS.Strings.Virtual_String) return Natural;
+      --  Count number of starting spaces
+
+      function Tail_From
+        (Line : VSS.Strings.Virtual_String;
+         Skip : Natural) return VSS.Strings.Virtual_String;
+      --  Return slice of Line from given index to the end of Line
 
       procedure Get_Basic_Decl_Hover_Text;
       --  Create the hover text for for basic declarations
@@ -188,6 +192,12 @@ package body LSP.Common is
       -------------------------------
 
       procedure Get_Basic_Decl_Hover_Text is
+         Text   : constant VSS.Strings.Virtual_String :=
+           LSP.Lal_Utils.To_Virtual_String (Node.Text);
+
+         Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
+           Text.Split_Lines;
+
       begin
          case Node.Kind is
             when Ada_Package_Body =>
@@ -198,118 +208,137 @@ package body LSP.Common is
                return;
 
             when others =>
-               declare
-                  Idx : Integer;
-               begin
-                  --  Return an empty hover text if there is no text for this
-                  --  delclaration (only for safety).
-                  if Text = "" then
-                     return;
-                  end if;
+               --  Return an empty hover text if there is no text for this
+               --  delclaration (only for safety).
+               if Text.Is_Empty then
+                  return;
+               end if;
 
-                  --  If it's a single-line declaration, replace all the
-                  --  series of whitespaces by only one blankspace. If it's
-                  --  a multi-line declaration, remove only the unneeded
-                  --  indentation whitespaces.
+               --  If it's a single-line declaration, replace all the
+               --  series of whitespaces by only one blankspace. If it's
+               --  a multi-line declaration, remove only the unneeded
+               --  indentation whitespaces.
 
-                  if Lines'Length = 1 then
-                     declare
-                        Res_Idx : Integer := Text'First;
-                        Tmp     : String (Text'First .. Text'Last);
-                     begin
-                        Idx := Text'First;
+               if Lines.Length = 1 then
+                  declare
+                     Char  : VSS.Characters.Virtual_Character;
+                     Line  : constant VSS.Strings.Virtual_String := Lines (1);
+                     Value : VSS.Strings.Virtual_String;
 
-                        while Idx <= Text'Last loop
-                           Skip_Blanks (Text, Idx);
+                     Skip_Space : Boolean := True;
 
-                           while Idx <= Text'Last
-                             and then not Is_Whitespace (Text (Idx))
-                           loop
-                              Tmp (Res_Idx) := Text (Idx);
-                              Idx := Idx + 1;
-                              Res_Idx := Res_Idx + 1;
-                           end loop;
+                     J : VSS.Strings.Character_Iterators.Character_Iterator :=
+                       Line.First_Character;
+                  begin
+                     while J.Has_Element loop
+                        Char := J.Element;
 
-                           if Res_Idx < Tmp'Last then
-                              Tmp (Res_Idx) := ' ';
-                              Res_Idx := Res_Idx + 1;
-                           end if;
-                        end loop;
-
-                        if Res_Idx > Text'First then
-                           Result.Append
-                             (VSS.Strings.Conversions.To_Virtual_String
-                                (Tmp (Tmp'First .. Res_Idx - 1)));
+                        if not Is_Space (Char) then
+                           Skip_Space := False;
+                           Value.Append (Char);
+                        elsif not Skip_Space then
+                           Skip_Space := True;
+                           Value.Append (' ');
                         end if;
-                     end;
 
-                  else
-                     declare
-                        Blanks_Count_Per_Line : array
-                          (Lines'First + 1 .. Lines'Last) of Natural;
-                        Indent_Blanks_Count   : Natural := Natural'Last;
-                        Start_Idx             : Integer;
-                     begin
-                        Result.Append
-                          (VSS.Strings.Conversions.To_Virtual_String
-                             (Lines (Lines'First).all));
+                        exit when not J.Forward;
+                     end loop;
 
-                        --  Count the blankpaces per line and track how many
-                        --  blankspaces we should remove on each line by
-                        --  finding the common indentation blankspaces.
+                     Result.Append (Value);
+                  end;
 
-                        for J in Lines'First + 1 .. Lines'Last loop
-                           Idx := Lines (J)'First;
-                           Skip_Blanks (Lines (J).all, Idx);
+               else
+                  declare
+                     Indent : Natural := Natural'Last;
+                  begin
+                     Result.Append (Lines (1));
 
-                           Blanks_Count_Per_Line (J) := Idx - Lines (J)'First;
-                           Indent_Blanks_Count := Natural'Min
-                             (Indent_Blanks_Count,
-                              Blanks_Count_Per_Line (J));
-                        end loop;
+                     --  Count the blankspaces per line and track how many
+                     --  blankspaces we should remove on each line by
+                     --  finding the common indentation blankspaces.
 
-                        for J in Lines'First + 1 .. Lines'Last loop
-                           Start_Idx := Lines (J)'First + Indent_Blanks_Count;
-                           Result.Append
-                             (VSS.Strings.Conversions.To_Virtual_String
-                                (Lines (J).all (Start_Idx .. Lines (J)'Last)));
-                        end loop;
-                     end;
-                  end if;
-               end;
+                     for J in 2 .. Lines.Length loop
+                        Indent := Natural'Min (Indent, Get_Indent (Lines (J)));
+                     end loop;
+
+                     for J in 2 .. Lines.Length loop
+                        declare
+                           Line : constant VSS.Strings.Virtual_String :=
+                             Lines (J);
+
+                           Value : constant VSS.Strings.Virtual_String :=
+                             Tail_From (Line, Indent);
+                        begin
+                           Result.Append (Value);
+                        end;
+                     end loop;
+                  end;
+               end if;
          end case;
       end Get_Basic_Decl_Hover_Text;
+
+      ----------------
+      -- Get_Indent --
+      ----------------
+
+      function Get_Indent
+        (Line : VSS.Strings.Virtual_String) return Natural
+      is
+         Result : Natural := 0;
+         J      : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.First_Character;
+      begin
+         if J.Has_Element then
+            while Is_Space (J.Element) loop
+               Result := Result + 1;
+
+               exit when not J.Forward;
+            end loop;
+         end if;
+
+         return Result;
+      end Get_Indent;
 
       ------------------------------
       -- Get_Subp_Spec_Hover_Text --
       ------------------------------
 
       procedure Get_Subp_Spec_Hover_Text is
-         Idx : Integer;
+         Text   : constant VSS.Strings.Virtual_String :=
+           LSP.Lal_Utils.To_Virtual_String (Node.Text);
+
+         Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
+           Text.Split_Lines;
+
       begin
          --  For single-line subprogram specifications, we display the
          --  associated text directly.
          --  For multi-line ones, remove the identation blankspaces to replace
          --  them by a fixed number of blankspaces.
 
-         if Lines'Length = 1 then
-            Result.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
+         if Lines.Length = 1 then
+            Result.Append (Text);
 
          else
-            Result.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (Lines (Lines'First).all));
+            Result.Append (Lines (1));
 
-            for J in Lines'First + 1 .. Lines'Last loop
-               Idx := Lines (J)'First;
-               Skip_Blanks (Lines (J).all, Idx);
+            for J in 2 .. Lines.Length loop
+               declare
+                  Line   : VSS.Strings.Virtual_String := Lines (J);
+                  Indent : constant Natural := Get_Indent (Line);
+               begin
+                  if not Line.Is_Empty then
+                     Line := Tail_From (Line, Indent);
 
-               if Idx <= Lines (J)'Last then
-                  Result.Append
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       ((if Lines (J).all (Idx) = '(' then "  " else "   ")
-                        & Lines (J).all (Idx .. Lines (J).all'Last)));
-               end if;
+                     if Line.Starts_With ("(") then
+                        Line.Prepend ("  ");
+                     else
+                        Line.Prepend ("   ");
+                     end if;
+
+                     Result.Append (Line);
+                  end if;
+               end;
             end loop;
          end if;
 
@@ -335,27 +364,34 @@ package body LSP.Common is
       ---------------------------------
 
       procedure Get_Package_Decl_Hover_Text is
-         End_Idx : Natural := Text'First;
-
+         Text   : VSS.Strings.Virtual_String;
+         Decl   : constant Base_Package_Decl := Node.As_Base_Package_Decl;
+         Aspect : constant Aspect_Spec := Decl.F_Aspects;
+         Name   : constant Defining_Name := Decl.F_Package_Name;
+         To     : Token_Reference := --  token before `IS`
+           (if not Aspect.Is_Null then
+              Aspect.Token_End
+            elsif not Name.Is_Null then
+              Name.Token_End
+            else  --  just-in-case fallback
+              Decl.Token_End);
       begin
          --  Return the first line of the package declaration and its
          --  generic parameters if any.
-         Skip_To_String
-           (Str       => Text,
-            Index     => End_Idx,
-            Substring => " is");
+         To := Next (To, Exclude_Trivia => True);   --  Jump to IS
+         To := Previous (To, Exclude_Trivia => False);  --  Jump before IS
 
-         if Node.Parent /= No_Ada_Node
-           and then Node.Parent.Kind in Ada_Generic_Decl
-         then
-            Result.Append
-              (LSP.Lal_Utils.To_Virtual_String
-                 (As_Generic_Decl (Node.Parent).F_Formal_Part.Text));
+         if Node.Parent.Kind in Ada_Generic_Decl then
+            Text := LSP.Lal_Utils.To_Virtual_String
+              (Node.Parent.As_Generic_Decl.F_Formal_Part.Text);
+
+            Result.Append (Text);
          end if;
 
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (Text (Text'First .. End_Idx)));
+         Text := LSP.Lal_Utils.To_Virtual_String
+           (Libadalang.Common.Text (Node.Token_Start, To));
+
+         Result.Append (Text);
       end Get_Package_Decl_Hover_Text;
 
       -----------------------------
@@ -375,41 +411,71 @@ package body LSP.Common is
       ---------------------------
 
       procedure Get_Aspect_Hover_Text is
-         Indentation : Integer;
-         Idx         : Integer;
-      begin
-         --  Get the indentation for the first line
-         Idx := Lines (Lines'First)'First;
-         Skip_Blanks (Lines (Lines'First).all, Idx);
-         Indentation := Idx - Lines (Lines'First)'First;
+         Text   : constant VSS.Strings.Virtual_String :=
+           LSP.Lal_Utils.To_Virtual_String (Node.Text);
 
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              ((2 * " ")  --  Force an indentation of 2 for the first line
-               &  Lines (Lines'First).all
-                   (Lines (Lines'First)'First + Indentation
-                    .. Lines (Lines'First).all'Last)));
+         Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
+           Text.Split_Lines;
+
+         --  Get the indentation for the first line
+         Indentation : Integer := Get_Indent (Lines (1));
+         Idx         : Integer;
+         Line        : VSS.Strings.Virtual_String;
+      begin
+         Line := Tail_From (Lines (1), Indentation);
+         --  Force an indentation of 2 for the first line
+         Line.Prepend ("  ");
+         Result.Append (Line);
 
          --  The next line should have one more indentation level
          Indentation := Indentation + 3;
 
-         for J in Lines'First + 1 .. Lines'Last loop
-            Idx := Lines (J)'First;
-            Skip_Blanks (Lines (J).all, Idx);
+         for J in 2 .. Lines.Length loop
+            Line := Lines (J);
+            Idx := Get_Indent (Line);
 
-            if Lines (J)'First + Indentation > Idx then
+            if Indentation > Idx then
                --  Uncommon indentation: just print the line
-               Result.Append
-                 (VSS.Strings.Conversions.To_Virtual_String (Lines (J).all));
-
+               Result.Append (Line);
             else
-               Result.Append  --  Remove the uneeded indentation
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (Lines (J).all
-                       (Lines (J)'First + Indentation .. Lines (J).all'Last)));
+               --  Remove the uneeded indentation
+               Result.Append (Tail_From (Line, Indentation));
             end if;
          end loop;
       end Get_Aspect_Hover_Text;
+
+      --------------
+      -- Is_Space --
+      --------------
+
+      function Is_Space
+        (Char : VSS.Characters.Virtual_Character) return Boolean is
+      begin
+         return VSS.Characters.Get_General_Category (Char) in
+           VSS.Characters.Space_Separator;
+      end Is_Space;
+
+      ---------------
+      -- Tail_From --
+      ---------------
+
+      function Tail_From
+        (Line : VSS.Strings.Virtual_String;
+         Skip : Natural) return VSS.Strings.Virtual_String
+      is
+         From : VSS.Strings.Character_Iterators.
+           Character_Iterator := Line.First_Character;
+
+         To   : constant VSS.Strings.Character_Iterators.
+           Character_Iterator := Line.Last_Character;
+
+      begin
+         for J in 1 .. Skip loop
+            exit when not From.Forward;
+         end loop;
+
+         return Line.Slice (From, To);
+      end Tail_From;
 
    begin
 
@@ -436,8 +502,6 @@ package body LSP.Common is
          when others =>
             Get_Basic_Decl_Hover_Text;
       end case;
-
-      GNAT.Strings.Free (Lines);
 
       return Result;
    end Get_Hover_Text_For_Node;
