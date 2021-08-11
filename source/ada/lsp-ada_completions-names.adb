@@ -136,11 +136,9 @@ package body LSP.Ada_Completions.Names is
          BD                  : Basic_Decl;
          Completion_Count    : Natural := 0;
          Name                : VSS.Strings.Virtual_String;
-
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
-            Completion_Count := Completion_Count + 1;
 
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
@@ -157,11 +155,14 @@ package body LSP.Ada_Completions.Names is
                        Prefix         => Prefix,
                        Case_Sensitive => False)
                   then
+                     Completion_Count := Completion_Count + 1;
+
                      Names.Include
                        (DN,
                         (Is_Dot_Call (Item),
                          Is_Visible (Item),
-                         Use_Snippets));
+                         Use_Snippets,
+                         Completion_Count));
                   end if;
                end loop;
             end if;

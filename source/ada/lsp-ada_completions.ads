@@ -39,8 +39,18 @@ package LSP.Ada_Completions is
 
    type Name_Information is record
       Is_Dot_Call  : Boolean;
+      --  True if we are dealing with a dotted call.
+
       Is_Visible   : Boolean;
+      --  True if the item is visible from the withed/used packages, False
+      --  otherwise.
+
       Use_Snippets : Boolean;
+      --  True if it's a snippet completion item.
+
+      Pos          : Integer := -1;
+      --  The position of the item in the fully computed completion list. Used
+      --  for sorting properly the items on client-side.
    end record;
 
    package Completion_Maps is new Ada.Containers.Hashed_Maps

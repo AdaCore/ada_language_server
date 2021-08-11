@@ -45,6 +45,7 @@ package body LSP.Ada_Handlers.Invisibles is
          Stop : in out Boolean);
 
       Limit : constant := 10;
+      Pos   : Integer := 0;
 
       --------------------------
       -- On_Inaccessible_Name --
@@ -64,7 +65,10 @@ package body LSP.Ada_Handlers.Invisibles is
               (Name,
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
-                Use_Snippets => False));
+                Use_Snippets => False,
+                Pos          => Pos));
+
+            Pos := Pos + 1;
 
             Stop := Names.Length >= Limit;
          end if;
