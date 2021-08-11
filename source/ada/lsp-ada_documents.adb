@@ -1744,10 +1744,12 @@ package body LSP.Ada_Documents is
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
       DN                       : Libadalang.Analysis.Defining_Name;
-      Use_Snippets         : Boolean;
+      Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
-      Is_Visible               : Boolean)
+      Is_Visible               : Boolean;
+      Pos                      : Integer;
+      Completions_Count           : Natural)
       return LSP.Messages.CompletionItem
    is
       use LSP.Messages;
@@ -1757,6 +1759,38 @@ package body LSP.Ada_Documents is
       Subp_Spec_Node : Base_Subp_Spec;
       Doc_Text       : VSS.Strings.Virtual_String;
       Loc_Text       : VSS.Strings.Virtual_String;
+      Min_Width      : constant Natural := Completions_Count'Img'Length - 1;
+
+      function Get_Sort_text (Base_Label : LSP_String) return LSP_String;
+      --  Return a suitable sortText according to the completion item's
+      --  visibility and position in the completion list.
+
+      -------------------
+      -- Get_Sort_text --
+      -------------------
+
+      function Get_Sort_text (Base_Label : LSP_String) return LSP_String is
+         Sort_Text : LSP_String := Empty_LSP_String;
+      begin
+         if not Is_Visible then
+            if Pos /= -1 then
+               Sort_Text :=
+                 To_LSP_String
+                   (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width))
+                 & Sort_Text;
+            end if;
+
+            Sort_Text := "~" & Base_Label;
+
+         elsif Pos /= -1 then
+            Sort_Text :=
+              To_LSP_String
+                (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width))
+              & Base_Label;
+         end if;
+
+         return Sort_Text;
+      end Get_Sort_text;
 
    begin
       Item.label := LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
@@ -1766,17 +1800,23 @@ package body LSP.Ada_Documents is
                       LSP.Types.To_LSP_String
                         (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
-      if not Is_Visible then
-         declare
-            Base_Label : constant LSP_String := LSP.Types.To_LSP_String
-              (Item.label);
-         begin
-            Item.sortText := (True, '~' & Base_Label);
+      declare
+         Base_Label : constant LSP_String := LSP.Types.To_LSP_String
+           (Item.label);
+         Sort_Text  : constant LSP_String :=
+           Get_Sort_text (Base_Label);
+      begin
+         if not Is_Visible then
             Item.insertText := (True, Base_Label);
             Item.label.Append (" (invisible)");
             Item.filterText := (True, Base_Label);
-         end;
-      end if;
+         end if;
+
+         --  Set the sortText if needed
+         if Sort_Text /= Empty_LSP_String then
+            Item.sortText := (True, Sort_Text);
+         end if;
+      end;
 
       --  Property_Errors can occur when calling
       --  Get_Documentation on unsupported docstrings, so
@@ -2043,7 +2083,8 @@ package body LSP.Ada_Documents is
                     (Item.Name,
                      (Is_Dot_Call  => False,
                       Is_Visible   => False,
-                      Use_Snippets => False));
+                      Use_Snippets => False,
+                      Pos          => <>));
                end if;
             end loop;
 

@@ -39,7 +39,9 @@ package body LSP.Ada_Completions is
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
-      Result                   : in out LSP.Messages.CompletionItem_Vector) is
+      Result                   : in out LSP.Messages.CompletionItem_Vector)
+   is
+      Length : constant Natural := Natural (Names.Length);
    begin
       for Cursor in Names.Iterate loop
          declare
@@ -55,7 +57,9 @@ package body LSP.Ada_Completions is
                   Use_Snippets             => Info.Use_Snippets,
                   Named_Notation_Threshold => Named_Notation_Threshold,
                   Is_Dot_Call              => Info.Is_Dot_Call,
-                  Is_Visible               => Info.Is_Visible));
+                  Is_Visible               => Info.Is_Visible,
+                  Pos                      => Info.Pos,
+                  Completions_Count                   => Length));
          end;
       end loop;
    end Write_Completions;
