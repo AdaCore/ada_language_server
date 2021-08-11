@@ -197,6 +197,9 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Version  : constant LSP.Messages.VersionedTextDocumentIdentifier :=
         Document.Versioned_Identifier;
    begin
+      Apply.params.label :=
+        (Is_Set => True,
+         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
       if Message_Handler.Versioned_Documents then
          Edits.documentChanges.Append
            (LSP.Messages.Document_Change'
