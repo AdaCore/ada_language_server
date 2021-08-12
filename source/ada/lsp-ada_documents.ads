@@ -229,7 +229,9 @@ package LSP.Ada_Documents is
       Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
-      Is_Visible               : Boolean)
+      Is_Visible               : Boolean;
+      Pos                      : Integer;
+      Completions_Count        : Natural)
       return LSP.Messages.CompletionItem;
    --  Compute a completion item.
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
@@ -241,6 +243,7 @@ package LSP.Ada_Documents is
    --  named notation is used for subprogram completion snippets.
    --  Is_Dot_Call is used to know if we should omit the first parameter
    --  when computing subprogram snippets.
+   --  Completions_Count is the total number of completion items.
 
    function Get_Source_Location
      (Self     : Document'Class;

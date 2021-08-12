@@ -3623,8 +3623,8 @@ package body LSP.Ada_Handlers is
               (Name,
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
-                Use_Snippets => False));
-
+                Use_Snippets => False,
+                Pos          => <>));
             Stop := Has_Been_Canceled;
          end if;
       end On_Inaccessible_Name;
