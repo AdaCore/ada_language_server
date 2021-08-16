@@ -211,6 +211,19 @@
                        {
                          "range": {
                            "start": {
+                             "line": 9,
+                             "character": 13
+                           },
+                           "end": {
+                             "line": 9,
+                             "character": 18
+                           }
+                         },
+                         "newText": "Print1"
+                       },
+                       {
+                         "range": {
+                           "start": {
                              "line": 11,
                              "character": 15
                            },
@@ -246,19 +259,6 @@
                            }
                          },
                          "newText": "-"
-                       },
-                       {
-                         "range": {
-                           "start": {
-                             "line": 9,
-                             "character": 13
-                           },
-                           "end": {
-                             "line": 9,
-                             "character": 18
-                           }
-                         },
-                         "newText": "Print1"
                        }
                      ],
                        "$URI{p1.adb}": [
