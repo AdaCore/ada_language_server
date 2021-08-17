@@ -678,7 +678,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      },
                      {
                         "label": "procedure Hello (A : Integer; B : Float)",
@@ -691,7 +691,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
@@ -826,20 +826,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 1
-                     },
-                     {
-                        "label": "procedure Hello (A : Integer; B : Float)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           }
-                        ],
-                        "activeParameter": 1
+                        "activeParameter": 2
                      }
                   ],
                   "activeSignature": 0,
@@ -2225,7 +2212,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 2
                      }
                   ],
                   "activeSignature": 0,

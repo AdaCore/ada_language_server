@@ -396,26 +396,62 @@ package body LSP.Lal_Utils is
       Name_Node       : out Libadalang.Analysis.Name)
    is
       use Langkit_Support.Slocs;
-      Cur_Node : Ada_Node := Node.As_Ada_Node;
+      Cur_Node      : Ada_Node := Node.As_Ada_Node;
+      In_Assoc_List : Boolean  := False;
+      --  True if the cursor is a node of the Assoc_List
 
-      function Is_Active (N : Ada_Node) return Boolean;
+      function Cursor_In_Node (N : Ada_Node) return Boolean;
       --  Check if N contains the cursor
 
-      ---------------
-      -- Is_Active --
-      ---------------
+      function Is_New_Param return Boolean;
+      --  Check the token near the current location to find if we are writing
+      --  a new param not added in the Assoc_List.
 
-      function Is_Active (N : Ada_Node) return Boolean
-      is
-         S : constant Langkit_Support.Slocs.Source_Location_Range :=
-           N.Sloc_Range;
+      --------------------
+      -- Cursor_In_Node --
+      --------------------
+
+      function Cursor_In_Node (N : Ada_Node) return Boolean is
       begin
-         --  XXX: Shall we use Langkit_Support.Slocs.Compare instead?
-         return S.Start_Line <= Cursor.Line
-           and then Cursor.Line <= S.End_Line
-           and then S.Start_Column <= Cursor.Column
-           and then Cursor.Column <= S.End_Column;
-      end Is_Active;
+         case Libadalang.Analysis.Compare (N, Cursor) is
+            when Inside =>
+               In_Assoc_List := True;
+               return True;
+            when Before =>
+               --  Case to handle:
+               --      Foo (1, |
+               --      Bar (1, 2);
+               --  LAL error recovery will assume that Bar (1, 2); is the
+               --  second param of Foo. At this point we are in the Assoc_List
+               --  and we need to stop going through the list of parameters.
+               In_Assoc_List := True;
+               return True;
+            when After =>
+               In_Assoc_List := False;
+               return False;
+         end case;
+      end Cursor_In_Node;
+
+      ------------------
+      -- Is_New_Param --
+      ------------------
+
+      function Is_New_Param return Boolean is
+         Result : Token_Reference := Node.Unit.Lookup_Token (Cursor);
+         K      : constant Token_Kind := Kind (Data (Result));
+      begin
+         --  LAL is returning the same tree
+         --  for "Foo (1" and "Foo (1," thus we must look at the token)
+         if K = Ada_Comma then
+            return True;
+         elsif Kind (Data (Result)) = Ada_Whitespace then
+            --  Handle the case "Foo (1," followed by whitespaces
+            Result := Previous (Result, Exclude_Trivia => True);
+            return Kind (Data (Result)) = Ada_Comma;
+         else
+            return False;
+         end if;
+      end Is_New_Param;
 
    begin
       Active_Position := 0;
@@ -485,11 +521,18 @@ package body LSP.Lal_Utils is
             for Assoc of Suffix_Node.As_Assoc_List loop
                Designator := Assoc.As_Param_Assoc.F_Designator;
                Active_Position := Active_Position + 1;
-               exit when Is_Active (Assoc.As_Ada_Node);
+               exit when Cursor_In_Node (Assoc.As_Ada_Node);
             end loop;
          end if;
-         --  The active position index starts at 0
-         Active_Position := Active_Position - 1;
+
+         if not In_Assoc_List and then Is_New_Param then
+            --  The user has written "Foo (1,|" or "Foo (1, |" at this point
+            --  LAL only has one node in the Assoc_List however we are at the
+            --  second active position.
+            Designator := No_Ada_Node;
+         else
+            Active_Position := Active_Position - 1;
+         end if;
       end;
    end Get_Call_Expr_Name;
 
