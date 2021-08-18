@@ -2103,7 +2103,9 @@ package body LSP.Ada_Handlers is
          Kind   : Libadalang.Common.Ref_Result_Kind;
          Cancel : in out Boolean)
       is
+         pragma Unreferenced (Kind);
          pragma Unreferenced (Cancel);
+
       begin
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
             Append_Location
