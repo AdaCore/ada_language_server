@@ -2064,7 +2064,6 @@ package body LSP.Ada_Handlers is
         Self.To_File (Value.textDocument.uri);
       Response   : LSP.Messages.Server_Responses.Highlight_Response
         (Is_Error => False);
-      Imprecise  : Boolean := False;
       Definition : Defining_Name;
 
       procedure Callback
@@ -2107,8 +2106,6 @@ package body LSP.Ada_Handlers is
       is
          pragma Unreferenced (Cancel);
       begin
-         Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
-
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
             Append_Location
               (Result => Response.Result,
