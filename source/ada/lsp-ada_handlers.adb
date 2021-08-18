@@ -2108,15 +2108,16 @@ package body LSP.Ada_Handlers is
       begin
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
             Append_Location
-              (Result => Response.Result,
-               Node   => Node,
-               Kind   => Get_Highlight_Kind (Node.As_Ada_Node),
-               File   => File);
+              (Result   => Response.Result,
+               Document => Document,
+               File     => File,
+               Node     => Node,
+               Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
          end if;
 
       end Callback;
-   begin
 
+   begin
       Self.Imprecise_Resolve_Name (Context, Value, Definition);
 
       if Definition = No_Defining_Name or else Request.Canceled then
@@ -2132,10 +2133,11 @@ package body LSP.Ada_Handlers is
 
       --  ... add it manually
       Append_Location
-        (Result => Response.result,
-         Node   => Definition,
-         Kind   => Get_Highlight_Kind (Definition.As_Ada_Node),
-         File   => File);
+        (Result   => Response.result,
+         Document => Document,
+         File     => File,
+         Node     => Definition,
+         Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
 
       return Response;
    end On_Highlight_Request;

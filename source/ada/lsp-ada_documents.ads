@@ -71,6 +71,12 @@ package LSP.Ada_Documents is
       End_Pos   : LSP.Messages.Position) return VSS.Strings.Virtual_String;
    --  Return the text in the specified range.
 
+   function To_LSP_Range
+     (Self    : Document;
+      Segment : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Messages.Span;
+   --  Convert LAL's Source_Location_Range to LSP's Range
+
    procedure Apply_Changes
      (Self    : aliased in out Document;
       Version : LSP.Types.LSP_Number;
