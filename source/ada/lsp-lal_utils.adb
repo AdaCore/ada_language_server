@@ -124,20 +124,22 @@ package body LSP.Lal_Utils is
    ---------------------
 
    procedure Append_Location
-     (Result : in out LSP.Messages.DocumentHighlight_Vector;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.Optional_DocumentHighlightKind;
-      File   : GNATCOLL.VFS.Virtual_File)
+     (Result   : in out LSP.Messages.DocumentHighlight_Vector;
+      Document : not null access LSP.Ada_Documents.Document'Class;
+      File     : GNATCOLL.VFS.Virtual_File;
+      Node     : Libadalang.Analysis.Ada_Node'Class;
+      Kind     : LSP.Messages.Optional_DocumentHighlightKind)
    is
       use type GNATCOLL.VFS.Virtual_File;
 
       Node_File : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
+
    begin
       if File = Node_File then
          Result.Append
            (LSP.Messages.DocumentHighlight'
-              (span => LSP.Lal_Utils.Get_Node_Location (Node).span,
+              (span => Document.To_LSP_Range (Node.Sloc_Range),
                kind => Kind));
       end if;
    end Append_Location;

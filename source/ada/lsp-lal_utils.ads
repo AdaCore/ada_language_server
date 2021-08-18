@@ -57,12 +57,17 @@ package LSP.Lal_Utils is
    --  The same for Location_Vector.
 
    procedure Append_Location
-     (Result : in out LSP.Messages.DocumentHighlight_Vector;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.Optional_DocumentHighlightKind;
-      File   : GNATCOLL.VFS.Virtual_File);
+     (Result   : in out LSP.Messages.DocumentHighlight_Vector;
+      Document : not null access LSP.Ada_Documents.Document'Class;
+      File     : GNATCOLL.VFS.Virtual_File;
+      Node     : Libadalang.Analysis.Ada_Node'Class;
+      Kind     : LSP.Messages.Optional_DocumentHighlightKind);
    --  The same for DocumentHighlight_Vector.
    --  File is used to filter out the location not in the Document.
+   --  Note, File and Document must be same document.
+   --  XXX File parameter can be removed when whether Document can return
+   --  associated Virtual_File or Node can able to return URI of the enclosing
+   --  file.
 
    procedure Sort_And_Remove_Duplicates
      (Result : in out LSP.Messages.Location_Vector);
