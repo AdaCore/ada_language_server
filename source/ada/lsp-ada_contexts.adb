@@ -553,7 +553,9 @@ package body LSP.Ada_Contexts is
         (Unit_Provider => Self.Unit_Provider,
          File_Reader   => Self.Reader_Reference,
          With_Trivia   => True,
-         Charset       => Self.Get_Charset);
+         Charset       => Self.Get_Charset,
+         Tab_Stop      => 1);
+      --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;
 
@@ -715,7 +717,9 @@ package body LSP.Ada_Contexts is
         (Unit_Provider => Self.Unit_Provider,
          File_Reader   => Self.Reader_Reference,
          With_Trivia   => True,
-         Charset       => Self.Get_Charset);
+         Charset       => Self.Get_Charset,
+         Tab_Stop      => 1);
+      --  Tab stop is set 1 to disable "visible character guessing" by LAL.
    end Reload;
 
    ------------
