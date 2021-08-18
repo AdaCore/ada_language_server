@@ -686,7 +686,7 @@ package body LSP.Ada_Documents is
       else
          --  diff for a part of the document
 
-         Out_Span := LSP.Lal_Utils.To_Span (Out_Sloc);
+         Out_Span := Self.To_LSP_Range (Out_Sloc);
          Diff
            (Self,
             VSS.Strings.Conversions.To_Virtual_String (S.all),
