@@ -38,6 +38,7 @@ COVERAGE_INSTR=gnatcov instrument --level stmt $(LIBRARY_FLAGS) \
 ifeq ($(OS),Windows_NT)
    PLATFORM=win32
    PYTHON=python.exe
+   EXE=.exe
 else
    UNAME_S := $(shell uname -s)
    ifeq ($(UNAME_S),Linux)
@@ -49,6 +50,7 @@ else
       OS=osx
    endif
    PYTHON=python3
+   EXE=
 endif
 
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
@@ -79,8 +81,7 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
 	mkdir -p integration/vscode/ada/$(PLATFORM)
-	ln -v -s -f $(ALS) integration/vscode/ada/$(PLATFORM) ||\
-	  cp -f .obj/server/ada_language_server.exe integration/vscode/ada/$(PLATFORM)
+	cp -v -f $(ALS)$(EXE) integration/vscode/ada/$(PLATFORM)
 
 generate:
 	python scripts/generate.py
