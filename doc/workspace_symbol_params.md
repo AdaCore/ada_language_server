@@ -4,10 +4,10 @@
 
 This feature allows the LSP server to provide results for more flexible
 search conditions like:
-  -  A Full_Text match searches the pattern exactly in the contents.
-
   -  A Start_Word_Text works like a Full_Text but tested word should match
-     patters from the first letter.
+     patters from the first letter. This is the default choice.
+
+  -  A Full_Text match searches the pattern exactly in the contents.
 
   -  A regexp parses the pattern as a regular expression.
 
@@ -46,15 +46,14 @@ export namespace Search_Kind {
 	export const Regexp = 2;
 	export const Fuzzy = 3;
 	export const Approximate = 4;
-        export const Start_Word_Text = 5;
+	export const Start_Word_Text = 5;
 }
 
 interface WorkspaceSymbolParams {
 	query: string;
-        case_sensitive?: boolean;
-        whole_word?: boolean;
-        negate?: boolean;
-        kind?: Search_Kind;
-
+	case_sensitive?: boolean;
+	whole_word?: boolean;
+	negate?: boolean;
+	kind?: Search_Kind;
 }
 ```

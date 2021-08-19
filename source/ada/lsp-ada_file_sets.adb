@@ -21,7 +21,7 @@ with Libadalang.Iterators;
 with Libadalang.Sources;
 
 with LSP.Lal_Utils;
-with LSP.Messages;                use LSP.Messages;
+with LSP.Messages;
 
 package body LSP.Ada_File_Sets is
 
@@ -94,6 +94,8 @@ package body LSP.Ada_File_Sets is
          Defining_Name : Libadalang.Analysis.Defining_Name;
          Stop          : in out Boolean))
    is
+      use type LSP.Messages.Search_Kind;
+
       Stop          : Boolean := False;
       Cursor        : Symbol_Maps.Cursor;
       Defining_Name : Libadalang.Analysis.Defining_Name;
@@ -132,26 +134,24 @@ package body LSP.Ada_File_Sets is
                end if;
             end loop;
 
-         else
-            if Pattern.Match (Symbol_Maps.Key (Cursor)) then
-               --  All_Symbols is case insensitive so if the key is matched
-               --  this means that all elements are also matched the pattern
-               for Item of Self.All_Symbols (Cursor) loop
-                  if not Only_Public or else Item.Is_Public then
-                     Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
-                     if not Defining_Name.Is_Null then
-                        Callback (Item.File, Defining_Name, Stop);
-                     end if;
+         elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
+            --  All_Symbols is case insensitive so if the key is matched
+            --  this means that all elements are also matched the pattern
+            for Item of Self.All_Symbols (Cursor) loop
+               if not Only_Public or else Item.Is_Public then
+                  Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
+                  if not Defining_Name.Is_Null then
+                     Callback (Item.File, Defining_Name, Stop);
                   end if;
+               end if;
 
-                  exit Each_Prefix when Stop;
-               end loop;
+               exit Each_Prefix when Stop;
+            end loop;
 
-            else
-               --  All_Symbols is ordered so we will not find any
-               --  matches more
-               exit Each_Prefix when Use_Celling;
-            end if;
+         else
+            --  All_Symbols is ordered so we will not find any
+            --  matches more
+            exit Each_Prefix when Use_Celling;
          end if;
 
          Symbol_Maps.Next (Cursor);
