@@ -124,20 +124,22 @@ package body LSP.Lal_Utils is
    ---------------------
 
    procedure Append_Location
-     (Result : in out LSP.Messages.DocumentHighlight_Vector;
-      Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kind   : LSP.Messages.Optional_DocumentHighlightKind;
-      File   : GNATCOLL.VFS.Virtual_File)
+     (Result   : in out LSP.Messages.DocumentHighlight_Vector;
+      Document : not null access LSP.Ada_Documents.Document'Class;
+      File     : GNATCOLL.VFS.Virtual_File;
+      Node     : Libadalang.Analysis.Ada_Node'Class;
+      Kind     : LSP.Messages.Optional_DocumentHighlightKind)
    is
       use type GNATCOLL.VFS.Virtual_File;
 
       Node_File : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
+
    begin
       if File = Node_File then
          Result.Append
            (LSP.Messages.DocumentHighlight'
-              (span => LSP.Lal_Utils.Get_Node_Location (Node).span,
+              (span => Document.To_LSP_Range (Node.Sloc_Range),
                kind => Kind));
       end if;
    end Append_Location;
@@ -1420,6 +1422,7 @@ package body LSP.Lal_Utils is
       Decl : constant Libadalang.Analysis.Basic_Decl :=
         Node.As_Defining_Name.P_Basic_Decl;
       Next : Libadalang.Analysis.Ada_Node := Decl.Parent;
+
    begin
       if not Decl.Is_Null and then
         Decl.Kind in Libadalang.Common.Ada_For_Loop_Var_Decl
@@ -1433,6 +1436,7 @@ package body LSP.Lal_Utils is
           | Libadalang.Common.Ada_Entry_Decl
       then
          return True;
+
       elsif not Decl.Is_Null and then
         Decl.Kind in Libadalang.Common.Ada_Object_Decl and then
         Decl.Parent.Kind = Libadalang.Common.Ada_Generic_Formal_Obj_Decl
@@ -1442,9 +1446,10 @@ package body LSP.Lal_Utils is
       end if;
 
       while not Next.Is_Null loop
+         --  Any program unit body excluding library level package bodies
          if Next.Kind in Libadalang.Common.Ada_Body_Node and then
-           not (Next.Parent.Kind in Libadalang.Common.Ada_Package_Body and then
-                Next.Parent.Parent.Kind in Libadalang.Common.Ada_Library_Item)
+           (Next.Kind not in Libadalang.Common.Ada_Package_Body or else
+              Next.Parent.Kind not in Libadalang.Common.Ada_Library_Item)
          then
             return True;
          end if;

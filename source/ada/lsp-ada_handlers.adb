@@ -33,8 +33,9 @@ with VSS.Strings;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
-with LSP.Ada_Documents; use LSP.Ada_Documents;
-with LSP.Ada_Contexts;  use LSP.Ada_Contexts;
+with LSP.Ada_Documents;        use LSP.Ada_Documents;
+with LSP.Search;               use LSP.Search;
+with LSP.Ada_Contexts;         use LSP.Ada_Contexts;
 with LSP.Ada_Completions;
 with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
@@ -2063,7 +2064,6 @@ package body LSP.Ada_Handlers is
         Self.To_File (Value.textDocument.uri);
       Response   : LSP.Messages.Server_Responses.Highlight_Response
         (Is_Error => False);
-      Imprecise  : Boolean := False;
       Definition : Defining_Name;
 
       procedure Callback
@@ -2104,21 +2104,22 @@ package body LSP.Ada_Handlers is
          Kind   : Libadalang.Common.Ref_Result_Kind;
          Cancel : in out Boolean)
       is
+         pragma Unreferenced (Kind);
          pragma Unreferenced (Cancel);
-      begin
-         Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
 
+      begin
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
             Append_Location
-              (Result => Response.Result,
-               Node   => Node,
-               Kind   => Get_Highlight_Kind (Node.As_Ada_Node),
-               File   => File);
+              (Result   => Response.Result,
+               Document => Document,
+               File     => File,
+               Node     => Node,
+               Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
          end if;
 
       end Callback;
-   begin
 
+   begin
       Self.Imprecise_Resolve_Name (Context, Value, Definition);
 
       if Definition = No_Defining_Name or else Request.Canceled then
@@ -2134,10 +2135,11 @@ package body LSP.Ada_Handlers is
 
       --  ... add it manually
       Append_Location
-        (Result => Response.result,
-         Node   => Definition,
-         Kind   => Get_Highlight_Kind (Definition.As_Ada_Node),
-         File   => File);
+        (Result   => Response.result,
+         Document => Document,
+         File     => File,
+         Node     => Definition,
+         Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
 
       return Response;
    end On_Highlight_Request;
@@ -3629,15 +3631,23 @@ package body LSP.Ada_Handlers is
          end if;
       end On_Inaccessible_Name;
 
-      Query : constant VSS.Strings.Virtual_String :=
-        Canonicalize (LSP.Types.To_Virtual_String (Request.params.query));
+      Pattern : constant Search_Pattern'Class := Build
+        (Pattern        => LSP.Types.To_Virtual_String (Request.params.query),
+         Case_Sensitive => Request.params.case_sensitive = LSP.Types.True,
+         Whole_Word     => Request.params.whole_word = LSP.Types.True,
+         Negate         => Request.params.negate = LSP.Types.True,
+         Kind           =>
+           (if Request.params.kind.Is_Set
+            then Request.params.kind.Value
+            else LSP.Messages.Start_Word_Text));
+
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
 
    begin
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol
-           (Prefix      => Query,
+           (Pattern     => Pattern,
             Only_Public => False,
             Callback    => On_Inaccessible_Name'Access);
 
@@ -3651,7 +3661,7 @@ package body LSP.Ada_Handlers is
          begin
             Doc.Get_Any_Symbol
               (Context.all,
-               Query,
+               Pattern,
                Ada.Containers.Count_Type'Last,
                False,
                Names);

@@ -8289,8 +8289,51 @@ package LSP.Messages is
    --	query: string;
    --}
    --```
+
+   -- Search_Kind --
+   type Search_Kind is
+     (Full_Text, Regexp, Fuzzy, Approximate, Start_Word_Text);
+   --  A Full_Text match searches the pattern exactly in the contents.
+   --
+   --  A Start_Word_Text works like a Full_Text but tested word should mutch
+   --  patters from the first letter
+   --
+   --  A regexp parses the pattern as a regular expression.
+   --
+   --  A fuzzy match will search for some contents that contains all the
+   --  characters of the pattern, in the same order, but possibly with
+   --  other characters in-between. The number of characters in-between is not
+   --  limited, so this mode really only makes sense when matching short text
+   --  (and not, for instance, in text editors).
+   --
+   --  Approximate allows one or two errors to appear in the match (character
+   --  insertion, deletion or substitution). This is mostly suitable when
+   --  matching in long texts. The implementation of this algorithm is
+   --  optimized so that characters are matched only once, but the total length
+   --  of the pattern is limited to 64 characters. The exact number of errors
+   --  depends on the length of the pattern:
+   --      patterns of length <= 4  => no error allowed
+   --      patterns of length <= 10 => one error allowed
+   --      long patterns            => up to two errors
+
+   procedure Read_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Search_Kind);
+   procedure Write_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Search_Kind);
+   for Search_Kind'Read use Read_Search_Kind;
+   for Search_Kind'Write use Write_Search_Kind;
+
+   package Optional_Search_Kinds is new LSP.Generic_Optional (Search_Kind);
+   type Optional_Search_Kind is new Optional_Search_Kinds.Optional_Type;
+
    type WorkspaceSymbolParams is new Progress_Partial_Params with record
       query: LSP_String;
+      case_sensitive : Optional_Boolean;
+      whole_word: Optional_Boolean;
+      negate: Optional_Boolean;
+      kind: Optional_Search_Kind;
    end record;
 
    procedure Read_WorkspaceSymbolParams

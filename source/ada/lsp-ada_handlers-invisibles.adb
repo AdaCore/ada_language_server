@@ -20,6 +20,7 @@ with GNATCOLL.VFS;
 with VSS.Strings;
 
 with LSP.Lal_Utils;
+with LSP.Search;
 
 package body LSP.Ada_Handlers.Invisibles is
 
@@ -114,19 +115,29 @@ package body LSP.Ada_Handlers.Invisibles is
 
       begin
          if not Word.Is_Empty then
-            Self.Context.Get_Any_Symbol
-              (Prefix      => Canonical_Prefix,
-               Only_Public => True,
-               Callback    => On_Inaccessible_Name'Access);
+            declare
+               Pattern : constant LSP.Search.Search_Pattern'Class :=
+                 LSP.Search.Build
+                   (Pattern        => Canonical_Prefix,
+                    Case_Sensitive => False,
+                    Whole_Word     => False,
+                    Negate         => False,
+                    Kind           => LSP.Messages.Start_Word_Text);
+            begin
+               Self.Context.Get_Any_Symbol
+                 (Pattern     => Pattern,
+                  Only_Public => True,
+                  Callback    => On_Inaccessible_Name'Access);
 
-            for Doc of Self.Handler.Open_Documents loop
-               Doc.Get_Any_Symbol
-                 (Self.Context.all,
-                  Canonical_Prefix,
-                  Limit,
-                  True,
-                  Names);
-            end loop;
+               for Doc of Self.Handler.Open_Documents loop
+                  Doc.Get_Any_Symbol
+                    (Self.Context.all,
+                     Pattern,
+                     Limit,
+                     True,
+                     Names);
+               end loop;
+            end;
          end if;
       end;
    end Propose_Completion;

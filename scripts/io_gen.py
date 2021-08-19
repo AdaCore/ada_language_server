@@ -279,6 +279,7 @@ types_to_print = {
     'ALS_ShowDependenciesParams',
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
+    'Search_Kind',
     }
 
 spec_header = """--  Automatically generated, do not edit.

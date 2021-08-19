@@ -38,6 +38,7 @@ with VSS.Strings;
 with LSP.Messages;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets; use LSP.Ada_File_Sets;
+with LSP.Search;
 with LSP.Types;
 
 package LSP.Ada_Contexts is
@@ -226,7 +227,7 @@ package LSP.Ada_Contexts is
 
    procedure Get_Any_Symbol
      (Self        : Context;
-      Prefix      : VSS.Strings.Virtual_String;
+      Pattern     : LSP.Search.Search_Pattern'Class;
       Only_Public : Boolean;
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
