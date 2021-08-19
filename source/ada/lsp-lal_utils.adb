@@ -1444,11 +1444,10 @@ package body LSP.Lal_Utils is
       end if;
 
       while not Next.Is_Null loop
-         if Next.Kind in Libadalang.Common.Ada_Body_Node
-         and then Next.Parent.Kind not in Libadalang.Common.Ada_Library_Item
-           and then not
-             (Next.Parent.Kind in Libadalang.Common.Ada_Package_Body and then
-                Next.Parent.Parent.Kind in Libadalang.Common.Ada_Library_Item)
+         --  Any program unit body excluding library level package bodies
+         if Next.Kind in Libadalang.Common.Ada_Body_Node and then
+           (Next.Kind not in Libadalang.Common.Ada_Package_Body or else
+              Next.Parent.Kind not in Libadalang.Common.Ada_Library_Item)
          then
             return True;
          end if;

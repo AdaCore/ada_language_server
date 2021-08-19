@@ -41,12 +41,9 @@ with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
-with LSP.Messages; use LSP.Messages;
 
 with Pp.Scanner;
 with Utils.Char_Vectors;
-
-with LSP.Search; use LSP.Search;
 
 package body LSP.Ada_Documents is
 
@@ -345,6 +342,7 @@ package body LSP.Ada_Documents is
       Edit     : out LSP.Messages.TextEdit_Vector)
    is
       use LSP.Types;
+      use LSP.Messages;
 
       Old_First_Line : Natural;
       New_First_Line : Natural;
@@ -616,6 +614,7 @@ package body LSP.Ada_Documents is
       use Utils.Char_Vectors;
       use Utils.Char_Vectors.Char_Vectors;
       use LSP.Types;
+      use LSP.Messages;
       use Langkit_Support.Slocs;
       use type LSP.Types.Line_Number;
       use type LSP.Types.UTF_16_Index;
@@ -915,6 +914,8 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
+
       procedure Walk
         (Node         : Libadalang.Analysis.Ada_Node;
          Cursor       : LSP.Messages.DocumentSymbol_Trees.Cursor;
@@ -1098,6 +1099,7 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Result  : out LSP.Messages.Symbol_Vector)
    is
+      use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
 
       Is_Defining_Name : constant Libadalang.Iterators.Ada_Node_Predicate :=
@@ -1749,6 +1751,7 @@ package body LSP.Ada_Documents is
       return LSP.Messages.CompletionItem
    is
       use LSP.Types;
+      use LSP.Messages;
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
@@ -1992,11 +1995,12 @@ package body LSP.Ada_Documents is
    procedure Get_Any_Symbol
      (Self        : in out Document;
       Context     : LSP.Ada_Contexts.Context;
-      Pattern     : Search_Pattern'Class;
+      Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
       Result      : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
+      use type LSP.Messages.Search_Kind;
 
       procedure Refresh_Symbol_Cache;
       procedure Insert (Item : Name_Information);
@@ -2099,19 +2103,17 @@ package body LSP.Ada_Documents is
                end if;
             end loop;
 
-         else
-            if Pattern.Match (Symbol_Maps.Key (Cursor)) then
-               --  Symbol_Cache is case insensitive so if the key is matched
-               --  this means that all elements are also matched the pattern
-               for Item of Self.Symbol_Cache (Cursor) loop
-                  Insert (Item);
-               end loop;
+         elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
+            --  Symbol_Cache is case insensitive so if the key is matched
+            --  this means that all elements are also matched the pattern
+            for Item of Self.Symbol_Cache (Cursor) loop
+               Insert (Item);
+            end loop;
 
-            else
-               --  Symbol_Cache is ordered so we will not find any
-               --  matches more
-               exit when Use_Celling;
-            end if;
+         else
+            --  Symbol_Cache is ordered so we will not find any
+            --  matches more
+            exit when Use_Celling;
          end if;
 
          Symbol_Maps.Next (Cursor);
