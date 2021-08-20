@@ -22,6 +22,7 @@ with Libadalang.Common;
 
 with VSS.Strings;
 
+with LSP.Ada_Completions.Filters;
 with LSP.Lal_Utils;
 with LSP.Types;
 
@@ -32,10 +33,11 @@ package body LSP.Ada_Completions.Keywords is
    ------------------------
 
    overriding procedure Propose_Completion
-     (Self   :     Keyword_Completion_Provider;
-      Sloc   :     Langkit_Support.Slocs.Source_Location;
-      Token  :     Libadalang.Common.Token_Reference;
-      Node   :     Libadalang.Analysis.Ada_Node;
+     (Self   : Keyword_Completion_Provider;
+      Sloc   : Langkit_Support.Slocs.Source_Location;
+      Token  : Libadalang.Common.Token_Reference;
+      Node   : Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
@@ -43,14 +45,10 @@ package body LSP.Ada_Completions.Keywords is
       Prev   : constant Libadalang.Common.Token_Reference :=
         Libadalang.Common.Previous (Token);
 
-      Parent : constant Libadalang.Analysis.Ada_Node :=
-        (if Node.Is_Null then Node else Node.Parent);
-
-      In_End_Label : constant Boolean :=
-        Parent.Kind in Libadalang.Common.Ada_End_Name_Range;
-
    begin
-      if In_End_Label or else not Libadalang.Common.Is_Trivia (Prev) then
+      if Filter.Is_End_Label or else
+        not Libadalang.Common.Is_Trivia (Prev)
+      then
          --  Propose keyword completion if we are not within an end label
          --  and if there is no previous character of if it's a whitespace (we
          --  don't want to propose keywords after typing '(' to feed subprogram

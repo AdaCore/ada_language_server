@@ -24,6 +24,8 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 limited with LSP.Ada_Contexts;
+limited with LSP.Ada_Completions.Filters;
+
 with LSP.Messages;
 
 package LSP.Ada_Completions is
@@ -67,15 +69,20 @@ package LSP.Ada_Completions is
       Sloc   : Langkit_Support.Slocs.Source_Location;
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList) is abstract;
    --  Populate Names and Result with completions for given Source_Location.
    --  Names works for defining name completions to create snippets and to
    --  avoid duplicates. The Token's span encloses Sloc or Sloc can be at the
    --  next character after the Token if the token not a trivia.
+   --
+   --  Example: abc;  or abc<space>
+   --  Cursor:     ^        ^
    --  Consider `abc;` or `abc<space>` and Sloc is a character after `c`, then
-   --  Token is `abc`, because a user expect it to te completed. The Node is
-   --  immediate enclosing AST node for the token.
+   --  Token is `abc`, because a user expect it to te completed.
+   --  The Node is immediate enclosing AST node for the token.
+   --  The Filter could be used to quick check common completion contexts.
 
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;

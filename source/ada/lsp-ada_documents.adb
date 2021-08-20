@@ -38,6 +38,7 @@ with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
+with LSP.Ada_Completions.Filters;
 with LSP.Ada_Id_Iterators;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
@@ -2197,17 +2198,22 @@ package body LSP.Ada_Documents is
 
       Node  : constant Libadalang.Analysis.Ada_Node :=
         (if Root = No_Ada_Node then Root else Root.Lookup (From));
+
+      Filter : LSP.Ada_Completions.Filters.Filter;
    begin
       Context.Trace.Trace
         ("Getting completions, Pos = ("
          & Sloc.Line'Image & ", " & Sloc.Column'Image & ") Node = "
          & Image (Node));
 
+      Filter.Initialize (Token, Node);
+
       for Provider of Providers loop
          Provider.Propose_Completion
            (Sloc   => Sloc,
             Token  => Token,
             Node   => Node,
+            Filter => Filter,
             Names  => Names,
             Result => Result);
       end loop;
