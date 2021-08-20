@@ -81,7 +81,7 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(TRAVIS_TAG)
 	mkdir -p integration/vscode/ada/$(PLATFORM)
-	cp -v -f $(ALS)$(EXE) integration/vscode/ada/$(PLATFORM)
+	cp -f $(ALS)$(EXE) integration/vscode/ada/$(PLATFORM)
 
 generate:
 	python scripts/generate.py
