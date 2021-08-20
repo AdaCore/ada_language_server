@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers;
+with Ada.Strings.Unbounded;
 
 with GNATCOLL.JSON;
 
@@ -514,7 +515,8 @@ package body LSP.Message_Loggers is
          case Value.Kind is
             when GNATCOLL.JSON.JSON_String_Type =>
                Image.Append
-                 (VSS.Strings.Conversions.To_Virtual_String (Value.Get));
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (Ada.Strings.Unbounded.Unbounded_String'(Value.Get)));
 
             when GNATCOLL.JSON.JSON_Object_Type =>
                Image.Append ("(");
