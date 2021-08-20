@@ -967,7 +967,8 @@ package body LSP.Types is
                  (Interfaces.Integer_64 (Float'(Value.Get)));
             when GNATCOLL.JSON.JSON_String_Type =>
                JS.Write_String
-                 (VSS.Strings.Conversions.To_Virtual_String (Value.Get));
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (Ada.Strings.Unbounded.Unbounded_String'(Value.Get)));
             when GNATCOLL.JSON.JSON_Array_Type =>
                declare
                   Vector : constant GNATCOLL.JSON.JSON_Array := Value.Get;
