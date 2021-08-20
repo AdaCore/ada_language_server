@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2020, AdaCore                       --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -111,10 +111,11 @@ package body LSP.Fuzz_Decorators is
 
    overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Fuzz_Notification_Decorator;
-      Value : LSP.Messages.DidOpenTextDocumentParams)
-   is
+      Value : LSP.Messages.DidOpenTextDocumentParams) is
    begin
-      Open_Docs.Insert (Value.textDocument.uri, Value.textDocument.text);
+      Open_Docs.Insert
+        (Value.textDocument.uri,
+         LSP.Types.To_LSP_String (Value.textDocument.text));
       --  This will raise Constraint_Error if the doc is already open
 
       Self.Handler.On_DidOpenTextDocument_Notification (Value);

@@ -1541,10 +1541,10 @@ package LSP.Messages is
    --}
    --```
    type TextDocumentItem is record
-      uri: DocumentUri;
-      languageId: LSP_String;
-      version: Version_Id;
-      text: LSP_String;
+      uri        : DocumentUri;
+      languageId : VSS.Strings.Virtual_String;
+      version    : Version_Id;
+      text       : VSS.Strings.Virtual_String;
    end record;
 
    procedure Read_TextDocumentItem
