@@ -1378,11 +1378,11 @@ package body LSP.Message_IO is
             if Key = "uri" then
                LSP.Types.Read (S, V.uri);
             elsif Key = "languageId" then
-               LSP.Types.Read (S, V.languageId);
+               LSP.Types.Read_String (S, V.languageId);
             elsif Key = "version" then
                Version_Id'Read (S, V.version);
             elsif Key = "text" then
-               LSP.Types.Read (S, V.text);
+               LSP.Types.Read_String (S, V.text);
             else
                JS.Skip_Value;
             end if;
@@ -1402,11 +1402,11 @@ package body LSP.Message_IO is
       JS.Key ("uri");
       LSP.Types.Write (S, V.uri);
       JS.Key ("languageId");
-      LSP.Types.Write (S, V.languageId);
+      LSP.Types.Write_String (S, V.languageId);
       JS.Key ("version");
       Version_Id'Write (S, V.version);
       JS.Key ("text");
-      LSP.Types.Write (S, V.text);
+      LSP.Types.Write_String (S, V.text);
       JS.End_Object;
    end Write_TextDocumentItem;
 
