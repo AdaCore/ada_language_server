@@ -21,6 +21,7 @@ with Langkit_Support.Text;
 
 with VSS.Strings;
 
+with LSP.Ada_Completions.Filters;
 with LSP.Lal_Utils;
 with LSP.Types;
 
@@ -31,10 +32,11 @@ package body LSP.Ada_Completions.Names is
    ------------------------
 
    overriding procedure Propose_Completion
-     (Self   :     Name_Completion_Provider;
-      Sloc   :     Langkit_Support.Slocs.Source_Location;
-      Token  :     Libadalang.Common.Token_Reference;
-      Node   :     Libadalang.Analysis.Ada_Node;
+     (Self   : Name_Completion_Provider;
+      Sloc   : Langkit_Support.Slocs.Source_Location;
+      Token  : Libadalang.Common.Token_Reference;
+      Node   : Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
@@ -47,9 +49,6 @@ package body LSP.Ada_Completions.Names is
 
       Sibling  : Libadalang.Analysis.Ada_Node;
       --  The right sibling of the node to complete.
-
-      In_End_Label : Boolean := False;
-      --  Set to True if we are completing an end label (e.g: end <Subp_Name>);
 
       Dotted_Node : Libadalang.Analysis.Ada_Node := Node;
 
@@ -92,18 +91,16 @@ package body LSP.Ada_Completions.Names is
       Parent := Dotted_Node.Parent;
       Sibling := Dotted_Node.Next_Sibling;
 
-      --  Check if we are completing an end label. If it's the case, we want
-      --  to disable snippets since end labels don't expect any parameters.
-      In_End_Label := not Parent.Is_Null
-        and then Parent.Kind in Libadalang.Common.Ada_End_Name_Range;
-
       --  Return without asing Libadalang for completion results we are dealing
       --  with a syntax error.
       if Dotted_Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
          return;
       end if;
 
-      if In_End_Label
+      --  Check if we are completing an end label. If it's the case, we want
+      --  to disable snippets since end labels don't expect any parameters.
+
+      if Filter.Is_End_Label
         or else not Sibling.Is_Null
         or else
           (not Parent.Is_Null

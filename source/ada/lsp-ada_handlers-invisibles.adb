@@ -33,9 +33,11 @@ package body LSP.Ada_Handlers.Invisibles is
       Sloc   :     Langkit_Support.Slocs.Source_Location;
       Token  :     Libadalang.Common.Token_Reference;
       Node   :     Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
+      pragma Unreferenced (Filter);
       pragma Unreferenced (Result);
       use all type Libadalang.Common.Token_Kind;
       use type Ada.Containers.Count_Type;
