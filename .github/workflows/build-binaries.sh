@@ -19,7 +19,7 @@ export CPATH=/usr/local/include:/mingw64/include
 export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
 export DYLD_LIBRARY_PATH=/usr/local/lib
 
-BRANCH=stable
+BRANCH=master
 
 # Rebase PR on edge branch
 if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
