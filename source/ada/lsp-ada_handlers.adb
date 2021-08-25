@@ -2704,13 +2704,9 @@ package body LSP.Ada_Handlers is
       --  references to be renamed and is returned by this function.
 
       Document  : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+                   Get_Open_Document (Self, Value.textDocument.uri);
 
-      Safe_Renamer : Laltools.Refactor.Safe_Rename.Safe_Renamer;
-      Algorithm    : constant Laltools.Refactor.Safe_Rename.
-        Problem_Finder_Algorithm_Kind :=
-          Laltools.Refactor.Safe_Rename.Analyse_AST;
-      Edits        : Laltools.Refactor.Refactoring_Edits;
+      Refs      : Laltools.Refactor.Safe_Rename.Renamable_References;
 
       procedure Process_Context (C : Context_Access);
       --  Process the rename request for the given context, and add the
@@ -2724,32 +2720,22 @@ package body LSP.Ada_Handlers is
          Position   : constant LSP.Messages.TextDocumentPositionParams :=
            (Value.textDocument, Value.position);
 
-         Node       : Ada_Node := C.Get_Node_At (Document, Position);
-         Name_Node  : Name := Laltools.Common.Get_Node_As_Name (Node);
-         Definition : Defining_Name :=
-           Laltools.Common.Resolve_Name_Precisely (Name_Node);
+         Node      : Ada_Node := C.Get_Node_At (Document, Position);
+         Name_Node : Name := Laltools.Common.Get_Node_As_Name (Node);
 
          Empty     : LSP.Messages.TextEdit_Vector;
-
-         function Analysis_Units return Analysis_Unit_Array is
-           (C.Analysis_Units);
-         --  Callback needed to provide the analysis units to the safe rename
-         --  tool;
-
-         procedure Process_Reference
-           (Unit       : Libadalang.Analysis.Analysis_Unit;
-            Sloc_Range : Langkit_Support.Slocs.Source_Location_Range);
-         --  Add a reference to Response if it has not been added yet
-
-         procedure Process_File_Rename
-           (File_Rename : Laltools.Refactor.File_Rename);
-         --  Add File_Rename to Response if it has not been added yet
 
          procedure Process_Comments
            (Node : Ada_Node;
             Uri  : LSP.Messages.DocumentUri);
          --  Iterate over all comments and include them in the response when
          --  they contain a renamed word.
+
+         procedure Process_Reference
+           (Unit       : Libadalang.Analysis.Analysis_Unit;
+            Sloc_Range : Langkit_Support.Slocs.Source_Location_Range);
+         --  Add a reference to Response if it has not been added yet
+
          -----------------------
          -- Process_Reference --
          -----------------------
@@ -2790,28 +2776,6 @@ package body LSP.Ada_Handlers is
                Response.result.changes (Location.uri).Append (Item);
             end if;
          end Process_Reference;
-
-         -------------------------
-         -- Process_File_Rename --
-         -------------------------
-
-         procedure Process_File_Rename
-           (File_Rename : Laltools.Refactor.File_Rename)
-         is
-            Rename : constant LSP.Messages.RenameFile :=
-              LSP.Messages.RenameFile'
-                (kind         => LSP.Messages.rename,
-                 oldUri       => LSP.Types.File_To_URI (File_Rename.Filepath),
-                 newUri       => LSP.Types.File_To_URI (File_Rename.New_Name),
-                 options      => <>,
-                 annotationId => <>);
-
-         begin
-            Response.result.documentChanges.Append
-              (LSP.Messages.Document_Change'
-                 (Kind               => LSP.Messages.Rename_File,
-                  Rename_File        => Rename));
-         end Process_File_Rename;
 
          -----------------------
          --  Process_Comments --
@@ -2964,70 +2928,47 @@ package body LSP.Ada_Handlers is
             end loop;
          end Process_Comments;
 
-         use Laltools.Refactor;
+         use Laltools.Refactor.Safe_Rename;
 
-         Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor;
+         Unit_Cursor : Unit_Slocs_Maps.Cursor;
+         Sloc_Cursor : Slocs_Maps.Cursor;
 
+         use Unit_Slocs_Maps;
+         use Slocs_Maps;
       begin
-         if Definition.Is_Null then
-            return;
-         end if;
 
-         Safe_Renamer := Laltools.Refactor.Safe_Rename.Create_Safe_Renamer
-           (Definition => Definition,
-            New_Name   => To_Unbounded_Text_Type (Value.newName),
-            Algorithm  => Algorithm);
+         Refs := Find_All_Renamable_References
+           (Node           => Node,
+            New_Name       => To_Unbounded_Text_Type (Value.newName),
+            Units          => C.Analysis_Units,
+            Algorithm_Kind => Analyse_AST);
 
-         Edits := Safe_Renamer.Refactor (Analysis_Units'Access);
-
-         --  Call to Safe_Renamer.Refactor above might reparse all analysis
-         --  units, dependingon the algorithm used, therefore, Node, Name_Node
-         --  Definition need to be recomputed.
+         --  Call to Find_All_Renamable_References above reparses all analysis
+         --  units, therefore, Node and Name_Node need to be recomputed.
 
          Node := C.Get_Node_At (Document, Position);
          Name_Node := Laltools.Common.Get_Node_As_Name (Node);
-         Definition := Laltools.Common.Resolve_Name_Precisely (Name_Node);
 
-         --  If problems were found, do not continue processing references
-
-         if not Edits.Diagnostics.Is_Empty then
+         --  If problems were found, do not continue processing references.
+         if not Refs.Problems.Is_Empty then
             return;
          end if;
 
-         --  First process all references
-
-         Text_Edits_Cursor := Edits.Text_Edits.First;
-
-         while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
-            for Text_Edit of
-              Text_Edit_Ordered_Maps.Element (Text_Edits_Cursor)
-            loop
-               Process_Reference
-                 (Unit       =>
-                    C.LAL_Context.Get_From_File
-                      (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)),
-                  Sloc_Range => Text_Edit.Location);
+         Unit_Cursor := Refs.References.First;
+         while Has_Element (Unit_Cursor) loop
+            Sloc_Cursor :=
+              Refs.References.Constant_Reference (Unit_Cursor).First;
+            while Has_Element (Sloc_Cursor) loop
+               for Sloc of
+                 Refs.References.Constant_Reference (Unit_Cursor).
+                 Constant_Reference (Sloc_Cursor)
+               loop
+                  Process_Reference (Key (Unit_Cursor), Sloc);
+               end loop;
+               Next (Sloc_Cursor);
             end loop;
-
-            Text_Edits_Cursor :=
-              Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
+            Next (Unit_Cursor);
          end loop;
-
-         --  Then process all file renames
-         --  Note: This is deactivated for now since file / folder operations
-         --  are sent in the documentChanges field of a WorkspaceEdit.
-         --  Previously, references and comments were processed and added to
-         --  the changes field of a WorkspaceEdit.
-         --  LSP 3.16:
-         --  "If the client can handle versioned document edits and if
-         --  documentChanges are present, the latter are preferred over
-         --  changes."
-         --  This means that activating the following Process_File_Rename will
-         --  result in editors ignoring the previously processed references.
-
-         --  for File_Rename of Edits.File_Renames loop
-         --     Process_File_Rename (File_Rename);
-         --  end loop;
       end Process_Context;
 
    begin
@@ -3037,7 +2978,7 @@ package body LSP.Ada_Handlers is
          --  If problems were found, send an error message and do not proceed
          --  with the renames.
 
-         if not Edits.Diagnostics.Is_Empty then
+         if not Refs.Problems.Is_Empty then
             return Response : LSP.Messages.Server_Responses.Rename_Response
               (Is_Error => True)
             do
@@ -3045,7 +2986,7 @@ package body LSP.Ada_Handlers is
                   Error_Message : VSS.Strings.Virtual_String;
 
                begin
-                  for Problem of Edits.Diagnostics loop
+                  for Problem of Refs.Problems loop
                      Error_Message.Append
                        (VSS.Strings.Conversions.To_Virtual_String
                           (Problem.Info & ASCII.LF));
