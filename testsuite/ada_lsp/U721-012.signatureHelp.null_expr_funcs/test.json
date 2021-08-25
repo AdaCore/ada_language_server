@@ -94,7 +94,7 @@
                            "("
                         ],
                         "retriggerCharacters": [
-                           " "
+                           "\b"
                         ]
                      },
                      "declarationProvider": true,
