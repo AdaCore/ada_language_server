@@ -140,9 +140,11 @@ package LSP.Lal_Utils is
 
    function To_Workspace_Edit
      (Edits               : Laltools.Refactor.Refactoring_Edits;
+      Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
+        LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
       Versioned_Documents : Boolean := False;
-      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
-      := null;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class :=
+        null;
       Rename              : Boolean := False)
       return LSP.Messages.WorkspaceEdit;
    --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag

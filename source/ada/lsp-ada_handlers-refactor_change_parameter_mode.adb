@@ -323,7 +323,8 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       Edits := Changer.Refactor (Analysis_Units'Access);
 
       Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits.Text_Edits,
+        (Edits,
+         Message_Handler.Resource_Operations,
          Message_Handler.Versioned_Documents,
          Message_Handler'Access);
 
