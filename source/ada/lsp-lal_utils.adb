@@ -794,8 +794,6 @@ package body LSP.Lal_Utils is
 
    begin
       return WE : LSP.Messages.WorkspaceEdit do
-         --  Text edits
-
          while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
             Text_Edits.Clear;
 
@@ -831,11 +829,6 @@ package body LSP.Lal_Utils is
 
             Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
          end loop;
-
-         --  File creations
-         --  TODO
-
-         --  File deletions
 
          if not Rename then
             while Unbounded_String_Ordered_Sets.Has_Element
@@ -876,18 +869,6 @@ package body LSP.Lal_Utils is
                Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
             end loop;
          end if;
-
-         --  File renames
-
-         for File_Rename of Edits.File_Renames loop
-            WE.documentChanges.Append
-              (LSP.Messages.Document_Change'(
-               (Kind        => LSP.Messages.Rename_File,
-                Rename_File => LSP.Messages.RenameFile'
-                  (oldUri => LSP.Types.File_To_URI (File_Rename.Filepath),
-                   newUri => LSP.Types.File_To_URI (File_Rename.New_Name),
-                   others => <>))));
-         end loop;
       end return;
    end To_Workspace_Edit;
 
