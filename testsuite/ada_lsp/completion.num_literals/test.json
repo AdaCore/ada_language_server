@@ -1,0 +1,581 @@
+[
+   {
+      "comment": [
+          "This test checks that we don't propose any completion",
+          "in a numeric literal or part of it"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "signatureHelp": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": false
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                  }
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with Ada.Containers;\n\nprocedure Main is\n   e1 : constant := 1e3;\n   d1 : constant := 16#ada.c#;\n   X : Integer;\nbegin\n   --  Incomplete literals:\n   X := 1_;\n   X := 1#;\n   X := 1.;\n   X := 1.0_;\n   X := 1.0e;\n   X := 1.0e+;\n   X := 1e0_;\n   X := 16#e;\n   X := 16#ada.;\n   X := 16#ada.c;\nend Main;",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 21
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c3-21",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c3-21",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 22
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c3-22",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c3-22",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 23
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c3-23",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c3-23",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 25
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c4-25",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c4-25",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 27
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c4-27",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c4-27",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 4,
+                  "character": 28
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c4-28",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c4-28",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 8,
+                  "character": 10
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c8-10",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c8-10",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 9,
+                  "character": 10
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c9-10",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c9-10",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 10,
+                  "character": 10
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c10-10",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c10-10",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 11,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c11-12",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c11-12",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 12,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c12-12",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c12-12",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 13,
+                  "character": 13
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c13-13",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c13-13",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 14,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c14-12",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c14-12",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 15,
+                  "character": 12
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c15-12",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c15-12",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 16,
+                  "character": 15
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c16-15",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c16-15",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 17,
+                  "character": 16
+               },
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": "c17-16",
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": "c17-16",
+               "result": {
+                  "isIncomplete": false,
+                  "items": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
