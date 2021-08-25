@@ -97,6 +97,11 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
+      --  Don't complete numeric literals
+      if Filter.Is_Numeric_Literal then
+         return;
+      end if;
+
       --  Check if we are completing an end label. If it's the case, we want
       --  to disable snippets since end labels don't expect any parameters.
 

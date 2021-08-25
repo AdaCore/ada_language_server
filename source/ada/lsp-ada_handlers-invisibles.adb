@@ -37,7 +37,6 @@ package body LSP.Ada_Handlers.Invisibles is
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
-      pragma Unreferenced (Filter);
       pragma Unreferenced (Result);
       use all type Libadalang.Common.Token_Kind;
       use type Ada.Containers.Count_Type;
@@ -86,6 +85,9 @@ package body LSP.Ada_Handlers.Invisibles is
    begin
       if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
          --  Don't provide completion after a dot
+         return;
+      elsif Filter.Is_Numeric_Literal then
+         --  Don't provide completion in a numeric literal
          return;
       end if;
 

@@ -17,6 +17,11 @@
 
 package body LSP.Ada_Completions.Filters is
 
+   function Kind
+     (Token : Libadalang.Common.Token_Reference)
+       return Libadalang.Common.Token_Kind
+         is (Libadalang.Common.Kind (Libadalang.Common.Data (Token)));
+
    ----------------
    -- Initialize --
    ----------------
@@ -46,7 +51,7 @@ package body LSP.Ada_Completions.Filters is
               Libadalang.Common.Previous (Self.Token, Exclude_Trivia => True);
 
             Prev_Token_Kind : constant Libadalang.Common.Token_Kind :=
-              Libadalang.Common.Kind (Libadalang.Common.Data (Prev_Token));
+              Kind (Prev_Token);
 
             Parent : Libadalang.Analysis.Ada_Node :=
               (if Self.Node.Is_Null then Self.Node else Self.Node.Parent);
@@ -76,5 +81,87 @@ package body LSP.Ada_Completions.Filters is
 
       return Self.Is_End_Label.Value;
    end Is_End_Label;
+
+   ------------------------
+   -- Is_Numeric_Literal --
+   ------------------------
+
+   function Is_Numeric_Literal (Self : in out Filter'Class) return Boolean is
+      use all type Libadalang.Common.Token_Kind;
+
+      First : Libadalang.Common.Token_Reference := Self.Token;
+   begin
+      if Self.Is_Numeric_Literal.Is_Set then
+         return Self.Is_Numeric_Literal.Value;
+      end if;
+
+      --  Let me be pessimistic
+      Self.Is_Numeric_Literal := LSP.Types.False;
+
+      --  An incomplete numeric literal may be represented in LAL as tokens.
+      --  Scan tokens backward till the start token of numeric literal.
+      case Kind (First) is
+         when Ada_Lexing_Failure =>
+            --  (Integer|Decimal) (Lexing_Failure)
+            --  1_
+            --  1.0_
+            --  1e0_
+            if Libadalang.Common.Text (First) /= "_" then
+               return Self.Is_Numeric_Literal.Value;
+            end if;
+
+            First := Libadalang.Common.Previous (First);
+
+         when Ada_Dot | Ada_Prep_Line =>
+            --  (Integer) (Prep_Line)
+            --  2#
+            --  2#1
+            --  (Integer) (Dot)
+            --  1.
+            First := Libadalang.Common.Previous (First);
+
+            if Kind (First) /= Ada_Integer then
+               return Self.Is_Numeric_Literal.Value;
+            end if;
+
+         when Ada_Identifier =>
+            --  (Integer|Decimal) (Identifier)
+            --  1.0e
+            if Libadalang.Common.Text (First) in "e" | "E" then
+               First := Libadalang.Common.Previous (First);
+            else
+               return Self.Is_Numeric_Literal.Value;
+            end if;
+
+         when Ada_Plus | Ada_Minus =>
+            --  (Integer|Decimal) (Identifier) (Plus|Minus)
+            --  1.0e+
+            First := Libadalang.Common.Previous (First);
+
+            if Kind (First) = Ada_Identifier
+              and then Libadalang.Common.Text (First) in "e" | "E"
+            then
+               First := Libadalang.Common.Previous (First);
+            else
+               return Self.Is_Numeric_Literal.Value;
+            end if;
+
+         when Ada_Integer | Ada_Decimal =>
+            --  A complete (valid) numeric literal
+            null;
+
+         when others =>
+            return Self.Is_Numeric_Literal.Value;
+      end case;
+
+      if Kind (First) not in Ada_Integer | Ada_Decimal then
+         return Self.Is_Numeric_Literal.Value;
+      end if;
+
+      --  Ok, we have found a numeric literal
+      Self.Is_Numeric_Literal := LSP.Types.True;
+
+      return Self.Is_Numeric_Literal.Value;
+   end Is_Numeric_Literal;
 
 end LSP.Ada_Completions.Filters;
