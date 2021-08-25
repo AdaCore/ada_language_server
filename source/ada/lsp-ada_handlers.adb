@@ -697,7 +697,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.signatureHelpProvider :=
         (True,
          (triggerCharacters   => (True, Empty_Vector & (+",") & (+"(")),
-          retriggerCharacters => (True, Empty_Vector & (+" ")),
+          retriggerCharacters => (True, Empty_Vector & (+(1 => ASCII.BS))),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
@@ -2494,11 +2494,33 @@ package body LSP.Ada_Handlers is
       Sloc : constant Langkit_Support.Slocs.Source_Location :=
         Document.Get_Source_Location (Value.position);
 
-      Name_Node       : Libadalang.Analysis.Name;
-      Designator      : Libadalang.Analysis.Ada_Node;
-      Active_Position : LSP.Types.LSP_Number;
+      Name_Node        : Libadalang.Analysis.Name;
+      Designator       : Libadalang.Analysis.Ada_Node;
+      Active_Position  : LSP.Types.LSP_Number;
+      Active_Signature : LSP.Types.LSP_Number := 0;
 
       procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl);
+      --  Add the signature of Decl_Node if it matches the current context.
+
+      procedure Filter_Signature
+        (Signature_Info : SignatureInformation;
+         Designator     : Libadalang.Analysis.Ada_Node;
+         Position       : LSP.Types.LSP_Number;
+         Is_Active      : Boolean);
+      --  Filter the signatures returned by the client using the current
+      --  current Position and designator.
+      --  Set Active_Signature to 0 when Is_Active and filtered out.
+
+      function Is_Signature_Active
+        (Parameters      : ParameterInformation_Vector;
+         Sig_Label       : LSP.Types.LSP_String;
+         Position        : LSP.Types.LSP_Number;
+         Designator      : Libadalang.Analysis.Ada_Node;
+         Active_Position : out LSP.Types.LSP_Number)
+         return Boolean;
+      --  Return True if Parameters is valid for the current Position and
+      --  Designator.
+      --  Active_Position will point to the active parameter inside Parameters.
 
       -------------------
       -- Add_Signature --
@@ -2537,6 +2559,88 @@ package body LSP.Ada_Handlers is
          end;
       end Add_Signature;
 
+      ----------------------
+      -- Filter_Signature --
+      ----------------------
+
+      procedure Filter_Signature
+        (Signature_Info : SignatureInformation;
+         Designator     : Libadalang.Analysis.Ada_Node;
+         Position       : LSP.Types.LSP_Number;
+         Is_Active      : Boolean)
+      is
+         Active_Position : LSP.Types.LSP_Number;
+      begin
+         if Is_Signature_Active
+           (Parameters      => Signature_Info.parameters,
+            Sig_Label       => Signature_Info.label,
+            Position        => Position,
+            Designator      => Designator,
+            Active_Position => Active_Position)
+         then
+            declare
+               New_Signature : SignatureInformation := Signature_Info;
+            begin
+               --  Reuse Signature_Info after updating the active_position
+               New_Signature.activeParameter := (Is_Set => True,
+                                                 Value  => Active_Position);
+               Response.result.signatures.Append (New_Signature);
+            end;
+         elsif Is_Active then
+            Active_Signature := 0;
+         end if;
+      end Filter_Signature;
+
+      -------------------------
+      -- Is_Signature_Active --
+      -------------------------
+
+      function Is_Signature_Active
+        (Parameters      : ParameterInformation_Vector;
+         Sig_Label       : LSP.Types.LSP_String;
+         Position        : LSP.Types.LSP_Number;
+         Designator      : Libadalang.Analysis.Ada_Node;
+         Active_Position : out LSP.Types.LSP_Number)
+         return Boolean
+      is
+         use VSS.Strings;
+      begin
+         Active_Position := 0;
+         if Designator = No_Ada_Node then
+            --  Check if Position is valid in Parameters (Note: Position starts
+            --  at 0)
+            Active_Position := Position;
+            return Position < LSP_Number (Parameters.Length);
+         else
+            declare
+               Name : constant Virtual_String :=
+                 LSP.Lal_Utils.To_Virtual_String (Designator.Text);
+               Converted_Name : constant LSP_String :=
+                 LSP.Types.To_LSP_String (Name);
+            begin
+               for Param of Parameters loop
+                  --  Convert to lower case?
+                  if Param.label.Is_String then
+                     if Param.label.String = Name then
+                        return True;
+                     end if;
+                  else
+                     if Slice (Sig_Label,
+                               Integer (Param.label.From),
+                               Integer (Param.label.Till))
+                       = Converted_Name
+                     then
+                        return True;
+                     end if;
+                  end if;
+                  Active_Position := Active_Position + 1;
+               end loop;
+            end;
+         end if;
+
+         return False;
+      end Is_Signature_Active;
+
    begin
       Response.result := (others => <>);
 
@@ -2552,18 +2656,57 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      for N of C.Find_All_Env_Elements (Name_Node) loop
-         if N.Kind in Ada_Subp_Decl_Range
-           | Ada_Null_Subp_Decl_Range
-           | Ada_Expr_Function_Range
-         then
-            Add_Signature (N.As_Basic_Decl);
-         end if;
-      end loop;
+      if Value.context.Is_Set
+        and then Value.context.Value.isRetrigger
+        and then Value.context.Value.activeSignatureHelp.Is_Set
+        and then
+          (Value.context.Value.triggerKind /= TriggerCharacter
+           or else
+           --  Check if the trigger character is a backspace
+             ((not Value.context.Value.triggerCharacter.Is_Set)
+              or else Value.context.Value.triggerCharacter.Value /=
+                (+(1 => ASCII.BS))))
+      then
+         --  At this point, we are filtering the previous signatures:
+         --  * Don't recompute the list of signature
+         --  * Keep the previous activeSignature if not filtered out
+
+         declare
+            Prev_Res : SignatureHelp renames
+              Value.context.Value.activeSignatureHelp.Value;
+            --  Use index to find the activeSignature
+            Index    : LSP.Types.LSP_Number := 0;
+         begin
+            if Prev_Res.activeSignature.Is_Set then
+               Active_Signature := Prev_Res.activeSignature.Value;
+            else
+               Active_Signature := 0;
+            end if;
+
+            for Signature_Info of Prev_Res.signatures loop
+               Filter_Signature
+                 (Signature_Info => Signature_Info,
+                  Designator     => Designator,
+                  Position       => Active_Position,
+                  Is_Active      => Index = Active_Signature);
+               Index := Index + 1;
+            end loop;
+         end;
+      else
+
+         for N of C.Find_All_Env_Elements (Name_Node) loop
+            if N.Kind in Ada_Subp_Decl_Range
+              | Ada_Null_Subp_Decl_Range
+                | Ada_Expr_Function_Range
+            then
+               Add_Signature (N.As_Basic_Decl);
+            end if;
+         end loop;
+      end if;
 
       --  Set the active values to default
       Response.result.activeSignature := (Is_Set => True,
-                                          Value  => 0);
+                                          Value  => Active_Signature);
       --  activeParameter will be ignored because it is properly set in
       --  the signatures.
       Response.result.activeParameter := (Is_Set => True,
