@@ -180,6 +180,7 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
 
       Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
         (Edits,
+         Message_Handler.Resource_Operations,
          Message_Handler.Versioned_Documents,
          Message_Handler'Access,
          True);
