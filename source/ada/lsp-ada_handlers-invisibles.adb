@@ -33,6 +33,7 @@ package body LSP.Ada_Handlers.Invisibles is
       Sloc   :     Langkit_Support.Slocs.Source_Location;
       Token  :     Libadalang.Common.Token_Reference;
       Node   :     Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
@@ -84,6 +85,9 @@ package body LSP.Ada_Handlers.Invisibles is
    begin
       if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
          --  Don't provide completion after a dot
+         return;
+      elsif Filter.Is_Numeric_Literal then
+         --  Don't provide completion in a numeric literal
          return;
       end if;
 

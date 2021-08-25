@@ -349,7 +349,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      },
                      {
                         "label": "procedure Bar (A : Integer; B, C : Integer)",
@@ -365,7 +365,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
@@ -437,7 +437,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      },
                      {
                         "label": "procedure Bar (A : Integer; B, C : Integer)",
@@ -453,7 +453,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
@@ -603,19 +603,6 @@
                "result": {
                   "signatures": [
                      {
-                        "label": "procedure Bar (A : Integer; B : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           }
-                        ],
-                        "activeParameter": 1
-                     },
-                     {
                         "label": "procedure Bar (A : Integer; B, C : Integer)",
                         "documentation": "",
                         "parameters": [
@@ -629,7 +616,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 1
+                        "activeParameter": 2
                      }
                   ],
                   "activeSignature": 0,
@@ -691,19 +678,6 @@
                "result": {
                   "signatures": [
                      {
-                        "label": "procedure Bar (A : Integer; B : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           }
-                        ],
-                        "activeParameter": 1
-                     },
-                     {
                         "label": "procedure Bar (A : Integer; B, C : Integer)",
                         "documentation": "",
                         "parameters": [
@@ -717,7 +691,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 1
+                        "activeParameter": 2
                      }
                   ],
                   "activeSignature": 0,

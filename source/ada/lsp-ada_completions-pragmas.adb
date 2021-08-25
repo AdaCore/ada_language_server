@@ -32,9 +32,11 @@ package body LSP.Ada_Completions.Pragmas is
       Sloc   :     Langkit_Support.Slocs.Source_Location;
       Token  :     Libadalang.Common.Token_Reference;
       Node   :     Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList)
    is
+      pragma Unreferenced (Filter);
       pragma Unreferenced (Names);
 
       Parent : constant Libadalang.Analysis.Ada_Node :=

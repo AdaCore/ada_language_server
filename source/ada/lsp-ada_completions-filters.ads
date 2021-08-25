@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                       Copyright (C) 2021, AdaCore                        --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,28 +14,35 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---  A completion provider for invisible names.
 
-with LSP.Ada_Completions;
-with LSP.Ada_Completions.Filters;
-with Langkit_Support.Slocs;
-with Libadalang.Analysis;
-with Libadalang.Common;
+with LSP.Types;
 
-package LSP.Ada_Handlers.Invisibles is
+package LSP.Ada_Completions.Filters is
 
-   type Invisible_Completion_Provider
-     (Handler : not null access LSP.Ada_Handlers.Message_Handler;
-      Context : not null LSP.Ada_Handlers.Context_Access)
-     is new LSP.Ada_Completions.Completion_Provider with null record;
+   type Filter is tagged limited private;
+   --  The completion filter lets a completion provider skip well known
+   --  completion context such as "end name", "numeric literal", etc
 
-   overriding procedure Propose_Completion
-     (Self   : Invisible_Completion_Provider;
-      Sloc   : Langkit_Support.Slocs.Source_Location;
+   procedure Initialize
+     (Self   : in out Filter;
       Token  : Libadalang.Common.Token_Reference;
-      Node   : Libadalang.Analysis.Ada_Node;
-      Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList);
+      Node   : Libadalang.Analysis.Ada_Node);
+   --  Initialize a completion filter with the completion position.
+   --  For Token and Node description see Ada_Completions.Propose_Completion.
 
-end LSP.Ada_Handlers.Invisibles;
+   function Is_End_Label (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete "end <name>" text
+
+   function Is_Numeric_Literal (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete a numeric literal (even incomplete one, like 1E).
+
+private
+
+   type Filter is tagged limited record
+      Token              : Libadalang.Common.Token_Reference;
+      Node               : Libadalang.Analysis.Ada_Node;
+      Is_End_Label       : LSP.Types.Optional_Boolean;
+      Is_Numeric_Literal : LSP.Types.Optional_Boolean;
+   end record;
+
+end LSP.Ada_Completions.Filters;

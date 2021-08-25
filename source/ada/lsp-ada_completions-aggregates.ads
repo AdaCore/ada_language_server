@@ -36,6 +36,7 @@ package LSP.Ada_Completions.Aggregates is
       Sloc   : Langkit_Support.Slocs.Source_Location;
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList);
    --  Check if we are dealing with an aggregate node. If yes, handle it
