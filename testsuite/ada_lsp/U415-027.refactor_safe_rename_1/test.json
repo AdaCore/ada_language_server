@@ -1,0 +1,279 @@
+[
+   {
+      "comment": [
+         ""
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true
+                     }
+                  },
+                  "textDocument": {
+                     "rename": {
+                        "dynamicRegistration": true,
+                        "prepareSupport": true,
+                        "prepareSupportDefaultBehavior": 1,
+                        "honorsChangeAnnotations": true
+                     }
+                  }
+               },
+               "workspaceFolders": [
+                  {
+                     "uri": "$URI{.}",
+                     "name": "U415-027.refactor_safe_rename"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "renameProvider": {
+                        "prepareProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar-baz.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Foo.Bar.Baz is\nend Foo.Bar.Baz;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "$/progress",
+               "params": {
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/prepareRename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar-baz.ads}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 12
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "start": {
+                     "line": 0,
+                     "character": 12
+                  },
+                  "end": {
+                     "line": 0,
+                     "character": 15
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar-baz.ads}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 12
+               },
+               "newName": "Qux"
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "documentChanges": [
+                     {
+                        "textDocument": {
+                           "uri": "$URI{foo-bar-baz.ads}",
+                           "version": 1
+                        },
+                        "edits": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 0,
+                                    "character": 12
+                                 },
+                                 "end": {
+                                    "line": 0,
+                                    "character": 15
+                                 }
+                              },
+                              "newText": "Qux"
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 1,
+                                    "character": 8
+                                 },
+                                 "end": {
+                                    "line": 1,
+                                    "character": 11
+                                 }
+                              },
+                              "newText": "Qux"
+                           }
+                        ]
+                     },
+                     {
+                        "textDocument": {
+                           "uri": "$URI{foo-bar.ads}",
+                           "version": null
+                        },
+                        "edits": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 0,
+                                    "character": 12
+                                 },
+                                 "end": {
+                                    "line": 0,
+                                    "character": 15
+                                 }
+                              },
+                              "newText": "Qux"
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 1,
+                                    "character": 8
+                                 },
+                                 "end": {
+                                    "line": 1,
+                                    "character": 11
+                                 }
+                              },
+                              "newText": "Qux"
+                           }
+                        ]
+                     },
+                     {
+                        "textDocument": {
+                           "uri": "$URI{test.adb}",
+                           "version": null
+                        },
+                        "edits": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 1,
+                                    "character": 9
+                                 },
+                                 "end": {
+                                    "line": 1,
+                                    "character": 12
+                                 }
+                              },
+                              "newText": "Qux"
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 2,
+                                    "character": 9
+                                 },
+                                 "end": {
+                                    "line": 2,
+                                    "character": 12
+                                 }
+                              },
+                              "newText": "Qux"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 14,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

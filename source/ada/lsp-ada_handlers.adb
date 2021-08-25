@@ -760,6 +760,9 @@ package body LSP.Ada_Handlers is
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
 
+      Self.Resource_Operations :=
+        Value.capabilities.workspace.workspaceEdit.resourceOperations;
+
       --  Client capability to support versioned document changes in
       --  `WorkspaceEdit`s.
       Self.Versioned_Documents :=
@@ -3269,7 +3272,7 @@ package body LSP.Ada_Handlers is
       --  All contexts were processed, and no rename problems were found
 
       Response.result := To_Workspace_Edit
-        (All_Edits, Self.Versioned_Documents, Self);
+        (All_Edits, Self.Resource_Operations, Self.Versioned_Documents, Self);
 
       return Response;
 

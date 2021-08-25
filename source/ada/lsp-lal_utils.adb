@@ -922,9 +922,11 @@ package body LSP.Lal_Utils is
 
    function To_Workspace_Edit
      (Edits               : Laltools.Refactor.Refactoring_Edits;
+      Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
+        LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
       Versioned_Documents : Boolean := False;
-      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
-      := null;
+      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class :=
+        null;
       Rename              : Boolean := False)
       return LSP.Messages.WorkspaceEdit
    is
@@ -933,11 +935,26 @@ package body LSP.Lal_Utils is
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
       use Laltools.Refactor;
+      use LSP.Messages;
 
       Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor
         := Edits.Text_Edits.First;
       File_Deletions_Cursor : Unbounded_String_Ordered_Sets.Cursor
         := Edits.File_Deletions.First;
+
+      Is_Create_Supported : constant Boolean :=
+        Resource_Operations.Is_Set
+        and then ResourceOperationKindSets.Contains
+          (ResourceOperationKindSets.Set (Resource_Operations.Value), create);
+      Is_Rename_Supported : constant Boolean :=
+        Resource_Operations.Is_Set
+        and then ResourceOperationKindSets.Contains
+          (ResourceOperationKindSets.Set (Resource_Operations.Value),
+           LSP.Messages.rename);
+      Is_Delete_Supported : constant Boolean :=
+        Resource_Operations.Is_Set
+        and then ResourceOperationKindSets.Contains
+          (ResourceOperationKindSets.Set (Resource_Operations.Value), delete);
 
    begin
       return WE : LSP.Messages.WorkspaceEdit do
@@ -953,9 +970,14 @@ package body LSP.Lal_Utils is
             File_URI := LSP.Types.File_To_URI
               (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor));
 
+            --  If `workspace.workspaceEdit.documentChanges` client capability
+            --  was true, then use `TextDocumentEdit[]` instead of
+            --  `TextEdit[]`.
+
             if Versioned_Documents then
                declare
                   Annotaded_Edits : LSP.Messages.AnnotatedTextEdit_Vector;
+
                begin
                   Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
                   for X of Text_Edits loop
@@ -979,31 +1001,50 @@ package body LSP.Lal_Utils is
             Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
          end loop;
 
+         --  Resource operations are only supported if
+         --  `workspace.workspaceEdit.documentChanges` is True since they
+         --  must be sent in the `documentChanges` field.
+         --  `workspace.workspaceEdit.resourceOperations` client capability
+         --  must be checked in order to know which kind of operations are
+         --  supported.
+
          --  File creations
-         --  TODO
+
+         if Versioned_Documents and then Is_Create_Supported then
+            for File_Creation of Edits.File_Creations loop
+               WE.documentChanges.Append
+                 (LSP.Messages.Document_Change'(
+                  (Kind        => LSP.Messages.Create_File,
+                   Create_File => LSP.Messages.CreateFile'
+                     (uri    => LSP.Types.File_To_URI (File_Creation.Filepath),
+                      others => <>))));
+
+               declare
+                  Annotaded_Edits : LSP.Messages.AnnotatedTextEdit_Vector;
+                  Content : constant LSP.Messages.AnnotatedTextEdit :=
+                    LSP.Messages.AnnotatedTextEdit'
+                      (span    => ((0, 0), (0, 0)),
+                       newText => To_LSP_String
+                         (Ada.Strings.Unbounded.
+                            To_String (File_Creation.Content)),
+                       others  => <>);
+
+               begin
+                  Annotaded_Edits.Append (Content);
+
+                  WE.documentChanges.Append
+                    (LSP.Messages.Document_Change'(
+                     (Kind               => LSP.Messages.Text_Document_Edit,
+                      Text_Document_Edit => LSP.Messages.TextDocumentEdit'
+                        (edits => Annotaded_Edits,
+                         others => <>))));
+               end;
+            end loop;
+         end if;
 
          --  File deletions
 
-         if not Rename then
-            while Unbounded_String_Ordered_Sets.Has_Element
-              (File_Deletions_Cursor)
-            loop
-
-               File_URI := LSP.Types.File_To_URI
-                 (Unbounded_String_Ordered_Sets.Element
-                    (File_Deletions_Cursor));
-
-               WE.documentChanges.Append
-                 (LSP.Messages.Document_Change'(
-                  (Kind        => LSP.Messages.Delete_File,
-                   Delete_File => LSP.Messages.DeleteFile'(
-                     uri    => File_URI,
-                     others => <>
-                    ))));
-
-               Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
-            end loop;
-         else
+         if Versioned_Documents and then Is_Delete_Supported then
             while Unbounded_String_Ordered_Sets.Has_Element
               (File_Deletions_Cursor)
             loop
@@ -1017,7 +1058,8 @@ package body LSP.Lal_Utils is
                   (Kind        => LSP.Messages.Rename_File,
                    Rename_File => LSP.Messages.RenameFile'
                      (oldUri       => File_URI,
-                      newUri       => File_URI & ".bak",
+                      newUri       =>
+                        (if Rename then File_URI & ".bak" else File_URI),
                       others => <>))));
 
                Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
@@ -1026,15 +1068,17 @@ package body LSP.Lal_Utils is
 
          --  File renames
 
-         for File_Rename of Edits.File_Renames loop
-            WE.documentChanges.Append
-              (LSP.Messages.Document_Change'(
-               (Kind        => LSP.Messages.Rename_File,
-                Rename_File => LSP.Messages.RenameFile'
-                  (oldUri => LSP.Types.File_To_URI (File_Rename.Filepath),
-                   newUri => LSP.Types.File_To_URI (File_Rename.New_Name),
-                   others => <>))));
-         end loop;
+         if Versioned_Documents and then Is_Rename_Supported then
+            for File_Rename of Edits.File_Renames loop
+               WE.documentChanges.Append
+                 (LSP.Messages.Document_Change'(
+                  (Kind        => LSP.Messages.Rename_File,
+                   Rename_File => LSP.Messages.RenameFile'
+                     (oldUri => LSP.Types.File_To_URI (File_Rename.Filepath),
+                      newUri => LSP.Types.File_To_URI (File_Rename.New_Name),
+                      others => <>))));
+            end loop;
+         end if;
       end return;
    end To_Workspace_Edit;
 

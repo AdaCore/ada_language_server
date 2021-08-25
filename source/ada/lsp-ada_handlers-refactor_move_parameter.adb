@@ -258,7 +258,8 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       end if;
 
       Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits.Text_Edits,
+        (Edits,
+         Message_Handler.Resource_Operations,
          Message_Handler.Versioned_Documents,
          Message_Handler'Access);
 
