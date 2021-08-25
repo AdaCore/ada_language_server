@@ -38,6 +38,7 @@ with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
 with LSP.Servers;
 with LSP.Types;
+with LSP.Messages;
 
 package LSP.Ada_Handlers is
 
@@ -189,6 +190,10 @@ private
       Get_Symbols : Get_Symbol_Access;
       --  textDocument/documentSymbol handler. Actual value depends on
       --  client's capabilities.
+
+      Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet;
+      --  Client capabilities to support resource operations in
+      --  `WorkspaceEdit`s.
 
       Versioned_Documents : Boolean := False;
       --  Client capabilities to support versioned document changes in
