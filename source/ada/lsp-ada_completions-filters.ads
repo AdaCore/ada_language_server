@@ -33,12 +33,16 @@ package LSP.Ada_Completions.Filters is
    function Is_End_Label (Self : in out Filter'Class) return Boolean;
    --  Check if we complete "end <name>" text
 
+   function Is_Numeric_Literal (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete a numeric literal (even incomplete one, like 1E).
+
 private
 
    type Filter is tagged limited record
-      Token        : Libadalang.Common.Token_Reference;
-      Node         : Libadalang.Analysis.Ada_Node;
-      Is_End_Label : LSP.Types.Optional_Boolean;
+      Token              : Libadalang.Common.Token_Reference;
+      Node               : Libadalang.Analysis.Ada_Node;
+      Is_End_Label       : LSP.Types.Optional_Boolean;
+      Is_Numeric_Literal : LSP.Types.Optional_Boolean;
    end record;
 
 end LSP.Ada_Completions.Filters;

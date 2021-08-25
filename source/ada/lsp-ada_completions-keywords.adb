@@ -47,9 +47,11 @@ package body LSP.Ada_Completions.Keywords is
 
    begin
       if Filter.Is_End_Label or else
+        Filter.Is_Numeric_Literal or else
         not Libadalang.Common.Is_Trivia (Prev)
       then
          --  Propose keyword completion if we are not within an end label
+         --  not within a numeric literal
          --  and if there is no previous character of if it's a whitespace (we
          --  don't want to propose keywords after typing '(' to feed subprogram
          --  parameters for instance).
