@@ -107,21 +107,17 @@ package body LSP.Ada_Handlers is
      return LSP.Types.LSP_String renames
        LSP.Types.To_LSP_String;
 
-   procedure Send_Imprecise_Xref_Message
+   procedure Log_Imprecise_Xref_Message
      (Self     : access Message_Handler;
       URI      : LSP.Messages.DocumentUri;
-      Position : LSP.Messages.Position;
-      Msg_Type : LSP.Messages.MessageType);
-   --  Send a message of the given Msg_Type to the LSP client to warn the user
-   --  of a possible imprecise result while computing xrefs on the given
-   --  node.
+      Position : LSP.Messages.Position);
+   --  Log a message to record that we have made an imprecise navigation
 
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
       In_Context : Context_Access;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
-      Definition : out Libadalang.Analysis.Defining_Name;
-      Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log);
+      Definition : out Libadalang.Analysis.Defining_Name);
    --  If node at given Position is a name, then resolve it.
    --  Send a message in case of a possible imprecise result.
    --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
@@ -353,28 +349,23 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document_Version;
 
-   ---------------------------------
-   -- Send_Imprecise_Xref_Message --
-   ---------------------------------
+   --------------------------------
+   -- Log_Imprecise_Xref_Message --
+   --------------------------------
 
-   procedure Send_Imprecise_Xref_Message
+   procedure Log_Imprecise_Xref_Message
      (Self     : access Message_Handler;
       URI      : LSP.Messages.DocumentUri;
-      Position : LSP.Messages.Position;
-      Msg_Type : LSP.Messages.MessageType)
+      Position : LSP.Messages.Position)
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      Self.Server.On_Show_Message
-        ((Msg_Type,
-         "Imprecise fallback used to compute cross-references on entity at:"
-         & To_LSP_String
-           (Line_Feed & "   " & File.Display_Base_Name)
-         & To_LSP_String
-           (Line_Feed & "   line:" & Position.line'Img)
-         & To_LSP_String
-           (Line_Feed & "   column:" & Position.character'Img)));
-   end Send_Imprecise_Xref_Message;
+      Self.Trace.Trace
+        ("Imprecise fallback used to compute cross-references on entity at "
+         & File.Display_Base_Name
+         & ":" & Integer'Image (Integer (Position.line) + 1)
+         & ":" & Integer'Image (Integer (Position.character) + 1));
+   end Log_Imprecise_Xref_Message;
 
    ----------------------------
    -- Imprecise_Resolve_Name --
@@ -384,8 +375,7 @@ package body LSP.Ada_Handlers is
      (Self       : access Message_Handler;
       In_Context : Context_Access;
       Position   : LSP.Messages.TextDocumentPositionParams'Class;
-      Definition : out Libadalang.Analysis.Defining_Name;
-      Msg_Type   : LSP.Messages.MessageType := LSP.Messages.Log)
+      Definition : out Libadalang.Analysis.Defining_Name)
    is
       use type Libadalang.Analysis.Name;
 
@@ -408,10 +398,9 @@ package body LSP.Ada_Handlers is
 
       --  If we used the imprecise fallback to get to the definition, log it
       if Imprecise then
-         Self.Send_Imprecise_Xref_Message
+         Self.Log_Imprecise_Xref_Message
            (URI      => Position.textDocument.uri,
-            Position => Position.position,
-            Msg_Type => Msg_Type);
+            Position => Position.position);
       end if;
    end Imprecise_Resolve_Name;
 
@@ -1593,8 +1582,7 @@ package body LSP.Ada_Handlers is
          Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
          if Definition = No_Defining_Name then
-            Self.Imprecise_Resolve_Name
-              (C, Value, Definition, LSP.Messages.Info);
+            Self.Imprecise_Resolve_Name (C, Value, Definition);
 
             if Definition /= No_Defining_Name then
                Append_Location (Response.result, Definition);
