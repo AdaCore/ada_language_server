@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers.Hashed_Sets;
+
+with VSS.Strings;
+
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
@@ -41,26 +45,60 @@ package body LSP.Ada_Completions is
       Named_Notation_Threshold : Natural;
       Result                   : in out LSP.Messages.CompletionItem_Vector)
    is
+      function Hash (Value : VSS.Strings.Virtual_String)
+        return Ada.Containers.Hash_Type
+          is (Ada.Containers.Hash_Type'Mod (Value.Hash));
+
+      package String_Sets is new Ada.Containers.Hashed_Sets
+        (VSS.Strings.Virtual_String, Hash, VSS.Strings."=", VSS.Strings."=");
+
+      Seen   : String_Sets.Set;
+      --  Set of found visible names in canonical form
       Length : constant Natural := Natural (Names.Length);
    begin
-      for Cursor in Names.Iterate loop
-         declare
-            Name : constant Libadalang.Analysis.Defining_Name :=
-              Completion_Maps.Key (Cursor);
-            Info : constant Name_Information := Names (Cursor);
-         begin
-            Result.Append
-              (LSP.Ada_Documents.Compute_Completion_Item
-                 (Context                  => Context,
-                  BD                       => Name.P_Basic_Decl,
-                  DN                       => Name,
-                  Use_Snippets             => Info.Use_Snippets,
-                  Named_Notation_Threshold => Named_Notation_Threshold,
-                  Is_Dot_Call              => Info.Is_Dot_Call,
-                  Is_Visible               => Info.Is_Visible,
-                  Pos                      => Info.Pos,
-                  Completions_Count                   => Length));
-         end;
+
+      --  Write Result in two pases. Firstly append all visible names and
+      --  populate Seen set. Then append invisible names not in Seen.
+
+      for Visible in reverse Boolean loop  --  Phase: True then False
+         for Cursor in Names.Iterate loop
+            declare
+               Append    : Boolean := False;
+               Info      : constant Name_Information := Names (Cursor);
+               Name      : constant Libadalang.Analysis.Defining_Name :=
+                 Completion_Maps.Key (Cursor);
+               Selector  : constant Libadalang.Analysis.Single_Tok_Node :=
+                 Name.P_Relative_Name;
+               Label     : VSS.Strings.Virtual_String;
+               Canonical : VSS.Strings.Virtual_String;
+            begin
+               if Visible and Info.Is_Visible then
+                  Label := LSP.Lal_Utils.To_Virtual_String (Selector.Text);
+                  Canonical := LSP.Lal_Utils.Canonicalize (Label);
+                  Seen.Include (Canonical);
+                  Append := True;
+               elsif not Visible and not Info.Is_Visible then
+                  --  Append invisible name on if no such visible name found
+                  Label := LSP.Lal_Utils.To_Virtual_String (Selector.Text);
+                  Canonical := LSP.Lal_Utils.Canonicalize (Label);
+                  Append := not Seen.Contains (Canonical);
+               end if;
+
+               if Append then
+                  Result.Append
+                    (LSP.Ada_Documents.Compute_Completion_Item
+                       (Context                  => Context,
+                        BD                       => Name.P_Basic_Decl,
+                        Label                    => Label,
+                        Use_Snippets             => Info.Use_Snippets,
+                        Named_Notation_Threshold => Named_Notation_Threshold,
+                        Is_Dot_Call              => Info.Is_Dot_Call,
+                        Is_Visible               => Info.Is_Visible,
+                        Pos                      => Info.Pos,
+                        Completions_Count        => Length));
+               end if;
+            end;
+         end loop;
       end loop;
    end Write_Completions;
 

@@ -1742,7 +1742,7 @@ package body LSP.Ada_Documents is
    function Compute_Completion_Item
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
-      DN                       : Libadalang.Analysis.Defining_Name;
+      Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
@@ -1792,7 +1792,7 @@ package body LSP.Ada_Documents is
       end Get_Sort_text;
 
    begin
-      Item.label := LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
+      Item.label := Label;
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
       Item.detail := (True,
@@ -1802,8 +1802,7 @@ package body LSP.Ada_Documents is
       declare
          Base_Label : constant LSP_String := LSP.Types.To_LSP_String
            (Item.label);
-         Sort_Text  : constant LSP_String :=
-           Get_Sort_text (Base_Label);
+         Sort_Text  : constant LSP_String := Get_Sort_text (Base_Label);
       begin
          if not Is_Visible then
             Item.insertText := (True, Base_Label);
