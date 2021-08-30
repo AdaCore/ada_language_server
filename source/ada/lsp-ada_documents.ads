@@ -232,7 +232,7 @@ package LSP.Ada_Documents is
    function Compute_Completion_Item
      (Context                  : LSP.Ada_Contexts.Context;
       BD                       : Libadalang.Analysis.Basic_Decl;
-      DN                       : Libadalang.Analysis.Defining_Name;
+      Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
@@ -242,7 +242,7 @@ package LSP.Ada_Documents is
       return LSP.Messages.CompletionItem;
    --  Compute a completion item.
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
-   --  BD and DN are respectively the basic declaration and the defining name
+   --  BD is the basic declaration and Label is the defining name text
    --  that should be used to compute the completion item.
    --  When Use_Snippets is True, subprogram completion items are computed
    --  as snippets that list all the subprogram's formal parameters.
