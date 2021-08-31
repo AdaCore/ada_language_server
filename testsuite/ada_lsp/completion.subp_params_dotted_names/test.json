@@ -206,7 +206,7 @@
                        },
                        {
                            "label": "My_Int",
-                           "kind": 18,
+                           "kind": 7,
                            "detail": "type My_Int is tagged record\n   A : Integer;\nend record;",
                            "documentation": "at bar.ads (3:4)",
                            "additionalTextEdits": [

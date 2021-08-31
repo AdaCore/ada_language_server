@@ -83,6 +83,7 @@ package body LSP.Ada_Documents is
         when LSP.Messages.A_Package  => LSP.Messages.Module,
         when LSP.Messages.Module     => LSP.Messages.Module,
         when LSP.Messages.Class      => LSP.Messages.Class,
+        when LSP.Messages.Struct     => LSP.Messages.Class,
         when LSP.Messages.Number     => LSP.Messages.Value,
         when LSP.Messages.Enum       => LSP.Messages.Enum,
         when LSP.Messages.String     => LSP.Messages.Value,
@@ -1570,10 +1571,10 @@ package body LSP.Ada_Documents is
       use Libadalang.Common;
    begin
       case Node.Kind is
-         when Ada_Generic_Package_Decl |
+         when Ada_Base_Package_Decl |
+              Ada_Generic_Package_Decl |
               Ada_Generic_Package_Instantiation |
               Ada_Generic_Package_Renaming_Decl |
-              Ada_Package_Decl |
               Ada_Package_Renaming_Decl |
               Ada_Abstract_Subp_Decl |
               Ada_Formal_Subp_Decl |

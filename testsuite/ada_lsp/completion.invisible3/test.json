@@ -152,7 +152,7 @@
                      },
                      {
                         "label": "ABC14 (invisible)",
-                        "kind": 18,
+                        "kind": 9,
                         "detail": "generic\n      ABC13 : Integer;\npackage ABC14 ",
                         "documentation": "at pkg.ads (19:4)",
                         "sortText": "~ABC14",
@@ -161,7 +161,7 @@
                      },
                      {
                         "label": "ABC4 (invisible)",
-                        "kind": 18,
+                        "kind": 7,
                         "detail": "type ABC4 (ABC5 : Integer) is record\n   ABC6 : Boolean := (for some ABC7 in Boolean => ABC7);\nend record;",
                         "documentation": "at pkg.ads (5:4)",
                         "sortText": "~ABC4",
