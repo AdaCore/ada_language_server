@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Containers;
 with Ada.Strings.Unbounded;
 
@@ -571,8 +572,9 @@ package body LSP.Message_Loggers is
                    Change.a_type'Wide_Image & ";");
       end loop;
 
-      Self.Trace.Trace ("DidChangeWatchedFiles_Notification:"
-                        & ASCII.LF & To_UTF_8_String (Result));
+      Self.Trace.Trace
+        ("DidChangeWatchedFiles_Notification:"
+         & Ada.Characters.Latin_1.LF & To_UTF_8_String (Result));
    end On_DidChangeWatchedFiles_Notification;
 
    -------------------------------------------

@@ -102,6 +102,25 @@ The value is a boolean.
     'renameInComments': false
 ```
 
+## displayMethodAncestryOnNavigation
+This setting controls the policy for displaying overriding and overridden
+subprograms on navigation requests such as `textDocument/definition`,
+`textDocument/declaration` or `textDocument/implementation`.
+
+The different policies are:
+
+  * `never`: Never list overridding and/or overridden suprograms.
+  * `usage_and_abstract_only`: List overridding and/or overridden suprograms
+     on dispatching calls and on abstract subprogram declarations.
+  * `definition_only`: List overridding and/or overridden suprograms on
+     declarations only.
+  * `always`: Always list overridding and/or overridden suprograms when
+     possible.
+
+```javascript
+    'displayMethodAncestryOnNavigation': 'always'
+```
+
 ## namedNotationThreshold
 This setting defines the number of parameters/components at which point named
 notation is used for subprogram/aggregate completion snippets.

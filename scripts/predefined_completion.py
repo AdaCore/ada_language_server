@@ -79,7 +79,7 @@ def convert_to_ada(json_filename, output_file):
                 output += f"\n\n   Db{statement_counter} : constant String := "
                 statement_counter += 1
 
-            output += '"' + line.strip().replace('"', '""') + '" & ASCII.LF\n   & '
+            output += '"' + line.strip().replace('"', '""') + '"\n   & '
 
             line_counter += 1
 

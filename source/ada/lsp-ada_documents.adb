@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
 
@@ -144,6 +145,10 @@ package body LSP.Ada_Documents is
 
       begin
          if J.Has_Element then
+            --  Update Line_Terminator of the document
+            Self.Line_Terminator := Self.Text.Slice
+              (J.Terminator_First_Marker, J.Terminator_Last_Marker);
+
             loop
                Self.Line_To_Marker.Append (J.First_Marker);
                Last_Line_Terminated := J.Has_Line_Terminator;
@@ -1143,6 +1148,20 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Symbols;
 
+   ---------------------
+   -- Line_Terminator --
+   ---------------------
+
+   function Line_Terminator (Self : Document'Class) return String is
+   begin
+      if Self.Line_Terminator.Is_Empty then
+         --  Document has no line terminator yet, return LF as most used
+         return (1 => Ada.Characters.Latin_1.LF);
+      else
+         return VSS.Strings.Conversions.To_UTF_8_String (Self.Line_Terminator);
+      end if;
+   end Line_Terminator;
+
    -----------------
    -- Get_Node_At --
    -----------------
@@ -1834,11 +1853,11 @@ package body LSP.Ada_Documents is
 
          if not Doc_Text.Is_Empty then
             Loc_Text.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (ASCII.LF & ASCII.LF));
-         end if;
+              (VSS.Strings.To_Virtual_String
+                 ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
 
-         Loc_Text.Append (Doc_Text);
+            Loc_Text.Append (Doc_Text);
+         end if;
 
          Item.documentation :=
            (Is_Set => True,

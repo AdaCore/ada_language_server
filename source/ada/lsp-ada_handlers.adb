@@ -2981,19 +2981,19 @@ package body LSP.Ada_Handlers is
               (Is_Error => True)
             do
                declare
-                  Error_Message : VSS.Strings.Virtual_String;
+                  Error_Message : VSS.String_Vectors.Virtual_String_Vector;
 
                begin
                   for Problem of Context_Edits.Diagnostics loop
                      Error_Message.Append
                        (VSS.Strings.Conversions.To_Virtual_String
-                          (Problem.Info & ASCII.LF));
+                          (Problem.Info));
                   end loop;
 
                   Response.error :=
                     (True,
                      (code    => LSP.Errors.InvalidRequest,
-                      message => Error_Message,
+                      message => Error_Message.Join_Lines (VSS.Strings.LF),
                       data    => Empty));
                end;
             end return;

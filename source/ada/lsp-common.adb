@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Exceptions;           use Ada.Exceptions;
 with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
@@ -110,7 +111,7 @@ package body LSP.Common is
       end if;
 
       Trace.Trace (Exception_Name (E) & ": " & Exception_Message (E)
-                   & ASCII.LF & Symbolic_Traceback (E));
+                   & Ada.Characters.Latin_1.LF & Symbolic_Traceback (E));
    end Log;
 
    ----------------
