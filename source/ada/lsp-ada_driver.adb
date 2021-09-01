@@ -17,6 +17,7 @@
 --
 --  This is driver to run LSP server for Ada language.
 
+with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Command_Line;       use GNAT.Command_Line;
@@ -106,7 +107,8 @@ procedure LSP.Ada_Driver is
    procedure On_Uncaught_Exception (E : Exception_Occurrence) is
    begin
       Trace (Server_Trace,
-             "EXCEPTION: " & Exception_Name (E) & ASCII.LF &
+             "EXCEPTION: " & Exception_Name (E) &
+               Ada.Characters.Latin_1.LF &
                Symbolic_Traceback (E));
       Handler.Handle_Error;
    end On_Uncaught_Exception;
@@ -118,7 +120,8 @@ procedure LSP.Ada_Driver is
    procedure Die_On_Uncaught (E : Exception_Occurrence) is
    begin
       Trace (Server_Trace,
-             "EXCEPTION: " & Exception_Name (E) & ASCII.LF &
+             "EXCEPTION: " & Exception_Name (E) &
+               Ada.Characters.Latin_1.LF &
                Symbolic_Traceback (E));
       --  An exception occurred while fuzzing: make it fatal.
       GNAT.OS_Lib.OS_Exit (42);

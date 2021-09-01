@@ -18,6 +18,7 @@
 with Ada.Characters.Wide_Latin_1; use Ada.Characters.Wide_Latin_1;
 with Ada.Containers.Hashed_Maps;
 
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
@@ -180,13 +181,22 @@ package body LSP.Fuzz_Decorators is
       if Self.Doc_Provider.Get_Open_Document (Value.textDocument.uri).Text
         /= LSP.Types.To_Virtual_String (Doc_Content)
       then
-         Self.Trace.Trace
-           (VSS.Strings.Conversions.To_UTF_8_String
-              (Self.Doc_Provider.Get_Open_Document
-                   (Value.textDocument.uri).Text) &
-              ASCII.LF & " /= " & ASCII.LF &
-              To_UTF_8_String (Doc_Content));
-         raise Program_Error with "document content inconsistency";
+         declare
+            Vector : VSS.String_Vectors.Virtual_String_Vector;
+         begin
+            Vector.Append
+              (Self.Doc_Provider.Get_Open_Document (Value.textDocument.uri)
+                 .Text);
+
+            Vector.Append (" /= ");
+            Vector.Append (LSP.Types.To_Virtual_String (Doc_Content));
+
+            Self.Trace.Trace
+              (VSS.Strings.Conversions.To_UTF_8_String
+                 (Vector.Join_Lines (VSS.Strings.LF)));
+
+            raise Program_Error with "document content inconsistency";
+         end;
       end if;
    end On_DidChangeTextDocument_Notification;
 

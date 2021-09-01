@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;   use Ada.Strings.Unbounded;
 with GNAT.Regpat;             use GNAT.Regpat;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
@@ -34,7 +35,9 @@ package body LSP.Memory_Statistics is
    is
       Buffer           : Unbounded_String := To_Unbounded_String
         ("Dump_Memory_Statistics at 0x" &
-           System.Address_Image (Dump_Memory_Statistics'Address) & ASCII.LF);
+           System.Address_Image (Dump_Memory_Statistics'Address) &
+           Ada.Characters.Latin_1.LF);
+
       Traceback_Regexp : constant Pattern_Matcher :=
                            Compile ("\s0x0+([0-9a-zA-Z]+)");
 
@@ -84,7 +87,7 @@ package body LSP.Memory_Statistics is
 
       procedure Trace_Put_Line (S : String) is
       begin
-         Append (Buffer, S & ASCII.LF);
+         Append (Buffer, S & Ada.Characters.Latin_1.LF);
       end Trace_Put_Line;
 
       procedure Internal is new GNATCOLL.Memory.Redirectable_Dump

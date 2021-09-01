@@ -45,6 +45,8 @@ package body LSP.Servers is
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
+   Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
+
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
       return LSP.Types.LSP_String renames
      LSP.Types.To_LSP_String;
@@ -595,7 +597,7 @@ package body LSP.Servers is
          --  Catch-all case: make sure no exception in output writing
          --  can cause an exit of the task loop.
          Self.Server_Trace.Trace
-           ("Exception when reading input:" & ASCII.LF
+           ("Exception when reading input:" & Line_Feed
             & Exception_Name (E) & " - " &  Exception_Message (E));
          Self.Server_Trace.Trace (Symbolic_Traceback (E));
    end Process_One_Message;
@@ -770,7 +772,7 @@ package body LSP.Servers is
       Code       : LSP.Messages.ErrorCodes := LSP.Errors.InternalError)
    is
       Exception_Text : constant String :=
-        Exception_Name (E) & ASCII.LF & Symbolic_Traceback (E);
+        Exception_Name (E) & Line_Feed & Symbolic_Traceback (E);
       Response       : Response_Access :=
         new LSP.Messages.ResponseMessage'
           (Is_Error => True,
@@ -791,8 +793,8 @@ package body LSP.Servers is
 
       --  Log details in the traces
       Self.Server_Trace.Trace
-        ("Exception when processing request:" & ASCII.LF
-         & Trace_Text & ASCII.LF
+        ("Exception when processing request:" & Line_Feed
+         & Trace_Text & Line_Feed
          & Exception_Text);
    end Send_Exception_Response;
 
@@ -1072,8 +1074,8 @@ package body LSP.Servers is
                   --  Catch-all case: make sure no exception in output writing
                   --  can cause an exit of the task loop.
                   Server.Server_Trace.Trace
-                    ("Exception when writing output:" & ASCII.LF
---                     & To_String (Output) & ASCII.LF
+                    ("Exception when writing output:" & Line_Feed
+--                     & To_String (Output) & Line_Feed
                      & Exception_Name (E) & " - " &  Exception_Message (E));
                   Server.Server_Trace.Trace (Symbolic_Traceback (E));
 
@@ -1154,8 +1156,8 @@ package body LSP.Servers is
                when E : others =>
                   --  Always log an exception in the traces
                   Server.Server_Trace.Trace
-                    ("Exception (processing notification):" & ASCII.LF
-                     & Exception_Name (E) & ASCII.LF &
+                    ("Exception (processing notification):" & Line_Feed
+                     & Exception_Name (E) & Line_Feed &
                        Symbolic_Traceback (E));
             end;
 
