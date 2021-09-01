@@ -47,6 +47,7 @@ project LSP_Server is
       for Switches ("lsp-ada_driver.adb") use
         LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
+      for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
 
    package Linker is

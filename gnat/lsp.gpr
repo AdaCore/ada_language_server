@@ -94,6 +94,7 @@ project LSP is
 
    package Compiler is
       for Default_Switches ("Ada") use Ada_Switches;
+      for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
 
    package Naming is
