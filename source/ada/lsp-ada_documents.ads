@@ -258,6 +258,9 @@ package LSP.Ada_Documents is
       return Langkit_Support.Slocs.Source_Location;
    --  Convert a Positon to a Source_Location
 
+   function Line_Terminator (Self : Document'Class) return String;
+   --  Return line terminator for the document
+
 private
 
    package Line_Marker_Vectors is new Ada.Containers.Vectors
@@ -300,6 +303,8 @@ private
       --  Cache of all defining name symbol of the document.
       Refresh_Symbol_Cache : Boolean := False;
       --  Symbol_Cache rebuild is required before.
+      Line_Terminator : VSS.Strings.Virtual_String;
+      --  Line terminator for the text, if known, "" otherwise
    end record;
 
    procedure Diff

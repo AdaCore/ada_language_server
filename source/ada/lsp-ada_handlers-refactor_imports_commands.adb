@@ -270,13 +270,14 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                Edit.span := LSP.Lal_Utils.To_Span (S);
                if Last then
                   Edit.newText := LSP.Types.To_LSP_String
-                    ("" & ASCII.LF
+                    (Document.Line_Terminator
                      & LSP.Types.To_UTF_8_String
                        ("with " & Self.With_Clause & ";"));
                else
                   Edit.newText := LSP.Types.To_LSP_String
                     (LSP.Types.To_UTF_8_String
-                       ("with " & Self.With_Clause & ";") & ASCII.LF);
+                       ("with " & Self.With_Clause & ";")
+                     & Document.Line_Terminator);
                end if;
 
                if Message_Handler.Versioned_Documents then
