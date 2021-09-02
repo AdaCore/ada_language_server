@@ -242,7 +242,7 @@
                            "("
                         ],
                         "retriggerCharacters": [
-                           " "
+                           "\b"
                         ]
                      },
                      "declarationProvider": true,

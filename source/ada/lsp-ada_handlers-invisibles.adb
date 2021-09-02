@@ -102,8 +102,8 @@ package body LSP.Ada_Handlers.Invisibles is
          return;
       end if;
 
-      --  Return without asing Libadalang for completion results we are dealing
-      --  with a syntax error.
+      --  Return without asking Libadalang for completion results we are
+      --  dealing with a syntax error.
       if Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
          return;
       end if;

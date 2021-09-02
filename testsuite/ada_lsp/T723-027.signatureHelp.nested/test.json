@@ -49,7 +49,7 @@
                            "("
                         ],
                         "retriggerCharacters": [
-                           " "
+                           "\b"
                         ]
                      },
                      "definitionProvider": true

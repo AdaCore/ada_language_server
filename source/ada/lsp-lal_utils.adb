@@ -291,21 +291,14 @@ package body LSP.Lal_Utils is
         return LSP.Messages.SymbolKind is
    begin
       case Node.Kind is
-         when Ada_Generic_Formal_Subp_Decl |
-              Ada_Abstract_Subp_Decl |
-              Ada_Abstract_Formal_Subp_Decl |
-              Ada_Concrete_Formal_Subp_Decl |
-              Ada_Null_Subp_Decl |
-              Ada_Subp_Decl |
-              Ada_Subp_Renaming_Decl |
-              Ada_Expr_Function |
-              Ada_Subp_Body |
-              Ada_Subp_Body_Stub |
-              Ada_Entry_Body |
-              Ada_Entry_Decl |
-              Ada_Generic_Subp_Decl |
-              Ada_Generic_Subp_Instantiation |
-              Ada_Generic_Subp_Renaming_Decl =>
+         when Ada_Classic_Subp_Decl |
+              Ada_Base_Subp_Body |
+              Ada_Entry_Body_Range |
+              Ada_Entry_Decl_Range |
+              Ada_Generic_Subp_Decl_Range |
+              Ada_Generic_Subp_Instantiation_Range |
+              Ada_Generic_Subp_Renaming_Decl_Range |
+              Ada_Subp_Body_Stub_Range  =>
             return LSP.Messages.A_Function;
 
          when Ada_Component_Decl |
@@ -326,9 +319,11 @@ package body LSP.Lal_Utils is
                        then LSP.Messages.A_Constant
                        else LSP.Messages.Variable));
 
-         when Ada_Generic_Formal_Package |
-              Ada_Package_Decl |
-              Ada_Generic_Package_Decl |
+         when Ada_Base_Package_Decl |
+              Ada_Generic_Formal_Package |
+              --  Ignore: Ada_Generic_Package_Decl kind, this node always have
+              --  an Ada_Generic_Package_Internal as a child and we will use it
+              --  to create the CompletionItem/DocumentSymbol
               Ada_Generic_Package_Instantiation |
               Ada_Generic_Package_Renaming_Decl |
               Ada_Package_Renaming_Decl =>
