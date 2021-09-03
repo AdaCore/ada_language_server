@@ -201,9 +201,14 @@ private
    type Input_Queue_Access is access Message_Queues.Queue;
    type Output_Queue_Access is access Message_Queues.Queue;
 
+   Processing_Task_Stack_Size : constant := 32 * 1_024 * 1_024;
+   --  Size of the stack for request processing task. Set it to high enough
+   --  value to prevent crashes on deep nesting calls inside LAL.
+
    --  The processing task
    task type Processing_Task_Type
      (Server : access LSP.Servers.Server)
+     with Storage_Size => Processing_Task_Stack_Size
    is
       entry Start
         (Request      : not null LSP.Server_Request_Handlers
