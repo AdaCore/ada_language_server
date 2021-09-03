@@ -102,6 +102,7 @@ package body LSP.Ada_Handlers is
    --  Convenient constants
 
    Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
+   Backspace : constant Character := Ada.Characters.Latin_1.BS;
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP.Types.LSP_String renames
@@ -697,7 +698,7 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.signatureHelpProvider :=
         (True,
          (triggerCharacters   => (True, Empty_Vector & (+",") & (+"(")),
-          retriggerCharacters => (True, Empty_Vector & (+(1 => ASCII.BS))),
+          retriggerCharacters => (True, Empty_Vector & (+(1 => Backspace))),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
@@ -2665,7 +2666,7 @@ package body LSP.Ada_Handlers is
            --  Check if the trigger character is a backspace
              ((not Value.context.Value.triggerCharacter.Is_Set)
               or else Value.context.Value.triggerCharacter.Value /=
-                (+(1 => ASCII.BS))))
+                (+(1 => Backspace))))
       then
          --  At this point, we are filtering the previous signatures:
          --  * Don't recompute the list of signature
