@@ -147,6 +147,7 @@ package LSP.Ada_Documents is
       Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
+      Canceled    : access function return Boolean;
       Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
    --  See Contexts.Get_Any_Symbol
 

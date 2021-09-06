@@ -2018,6 +2018,7 @@ package body LSP.Ada_Documents is
       Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
+      Canceled    : access function return Boolean;
       Result      : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
       use type LSP.Messages.Search_Kind;
@@ -2121,6 +2122,8 @@ package body LSP.Ada_Documents is
                then
                   Insert (Item);
                end if;
+
+               exit when Canceled.all;
             end loop;
 
          elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
@@ -2128,12 +2131,14 @@ package body LSP.Ada_Documents is
             --  this means that all elements are also matched the pattern
             for Item of Self.Symbol_Cache (Cursor) loop
                Insert (Item);
+
+               exit when Canceled.all;
             end loop;
 
          else
             --  Symbol_Cache is ordered so we will not find any
             --  matches more
-            exit when Use_Celling;
+            exit when Use_Celling or else Canceled.all;
          end if;
 
          Symbol_Maps.Next (Cursor);

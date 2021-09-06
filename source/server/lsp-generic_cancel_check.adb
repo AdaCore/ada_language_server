@@ -20,17 +20,26 @@ package body LSP.Generic_Cancel_Check is
    Count : Natural := Max_Skip_Count;
    --  Counter to restrict frequency of Request.Canceled checks
 
+   Is_Canceled : Boolean := False;
+
    -----------------------
    -- Has_Been_Canceled --
    -----------------------
 
    function Has_Been_Canceled return Boolean is
    begin
+      if Is_Canceled then
+         return True;
+      end if;
+
       Count := Count - 1;
 
       if Count = 0 then
-         Count := Max_Skip_Count;
-         return Request.Canceled;
+         Count       := Max_Skip_Count;
+         Is_Canceled := Request.Canceled;
+
+         return Is_Canceled;
+
       else
          return False;
       end if;

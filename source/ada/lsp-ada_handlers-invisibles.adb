@@ -82,6 +82,8 @@ package body LSP.Ada_Handlers.Invisibles is
            then Libadalang.Common.Previous (Token, True)
            else Token);
 
+      function Dummy_Canceled return Boolean is (False);
+
    begin
       if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
          --  Don't provide completion after a dot
@@ -139,6 +141,7 @@ package body LSP.Ada_Handlers.Invisibles is
                      Pattern,
                      Limit,
                      True,
+                     Dummy_Canceled'Access,
                      Names);
                end loop;
             end;
