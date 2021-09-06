@@ -60,6 +60,7 @@ with LSP.Messages.Client_Requests;
 with LSP.Messages.Server_Notifications;
 with LSP.Servers.FS_Watch;
 with LSP.Types;        use LSP.Types;
+with LSP.Generic_Cancel_Check;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -3740,23 +3741,13 @@ package body LSP.Ada_Handlers is
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean);
 
-      function Has_Been_Canceled return Boolean;
-
-      procedure Write_Symbols is
-        new LSP.Ada_Completions.Write_Symbols (Has_Been_Canceled);
-
-      Count : Cancel_Countdown := 0;
       Names : LSP.Ada_Completions.Completion_Maps.Map;
 
-      -----------------------
-      -- Has_Been_Canceled --
-      -----------------------
+      package Canceled is new LSP.Generic_Cancel_Check (Request, 127);
 
-      function Has_Been_Canceled return Boolean is
-      begin
-         Count := Count - 1;
-         return Count = 0  and then Request.Canceled;
-      end Has_Been_Canceled;
+      procedure Write_Symbols is
+        new LSP.Ada_Completions.Generic_Write_Symbols
+          (Canceled.Has_Been_Canceled);
 
       --------------------------
       -- On_Inaccessible_Name --
@@ -3778,8 +3769,9 @@ package body LSP.Ada_Handlers is
                 Is_Visible   => False,
                 Use_Snippets => False,
                 Pos          => <>));
-            Stop := Has_Been_Canceled;
          end if;
+
+         Stop := Canceled.Has_Been_Canceled;
       end On_Inaccessible_Name;
 
       Pattern : constant Search_Pattern'Class := Build
@@ -3802,7 +3794,9 @@ package body LSP.Ada_Handlers is
             Only_Public => False,
             Callback    => On_Inaccessible_Name'Access);
 
-         exit when Request.Canceled;
+         if Canceled.Has_Been_Canceled then
+            return Response;
+         end if;
       end loop;
 
       for Doc of Self.Open_Documents loop
@@ -3815,8 +3809,13 @@ package body LSP.Ada_Handlers is
                Pattern,
                Ada.Containers.Count_Type'Last,
                False,
+               Canceled.Has_Been_Canceled'Access,
                Names);
          end;
+
+         if Canceled.Has_Been_Canceled then
+            return Response;
+         end if;
       end loop;
 
       Write_Symbols (Names, Response.result);

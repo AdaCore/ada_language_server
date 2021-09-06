@@ -232,7 +232,7 @@ package LSP.Ada_Contexts is
      (Self        : Context;
       Pattern     : LSP.Search.Search_Pattern'Class;
       Only_Public : Boolean;
-      Callback : not null access procedure
+      Callback    : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
          Stop : in out Boolean));

@@ -92,7 +92,7 @@ package LSP.Ada_Completions is
 
    generic
       with function Has_Been_Canceled return Boolean;
-   procedure Write_Symbols
+   procedure Generic_Write_Symbols
      (Names  : Completion_Maps.Map;
       Result : in out LSP.Messages.Symbol_Vector);
 

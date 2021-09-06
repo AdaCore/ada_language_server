@@ -102,11 +102,11 @@ package body LSP.Ada_Completions is
       end loop;
    end Write_Completions;
 
-   -------------------
-   -- Write_Symbols --
-   -------------------
+   ---------------------------
+   -- Generic_Write_Symbols --
+   ---------------------------
 
-   procedure Write_Symbols
+   procedure Generic_Write_Symbols
      (Names  : Completion_Maps.Map;
       Result : in out LSP.Messages.Symbol_Vector) is
    begin
@@ -139,6 +139,6 @@ package body LSP.Ada_Completions is
             exit when Has_Been_Canceled;
          end;
       end loop;
-   end Write_Symbols;
+   end Generic_Write_Symbols;
 
 end LSP.Ada_Completions;

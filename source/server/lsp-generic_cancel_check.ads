@@ -23,7 +23,7 @@
 with LSP.Messages.Server_Requests;
 
 generic
-   Request : in out LSP.Messages.Server_Requests.Server_Request'Class;
+   Request : LSP.Messages.Server_Requests.Server_Request'Class;
    --  A request to check cancelation
    Max_Skip_Count : Natural;
    --  How much checks to skip before make a real atomic flag check
