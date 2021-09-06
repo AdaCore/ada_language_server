@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 
@@ -25,6 +26,7 @@ with VSS.Strings.Conversions;
 with Langkit_Support;
 with Langkit_Support.Symbols; use Langkit_Support.Symbols;
 with Libadalang.Common;       use Libadalang.Common;
+with Libadalang.Doc_Utils;
 with Libadalang.Sources;
 
 with Laltools.Call_Hierarchy;
@@ -909,6 +911,38 @@ package body LSP.Lal_Utils is
 
       return Result;
    end Compute_Completion_Detail;
+
+   ----------------------------
+   -- Compute_Completion_Doc --
+   ----------------------------
+
+   function Compute_Completion_Doc
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
+   is
+      Doc_Text : VSS.Strings.Virtual_String;
+      Loc_Text : VSS.Strings.Virtual_String;
+   begin
+      Doc_Text :=
+        VSS.Strings.To_Virtual_String
+          (Libadalang.Doc_Utils.Get_Documentation
+             (BD).Doc.To_String);
+
+      --  Append the declaration's location.
+      --  In addition, append the project's name if we are dealing with
+      --  an aggregate project.
+
+      Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
+
+      if not Doc_Text.Is_Empty then
+         Loc_Text.Append
+           (VSS.Strings.To_Virtual_String
+              ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
+
+         Loc_Text.Append (Doc_Text);
+      end if;
+
+      return Loc_Text;
+   end Compute_Completion_Doc;
 
    -----------------------
    -- Containing_Entity --

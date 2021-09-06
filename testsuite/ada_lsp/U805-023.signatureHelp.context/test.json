@@ -86,7 +86,7 @@
                            ".",
                            "("
                         ],
-                        "resolveProvider": false
+                        "resolveProvider": true
                      },
                      "hoverProvider": true,
                      "signatureHelpProvider": {

@@ -83,7 +83,7 @@
                                     ".",
                                     "("
                                 ],
-                                "resolveProvider": false
+                                "resolveProvider": true
                             },
                             "hoverProvider": true,
                             "declarationProvider": true,

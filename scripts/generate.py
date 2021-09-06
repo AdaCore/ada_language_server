@@ -257,6 +257,8 @@ REQUESTS = [
      'CodeAction_Response'),
     ('textDocument/completion', 'Completion', 'TextDocumentPositionParams',
      'Completion_Response'),
+    ('completionItem/resolve', 'CompletionItemResolve', 'CompletionItem',
+     'CompletionItemResolve_Response'),
     ('textDocument/definition', 'Definition', 'DefinitionParams',
      'Location_Link_Response'),
     ('textDocument/declaration', 'Declaration', 'DeclarationParams',

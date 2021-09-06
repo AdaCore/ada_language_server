@@ -234,6 +234,7 @@ package LSP.Ada_Documents is
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
+      Compute_Doc_And_Details  : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;

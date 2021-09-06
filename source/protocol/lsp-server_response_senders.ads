@@ -33,6 +33,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.Completion_Response)
        is abstract;
 
+   procedure On_CompletionItemResolve_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.CompletionItemResolve_Response)
+       is abstract;
+
    procedure On_Hover_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Hover_Response) is abstract;

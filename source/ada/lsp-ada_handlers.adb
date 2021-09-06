@@ -28,7 +28,6 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
-with VSS.String_Vectors;
 with VSS.Strings;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
@@ -705,7 +704,7 @@ package body LSP.Ada_Handlers is
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
-         (resolveProvider     => LSP.Types.False,
+         (resolveProvider     => LSP.Types.True,
           triggerCharacters   => (True, Empty_Vector & (+".") & (+"(")),
           allCommitCharacters => (Is_Set => False),
           workDoneProgress    => LSP.Types.None));
@@ -773,6 +772,15 @@ package body LSP.Ada_Handlers is
       then
          --  Client capability to support snippets for completion
          Self.Completion_Snippets_Enabled := True;
+      end if;
+
+      if Value.capabilities.textDocument.completion.completionItem.Is_Set
+        and then Value.capabilities.textDocument.completion.
+          completionItem.Value.resolveSupport.Is_Set
+      then
+         Self.Completion_Resolve_Properties :=
+           Value.capabilities.textDocument.completion.
+             completionItem.Value.resolveSupport.Value.properties;
       end if;
 
       if Value.capabilities.workspace.didChangeWatchedFiles
@@ -3876,7 +3884,22 @@ package body LSP.Ada_Handlers is
 
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
+      Compute_Doc_And_Details : Boolean := True;
+
    begin
+
+      --  If lazy computation for the 'detail' and 'documentation' fields is
+      --  supported by the client, set the Compute_Doc_And_Details flag to
+      --  False.
+
+      if Self.Completion_Resolve_Properties.Contains
+         (VSS.Strings.Conversions.To_Virtual_String ("detail"))
+        and then
+          Self.Completion_Resolve_Properties.Contains
+            (VSS.Strings.Conversions.To_Virtual_String ("documentation"))
+      then
+         Compute_Doc_And_Details := False;
+      end if;
 
       Document.Get_Completions_At
         (Context                  => Context.all,
@@ -3889,12 +3912,74 @@ package body LSP.Ada_Handlers is
         (Context                  => Context.all,
          Names                    => Names,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
+         Compute_Doc_And_Details  => Compute_Doc_And_Details,
          Result                   => Response.result.items);
 
       Response.result.isIncomplete := Names.Length >= Limit;
 
       return Response;
    end On_Completion_Request;
+
+   --------------------------------------
+   -- On_CompletionItemResolve_Request --
+   --------------------------------------
+
+   overriding function On_CompletionItemResolve_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+      return LSP.Messages.Server_Responses.CompletionItemResolve_Response
+   is
+      Item      : LSP.Messages.CompletionItem :=
+        Request.params;
+      Response  : LSP.Messages.Server_Responses.CompletionItemResolve_Response
+        (Is_Error => False);
+      C         : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Item.data.Value.uri);
+      Node      : Libadalang.Analysis.Ada_Node := Get_Node_At
+        (Self     => C.all,
+         Document => null,
+         Position => LSP.Messages.TextDocumentPositionParams'
+           (textDocument => (uri => Item.data.Value.uri),
+            position     => Item.data.Value.span.first));
+   begin
+      --  Retrieve the Basic_Decl from the completion item's SLOC
+      while not Node.Is_Null
+        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+      loop
+         Node := Node.Parent;
+      end loop;
+
+      --  Compute the completion item's details
+      if not Node.Is_Null then
+         declare
+            BD : constant Libadalang.Analysis.Basic_Decl :=
+              Node.As_Basic_Decl;
+         begin
+            Item.detail :=
+              (True,
+               To_LSP_String (Compute_Completion_Detail (BD)));
+
+            --  Property_Errors can occur when calling
+            --  Get_Documentation on unsupported docstrings, so
+            --  add an exception handler to catch them and recover.
+
+            Item.documentation :=
+              (Is_Set => True,
+               Value  => LSP.Messages.String_Or_MarkupContent'
+                 (Is_String => True,
+                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
+
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               LSP.Common.Log (C.Trace, E);
+               Item.documentation := (others => <>);
+         end;
+
+         Response.result := Item;
+      end if;
+
+      return Response;
+   end On_CompletionItemResolve_Request;
 
    ---------------------------
    -- On_Formatting_Request --

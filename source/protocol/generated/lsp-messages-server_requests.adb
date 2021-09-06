@@ -50,6 +50,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : CompletionItemResolve_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_CompletionItemResolve_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Definition_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -248,6 +255,10 @@ begin
    Map.Insert
      ("textDocument/completion",
       Completion_Request'Tag);
+
+   Map.Insert
+     ("completionItem/resolve",
+      CompletionItemResolve_Request'Tag);
 
    Map.Insert
      ("textDocument/definition",

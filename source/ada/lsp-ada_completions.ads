@@ -88,7 +88,15 @@ package LSP.Ada_Completions is
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
+      Compute_Doc_And_Details  : Boolean;
       Result                   : in out LSP.Messages.CompletionItem_Vector);
+   --  Convert all the completion Names into LSP completion items' results.
+   --  Named_Notation_Threshold defines the number of parameters/components at
+   --  which point named notation is used for subprogram/aggregate completion
+   --  snippets.
+   --  If Compute_Doc_And_Details is True, the 'detail' and 'documentation'
+   --  fields for all the resulting completion items will be computed
+   --  immediately, which might take time.
 
    generic
       with function Has_Been_Canceled return Boolean;
