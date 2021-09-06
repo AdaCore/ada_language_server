@@ -38,6 +38,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.Completion_Response
         is abstract;
 
+   function On_CompletionItemResolve_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+      return LSP.Messages.Server_Responses.CompletionItemResolve_Response
+        is abstract;
+
    function On_Definition_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Definition_Request)

@@ -142,6 +142,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Completion_Request);
 
+   overriding procedure On_CompletionItemResolve_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.CompletionItemResolve_Request);
+
    overriding procedure On_Definition_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Definition_Request);
@@ -245,6 +249,10 @@ private
    overriding procedure On_Completion_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.Completion_Response);
+
+   overriding procedure On_CompletionItemResolve_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.CompletionItemResolve_Response);
 
    overriding procedure On_Hover_Response
      (Self   : in out Message_Logger;

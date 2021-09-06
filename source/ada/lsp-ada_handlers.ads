@@ -39,6 +39,7 @@ with LSP.Server_Notification_Receivers;
 with LSP.Servers;
 with LSP.Types;
 with LSP.Messages;
+with VSS.String_Vectors;
 
 package LSP.Ada_Handlers is
 
@@ -205,6 +206,11 @@ private
       Completion_Snippets_Enabled : Boolean := False;
       --  True if the client supports completion snippets
 
+      Completion_Resolve_Properties : VSS.String_Vectors.Virtual_String_Vector;
+      --  The list of CompletionItem properties that can be resolved
+      --  lazily (i.e: when the item is selected on client-side) via
+      --  the completionItem/resolve request.
+
       Range_Formatting_Enabled : Boolean := False;
       --  True if the handler has registered rangeFormatting provider
 
@@ -276,6 +282,11 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response;
+
+   overriding function On_CompletionItemResolve_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+      return LSP.Messages.Server_Responses.CompletionItemResolve_Response;
 
    overriding function On_Definition_Request
      (Self    : access Message_Handler;

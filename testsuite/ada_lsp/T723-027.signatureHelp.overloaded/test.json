@@ -40,7 +40,7 @@
                             ".",
                             "("
                         ],
-                        "resolveProvider": false
+                        "resolveProvider": true
                      },
                      "signatureHelpProvider": {
                         "triggerCharacters": [

@@ -48,6 +48,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Completion_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package CompletionItemResolve_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => CompletionItem);
+
+   type CompletionItemResolve_Response is
+     new CompletionItemResolve_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : CompletionItemResolve_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package Hover_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => Optional_Hover);
