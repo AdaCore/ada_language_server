@@ -30,7 +30,6 @@ with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Sources;
-with Libadalang.Doc_Utils;
 with Libadalang.Iterators;
 
 with VSS.String_Vectors;
@@ -1764,6 +1763,7 @@ package body LSP.Ada_Documents is
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
+      Compute_Doc_And_Details  : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;
@@ -1776,8 +1776,6 @@ package body LSP.Ada_Documents is
 
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
-      Doc_Text       : VSS.Strings.Virtual_String;
-      Loc_Text       : VSS.Strings.Virtual_String;
       Min_Width      : constant Natural := Completions_Count'Img'Length - 1;
 
       function Get_Sort_text (Base_Label : LSP_String) return LSP_String;
@@ -1815,9 +1813,6 @@ package body LSP.Ada_Documents is
       Item.label := Label;
       Item.kind := (True, To_Completion_Kind
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
-      Item.detail := (True,
-                      LSP.Types.To_LSP_String
-                        (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
       declare
          Base_Label : constant LSP_String := LSP.Types.To_LSP_String
@@ -1836,41 +1831,39 @@ package body LSP.Ada_Documents is
          end if;
       end;
 
-      --  Property_Errors can occur when calling
-      --  Get_Documentation on unsupported docstrings, so
-      --  add an exception handler to catch them and recover.
+      --  Compute the 'documentation' and 'detail' fields immediately if
+      --  requested (i.e: when the client does not support lazy computation
+      --  for these fields).
+      if Compute_Doc_And_Details then
+         Item.detail :=
+           (True,
+            LSP.Types.To_LSP_String
+              (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
 
-      begin
-         Doc_Text :=
-           VSS.Strings.To_Virtual_String
-             (Libadalang.Doc_Utils.Get_Documentation
-                (BD).Doc.To_String);
+         --  Property_Errors can occur when calling
+         --  Get_Documentation on unsupported docstrings, so
+         --  add an exception handler to catch them and recover.
+         begin
+            Item.documentation :=
+              (Is_Set => True,
+               Value  => String_Or_MarkupContent'
+                 (Is_String => True,
+                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
 
-         --  Append the declaration's location.
-         --  In addition, append the project's name if we are dealing with an
-         --  aggregate project.
-
-         Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
-
-         if not Doc_Text.Is_Empty then
-            Loc_Text.Append
-              (VSS.Strings.To_Virtual_String
-                 ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
-
-            Loc_Text.Append (Doc_Text);
-         end if;
-
-         Item.documentation :=
-           (Is_Set => True,
-            Value  => String_Or_MarkupContent'
-              (Is_String => True,
-               String    => Loc_Text));
-
-      exception
-         when E : Libadalang.Common.Property_Error =>
-            LSP.Common.Log (Context.Trace, E);
-            Item.documentation := (others => <>);
-      end;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               LSP.Common.Log (Context.Trace, E);
+               Item.documentation := (others => <>);
+         end;
+      else
+         --  Set node's location to the 'data' field of the completion item, so
+         --  that we can retrieve it in the completionItem/resolve handler.
+         Item.data :=
+           (True,
+            (uri    => File_To_URI (BD.Unit.Get_Filename),
+             span   => LSP.Lal_Utils.To_Span (BD.Sloc_Range),
+             others => <>));
+      end if;
 
       --  Return immediately if we should not use snippets (e.g: completion for
       --  invisible symbols).

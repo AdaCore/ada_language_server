@@ -57,6 +57,18 @@ begin
          end;
       end if;
 
+      if Request in CompletionItemResolve_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_CompletionItemResolve_Request
+                  (CompletionItemResolve_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in Definition_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

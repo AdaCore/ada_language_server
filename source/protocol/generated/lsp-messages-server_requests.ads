@@ -73,6 +73,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Completion_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package CompletionItemResolve_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        CompletionItem,
+        Server_Request_Receiver'Class);
+
+   type CompletionItemResolve_Request is
+     new CompletionItemResolve_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : CompletionItemResolve_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Definition_Requests is
      new LSP.Generic_Requests
        (Server_Request,

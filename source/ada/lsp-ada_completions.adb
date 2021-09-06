@@ -43,6 +43,7 @@ package body LSP.Ada_Completions is
      (Context                  : LSP.Ada_Contexts.Context;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
+      Compute_Doc_And_Details  : Boolean;
       Result                   : in out LSP.Messages.CompletionItem_Vector)
    is
       function Hash (Value : VSS.Strings.Virtual_String)
@@ -91,6 +92,7 @@ package body LSP.Ada_Completions is
                         BD                       => Name.P_Basic_Decl,
                         Label                    => Label,
                         Use_Snippets             => Info.Use_Snippets,
+                        Compute_Doc_And_Details  => Compute_Doc_And_Details,
                         Named_Notation_Threshold => Named_Notation_Threshold,
                         Is_Dot_Call              => Info.Is_Dot_Call,
                         Is_Visible               => Info.Is_Visible,

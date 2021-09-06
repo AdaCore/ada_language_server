@@ -96,7 +96,7 @@
                            ".",
                            "("
                         ],
-                        "resolveProvider": false
+                        "resolveProvider": true
                      }
                   }
                }

@@ -136,7 +136,27 @@ package body LSP.Error_Decorators is
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response
-        renames Completion_Request;
+      renames Completion_Request;
+
+   -----------------------------------
+   -- CompletionItemResolve_Request --
+   -----------------------------------
+
+   function CompletionItemResolve_Request is new Generic_Request
+     (Request    =>
+         LSP.Messages.Server_Requests.CompletionItemResolve_Request,
+      Response   =>
+         LSP.Messages.Server_Responses.CompletionItemResolve_Response,
+      Handler    =>
+         LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request =>
+         LSP.Server_Request_Handlers.On_CompletionItemResolve_Request);
+
+   overriding function On_CompletionItemResolve_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+      return LSP.Messages.Server_Responses.CompletionItemResolve_Response
+        renames CompletionItemResolve_Request;
 
    ---------------------------
    -- On_Declaration_Request --

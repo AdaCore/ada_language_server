@@ -46,6 +46,18 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : CompletionItemResolve_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_CompletionItemResolve_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Hover_Response;
       Handler : access Server_Response_Sender'Class)
    is

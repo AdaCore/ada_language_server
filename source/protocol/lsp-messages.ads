@@ -544,6 +544,9 @@ package LSP.Messages is
 
    type Location_Vector is new Location_Vectors.Vector with null record;
 
+   package Optional_Locations is new LSP.Generic_Optional (Location);
+   type Optional_Location is new Optional_Locations.Optional_Type;
+
    --```typescript
    --interface LocationLink {
    --
@@ -7602,7 +7605,7 @@ package LSP.Messages is
       additionalTextEdits: TextEdit_Vector;
       commitCharacters: Optional_LSP_String_Vector;
       command: Optional_Command;
-   --	data?: any
+      data : Optional_Location;
    end record;
 
    procedure Read_CompletionItem
