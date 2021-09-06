@@ -97,7 +97,8 @@ package body LSP.Ada_Handlers.Invisibles is
 
       if Node.Is_Null or else
         (not Node.Parent.Is_Null and then Node.Parent.Kind in
-           Libadalang.Common.Ada_Defining_Name_Range)
+           Libadalang.Common.Ada_Defining_Name_Range
+             | Libadalang.Common.Ada_Dotted_Name_Range)
       then
          return;
       end if;

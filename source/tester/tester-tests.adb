@@ -39,7 +39,8 @@ package body Tester.Tests is
    type Command_Kind is (Start, Stop, Send, Shell, Comment);
 
    procedure Do_Start
-     (Self    : in out Test'Class);
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value);
 
    procedure Do_Stop
      (Self    : in out Test'Class;
@@ -53,10 +54,11 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
 
-   function Wait_Factor return Integer;
-   --  Return the factor to multiply the delays with - useful for valgrind
-   --  runs. This is an integer read from the environment variable
-   --  $ALS_WAIT_FACTOR if it is defined.
+   function Wait_Factor (Command : GNATCOLL.JSON.JSON_Value) return Integer;
+   --  Return the factor to multiply the delays with - useful for valgrind runs
+   --  or commands that take longer time.
+   --  This is an integer read from either the "waitFactor" field of Command
+   --  (if any) or the $ALS_WAIT_FACTOR environment variable (if any).
 
    function Is_Has_Pattern (List : GNATCOLL.JSON.JSON_Array) return Boolean;
    --  Check if List in form of ["<HAS>", item1, item2, ...]
@@ -124,6 +126,7 @@ package body Tester.Tests is
       Request : constant GNATCOLL.JSON.JSON_Value := Command.Get ("request");
       Wait    : constant GNATCOLL.JSON.JSON_Array := Command.Get ("wait").Get;
       Sort    : constant GNATCOLL.JSON.JSON_Value := Command.Get ("sortReply");
+
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
         Request.Write;
 
@@ -139,7 +142,7 @@ package body Tester.Tests is
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
 
          Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
-         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor
+         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor (Command)
             and then not Self.In_Debug
          then
             declare
@@ -351,7 +354,8 @@ package body Tester.Tests is
    --------------
 
    procedure Do_Start
-     (Self    : in out Test'Class)
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value)
    is
       function Program_Name (Path : String) return String;
       --  Return full path to an exacutable designated by Path
@@ -371,25 +375,28 @@ package body Tester.Tests is
          end if;
       end Program_Name;
 
-      Command_Line : constant GNAT.OS_Lib.String_Access := Getenv ("ALS");
-
-      Args : Spawn.String_Vectors.UTF_8_String_Vector;
+      Command_Line : constant JSON_Array := Command.Get ("cmd").Get;
+      ALS_Var      : constant GNAT.OS_Lib.String_Access := Getenv ("ALS");
+      ALS_Exe      : constant String :=
+        (if ALS_Var /= null then ALS_Var.all else "");
+      Args         : Spawn.String_Vectors.UTF_8_String_Vector;
    begin
-      if Command_Line = null or else Command_Line.all = "" then
+      if ALS_Exe = "" then
          raise Program_Error with
            "You must specify the language server command line in $ALS";
       end if;
 
-      declare
-         Splits : constant Unbounded_String_Array :=
-           Split (Command_Line.all, ' ');
-      begin
-         Self.Set_Program (Program_Name (To_String (Splits (Splits'First))));
+      --  Set the program using $ALS env variable
+      Self.Set_Program (Program_Name (ALS_Exe));
 
-         for J in Splits'First + 1 .. Splits'Last loop
-            Args.Append (To_String (Splits (J)));
-         end loop;
-      end;
+      --  Set the arguments using the 'cmd' field. Skip the first one, since
+      --  it's "${ALS}".
+      for J in
+        GNATCOLL.JSON.Array_First (Command_Line) + 1 ..
+        GNATCOLL.JSON.Length (Command_Line)
+      loop
+         Args.Append (GNATCOLL.JSON.Get (Command_Line, J).Get);
+      end loop;
 
       Self.Set_Arguments (Args);
       Self.Start;
@@ -781,7 +788,7 @@ package body Tester.Tests is
 
          case Kind is
             when Start =>
-               Self.Do_Start;
+               Self.Do_Start (Value);
             when Stop =>
                Self.Do_Stop (Value);
             when Send =>
@@ -802,7 +809,7 @@ package body Tester.Tests is
          select
             accept Cancel;
          or
-            delay 20.0 * Wait_Factor;
+            delay 20.0 * Wait_Factor (Command);
 
             Ada.Text_IO.Put_Line ("Timeout on command:");
             Ada.Text_IO.Put_Line (Command.Write);
@@ -845,14 +852,26 @@ package body Tester.Tests is
    -- Wait_Factor --
    -----------------
 
-   function Wait_Factor return Integer is
-      Factor : constant GNAT.OS_Lib.String_Access
+   function Wait_Factor (Command : GNATCOLL.JSON.JSON_Value) return Integer is
+      Command_Factor : constant String :=
+        (if Command.Has_Field ("waitFactor") then
+              Command.Get ("waitFactor")
+         else
+            "");
+      Env_Factor     : constant GNAT.OS_Lib.String_Access
         := Getenv ("ALS_WAIT_FACTOR");
+      Factor         : constant String :=
+        (if Command_Factor /= "" then
+            Command_Factor
+         elsif Env_Factor /= null then
+            Env_Factor.all
+         else
+            "");
    begin
-      if Factor = null or else Factor.all = "" then
+      if Factor = "" then
          return 1;
       else
-         return Integer'Value (Factor.all);
+         return Integer'Value (Factor);
       end if;
    end Wait_Factor;
 

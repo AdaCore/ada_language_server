@@ -1,0 +1,5 @@
+title: 'completion.invisible.runtime'
+# Test only on Linux, since runtime source locations can be
+# different depending on the platform
+skip:
+    - ['SKIP', 'env.build.os.name != "linux"']
