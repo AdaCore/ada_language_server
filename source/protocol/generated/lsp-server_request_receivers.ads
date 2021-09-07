@@ -33,6 +33,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Completion_Request)
         is abstract;
 
+   procedure On_CompletionItemResolve_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+        is abstract;
+
    procedure On_Definition_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Definition_Request)

@@ -108,7 +108,7 @@
                             ".",
                             "("
                         ],
-                        "resolveProvider": false
+                        "resolveProvider": true
                      },
                      "definitionProvider": true
                   }

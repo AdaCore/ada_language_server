@@ -50,6 +50,8 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.DocumentFormattingParams) return String;
    function Image
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String;
+   function Image
+     (Value : LSP.Messages.CompletionItem) return String;
 
    -----------
    -- Image --
@@ -119,6 +121,16 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.TextDocumentPositionParams'Class) return String is
    begin
       return (+Value.textDocument.uri) & Image (Value.position);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.CompletionItem) return String is
+   begin
+      return VSS.Strings.Conversions.To_UTF_8_String (Value.label);
    end Image;
 
    -----------
@@ -387,6 +399,20 @@ package body LSP.Message_Loggers is
          & Image (Value.params));
    end On_Completion_Request;
 
+   --------------------------------------
+   -- On_CompletionItemResolve_Request --
+   --------------------------------------
+
+   overriding procedure On_CompletionItemResolve_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.CompletionItemResolve_Request) is
+   begin
+      Self.Trace.Trace
+        ("CompletionItemResolve_Request: "
+         & Image (Value)
+         & Image (Value.params));
+   end On_CompletionItemResolve_Request;
+
    ----------------------------
    -- On_Completion_Response --
    ----------------------------
@@ -408,6 +434,27 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & Ada.Containers.Count_Type'Image (Value.result.items.Length));
    end On_Completion_Response;
+
+   ---------------------------------------
+   -- On_CompletionItemResolve_Response --
+   ---------------------------------------
+
+   overriding procedure On_CompletionItemResolve_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.CompletionItemResolve_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("CompletionItemResolve_Response: "
+            & Image (Value)
+            & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("CompletionItemResolve_Response: "
+         & Image (Value));
+   end On_CompletionItemResolve_Response;
 
    ----------------------------------------
    -- On_Workspace_Configuration_Request --

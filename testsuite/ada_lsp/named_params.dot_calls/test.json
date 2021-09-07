@@ -71,7 +71,7 @@
                       "capabilities": {
                           "textDocumentSync": 2,
                           "completionProvider": {
-                              "resolveProvider": false,
+                              "resolveProvider": true,
                               "triggerCharacters": [
                                   ".",
                                   "("

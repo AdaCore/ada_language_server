@@ -264,6 +264,15 @@ package LSP.Lal_Utils is
 
    function Compute_Completion_Detail
      (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+   --  Return a suitable string that should be used for the
+   --  CompletionItem.detail field. It currently returns the same text used
+   --  for textDocument/hover requests (tooltips).
+
+   function Compute_Completion_Doc
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+   --  Return a suitable string that should be used for the
+   --  CompletionItem.documentation field. It currently returns the comments
+   --  associated with the given basic decl and its location.
 
    function To_Unbounded_Text_Type
      (Item : LSP.Types.LSP_String)

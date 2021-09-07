@@ -70,7 +70,7 @@
                             ".",
                             "("
                         ],
-                        "resolveProvider": false
+                        "resolveProvider": true
                      },
                      "documentSymbolProvider": true
                   }

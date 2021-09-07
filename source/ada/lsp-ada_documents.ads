@@ -147,6 +147,7 @@ package LSP.Ada_Documents is
       Pattern     : LSP.Search.Search_Pattern'Class;
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
+      Canceled    : access function return Boolean;
       Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
    --  See Contexts.Get_Any_Symbol
 
@@ -234,6 +235,7 @@ package LSP.Ada_Documents is
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
+      Compute_Doc_And_Details  : Boolean;
       Named_Notation_Threshold : Natural;
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;

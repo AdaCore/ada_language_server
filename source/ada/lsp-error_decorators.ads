@@ -58,6 +58,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response;
 
+   overriding function On_CompletionItemResolve_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
+      return LSP.Messages.Server_Responses.CompletionItemResolve_Response;
+
    overriding function On_Definition_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Definition_Request)
