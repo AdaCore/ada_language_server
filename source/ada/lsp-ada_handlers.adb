@@ -2508,6 +2508,7 @@ package body LSP.Ada_Handlers is
         Document.Get_Source_Location (Value.position);
 
       Name_Node        : Libadalang.Analysis.Name;
+      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
       Designator       : Libadalang.Analysis.Ada_Node;
       Active_Position  : LSP.Types.LSP_Number;
       Active_Signature : LSP.Types.LSP_Number := 0;
@@ -2542,7 +2543,11 @@ package body LSP.Ada_Handlers is
       procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl)
       is
          Param_Index : constant LSP.Types.LSP_Number :=
-           Get_Active_Parameter (Decl_Node, Designator, Active_Position);
+           Get_Active_Parameter
+             (Node             => Decl_Node,
+              Designator       => Designator,
+              Prev_Designators => Prev_Designators,
+              Position         => Active_Position);
       begin
          if Param_Index = -1 then
             return;
@@ -2659,11 +2664,12 @@ package body LSP.Ada_Handlers is
 
       --  Check if we are inside a function call and get the caller name
       Get_Call_Expr_Name
-        (Node            => Node,
-         Cursor          => Sloc,
-         Active_Position => Active_Position,
-         Designator      => Designator,
-         Name_Node       => Name_Node);
+        (Node             => Node,
+         Cursor           => Sloc,
+         Active_Position  => Active_Position,
+         Designator       => Designator,
+         Prev_Designators => Prev_Designators,
+         Name_Node        => Name_Node);
 
       if Name_Node = Libadalang.Analysis.No_Name then
          return Response;
@@ -2675,10 +2681,9 @@ package body LSP.Ada_Handlers is
         and then
           (Value.context.Value.triggerKind /= TriggerCharacter
            or else
-           --  Check if the trigger character is a backspace
-             ((not Value.context.Value.triggerCharacter.Is_Set)
-              or else Value.context.Value.triggerCharacter.Value /=
-                (+(1 => Backspace))))
+           --  Adding a ',' will not add new results only filter the previous
+             (Value.context.Value.triggerCharacter.Is_Set
+              and then Value.context.Value.triggerCharacter.Value = (+",")))
       then
          --  At this point, we are filtering the previous signatures:
          --  * Don't recompute the list of signature

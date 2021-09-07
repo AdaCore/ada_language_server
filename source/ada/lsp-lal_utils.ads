@@ -197,16 +197,18 @@ package LSP.Lal_Utils is
    --  variables.
 
    procedure Get_Call_Expr_Name
-     (Node            : Libadalang.Analysis.Ada_Node'Class;
-      Cursor          : Langkit_Support.Slocs.Source_Location;
-      Active_Position : out LSP.Types.LSP_Number;
-      Designator      : out Libadalang.Analysis.Ada_Node;
-      Name_Node       : out Libadalang.Analysis.Name);
+     (Node             : Libadalang.Analysis.Ada_Node'Class;
+      Cursor           : Langkit_Support.Slocs.Source_Location;
+      Active_Position  : out LSP.Types.LSP_Number;
+      Designator       : out Libadalang.Analysis.Ada_Node;
+      Prev_Designators : out Laltools.Common.Node_Vectors.Vector;
+      Name_Node        : out Libadalang.Analysis.Name);
    --  If Node is inside a Call_Expr returns the following:
    --  Active_Position: the index of the parameter in the Call_Expr
    --  Designator: the designator of the Active_Position
+   --  Prev_Designators: the designators found before the Active_Position
    --  Name_Node: the name of the Call_Expr
-   --  Cursor: the position of the cursor when the request was triggered.
+   --  Cursor: the position of the cursor when the request was triggered
 
    procedure Get_Parameters
      (Node : Libadalang.Analysis.Basic_Decl;
@@ -214,12 +216,14 @@ package LSP.Lal_Utils is
    --  Append all the parameters of Node inside Parameters
 
    function Get_Active_Parameter
-     (Node       : Libadalang.Analysis.Basic_Decl;
-      Designator : Libadalang.Analysis.Ada_Node;
-      Position   : LSP.Types.LSP_Number)
+     (Node             : Libadalang.Analysis.Basic_Decl;
+      Designator       : Libadalang.Analysis.Ada_Node;
+      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
+      Position         : LSP.Types.LSP_Number)
       return LSP.Types.LSP_Number;
    --  Return the position of Designator in the parameters of Node else -1
    --  If Designator is null try check if Position is a valid parameter index
+   --  Verify that Node parameters matches all the previous designators.
 
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
