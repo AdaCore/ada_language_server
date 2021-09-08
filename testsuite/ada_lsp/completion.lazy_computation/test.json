@@ -1,0 +1,344 @@
+[
+   {
+      "comment": [
+          "This test checks that the completionItems' 'documentation' and ",
+          "'detail' fields are computed lazily via the completionItem/resolve ",
+          "request, and not directly when seinding the results in response ",
+          "to 'textDocument/completion' request."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                            "resolveSupport":{
+                                "properties":[
+                                    "documentation",
+                                    "detail"]}
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "verbose"
+                     },
+                     "projectFile": "",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Test; use Test;\n\nprocedure Main is\nbegin\n   Selec\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 18,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "select",
+                        "kind": 14,
+                        "insertText": "select",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Select_Some",
+                        "kind": 3,
+                        "sortText": "1Select_Some",
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{test.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 2,
+                                 "character": 33
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Select_Some",
+               "insertTextFormat": 1,
+               "kind": 3,
+               "sortText": "1Select_Some",
+               "additionalTextEdits": [],
+               "data": {
+                  "uri": "$URI{test.ads}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 3
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 33
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 19,
+               "result": {
+                  "label": "Select_Some",
+                  "kind": 3,
+                  "detail": "procedure Select_Some is null",
+                  "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
+                  "sortText": "1Select_Some",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": [],
+                  "data": {
+                     "uri": "$URI{test.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 33
+                        }
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 4,
+                     "character": 8
+                  },
+                  "end": {
+                     "line": 4,
+                     "character": 8
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 20,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 4,
+                     "character": 8
+                  },
+                  "end": {
+                     "line": 4,
+                     "character": 8
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "select",
+               "insertTextFormat": 1,
+               "insertText": "select",
+               "kind": 14,
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 23,
+               "result": {
+                  "label": "select",
+                  "kind": 14,
+                  "insertText": "select",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 24,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

@@ -3932,15 +3932,26 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response  : LSP.Messages.Server_Responses.CompletionItemResolve_Response
         (Is_Error => False);
-      C         : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Item.data.Value.uri);
-      Node      : Libadalang.Analysis.Ada_Node := Get_Node_At
+      C         : Context_Access;
+      Node      : Libadalang.Analysis.Ada_Node;
+   begin
+      --  Return immediately if we don't have data that allows us to compute
+      --  additional information for the given item.
+      --  This is the case when all the completion item's fields have already
+      --  been computed.
+      if not Item.data.Is_Set then
+         Response.result := Item;
+         return Response;
+      end if;
+
+      C := Self.Contexts.Get_Best_Context (Item.data.Value.uri);
+      Node := Get_Node_At
         (Self     => C.all,
          Document => null,
          Position => LSP.Messages.TextDocumentPositionParams'
            (textDocument => (uri => Item.data.Value.uri),
             position     => Item.data.Value.span.first));
-   begin
+
       --  Retrieve the Basic_Decl from the completion item's SLOC
       while not Node.Is_Null
         and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
