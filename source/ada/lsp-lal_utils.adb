@@ -386,11 +386,12 @@ package body LSP.Lal_Utils is
    ------------------------
 
    procedure Get_Call_Expr_Name
-     (Node            : Libadalang.Analysis.Ada_Node'Class;
-      Cursor          : Langkit_Support.Slocs.Source_Location;
-      Active_Position : out LSP.Types.LSP_Number;
-      Designator      : out Libadalang.Analysis.Ada_Node;
-      Name_Node       : out Libadalang.Analysis.Name)
+     (Node             : Libadalang.Analysis.Ada_Node'Class;
+      Cursor           : Langkit_Support.Slocs.Source_Location;
+      Active_Position  : out LSP.Types.LSP_Number;
+      Designator       : out Libadalang.Analysis.Ada_Node;
+      Prev_Designators : out Laltools.Common.Node_Vectors.Vector;
+      Name_Node        : out Libadalang.Analysis.Name)
    is
       use Langkit_Support.Slocs;
       Cur_Node      : Ada_Node := Node.As_Ada_Node;
@@ -453,6 +454,7 @@ package body LSP.Lal_Utils is
    begin
       Active_Position := 0;
       Designator := Libadalang.Analysis.No_Ada_Node;
+      Prev_Designators := Laltools.Common.Node_Vectors.Empty_Vector;
       Name_Node := Libadalang.Analysis.No_Name;
 
       if not Cur_Node.Is_Null
@@ -519,6 +521,9 @@ package body LSP.Lal_Utils is
                Designator := Assoc.As_Param_Assoc.F_Designator;
                Active_Position := Active_Position + 1;
                exit when Cursor_In_Node (Assoc.As_Ada_Node);
+               if Designator /= No_Ada_Node then
+                  Prev_Designators.Append (Designator);
+               end if;
             end loop;
          end if;
 
@@ -570,46 +575,101 @@ package body LSP.Lal_Utils is
    --------------------------
 
    function Get_Active_Parameter
-     (Node       : Libadalang.Analysis.Basic_Decl;
-      Designator : Libadalang.Analysis.Ada_Node;
-      Position   : LSP.Types.LSP_Number)
+     (Node             : Libadalang.Analysis.Basic_Decl;
+      Designator       : Libadalang.Analysis.Ada_Node;
+      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
+      Position         : LSP.Types.LSP_Number)
       return LSP.Types.LSP_Number
    is
       Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
         Node.P_Subp_Spec_Or_Null;
-      Index : LSP.Types.LSP_Number := 0;
-   begin
-      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
-         return -1;
+      Res  : LSP.Types.LSP_Number := -1;
 
-      elsif Designator = Libadalang.Analysis.No_Ada_Node then
-         --  Check if the given position is a valid index for Node
-         for Param of Spec.P_Params loop
-            for Id of Param.F_Ids loop
-               Index := Index + 1;
-            end loop;
-         end loop;
-         if Position > Index - 1 then
-            return -1;
-         else
-            return Position;
-         end if;
+      function Find_Designator
+        (D      : Libadalang.Analysis.Ada_Node;
+         Params : Libadalang.Analysis.Param_Spec_Array)
+         return LSP.Types.LSP_Number;
 
-      else
-         --  If we have a designator then try to find the position of a
-         --  parameter with the same name
-         for Param of Spec.P_Params loop
+      function Count_Parameters
+        (Params : Libadalang.Analysis.Param_Spec_Array)
+         return LSP.Types.LSP_Number;
+
+      ---------------------
+      -- Find_Designator --
+      ---------------------
+
+      function Find_Designator
+        (D      : Libadalang.Analysis.Ada_Node;
+         Params : Libadalang.Analysis.Param_Spec_Array)
+         return LSP.Types.LSP_Number
+      is
+         Index : LSP.Types.LSP_Number := 0;
+      begin
+         for Param of Params loop
             for Id of Param.F_Ids loop
-               if Id.Text = Designator.Text then
+               if Id.Text = D.Text then
                   return Index;
                end if;
                Index := Index + 1;
             end loop;
          end loop;
 
-         --  No matching designator
+         return -1;
+      end Find_Designator;
+
+      ----------------------
+      -- Count_Parameters --
+      ----------------------
+
+      function Count_Parameters
+        (Params : Libadalang.Analysis.Param_Spec_Array)
+         return LSP.Types.LSP_Number
+      is
+         Index : LSP.Types.LSP_Number := 0;
+      begin
+         for Param of Params loop
+            for Id of Param.F_Ids loop
+               Index := Index + 1;
+            end loop;
+         end loop;
+
+         return Index;
+      end Count_Parameters;
+
+   begin
+      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
          return -1;
       end if;
+
+      declare
+         Params : constant Libadalang.Analysis.Param_Spec_Array :=
+           Spec.P_Params;
+      begin
+         if Designator = Libadalang.Analysis.No_Ada_Node then
+            --  Check if the given position is a valid index for Node
+
+            if Position >= Count_Parameters (Params) then
+               return -1;
+            else
+               Res := Position;
+            end if;
+
+         else
+            --  If we have a designator then try to find the position of a
+            --  parameter with the same name
+            Res := Find_Designator (Designator, Params);
+
+         end if;
+
+         --  Invalidate the result if it doesn't match the previous designators
+         for Prev_Designator of Prev_Designators loop
+            if Find_Designator (Prev_Designator, Params) = -1 then
+               return -1;
+            end if;
+         end loop;
+      end;
+
+      return Res;
    end Get_Active_Parameter;
 
    ------------------
