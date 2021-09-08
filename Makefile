@@ -122,6 +122,9 @@ clean:
 	rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
+ifdef GPS_PYTHONHOME
+	@echo Please, run "make vscode" outside of "ancr shell" && false
+endif
 	cd integration/vscode/ada; npm install && npm run compile
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
