@@ -71,30 +71,13 @@
                 "id":"wsSymbol",
                 "method":"workspace/symbol",
                 "params":{
-                    "query":""
+                    "query":"Test"
                 }
             },
             "sortReply": {"result":"name"},
             "wait":[{
                 "id": "wsSymbol",
                 "result": [
-                    {
-                        "name": "Main",
-                        "kind": 12,
-                        "location": {
-                            "uri": "$URI{main.adb}",
-                            "range": {
-                                "start": {
-                                    "line": 0,
-                                    "character": 10
-                                },
-                                "end": {
-                                    "line": 0,
-                                    "character": 14
-                                }
-                            }
-                        }
-                    },
                     {
                         "name": "Test1",
                         "kind": 12,
