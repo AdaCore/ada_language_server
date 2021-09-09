@@ -23,14 +23,14 @@
 with LSP.Messages.Server_Requests;
 
 generic
-   Request : LSP.Messages.Server_Requests.Server_Request'Class;
+   Request : access constant LSP.Messages.Server_Requests.Server_Request'Class;
    --  A request to check cancelation
+
    Max_Skip_Count : Natural;
    --  How much checks to skip before make a real atomic flag check
 
 package LSP.Generic_Cancel_Check is
 
-   function Has_Been_Canceled return Boolean
-     with Inline;
+   function Has_Been_Canceled return Boolean with Inline;
 
 end LSP.Generic_Cancel_Check;
