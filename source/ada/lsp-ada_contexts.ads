@@ -83,13 +83,15 @@ package LSP.Ada_Contexts is
       return Ada.Strings.UTF_Encoding.UTF_8_String;
 
    function Get_Node_At
-     (Self     : Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Position : LSP.Messages.TextDocumentPositionParams'Class)
+     (Self         : Context;
+      Document     : LSP.Ada_Documents.Document_Access;
+      Position     : LSP.Messages.TextDocumentPositionParams'Class;
+      Project_Only : Boolean := True)
       return Libadalang.Analysis.Ada_Node;
    --  Return the node at the given location.
    --  If Document is not null, get the location from the document, otherwise
-   --  get it from the file.
+   --  get it from the file if it belongs to the context's project when
+   --  Project_Only is True.
 
    procedure Format
      (Self     : in out Context;

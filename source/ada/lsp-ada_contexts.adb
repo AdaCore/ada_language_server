@@ -781,9 +781,10 @@ package body LSP.Ada_Contexts is
    -----------------
 
    function Get_Node_At
-     (Self     : Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Position : LSP.Messages.TextDocumentPositionParams'Class)
+     (Self         : Context;
+      Document     : LSP.Ada_Documents.Document_Access;
+      Position     : LSP.Messages.TextDocumentPositionParams'Class;
+      Project_Only : Boolean := True)
       return Libadalang.Analysis.Ada_Node
    is
       use type Libadalang.Analysis.Ada_Node;
@@ -801,12 +802,13 @@ package body LSP.Ada_Contexts is
       --  We're about to get a node from an analysis unit. Either the document
       --  is open for it, in which case we read the document, or the
       --  document is not open for it. In this case, resolve this only
-      --  if the file belongs to the project: we don't want to pollute the
-      --  LAL context with units that are not in the project.
+      --  if the file belongs to the project (unless if Project_Only is False):
+      --  we don't want to pollute the LAL context with units that are not in
+      --  the project.
 
       if Document /= null then
          return Document.Get_Node_At (Self, Position.position);
-      elsif Self.Is_Part_Of_Project (File) then
+      elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
          Unit := Self.LAL_Context.Get_From_File
            (Name,
             Charset => Self.Get_Charset);

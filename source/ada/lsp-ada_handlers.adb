@@ -3966,9 +3966,10 @@ package body LSP.Ada_Handlers is
 
       C := Self.Contexts.Get_Best_Context (Item.data.Value.uri);
       Node := Get_Node_At
-        (Self     => C.all,
-         Document => null,
-         Position => LSP.Messages.TextDocumentPositionParams'
+        (Self         => C.all,
+         Document     => null,
+         Project_Only => False,
+         Position     => LSP.Messages.TextDocumentPositionParams'
            (textDocument => (uri => Item.data.Value.uri),
             position     => Item.data.Value.span.first));
 
