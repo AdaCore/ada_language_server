@@ -784,7 +784,8 @@ package body LSP.Ada_Handlers is
              completionItem.Value.resolveSupport.Value.properties;
       end if;
 
-      if Value.capabilities.workspace.didChangeWatchedFiles
+      if Value.capabilities.workspace.didChangeWatchedFiles.Is_Set
+        and then Value.capabilities.workspace.didChangeWatchedFiles.Value
            .dynamicRegistration = True
       then
          Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
@@ -3311,8 +3312,9 @@ package body LSP.Ada_Handlers is
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
       if not Self.Range_Formatting_Enabled
-        and then Self.Client.capabilities.textDocument.rangeFormatting
-                   .dynamicRegistration = True
+        and then Self.Client.capabilities.textDocument.rangeFormatting.Is_Set
+        and then Self.Client.capabilities.textDocument.rangeFormatting.Value
+          .dynamicRegistration = True
       then
          declare
             Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
