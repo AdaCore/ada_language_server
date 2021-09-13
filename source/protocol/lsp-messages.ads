@@ -1656,6 +1656,12 @@ package LSP.Messages is
    for dynamicRegistration'Read use Read_dynamicRegistration;
    for dynamicRegistration'Write use Write_dynamicRegistration;
 
+   package Optional_dynamicRegistrations is
+     new LSP.Generic_Optional (dynamicRegistration);
+
+   type Optional_dynamicRegistration is
+     new Optional_dynamicRegistrations.Optional_Type;
+
    --
    --```typescript
    --export interface WorkspaceEditClientCapabilities {
@@ -1860,7 +1866,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DidChangeConfigurationClientCapabilities is dynamicRegistration;
+   subtype DidChangeConfigurationClientCapabilities
+     is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DidChangeWatchedFilesClientCapabilities {
@@ -1872,7 +1879,8 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DidChangeWatchedFilesClientCapabilities is dynamicRegistration;
+   subtype DidChangeWatchedFilesClientCapabilities
+     is Optional_dynamicRegistration;
 
    --```typescript
    --interface WorkspaceSymbolClientCapabilities {
@@ -2083,7 +2091,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype ExecuteCommandClientCapabilities is dynamicRegistration;
+   subtype ExecuteCommandClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface SemanticTokensWorkspaceClientCapabilities {
@@ -3217,7 +3225,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype ReferenceClientCapabilities is dynamicRegistration;
+   subtype ReferenceClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DocumentHighlightClientCapabilities {
@@ -3227,7 +3235,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DocumentHighlightClientCapabilities is dynamicRegistration;
+   subtype DocumentHighlightClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface CodeActionClientCapabilities {
@@ -3379,7 +3387,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype CodeLensClientCapabilities is dynamicRegistration;
+   subtype CodeLensClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DocumentLinkClientCapabilities {
@@ -3426,7 +3434,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DocumentColorClientCapabilities is dynamicRegistration;
+   subtype DocumentColorClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DocumentFormattingClientCapabilities {
@@ -3436,7 +3444,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DocumentFormattingClientCapabilities is dynamicRegistration;
+   subtype DocumentFormattingClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DocumentRangeFormattingClientCapabilities {
@@ -3446,7 +3454,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DocumentRangeFormattingClientCapabilities is dynamicRegistration;
+   subtype DocumentRangeFormattingClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface DocumentOnTypeFormattingClientCapabilities {
@@ -3456,7 +3464,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype DocumentOnTypeFormattingClientCapabilities is dynamicRegistration;
+   subtype DocumentOnTypeFormattingClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export namespace PrepareSupportDefaultBehavior {
@@ -3694,7 +3702,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype SelectionRangeClientCapabilities is dynamicRegistration;
+   subtype SelectionRangeClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export interface LinkedEditingRangeClientCapabilities {
@@ -3707,7 +3715,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype LinkedEditingRangeClientCapabilities is dynamicRegistration;
+   subtype LinkedEditingRangeClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --interface CallHierarchyClientCapabilities {
@@ -3720,7 +3728,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype CallHierarchyClientCapabilities is dynamicRegistration;
+   subtype CallHierarchyClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --export enum SemanticTokenTypes {
@@ -3993,7 +4001,7 @@ package LSP.Messages is
    --	dynamicRegistration?: boolean;
    --}
    --```
-   subtype MonikerClientCapabilities is dynamicRegistration;
+   subtype MonikerClientCapabilities is Optional_dynamicRegistration;
 
    --```typescript
    --/**
