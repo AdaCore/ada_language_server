@@ -48,11 +48,13 @@ with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Ada_Handlers.File_Readers;
+with LSP.Diagnostic_Sources;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
@@ -231,7 +233,9 @@ package body LSP.Ada_Handlers is
    --  initialized and a project is loaded. If they are not initialized,
    --  initialize them. Use URI to find a custom root directory if provided.
 
-   procedure Load_Implicit_Project (Self : access Message_Handler);
+   procedure Load_Implicit_Project
+     (Self   : access Message_Handler;
+      Status : Implicit_Project_Loaded);
    --  Load the implicit project
 
    procedure Load_Project
@@ -239,6 +243,7 @@ package body LSP.Ada_Handlers is
       GPR                 : Virtual_File;
       Scenario            : LSP.Types.LSP_Any;
       Charset             : String;
+      Status              : Load_Project_Status;
       Relocate_Build_Tree : Virtual_File := No_File;
       Root_Dir            : Virtual_File := No_File);
    --  Attempt to load the given project file, with the scenario provided.
@@ -318,7 +323,7 @@ package body LSP.Ada_Handlers is
             Document : constant Internal_Document_Access :=
               new LSP.Ada_Documents.Document (Self.Trace);
          begin
-            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String);
+            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String, null);
             return LSP.Ada_Documents.Document_Access (Document);
          end;
       else
@@ -498,7 +503,10 @@ package body LSP.Ada_Handlers is
    -- Load_Implicit_Project --
    ---------------------------
 
-   procedure Load_Implicit_Project (Self : access Message_Handler) is
+   procedure Load_Implicit_Project
+     (Self   : access Message_Handler;
+      Status : Implicit_Project_Loaded)
+   is
       C    : constant Context_Access := new Context (Self.Trace);
       Attr : GNAT.Strings.String_List (1 .. 1);
       use GNATCOLL.Projects;
@@ -510,7 +518,7 @@ package body LSP.Ada_Handlers is
 
       Self.Trace.Trace ("Loading the implicit project");
 
-      Self.Implicit_Project_Loaded := True;
+      Self.Project_Status := Status;
       Self.Release_Project_Info;
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
@@ -616,12 +624,12 @@ package body LSP.Ada_Handlers is
       if GPRs_Found = 0 then
          --  We have found zero .gpr files: load the implicit project
 
-         Self.Load_Implicit_Project;
+         Self.Load_Implicit_Project (No_Project_Found);
       elsif GPRs_Found = 1 then
          --  We have not found exactly one .gpr file: load the default
          --  project.
          Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
-         Self.Load_Project (GPR, No_Any, "iso-8859-1");
+         Self.Load_Project (GPR, No_Any, "iso-8859-1", Single_Project_Found);
       else
          --  We have found more than one project: warn the user!
 
@@ -629,6 +637,7 @@ package body LSP.Ada_Handlers is
            ("More than one .gpr found." & Line_Feed &
               "Note: you can configure a project " &
               " through the ada.projectFile setting.");
+         Self.Load_Implicit_Project (Multiple_Projects_Found);
       end if;
    end Ensure_Project_Loaded;
 
@@ -1919,6 +1928,8 @@ package body LSP.Ada_Handlers is
       File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self.Trace);
+      Diag   : constant LSP.Diagnostic_Sources.Diagnostic_Source_Access :=
+        new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source (Self);
    begin
       Self.Trace.Trace ("In Text_Document_Did_Open");
       Self.Trace.Trace ("Uri : " & To_UTF_8_String (URI));
@@ -1929,13 +1940,13 @@ package body LSP.Ada_Handlers is
       Self.Ensure_Project_Loaded (URI);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text);
+      Object.Initialize (URI, Value.textDocument.text, Diag);
       Self.Open_Documents.Insert (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
 
-      if Self.Implicit_Project_Loaded then
+      if Self.Project_Status in Implicit_Project_Loaded then
          declare
             Dir : constant Virtual_File := Self.To_File (URI).Dir;
          begin
@@ -3281,7 +3292,12 @@ package body LSP.Ada_Handlers is
             end if;
 
             Self.Load_Project
-              (GPR, Variables, To_String (Charset), Relocate, Root);
+              (GPR,
+               Variables,
+               To_String (Charset),
+               Valid_Project_Configured,
+               Relocate,
+               Root);
          end;
       end if;
 
@@ -3389,6 +3405,7 @@ package body LSP.Ada_Handlers is
       GPR                 : Virtual_File;
       Scenario            : LSP.Types.LSP_Any;
       Charset             : String;
+      Status              : Load_Project_Status;
       Relocate_Build_Tree : Virtual_File := No_File;
       Root_Dir            : Virtual_File := No_File)
    is
@@ -3446,7 +3463,7 @@ package body LSP.Ada_Handlers is
       Self.Release_Project_Info;
 
       --  We're loading an actual project
-      Self.Implicit_Project_Loaded := False;
+      Self.Project_Status := Status;
 
       --  Now load the new project
       Errors.a_type := LSP.Messages.Warning;
@@ -3504,7 +3521,7 @@ package body LSP.Ada_Handlers is
 
             --  The project was invalid: fallback on loading the implicit
             --  project.
-            Self.Load_Implicit_Project;
+            Self.Load_Implicit_Project (Invalid_Project_Configured);
       end;
 
       --  Report the errors, if any

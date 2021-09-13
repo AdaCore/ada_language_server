@@ -50,10 +50,12 @@ package LSP.Ada_Documents is
      with Storage_Size => 0;
 
    procedure Initialize
-     (Self : in out Document;
-      URI  : LSP.Messages.DocumentUri;
-      Text : VSS.Strings.Virtual_String);
-   --  Create a new document from a TextDocumentItem.
+     (Self       : in out Document;
+      URI        : LSP.Messages.DocumentUri;
+      Text       : VSS.Strings.Virtual_String;
+      Diagnostic : LSP.Diagnostic_Sources.Diagnostic_Source_Access);
+   --  Create a new document from a TextDocumentItem. Use Diagnostic as
+   --  project status diagnostic source.
 
    -----------------------
    -- Contents handling --
@@ -311,7 +313,7 @@ private
       --  Symbol_Cache rebuild is required before.
       Line_Terminator : VSS.Strings.Virtual_String;
       --  Line terminator for the text, if known, "" otherwise
-      Diagnostic_Sources : Diagnostic_Source_Array (1 .. 1);
+      Diagnostic_Sources : Diagnostic_Source_Array (1 .. 2);
       --  Known sources of diagnostics
    end record;
 
