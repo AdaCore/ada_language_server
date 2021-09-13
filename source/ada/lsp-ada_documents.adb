@@ -40,6 +40,7 @@ with VSS.Unicode;
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Id_Iterators;
+with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 
@@ -65,12 +66,6 @@ package body LSP.Ada_Documents is
    function Get_Visibility
      (Node : Libadalang.Analysis.Basic_Decl)
       return LSP.Messages.Als_Visibility;
-
-   function Unit
-     (Self    : Document'Class;
-      Context : LSP.Ada_Contexts.Context)
-      return Libadalang.Analysis.Analysis_Unit;
-   --  Return the analysis unit for Self in the given context
 
    function To_Completion_Kind
      (K : LSP.Messages.SymbolKind) return LSP.Messages.CompletionItemKind
@@ -873,28 +868,16 @@ package body LSP.Ada_Documents is
    procedure Get_Errors
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Messages.Diagnostic_Vector)
-   is
-      Item : LSP.Messages.Diagnostic;
-      Nb_Diags : Natural := 0;
-
-      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
+      Changed : out Boolean;
+      Errors  : out LSP.Messages.Diagnostic_Vector) is
    begin
       Errors.Clear;
+      Changed := (for some Source of Self.Diagnostic_Sources =>
+                    Source.Has_New_Diagnostic (Context));
 
-      if Unit.Has_Diagnostics then
-         for Error of Unit.Diagnostics loop
-            Item.span := LSP.Lal_Utils.To_Span (Error.Sloc_Range);
-
-            Item.message := LSP.Lal_Utils.To_Virtual_String (Error.Message);
-
-            --  Filter out diagnostics that simply report "Cannot parse <..>",
-            --  as these are generally not useful to the end user.
-            if not Item.message.Starts_With ("Cannot parse <") then
-               Errors.Append (Item);
-               Nb_Diags := Nb_Diags + 1;
-               exit when Nb_Diags >= MAX_NB_DIAGNOSTICS;
-            end if;
+      if Changed then
+         for Source of Self.Diagnostic_Sources loop
+            Source.Get_Diagnostic (Context, Errors);
          end loop;
       end if;
    end Get_Errors;
@@ -1735,6 +1718,10 @@ package body LSP.Ada_Documents is
       Self.Version := 1;
       Self.Text := Text;
       Self.Refresh_Symbol_Cache := True;
+      Self.Diagnostic_Sources (1) := new
+        LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
+          (Self'Unchecked_Access);
+
       Recompute_Indexes (Self);
    end Initialize;
 

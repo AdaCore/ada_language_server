@@ -180,14 +180,6 @@
                 }
             },
             "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "method": "textDocument/publishDiagnostics",
-                    "params": {
-                        "uri": "$URI{src/foo.ads}",
-                        "diagnostics": []
-                    }
-                }
             ]
         }
     },
