@@ -80,7 +80,7 @@ const getGprTasks = (): vscode.Task[] => {
         shell,
         '$ada'
     );
-    task.group = { kind: vscode.TaskGroup.Build, isDefault: true };
+    task.group = vscode.TaskGroup.Build;
     result.push(task);
     //  Check semantic in the current file
     const kind_check = {
