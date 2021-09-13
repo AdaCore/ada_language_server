@@ -182,14 +182,6 @@
                 }
             },
             "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "method": "textDocument/publishDiagnostics",
-                    "params": {
-                        "uri": "$URI{main.adb}",
-                        "diagnostics": []
-                    }
-                }
             ]
         }
     },

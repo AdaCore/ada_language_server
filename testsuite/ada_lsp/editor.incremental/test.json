@@ -343,13 +343,6 @@
             "method": "textDocument/didOpen"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -905,13 +898,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -945,13 +931,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -984,13 +963,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -1024,13 +996,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -1096,13 +1061,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -1135,13 +1093,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -1174,13 +1125,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },
@@ -1213,13 +1157,6 @@
             "method": "textDocument/didChange"
          },
          "wait": [
-            {
-               "params": {
-                  "uri": "$URI{hello.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-            }
          ]
       }
    },

@@ -170,6 +170,11 @@ package body LSP.Ada_Handlers is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
+   procedure Publish_Diagnostics
+     (Self     : access Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access);
+   --  Publish diagnostic messages for given document if needed
+
    type File_Span is record
       File : GNATCOLL.VFS.Virtual_File;
       Span : LSP.Messages.Span;
@@ -1825,8 +1830,6 @@ package body LSP.Ada_Handlers is
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
-      Diag     : LSP.Messages.PublishDiagnosticsParams;
-      Diags_Already_Published : Boolean := False;
    begin
       if Allow_Incremental_Text_Changes.Active then
          --  If we are applying incremental changes, we can't skip the
@@ -1855,17 +1858,10 @@ package body LSP.Ada_Handlers is
 
       for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Context.Index_Document (Document.all);
-
-         --  Emit diagnostics - do this for only one context
-         if Self.Diagnostics_Enabled
-           and then not Diags_Already_Published
-         then
-            Document.Get_Errors (Context.all, Diag.diagnostics);
-            Diag.uri := Value.textDocument.uri;
-            Self.Server.On_Publish_Diagnostics (Diag);
-            Diags_Already_Published := True;
-         end if;
       end loop;
+
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (Document);
    end On_DidChangeTextDocument_Notification;
 
    ------------------------------------------
@@ -1952,26 +1948,12 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Index the document in all the contexts where it is relevant
-      declare
-         Diag : LSP.Messages.PublishDiagnosticsParams;
-         Diags_Already_Published : Boolean := False;
-      begin
-         for Context of Self.Contexts_For_URI (URI) loop
-            Context.Index_Document (Object.all);
+      for Context of Self.Contexts_For_URI (URI) loop
+         Context.Index_Document (Object.all);
+      end loop;
 
-            if Self.Diagnostics_Enabled
-              and then not Diags_Already_Published
-            then
-               Object.Get_Errors (Context.all, Diag.diagnostics);
-               Diag.uri := URI;
-               Self.Server.On_Publish_Diagnostics (Diag);
-
-               --  Publish diagnostics only for one context,
-               --  to avoid emitting too much noise.
-               Diags_Already_Published := True;
-            end if;
-         end loop;
-      end;
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
 
       Self.Trace.Trace ("Finished Text_Document_Did_Open");
    end On_DidOpenTextDocument_Notification;
@@ -4444,6 +4426,30 @@ package body LSP.Ada_Handlers is
    begin
       return Name + From + To;
    end Hash;
+
+   -------------------------
+   -- Publish_Diagnostics --
+   -------------------------
+
+   procedure Publish_Diagnostics
+     (Self     : access Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
+   is
+      Ok   : Boolean;
+      Diag : LSP.Messages.PublishDiagnosticsParams;
+   begin
+      if Self.Diagnostics_Enabled then
+         Document.Get_Errors
+           (Self.Contexts.Get_Best_Context (Document.URI).all,
+            Ok,
+            Diag.diagnostics);
+
+         if Ok then
+            Diag.uri := Document.URI;
+            Self.Server.On_Publish_Diagnostics (Diag);
+         end if;
+      end if;
+   end Publish_Diagnostics;
 
    ------------------
    -- Show_Message --
