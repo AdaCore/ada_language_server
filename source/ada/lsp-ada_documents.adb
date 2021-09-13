@@ -1709,9 +1709,10 @@ package body LSP.Ada_Documents is
    ----------------
 
    procedure Initialize
-     (Self : in out Document;
-      URI  : LSP.Messages.DocumentUri;
-      Text : VSS.Strings.Virtual_String)
+     (Self       : in out Document;
+      URI        : LSP.Messages.DocumentUri;
+      Text       : VSS.Strings.Virtual_String;
+      Diagnostic : LSP.Diagnostic_Sources.Diagnostic_Source_Access)
    is
    begin
       Self.URI  := URI;
@@ -1721,7 +1722,7 @@ package body LSP.Ada_Documents is
       Self.Diagnostic_Sources (1) := new
         LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
           (Self'Unchecked_Access);
-
+      Self.Diagnostic_Sources (2) := Diagnostic;
       Recompute_Indexes (Self);
    end Initialize;
 
