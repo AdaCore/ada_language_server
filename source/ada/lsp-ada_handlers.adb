@@ -659,6 +659,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
+      codeActionKinds : LSP.Messages.CodeActionKindSet;
    begin
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
@@ -734,14 +735,13 @@ package body LSP.Ada_Handlers is
       if Code_Action.Is_Set and then
         Code_Action.Value.codeActionLiteralSupport.Is_Set
       then
+         LSP.Messages.Include (codeActionKinds, LSP.Messages.QuickFix);
+         LSP.Messages.Include (codeActionKinds, LSP.Messages.RefactorRewrite);
+
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True,
             Value  =>
-              (codeActionKinds =>
-                   (Is_Set => True,
-                    Value  => LSP.Messages.To_Set
-                      (From => LSP.Messages.RefactorRewrite,
-                       To   => LSP.Messages.RefactorRewrite)),
+              (codeActionKinds  => (True, codeActionKinds),
                workDoneProgress => LSP.Types.None,
                resolveProvider  => LSP.Types.None));
       else
@@ -881,6 +881,10 @@ package body LSP.Ada_Handlers is
       --  Return Found = True if some refactoring is possible. Populate
       --  Result with Code_Actions in this case. Return Done = True if futher
       --  analysis has no sense.
+
+      procedure Append_Project_Status
+        (Result : in out LSP.Messages.CodeAction_Vector);
+      --  Append project status code action if needed
 
       Found_Named_Parameters : Boolean := False;
       --  We propose only one choice of Named_Parameters refactoring per
@@ -1309,6 +1313,90 @@ package body LSP.Ada_Handlers is
          end loop;
       end Analyse_In_Context;
 
+      ---------------------------
+      -- Append_Project_Status --
+      ---------------------------
+
+      procedure Append_Project_Status
+        (Result : in out LSP.Messages.CodeAction_Vector)
+      is
+         Diagnostics : LSP.Messages.Diagnostic_Vector;
+      begin
+         for Item of Params.context.diagnostics loop
+            if Item.source.Is_Set and then Item.source.Value = +"project" then
+               Diagnostics.Append (Item);
+            end if;
+         end loop;
+
+         case Self.Project_Status is
+            when Valid_Project_Configured =>
+               null;
+            when Single_Project_Found | Multiple_Projects_Found =>
+               declare
+                  Item    : LSP.Messages.CodeAction;
+                  Command : LSP.Messages.Command (Is_Unknown => True);
+                  Arg     : constant LSP.Types.LSP_Any :=
+                    LSP.Types.Create ("ada.projectFile");
+               begin
+                  Command.title := +"Open settings for ada.projectFile";
+                  Command.command := +"workbench.action.openSettings";
+                  Command.arguments := (Is_Set => True, Value => <>);
+                  Command.arguments.Value.Append (Arg);
+
+                  Item :=
+                    (title       => Command.title,
+                     kind        => (True, LSP.Messages.QuickFix),
+                     diagnostics => (True, Diagnostics),
+                     disabled    => (Is_Set => False),
+                     edit        => (Is_Set => False),
+                     isPreferred => LSP.Types.True,
+                     command     => (True, Command));
+
+                  Result.Append (Item);
+               end;
+            when No_Project_Found =>
+               declare
+                  Title  : constant LSP.Types.LSP_String :=
+                    +"Create a default project file (default.gpr)";
+                  URI    : constant LSP.Messages.DocumentUri :=
+                    LSP.Types.File_To_URI
+                      (Self.Root.Join ("default.gpr").Display_Full_Name);
+                  Create : constant LSP.Messages.Document_Change :=
+                    (LSP.Messages.Create_File,
+                     (kind => LSP.Messages.create,
+                      uri  => URI,
+                      others => <>));
+                  Text   : constant LSP.Messages.AnnotatedTextEdit :=
+                    ((span => ((0, 0), (0, 0)),
+                      newText => +"project Default is end Default;",
+                      others => <>));
+                  Insert : constant LSP.Messages.Document_Change :=
+                    (LSP.Messages.Text_Document_Edit,
+                     (textDocument => (uri => URI, others => <>),
+                      edits        => LSP.Messages.To_Vector (Text, 1)));
+                  Item   : LSP.Messages.CodeAction;
+                  Edit   : LSP.Messages.WorkspaceEdit;
+               begin
+                  Edit.documentChanges.Append (Create);
+                  Edit.documentChanges.Append (Insert);
+                  Item :=
+                    (title       => Title,
+                     kind        => (True, LSP.Messages.QuickFix),
+                     diagnostics => (True, Diagnostics),
+                     disabled    => (Is_Set => False),
+                     edit        => (True, Edit),
+                     isPreferred => LSP.Types.True,
+                     command     => (Is_Set => False));
+
+                  Result.Append (Item);
+               end;
+            when Invalid_Project_Configured =>
+               null;
+         end case;
+      end Append_Project_Status;
+
+      use type LSP.Messages.Position;
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Params.textDocument.uri);
 
@@ -1327,6 +1415,10 @@ package body LSP.Ada_Handlers is
 
          exit when Request.Canceled or else Found;
       end loop;
+
+      if Params.span.first = (0, 0) then
+         Append_Project_Status (Response.result);
+      end if;
 
       return Response;
    end On_CodeAction_Request;

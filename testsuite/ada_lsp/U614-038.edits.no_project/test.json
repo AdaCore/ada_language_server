@@ -254,6 +254,7 @@
                      "documentSymbolProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
+			   "<HAS>",
                            "refactor.rewrite"
                         ]
                      },

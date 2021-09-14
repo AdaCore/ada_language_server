@@ -45,7 +45,9 @@
                     "capabilities":{
                         "textDocumentSync": 2,
                         "codeActionProvider":{
-                            "codeActionKinds":["refactor.rewrite"]
+                            "codeActionKinds":[
+				    "<HAS>",
+				    "refactor.rewrite"]
                         },
                         "executeCommandProvider":{
                             "commands":[
