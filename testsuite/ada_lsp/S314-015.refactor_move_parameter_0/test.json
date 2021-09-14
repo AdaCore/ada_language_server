@@ -194,6 +194,7 @@
                      "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
+			   "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
