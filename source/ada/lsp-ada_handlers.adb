@@ -3259,6 +3259,23 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
+      function Match
+        (Left  : GNATCOLL.VFS.Filesystem_String;
+         Right : GNATCOLL.VFS.Virtual_File) return Boolean;
+      --  Compare two files
+
+      -----------
+      -- Match --
+      -----------
+
+      function Match
+        (Left  : GNATCOLL.VFS.Filesystem_String;
+         Right : GNATCOLL.VFS.Virtual_File) return Boolean is
+      begin
+         return (Left = "" and then Right = No_File)
+           or else GNATCOLL.VFS.Create (Left) = Right;
+      end Match;
+
       relocateBuildTree                 : constant String :=
         "relocateBuildTree";
       rootDir                           : constant String :=
@@ -3374,6 +3391,7 @@ package body LSP.Ada_Handlers is
          --  relative path; if so, we're assuming it's relative
          --  to Self.Root.
          declare
+            use type GNATCOLL.Projects.Project_Tree_Access;
             Project_File : constant String := To_UTF_8_String (File);
             GPR : Virtual_File;
          begin
@@ -3383,13 +3401,22 @@ package body LSP.Ada_Handlers is
                GPR := Join (Self.Root, Create_From_UTF8 (Project_File));
             end if;
 
-            Self.Load_Project
-              (GPR,
-               Variables,
-               To_String (Charset),
-               Valid_Project_Configured,
-               Relocate,
-               Root);
+            --  Avoid project reloading if scenario/gpr are the same
+            if Self.Project_Tree = null
+              or else Self.Project_Tree.Root_Project.Project_Path /= GPR
+              or else Self.Scenario /= Variables
+              or else not Match (Self.Project_Environment.Build_Tree_Dir,
+                                 Relocate)
+              or else not Match (Self.Project_Environment.Root_Dir, Root)
+            then
+               Self.Load_Project
+                 (GPR,
+                  Variables,
+                  To_String (Charset),
+                  Valid_Project_Configured,
+                  Relocate,
+                  Root);
+            end if;
          end;
       end if;
 
@@ -3557,6 +3584,9 @@ package body LSP.Ada_Handlers is
       --  We're loading an actual project
       Self.Project_Status := Status;
 
+      --  Store scenario variables
+      Self.Scenario := Scenario;
+
       --  Now load the new project
       Errors.a_type := LSP.Messages.Warning;
       Self.Project_Environment :=
@@ -3630,6 +3660,8 @@ package body LSP.Ada_Handlers is
          for Context of Self.Contexts_For_URI (Document.URI) loop
             Context.Index_Document (Document.all);
          end loop;
+
+         Self.Publish_Diagnostics (Document_Access (Document));
       end loop;
 
       if not Self.File_Monitor.Assigned then

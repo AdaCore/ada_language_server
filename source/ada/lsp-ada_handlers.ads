@@ -270,6 +270,9 @@ private
       Project_Status : Load_Project_Status := No_Project_Found;
       --  Status of loading the project
 
+      Scenario : LSP.Types.LSP_Any;
+      --  Last used scenario variables
+
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
 
