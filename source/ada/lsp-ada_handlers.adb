@@ -2903,17 +2903,35 @@ package body LSP.Ada_Handlers is
          result   => <>,
          error    => (Is_Set => False),
          others   => <>);
+
+      Pattern : constant Search_Pattern'Class := Build
+        (Pattern        => LSP.Types.To_Virtual_String (Value.query),
+         Case_Sensitive => Value.case_sensitive = LSP.Types.True,
+         Whole_Word     => Value.whole_word = LSP.Types.True,
+         Negate         => Value.negate = LSP.Types.True,
+         Kind           =>
+           (if Value.kind.Is_Set
+            then Value.kind.Value
+            else LSP.Messages.Start_Word_Text));
+
+      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
+
    begin
       if Document = null then
          declare
             Document : LSP.Ada_Documents.Document_Access :=
               Get_Open_Document (Self, Value.textDocument.uri, Force => True);
          begin
-            Self.Get_Symbols (Document.all, Context.all, Result.result);
+            Self.Get_Symbols
+              (Document.all, Context.all, Pattern,
+               Canceled.Has_Been_Canceled'Access, Result.result);
+
             Unchecked_Free (Internal_Document_Access (Document));
          end;
       else
-         Self.Get_Symbols (Document.all, Context.all, Result.result);
+         Self.Get_Symbols
+           (Document.all, Context.all, Pattern,
+            Canceled.Has_Been_Canceled'Access, Result.result);
       end if;
       return Result;
    end On_Document_Symbols_Request;

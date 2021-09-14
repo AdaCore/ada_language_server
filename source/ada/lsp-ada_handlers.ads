@@ -34,6 +34,7 @@ with LSP.Ada_File_Sets;
 with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
+with LSP.Search;
 with LSP.Server_Backends;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
@@ -116,6 +117,8 @@ private
    type Get_Symbol_Access is access procedure
      (Self     : LSP.Ada_Documents.Document;
       Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
       Result   : out LSP.Messages.Symbol_Vector);
    --  textDocument/documentSymbol handler
 

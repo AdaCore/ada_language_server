@@ -899,9 +899,11 @@ package body LSP.Ada_Documents is
    --------------------------
 
    procedure Get_Symbol_Hierarchy
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.Symbol_Vector)
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
+      Result   : out LSP.Messages.Symbol_Vector)
    is
       use LSP.Messages;
 
@@ -932,6 +934,7 @@ package body LSP.Ada_Documents is
       begin
          if Node = No_Ada_Node
            or else Node.Kind in Libadalang.Common.Ada_Expr
+           or else Canceled.all
          then
             return;
          end if;
@@ -956,47 +959,55 @@ package body LSP.Ada_Documents is
                      for Name of Names loop
                         exit when Name = Libadalang.Analysis.No_Defining_Name;
 
-                        declare
-                           Is_Function : Boolean;
-                           Profile : constant VSS.Strings.Virtual_String :=
-                             Get_Profile (Decl, Is_Function);
-                           Item : constant LSP.Messages.DocumentSymbol :=
-                             (name              =>
-                                LSP.Lal_Utils.To_Virtual_String (Name.Text),
-                              detail            =>
-                                (Is_Set => True,
-                                 Value  => LSP.Types.To_LSP_String (Profile)),
-                              kind              => Kind,
-                              deprecated        => (Is_Set => False),
-                              tags              => LSP.Messages.Empty,
-                              span              => LSP.Lal_Utils.To_Span
-                                (Node.Sloc_Range),
-                              selectionRange    => LSP.Lal_Utils.To_Span
-                                (Name.Sloc_Range),
-                              alsIsDeclaration  =>
-                                (Is_Set => True,
-                                 Value  => Is_Declaration (Decl)),
-                              alsIsAdaProcedure =>
-                                (if Is_Function
-                                 then (Is_Set => False)
-                                 else (Is_Set => True, Value => True)),
-                              alsVisibility     =>
-                                (Is_Set => True,
-                                 Value  => Get_Visibility (Decl)),
-                              children          => True);
-                        begin
-                           Tree.Insert_Child
-                             (Parent   => Cursor,
-                              Before   =>
-                                Messages.DocumentSymbol_Trees.No_Element,
-                              New_Item => Item,
-                              Position => Next);
-                        end;
+                        if Pattern.Match
+                          (LSP.Lal_Utils.To_Virtual_String (Name.Text))
+                        then
+                           declare
+                              Is_Function : Boolean;
+                              Profile : constant VSS.Strings.Virtual_String :=
+                                Get_Profile (Decl, Is_Function);
+                              Item : constant LSP.Messages.DocumentSymbol :=
+                                (name              =>
+                                   LSP.Lal_Utils.To_Virtual_String (Name.Text),
+                                 detail            =>
+                                   (Is_Set => True,
+                                    Value  => LSP.Types.To_LSP_String
+                                      (Profile)),
+                                 kind              => Kind,
+                                 deprecated        => (Is_Set => False),
+                                 tags              => LSP.Messages.Empty,
+                                 span              => LSP.Lal_Utils.To_Span
+                                   (Node.Sloc_Range),
+                                 selectionRange    => LSP.Lal_Utils.To_Span
+                                   (Name.Sloc_Range),
+                                 alsIsDeclaration  =>
+                                   (Is_Set => True,
+                                    Value  => Is_Declaration (Decl)),
+                                 alsIsAdaProcedure =>
+                                   (if Is_Function
+                                    then (Is_Set => False)
+                                    else (Is_Set => True, Value => True)),
+                                 alsVisibility     =>
+                                   (Is_Set => True,
+                                    Value  => Get_Visibility (Decl)),
+                                 children          => True);
+                           begin
+                              Tree.Insert_Child
+                                (Parent   => Cursor,
+                                 Before   =>
+                                   Messages.DocumentSymbol_Trees.No_Element,
+                                 New_Item => Item,
+                                 Position => Next);
+                           end;
+                        end if;
                      end loop;
                   end;
                end if;
             end;
-         elsif Node.Kind in Libadalang.Common.Ada_With_Clause_Range then
+
+         elsif Pattern.Get_Kind /= Start_Word_Text
+           and then Node.Kind in Libadalang.Common.Ada_With_Clause_Range
+         then
             declare
                With_Node : constant Libadalang.Analysis.With_Clause :=
                  Node.As_With_Clause;
@@ -1028,7 +1039,9 @@ package body LSP.Ada_Documents is
                   end;
                end loop;
             end;
-         elsif Nested_Level <=  1
+
+         elsif Pattern.Get_Kind /= Start_Word_Text
+           and then Nested_Level <=  1
            and then Node.Kind in Libadalang.Common.Ada_Pragma_Node
          then
             declare
@@ -1036,7 +1049,7 @@ package body LSP.Ada_Documents is
                  Node.As_Pragma_Node;
                Id          : constant Libadalang.Analysis.Identifier  :=
                  Pragma_Node.F_Id;
-               Item        : constant LSP.Messages.DocumentSymbol :=
+               Item : constant LSP.Messages.DocumentSymbol :=
                  (name              =>
                     LSP.Lal_Utils.To_Virtual_String (Id.Text),
                   detail            =>
@@ -1069,6 +1082,7 @@ package body LSP.Ada_Documents is
          for Child of Node.Children loop
             if Child not in Libadalang.Analysis.No_Ada_Node then
                Walk (Child, Next, New_Nested_Level, Tree);
+               exit when Canceled.all;
             end if;
          end loop;
       end Walk;
@@ -1084,9 +1098,11 @@ package body LSP.Ada_Documents is
    -----------------
 
    procedure Get_Symbols
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.Symbol_Vector)
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
+      Result   : out LSP.Messages.Symbol_Vector)
    is
       use LSP.Messages;
       Element : Libadalang.Analysis.Ada_Node;
@@ -1104,14 +1120,19 @@ package body LSP.Ada_Documents is
         (Is_Tree => False,
          Vector  => <>);
 
-      while Cursor.Next (Element) loop
+      while not Canceled.all
+        and then Cursor.Next (Element)
+      loop
          declare
             Item : LSP.Messages.SymbolInformation;
             Kind : constant LSP.Messages.SymbolKind :=
               LSP.Lal_Utils.Get_Decl_Kind
                 (Element.As_Defining_Name.P_Basic_Decl, Ignore_Local => True);
          begin
-            if Kind /= LSP.Messages.A_Null then
+            if Kind /= LSP.Messages.A_Null
+              and then Pattern.Match
+                (LSP.Lal_Utils.To_Virtual_String (Element.Text))
+            then
                Item :=
                  (name              =>
                     LSP.Lal_Utils.To_Virtual_String (Element.Text),
