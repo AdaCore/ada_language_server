@@ -148,7 +148,7 @@ package LSP.Ada_Documents is
       Limit       : Ada.Containers.Count_Type;
       Only_Public : Boolean;
       Canceled    : access function return Boolean;
-      Result  : in out LSP.Ada_Completions.Completion_Maps.Map);
+      Result      : in out LSP.Ada_Completions.Completion_Maps.Map);
    --  See Contexts.Get_Any_Symbol
 
    procedure Get_Folding_Blocks

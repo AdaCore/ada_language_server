@@ -245,8 +245,8 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
-        "compile": "./node_modules/typescript/bin/tsc",
-        "watch": "./node_modules/typescript/bin/tsc -watch",
+        "compile": "node ./node_modules/typescript/bin/tsc",
+        "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
         "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet --fix",
         "test": "node ./out/test/runTest.js"

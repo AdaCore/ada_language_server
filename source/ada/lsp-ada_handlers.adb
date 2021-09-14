@@ -3766,6 +3766,9 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
       return LSP.Messages.Server_Responses.Symbol_Response
    is
+      use type LSP.Messages.Search_Kind;
+      use type VSS.Strings.Character_Count;
+
       procedure On_Inaccessible_Name
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
@@ -3773,7 +3776,7 @@ package body LSP.Ada_Handlers is
 
       Names : LSP.Ada_Completions.Completion_Maps.Map;
 
-      package Canceled is new LSP.Generic_Cancel_Check (Request, 127);
+      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
 
       procedure Write_Symbols is
         new LSP.Ada_Completions.Generic_Write_Symbols
@@ -3818,6 +3821,16 @@ package body LSP.Ada_Handlers is
         (Is_Error => False);
 
    begin
+      if Pattern.Get_Kind /= LSP.Messages.Start_Word_Text
+        and then Pattern.Get_Canonical_Pattern.Character_Length < 2
+      then
+         --  Do not process too small pattern because
+         --  this produces a huge response that is useless
+         --  and costs a while.
+
+         return Response;
+      end if;
+
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol
            (Pattern     => Pattern,
@@ -3968,9 +3981,10 @@ package body LSP.Ada_Handlers is
 
       C := Self.Contexts.Get_Best_Context (Item.data.Value.uri);
       Node := Get_Node_At
-        (Self     => C.all,
-         Document => null,
-         Position => LSP.Messages.TextDocumentPositionParams'
+        (Self         => C.all,
+         Document     => null,
+         Project_Only => False,
+         Position     => LSP.Messages.TextDocumentPositionParams'
            (textDocument => (uri => Item.data.Value.uri),
             position     => Item.data.Value.span.first));
 
