@@ -1890,7 +1890,7 @@ package body LSP.Ada_Documents is
       end if;
 
       declare
-         Insert_Text : VSS.Strings.Virtual_String := Item.label;
+         Insert_Text : VSS.Strings.Virtual_String := Label;
          All_Params  : constant Param_Spec_Array := Subp_Spec_Node.P_Params;
 
          Params      : constant Param_Spec_Array :=
