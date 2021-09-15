@@ -194,6 +194,7 @@
                      "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
+			   "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
@@ -659,13 +660,6 @@
             }
          },
          "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{main.adb}",
-                  "diagnostics": []
-               }
-            }
          ]
       }
    },

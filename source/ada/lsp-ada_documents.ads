@@ -33,6 +33,7 @@ with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completions;
+with LSP.Diagnostic_Sources;
 with LSP.Messages;
 with LSP.Search;
 with LSP.Types;
@@ -49,11 +50,12 @@ package LSP.Ada_Documents is
      with Storage_Size => 0;
 
    procedure Initialize
-     (Self : in out Document;
-      URI  : LSP.Messages.DocumentUri;
-      Text : VSS.Strings.Virtual_String);
-   --  Create a new document from a TextDocumentItem. Use LAL as libadalang
-   --  context to parse text of the document.
+     (Self       : in out Document;
+      URI        : LSP.Messages.DocumentUri;
+      Text       : VSS.Strings.Virtual_String;
+      Diagnostic : LSP.Diagnostic_Sources.Diagnostic_Source_Access);
+   --  Create a new document from a TextDocumentItem. Use Diagnostic as
+   --  project status diagnostic source.
 
    -----------------------
    -- Contents handling --
@@ -95,6 +97,7 @@ package LSP.Ada_Documents is
    procedure Get_Errors
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
+      Changed : out Boolean;
       Errors  : out LSP.Messages.Diagnostic_Vector);
    --  Get errors found during document parsing.
 
@@ -105,15 +108,19 @@ package LSP.Ada_Documents is
    --  Returns True when errors found during document parsing.
 
    procedure Get_Symbols
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.Symbol_Vector);
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
+      Result   : out LSP.Messages.Symbol_Vector);
    --  Populate Result with symbols from the document.
 
    procedure Get_Symbol_Hierarchy
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Result  : out LSP.Messages.Symbol_Vector);
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
+      Result   : out LSP.Messages.Symbol_Vector);
    --  Populate Result with a symbol hierarchy from the document.
 
    function Get_Node_At
@@ -284,6 +291,9 @@ private
       "<"          => VSS.Strings."<",
       "="          => Name_Vectors."=");
 
+   type Diagnostic_Source_Array is array (Natural range <>) of
+     LSP.Diagnostic_Sources.Diagnostic_Source_Access;
+
    type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
    record
       URI  : LSP.Messages.DocumentUri;
@@ -307,6 +317,8 @@ private
       --  Symbol_Cache rebuild is required before.
       Line_Terminator : VSS.Strings.Virtual_String;
       --  Line terminator for the text, if known, "" otherwise
+      Diagnostic_Sources : Diagnostic_Source_Array (1 .. 2);
+      --  Known sources of diagnostics
    end record;
 
    procedure Diff
@@ -324,5 +336,11 @@ private
      (Self.URI);
    function Text (Self : Document) return VSS.Strings.Virtual_String is
      (Self.Text);
+
+   function Unit
+     (Self    : Document'Class;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit;
+   --  Return the analysis unit for Self in the given context
 
 end LSP.Ada_Documents;

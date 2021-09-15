@@ -34,6 +34,7 @@ with LSP.Ada_File_Sets;
 with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
+with LSP.Search;
 with LSP.Server_Backends;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
@@ -117,11 +118,40 @@ private
    type Get_Symbol_Access is access procedure
      (Self     : LSP.Ada_Documents.Document;
       Context  : LSP.Ada_Contexts.Context;
+      Pattern  : LSP.Search.Search_Pattern'Class;
+      Canceled : access function return Boolean;
       Result   : out LSP.Messages.Symbol_Vector);
    --  textDocument/documentSymbol handler
 
    Empty_Token : LSP.Types.LSP_Number_Or_String :=
      (Is_Number => False, String => <>);
+
+   type Load_Project_Status is
+     (Valid_Project_Configured,
+      Single_Project_Found,
+      No_Project_Found,
+      Multiple_Projects_Found,
+      Invalid_Project_Configured);
+   --  Variants for state of the project loaded into the handler:
+   --
+   --  @value Valid_Project_Configured didChangeConfiguration provided a valid
+   --  project
+   --
+   --  @value Single_Project_Found no project in didChangeConfiguration, but
+   --  just one project in Root dir
+   --
+   --  @value No_Project_Found no project in didChangeConfiguration and no
+   --  project in Root dir
+   --
+   --  @value Multiple_Projects_Found no project in didChangeConfiguration and
+   --  several projects in Root dir
+   --
+   --  @value Invalid_Project_Configured didChangeConfiguration provided a
+   --  valid project
+
+   subtype Implicit_Project_Loaded is Load_Project_Status range
+     No_Project_Found .. Invalid_Project_Configured;
+   --  Project status when an implicit project loaded
 
    type Message_Handler
      (Server  : access LSP.Servers.Server;
@@ -245,8 +275,11 @@ private
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
 
-      Implicit_Project_Loaded : Boolean := False;
-      --  Whether we are loading the implicit project
+      Project_Status : Load_Project_Status := No_Project_Found;
+      --  Status of loading the project
+
+      Scenario : LSP.Types.LSP_Any;
+      --  Last used scenario variables
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"

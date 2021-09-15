@@ -7494,6 +7494,27 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_DocumentHighlight;
 
+   procedure Read_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Search_Kind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      V := Search_Kind'Val (JS.R.Number_Value.Integer_Value - 1);
+      JS.R.Read_Next;
+   end Read_Search_Kind;
+
+   procedure Write_Search_Kind
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Search_Kind)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Write_Integer ((Search_Kind'Pos (V)) + 1);
+   end Write_Search_Kind;
+
    procedure Read_DocumentSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out DocumentSymbolParams)
@@ -7516,6 +7537,14 @@ package body LSP.Message_IO is
                Optional_ProgressToken'Read (S, V.partialResultToken);
             elsif Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "case_sensitive" then
+               Optional_Boolean'Read (S, V.case_sensitive);
+            elsif Key = "whole_word" then
+               Optional_Boolean'Read (S, V.whole_word);
+            elsif Key = "negate" then
+               Optional_Boolean'Read (S, V.negate);
+            elsif Key = "kind" then
+               Optional_Search_Kind'Read (S, V.kind);
             else
                JS.Skip_Value;
             end if;
@@ -7538,6 +7567,14 @@ package body LSP.Message_IO is
       Optional_ProgressToken'Write (S, V.partialResultToken);
       JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("case_sensitive");
+      Optional_Boolean'Write (S, V.case_sensitive);
+      JS.Key ("whole_word");
+      Optional_Boolean'Write (S, V.whole_word);
+      JS.Key ("negate");
+      Optional_Boolean'Write (S, V.negate);
+      JS.Key ("kind");
+      Optional_Search_Kind'Write (S, V.kind);
       JS.End_Object;
    end Write_DocumentSymbolParams;
 
@@ -7603,27 +7640,6 @@ package body LSP.Message_IO is
       Optional_String'Write (S, V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
-
-   procedure Read_Search_Kind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Search_Kind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V := Search_Kind'Val (JS.R.Number_Value.Integer_Value - 1);
-      JS.R.Read_Next;
-   end Read_Search_Kind;
-
-   procedure Write_Search_Kind
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Search_Kind)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Write_Integer ((Search_Kind'Pos (V)) + 1);
-   end Write_Search_Kind;
 
    procedure Read_WorkspaceSymbolParams
      (S : access Ada.Streams.Root_Stream_Type'Class;

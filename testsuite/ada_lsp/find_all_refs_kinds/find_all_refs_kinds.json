@@ -51,14 +51,8 @@
                     }
                 }
             },
-            "wait":[{
-                "jsonrpc": "2.0",
-                "method": "textDocument/publishDiagnostics",
-                "params": {
-                    "uri": "$URI{aaa.adb}",
-                    "diagnostics":[]
-                }
-            }]
+            "wait":[
+            ]
         }
     },  {
         "send": {

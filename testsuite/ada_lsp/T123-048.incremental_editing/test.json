@@ -423,7 +423,23 @@
                               "character": 24
                            }
                         },
+                        "source": "libadalang",
                         "message": "Missing ';'"
+                     },
+                     {
+                       "range": {
+                         "start": {
+                           "line": 0,
+                           "character": 0
+                         },
+                         "end": {
+                           "line": 0,
+                           "character": 0
+                         }
+                       },
+                       "severity": 4,
+                       "source": "project",
+                       "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
                      }
                   ]
                },
@@ -490,7 +506,23 @@
             {
                "params": {
                   "uri": "$URI{main.adb}",
-                  "diagnostics": []
+                  "diagnostics": [
+                     {
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 0
+                          }
+                        },
+                        "severity": 4,
+                        "source": "project",
+                        "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
+                      }
+                  ]
                },
                "method": "textDocument/publishDiagnostics"
             }

@@ -60,7 +60,23 @@
                                 "start":{"line":1,"character":0},
                                 "end":{"line":1,"character":1}
                             },
+                            "source": "libadalang",
                             "message":"Skipped token ;"
+                        },
+                        {
+                          "range": {
+                            "start": {
+                              "line": 0,
+                              "character": 0
+                            },
+                            "end": {
+                              "line": 0,
+                              "character": 0
+                            }
+                          },
+                          "severity": 1,
+                          "source": "project",
+                          "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
                         }
                     ]
                 }

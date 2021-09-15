@@ -47,11 +47,13 @@ with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
 with LSP.Ada_Handlers.File_Readers;
+with LSP.Diagnostic_Sources;
 with LSP.Errors;
 with LSP.Lal_Utils;    use LSP.Lal_Utils;
 with LSP.Messages.Client_Requests;
@@ -169,6 +171,11 @@ package body LSP.Ada_Handlers is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
+   procedure Publish_Diagnostics
+     (Self     : access Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access);
+   --  Publish diagnostic messages for given document if needed
+
    type File_Span is record
       File : GNATCOLL.VFS.Virtual_File;
       Span : LSP.Messages.Span;
@@ -225,7 +232,9 @@ package body LSP.Ada_Handlers is
    --  initialized and a project is loaded. If they are not initialized,
    --  initialize them. Use URI to find a custom root directory if provided.
 
-   procedure Load_Implicit_Project (Self : access Message_Handler);
+   procedure Load_Implicit_Project
+     (Self   : access Message_Handler;
+      Status : Implicit_Project_Loaded);
    --  Load the implicit project
 
    procedure Load_Project
@@ -233,6 +242,7 @@ package body LSP.Ada_Handlers is
       GPR                 : Virtual_File;
       Scenario            : LSP.Types.LSP_Any;
       Charset             : String;
+      Status              : Load_Project_Status;
       Relocate_Build_Tree : Virtual_File := No_File;
       Root_Dir            : Virtual_File := No_File);
    --  Attempt to load the given project file, with the scenario provided.
@@ -312,7 +322,7 @@ package body LSP.Ada_Handlers is
             Document : constant Internal_Document_Access :=
               new LSP.Ada_Documents.Document (Self.Trace);
          begin
-            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String);
+            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String, null);
             return LSP.Ada_Documents.Document_Access (Document);
          end;
       else
@@ -492,7 +502,10 @@ package body LSP.Ada_Handlers is
    -- Load_Implicit_Project --
    ---------------------------
 
-   procedure Load_Implicit_Project (Self : access Message_Handler) is
+   procedure Load_Implicit_Project
+     (Self   : access Message_Handler;
+      Status : Implicit_Project_Loaded)
+   is
       C    : constant Context_Access := new Context (Self.Trace);
       Attr : GNAT.Strings.String_List (1 .. 1);
       use GNATCOLL.Projects;
@@ -504,7 +517,7 @@ package body LSP.Ada_Handlers is
 
       Self.Trace.Trace ("Loading the implicit project");
 
-      Self.Implicit_Project_Loaded := True;
+      Self.Project_Status := Status;
       Self.Release_Project_Info;
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
@@ -610,12 +623,12 @@ package body LSP.Ada_Handlers is
       if GPRs_Found = 0 then
          --  We have found zero .gpr files: load the implicit project
 
-         Self.Load_Implicit_Project;
+         Self.Load_Implicit_Project (No_Project_Found);
       elsif GPRs_Found = 1 then
          --  We have not found exactly one .gpr file: load the default
          --  project.
          Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
-         Self.Load_Project (GPR, No_Any, "iso-8859-1");
+         Self.Load_Project (GPR, No_Any, "iso-8859-1", Single_Project_Found);
       else
          --  We have found more than one project: warn the user!
 
@@ -623,6 +636,7 @@ package body LSP.Ada_Handlers is
            ("More than one .gpr found." & Line_Feed &
               "Note: you can configure a project " &
               " through the ada.projectFile setting.");
+         Self.Load_Implicit_Project (Multiple_Projects_Found);
       end if;
    end Ensure_Project_Loaded;
 
@@ -644,6 +658,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
+      codeActionKinds : LSP.Messages.CodeActionKindSet;
    begin
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
@@ -719,14 +734,13 @@ package body LSP.Ada_Handlers is
       if Code_Action.Is_Set and then
         Code_Action.Value.codeActionLiteralSupport.Is_Set
       then
+         LSP.Messages.Include (codeActionKinds, LSP.Messages.QuickFix);
+         LSP.Messages.Include (codeActionKinds, LSP.Messages.RefactorRewrite);
+
          Response.result.capabilities.codeActionProvider :=
            (Is_Set => True,
             Value  =>
-              (codeActionKinds =>
-                   (Is_Set => True,
-                    Value  => LSP.Messages.To_Set
-                      (From => LSP.Messages.RefactorRewrite,
-                       To   => LSP.Messages.RefactorRewrite)),
+              (codeActionKinds  => (True, codeActionKinds),
                workDoneProgress => LSP.Types.None,
                resolveProvider  => LSP.Types.None));
       else
@@ -870,6 +884,10 @@ package body LSP.Ada_Handlers is
       --  Return Found = True if some refactoring is possible. Populate
       --  Result with Code_Actions in this case. Return Done = True if futher
       --  analysis has no sense.
+
+      procedure Append_Project_Status
+        (Result : in out LSP.Messages.CodeAction_Vector);
+      --  Append project status code action if needed
 
       Found_Named_Parameters : Boolean := False;
       --  We propose only one choice of Named_Parameters refactoring per
@@ -1298,6 +1316,90 @@ package body LSP.Ada_Handlers is
          end loop;
       end Analyse_In_Context;
 
+      ---------------------------
+      -- Append_Project_Status --
+      ---------------------------
+
+      procedure Append_Project_Status
+        (Result : in out LSP.Messages.CodeAction_Vector)
+      is
+         Diagnostics : LSP.Messages.Diagnostic_Vector;
+      begin
+         for Item of Params.context.diagnostics loop
+            if Item.source.Is_Set and then Item.source.Value = +"project" then
+               Diagnostics.Append (Item);
+            end if;
+         end loop;
+
+         case Self.Project_Status is
+            when Valid_Project_Configured =>
+               null;
+            when Single_Project_Found | Multiple_Projects_Found =>
+               declare
+                  Item    : LSP.Messages.CodeAction;
+                  Command : LSP.Messages.Command (Is_Unknown => True);
+                  Arg     : constant LSP.Types.LSP_Any :=
+                    LSP.Types.Create ("ada.projectFile");
+               begin
+                  Command.title := +"Open settings for ada.projectFile";
+                  Command.command := +"workbench.action.openSettings";
+                  Command.arguments := (Is_Set => True, Value => <>);
+                  Command.arguments.Value.Append (Arg);
+
+                  Item :=
+                    (title       => Command.title,
+                     kind        => (True, LSP.Messages.QuickFix),
+                     diagnostics => (True, Diagnostics),
+                     disabled    => (Is_Set => False),
+                     edit        => (Is_Set => False),
+                     isPreferred => LSP.Types.True,
+                     command     => (True, Command));
+
+                  Result.Append (Item);
+               end;
+            when No_Project_Found =>
+               declare
+                  Title  : constant LSP.Types.LSP_String :=
+                    +"Create a default project file (default.gpr)";
+                  URI    : constant LSP.Messages.DocumentUri :=
+                    LSP.Types.File_To_URI
+                      (Self.Root.Join ("default.gpr").Display_Full_Name);
+                  Create : constant LSP.Messages.Document_Change :=
+                    (LSP.Messages.Create_File,
+                     (kind => LSP.Messages.create,
+                      uri  => URI,
+                      others => <>));
+                  Text   : constant LSP.Messages.AnnotatedTextEdit :=
+                    ((span => ((0, 0), (0, 0)),
+                      newText => +"project Default is end Default;",
+                      others => <>));
+                  Insert : constant LSP.Messages.Document_Change :=
+                    (LSP.Messages.Text_Document_Edit,
+                     (textDocument => (uri => URI, others => <>),
+                      edits        => LSP.Messages.To_Vector (Text, 1)));
+                  Item   : LSP.Messages.CodeAction;
+                  Edit   : LSP.Messages.WorkspaceEdit;
+               begin
+                  Edit.documentChanges.Append (Create);
+                  Edit.documentChanges.Append (Insert);
+                  Item :=
+                    (title       => Title,
+                     kind        => (True, LSP.Messages.QuickFix),
+                     diagnostics => (True, Diagnostics),
+                     disabled    => (Is_Set => False),
+                     edit        => (True, Edit),
+                     isPreferred => LSP.Types.True,
+                     command     => (Is_Set => False));
+
+                  Result.Append (Item);
+               end;
+            when Invalid_Project_Configured =>
+               null;
+         end case;
+      end Append_Project_Status;
+
+      use type LSP.Messages.Position;
+
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Params.textDocument.uri);
 
@@ -1316,6 +1418,10 @@ package body LSP.Ada_Handlers is
 
          exit when Request.Canceled or else Found;
       end loop;
+
+      if Params.span.first = (0, 0) then
+         Append_Project_Status (Response.result);
+      end if;
 
       return Response;
    end On_CodeAction_Request;
@@ -1828,8 +1934,6 @@ package body LSP.Ada_Handlers is
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
-      Diag     : LSP.Messages.PublishDiagnosticsParams;
-      Diags_Already_Published : Boolean := False;
    begin
       if Allow_Incremental_Text_Changes.Active then
          --  If we are applying incremental changes, we can't skip the
@@ -1858,17 +1962,10 @@ package body LSP.Ada_Handlers is
 
       for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Context.Index_Document (Document.all);
-
-         --  Emit diagnostics - do this for only one context
-         if Self.Diagnostics_Enabled
-           and then not Diags_Already_Published
-         then
-            Document.Get_Errors (Context.all, Diag.diagnostics);
-            Diag.uri := Value.textDocument.uri;
-            Self.Server.On_Publish_Diagnostics (Diag);
-            Diags_Already_Published := True;
-         end if;
       end loop;
+
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (Document);
    end On_DidChangeTextDocument_Notification;
 
    ------------------------------------------
@@ -1926,6 +2023,8 @@ package body LSP.Ada_Handlers is
       File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self.Trace);
+      Diag   : constant LSP.Diagnostic_Sources.Diagnostic_Source_Access :=
+        new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source (Self);
    begin
       Self.Trace.Trace ("In Text_Document_Did_Open");
       Self.Trace.Trace ("Uri : " & To_UTF_8_String (URI));
@@ -1936,13 +2035,13 @@ package body LSP.Ada_Handlers is
       Self.Ensure_Project_Loaded (URI);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text);
+      Object.Initialize (URI, Value.textDocument.text, Diag);
       Self.Open_Documents.Insert (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
 
-      if Self.Implicit_Project_Loaded then
+      if Self.Project_Status in Implicit_Project_Loaded then
          declare
             Dir : constant Virtual_File := Self.To_File (URI).Dir;
          begin
@@ -1955,26 +2054,12 @@ package body LSP.Ada_Handlers is
       end if;
 
       --  Index the document in all the contexts where it is relevant
-      declare
-         Diag : LSP.Messages.PublishDiagnosticsParams;
-         Diags_Already_Published : Boolean := False;
-      begin
-         for Context of Self.Contexts_For_URI (URI) loop
-            Context.Index_Document (Object.all);
+      for Context of Self.Contexts_For_URI (URI) loop
+         Context.Index_Document (Object.all);
+      end loop;
 
-            if Self.Diagnostics_Enabled
-              and then not Diags_Already_Published
-            then
-               Object.Get_Errors (Context.all, Diag.diagnostics);
-               Diag.uri := URI;
-               Self.Server.On_Publish_Diagnostics (Diag);
-
-               --  Publish diagnostics only for one context,
-               --  to avoid emitting too much noise.
-               Diags_Already_Published := True;
-            end if;
-         end loop;
-      end;
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
 
       Self.Trace.Trace ("Finished Text_Document_Did_Open");
    end On_DidOpenTextDocument_Notification;
@@ -2820,17 +2905,35 @@ package body LSP.Ada_Handlers is
          result   => <>,
          error    => (Is_Set => False),
          others   => <>);
+
+      Pattern : constant Search_Pattern'Class := Build
+        (Pattern        => LSP.Types.To_Virtual_String (Value.query),
+         Case_Sensitive => Value.case_sensitive = LSP.Types.True,
+         Whole_Word     => Value.whole_word = LSP.Types.True,
+         Negate         => Value.negate = LSP.Types.True,
+         Kind           =>
+           (if Value.kind.Is_Set
+            then Value.kind.Value
+            else LSP.Messages.Start_Word_Text));
+
+      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
+
    begin
       if Document = null then
          declare
             Document : LSP.Ada_Documents.Document_Access :=
               Get_Open_Document (Self, Value.textDocument.uri, Force => True);
          begin
-            Self.Get_Symbols (Document.all, Context.all, Result.result);
+            Self.Get_Symbols
+              (Document.all, Context.all, Pattern,
+               Canceled.Has_Been_Canceled'Access, Result.result);
+
             Unchecked_Free (Internal_Document_Access (Document));
          end;
       else
-         Self.Get_Symbols (Document.all, Context.all, Result.result);
+         Self.Get_Symbols
+           (Document.all, Context.all, Pattern,
+            Canceled.Has_Been_Canceled'Access, Result.result);
       end if;
       return Result;
    end On_Document_Symbols_Request;
@@ -3195,6 +3298,23 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
+      function Match
+        (Left  : GNATCOLL.VFS.Filesystem_String;
+         Right : GNATCOLL.VFS.Virtual_File) return Boolean;
+      --  Compare two files
+
+      -----------
+      -- Match --
+      -----------
+
+      function Match
+        (Left  : GNATCOLL.VFS.Filesystem_String;
+         Right : GNATCOLL.VFS.Virtual_File) return Boolean is
+      begin
+         return (Left = "" and then Right = No_File)
+           or else GNATCOLL.VFS.Create (Left) = Right;
+      end Match;
+
       relocateBuildTree                 : constant String :=
         "relocateBuildTree";
       rootDir                           : constant String :=
@@ -3310,6 +3430,7 @@ package body LSP.Ada_Handlers is
          --  relative path; if so, we're assuming it's relative
          --  to Self.Root.
          declare
+            use type GNATCOLL.Projects.Project_Tree_Access;
             Project_File : constant String := To_UTF_8_String (File);
             GPR : Virtual_File;
          begin
@@ -3319,8 +3440,22 @@ package body LSP.Ada_Handlers is
                GPR := Join (Self.Root, Create_From_UTF8 (Project_File));
             end if;
 
-            Self.Load_Project
-              (GPR, Variables, To_String (Charset), Relocate, Root);
+            --  Avoid project reloading if scenario/gpr are the same
+            if Self.Project_Tree = null
+              or else Self.Project_Tree.Root_Project.Project_Path /= GPR
+              or else Self.Scenario /= Variables
+              or else not Match (Self.Project_Environment.Build_Tree_Dir,
+                                 Relocate)
+              or else not Match (Self.Project_Environment.Root_Dir, Root)
+            then
+               Self.Load_Project
+                 (GPR,
+                  Variables,
+                  To_String (Charset),
+                  Valid_Project_Configured,
+                  Relocate,
+                  Root);
+            end if;
          end;
       end if;
 
@@ -3429,6 +3564,7 @@ package body LSP.Ada_Handlers is
       GPR                 : Virtual_File;
       Scenario            : LSP.Types.LSP_Any;
       Charset             : String;
+      Status              : Load_Project_Status;
       Relocate_Build_Tree : Virtual_File := No_File;
       Root_Dir            : Virtual_File := No_File)
    is
@@ -3486,7 +3622,10 @@ package body LSP.Ada_Handlers is
       Self.Release_Project_Info;
 
       --  We're loading an actual project
-      Self.Implicit_Project_Loaded := False;
+      Self.Project_Status := Status;
+
+      --  Store scenario variables
+      Self.Scenario := Scenario;
 
       --  Now load the new project
       Errors.a_type := LSP.Messages.Warning;
@@ -3544,7 +3683,7 @@ package body LSP.Ada_Handlers is
 
             --  The project was invalid: fallback on loading the implicit
             --  project.
-            Self.Load_Implicit_Project;
+            Self.Load_Implicit_Project (Invalid_Project_Configured);
       end;
 
       --  Report the errors, if any
@@ -3561,6 +3700,8 @@ package body LSP.Ada_Handlers is
          for Context of Self.Contexts_For_URI (Document.URI) loop
             Context.Index_Document (Document.all);
          end loop;
+
+         Self.Publish_Diagnostics (Document_Access (Document));
       end loop;
 
       if not Self.File_Monitor.Assigned then
@@ -4491,6 +4632,30 @@ package body LSP.Ada_Handlers is
    begin
       return Name + From + To;
    end Hash;
+
+   -------------------------
+   -- Publish_Diagnostics --
+   -------------------------
+
+   procedure Publish_Diagnostics
+     (Self     : access Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
+   is
+      Ok   : Boolean;
+      Diag : LSP.Messages.PublishDiagnosticsParams;
+   begin
+      if Self.Diagnostics_Enabled then
+         Document.Get_Errors
+           (Self.Contexts.Get_Best_Context (Document.URI).all,
+            Ok,
+            Diag.diagnostics);
+
+         if Ok then
+            Diag.uri := Document.URI;
+            Self.Server.On_Publish_Diagnostics (Diag);
+         end if;
+      end if;
+   end Publish_Diagnostics;
 
    ------------------
    -- Show_Message --

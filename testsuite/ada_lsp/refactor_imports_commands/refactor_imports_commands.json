@@ -137,13 +137,6 @@
                 "method": "textDocument/didOpen"
             },
             "wait": [
-                {
-                    "params": {
-                        "uri": "$URI{main.adb}",
-                        "diagnostics": []
-                    },
-                    "method": "textDocument/publishDiagnostics"
-                }
             ]
         }
     },
