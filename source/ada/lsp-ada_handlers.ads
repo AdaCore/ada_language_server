@@ -20,6 +20,7 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Strings.Unbounded;
 with VSS.String_Vectors;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
@@ -275,6 +276,9 @@ private
 
       Scenario : LSP.Types.LSP_Any;
       --  Last used scenario variables
+
+      Charset : Ada.Strings.Unbounded.Unbounded_String;
+      --  Character set from didChangeConfiguration
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
