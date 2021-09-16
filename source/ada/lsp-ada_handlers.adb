@@ -3442,6 +3442,7 @@ package body LSP.Ada_Handlers is
 
             --  Avoid project reloading if scenario/gpr are the same
             if Self.Project_Tree = null
+              or else Self.Charset /= Charset
               or else Self.Project_Tree.Root_Project.Project_Path /= GPR
               or else Self.Scenario /= Variables
               or else not Match (Self.Project_Environment.Build_Tree_Dir,
@@ -3624,8 +3625,9 @@ package body LSP.Ada_Handlers is
       --  We're loading an actual project
       Self.Project_Status := Status;
 
-      --  Store scenario variables
+      --  Store scenario variables and charset
       Self.Scenario := Scenario;
+      Self.Charset := To_Unbounded_String (Charset);
 
       --  Now load the new project
       Errors.a_type := LSP.Messages.Warning;
