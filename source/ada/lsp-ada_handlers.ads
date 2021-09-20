@@ -20,7 +20,6 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
-with Ada.Strings.Unbounded;
 with VSS.String_Vectors;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
@@ -274,10 +273,10 @@ private
       Project_Status : Load_Project_Status := No_Project_Found;
       --  Status of loading the project
 
-      Scenario : LSP.Types.LSP_Any;
+--      Scenario : LSP.Types.LSP_Any;
       --  Last used scenario variables
 
-      Charset : Ada.Strings.Unbounded.Unbounded_String;
+--      Charset : Ada.Strings.Unbounded.Unbounded_String;
       --  Character set from didChangeConfiguration
 
       Project_Dirs_Loaded : File_Sets.Set;
