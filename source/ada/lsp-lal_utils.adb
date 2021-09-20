@@ -381,6 +381,87 @@ package body LSP.Lal_Utils is
       return LSP.Messages.A_Null;
    end Get_Decl_Kind;
 
+   -------------------
+   -- Get_Call_Expr --
+   -------------------
+
+   function Get_Call_Expr
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Call_Expr
+   is
+      Cur_Node : Ada_Node := Node.As_Ada_Node;
+   begin
+      if not Cur_Node.Is_Null
+        and then Cur_Node.Kind in Ada_Error_Stmt_Range
+      then
+         --  In case of Error_Stmt, find the nearest previous sibling
+         --  which is not also an Error_Stmt
+         while not Cur_Node.Is_Null
+           and then Cur_Node.Kind in Ada_Error_Stmt_Range
+         loop
+            Cur_Node := Cur_Node.Previous_Sibling;
+         end loop;
+
+         --  Find the nearest Call_Expr node in the children
+         if not Cur_Node.Is_Null then
+            for Child_Node of Cur_Node.Children loop
+               if Child_Node.Kind in Ada_Call_Expr_Range then
+                  Cur_Node := Child_Node;
+                  exit;
+               end if;
+            end loop;
+         end if;
+      end if;
+
+      --  Find the nearest Call_Expr node in the parents or itself
+      while not Cur_Node.Is_Null loop
+         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+
+         Cur_Node := Cur_Node.Parent;
+      end loop;
+
+      --  At this point we have null or a Call_Expr
+      if Cur_Node.Is_Null then
+         return No_Call_Expr;
+      else
+         return Cur_Node.As_Call_Expr;
+      end if;
+   end Get_Call_Expr;
+
+   --------------------------
+   -- Get_Call_Designators --
+   --------------------------
+
+   function Get_Call_Designators
+     (Node : Libadalang.Analysis.Call_Expr)
+      return Laltools.Common.Node_Vectors.Vector
+   is
+      Designator : Libadalang.Analysis.Ada_Node;
+      Res        : Laltools.Common.Node_Vectors.Vector :=
+        Laltools.Common.Node_Vectors.Empty_Vector;
+   begin
+      if Node = No_Call_Expr then
+         return Res;
+      end if;
+
+      declare
+         Suffix_Node : constant Libadalang.Analysis.Ada_Node'Class :=
+           Node.F_Suffix;
+      begin
+         if Suffix_Node /= Libadalang.Analysis.No_Ada_Node
+           and then Suffix_Node.Kind in Ada_Assoc_List_Range
+         then
+            for Assoc of Suffix_Node.As_Assoc_List loop
+               Designator := Assoc.As_Param_Assoc.F_Designator;
+               if Designator /= No_Ada_Node then
+                  Res.Append (Designator);
+               end if;
+            end loop;
+         end if;
+      end;
+      return Res;
+   end Get_Call_Designators;
+
    ------------------------
    -- Get_Call_Expr_Name --
    ------------------------
@@ -394,9 +475,11 @@ package body LSP.Lal_Utils is
       Name_Node        : out Libadalang.Analysis.Name)
    is
       use Langkit_Support.Slocs;
-      Cur_Node      : Ada_Node := Node.As_Ada_Node;
-      In_Assoc_List : Boolean  := False;
+      In_Assoc_List  : Boolean  := False;
       --  True if the cursor is a node of the Assoc_List
+
+      Call_Expr_Node : constant Libadalang.Analysis.Call_Expr :=
+        Get_Call_Expr (Node);
 
       function Cursor_In_Node (N : Ada_Node) return Boolean;
       --  Check if N contains the cursor
@@ -457,44 +540,12 @@ package body LSP.Lal_Utils is
       Prev_Designators := Laltools.Common.Node_Vectors.Empty_Vector;
       Name_Node := Libadalang.Analysis.No_Name;
 
-      if not Cur_Node.Is_Null
-        and then Cur_Node.Kind in Ada_Error_Stmt_Range
-      then
-         --  In case of Error_Stmt, find the nearest previous sibling
-         --  which is not also an Error_Stmt
-         while not Cur_Node.Is_Null
-           and then Cur_Node.Kind in Ada_Error_Stmt_Range
-         loop
-            Cur_Node := Cur_Node.Previous_Sibling;
-         end loop;
-
-         --  Find the nearest Call_Expr node in the children
-         if not Cur_Node.Is_Null then
-            for Child_Node of Cur_Node.Children loop
-               if Child_Node.Kind in Ada_Call_Expr_Range then
-                  Cur_Node := Child_Node;
-                  exit;
-               end if;
-            end loop;
-         end if;
-      end if;
-
-      --  Find the nearest Call_Expr node in the parents or itself
-      while not Cur_Node.Is_Null loop
-         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
-
-         Cur_Node := Cur_Node.Parent;
-      end loop;
-
-      --  At this point we have null or a Call_Expr
-      if Cur_Node.Is_Null then
+      if Call_Expr_Node = No_Call_Expr then
          return;
       end if;
 
       declare
-         Call_Expr_Node  : constant Libadalang.Analysis.Call_Expr :=
-           Cur_Node.As_Call_Expr;
-         Suffix_Node     : constant Libadalang.Analysis.Ada_Node'Class :=
+         Suffix_Node : constant Libadalang.Analysis.Ada_Node'Class :=
            Call_Expr_Node.F_Suffix;
       begin
          Name_Node := Call_Expr_Node.F_Name;
@@ -662,15 +713,54 @@ package body LSP.Lal_Utils is
          end if;
 
          --  Invalidate the result if it doesn't match the previous designators
-         for Prev_Designator of Prev_Designators loop
-            if Find_Designator (Prev_Designator, Params) = -1 then
-               return -1;
-            end if;
-         end loop;
+         if not Match_Designators (Params, Prev_Designators) then
+            return -1;
+         end if;
       end;
 
       return Res;
    end Get_Active_Parameter;
+
+   -----------------------
+   -- Match_Designators --
+   -----------------------
+
+   function Match_Designators
+     (Params      : Libadalang.Analysis.Param_Spec_Array;
+      Designators : Laltools.Common.Node_Vectors.Vector)
+      return Boolean
+   is
+      function Find_Designator
+        (D : Libadalang.Analysis.Ada_Node)
+         return Boolean;
+
+      ---------------------
+      -- Find_Designator --
+      ---------------------
+
+      function Find_Designator
+        (D : Libadalang.Analysis.Ada_Node)
+         return Boolean is
+      begin
+         for Param of Params loop
+            for Id of Param.F_Ids loop
+               if Id.Text = D.Text then
+                  return True;
+               end if;
+            end loop;
+         end loop;
+
+         return False;
+      end Find_Designator;
+   begin
+      for D of Designators loop
+         if not Find_Designator (D) then
+            return False;
+         end if;
+      end loop;
+
+      return True;
+   end Match_Designators;
 
    ------------------
    -- Get_Location --

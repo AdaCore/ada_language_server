@@ -40,6 +40,7 @@ with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Keywords;
 with LSP.Ada_Completions.Names;
+with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
@@ -4037,9 +4038,10 @@ package body LSP.Ada_Handlers is
       P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
       P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
         (Self.Completion_Snippets_Enabled);
-
       P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self, Context);
+      P7 : aliased
+        LSP.Ada_Completions.Parameters.Parameter_Completion_Provider (Context);
 
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         (P1'Unchecked_Access,
@@ -4047,7 +4049,8 @@ package body LSP.Ada_Handlers is
          P3'Unchecked_Access,
          P4'Unchecked_Access,
          P5'Unchecked_Access,
-         P6'Unchecked_Access);
+         P6'Unchecked_Access,
+         P7'Unchecked_Access);
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
