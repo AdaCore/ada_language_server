@@ -18,8 +18,10 @@
 --  This package provides types to support completions in Ada Language server.
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Hash_Case_Insensitive;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -32,12 +34,14 @@ package LSP.Ada_Completions is
 
    function Hash (Name : Libadalang.Analysis.Defining_Name)
      return Ada.Containers.Hash_Type is
-       (Name.As_Ada_Node.Hash);
+     (Ada.Strings.Hash_Case_Insensitive (
+        Langkit_Support.Text.To_UTF8 (Name.Full_Sloc_Image)));
 
-   function Is_Equal (Left, Right : Libadalang.Analysis.Defining_Name)
-     return Boolean;
-   --  This custom Is_Equal function is here as a temporary workaround.
-   --  The ticket for the corresponding compiler bug is T806-020.
+   function Is_Full_Sloc_Equal
+     (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean;
+   --  Compare the two nodes using full sloc image (filename + sloc). Needed
+   --  for completion, since LAL can return several times the same declaration
+   --  and specially subprograms from generic instantiations.
 
    type Name_Information is record
       Is_Dot_Call  : Boolean;
@@ -59,7 +63,7 @@ package LSP.Ada_Completions is
      (Key_Type        => Libadalang.Analysis.Defining_Name,
       Element_Type    => Name_Information,
       Hash            => Hash,
-      Equivalent_Keys => Is_Equal,
+      Equivalent_Keys => Is_Full_Sloc_Equal,
       "="             => "=");
 
    type Completion_Provider is abstract tagged limited null record;
