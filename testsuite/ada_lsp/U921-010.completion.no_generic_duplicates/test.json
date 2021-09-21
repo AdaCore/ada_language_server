@@ -1,0 +1,299 @@
+[
+   {
+      "comment": [
+          "Check that we don't have duplicates from primitives inherited in ",
+          "generic instantiations"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 158831,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-other-file",
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode",
+                           "als-suppress-separate"
+                        ]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Generic_Pack;\nwith Parents; use Parents;\n\nprocedure Main is\n   package A is new Generic_Pack (3);\n   use A;\n\nbegin\n   Prim  \nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{parents.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Parents is\n\n   type Parent is tagged null record;\n\n   procedure Primitive (Obj : Parent) is null;\n   \nend Parents;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{generic_pack.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Parents; use Parents;\n\ngeneric\n   A : Integer;\npackage Generic_Pack is\n\n   type Child is new Parent with null record;\n\nend Generic_Pack;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 8,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Primitive",
+                        "kind": 3,
+                        "sortText": "2Primitive",
+                        "insertText": "Primitive (${1:Obj : Parent})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{parents.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 46
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 14,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

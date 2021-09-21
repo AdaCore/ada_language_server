@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Sets;
+with Langkit_Support;
 
 with VSS.Strings;
 
@@ -25,15 +26,16 @@ with LSP.Lal_Utils;
 
 package body LSP.Ada_Completions is
 
-   --------------
-   -- Is_Equal --
-   --------------
+   ------------------------
+   -- Is_Full_Sloc_Equal --
+   ------------------------
 
-   function Is_Equal (Left, Right : Libadalang.Analysis.Defining_Name)
-     return Boolean is
+   function Is_Full_Sloc_Equal
+     (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean is
    begin
-      return Libadalang.Analysis."=" (Left, Right);
-   end Is_Equal;
+      return Libadalang.Analysis.Full_Sloc_Image
+          (Left) = Libadalang.Analysis.Full_Sloc_Image (Right);
+   end Is_Full_Sloc_Equal;
 
    -----------------------
    -- Write_Completions --
