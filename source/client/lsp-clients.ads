@@ -202,7 +202,8 @@ private
    type Notification_Decoder is access procedure
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : access LSP.Client_Notification_Receivers
-        .Client_Notification_Receiver'Class);
+      .Client_Notification_Receiver'Class;
+      Token   : LSP.Types.LSP_Number_Or_String);
 
    package Notification_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => Ada.Strings.Unbounded.Unbounded_String,

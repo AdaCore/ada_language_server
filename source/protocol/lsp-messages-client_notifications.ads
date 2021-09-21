@@ -77,4 +77,16 @@ package LSP.Messages.Client_Notifications is
      (Self     : Progress_Notification;
       Receiver : access Client_Notification_Receiver'Class);
 
+   package SymbolInformation_Vectors is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.Progress_SymbolInformation_Vector,
+      Client_Notification_Receiver'Class);
+
+   type SymbolInformation_Vectors_Notification is
+     new SymbolInformation_Vectors.Notification with null record;
+
+   overriding procedure Visit
+     (Self     : SymbolInformation_Vectors_Notification;
+      Receiver : access Client_Notification_Receiver'Class);
+
 end LSP.Messages.Client_Notifications;
