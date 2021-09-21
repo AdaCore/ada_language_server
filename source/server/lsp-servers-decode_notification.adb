@@ -18,7 +18,7 @@
 with Ada.Tags; use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
-with VSS.JSON.Streams.Readers.Simple;
+with VSS.JSON.Pull_Readers.Simple;
 
 with LSP.JSON_Streams;
 with LSP.Messages.Server_Notifications; use LSP.Messages.Server_Notifications;
@@ -34,7 +34,7 @@ is
       Parameters  => LSP.JSON_Streams.JSON_Stream,
       Constructor => LSP.Messages.Server_Notifications.Decode);
 
-   R   : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+   R   : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
    JS  : aliased LSP.JSON_Streams.JSON_Stream
      (Is_Server_Side => True, R => R'Unchecked_Access);
    Tag : constant Ada.Tags.Tag :=

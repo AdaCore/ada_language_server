@@ -97,17 +97,17 @@ package body LSP.JSON_Streams is
    procedure Skip_Value (Self : in out JSON_Stream'Class) is
    begin
       case Self.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.No_Token |
-              VSS.JSON.Streams.Readers.Invalid |
-              VSS.JSON.Streams.Readers.Start_Document |
-              VSS.JSON.Streams.Readers.End_Document |
-              VSS.JSON.Streams.Readers.End_Array |
-              VSS.JSON.Streams.Readers.End_Object |
-              VSS.JSON.Streams.Readers.Key_Name =>
+         when VSS.JSON.Pull_Readers.No_Token |
+              VSS.JSON.Pull_Readers.Invalid |
+              VSS.JSON.Pull_Readers.Start_Document |
+              VSS.JSON.Pull_Readers.End_Document |
+              VSS.JSON.Pull_Readers.End_Array |
+              VSS.JSON.Pull_Readers.End_Object |
+              VSS.JSON.Pull_Readers.Key_Name =>
 
             raise Program_Error;
 
-         when VSS.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Pull_Readers.Start_Array =>
 
             Self.R.Read_Next;
 
@@ -117,7 +117,7 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
 
             Self.R.Read_Next;
 
@@ -130,10 +130,10 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.String_Value
-            | VSS.JSON.Streams.Readers.Number_Value
-            | VSS.JSON.Streams.Readers.Boolean_Value
-            | VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.String_Value
+            | VSS.JSON.Pull_Readers.Number_Value
+            | VSS.JSON.Pull_Readers.Boolean_Value
+            | VSS.JSON.Pull_Readers.Null_Value =>
 
             Self.R.Read_Next;
 

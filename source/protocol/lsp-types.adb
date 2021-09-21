@@ -23,7 +23,7 @@ with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
-with VSS.JSON.Streams.Readers;
+with VSS.JSON.Pull_Readers;
 with VSS.Characters;
 with VSS.Strings.Conversions;
 with VSS.Strings.Character_Iterators;
@@ -33,7 +33,8 @@ with LSP.JSON_Streams;
 with URIs;
 
 package body LSP.Types is
-   use type VSS.JSON.Streams.Readers.JSON_Event_Kind;
+
+   use type VSS.JSON.Pull_Readers.JSON_Event_Kind;
 
    Chunk_Size    : constant := 512;
    --  When processing strings in chunks, this is the size of the chunk
@@ -160,17 +161,17 @@ package body LSP.Types is
       function Read_Value return GNATCOLL.JSON.JSON_Value is
       begin
          case JS.R.Event_Kind is
-            when VSS.JSON.Streams.Readers.No_Token |
-                 VSS.JSON.Streams.Readers.Invalid |
-                 VSS.JSON.Streams.Readers.Start_Document |
-                 VSS.JSON.Streams.Readers.End_Document |
-                 VSS.JSON.Streams.Readers.End_Array |
-                 VSS.JSON.Streams.Readers.End_Object |
-                 VSS.JSON.Streams.Readers.Key_Name =>
+            when VSS.JSON.Pull_Readers.No_Token |
+                 VSS.JSON.Pull_Readers.Invalid |
+                 VSS.JSON.Pull_Readers.Start_Document |
+                 VSS.JSON.Pull_Readers.End_Document |
+                 VSS.JSON.Pull_Readers.End_Array |
+                 VSS.JSON.Pull_Readers.End_Object |
+                 VSS.JSON.Pull_Readers.Key_Name =>
 
                raise Program_Error;
 
-            when VSS.JSON.Streams.Readers.Start_Array =>
+            when VSS.JSON.Pull_Readers.Start_Array =>
 
                return Result : constant GNATCOLL.JSON.JSON_Value :=
                  GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array)
@@ -184,7 +185,7 @@ package body LSP.Types is
                   JS.R.Read_Next;
                end return;
 
-            when VSS.JSON.Streams.Readers.Start_Object =>
+            when VSS.JSON.Pull_Readers.Start_Object =>
 
                return Result : constant GNATCOLL.JSON.JSON_Value :=
                  GNATCOLL.JSON.Create_Object
@@ -207,7 +208,7 @@ package body LSP.Types is
                   JS.R.Read_Next;
                end return;
 
-            when VSS.JSON.Streams.Readers.String_Value =>
+            when VSS.JSON.Pull_Readers.String_Value =>
 
                declare
                   Value : constant String :=
@@ -219,7 +220,7 @@ package body LSP.Types is
                   return GNATCOLL.JSON.Create (Value);
                end;
 
-            when VSS.JSON.Streams.Readers.Number_Value =>
+            when VSS.JSON.Pull_Readers.Number_Value =>
 
                declare
                   Value : constant VSS.JSON.JSON_Number :=
@@ -239,7 +240,7 @@ package body LSP.Types is
                   end case;
                end;
 
-            when VSS.JSON.Streams.Readers.Boolean_Value =>
+            when VSS.JSON.Pull_Readers.Boolean_Value =>
 
                declare
                   Value : constant Boolean := (JS.R.Boolean_Value);
@@ -249,7 +250,7 @@ package body LSP.Types is
                   return GNATCOLL.JSON.Create (Value);
                end;
 
-            when VSS.JSON.Streams.Readers.Null_Value =>
+            when VSS.JSON.Pull_Readers.Null_Value =>
                JS.R.Read_Next;
 
                return GNATCOLL.JSON.JSON_Null;
@@ -258,22 +259,22 @@ package body LSP.Types is
       end Read_Value;
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.No_Token |
-              VSS.JSON.Streams.Readers.Invalid |
-              VSS.JSON.Streams.Readers.Start_Document |
-              VSS.JSON.Streams.Readers.End_Document |
-              VSS.JSON.Streams.Readers.End_Array |
-              VSS.JSON.Streams.Readers.End_Object |
-              VSS.JSON.Streams.Readers.Key_Name =>
+         when VSS.JSON.Pull_Readers.No_Token |
+              VSS.JSON.Pull_Readers.Invalid |
+              VSS.JSON.Pull_Readers.Start_Document |
+              VSS.JSON.Pull_Readers.End_Document |
+              VSS.JSON.Pull_Readers.End_Array |
+              VSS.JSON.Pull_Readers.End_Object |
+              VSS.JSON.Pull_Readers.Key_Name =>
 
             raise Program_Error;
 
-         when VSS.JSON.Streams.Readers.Start_Array |
-              VSS.JSON.Streams.Readers.Start_Object |
-              VSS.JSON.Streams.Readers.String_Value |
-              VSS.JSON.Streams.Readers.Number_Value |
-              VSS.JSON.Streams.Readers.Boolean_Value |
-              VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Start_Array |
+              VSS.JSON.Pull_Readers.Start_Object |
+              VSS.JSON.Pull_Readers.String_Value |
+              VSS.JSON.Pull_Readers.Number_Value |
+              VSS.JSON.Pull_Readers.Boolean_Value |
+              VSS.JSON.Pull_Readers.Null_Value =>
 
             V := (Read_Value with null record);
       end case;
@@ -288,12 +289,12 @@ package body LSP.Types is
      Item   : out Boolean) is
    begin
       case Stream.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Pull_Readers.Boolean_Value =>
 
             Item := Stream.R.Boolean_Value;
             Stream.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
 
             Item := False;
             Stream.R.Read_Next;
@@ -319,12 +320,12 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_Boolean => False,
                   String     => To_LSP_String (JS.R.String_Value));
             JS.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Pull_Readers.Boolean_Value =>
             V := (Is_Boolean => True,
                   Boolean    => JS.R.Boolean_Value);
             JS.R.Read_Next;
@@ -350,16 +351,16 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
 
             V := (Is_Number => False,
                   String    => <>);
 
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_Number => False,
                   String    => JS.R.String_Value);
 
-         when VSS.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Pull_Readers.Number_Value =>
             V := (Is_Number => True,
                   Number    => LSP_Number (JS.R.Number_Value.Integer_Value));
 
@@ -415,11 +416,11 @@ package body LSP.Types is
 
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
             V := (Is_Set => False);
             JS.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Pull_Readers.Boolean_Value =>
             V := (Is_Set => True,
                   Value  => JS.R.Boolean_Value);
             JS.R.Read_Next;
@@ -462,11 +463,11 @@ package body LSP.Types is
 
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
 
             Item := (Is_Set => False);
 
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             Item := (Is_Set => True,
                      Value  => To_LSP_String (JS.R.String_Value));
 
@@ -490,11 +491,11 @@ package body LSP.Types is
 
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
 
             Item := (Is_Set => False);
 
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             Item := (Is_Set => True,
                      Value  => To_LSP_String (JS.R.String_Value));
 

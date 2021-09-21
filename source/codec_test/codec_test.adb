@@ -32,7 +32,7 @@ with GNATCOLL.JSON;
 with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
-with VSS.JSON.Streams.Readers.Simple;
+with VSS.JSON.Pull_Readers.Simple;
 
 procedure Codec_Test is
 
@@ -85,8 +85,8 @@ procedure Codec_Test is
    is
       Text_Input : aliased
         VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
-      Reader     : aliased VSS.JSON.Streams.Readers
-        .Simple.JSON_Simple_Reader;
+      Reader     : aliased
+        VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
       In_JS      : aliased LSP.JSON_Streams.JSON_Stream (False, Reader'Access);
    begin
       Text_Input.Set_Data (Input);
