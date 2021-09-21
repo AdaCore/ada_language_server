@@ -4081,6 +4081,64 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_Progress_Params;
 
+   --------------------------------------------
+   -- Read_Progress_SymbolInformation_Vector --
+   --------------------------------------------
+
+   procedure Read_Progress_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_SymbolInformation_Vector)
+   is
+      use type VSS.Strings.Virtual_String;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "token" then
+               LSP.Types.Read_LSP_Number_Or_String (S, V.token);
+            elsif Key = "value" then
+               SymbolInformation_Vector'Read (S, V.value);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_Progress_SymbolInformation_Vector;
+
+   ---------------------------------------------
+   -- Write_Progress_SymbolInformation_Vector --
+   ---------------------------------------------
+
+   procedure Write_Progress_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_SymbolInformation_Vector)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("token");
+      LSP.Types.Write_LSP_Number_Or_String (S, V.token);
+      JS.Key ("value");
+      SymbolInformation_Vector'Write (S, V.value);
+      JS.End_Object;
+   end Write_Progress_SymbolInformation_Vector;
+
+   ------------------------------
+   -- Read_Registration_Option --
+   ------------------------------
+
    procedure Read_Registration_Option
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Registration_Option) is

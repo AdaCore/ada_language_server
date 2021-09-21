@@ -3894,6 +3894,7 @@ package body LSP.Ada_Handlers is
    is
       use type LSP.Messages.Search_Kind;
       use type VSS.Strings.Character_Count;
+      use type Ada.Containers.Count_Type;
 
       procedure On_Inaccessible_Name
         (File : GNATCOLL.VFS.Virtual_File;
@@ -3946,6 +3947,31 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Symbol_Response
         (Is_Error => False);
 
+      Partial_Response_Sended : Boolean := False;
+
+      -- Send_Partial_Response --
+
+      procedure Send_Partial_Response;
+      procedure Send_Partial_Response
+      is
+         P : LSP.Messages.Progress_SymbolInformation_Vector;
+         V : LSP.Messages.Symbol_Vector;
+      begin
+         if Canceled.Has_Been_Canceled then
+            return;
+         end if;
+
+         Write_Symbols (Names, V);
+         Names.Clear;
+
+         P.token := Request.params.partialResultToken.Value;
+         P.value := V.Vector;
+
+         Self.Server.On_Progress_SymbolInformation_Vector (P);
+
+         Partial_Response_Sended := True;
+      end Send_Partial_Response;
+
    begin
       if Pattern.Get_Kind /= LSP.Messages.Start_Word_Text
         and then Pattern.Get_Canonical_Pattern.Character_Length < 2
@@ -3965,6 +3991,11 @@ package body LSP.Ada_Handlers is
 
          if Canceled.Has_Been_Canceled then
             return Response;
+
+         elsif Request.params.partialResultToken.Is_Set
+           and then Names.Length > 100
+         then
+            Send_Partial_Response;
          end if;
       end loop;
 
@@ -3984,10 +4015,19 @@ package body LSP.Ada_Handlers is
 
          if Canceled.Has_Been_Canceled then
             return Response;
+
+         elsif Request.params.partialResultToken.Is_Set
+           and then Names.Length > 100
+         then
+            Send_Partial_Response;
          end if;
       end loop;
 
-      Write_Symbols (Names, Response.result);
+      if Partial_Response_Sended then
+         Send_Partial_Response;
+      else
+         Write_Symbols (Names, Response.result);
+      end if;
 
       return Response;
    end On_Workspace_Symbols_Request;
