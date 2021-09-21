@@ -293,7 +293,6 @@ body_header = """--  Automatically generated, do not edit.
 
 with Interfaces;
 
-with VSS.JSON.Streams.Readers;
 with VSS.Strings.Conversions;
 
 with LSP.JSON_Streams;

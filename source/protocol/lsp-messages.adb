@@ -20,9 +20,9 @@ with Ada.Tags.Generic_Dispatching_Constructor;
 
 with Interfaces;
 
-with VSS.JSON.Streams.Readers;
+with VSS.JSON.Pull_Readers;
 with VSS.Strings.Conversions;
-with VSS.JSON.Streams.Readers.Look_Ahead;
+with VSS.JSON.Pull_Readers.Look_Ahead;
 
 with LSP.JSON_Streams;
 with LSP.Message_IO;
@@ -2564,8 +2564,8 @@ package body LSP.Messages is
       JS  : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
-        .JSON_Look_Ahead_Reader (JS.R);
+      Look_Ahead : aliased
+        VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
@@ -2723,8 +2723,8 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
-        .JSON_Look_Ahead_Reader (JS.R);
+      Look_Ahead : aliased
+        VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
@@ -2794,8 +2794,8 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
-        .JSON_Look_Ahead_Reader (JS.R);
+      Look_Ahead : aliased
+        VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
@@ -2859,12 +2859,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_String => True,
                   Value     => JS.R.String_Value);
 
             JS.R.Read_Next;
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
             V := (Is_String => False, others => <>);
 
             JS.R.Read_Next;
@@ -2910,8 +2910,8 @@ package body LSP.Messages is
       -----------------
 
       procedure Read_Object (JS : LSP.JSON_Streams.JSON_Stream'Class) is
-         Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
-           .JSON_Look_Ahead_Reader (JS.R);
+         Look_Ahead : aliased
+           VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
          Nested     : aliased LSP.JSON_Streams.JSON_Stream
            (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
       begin
@@ -2958,7 +2958,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
 
             V := (Is_MarkupContent => False,
                   Vector           => <>);
@@ -2966,11 +2966,11 @@ package body LSP.Messages is
               (MarkedString'(Is_String => True,
                              value     => JS.R.String_Value));
             JS.R.Read_Next;
-         when VSS.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Pull_Readers.Start_Array =>
             V := (Is_MarkupContent => False,
                   Vector           => <>);
             MarkedString_Vector'Read (S, V.Vector);
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
             Read_Object (JS);
          when others =>
             JS.Skip_Value;
@@ -2989,13 +2989,13 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Null_Value =>
+         when VSS.JSON.Pull_Readers.Null_Value =>
             V := (False, False);
             JS.R.Read_Next;
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
             V := (True, False, others => <>);
             TextDocumentSyncOptions'Read (S, V.Options);
-         when VSS.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Pull_Readers.Number_Value =>
             V := (True, True, others => <>);
             TextDocumentSyncKind'Read (S, V.Value);
          when others =>
@@ -3015,11 +3015,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_String => True,
                   String    => JS.R.String_Value);
             JS.R.Read_Next;
-         when VSS.JSON.Streams.Readers.Start_Array =>
+         when VSS.JSON.Pull_Readers.Start_Array =>
             JS.R.Read_Next;
             UTF_16_Index'Read (S, V.From);
             UTF_16_Index'Read (S, V.Till);
@@ -3042,11 +3042,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Boolean_Value =>
+         when VSS.JSON.Pull_Readers.Boolean_Value =>
             V := (Is_Boolean => True,
                   Bool       => JS.R.Boolean_Value);
             JS.R.Read_Next;
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
             V := (Is_Boolean => False,
                   Options    => (Is_Set => True, Value => <>));
 
@@ -3070,12 +3070,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.String_Value =>
+         when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_String => True,
                   String    => JS.R.String_Value);
             JS.R.Read_Next;
 
-         when VSS.JSON.Streams.Readers.Start_Object =>
+         when VSS.JSON.Pull_Readers.Start_Object =>
             V := (Is_String => False, Content => <>);
             MarkupContent'Read (S, V.Content);
          when others =>
@@ -3106,8 +3106,8 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Look_Ahead : aliased VSS.JSON.Streams.Readers.Look_Ahead
-        .JSON_Look_Ahead_Reader (JS.R);
+      Look_Ahead : aliased
+        VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
@@ -3247,7 +3247,7 @@ package body LSP.Messages is
       Mask   : Integer := 4;
    begin
       case JS.R.Event_Kind is
-         when VSS.JSON.Streams.Readers.Number_Value =>
+         when VSS.JSON.Pull_Readers.Number_Value =>
             Result := Integer (JS.R.Number_Value.Integer_Value);
 
             for J in reverse WatchKind loop
