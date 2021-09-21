@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2020, AdaCore                        --
+--                    Copyright (C) 2020-2021, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-package body VSS.JSON.Streams.Readers.Look_Ahead is
+package body VSS.JSON.Pull_Readers.Look_Ahead is
 
    function Current_Event
      (Self : JSON_Look_Ahead_Reader'Class) return JSON_Event;
@@ -265,4 +265,4 @@ package body VSS.JSON.Streams.Readers.Look_Ahead is
       end if;
    end String_Value;
 
-end VSS.JSON.Streams.Readers.Look_Ahead;
+end VSS.JSON.Pull_Readers.Look_Ahead;

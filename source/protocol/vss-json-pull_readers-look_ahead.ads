@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2020, AdaCore                        --
+--                    Copyright (C) 2020-2021, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,11 +17,11 @@
 
 private with Ada.Containers.Vectors;
 
-package VSS.JSON.Streams.Readers.Look_Ahead is
+package VSS.JSON.Pull_Readers.Look_Ahead is
 
    type JSON_Look_Ahead_Reader
-     (Parent : not null access JSON_Stream_Reader'Class)
-       is limited new JSON_Stream_Reader with private;
+     (Parent : not null access JSON_Pull_Reader'Class)
+       is limited new JSON_Pull_Reader with private;
    --  This type provides a limited capability to look ahead into some JSON
    --  stream by remembering observed events. After end of look ahead phase
    --  the user "rewind" the stream and is able to read all events againg.
@@ -55,8 +55,8 @@ private
      new Ada.Containers.Vectors (Positive, JSON_Event);
 
    type JSON_Look_Ahead_Reader
-     (Parent : not null access JSON_Stream_Reader'Class)
-   is limited new JSON_Stream_Reader with record
+     (Parent : not null access JSON_Pull_Reader'Class)
+   is limited new JSON_Pull_Reader with record
       Data      : JSON_Event_Vectors.Vector;
       Index     : Natural := 1;
       Save_Mode : Boolean := True;
@@ -103,4 +103,4 @@ private
    overriding procedure Skip_Current_Value
      (Self : in out JSON_Look_Ahead_Reader);
 
-end VSS.JSON.Streams.Readers.Look_Ahead;
+end VSS.JSON.Pull_Readers.Look_Ahead;

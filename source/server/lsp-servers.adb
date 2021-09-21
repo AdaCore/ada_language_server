@@ -34,7 +34,7 @@ with LSP.Servers.Handle_Request;
 
 with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
-with VSS.JSON.Streams.Readers.Simple;
+with VSS.JSON.Pull_Readers.Simple;
 with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
@@ -311,9 +311,9 @@ package body LSP.Servers is
             Method     : out LSP.Types.Optional_String;
             Error      : out LSP.Messages.Optional_ResponseError)
          is
-            use all type VSS.JSON.Streams.Readers.JSON_Event_Kind;
+            use all type VSS.JSON.Pull_Readers.JSON_Event_Kind;
 
-            R  : aliased VSS.JSON.Streams.Readers.Simple.JSON_Simple_Reader;
+            R  : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
             JS : aliased LSP.JSON_Streams.JSON_Stream
               (True, R'Unchecked_Access);
 

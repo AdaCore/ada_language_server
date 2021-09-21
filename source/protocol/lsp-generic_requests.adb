@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,11 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Strings.Conversions;
+
 with LSP.Messages.Common_Writers;
 with LSP.Types;
-
-with VSS.JSON.Streams.Readers;
-with VSS.Strings.Conversions;
 
 package body LSP.Generic_Requests is
 

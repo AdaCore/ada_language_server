@@ -21,8 +21,8 @@
 with Ada.Streams;
 with Interfaces;
 
-with VSS.JSON.Streams.Readers;
-private with VSS.JSON.Streams.Writers;
+with VSS.JSON.Pull_Readers;
+private with VSS.JSON.Push_Writers;
 with VSS.Strings;
 with VSS.Text_Streams;
 
@@ -33,7 +33,7 @@ package LSP.JSON_Streams is
 
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access VSS.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+      R : access VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class := null)
        is limited new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
@@ -107,13 +107,13 @@ package LSP.JSON_Streams is
 private
 
    type Write_Stream is limited record
-      Writer : VSS.JSON.Streams.Writers.JSON_Simple_Writer;
+      Writer : VSS.JSON.Push_Writers.JSON_Simple_Push_Writer;
       Key    : VSS.Strings.Virtual_String;
    end record;
 
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access VSS.JSON.Streams.Readers.JSON_Stream_Reader'Class := null)
+      R : access VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class := null)
    is limited new Ada.Streams.Root_Stream_Type with
    record
       W : Write_Stream;

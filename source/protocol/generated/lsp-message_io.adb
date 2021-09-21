@@ -2,7 +2,6 @@
 
 with Interfaces;
 
-with VSS.JSON.Streams.Readers;
 with VSS.Strings.Conversions;
 
 with LSP.JSON_Streams;
@@ -7537,6 +7536,8 @@ package body LSP.Message_IO is
                Optional_ProgressToken'Read (S, V.partialResultToken);
             elsif Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
+            elsif Key = "query" then
+               LSP.Types.Read (S, V.query);
             elsif Key = "case_sensitive" then
                Optional_Boolean'Read (S, V.case_sensitive);
             elsif Key = "whole_word" then
@@ -7567,6 +7568,8 @@ package body LSP.Message_IO is
       Optional_ProgressToken'Write (S, V.partialResultToken);
       JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.Key ("query");
+      LSP.Types.Write (S, V.query);
       JS.Key ("case_sensitive");
       Optional_Boolean'Write (S, V.case_sensitive);
       JS.Key ("whole_word");
