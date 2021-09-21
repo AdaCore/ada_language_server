@@ -142,22 +142,26 @@ package body LSP.Clients is
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-           .Client_Notification_Receiver'Class);
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-           .Client_Notification_Receiver'Class);
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-           .Client_Notification_Receiver'Class);
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Progress
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-            .Client_Notification_Receiver'Class);
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String);
 
    end Decoders;
 
@@ -461,8 +465,10 @@ package body LSP.Clients is
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-         .Client_Notification_Receiver'Class)
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String)
       is
+         pragma Unreferenced (Token);
          Message : LogMessage_Notification;
       begin
          LogMessage_Notification'Read (Stream, Message);
@@ -476,8 +482,10 @@ package body LSP.Clients is
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-         .Client_Notification_Receiver'Class)
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String)
       is
+         pragma Unreferenced (Token);
          Message : PublishDiagnostics_Notification;
       begin
          PublishDiagnostics_Notification'Read (Stream, Message);
@@ -491,8 +499,10 @@ package body LSP.Clients is
       procedure Show_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-         .Client_Notification_Receiver'Class)
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String)
       is
+         pragma Unreferenced (Token);
          Message : ShowMessage_Notification;
       begin
          ShowMessage_Notification'Read (Stream, Message);
@@ -506,12 +516,28 @@ package body LSP.Clients is
       procedure Progress
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
-         .Client_Notification_Receiver'Class)
-      is
-         Message : Progress_Notification;
+         .Client_Notification_Receiver'Class;
+         Token   : LSP.Types.LSP_Number_Or_String) is
       begin
-         Progress_Notification'Read (Stream, Message);
-         Handler.On_Progress (Message.params);
+         case Handler.Get_Progress_Type (Token) is
+            when LSP.Client_Notification_Receivers.Params =>
+               declare
+                  Message : Progress_Notification;
+               begin
+                  Progress_Notification'Read (Stream, Message);
+                  Handler.On_Progress (Message.params);
+               end;
+
+            when LSP.Client_Notification_Receivers.SymbolInformation =>
+               declare
+                  Message : SymbolInformation_Vectors_Notification;
+               begin
+                  SymbolInformation_Vectors_Notification'Read
+                    (Stream, Message);
+                  Handler.On_Progress_SymbolInformation_Vector
+                    (Message.params);
+               end;
+         end case;
       end Progress;
 
    end Decoders;
@@ -588,6 +614,7 @@ package body LSP.Clients is
       procedure Look_Ahead
         (Id       : out LSP.Types.LSP_Number_Or_String;
          Method   : out LSP.Types.Optional_String;
+         Token    : out LSP.Types.LSP_Number_Or_String;
          Is_Error : in out Boolean);
 
       Memory : aliased
@@ -600,6 +627,7 @@ package body LSP.Clients is
       procedure Look_Ahead
         (Id       : out LSP.Types.LSP_Number_Or_String;
          Method   : out LSP.Types.Optional_String;
+         Token    : out LSP.Types.LSP_Number_Or_String;
          Is_Error : in out Boolean)
       is
          use all type VSS.JSON.Pull_Readers.JSON_Event_Kind;
@@ -628,24 +656,69 @@ package body LSP.Clients is
                         Id :=
                           (Is_Number => False,
                            String    => R.String_Value);
+
                      when Number_Value =>
                         Id :=
                           (Is_Number => True,
                            Number    => LSP.Types.LSP_Number
                              (R.Number_Value.Integer_Value));
+
                      when others =>
                         raise Constraint_Error;
                   end case;
                   R.Read_Next;
+
                elsif Key = "method" then
                   pragma Assert (R.Is_String_Value);
                   Method := (Is_Set => True,
                              Value  =>
                                LSP.Types.To_LSP_String (R.String_Value));
                   R.Read_Next;
+
                elsif Key = "error" then
                   Is_Error := True;
                   JS.Skip_Value;
+
+               elsif Key = "params" then
+                  --  parse 'params' object to get 'token' value
+                  --  from a notification if any
+
+                  pragma Assert (R.Is_Start_Object);
+                  R.Read_Next;
+
+                  while not R.Is_End_Object loop
+                     pragma Assert (R.Is_Key_Name);
+                     declare
+                        Key : constant String :=
+                          VSS.Strings.Conversions.To_UTF_8_String (R.Key_Name);
+                     begin
+                        R.Read_Next;
+
+                        if Key = "token" then
+                           case R.Event_Kind is
+                              when String_Value =>
+                                 Token :=
+                                   (Is_Number => False,
+                                    String    => R.String_Value);
+
+                              when Number_Value =>
+                                 Token :=
+                                   (Is_Number => True,
+                                    Number    => LSP.Types.LSP_Number
+                                      (R.Number_Value.Integer_Value));
+
+                              when others =>
+                                 raise Constraint_Error;
+                           end case;
+                           R.Read_Next;
+
+                        else
+                           JS.Skip_Value;
+                        end if;
+                     end;
+                  end loop;
+                  R.Read_Next;
+
                else
                   JS.Skip_Value;
                end if;
@@ -660,6 +733,8 @@ package body LSP.Clients is
         (Is_Server_Side => False, R => Reader'Unchecked_Access);
       Id     : LSP.Types.LSP_Number_Or_String;
       Method : LSP.Types.Optional_String;
+      Token  : LSP.Types.LSP_Number_Or_String :=
+        (Is_Number => False, String => VSS.Strings.Empty_Virtual_String);
 
       Is_Error : Boolean := False;
 
@@ -671,7 +746,7 @@ package body LSP.Clients is
         (VSS.Stream_Element_Vectors.Conversions.Unchecked_From_Unbounded_String
            (Data));
 
-      Look_Ahead (Id, Method, Is_Error);
+      Look_Ahead (Id, Method, Token, Is_Error);
       Reader.Set_Stream (Memory'Unchecked_Access);
       Stream.R.Read_Next;
       pragma Assert (Stream.R.Is_Start_Document);
@@ -803,7 +878,7 @@ package body LSP.Clients is
          begin
             if Notification_Maps.Has_Element (Position) then
                Notification_Maps.Element (Position).all
-                 (Stream'Access, Self.Notification);
+                 (Stream'Access, Self.Notification, Token);
             end if;
          end;
       end if;

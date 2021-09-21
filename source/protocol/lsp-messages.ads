@@ -8312,6 +8312,23 @@ package LSP.Messages is
    type SymbolInformation_Vector is
      new SymbolInformation_Vectors.Vector with null record;
 
+   package ProgressParam_SymbolInformation_Vectors is
+     new Generic_ProgressParam (SymbolInformation_Vector);
+   type Progress_SymbolInformation_Vector is new
+     ProgressParam_SymbolInformation_Vectors.ProgressParam;
+
+   procedure Read_Progress_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_SymbolInformation_Vector);
+   for Progress_SymbolInformation_Vector'Read use
+     Read_Progress_SymbolInformation_Vector;
+
+   procedure Write_Progress_SymbolInformation_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_SymbolInformation_Vector);
+   for Progress_SymbolInformation_Vector'Write use
+     Write_Progress_SymbolInformation_Vector;
+
    type Symbol_Vector (Is_Tree : Boolean := False) is record
       case Is_Tree is
          when True =>

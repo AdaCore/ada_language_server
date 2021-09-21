@@ -24,6 +24,7 @@ with Ada.Streams;
 with Ada.Exceptions;
 
 with LSP.Client_Message_Receivers;
+with LSP.Client_Notification_Receivers;
 with LSP.Message_Loggers;
 with LSP.Messages.Client_Requests;
 with LSP.Messages;
@@ -103,9 +104,19 @@ package LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.PublishDiagnosticsParams);
 
+   overriding function Get_Progress_Type
+     (Self  : access Server;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind is
+     (LSP.Client_Notification_Receivers.Params);
+
    overriding procedure On_Progress
      (Self   : access Server;
       Params : LSP.Messages.Progress_Params);
+
+   overriding procedure On_Progress_SymbolInformation_Vector
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_SymbolInformation_Vector);
 
    overriding procedure On_ShowMessage_Request
      (Self    : access Server;
