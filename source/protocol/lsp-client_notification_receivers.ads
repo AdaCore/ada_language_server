@@ -22,7 +22,7 @@ with LSP.Messages;
 
 package LSP.Client_Notification_Receivers is
 
-   type Progress_Value_Kind is (Params, SymbolInformation);
+   type Progress_Value_Kind is (ProgressParams, SymbolInformation);
 
    type Client_Notification_Receiver is limited interface;
    --  Receiver of notification on LSP client side

@@ -1190,6 +1190,20 @@ package body LSP.Message_Loggers is
    end On_Publish_Diagnostics;
 
    -----------------------
+   -- Get_Progress_Type --
+   -----------------------
+
+   overriding function Get_Progress_Type
+     (Self  : access Message_Logger;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind
+   is
+      pragma Unreferenced (Self, Token);
+   begin
+      return LSP.Client_Notification_Receivers.ProgressParams;
+   end Get_Progress_Type;
+
+   -----------------------
    -- On_Progress_Begin --
    -----------------------
 
