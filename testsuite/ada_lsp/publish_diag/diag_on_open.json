@@ -93,13 +93,7 @@
                     }
                 }
             },
-            "wait":[{
-                "method":"textDocument/publishDiagnostics",
-                "params":{
-                    "uri":"$URI{main.adb}",
-                    "diagnostics":[]
-                }
-            }]
+            "wait":[]
         }
     },  {
         "send": {

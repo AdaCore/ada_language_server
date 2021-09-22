@@ -229,15 +229,7 @@
                }
             }
          },
-         "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{a.adb}",
-                  "diagnostics": []
-               }
-            }
-         ]
+         "wait": []
       }
    },
    {

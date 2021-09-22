@@ -129,15 +129,7 @@
                     }
                 }
             },
-            "wait":[
-               {
-               "params": {
-                  "uri": "$URI{aaa.ads}",
-                  "diagnostics": []
-               },
-               "method": "textDocument/publishDiagnostics"
-              }
-           ]
+            "wait":[]
         }
     }, {
         "send": {

@@ -1976,7 +1976,6 @@ package body LSP.Ada_Handlers is
    is
       URI      : LSP.Messages.DocumentUri renames Value.textDocument.uri;
       File     : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-      Diag     : LSP.Messages.PublishDiagnosticsParams;
       Document : Internal_Document_Access;
    begin
       if Self.Open_Documents.Contains (File) then
@@ -2000,12 +1999,6 @@ package body LSP.Ada_Handlers is
          Self.Trace.Trace
            ("received a didCloseTextDocument for non-open document with uri: "
             & To_UTF_8_String (URI));
-      end if;
-
-      --  Clean diagnostics up on closing document
-      if Self.Diagnostics_Enabled then
-         Diag.uri := URI;
-         Self.Server.On_Publish_Diagnostics (Diag);
       end if;
    end On_DidCloseTextDocument_Notification;
 
