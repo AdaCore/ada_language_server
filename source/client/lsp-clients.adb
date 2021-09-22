@@ -520,7 +520,7 @@ package body LSP.Clients is
          Token   : LSP.Types.LSP_Number_Or_String) is
       begin
          case Handler.Get_Progress_Type (Token) is
-            when LSP.Client_Notification_Receivers.Params =>
+            when LSP.Client_Notification_Receivers.ProgressParams =>
                declare
                   Message : Progress_Notification;
                begin

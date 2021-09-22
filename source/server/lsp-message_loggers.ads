@@ -346,8 +346,7 @@ private
    overriding function Get_Progress_Type
      (Self  : access Message_Logger;
       Token : LSP.Types.LSP_Number_Or_String)
-      return LSP.Client_Notification_Receivers.Progress_Value_Kind is
-     (LSP.Client_Notification_Receivers.Params);
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind;
 
    overriding procedure On_Progress
      (Self   : access Message_Logger;
