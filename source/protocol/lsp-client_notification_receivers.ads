@@ -17,9 +17,12 @@
 --
 --  Interface to process notifications sent to the client.
 
+with LSP.Types;
 with LSP.Messages;
 
 package LSP.Client_Notification_Receivers is
+
+   type Progress_Value_Kind is (ProgressParams, SymbolInformation);
 
    type Client_Notification_Receiver is limited interface;
    --  Receiver of notification on LSP client side
@@ -39,9 +42,19 @@ package LSP.Client_Notification_Receivers is
       Params : LSP.Messages.PublishDiagnosticsParams) is abstract;
    --  Process textDocument/publishDiagnostics notification
 
+   function Get_Progress_Type
+     (Self  : access Client_Notification_Receiver;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return Progress_Value_Kind is abstract;
+
    procedure On_Progress
      (Self   : access Client_Notification_Receiver;
       Params : LSP.Messages.Progress_Params) is abstract;
    --  Process a $/progress notification
+
+   procedure On_Progress_SymbolInformation_Vector
+     (Self   : access Client_Notification_Receiver;
+      Params : LSP.Messages.Progress_SymbolInformation_Vector) is abstract;
+   --  Process a $/progress notification that contains SymbolInformation_Vector
 
 end LSP.Client_Notification_Receivers;

@@ -23,7 +23,6 @@ with GNATCOLL.JSON;
 
 with VSS.Strings.Conversions;
 
-with LSP.Types;
 with LSP.Messages; use LSP.Messages;
 
 package body LSP.Message_Loggers is
@@ -1191,6 +1190,20 @@ package body LSP.Message_Loggers is
    end On_Publish_Diagnostics;
 
    -----------------------
+   -- Get_Progress_Type --
+   -----------------------
+
+   overriding function Get_Progress_Type
+     (Self  : access Message_Logger;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind
+   is
+      pragma Unreferenced (Self, Token);
+   begin
+      return LSP.Client_Notification_Receivers.ProgressParams;
+   end Get_Progress_Type;
+
+   -----------------------
    -- On_Progress_Begin --
    -----------------------
 
@@ -1216,6 +1229,22 @@ package body LSP.Message_Loggers is
                                    (Params.End_Param.token)));
       end case;
    end On_Progress;
+
+   ------------------------------------------
+   -- On_Progress_SymbolInformation_Vector --
+   ------------------------------------------
+
+   overriding procedure On_Progress_SymbolInformation_Vector
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_SymbolInformation_Vector) is
+   begin
+      Self.Trace.Trace ("On_Progress_SymbolInformation_Vector: "
+                        & VSS.Strings.Conversions.To_UTF_8_String
+                          (LSP.Types.To_Virtual_String
+                             (Params.token))
+                        & Ada.Containers.Count_Type'Image
+                            (Params.value.Length));
+   end On_Progress_SymbolInformation_Vector;
 
    ---------------------------
    -- On_References_Request --

@@ -20,6 +20,7 @@
 
 with GNATCOLL.Traces;
 
+with LSP.Types;
 with LSP.Client_Notification_Receivers;
 with LSP.Client_Request_Receivers;
 with LSP.Client_Response_Senders;
@@ -342,9 +343,18 @@ private
      (Self   : access Message_Logger;
       Params : LSP.Messages.PublishDiagnosticsParams);
 
+   overriding function Get_Progress_Type
+     (Self  : access Message_Logger;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind;
+
    overriding procedure On_Progress
      (Self   : access Message_Logger;
       Params : LSP.Messages.Progress_Params);
+
+   overriding procedure On_Progress_SymbolInformation_Vector
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_SymbolInformation_Vector);
 
    overriding procedure On_ShowMessage_Request
      (Self   : access Message_Logger;

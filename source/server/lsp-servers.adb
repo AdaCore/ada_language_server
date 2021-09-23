@@ -619,6 +619,20 @@ package body LSP.Servers is
       Self.Send_Notification (Message);
    end On_Publish_Diagnostics;
 
+   -----------------------
+   -- Get_Progress_Type --
+   -----------------------
+
+   overriding function Get_Progress_Type
+     (Self  : access Server;
+      Token : LSP.Types.LSP_Number_Or_String)
+      return LSP.Client_Notification_Receivers.Progress_Value_Kind
+   is
+      pragma Unreferenced (Self, Token);
+   begin
+      return LSP.Client_Notification_Receivers.ProgressParams;
+   end Get_Progress_Type;
+
    -----------------
    -- On_Progress --
    -----------------
@@ -635,6 +649,24 @@ package body LSP.Servers is
    begin
       Self.Send_Notification (Message);
    end On_Progress;
+
+   ------------------------------------------
+   -- On_Progress_SymbolInformation_Vector --
+   ------------------------------------------
+
+   overriding procedure On_Progress_SymbolInformation_Vector
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_SymbolInformation_Vector)
+   is
+      Message : Message_Access :=
+        new LSP.Messages.Client_Notifications.
+          SymbolInformation_Vectors_Notification'
+            (jsonrpc => <>,
+             method  => "$/progress",
+             params  => Params);
+   begin
+      Self.Send_Notification (Message);
+   end On_Progress_SymbolInformation_Vector;
 
    ----------------------------
    -- On_ShowMessage_Request --
