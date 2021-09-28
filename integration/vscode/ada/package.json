@@ -183,7 +183,7 @@
                 ],
                 "pattern": [
                     {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(warning|)(?:[:]\\s+)?(.*)$",
+                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(?:([a-z]+):\\s+)?(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
@@ -207,6 +207,22 @@
                     "checkFile": {
                         "type": "boolean",
                         "description": "Just check the current file only"
+                    }
+                }
+            },
+            {
+                "type": "gnatprove",
+                "required": [
+                    "projectFile"
+                ],
+                "properties": {
+                    "projectFile": {
+                        "type": "string",
+                        "description": "The project file"
+                    },
+                    "taskKind": {
+                        "type": "integer",
+                        "description": "Check the current file only or whole project"
                     }
                 }
             }

@@ -198,6 +198,17 @@ package LSP.Lal_Utils is
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
 
+   function Get_Call_Expr
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Call_Expr;
+   --  From Node try to find a Call_Expr node, it will handle basic error
+   --  recovery.
+
+   function Get_Call_Designators
+     (Node : Libadalang.Analysis.Call_Expr)
+      return Laltools.Common.Node_Vectors.Vector;
+   --  Return the list of designator in the current call_expr
+
    procedure Get_Call_Expr_Name
      (Node             : Libadalang.Analysis.Ada_Node'Class;
       Cursor           : Langkit_Support.Slocs.Source_Location;
@@ -226,6 +237,12 @@ package LSP.Lal_Utils is
    --  Return the position of Designator in the parameters of Node else -1
    --  If Designator is null try check if Position is a valid parameter index
    --  Verify that Node parameters matches all the previous designators.
+
+   function Match_Designators
+     (Params      : Libadalang.Analysis.Param_Spec_Array;
+      Designators : Laltools.Common.Node_Vectors.Vector)
+      return Boolean;
+   --  Return True if Params contains all Designators
 
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)

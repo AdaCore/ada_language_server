@@ -1,0 +1,574 @@
+[
+   {
+      "comment": [
+          "This test checks the completion provider for parameters when",
+          "a function call"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 4969,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {}
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {},
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   procedure Bar (I, J : Integer);\n   procedure Bar (I : Integer; F : Float);\n   procedure Bar (I, J : Integer) is\n   begin\n      null;\n   end Bar;\n   procedure Bar (I : Integer; F : Float) is\n   begin\n      null;\n   end Bar;\nbegin\n   Bar (\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 12,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "I",
+                        "kind": 1,
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "F",
+                        "kind": 1,
+                        "insertText": "F => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "insertText": "I => $1, F => $2)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "I",
+                        "kind": 1,
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 1,
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "insertText": "I => $1, J => $2)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "F",
+               "kind": 1,
+               "insertText": "F => ",
+               "insertTextFormat": 1,
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": {
+                  "label": "F",
+                  "kind": 1,
+                  "insertText": "F => ",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 8
+                        }
+                     },
+                     "text": "F => "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 13
+                        }
+                     },
+                     "text": "1"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 5
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 14
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 14
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 6
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 15
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 15
+                        }
+                     },
+                     "text": " "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 28,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 12,
+                  "character": 16
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 28,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "I",
+                        "kind": 1,
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "insertText": "I => $1)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 29,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "I",
+               "kind": 1,
+               "insertText": "I => ",
+               "insertTextFormat": 1,
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 29,
+               "result": {
+                  "label": "I",
+                  "kind": 1,
+                  "insertText": "I => ",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 32,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Params of Bar",
+               "kind": 15,
+               "insertText": "I => $1)$0",
+               "insertTextFormat": 2,
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 32,
+               "result": {
+                  "label": "Params of Bar",
+                  "kind": 15,
+                  "insertText": "I => $1)$0",
+                  "insertTextFormat": 2,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 7
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 16
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 16
+                        }
+                     },
+                     "text": "I =>  )"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 9
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 12,
+                           "character": 21
+                        },
+                        "end": {
+                           "line": 12,
+                           "character": 21
+                        }
+                     },
+                     "text": "2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 48,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "id": 48,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
