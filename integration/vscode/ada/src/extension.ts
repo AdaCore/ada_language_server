@@ -20,11 +20,16 @@ import * as vscode_languageclient from 'vscode-languageclient/node';
 import * as process from 'process';
 
 import GPRTaskProvider from './gprTaskProvider';
+import gnatproveTaskProvider from './gnatproveTaskProvider';
 
-let alsTaskProvider: undefined | vscode.Disposable = vscode.tasks.registerTaskProvider(
-    GPRTaskProvider.gprBuildType,
-    new GPRTaskProvider()
-);
+let alsTaskProvider: vscode.Disposable[] = [
+    vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
+
+    vscode.tasks.registerTaskProvider(
+        gnatproveTaskProvider.gnatproveType,
+        new gnatproveTaskProvider()
+    ),
+];
 
 export function activate(context: vscode.ExtensionContext): void {
     let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
@@ -81,8 +86,8 @@ export function activate(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate(): void {
-    if (alsTaskProvider) {
-        alsTaskProvider.dispose();
-        alsTaskProvider = undefined;
+    for (const item of alsTaskProvider) {
+        item.dispose();
     }
+    alsTaskProvider = [];
 }
