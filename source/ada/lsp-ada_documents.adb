@@ -1777,7 +1777,7 @@ package body LSP.Ada_Documents is
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;
       Pos                      : Integer;
-      Completions_Count           : Natural)
+      Completions_Count        : Natural)
       return LSP.Messages.CompletionItem
    is
       use LSP.Types;
@@ -1786,6 +1786,7 @@ package body LSP.Ada_Documents is
       Item           : CompletionItem;
       Subp_Spec_Node : Base_Subp_Spec;
       Min_Width      : constant Natural := Completions_Count'Img'Length - 1;
+      --  The -1 remove the whitespace added by 'Img
 
       function Get_Sort_text (Base_Label : LSP_String) return LSP_String;
       --  Return a suitable sortText according to the completion item's
@@ -1798,21 +1799,18 @@ package body LSP.Ada_Documents is
       function Get_Sort_text (Base_Label : LSP_String) return LSP_String is
          Sort_Text : LSP_String := Empty_LSP_String;
       begin
-         if not Is_Visible then
-            if Pos /= -1 then
-               Sort_Text :=
-                 To_LSP_String
-                   (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width))
-                 & Sort_Text;
-            end if;
 
-            Sort_Text := "~" & Base_Label;
-
-         elsif Pos /= -1 then
+         if Pos /= -1 then
             Sort_Text :=
               To_LSP_String
                 (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width))
-              & Base_Label;
+                & Sort_Text;
+         end if;
+
+         Sort_Text := Sort_Text & Base_Label;
+
+         if not Is_Visible then
+            Sort_Text := "~" & Sort_Text;
          end if;
 
          return Sort_Text;
@@ -1840,39 +1838,11 @@ package body LSP.Ada_Documents is
          end if;
       end;
 
-      --  Compute the 'documentation' and 'detail' fields immediately if
-      --  requested (i.e: when the client does not support lazy computation
-      --  for these fields).
-      if Compute_Doc_And_Details then
-         Item.detail :=
-           (True,
-            LSP.Types.To_LSP_String
-              (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
-
-         --  Property_Errors can occur when calling
-         --  Get_Documentation on unsupported docstrings, so
-         --  add an exception handler to catch them and recover.
-         begin
-            Item.documentation :=
-              (Is_Set => True,
-               Value  => String_Or_MarkupContent'
-                 (Is_String => True,
-                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
-
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               LSP.Common.Log (Context.Trace, E);
-               Item.documentation := (others => <>);
-         end;
-      else
-         --  Set node's location to the 'data' field of the completion item, so
-         --  that we can retrieve it in the completionItem/resolve handler.
-         Item.data :=
-           (True,
-            (uri    => File_To_URI (BD.Unit.Get_Filename),
-             span   => LSP.Lal_Utils.To_Span (BD.Sloc_Range),
-             others => <>));
-      end if;
+      Set_Completion_Item_Documentation
+        (Context                 => Context,
+         BD                      => BD,
+         Item                    => Item,
+         Compute_Doc_And_Details => Compute_Doc_And_Details);
 
       --  Return immediately if we should not use snippets (e.g: completion for
       --  invisible symbols).
@@ -2009,6 +1979,53 @@ package body LSP.Ada_Documents is
 
       return Item;
    end Compute_Completion_Item;
+
+   ---------------------------------------
+   -- Set_Completion_Item_Documentation --
+   ---------------------------------------
+
+   procedure Set_Completion_Item_Documentation
+     (Context                 : LSP.Ada_Contexts.Context;
+      BD                      : Libadalang.Analysis.Basic_Decl;
+      Item                    : in out LSP.Messages.CompletionItem;
+      Compute_Doc_And_Details : Boolean)
+   is
+      use LSP.Messages;
+   begin
+      --  Compute the 'documentation' and 'detail' fields immediately if
+      --  requested (i.e: when the client does not support lazy computation
+      --  for these fields).
+      if Compute_Doc_And_Details then
+         Item.detail :=
+           (True,
+            LSP.Types.To_LSP_String
+              (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
+
+         --  Property_Errors can occur when calling
+         --  Get_Documentation on unsupported docstrings, so
+         --  add an exception handler to catch them and recover.
+         begin
+            Item.documentation :=
+              (Is_Set => True,
+               Value  => String_Or_MarkupContent'
+                 (Is_String => True,
+                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
+
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               LSP.Common.Log (Context.Trace, E);
+               Item.documentation := (others => <>);
+         end;
+      else
+         --  Set node's location to the 'data' field of the completion item, so
+         --  that we can retrieve it in the completionItem/resolve handler.
+         Item.data :=
+           (True,
+            (uri    => LSP.Types.File_To_URI (BD.Unit.Get_Filename),
+             span   => LSP.Lal_Utils.To_Span (BD.Sloc_Range),
+             others => <>));
+      end if;
+   end Set_Completion_Item_Documentation;
 
    --------------------
    -- Get_Any_Symbol --

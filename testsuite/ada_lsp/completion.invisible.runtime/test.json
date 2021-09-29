@@ -222,7 +222,7 @@
                                   "kind": 9,
                                   "detail": "package Ada.Short_Float_Text_IO is\nnew Ada.Text_IO.Float_IO (Short_Float);",
                                   "documentation": "at a-sfteio.ads (18:1)",
-                                  "sortText": "~Short_Float_Text_IO",
+                                  "sortText": "~48Short_Float_Text_IO",
                                   "filterText": "Short_Float_Text_IO",
                                   "insertText": "Short_Float_Text_IO",
                                   "additionalTextEdits": [

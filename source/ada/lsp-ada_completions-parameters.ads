@@ -21,7 +21,8 @@ with LSP.Ada_Handlers;
 package LSP.Ada_Completions.Parameters is
 
    type Parameter_Completion_Provider
-     (Context : not null LSP.Ada_Handlers.Context_Access)
+     (Context                 : not null LSP.Ada_Handlers.Context_Access;
+      Compute_Doc_And_Details : Boolean)
    is new Completion_Provider with null record;
 
    overriding procedure Propose_Completion
@@ -30,8 +31,8 @@ package LSP.Ada_Completions.Parameters is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList);
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList);
    --  Using the context, check if we are inside a function call and get its
    --  unset parameters while filtering them with the prefix.
 

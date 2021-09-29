@@ -147,7 +147,7 @@
                         "kind": 3,
                         "detail": "function ABC1 return Integer",
                         "documentation": "at pkg.ads (3:4)",
-                        "sortText": "~ABC1",
+                        "sortText": "~0ABC1",
                         "insertText": "ABC1",
                         "additionalTextEdits": []
                      },
@@ -156,7 +156,7 @@
                         "kind": 9,
                         "detail": "generic\n      ABC13 : Integer;\npackage ABC14 ",
                         "documentation": "at pkg.ads (19:4)",
-                        "sortText": "~ABC14",
+                        "sortText": "~1ABC14",
                         "insertText": "ABC14",
                         "additionalTextEdits": []
                      },
@@ -165,7 +165,7 @@
                         "kind": 7,
                         "detail": "type ABC4 (ABC5 : Integer) is record\n   ABC6 : Boolean := (for some ABC7 in Boolean => ABC7);\nend record;",
                         "documentation": "at pkg.ads (5:4)",
-                        "sortText": "~ABC4",
+                        "sortText": "~2ABC4",
                         "insertText": "ABC4",
                         "additionalTextEdits": []
                      }

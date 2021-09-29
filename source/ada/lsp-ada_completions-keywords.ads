@@ -27,8 +27,8 @@ package LSP.Ada_Completions.Keywords is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList);
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList);
    --  Get completion for keywords, filtering them with the prefix.
 
 end LSP.Ada_Completions.Keywords;
