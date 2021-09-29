@@ -37,10 +37,9 @@ package body LSP.Ada_Completions.Names is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList)
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList)
    is
-      pragma Unreferenced (Result);
       use all type Libadalang.Analysis.Base_Id;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
 
@@ -136,7 +135,7 @@ package body LSP.Ada_Completions.Names is
 
          Item                : Completion_Item;
          BD                  : Basic_Decl;
-         Completion_Count    : Natural := 0;
+         Completion_Count    : Natural := Natural (Result.items.Length);
          Name                : VSS.Strings.Virtual_String;
       begin
          while Next (Raw_Completions, Item) loop

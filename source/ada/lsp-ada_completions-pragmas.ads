@@ -26,8 +26,8 @@ package LSP.Ada_Completions.Pragmas is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList);
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList);
    --  Get completion for pragmas if we are within an pragma node and return
    --  immediately, since we don't want to propose other items than pragmas
    --  when wthin a pragma node.

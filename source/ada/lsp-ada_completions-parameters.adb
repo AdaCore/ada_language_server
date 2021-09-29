@@ -24,6 +24,7 @@ with Laltools.Common;
 with Libadalang.Common;
 
 with LSP.Ada_Completions.Filters;
+with LSP.Ada_Documents;
 with LSP.Lal_Utils;
 with LSP.Types;                   use LSP.Types;
 
@@ -39,10 +40,10 @@ package body LSP.Ada_Completions.Parameters is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList)
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList)
    is
-      pragma Unreferenced (Filter, Names);
+      pragma Unreferenced (Filter);
       use Libadalang.Analysis;
       use Libadalang.Common;
 
@@ -86,19 +87,39 @@ package body LSP.Ada_Completions.Parameters is
       end if;
 
       declare
-         Item        : LSP.Messages.CompletionItem;
-         Prefix      : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+         Prefix    : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
            Langkit_Support.Text.To_UTF8 (Node.Text);
-         Name_Node   : constant Libadalang.Analysis.Name :=
+         Name_Node : constant Libadalang.Analysis.Name :=
            Call_Expr_Node.F_Name;
+
+         Nb_Items  : constant Natural :=
+           Natural (Names.Length) + Natural (Result.items.Length);
+         --  Assuming that all the names are already present this will
+         --  represent the total number of items inserted
+
+         Min_Width : constant Natural := Nb_Items'Img'Length - 1;
+         --  The -1 remove the whitespace added by 'Img
+
+         Sort_Index     : Natural := Natural (Result.items.Length);
+         --  Index used to sort the completionItem
+
+         Params_Index   : Natural := Sort_Index;
+         --  Index of the "Param of" completionItem, this is related
+         --  to Sort_Index
       begin
          for N of Self.Context.Find_All_Env_Elements (Name_Node) loop
             if N.Kind in Ada_Basic_Subp_Decl then
+               --  Save an index for "Params of" node
+               Params_Index := Sort_Index;
+               Sort_Index := Sort_Index + 1;
+
                declare
                   Params_Snippet : LSP_String := Empty_LSP_String;
-                  Snippet_Name   : LSP_String := Empty_LSP_String;
-                  --  $0 is used for the final tab stop
-                  Index          : Positive := 1;
+
+                  Snippet_Index  : Positive := 1;
+                  --  Index of the snippet: $0 is already used by the final
+                  --  tab stop
+
                   Spec           : constant Libadalang.Analysis.Base_Subp_Spec
                     := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
                begin
@@ -109,6 +130,7 @@ package body LSP.Ada_Completions.Parameters is
                      for Param of Spec.P_Params loop
                         for Id of Param.F_Ids loop
                            declare
+                              Item      : LSP.Messages.CompletionItem;
                               Name_Text : constant Text_Type := Id.Text;
                               Name      : constant LSP_String :=
                                 To_LSP_String (Name_Text);
@@ -127,8 +149,15 @@ package body LSP.Ada_Completions.Parameters is
                                     Item.insertText :=
                                       (True,
                                        Whitespace_Prefix & Name & " => ");
-                                    Item.kind := (True, LSP.Messages.Text);
+                                    Item.kind := (True, LSP.Messages.Field);
+                                    Item.sortText :=
+                                      (True,
+                                       To_LSP_String
+                                         (GNATCOLL.Utils.Image
+                                              (Sort_Index,
+                                               Min_Width => Min_Width)));
                                     Result.items.Append (Item);
+                                    Sort_Index := Sort_Index + 1;
                                  end if;
 
                                  Params_Snippet := Params_Snippet
@@ -137,9 +166,9 @@ package body LSP.Ada_Completions.Parameters is
                                    & "$"
                                    & To_LSP_String
                                    (GNATCOLL.Utils.Image
-                                      (Index, Min_Width => 1))
+                                      (Snippet_Index, Min_Width => 1))
                                    & ", ";
-                                 Index := Index + 1;
+                                 Snippet_Index := Snippet_Index + 1;
                               end if;
                            end;
                         end loop;
@@ -157,18 +186,32 @@ package body LSP.Ada_Completions.Parameters is
                            Length (Params_Snippet) - 2);
                         Params_Snippet := Params_Snippet & ")$0";
 
-                        Snippet_Name :=
-                          Snippet_Name
-                          & "Params of "
-                          & To_LSP_String (Name_Node.Text);
-                        Item.label := To_Virtual_String
-                          (Snippet_Name);
-                        Item.insertTextFormat :=
-                          (True, LSP.Messages.Snippet);
-                        Item.insertText :=
-                          (True, Whitespace_Prefix & Params_Snippet);
-                        Item.kind := (True, LSP.Messages.Snippet);
-                        Result.items.Append (Item);
+                        declare
+                           Snippet_Name : constant LSP_String :=
+                             "Params of " & To_LSP_String (Name_Node.Text);
+                           Item         : LSP.Messages.CompletionItem;
+                        begin
+                           Item.label := To_Virtual_String
+                             (Snippet_Name);
+                           Item.insertTextFormat :=
+                             (True, LSP.Messages.Snippet);
+                           Item.insertText :=
+                             (True, Whitespace_Prefix & Params_Snippet);
+                           Item.kind := (True, LSP.Messages.Snippet);
+                           LSP.Ada_Documents.Set_Completion_Item_Documentation
+                             (Context                 => Self.Context.all,
+                              BD                      => N.As_Basic_Decl,
+                              Item                    => Item,
+                              Compute_Doc_And_Details =>
+                                Self.Compute_Doc_And_Details);
+                           Item.sortText :=
+                             (True,
+                              To_LSP_String
+                                (GNATCOLL.Utils.Image
+                                     (Params_Index, Min_Width => Min_Width)));
+
+                           Result.items.Append (Item);
+                        end;
                      end if;
                   end if;
                end;

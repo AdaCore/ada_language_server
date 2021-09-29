@@ -19,92 +19,53 @@
             "id": 1,
             "method": "initialize",
             "params": {
-               "processId": 4969,
+               "processId": 199714,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
-                     "applyEdit": true,
-                     "workspaceEdit": {},
-                     "didChangeConfiguration": {},
-                     "didChangeWatchedFiles": {},
-                     "executeCommand": {}
+                     "applyEdit": true
                   },
                   "textDocument": {
-                     "synchronization": {},
                      "completion": {
-                        "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": true,
                            "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ]
+                              "markdown",
+                              "plaintext"
+                           ],
+                            "resolveSupport": {
+                                "properties": [
+                                    "documentation",
+                                    "detail"
+                                ]
+                            }
                         }
-                     },
-                     "hover": {},
-                     "signatureHelp": {},
-                     "declaration": {},
-                     "definition": {},
-                     "typeDefinition": {},
-                     "implementation": {},
-                     "references": {},
-                     "documentHighlight": {},
-                     "documentSymbol": {
-                        "hierarchicalDocumentSymbolSupport": true
-                     },
-                     "codeLens": {},
-                     "colorProvider": {},
-                     "formatting": {
-                        "dynamicRegistration": true
-                     },
-                     "rangeFormatting": {},
-                     "onTypeFormatting": {},
-                     "foldingRange": {
-                        "lineFoldingOnly": true
-                     },
-                     "selectionRange": {}
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
                   }
                }
             }
          },
          "wait": [
-            {
-               "id": 1,
-               "result": {
-                  "capabilities": {
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child"
-                     ]
-                  }
-               }
-            }
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 ",",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
+                     }
+                 }
+             }
          ]
       }
    },
@@ -178,14 +139,16 @@
                   "items": [
                      {
                         "label": "I",
-                        "kind": 1,
+                        "kind": 5,
+                        "sortText": "1",
                         "insertText": "I => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
                         "label": "F",
-                        "kind": 1,
+                        "kind": 5,
+                        "sortText": "2",
                         "insertText": "F => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -193,20 +156,36 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
+                        "sortText": "0",
                         "insertText": "I => $1, F => $2)$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                  "line": 2,
+                                  "character": 3
+                              },
+                              "end": {
+                                  "line": 2,
+                                  "character": 42
+                              }
+                           }
+                        }
                      },
                      {
                         "label": "I",
-                        "kind": 1,
+                        "kind": 5,
+                        "sortText": "4",
                         "insertText": "I => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
                         "label": "J",
-                        "kind": 1,
+                        "kind": 5,
+                        "sortText": "5",
                         "insertText": "J => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -214,9 +193,23 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
+                        "sortText": "3",
                         "insertText": "I => $1, J => $2)$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                  "line": 1,
+                                  "character": 3
+                              },
+                              "end": {
+                                  "line": 1,
+                                  "character": 34
+                              }
+                           }
+                        }
                      }
                   ]
                }
@@ -396,7 +389,8 @@
                   "items": [
                      {
                         "label": "I",
-                        "kind": 1,
+                        "kind": 5,
+                        "sortText": "1",
                         "insertText": "I => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -404,9 +398,23 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
+                        "sortText": "0",
                         "insertText": "I => $1)$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                  "line": 2,
+                                  "character": 3
+                              },
+                              "end": {
+                                  "line": 2,
+                                  "character": 42
+                              }
+                           }
+                        }
                      }
                   ]
                }
