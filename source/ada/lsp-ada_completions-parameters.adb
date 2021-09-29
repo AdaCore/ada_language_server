@@ -46,11 +46,14 @@ package body LSP.Ada_Completions.Parameters is
       use Libadalang.Analysis;
       use Libadalang.Common;
 
-      Call_Expr_Node : constant Libadalang.Analysis.Call_Expr :=
+      Call_Expr_Node    : constant Libadalang.Analysis.Call_Expr :=
         LSP.Lal_Utils.Get_Call_Expr (Node);
-      Token_Kind     : Libadalang.Common.Token_Kind :=
+      Token_Kind        : Libadalang.Common.Token_Kind :=
         Kind (Data (Token));
-      Designators : Laltools.Common.Node_Vectors.Vector;
+      Whitespace_Prefix : LSP_String := Empty_LSP_String;
+      --  Empty if we already have a whitespace before a ","
+
+      Designators     : Laltools.Common.Node_Vectors.Vector;
 
       function Is_Present (Id_Text : Text_Type) return Boolean;
       --  Return True if Id_Name match one of the designators
@@ -78,6 +81,8 @@ package body LSP.Ada_Completions.Parameters is
 
       if Token_Kind = Ada_Whitespace then
          Token_Kind := Kind (Data (Previous (Token, Exclude_Trivia => True)));
+      elsif Token_Kind = Ada_Comma then
+         Whitespace_Prefix := Whitespace_Prefix & " ";
       end if;
 
       declare
@@ -119,7 +124,9 @@ package body LSP.Ada_Completions.Parameters is
                                     Item.label := To_Virtual_String (Name);
                                     Item.insertTextFormat :=
                                       (True, LSP.Messages.PlainText);
-                                    Item.insertText := (True, Name & " => ");
+                                    Item.insertText :=
+                                      (True,
+                                       Whitespace_Prefix & Name & " => ");
                                     Item.kind := (True, LSP.Messages.Text);
                                     Result.items.Append (Item);
                                  end if;
@@ -139,7 +146,9 @@ package body LSP.Ada_Completions.Parameters is
                      end loop;
 
                      --  If the string is empty => nothing to do
-                     if Params_Snippet /= Empty_LSP_String then
+                     if Params_Snippet /= Empty_LSP_String
+                       and then Token_Kind in Ada_Par_Open | Ada_Comma
+                     then
                         --  Remove the last 2 characters which are ", " and
                         --  replace it by ")" and the final tab stop
                         Params_Snippet := Unbounded_Slice
@@ -156,7 +165,8 @@ package body LSP.Ada_Completions.Parameters is
                           (Snippet_Name);
                         Item.insertTextFormat :=
                           (True, LSP.Messages.Snippet);
-                        Item.insertText := (True, Params_Snippet);
+                        Item.insertText :=
+                          (True, Whitespace_Prefix & Params_Snippet);
                         Item.kind := (True, LSP.Messages.Snippet);
                         Result.items.Append (Item);
                      end if;

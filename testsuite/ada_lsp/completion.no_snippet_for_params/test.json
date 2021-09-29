@@ -2,7 +2,7 @@
    {
       "comment": [
           "This test checks that we don't use snippets when giving a ",
-          "subprogram as a parameter except for its parameters"
+          "subprogram as a parameter."
       ]
    },
    {
@@ -76,6 +76,7 @@
                      "completionProvider": {
                         "triggerCharacters": [
                            ".",
+                           ",",
                            "("
                         ],
                         "resolveProvider": true
@@ -221,13 +222,6 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
-                     {
-                        "label": "Params of Do_Something",
-                        "kind": 15,
-                        "insertText": "Subp => $1, A => $2)$0",
-                        "insertTextFormat": 2,
-                        "additionalTextEdits": []
-                     },
                      {
                         "label": "Print_Integer",
                         "kind": 3,

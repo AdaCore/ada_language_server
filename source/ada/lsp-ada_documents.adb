@@ -2227,6 +2227,11 @@ package body LSP.Ada_Documents is
 
       Filter : LSP.Ada_Completions.Filters.Filter;
    begin
+      if Node.Kind in Libadalang.Common.Ada_String_Literal_Range then
+         --  Do nothing when inside a string
+         return;
+      end if;
+
       Context.Trace.Trace
         ("Getting completions, Pos = ("
          & Sloc.Line'Image & ", " & Sloc.Column'Image & ") Node = "
