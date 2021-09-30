@@ -283,6 +283,7 @@
                      "completionProvider": {
                         "triggerCharacters": [
                             ".",
+                            ",",
                             "("
                         ],
                         "resolveProvider": true

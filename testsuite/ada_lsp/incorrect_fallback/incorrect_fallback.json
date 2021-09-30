@@ -106,6 +106,7 @@
                      "completionProvider": {
                         "triggerCharacters": [
                             ".",
+                            ",",
                             "("
                         ],
                         "resolveProvider": true

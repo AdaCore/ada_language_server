@@ -17,7 +17,6 @@
 
 with VSS.Strings.Conversions;
 
-with LSP.Types;
 with LSP.Messages.Common_Writers;
 
 package body LSP.Generic_Notifications is
@@ -76,6 +75,18 @@ package body LSP.Generic_Notifications is
 
    procedure Visit
      (Self    : Notification;
+      Handler : access Visitor) is
+   begin
+      raise Program_Error;
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   procedure Visit
+     (Self    : Notification;
+      Token   : LSP.Types.LSP_Number_Or_String;
       Handler : access Visitor) is
    begin
       raise Program_Error;

@@ -37,6 +37,7 @@
                      "completionProvider": {
                         "triggerCharacters": [
                             ".",
+                            ",",
                             "("
                         ],
                         "resolveProvider": true

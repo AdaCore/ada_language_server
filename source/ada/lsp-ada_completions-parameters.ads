@@ -32,6 +32,7 @@ package LSP.Ada_Completions.Parameters is
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : out Ada_Completions.Completion_Maps.Map;
       Result : out LSP.Messages.CompletionList);
-   --  Get completion for keywords, filtering them with the prefix.
+   --  Using the context, check if we are inside a function call and get its
+   --  unset parameters while filtering them with the prefix.
 
 end LSP.Ada_Completions.Parameters;
