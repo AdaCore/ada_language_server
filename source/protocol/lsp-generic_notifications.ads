@@ -22,6 +22,7 @@ with Ada.Streams;
 
 with LSP.JSON_Streams;
 with LSP.Messages;
+with LSP.Types;
 
 generic
    type Base_Message is abstract new LSP.Messages.NotificationMessage
@@ -43,6 +44,11 @@ package LSP.Generic_Notifications is
 
    procedure Visit
      (Self    : Notification;
+      Handler : access Visitor);
+
+   procedure Visit
+     (Self    : Notification;
+      Token   : LSP.Types.LSP_Number_Or_String;
       Handler : access Visitor);
 
    procedure Read
