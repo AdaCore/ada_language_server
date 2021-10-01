@@ -18,6 +18,8 @@ $PWD/subprojects/stubs
 export CPATH=/usr/local/include:/mingw64/include
 export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
 export DYLD_LIBRARY_PATH=/usr/local/lib
+export PATH=`ls -d $PWD/cached_gnat/*/bin |tr '\n' ':'`$PATH
+echo PATH=$PATH
 
 BRANCH=master
 
@@ -36,9 +38,6 @@ FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
 aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/$FILE . --sse=AES256
 tar xzf $FILE -C $prefix
 rm -f -v $FILE
-gprinstall --uninstall gnatcoll || true
-gprinstall --uninstall gpr || true
-rm -f -v gnat/spawn*.gpr
 
 which python
 pip install --user e3-testsuite
