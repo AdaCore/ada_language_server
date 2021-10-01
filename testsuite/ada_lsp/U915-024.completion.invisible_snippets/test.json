@@ -213,7 +213,7 @@
                      {
                         "label": "Do_Something (invisible)",
                         "kind": 3,
-                        "sortText": "~Do_Something",
+                        "sortText": "~0Do_Something",
                         "filterText": "Do_Something",
                         "insertText": "Do_Something",
                         "additionalTextEdits": [],

@@ -74,8 +74,8 @@ package LSP.Ada_Completions is
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : out Ada_Completions.Completion_Maps.Map;
-      Result : out LSP.Messages.CompletionList) is abstract;
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Messages.CompletionList) is abstract;
    --  Populate Names and Result with completions for given Source_Location.
    --  Names works for defining name completions to create snippets and to
    --  avoid duplicates. The Token's span encloses Sloc or Sloc can be at the

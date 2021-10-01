@@ -155,7 +155,7 @@
                      {
                         "label": "Select_Some",
                         "kind": 3,
-                        "sortText": "1Select_Some",
+                        "sortText": "2Select_Some",
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{test.ads}",

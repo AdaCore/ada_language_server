@@ -261,6 +261,14 @@ package LSP.Ada_Documents is
    --  when computing subprogram snippets.
    --  Completions_Count is the total number of completion items.
 
+   procedure Set_Completion_Item_Documentation
+     (Context                 : LSP.Ada_Contexts.Context;
+      BD                      : Libadalang.Analysis.Basic_Decl;
+      Item                    : in out LSP.Messages.CompletionItem;
+      Compute_Doc_And_Details : Boolean);
+   --  Either set the item documentation and details or setup it to produce
+   --  them for the Completion_Resolve request.
+
    function Get_Source_Location
      (Self     : Document'Class;
       Position : LSP.Messages.Position)

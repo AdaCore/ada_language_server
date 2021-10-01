@@ -4045,6 +4045,17 @@ package body LSP.Ada_Handlers is
 
       Limit : constant := 10;
 
+      --  If lazy computation for the 'detail' and 'documentation' fields is
+      --  supported by the client, set the Compute_Doc_And_Details flag to
+      --  False.
+      Compute_Doc_And_Details : constant Boolean :=
+        not
+          (Self.Completion_Resolve_Properties.Contains
+             (VSS.Strings.Conversions.To_Virtual_String ("detail"))
+           and then
+             Self.Completion_Resolve_Properties.Contains
+                (VSS.Strings.Conversions.To_Virtual_String ("documentation")));
+
       P1 : aliased LSP.Ada_Completions.Aggregates
         .Aggregate_Completion_Provider
           (Named_Notation_Threshold => Self.Named_Notation_Threshold);
@@ -4057,7 +4068,9 @@ package body LSP.Ada_Handlers is
       P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self, Context);
       P7 : aliased
-        LSP.Ada_Completions.Parameters.Parameter_Completion_Provider (Context);
+        LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
+          (Context                 => Context,
+           Compute_Doc_And_Details => Compute_Doc_And_Details);
 
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         (P1'Unchecked_Access,
@@ -4073,23 +4086,7 @@ package body LSP.Ada_Handlers is
 
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
-      Compute_Doc_And_Details : Boolean := True;
-
    begin
-
-      --  If lazy computation for the 'detail' and 'documentation' fields is
-      --  supported by the client, set the Compute_Doc_And_Details flag to
-      --  False.
-
-      if Self.Completion_Resolve_Properties.Contains
-         (VSS.Strings.Conversions.To_Virtual_String ("detail"))
-        and then
-          Self.Completion_Resolve_Properties.Contains
-            (VSS.Strings.Conversions.To_Virtual_String ("documentation"))
-      then
-         Compute_Doc_And_Details := False;
-      end if;
-
       Document.Get_Completions_At
         (Context                  => Context.all,
          Providers                => Providers,
