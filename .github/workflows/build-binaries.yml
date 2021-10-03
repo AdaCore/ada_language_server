@@ -63,20 +63,18 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
-          key: ${{ runner.os }}-gnat-ce-2021
-          restore-keys: ${{ runner.os }}-gnat-ce-2021
-      - name: Get GNAT Community 2021 toolchain
-        if: ${{ runner.os != 'macOS' }}
-        uses: ada-actions/toolchain@ce2021
+          key: ${{ runner.os }}-alire-2021
+          restore-keys: ${{ runner.os }}-alire-2021
+      - name: Rename gnat/
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: mv gnat gnat_
+        # alr fails to run `gnat` on Windows if there is a dir
+      - name: Get GNAT toolchain with alire
+        uses: alire-project/setup-alire@v1
         with:
-          distrib: community
-          install_dir: ./cached_gnat
-      - name: Get GNAT Community 2020 toolchain
-        if: ${{ runner.os == 'macOS' }}
-        uses: ada-actions/toolchain@ce2020
-        with:
-          distrib: community
-          install_dir: ./cached_gnat
+          toolchain: gnat_native^11 gprbuild^21
+          toolchain_dir: ./cached_gnat
       - name: Build (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
@@ -84,6 +82,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         run: |
+          # Move `gnat` back
+          mv gnat_ gnat
           # drop python if any
           rm -rf -v ./cached_gnat/gnat*/bin/python*
           # This is to avoid locking .sh on win that prevents its updating
