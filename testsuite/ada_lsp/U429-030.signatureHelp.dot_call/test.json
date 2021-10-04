@@ -75,7 +75,7 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{test.gpr}", 
+                     "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1"
                   }
@@ -1631,7 +1631,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 0
+                        "activeParameter": 1
                      },
                      {
                         "label": "procedure Hello (A : Integer; B : Float)",
@@ -3199,7 +3199,7 @@
                               "label": "B"
                            }
                         ],
-                        "activeParameter": 2
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
