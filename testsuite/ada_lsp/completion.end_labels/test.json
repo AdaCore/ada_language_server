@@ -243,26 +243,11 @@
                   "isIncomplete": false,
                    "items": [
                        {
-                           "label": "A",
-                           "kind": 6,
-                           "detail": "A, B : Integer",
-                           "documentation": "at main.adb (3:18)",
-                           "additionalTextEdits": [
-                           ]
-                       },
-                       {
-                           "label": "ASCII",
-                           "kind": 9,
-                           "detail": "package ASCII ",
-                           "documentation": "<ANY>",
-                           "additionalTextEdits": [
-                           ]
-                       },
-                       {
                            "label": "Add",
                            "kind": 3,
                            "detail": "function Add (A, B : Integer) return Integer",
                            "documentation": "at main.adb (3:4)",
+                           "sortText": "1Add",
                            "additionalTextEdits": [
                            ]
                        }
