@@ -35,6 +35,7 @@ extension at
    * [Protocol extensions](#Protocol-extensions)
  * [How to use the VScode extension](#How-to-use-the-VScode-extension)
  * [Integration with Coc.NVim](#integration-with-cocnvim)
+ * [Integration with vim-lsp](#integration-with-vim-lsp)
  * [Integration with LanguageClient-Neovim](#Integration-with-LanguageClient-Neovim)
  * [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
  * [Integration with emacs lsp-mode](#Integration-with-emacs-lsp-mode)
@@ -46,7 +47,7 @@ extension at
 ## Install
 
 You can build language server from sources.
-To build is from sources install dependencies and run
+To build it from sources install dependencies and run
 ```
 make
 ```
@@ -248,6 +249,27 @@ configure the Ada Language Server with `:CocConfig`:
     }
   }
 }
+```
+
+## Integration with vim-lsp
+
+If you want to integrate the Ada Language Server into vim, you can use the
+[vim-lsp](https://github.com/prabirshrestha/vim-lsp).
+
+You'll have to [install](#install) the Ada Language Server manually somewhere on your
+computer, and then you can add the following line to your `.vimrc` file:
+
+```viml
+if executable('ada_language_server')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'ada_language_server',
+        \ 'cmd': ['ada_language_server'],
+        \ 'allowlist': ['ada'],
+        \ 'workspace_config': {'ada': {
+        \     'projectFile': "project.gpr",
+        \     'scenarioVariables': {"ARCH": "x86_64-pc-linux-gnu"}}},
+        \ })
+endif
 ```
 
 ## Integration with LanguageClient-Neovim
