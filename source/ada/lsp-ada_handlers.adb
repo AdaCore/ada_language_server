@@ -845,8 +845,11 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Shutdown_Request)
       return LSP.Messages.Server_Responses.Shutdown_Response
    is
-      pragma Unreferenced (Self, Request);
+      pragma Unreferenced (Request);
    begin
+      --  Suspend files/runtime indexing after shutdown requst
+      Self.Indexing_Enabled := False;
+
       return Response : LSP.Messages.Server_Responses.Shutdown_Response
         (Is_Error => False);
    end On_Shutdown_Request;
