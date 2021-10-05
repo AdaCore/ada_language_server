@@ -123,6 +123,18 @@ package body LSP.Ada_Completions.Names is
          --   . When we are providing an actual parameter to a subprogram call
 
          Use_Snippets := False;
+
+         --  If we are dealing with an end label, just return the corresponding
+         --  declaration's name: it's the only valid result in this case.
+         if Parent.Kind in Ada_End_Name and then not Parent.Is_Null then
+            Names.Include
+              (Parent.As_End_Name.P_Basic_Decl.P_Defining_Name,
+               (Is_Dot_Call  => False,
+                Is_Visible   => True,
+                Use_Snippets => Use_Snippets,
+                Pos          => 1));
+            return;
+         end if;
       end if;
 
       declare
