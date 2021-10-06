@@ -232,6 +232,7 @@
                         "triggerCharacters": [
                            ".",
                            ",",
+                           "'",
                            "("
                         ],
                         "resolveProvider": true

@@ -182,6 +182,7 @@
                         "triggerCharacters": [
                            ".",
                            ",",
+                           "'",
                            "("
                         ],
                         "resolveProvider": true
