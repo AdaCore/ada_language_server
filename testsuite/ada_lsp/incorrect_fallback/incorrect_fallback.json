@@ -107,6 +107,7 @@
                         "triggerCharacters": [
                             ".",
                             ",",
+                            "'",
                             "("
                         ],
                         "resolveProvider": true

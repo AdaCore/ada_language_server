@@ -37,6 +37,7 @@ with LSP.Ada_Contexts;         use LSP.Ada_Contexts;
 with LSP.Ada_Completions;
 with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
+with LSP.Ada_Completions.Attributes;
 with LSP.Ada_Completions.Keywords;
 with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
@@ -722,7 +723,8 @@ package body LSP.Ada_Handlers is
         (True,
          (resolveProvider     => LSP.Types.True,
           triggerCharacters   => (True,
-                                  Empty_Vector & (+".") & (+",") & (+"(")),
+                                  Empty_Vector & (+".")
+                                  & (+",") & (+"'") & (+"(")),
           allCommitCharacters => (Is_Set => False),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.hoverProvider :=
@@ -4066,11 +4068,14 @@ package body LSP.Ada_Handlers is
       P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
       P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
       P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
-      P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
+      P5 : aliased
+        LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
+
+      P6 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
         (Self.Completion_Snippets_Enabled);
-      P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
+      P7 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self, Context);
-      P7 : aliased
+      P8 : aliased
         LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
           (Context                 => Context,
            Compute_Doc_And_Details => Compute_Doc_And_Details);
@@ -4082,7 +4087,8 @@ package body LSP.Ada_Handlers is
          P4'Unchecked_Access,
          P5'Unchecked_Access,
          P6'Unchecked_Access,
-         P7'Unchecked_Access);
+         P7'Unchecked_Access,
+         P8'Unchecked_Access);
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
