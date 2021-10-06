@@ -3210,7 +3210,9 @@ package body LSP.Ada_Handlers is
                        ((Text_Edit.Location.Start_Line,
                          Text_Edit.Location.Start_Column));
 
-                     Process_Comments (Node);
+                     if Self.Options.Refactoring.Renaming.In_Comments then
+                        Process_Comments (Node);
+                     end if;
                   end if;
                end loop;
 
