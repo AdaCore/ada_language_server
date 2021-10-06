@@ -82,6 +82,49 @@ package body LSP.Ada_Completions.Filters is
       return Self.Is_End_Label.Value;
    end Is_End_Label;
 
+   ----------------------
+   -- Is_Attribute_Ref --
+   ----------------------
+
+   function Is_Attribute_Ref (Self : in out Filter'Class) return Boolean is
+   begin
+      if not Self.Is_Attribute.Is_Set then
+         declare
+            use all type Libadalang.Common.Ada_Node_Kind_Type;
+            use all type Libadalang.Common.Token_Kind;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Kind (Self.Token);
+            Parent : Libadalang.Analysis.Ada_Node :=
+              (if Self.Node.Is_Null then Self.Node else Self.Node.Parent);
+         begin
+            --  Get the outermost dotted name of which node is a prefix, so
+            --  that when completing in a situation such as the following:
+            --
+            --      end Ada.Tex|
+            --                 ^ Cursor here
+            --
+            --  we get the DottedName node rather than just the "Tex" BaseId.
+            --  We want the DottedName rather than the Id so as to get the
+            --  proper completions (all elements in the "Ada" namespace).
+
+            while not Parent.Is_Null
+              and then Parent.Kind = Ada_Dotted_Name
+            loop
+               Parent := Parent.Parent;
+            end loop;
+
+            Self.Is_Attribute :=
+              (True,
+               Token_Kind = Ada_Tick or else
+                 (not Parent.Is_Null
+                  and then Parent.Kind = Ada_Attribute_Ref));
+         end;
+      end if;
+
+      return Self.Is_Attribute.Value;
+   end Is_Attribute_Ref;
+
    ------------------------
    -- Is_Numeric_Literal --
    ------------------------

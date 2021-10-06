@@ -49,6 +49,7 @@
                         "triggerCharacters": [
                             ".",
                             ",",
+                            "'",
                             "("
                         ],
                         "resolveProvider": true
