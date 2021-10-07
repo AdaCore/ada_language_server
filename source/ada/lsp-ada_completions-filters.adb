@@ -45,13 +45,6 @@ package body LSP.Ada_Completions.Filters is
       if not Self.Is_End_Label.Is_Set then
          declare
             use all type Libadalang.Common.Ada_Node_Kind_Type;
-            use all type Libadalang.Common.Token_Kind;
-
-            Prev_Token : constant Libadalang.Common.Token_Reference :=
-              Libadalang.Common.Previous (Self.Token, Exclude_Trivia => True);
-
-            Prev_Token_Kind : constant Libadalang.Common.Token_Kind :=
-              Kind (Prev_Token);
 
             Parent : Libadalang.Analysis.Ada_Node :=
               (if Self.Node.Is_Null then Self.Node else Self.Node.Parent);
@@ -74,8 +67,7 @@ package body LSP.Ada_Completions.Filters is
 
             Self.Is_End_Label :=
               (True,
-               Prev_Token_Kind = Ada_End or else
-                 (not Parent.Is_Null and then Parent.Kind = Ada_End_Name));
+               not Parent.Is_Null and then Parent.Kind = Ada_End_Name);
          end;
       end if;
 
