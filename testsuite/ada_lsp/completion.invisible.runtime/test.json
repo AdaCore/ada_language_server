@@ -164,7 +164,7 @@
                }
             }
          },
-         "waitFactor": "10",
+         "waitFactor": "20",
          "wait": [
             {
                 "jsonrpc": "2.0",
