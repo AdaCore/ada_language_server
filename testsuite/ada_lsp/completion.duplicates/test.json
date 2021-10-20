@@ -1,8 +1,8 @@
 [
    {
       "comment": [
-          "This test checks that we don't use snippets when giving a ",
-          "subprogram as a parameter."
+         "Check that we don't have both subprogram decls and bodies when ",
+         "completing"
       ]
    },
    {
@@ -19,26 +19,34 @@
             "id": 1,
             "method": "initialize",
             "params": {
-               "processId": 4969,
+               "processId": 100531,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
                      "applyEdit": true,
-                     "workspaceEdit": {},
-                     "didChangeConfiguration": {},
-                     "didChangeWatchedFiles": {},
-                     "executeCommand": {}
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "rename"
+                        ]
+                     }
                   },
                   "textDocument": {
                      "synchronization": {},
                      "completion": {
                         "dynamicRegistration": true,
                         "completionItem": {
-                           "snippetSupport": true,
+                           "snippetSupport": false,
                            "documentationFormat": [
                               "plaintext",
                               "markdown"
-                           ]
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
                         }
                      },
                      "hover": {},
@@ -47,22 +55,21 @@
                      "definition": {},
                      "typeDefinition": {},
                      "implementation": {},
-                     "references": {},
-                     "documentHighlight": {},
                      "documentSymbol": {
                         "hierarchicalDocumentSymbolSupport": true
                      },
-                     "codeLens": {},
-                     "colorProvider": {},
                      "formatting": {
-                        "dynamicRegistration": true
+                        "dynamicRegistration": false
                      },
-                     "rangeFormatting": {},
-                     "onTypeFormatting": {},
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
                      "foldingRange": {
                         "lineFoldingOnly": true
-                     },
-                     "selectionRange": {}
+                     }
                   }
                }
             }
@@ -83,16 +90,39 @@
                         "resolveProvider": true
                      },
                      "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
                      "declarationProvider": true,
                      "definitionProvider": true,
                      "typeDefinitionProvider": true,
                      "implementationProvider": true,
                      "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
                      "codeActionProvider": {},
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {},
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-other-file",
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode",
+                           "als-suppress-separate"
+                        ]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,
                      "alsReferenceKinds": [
                         "reference",
@@ -126,10 +156,10 @@
             "params": {
                "settings": {
                   "ada": {
-                      "scenarioVariables": {},
-                      "defaultCharset": "ISO-8859-1",
-                      "enableIndexing": false,
-                      "enableDiagnostics": false
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false
                   }
                }
             }
@@ -147,7 +177,7 @@
                   "uri": "$URI{main.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n\n   type Subp_Access is access procedure (A : Integer);\n\n   procedure Print_Integer (A : integer);\n\n   procedure Print_Integer (A : integer) is\n   begin\n      Ada.Text_IO.Put_Line (A'Img);\n   end Print_Integer;\n\n   procedure Do_Something (Subp : Subp_Access; A : Integer);\n\n   procedure Do_Something (Subp : Subp_Access; A : Integer) is\n   begin\n      Subp (A);\n   end Do_Something;\n\nbegin\n   Do_Something (Pri\nend Main;\n"
+                  "text": "procedure Main is\n   \n   procedure Do_Something;\n   \n   procedure Do_Something is\n   begin\n      null;\n   end Do_Something;\n   \nbegin\n   Do_\nend Main;\n"
                }
             }
          },
@@ -158,77 +188,42 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "workspace/didChangeConfiguration",
-            "params": {
-               "settings": {
-                  "ada": {
-                     "foldComments": false
-                  }
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}",
-                  "version": 1
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 21,
-                           "character": 20
-                        },
-                        "end": {
-                           "line": 21,
-                           "character": 20
-                        }
-                     },
-                     "text": "n"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 4,
+            "id": 6,
             "method": "textDocument/completion",
             "params": {
                "textDocument": {
                   "uri": "$URI{main.adb}"
                },
                "position": {
-                  "line": 21,
-                  "character": 21
+                  "line": 10,
+                  "character": 6
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
          "wait": [
             {
-               "id": 4,
+               "id": 6,
                "result": {
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Print_Integer",
+                        "label": "Do_Something",
                         "kind": 3,
-                        "detail": "procedure Print_Integer (A : integer)",
-                        "documentation": "at main.adb (7:4)",
-                        "additionalTextEdits": []
+                        "sortText": "2Do_Something",
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{main.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 2,
+                                 "character": 26
+                              }
+                           }
+                        }
                      }
                   ]
                }
@@ -240,26 +235,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "textDocument/didClose",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 7,
+            "id": 8,
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": 7,
+               "id": 8,
                "result": null
             }
          ]
