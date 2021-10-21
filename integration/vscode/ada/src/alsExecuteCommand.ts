@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
+/**
+ * Implementation of a Middleware.executeCommand that intercepts and executes commands
+ */
+
 import { ExecuteCommandSignature } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/node';
 import {
@@ -22,7 +26,12 @@ import {
     alsAddParameterCommandExecutor,
 } from './refactoring/alsAddParameterCommand';
 
-type CommandExecuter = (
+/**
+ * Type alias for a function that intercepts a command and executes it by return a promise that
+ * resolve to an ExecuteCommandSignature if the command was executed successfully or undefined
+ * otherwise.
+ */
+type CommandExecutor = (
     command: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[],
@@ -30,7 +39,13 @@ type CommandExecuter = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ) => Promise<ExecuteCommandSignature | undefined>;
 
-export const alsCommandExecuter = (client: LanguageClient): CommandExecuter => {
+/**
+ * Returns a CommandExecutor that will use client to intercept and execute commands
+ *
+ * @param client - An ALS LanguageClient
+ * @returns A CommandExecutor that dispatches command to a specific executor
+ */
+export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
     return async (
         command: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
