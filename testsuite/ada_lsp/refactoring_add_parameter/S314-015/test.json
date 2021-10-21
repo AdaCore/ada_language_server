@@ -205,6 +205,57 @@
             "request": {
                 "jsonrpc": "2.0",
                 "id": 2,
+                "method": "$/alsCheckSyntax",
+                "params": {
+                    "input": "",
+                    "rules": [
+                        "Defining_Id_Rule",
+                        "Defining_Id_List_Rule",
+                        "Param_Spec_Rule"
+                    ]
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                        "diagnostic": "Invalid Syntax"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "$/alsCheckSyntax",
+                "params": {
+                    "input": "B, C",
+                    "rules": [
+                        "Defining_Id_Rule",
+                        "Defining_Id_List_Rule",
+                        "Param_Spec_Rule"
+                    ]
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 4,
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-add-parameters",
@@ -270,7 +321,7 @@
         "send": {
             "request": {
                 "jsonrpc": "2.0",
-                "id": 19,
+                "id": 5,
                 "method": "textDocument/codeAction",
                 "params": {
                     "textDocument": {
@@ -294,7 +345,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 19,
+                    "id": 5,
                     "result": [
                         "<HAS>",
                         {
@@ -334,7 +385,7 @@
         "send": {
             "request": {
                 "jsonrpc": "2.0",
-                "id": 22,
+                "id": 6,
                 "method": "shutdown"
             },
             "wait": []
