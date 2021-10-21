@@ -27,7 +27,7 @@ import * as process from 'process';
 
 import GPRTaskProvider from './gprTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
-import { alsCommandExecuter } from './alsExecuteCommand';
+import { alsCommandExecutor } from './alsExecuteCommand';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // Create the language client and start the client.
     const client = new LanguageClient('ada', 'Ada Language Server', serverOptions, clientOptions);
     const alsMiddleware: Middleware = {
-        executeCommand: alsCommandExecuter(client),
+        executeCommand: alsCommandExecutor(client),
     };
     client.clientOptions.middleware = alsMiddleware;
 
