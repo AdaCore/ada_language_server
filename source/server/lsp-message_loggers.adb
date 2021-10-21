@@ -223,21 +223,18 @@ package body LSP.Message_Loggers is
 
       function Reduce_Rules return String is
          I : constant Reversible_Iterator := Value.Rules.Iterate;
-         L : constant Cursor := Last (I);
          C : Cursor := First (I);
          R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
 
       begin
          if Has_Element (C) then
-            while C /= L loop
-               Append (R, Value.Rules.Element (C));
+            Append (R, Value.Rules.Element (C));
+            C := Next (I, C);
+            while Has_Element (C) loop
                Append (R, ", ");
+               Append (R, Value.Rules.Element (C));
                C := Next (I, C);
             end loop;
-
-            if Has_Element (C) then
-               Append (R, Value.Rules.Element (C));
-            end if;
          end if;
 
          return To_UTF_8_String (R);
@@ -249,7 +246,6 @@ package body LSP.Message_Loggers is
         & "; Rules : ["
         & Reduce_Rules
         & "]";
-        --  & Value.Rules.Length'Image;
    end Image;
 
    -----------
