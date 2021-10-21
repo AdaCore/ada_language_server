@@ -15,6 +15,10 @@
         },
         "project": "tsconfig.json"
     },
+    "plugins": [
+        "@typescript-eslint/eslint-plugin",
+        "eslint-plugin-tsdoc"
+    ],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
@@ -24,5 +28,15 @@
     "ignorePatterns": [
         "out",
         "**/*.d.ts"
-    ]
+    ],
+    "rules": {
+        "tsdoc/syntax": "warn",
+        "max-len": [
+            "warn",
+            {
+                "code": 100,
+                "ignoreUrls": true
+            }
+        ]
+    }
 }

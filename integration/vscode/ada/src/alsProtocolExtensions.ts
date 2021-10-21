@@ -15,34 +15,75 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
+/**
+ * Implementation of AdaSyntaxCheckProvider, an extension to the LSP that allows the client to send
+ * a request to the server, that checks the validity of some input according to a sert of rules
+ */
+
 import { LanguageClient } from 'vscode-languageclient/node';
 
+/**
+ * Enum with the available grammar rules for Ada. These must match the Ada_Node_Kind_Type literals
+ * defined in the Libadalang.Common package, since ALS is expected to parse the
+ * AdaSyntaxCheckRequest.rules as an array of Ada_Node_Kind_Types literals.
+ *
+ * This set is imcomplete and will rules can be added as needed.
+ */
 export enum AdaGrammarRule {
     Defining_Id_Rule = 'Defining_Id_Rule',
     Defining_Id_List_Rule = 'Defining_Id_List_Rule',
     Param_Spec_Rule = 'Param_Spec_Rule',
 }
 
+/**
+ * Structure with the data needed for the request
+ *
+ * @typeParam input - Input provided by the user
+ * @typeParam rules - Array of rules that input will be checked against to
+ */
 type AdaSyntaxCheckRequest = {
     input: string;
     rules: string[];
 };
 
+/**
+ * Structure with data responsded by the server
+ *
+ * @typeParam diagnostic - A diagnostic message in case the systax was not valid. undefined if the
+ * syntax was valid
+ */
 type AdaSyntaxCheckResponse = {
     diagnostic?: string;
 };
 
+/**
+ * Class that implements an a syntax check request as an extension to the LSP
+ */
 export class AdaSyntaxCheckProvider {
     private readonly client: LanguageClient;
     rules: string[];
     diagnostic?: string;
 
+    /**
+     * AdaSyntaxCheckProvider constructor
+     *
+     * @param client - An ALS LanguageClient
+     * @param rules - Set of rules used to check an input against
+     * @param diagnotic - And optional diagnostic message that overwrites the one sent by the server
+     */
     constructor(client: LanguageClient, rules: AdaGrammarRule[], diagnotic?: string) {
         this.client = client;
         this.rules = rules.map((rule) => rule.toString());
         this.diagnostic = diagnotic;
     }
 
+    /**
+     * Method that uses this.client to send a request to the user with
+     *
+     * @param input - Input provided by the user
+     * @returns A promise that resolves to undefined if the input is syntactically correct, or a
+     * string with a human-readable diagnostic message in case it is not.
+     */
     public sendCheckSyntaxRequest = async (input: string): Promise<undefined | string> => {
         const method = '$/alsCheckSyntax';
 

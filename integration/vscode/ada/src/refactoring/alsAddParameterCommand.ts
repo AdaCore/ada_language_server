@@ -15,21 +15,44 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
+/**
+ * This file contains all the constructs necessary to execute the 'als-refactor-add-parameters'
+ * command
+ */
+
 import { window, InputBoxOptions } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 
 import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../alsProtocolExtensions';
 
+/* ALS will send a 'als-refactor-add-parameters' command with at least two arguments:
+ * 'newParameter' and 'requiresFullSpecification'.
+ * 'newParameter' will be filled by alsAddParameterCommandExecutor and
+ * 'requiresFullSpecification' is used to determined the syntax rules used to check if the input
+ * is valid.
+ */
 export type AddParameterCommandArgs = {
     newParameter: string;
     requiresFullSpecification: boolean;
 };
 
+/**
+ * Executes the 'als-refactor-add-parameters' command by manipulating args.newParameter with
+ * the user input. The user input is also syntactically checked, by sending a '$/alsCheckSyntax'
+ * request to ALS. This request requires a set of rules, which depend on
+ * args.requiresFullSpecification
+ *
+ * @param client - The language server client needed to interact with ALS
+ * @param args - Arguments of the 'als-refactor-add-parameters' command
+ * @returns A Promise<boolean> that resolves to true if the command was executed successfully and
+ * false otherwise
+ */
 export const alsAddParameterCommandExecutor = async (
     client: LanguageClient,
     args: AddParameterCommandArgs
 ): Promise<boolean> => {
     // If the server command attributes changed, some of args fields might be undefined
+
     if (args.requiresFullSpecification === undefined || args.newParameter === undefined) {
         return Promise.reject(
             'Invalid als-refactor-add-parameters command: missing "requiresFullSpecification" field'
