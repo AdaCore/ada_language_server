@@ -171,7 +171,7 @@ package body LSP.Ada_Completions.Names is
                      Completion_Count := Completion_Count + 1;
 
                      Names.Include
-                       (DN,
+                       (DN.P_Canonical_Part,
                         (Is_Dot_Call (Item),
                          Is_Visible (Item),
                          Use_Snippets,
