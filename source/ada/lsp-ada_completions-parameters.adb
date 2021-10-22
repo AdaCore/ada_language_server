@@ -106,6 +106,10 @@ package body LSP.Ada_Completions.Parameters is
          Params_Index   : Natural := Sort_Index;
          --  Index of the "Param of" completionItem, this is related
          --  to Sort_Index
+
+         Is_Dotted_Name : constant Boolean :=
+           (Name_Node.Kind in Ada_Dotted_Name_Range
+            and then Name_Node.As_Dotted_Name.P_Is_Dot_Call (True));
       begin
          for N of Self.Context.Find_All_Env_Elements (Name_Node) loop
             if N.Kind in Ada_Basic_Subp_Decl then
@@ -122,6 +126,8 @@ package body LSP.Ada_Completions.Parameters is
 
                   Spec           : constant Libadalang.Analysis.Base_Subp_Spec
                     := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
+
+                  Is_First_Param : Boolean := True;
                begin
                   if Spec /= Libadalang.Analysis.No_Base_Subp_Spec
                     and then LSP.Lal_Utils.Match_Designators
@@ -135,7 +141,11 @@ package body LSP.Ada_Completions.Parameters is
                               Name      : constant LSP_String :=
                                 To_LSP_String (Name_Text);
                            begin
-                              if not Is_Present (Name_Text) then
+                              if not Is_Present (Name_Text)
+                                   and then
+                                     not (Is_First_Param
+                                          and then Is_Dotted_Name)
+                              then
                                  if Token_Kind in Ada_Par_Open | Ada_Comma
                                    or else
                                      LSP.Types.Starts_With
@@ -171,6 +181,7 @@ package body LSP.Ada_Completions.Parameters is
                                  Snippet_Index := Snippet_Index + 1;
                               end if;
                            end;
+                           Is_First_Param := False;
                         end loop;
                      end loop;
 
