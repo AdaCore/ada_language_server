@@ -31,6 +31,11 @@ package LSP.Generic_Vectors is
 
    type Vector is new Element_Vectors.Vector with null record;
 
+   overriding function "=" (Left, Right : Vector) return Boolean is
+     (Element_Vectors."="
+        (Element_Vectors.Vector (Left),
+         Element_Vectors.Vector (Right)));
+
    procedure Read_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Vector);
