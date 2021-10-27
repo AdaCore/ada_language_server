@@ -3090,10 +3090,71 @@ package body LSP.Messages is
 
    procedure Read_Document_Change
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out Document_Change) is
+      V : out Document_Change)
+   is
+      JS         : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      Look_Ahead : aliased
+        VSS.JSON.Pull_Readers.Look_Ahead.JSON_Look_Ahead_Reader (JS.R);
+      Nested     : aliased LSP.JSON_Streams.JSON_Stream
+        (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
+
    begin
-      --  FIXME: rewrite reading procedure
-      TextDocumentEdit'Read (S, V.Text_Document_Edit);
+      pragma Assert (Look_Ahead.Is_Start_Object);
+      Look_Ahead.Read_Next;
+
+      while Look_Ahead.Is_Key_Name loop
+         declare
+            use type VSS.Strings.Virtual_String;
+
+            Key   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+              VSS.Strings.Conversions.To_UTF_8_String (Look_Ahead.Key_Name);
+            Value : VSS.Strings.Virtual_String;
+
+         begin
+            Look_Ahead.Read_Next;
+
+            if Key = "kind" then
+               --  CreateFile, RenameFile or DeleteFile
+
+               LSP.Types.Read_String (Nested'Unchecked_Access, Value);
+
+               if Value = "create" then
+                  V := (Kind => Create_File, others => <>);
+                  Look_Ahead.Rewind;
+                  CreateFile'Read (Nested'Unchecked_Access, V.Create_File);
+
+                  return;
+
+               elsif Value = "rename" then
+                  V := (Kind => Rename_File, others => <>);
+                  Look_Ahead.Rewind;
+                  RenameFile'Read (Nested'Unchecked_Access, V.Rename_File);
+
+                  return;
+
+               elsif Value = "delete" then
+                  V := (Kind => Delete_File, others => <>);
+                  Look_Ahead.Rewind;
+                  DeleteFile'Read (Nested'Unchecked_Access, V.Delete_File);
+
+                  return;
+
+               else
+                  raise Constraint_Error;
+               end if;
+
+            else
+               Nested.Skip_Value;
+            end if;
+         end;
+      end loop;
+
+      --  There is no "kind" field found, object represents TextDocumentEdit.
+
+      V := (Text_Document_Edit, others => <>);
+      Look_Ahead.Rewind;
+      TextDocumentEdit'Read (Nested'Unchecked_Access, V.Text_Document_Edit);
    end Read_Document_Change;
 
    ------------------------
