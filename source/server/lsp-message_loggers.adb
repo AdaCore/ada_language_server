@@ -1246,6 +1246,22 @@ package body LSP.Message_Loggers is
                             (Params.value.Length));
    end On_Progress_SymbolInformation_Vector;
 
+   -------------------------------------
+   -- On_Progress_FoldingRange_Vector --
+   -------------------------------------
+
+   overriding procedure On_Progress_FoldingRange_Vector
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_FoldingRange_Vector) is
+   begin
+      Self.Trace.Trace ("On_Progress_FoldingRange_Vector: "
+                        & VSS.Strings.Conversions.To_UTF_8_String
+                          (LSP.Types.To_Virtual_String
+                             (Params.token))
+                        & Ada.Containers.Count_Type'Image
+                            (Params.value.Length));
+   end On_Progress_FoldingRange_Vector;
+
    ---------------------------
    -- On_References_Request --
    ---------------------------

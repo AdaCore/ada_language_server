@@ -1194,11 +1194,13 @@ package body LSP.Ada_Documents is
    ------------------------
 
    procedure Get_Folding_Blocks
-     (Self       : Document;
-      Context    : LSP.Ada_Contexts.Context;
-      Lines_Only : Boolean;
-      Comments   : Boolean;
-      Result     : out LSP.Messages.FoldingRange_Vector)
+     (Self          : Document;
+      Context       : LSP.Ada_Contexts.Context;
+      Lines_Only    : Boolean;
+      Comments      : Boolean;
+      Callback      : access function
+        (Result : in out LSP.Messages.FoldingRange_Vector) return Boolean;
+      Result        : out LSP.Messages.FoldingRange_Vector)
    is
       use Libadalang.Common;
 
@@ -1240,7 +1242,7 @@ package body LSP.Ada_Documents is
             Have_With := False;
          end Store_With_Block;
 
-         Result : Visit_Status := Into;
+         Status : Visit_Status := Into;
       begin
 --        Cat_Namespace,
 --        Cat_Constructor,
@@ -1351,13 +1353,17 @@ package body LSP.Ada_Documents is
                foldingRange.endLine := Location.span.last.line;
 
                --  Do not step into with/use clause
-               Result := Over;
+               Status := Over;
 
             when others =>
                Store_With_Block;
          end case;
 
-         return Result;
+         if not Callback (Result) then
+            Status := Stop;
+         end if;
+
+         return Status;
       end Parse;
 
       ----------------
@@ -1402,7 +1408,9 @@ package body LSP.Ada_Documents is
       foldingRange.kind := (Is_Set => False);
       Token             := First_Token (Self.Unit (Context));
 
-      while Token /= No_Token loop
+      while Token /= No_Token
+        and then Callback (Result)
+      loop
          case Kind (Data (Token)) is
             when Ada_Comment =>
                if not foldingRange.kind.Is_Set then

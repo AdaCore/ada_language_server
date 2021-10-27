@@ -537,6 +537,16 @@ package body LSP.Clients is
                   Handler.On_Progress_SymbolInformation_Vector
                     (Message.params);
                end;
+
+            when LSP.Client_Notification_Receivers.FoldingRange =>
+               declare
+                  Message : FoldingRange_Vectors_Notification;
+               begin
+                  FoldingRange_Vectors_Notification'Read
+                    (Stream, Message);
+                  Handler.On_Progress_FoldingRange_Vector
+                    (Message.params);
+               end;
          end case;
       end Progress;
 

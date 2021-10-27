@@ -76,4 +76,15 @@ package body LSP.Messages.Client_Notifications is
       Receiver.On_Progress_SymbolInformation_Vector (Self.params);
    end Visit;
 
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self     : FoldingRange_Vectors_Notification;
+      Receiver : access Client_Notification_Receiver'Class) is
+   begin
+      Receiver.On_Progress_FoldingRange_Vector (Self.params);
+   end Visit;
+
 end LSP.Messages.Client_Notifications;

@@ -356,6 +356,10 @@ private
      (Self   : access Message_Logger;
       Params : LSP.Messages.Progress_SymbolInformation_Vector);
 
+   overriding procedure On_Progress_FoldingRange_Vector
+     (Self   : access Message_Logger;
+      Params : LSP.Messages.Progress_FoldingRange_Vector);
+
    overriding procedure On_ShowMessage_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Client_Requests.ShowMessage_Request);

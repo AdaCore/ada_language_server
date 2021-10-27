@@ -668,6 +668,20 @@ package body LSP.Servers is
       Self.Send_Notification (Message);
    end On_Progress_SymbolInformation_Vector;
 
+   overriding procedure On_Progress_FoldingRange_Vector
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_FoldingRange_Vector)
+   is
+      Message : Message_Access :=
+        new LSP.Messages.Client_Notifications.
+          FoldingRange_Vectors_Notification'
+            (jsonrpc => <>,
+             method  => "$/progress",
+             params  => Params);
+   begin
+      Self.Send_Notification (Message);
+   end On_Progress_FoldingRange_Vector;
+
    ----------------------------
    -- On_ShowMessage_Request --
    ----------------------------

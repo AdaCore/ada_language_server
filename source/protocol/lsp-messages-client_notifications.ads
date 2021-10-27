@@ -89,4 +89,16 @@ package LSP.Messages.Client_Notifications is
      (Self     : SymbolInformation_Vectors_Notification;
       Receiver : access Client_Notification_Receiver'Class);
 
+   package FoldingRange_Vectors is new LSP.Generic_Notifications
+     (Client_Notification,
+      LSP.Messages.Progress_FoldingRange_Vector,
+      Client_Notification_Receiver'Class);
+
+   type FoldingRange_Vectors_Notification is
+     new FoldingRange_Vectors.Notification with null record;
+
+   overriding procedure Visit
+     (Self     : FoldingRange_Vectors_Notification;
+      Receiver : access Client_Notification_Receiver'Class);
+
 end LSP.Messages.Client_Notifications;

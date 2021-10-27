@@ -117,6 +117,10 @@ package LSP.Servers is
      (Self   : access Server;
       Params : LSP.Messages.Progress_SymbolInformation_Vector);
 
+   overriding procedure On_Progress_FoldingRange_Vector
+     (Self   : access Server;
+      Params : LSP.Messages.Progress_FoldingRange_Vector);
+
    overriding procedure On_ShowMessage_Request
      (Self    : access Server;
       Message : LSP.Messages.Client_Requests.ShowMessage_Request);

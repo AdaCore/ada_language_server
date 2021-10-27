@@ -2080,6 +2080,8 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Folding_Range_Request)
       return LSP.Messages.Server_Responses.FoldingRange_Response
    is
+      use type Ada.Containers.Count_Type;
+
       Value : LSP.Messages.FoldingRangeParams renames
         Request.params;
 
@@ -2089,18 +2091,61 @@ package body LSP.Ada_Handlers is
         Get_Open_Document (Self, Value.textDocument.uri);
       Result   : LSP.Messages.FoldingRange_Vector;
 
+      Partial_Response_Sended : Boolean := False;
+      Dummy                   : Boolean;
+
+      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
+
+      function Callback
+        (Result : in out LSP.Messages.FoldingRange_Vector) return Boolean;
+      --  Checks whether the request is canceled and return False in this case.
+      --  Also sends partial response if it is needed.
+
+      function Callback
+        (Result : in out LSP.Messages.FoldingRange_Vector) return Boolean is
+      begin
+         if Canceled.Has_Been_Canceled then
+            Result.Clear;
+            return False;
+         end if;
+
+         if Request.params.partialResultToken.Is_Set
+           and then Result.Length > 100
+         then
+            declare
+               P : LSP.Messages.Progress_FoldingRange_Vector;
+            begin
+               P.token := Request.params.partialResultToken.Value;
+               P.value := Result;
+
+               Self.Server.On_Progress_FoldingRange_Vector (P);
+               Result.Clear;
+
+               Partial_Response_Sended := True;
+            end;
+         end if;
+
+         return True;
+      end Callback;
+
    begin
       if Document /= null then
          Document.Get_Folding_Blocks
            (Context.all,
             Self.Line_Folding_Only,
             Self.Options.Folding.Comments,
+            Callback'Access,
             Result);
 
          return Response : LSP.Messages.Server_Responses.FoldingRange_Response
            (Is_Error => False)
          do
-            Response.result := Result;
+            if Partial_Response_Sended then
+               Dummy := Callback (Result);
+
+            elsif not Canceled.Has_Been_Canceled then
+               Response.result := Result;
+            end if;
          end return;
 
       else
@@ -4208,6 +4253,7 @@ package body LSP.Ada_Handlers is
 
       Response : LSP.Messages.Server_Responses.Formatting_Response
         (Is_Error => False);
+
    begin
       if Document.Has_Diagnostics (Context.all) then
          return Response : LSP.Messages.Server_Responses.Formatting_Response

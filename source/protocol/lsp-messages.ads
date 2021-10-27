@@ -9680,6 +9680,23 @@ package LSP.Messages is
    Imports : constant FoldingRangeKind := +"imports";
    Region  : constant FoldingRangeKind := +"region";
 
+   package ProgressParam_FoldingRange_Vectors is
+     new Generic_ProgressParam (FoldingRange_Vector);
+   type Progress_FoldingRange_Vector is new
+     ProgressParam_FoldingRange_Vectors.ProgressParam;
+
+   procedure Read_Progress_FoldingRange_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out Progress_FoldingRange_Vector);
+   for Progress_FoldingRange_Vector'Read use
+     Read_Progress_FoldingRange_Vector;
+
+   procedure Write_Progress_FoldingRange_Vector
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : Progress_FoldingRange_Vector);
+   for Progress_FoldingRange_Vector'Write use
+     Write_Progress_FoldingRange_Vector;
+
    --```typescript
    --interface DocumentColorParams extends WorkDoneProgressParams,
    --	PartialResultParams {

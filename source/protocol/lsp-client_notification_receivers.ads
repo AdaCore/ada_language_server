@@ -22,7 +22,8 @@ with LSP.Messages;
 
 package LSP.Client_Notification_Receivers is
 
-   type Progress_Value_Kind is (ProgressParams, SymbolInformation);
+   type Progress_Value_Kind is
+     (ProgressParams, SymbolInformation, FoldingRange);
 
    type Client_Notification_Receiver is limited interface;
    --  Receiver of notification on LSP client side
@@ -56,5 +57,10 @@ package LSP.Client_Notification_Receivers is
      (Self   : access Client_Notification_Receiver;
       Params : LSP.Messages.Progress_SymbolInformation_Vector) is abstract;
    --  Process a $/progress notification that contains SymbolInformation_Vector
+
+   procedure On_Progress_FoldingRange_Vector
+     (Self   : access Client_Notification_Receiver;
+      Params : LSP.Messages.Progress_FoldingRange_Vector) is abstract;
+   --  Process a $/progress notification that contains FoldingRange_Vector
 
 end LSP.Client_Notification_Receivers;
