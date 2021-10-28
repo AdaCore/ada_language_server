@@ -1204,6 +1204,7 @@ package body LSP.Ada_Documents is
       Context    : LSP.Ada_Contexts.Context;
       Lines_Only : Boolean;
       Comments   : Boolean;
+      Canceled   : access function return Boolean;
       Result     : out LSP.Messages.FoldingRange_Vector)
    is
       use Libadalang.Common;
@@ -1248,6 +1249,10 @@ package body LSP.Ada_Documents is
 
          Result : Visit_Status := Into;
       begin
+         if Canceled.all then
+            return Stop;
+         end if;
+
 --        Cat_Namespace,
 --        Cat_Constructor,
 --        Cat_Destructor,
@@ -1408,7 +1413,9 @@ package body LSP.Ada_Documents is
       foldingRange.kind := (Is_Set => False);
       Token             := First_Token (Self.Unit (Context));
 
-      while Token /= No_Token loop
+      while Token /= No_Token
+        and then not Canceled.all
+      loop
          case Kind (Data (Token)) is
             when Ada_Comment =>
                if not foldingRange.kind.Is_Set then
