@@ -54,6 +54,11 @@ package body LSP.Ada_Documents is
                              GNATCOLL.Traces.Off);
    --  Logging lalpp output if On
 
+   Document_Changes_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.DOCUMENT_CHANGES",
+                             GNATCOLL.Traces.Off);
+   --  Loging each document change
+
    function Get_Profile
      (Node        : Libadalang.Analysis.Basic_Decl;
       Is_Function : out Boolean)
@@ -221,7 +226,7 @@ package body LSP.Ada_Documents is
       Dummy : Libadalang.Analysis.Analysis_Unit;
       use LSP.Types;
    begin
-      Self.Trace.Trace ("Applying changes for document " & URI);
+      Document_Changes_Trace.Trace ("Applying changes for document " & URI);
 
       Self.Version := Version;
 
@@ -309,7 +314,8 @@ package body LSP.Ada_Documents is
             Self.Recompute_Indexes;
          end if;
       end loop;
-      Self.Trace.Trace ("Done applying changes for document " & URI);
+      Document_Changes_Trace.Trace
+        ("Done applying changes for document " & URI);
    end Apply_Changes;
 
    -----------------

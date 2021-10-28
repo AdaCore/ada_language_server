@@ -4084,8 +4084,6 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Completion_Request)
       return LSP.Messages.Server_Responses.Completion_Response
    is
-      use type Ada.Containers.Count_Type;
-
       --  We're completing only based on one context, ie one project
       --  tree: this seems reasonable. One further refinement could
       --  be to return only results that are available for all
@@ -4098,8 +4096,6 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
       Names     : LSP.Ada_Completions.Completion_Maps.Map;
-
-      Limit : constant := 10;
 
       --  If lazy computation for the 'detail' and 'documentation' fields is
       --  supported by the client, set the Compute_Doc_And_Details flag to
@@ -4160,8 +4156,6 @@ package body LSP.Ada_Handlers is
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
          Compute_Doc_And_Details  => Compute_Doc_And_Details,
          Result                   => Response.result.items);
-
-      Response.result.isIncomplete := Names.Length >= Limit;
 
       return Response;
    end On_Completion_Request;

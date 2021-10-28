@@ -205,16 +205,16 @@
             {
                 "id": 6,
                 "result": {
-                    "isIncomplete": true,
+                    "isIncomplete": false,
                     "items": ["<HAS>",
                               {
-                                  "label": "Short_Float_Text_IO (invisible)",
+                                  "label": "Decimal (invisible)",
                                   "kind": 9,
-                                  "detail": "package Ada.Short_Float_Text_IO is\nnew Ada.Text_IO.Float_IO (Short_Float);",
-                                  "documentation": "at a-sfteio.ads (18:1)",
-                                  "sortText": "~48Short_Float_Text_IO",
-                                  "filterText": "Short_Float_Text_IO",
-                                  "insertText": "Short_Float_Text_IO",
+                                  "detail": "package Ada.Decimal ",
+                                  "documentation": "at a-decima.ads (38:1)\n\nThis is the 128-bit version of this package",
+                                  "sortText": "~08Decimal",
+                                  "filterText": "Decimal",
+                                  "insertText": "Decimal",
                                   "additionalTextEdits": [
                                   ]
                               }

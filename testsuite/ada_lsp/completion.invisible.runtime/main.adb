@@ -1,5 +1,5 @@
 
 procedure Main is
 begin
-   Ada.Te
+   Ada.Decim
 end Main;
