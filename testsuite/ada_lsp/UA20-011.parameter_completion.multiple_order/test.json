@@ -1,0 +1,432 @@
+[
+   {
+      "comment": [
+         "Test the completion parameter when there are more than 10 results"
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                            "resolveSupport": {
+                                "properties": [
+                                    "documentation",
+                                    "detail"
+                                ]
+                            }
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 ",",
+                                 "'",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   procedure Bar (I, J, K, L, M, N, O, P : Integer);\n   procedure Bar (I, J, K, L, M, N, O, P : Integer) is\n   begin\n      null;\n   end Bar;\n   procedure Bar (A, B, C, D, E, F : Float);\n   procedure Bar (A1, A2, A3, A4, A5 : String) is\n   begin\n      null;\n   end Bar;\n   procedure Bar (A1, A2, A3, A4, A5 : String);\n   procedure Bar (A1, A2, A3, A4, A5 : String) is\n   begin\n      null;\n   end Bar;\nbegin\n   Bar \nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 17,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 17,
+                           "character": 7
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 17,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+00",
+                        "insertText": "A1 => $1, A2 => $2, A3 => $3, A4 => $4, A5 => $5)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 11,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 11,
+                                 "character": 47
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "A1",
+                        "kind": 5,
+                        "sortText": "+01",
+                        "insertText": "A1 => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A2",
+                        "kind": 5,
+                        "sortText": "+02",
+                        "insertText": "A2 => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A3",
+                        "kind": 5,
+                        "sortText": "+03",
+                        "insertText": "A3 => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A4",
+                        "kind": 5,
+                        "sortText": "+04",
+                        "insertText": "A4 => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A5",
+                        "kind": 5,
+                        "sortText": "+05",
+                        "insertText": "A5 => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+06",
+                        "insertText": "A => $1, B => $2, C => $3, D => $4, E => $5, F => $6)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 44
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+08",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "C",
+                        "kind": 5,
+                        "sortText": "+09",
+                        "insertText": "C => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+10",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "E",
+                        "kind": 5,
+                        "sortText": "+11",
+                        "insertText": "E => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "F",
+                        "kind": 5,
+                        "sortText": "+12",
+                        "insertText": "F => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+13",
+                        "insertText": "I => $1, J => $2, K => $3, L => $4, M => $5, N => $6, O => $7, P => $8)$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 52
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "sortText": "+14",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "sortText": "+15",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "K",
+                        "kind": 5,
+                        "sortText": "+16",
+                        "insertText": "K => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "L",
+                        "kind": 5,
+                        "sortText": "+17",
+                        "insertText": "L => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "M",
+                        "kind": 5,
+                        "sortText": "+18",
+                        "insertText": "M => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "N",
+                        "kind": 5,
+                        "sortText": "+19",
+                        "insertText": "N => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "O",
+                        "kind": 5,
+                        "sortText": "+20",
+                        "insertText": "O => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "P",
+                        "kind": 5,
+                        "sortText": "+21",
+                        "insertText": "P => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "id": 8,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
