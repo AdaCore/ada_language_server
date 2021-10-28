@@ -139,25 +139,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "I",
-                        "kind": 5,
-                        "sortText": "1",
-                        "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "F",
-                        "kind": 5,
-                        "sortText": "2",
-                        "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "sortText": "0",
+                        "sortText": "+0",
                         "insertText": "I => $1, F => $2)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -178,23 +162,23 @@
                      {
                         "label": "I",
                         "kind": 5,
-                        "sortText": "4",
+                        "sortText": "+1",
                         "insertText": "I => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "J",
+                        "label": "F",
                         "kind": 5,
-                        "sortText": "5",
-                        "insertText": "J => ",
+                        "sortText": "+2",
+                        "insertText": "F => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "sortText": "3",
+                        "sortText": "+3",
                         "insertText": "I => $1, J => $2)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -211,6 +195,22 @@
                               }
                            }
                         }
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "sortText": "+4",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "sortText": "+5",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
                      }
                   ]
                }
@@ -389,17 +389,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "I",
-                        "kind": 5,
-                        "sortText": "1",
-                        "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "sortText": "0",
+                        "sortText": "+0",
                         "insertText": "I => $1)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -416,6 +408,14 @@
                               }
                            }
                         }
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
                      }
                   ]
                }

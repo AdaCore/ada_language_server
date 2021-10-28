@@ -166,33 +166,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "M",
-                        "kind": 5,
-                        "sortText": "1",
-                        "insertText": "M => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "A",
-                        "kind": 5,
-                        "sortText": "2",
-                        "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "B",
-                        "kind": 5,
-                        "sortText": "3",
-                        "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
                         "label": "Params of Hello",
                         "kind": 15,
-                        "sortText": "0",
+                        "sortText": "+0",
                         "insertText": "M => $1, A => $2, B => $3)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -211,9 +187,17 @@
                         }
                      },
                      {
+                        "label": "M",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "M => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "5",
+                        "sortText": "+2",
                         "insertText": "A => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -221,7 +205,7 @@
                      {
                         "label": "B",
                         "kind": 5,
-                        "sortText": "6",
+                        "sortText": "+3",
                         "insertText": "B => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -229,7 +213,7 @@
                      {
                         "label": "Params of Hello",
                         "kind": 15,
-                        "sortText": "4",
+                        "sortText": "+4",
                         "insertText": "A => $1, B => $2)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -246,6 +230,22 @@
                               }
                            }
                         }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+5",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+6",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
                      }
                   ]
                }
@@ -262,7 +262,7 @@
             "params": {
                "label": "Params of Hello",
                "kind": 15,
-               "sortText": "0",
+               "sortText": "+0",
                "insertText": "M => $1, A => $2, B => $3)$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
@@ -289,7 +289,7 @@
                   "kind": 15,
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
-                  "sortText": "0",
+                  "sortText": "+0",
                   "insertText": "M => $1, A => $2, B => $3)$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
@@ -394,33 +394,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "M",
-                        "kind": 5,
-                        "sortText": "1",
-                        "insertText": "M => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "A",
-                        "kind": 5,
-                        "sortText": "2",
-                        "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "B",
-                        "kind": 5,
-                        "sortText": "3",
-                        "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
                         "label": "Params of Bar.Hello",
                         "kind": 15,
-                        "sortText": "0",
+                        "sortText": "+0",
                         "insertText": "M => $1, A => $2, B => $3)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -439,9 +415,17 @@
                         }
                      },
                      {
+                        "label": "M",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "M => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "5",
+                        "sortText": "+2",
                         "insertText": "A => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -449,7 +433,7 @@
                      {
                         "label": "B",
                         "kind": 5,
-                        "sortText": "6",
+                        "sortText": "+3",
                         "insertText": "B => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
@@ -457,7 +441,7 @@
                      {
                         "label": "Params of Bar.Hello",
                         "kind": 15,
-                        "sortText": "4",
+                        "sortText": "+4",
                         "insertText": "A => $1, B => $2)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -474,6 +458,22 @@
                               }
                            }
                         }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+5",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+6",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
                      }
                   ]
                }
@@ -490,7 +490,7 @@
             "params": {
                "label": "Params of Bar.Hello",
                "kind": 15,
-               "sortText": "0",
+               "sortText": "+0",
                "insertText": "M => $1, A => $2, B => $3)$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
@@ -517,7 +517,7 @@
                   "kind": 15,
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
-                  "sortText": "0",
+                  "sortText": "+0",
                   "insertText": "M => $1, A => $2, B => $3)$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
@@ -622,25 +622,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "A",
-                        "kind": 5,
-                        "sortText": "1",
-                        "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "B",
-                        "kind": 5,
-                        "sortText": "2",
-                        "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
                         "label": "Params of M.Hello",
                         "kind": 15,
-                        "sortText": "0",
+                        "sortText": "+0",
                         "insertText": "A => $1, B => $2)$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -657,6 +641,22 @@
                               }
                            }
                         }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+2",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
                      }
                   ]
                }
@@ -673,7 +673,7 @@
             "params": {
                "label": "Params of M.Hello",
                "kind": 15,
-               "sortText": "0",
+               "sortText": "+0",
                "insertText": "A => $1, B => $2)$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
@@ -700,7 +700,7 @@
                   "kind": 15,
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
-                  "sortText": "0",
+                  "sortText": "+0",
                   "insertText": "A => $1, B => $2)$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
