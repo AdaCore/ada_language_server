@@ -59,6 +59,13 @@ package body LSP.Ada_Completions.Parameters is
       function Is_Present (Id_Text : Text_Type) return Boolean;
       --  Return True if Id_Name match one of the designators
 
+      function Get_Param_Name_List
+        (Spec          : Libadalang.Analysis.Base_Subp_Spec;
+         Exclude_First : Boolean;
+         Length        : out Integer)
+         return Laltools.Common.Node_Vectors.Vector;
+      --  Return the list of parameters for Spec.
+
       ----------------
       -- Is_Present --
       ----------------
@@ -72,6 +79,32 @@ package body LSP.Ada_Completions.Parameters is
          end loop;
          return False;
       end Is_Present;
+
+      -------------------------
+      -- Get_Param_Name_List --
+      -------------------------
+
+      function Get_Param_Name_List
+        (Spec          : Libadalang.Analysis.Base_Subp_Spec;
+         Exclude_First : Boolean;
+         Length        : out Integer)
+         return Laltools.Common.Node_Vectors.Vector
+      is
+         Is_First_Param : Boolean := True;
+         Res            : Laltools.Common.Node_Vectors.Vector;
+      begin
+         for Param of Spec.P_Params loop
+            for Id of Param.F_Ids loop
+               if not (Is_First_Param and then Exclude_First) then
+                  Res.Append (Id.As_Ada_Node);
+               end if;
+               Is_First_Param := False;
+            end loop;
+         end loop;
+
+         Length := Integer (Res.Length);
+         return Res;
+      end Get_Param_Name_List;
 
    begin
       if Call_Expr_Node = No_Ada_Node then
@@ -92,97 +125,67 @@ package body LSP.Ada_Completions.Parameters is
          Name_Node : constant Libadalang.Analysis.Name :=
            Call_Expr_Node.F_Name;
 
-         Nb_Items  : constant Natural :=
-           Natural (Names.Length) + Natural (Result.items.Length);
-         --  Assuming that all the names are already present this will
-         --  represent the total number of items inserted
-
-         Min_Width : constant Natural := Nb_Items'Img'Length - 1;
-         --  The -1 remove the whitespace added by 'Img
-
-         Sort_Index     : Natural := Natural (Result.items.Length);
-         --  Index used to sort the completionItem
-
-         Params_Index   : Natural := Sort_Index;
-         --  Index of the "Param of" completionItem, this is related
-         --  to Sort_Index
-
          Is_Dotted_Name : constant Boolean :=
            (Name_Node.Kind in Ada_Dotted_Name_Range
             and then Name_Node.As_Dotted_Name.P_Is_Dot_Call (True));
-      begin
-         for N of Self.Context.Find_All_Env_Elements (Name_Node) loop
-            if N.Kind in Ada_Basic_Subp_Decl then
-               --  Save an index for "Params of" node
-               Params_Index := Sort_Index;
-               Sort_Index := Sort_Index + 1;
 
+         Unsorted_Res   : LSP.Messages.CompletionItem_Vector;
+      begin
+         for N of reverse Self.Context.Find_All_Env_Elements (Name_Node) loop
+            if N.Kind in Ada_Basic_Subp_Decl then
                declare
                   Params_Snippet : LSP_String := Empty_LSP_String;
-
-                  Snippet_Index  : Positive := 1;
-                  --  Index of the snippet: $0 is already used by the final
-                  --  tab stop
 
                   Spec           : constant Libadalang.Analysis.Base_Subp_Spec
                     := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
 
-                  Is_First_Param : Boolean := True;
+                  Snippet_Index  : Integer;
                begin
                   if Spec /= Libadalang.Analysis.No_Base_Subp_Spec
                     and then LSP.Lal_Utils.Match_Designators
                       (Spec.P_Params, Designators)
                   then
-                     for Param of Spec.P_Params loop
-                        for Id of Param.F_Ids loop
-                           declare
-                              Item      : LSP.Messages.CompletionItem;
-                              Name_Text : constant Text_Type := Id.Text;
-                              Name      : constant LSP_String :=
-                                To_LSP_String (Name_Text);
-                           begin
-                              if not Is_Present (Name_Text)
-                                   and then
-                                     not (Is_First_Param
-                                          and then Is_Dotted_Name)
+                     for N of reverse Get_Param_Name_List
+                       (Spec          => Spec,
+                        Exclude_First => Is_Dotted_Name,
+                        Length        => Snippet_Index)
+                     loop
+                        declare
+                           Item      : LSP.Messages.CompletionItem;
+                           Name_Text : constant Text_Type := N.Text;
+                           Name      : constant LSP_String :=
+                             To_LSP_String (Name_Text);
+                        begin
+                           if not Is_Present (Name_Text) then
+                              if Token_Kind in Ada_Par_Open | Ada_Comma
+                                or else
+                                  LSP.Types.Starts_With
+                                    (Text           => Name,
+                                     Prefix         => Prefix,
+                                     Case_Sensitive => False)
                               then
-                                 if Token_Kind in Ada_Par_Open | Ada_Comma
-                                   or else
-                                     LSP.Types.Starts_With
-                                       (Text           => Name,
-                                        Prefix         => Prefix,
-                                        Case_Sensitive => False)
-                                 then
-                                    Item.label := To_Virtual_String (Name);
-                                    Item.insertTextFormat :=
-                                      (True, LSP.Messages.PlainText);
-                                    Item.insertText :=
-                                      (True,
-                                       Whitespace_Prefix & Name & " => ");
-                                    Item.kind := (True, LSP.Messages.Field);
-                                    Item.sortText :=
-                                      (True,
-                                       To_LSP_String
-                                         (GNATCOLL.Utils.Image
-                                              (Sort_Index,
-                                               Min_Width => Min_Width)));
-                                    Result.items.Append (Item);
-                                    Sort_Index := Sort_Index + 1;
-                                 end if;
-
-                                 Params_Snippet := Params_Snippet
-                                   & Name
-                                   & " => "
-                                   & "$"
-                                   & To_LSP_String
-                                   (GNATCOLL.Utils.Image
-                                      (Snippet_Index, Min_Width => 1))
-                                   & ", ";
-                                 Snippet_Index := Snippet_Index + 1;
+                                 Item.label := To_Virtual_String (Name);
+                                 Item.insertTextFormat :=
+                                   (True, LSP.Messages.PlainText);
+                                 Item.insertText :=
+                                   (True,
+                                    Whitespace_Prefix & Name & " => ");
+                                 Item.kind := (True, LSP.Messages.Field);
+                                 Unsorted_Res.Append (Item);
                               end if;
-                           end;
-                           Is_First_Param := False;
-                        end loop;
+
+                              Params_Snippet :=
+                                Name
+                                & " => "
+                                & "$"
+                                & To_LSP_String
+                                (GNATCOLL.Utils.Image
+                                   (Snippet_Index, Min_Width => 1))
+                                & ", "
+                                & Params_Snippet;
+                           end if;
+                           Snippet_Index := Snippet_Index - 1;
+                        end;
                      end loop;
 
                      --  If the string is empty => nothing to do
@@ -215,19 +218,31 @@ package body LSP.Ada_Completions.Parameters is
                               Item                    => Item,
                               Compute_Doc_And_Details =>
                                 Self.Compute_Doc_And_Details);
-                           Item.sortText :=
-                             (True,
-                              To_LSP_String
-                                (GNATCOLL.Utils.Image
-                                     (Params_Index, Min_Width => Min_Width)));
-
-                           Result.items.Append (Item);
+                           Unsorted_Res.Append (Item);
                         end;
                      end if;
                   end if;
                end;
             end if;
          end loop;
+
+         declare
+            Min_Width : constant Natural := Unsorted_Res.Length'Img'Length - 1;
+            Cpt       : Natural := 0;
+         begin
+            for Unsort_Item of reverse Unsorted_Res loop
+               --  Use a "+" as the first sorted character to be shown before
+               --  the items from the other providers ("+" is lower than
+               --  the alphanumeric symbol and "~" in the ASCII table)
+               Unsort_Item.sortText :=
+                 (True,
+                  To_LSP_String
+                    ("+"
+                     & GNATCOLL.Utils.Image (Cpt, Min_Width => Min_Width)));
+               Result.items.Append (Unsort_Item);
+               Cpt := Cpt + 1;
+            end loop;
+         end;
       end;
    end Propose_Completion;
 
