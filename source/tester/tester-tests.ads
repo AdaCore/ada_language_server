@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Calendar;
 with Ada.Strings.Unbounded;
 
 private with VSS.Strings;
@@ -36,6 +37,16 @@ package Tester.Tests is
 
 private
 
+   task type Watch_Dog_Task is
+      entry Start
+        (Timeout : Duration;
+         Command : Ada.Strings.Unbounded.Unbounded_String);
+
+      entry Restart;
+
+      entry Cancel;
+   end Watch_Dog_Task;
+
    type Test is new LSP.Raw_Clients.Raw_Client with record
       Index        : Positive := 1;
       Sort_Reply   : GNATCOLL.JSON.JSON_Value;
@@ -43,6 +54,10 @@ private
       --  Array of JSON object to wait
       In_Debug     : Boolean;
       --  In debug mode (disable timeout, pause after start)
+      Watch_Dog    : Watch_Dog_Task;
+      --  Task to restrict a command execution time
+      Started      : Ada.Calendar.Time;
+      --  Command execution start/reset time
 
       Full_Server_Output : GNATCOLL.JSON.JSON_Array;
       --  Complete output received from the server
