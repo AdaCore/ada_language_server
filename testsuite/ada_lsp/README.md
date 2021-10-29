@@ -51,6 +51,7 @@ Here is list of supported commands.
 
 Property value - an object:
  * "cmd" - array of string.
+ * "waitFactor" - see "Execution timeouts"
 
 Start new LSP server using _cmd_ as command line.
 
@@ -59,7 +60,8 @@ Start new LSP server using _cmd_ as command line.
 Property value - an object:
  * "exit_code" - expected exit code of LSP process.
  * "close_stdin" - optional boolean, default true, if tester will close stdin
-before waiting for server termination.
+   before waiting for server termination.
+ * "waitFactor" - see "Execution timeouts"
 
 Close LSP server pipe and wait until server stop.
 
@@ -82,6 +84,7 @@ Property value - an object:
        an object, that has a `items` property. Where `items` is an array of
        objects, that should be sorted using the `label` and `detail` as a
        composite sort key.
+ * "waitFactor" - see "Execution timeouts"
 
 Where _wait_ object is expected server answer. Each property of this object
 should be in server response, but some values have a special meaning:
@@ -106,7 +109,18 @@ Property value - array of strings or just string.
 Tester just ignores this command. We use it to add test desription and other
 comments to JSON test script.
 
+Execution timeouts
+------------------
 
+Each command has a limited time to run. The current timeout is 5 seconds.
+The `send` command has 4 seconds to complete, but each server message resets
+the timer, so while server sends messages the command keeps running.
+This helps for runtime library indexing when progress report messages come
+with regular interval, but whole indexing could be long.
+
+The timeout can be increased several times by setting by setting
+`ALS_WAIT_FACTOR` environment variable. A particular command can increase
+its timeout with `waitFactor` property.
 
 JSON file preprocessing
 -----------------------
