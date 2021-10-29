@@ -2138,18 +2138,23 @@ package body LSP.Ada_Handlers is
         Get_Open_Document (Self, Value.textDocument.uri);
       Result   : LSP.Messages.FoldingRange_Vector;
 
+      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
+
    begin
       if Document /= null then
          Document.Get_Folding_Blocks
            (Context.all,
             Self.Line_Folding_Only,
             Self.Options.Folding.Comments,
+            Canceled.Has_Been_Canceled'Access,
             Result);
 
          return Response : LSP.Messages.Server_Responses.FoldingRange_Response
            (Is_Error => False)
          do
-            Response.result := Result;
+            if not Canceled.Has_Been_Canceled then
+               Response.result := Result;
+            end if;
          end return;
 
       else
