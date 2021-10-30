@@ -116,7 +116,16 @@
                     }
                 }
             },
-            "wait": []
+            "wait": [
+                {
+                   "jsonrpc": "2.0",
+                   "id": 2,
+                   "method": "window/workDoneProgress/create",
+                   "params": {
+                      "token": "<ANY>"
+                   }
+                }
+            ]
         }
     },
     {
