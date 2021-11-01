@@ -7,7 +7,7 @@ on:
   pull_request:
 name: Build binaries
 env:
-  DEFAULT_TAG: 22.0.999
+  DEFAULT_TAG: 23.0.999
   AWS_DEFAULT_REGION: eu-west-1
 jobs:
   build:
