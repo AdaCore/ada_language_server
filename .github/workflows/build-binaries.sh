@@ -2,7 +2,7 @@
 set -x -e
 DEBUG=$1  # Value is '' or 'debug'
 RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
-TAG=$3 # For master it's 22.0.999, while for tag it's the tag itself
+TAG=$3 # For master it's 23.0.999, while for tag it's the tag itself
 prefix=/tmp/ADALIB_DIR
 
 if [ $RUNNER_OS = Windows ]; then
