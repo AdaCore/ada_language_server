@@ -33,8 +33,8 @@ with Spawn.Processes.Monitor_Loop;
 
 package body Tester.Tests is
 
-   Max_Wait : constant := 4_000;
-   --  Max number of milliseconds to wait on a given snippet
+   Max_Wait : constant := 4.0;
+   --  Max number of seconds to wait on a given snippet
 
    type Command_Kind is (Start, Stop, Send, Shell, Comment);
 
@@ -123,6 +123,8 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value)
    is
+      use type Ada.Calendar.Time;
+
       Request : constant GNATCOLL.JSON.JSON_Value := Command.Get ("request");
       Wait    : constant GNATCOLL.JSON.JSON_Array := Command.Get ("wait").Get;
       Sort    : constant GNATCOLL.JSON.JSON_Value := Command.Get ("sortReply");
@@ -130,19 +132,18 @@ package body Tester.Tests is
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
         Request.Write;
 
-      Total_Milliseconds_Waited : Integer := 0;
-      Timeout : constant := 100;
+      Timeout : constant Duration := Max_Wait * Wait_Factor (Command);
    begin
+      Self.Started := Ada.Calendar.Clock;
       Self.Waits := Wait;
       Self.Sort_Reply := Sort;
       Self.Send_Message (Text);
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => Timeout);
+         Spawn.Processes.Monitor_Loop (Timeout => 100);
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
 
-         Total_Milliseconds_Waited := Total_Milliseconds_Waited + Timeout;
-         if Total_Milliseconds_Waited > Max_Wait * Wait_Factor (Command)
+         if Ada.Calendar.Clock - Self.Started > Timeout
             and then not Self.In_Debug
          then
             declare
@@ -758,6 +759,10 @@ package body Tester.Tests is
         GNATCOLL.JSON.Read (Data);
 
    begin
+      --  Reset watchdog and timer on each message
+      Self.Watch_Dog.Restart;
+      Self.Started := Ada.Calendar.Clock;
+
       GNATCOLL.JSON.Append (Self.Full_Server_Output, JSON);
 
       if not Self.Sort_Reply.Is_Empty then
@@ -800,30 +805,17 @@ package body Tester.Tests is
          end case;
       end Execute;
 
-      task Watch_Dog is
-         entry Cancel;
-      end Watch_Dog;
-
-      task body Watch_Dog is
-      begin
-         select
-            accept Cancel;
-         or
-            delay 20.0 * Wait_Factor (Command);
-
-            Ada.Text_IO.Put_Line ("Timeout on command:");
-            Ada.Text_IO.Put_Line (Command.Write);
-            OS_Exit (1);
-         end select;
-      end Watch_Dog;
-
    begin
       if Self.In_Debug then
-         Watch_Dog.Cancel;  --  Don't use watchdog under debug
          Command.Map_JSON_Object (Execute'Access);
       else
+         Self.Watch_Dog.Start
+           (Timeout => (Max_Wait + 1.0) * Wait_Factor (Command),
+            Command => Command.Write);
+
          Command.Map_JSON_Object (Execute'Access);
-         Watch_Dog.Cancel;
+
+         Self.Watch_Dog.Cancel;
       end if;
    end Execute_Command;
 
@@ -874,5 +866,44 @@ package body Tester.Tests is
          return Integer'Value (Factor);
       end if;
    end Wait_Factor;
+
+   --------------------
+   -- Watch_Dog_Task --
+   --------------------
+
+   task body Watch_Dog_Task is
+      Left : Duration;
+      Cmd  : Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      loop
+         select
+            accept Start
+              (Timeout : Duration;
+               Command : Ada.Strings.Unbounded.Unbounded_String)
+            do
+               Cmd := Command;
+               Left := Timeout;
+            end Start;
+         or
+            terminate;
+         end select;
+
+         Watch_Command_Execution :
+         loop
+            select
+               accept Cancel;
+               exit Watch_Command_Execution;
+            or
+               accept Restart;
+            or
+               delay Left;
+
+               Ada.Text_IO.Put_Line ("Timeout on command:");
+               Ada.Text_IO.Put_Line (Ada.Strings.Unbounded.To_String (Cmd));
+               OS_Exit (1);
+            end select;
+         end loop Watch_Command_Execution;
+      end loop;
+   end Watch_Dog_Task;
 
 end Tester.Tests;

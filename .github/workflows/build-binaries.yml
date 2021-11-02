@@ -7,7 +7,7 @@ on:
   pull_request:
 name: Build binaries
 env:
-  DEFAULT_TAG: 22.0.999
+  DEFAULT_TAG: 23.0.999
   AWS_DEFAULT_REGION: eu-west-1
 jobs:
   build:
@@ -65,11 +65,6 @@ jobs:
           path: ./cached_gnat
           key: ${{ runner.os }}-alire-2021
           restore-keys: ${{ runner.os }}-alire-2021
-      - name: Rename gnat/
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash
-        run: mv gnat gnat_
-        # alr fails to run `gnat` on Windows if there is a dir
       - name: Get GNAT toolchain with alire
         uses: alire-project/setup-alire@v1
         with:
@@ -82,10 +77,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         run: |
-          # Move `gnat` back
-          mv gnat_ gnat
-          # drop python if any
-          rm -rf -v ./cached_gnat/gnat*/bin/python*
           # This is to avoid locking .sh on win that prevents its updating
           cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
           .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
