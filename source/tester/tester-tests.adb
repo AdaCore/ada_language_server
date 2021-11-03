@@ -63,6 +63,11 @@ package body Tester.Tests is
    function Is_Has_Pattern (List : GNATCOLL.JSON.JSON_Array) return Boolean;
    --  Check if List in form of ["<HAS>", item1, item2, ...]
 
+   function Is_Does_Not_Have_Pattern
+     (List : GNATCOLL.JSON.JSON_Array)
+      return Boolean;
+   --  Check if List in form of ["<DOES_NOT_HAVE>", item1, item2, ...]
+
    Is_Windows : constant Boolean := Directory_Separator = '\';
 
    --------------------
@@ -84,6 +89,29 @@ package body Tester.Tests is
          return False;
       end if;
    end Is_Has_Pattern;
+
+   ------------------------------
+   -- Is_Does_Not_Have_Pattern --
+   ------------------------------
+
+   function Is_Does_Not_Have_Pattern
+     (List : GNATCOLL.JSON.JSON_Array)
+      return Boolean
+   is
+      Len : constant Natural := GNATCOLL.JSON.Length (List);
+   begin
+      if Len > 1 then
+         declare
+            First : constant GNATCOLL.JSON.JSON_Value :=
+              GNATCOLL.JSON.Get (List, 1);
+         begin
+            return First.Kind = GNATCOLL.JSON.JSON_String_Type
+              and then String'(GNATCOLL.JSON.Get (First)) = "<DOES_NOT_HAVE>";
+         end;
+      else
+         return False;
+      end if;
+   end Is_Does_Not_Have_Pattern;
 
    --------------
    -- Do_Abort --
@@ -570,6 +598,25 @@ package body Tester.Tests is
                      end loop;
 
                      return True;
+
+                  elsif Is_Does_Not_Have_Pattern (R) then
+                     --  Found: "<DOES_NOT_HAVE>", item1, item2. Check all
+                     --  item1, item2, etc... are not in the Left
+                     for R_Index in 2 .. GNATCOLL.JSON.Length (R) loop
+                        declare
+                           R_Item : constant GNATCOLL.JSON.JSON_Value :=
+                             GNATCOLL.JSON.Get (R, R_Index);
+                        begin
+                           if (for some J in 1 .. Len =>
+                                 Match (GNATCOLL.JSON.Get (L, J), R_Item))
+                           then
+                              return False;
+                           end if;
+                        end;
+                     end loop;
+
+                     return True;
+
                   elsif Len /= GNATCOLL.JSON.Length (R) then
                      return False;
                   end if;

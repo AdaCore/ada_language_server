@@ -92,6 +92,8 @@ should be in server response, but some values have a special meaning:
  * string `<ABSENT>` - ensures that there is no such property at all
  * array `['<HAS>', item1, item2, ...]` - ensures that all given items are
    included into the array, any other array items are considered irrelevant and ignored
+ * array `['<DOES_NOT_HAVE>', item1, item2, ...]` - ensures that all given items are
+   not included into the array, any other array items are considered irrelevant and ignored
 
 ### Command `shell`
 
