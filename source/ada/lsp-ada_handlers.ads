@@ -153,6 +153,25 @@ private
      No_Project_Found .. Invalid_Project_Configured;
    --  Project status when an implicit project loaded
 
+   type Advanced_Refactorings is (Add_Parameter);
+   --  Enum with the advanced refactorings that clients might support
+
+   type Advanced_Refactorings_Capabilities is
+     array (Advanced_Refactorings) of Boolean;
+   --  Array that determines what advanced refactorings clients support
+
+   type Experimental_Client_Capabilities is record
+      Advanced_Refactorings : Advanced_Refactorings_Capabilities;
+   end record;
+   --  Experimental client capabilities that are extensions of the ones defined
+   --  in the LSP
+
+   function Parse
+     (Value : LSP.Types.Optional_LSP_Any)
+      return Experimental_Client_Capabilities;
+   --  Parses an LSP.Types.Optional_LSP_Any and creates an
+   --  Experimental_Client_Capabilities object.
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -289,6 +308,15 @@ private
 
       File_Monitor    : LSP.File_Monitors.File_Monitor_Access;
       --  Filesystem monitoring
+
+      ---------------------------------------
+      --  Experimental Client Capabilities --
+      ---------------------------------------
+
+      Experimental_Client_Capabilities :
+        LSP.Ada_Handlers.Experimental_Client_Capabilities :=
+          (Advanced_Refactorings => (others => False));
+
    end record;
 
    overriding procedure Before_Work

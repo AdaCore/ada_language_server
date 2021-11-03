@@ -658,6 +658,8 @@ package body LSP.Ada_Handlers is
         Value.capabilities.textDocument.codeAction;
       Has_Rename : LSP.Messages.Optional_RenameClientCapabilities renames
         Value.capabilities.textDocument.rename;
+      Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
+        Value.capabilities.experimental;
       Response : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
       Root     : LSP.Types.LSP_String;
@@ -837,6 +839,10 @@ package body LSP.Ada_Handlers is
 
       --  Log the context root
       Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+
+      --  Experimental Client Capabilities
+      Self.Experimental_Client_Capabilities :=
+        Parse (Experimental_Client_Capabilities);
 
       return Response;
    end On_Initialize_Request;
@@ -1201,50 +1207,58 @@ package body LSP.Ada_Handlers is
          --  Refactoring Code Actions
 
          --  Add Parameter
-         declare
-            use LSP.Ada_Handlers.Refactor_Add_Parameter;
-            use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
-            use Langkit_Support.Slocs;
-            use type LSP.Messages.Position;
+         --  This refactoring is only available for clients that can provide
+         --  user inputs.
 
-            --  This code action is not available when a range of text is
-            --  selected.
+         if Self.Experimental_Client_Capabilities.
+           Advanced_Refactorings (Add_Parameter)
+         then
+            declare
+               use LSP.Ada_Handlers.Refactor_Add_Parameter;
+               use Libadalang.Analysis;
+               use Laltools.Refactor.Subprogram_Signature;
+               use Langkit_Support.Slocs;
+               use type LSP.Messages.Position;
 
-            Single_Location             : constant Boolean :=
-              Params.span.first = Params.span.last;
-            Location                    : constant Source_Location :=
-              (if Single_Location then
-                 (Langkit_Support.Slocs.Line_Number
-                      (Params.span.first.line) + 1,
-                  Column_Number (Params.span.first.character) + 1)
-               else
-                  No_Source_Location);
+               --  This code action is not available when a range of text is
+               --  selected.
 
-            Requires_Full_Specification : Boolean;
+               Single_Location             : constant Boolean :=
+                 Params.span.first = Params.span.last;
+               Location                    : constant Source_Location :=
+                 (if Single_Location then
+                    (Langkit_Support.Slocs.Line_Number
+                         (Params.span.first.line) + 1,
+                     Column_Number (Params.span.first.character) + 1)
+                  else
+                     No_Source_Location);
 
-            Add_Parameter_Commad : Command;
+               Requires_Full_Specification : Boolean;
 
-         begin
-            if Single_Location
-              and then Is_Add_Parameter_Available
-                         (Node.Unit,
-                          Location,
-                          Requires_Full_Specification)
-            then
-               Add_Parameter_Commad.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (Params.textDocument.uri,
-                     Params.span,
-                     LSP.Messages.Empty_Set),
-                  Requires_Full_Specification => Requires_Full_Specification);
+               Add_Parameter_Commad : Command;
 
-               Found := True;
-               Done := True;
-            end if;
-         end;
+            begin
+               if Single_Location
+                 and then Is_Add_Parameter_Available
+                   (Node.Unit,
+                    Location,
+                    Requires_Full_Specification)
+               then
+                  Add_Parameter_Commad.Append_Code_Action
+                    (Context                     => Context,
+                     Commands_Vector             => Result,
+                     Where                       =>
+                       (Params.textDocument.uri,
+                        Params.span,
+                        LSP.Messages.Empty_Set),
+                     Requires_Full_Specification =>
+                       Requires_Full_Specification);
+
+                  Found := True;
+                  Done := True;
+               end if;
+            end;
+         end if;
 
          --  Remove Parameter
          declare
@@ -4908,5 +4922,37 @@ package body LSP.Ada_Handlers is
                           data    => <>));
          end return;
    end On_ALS_Check_Syntax_Request;
+
+   -----------
+   -- Parse --
+   -----------
+
+   function Parse
+     (Value : LSP.Types.Optional_LSP_Any)
+      return Experimental_Client_Capabilities is
+   begin
+      return Result : Experimental_Client_Capabilities :=
+               (Advanced_Refactorings => (others => False))
+      do
+         if Value.Is_Set then
+            if Value.Value.
+              Has_Field ("advanced_refactorings")
+              and then Value.Value.Get ("advanced_refactorings").Kind in
+                         GNATCOLL.JSON.JSON_Array_Type
+            then
+               declare
+                  Advanced_Refactorings : constant GNATCOLL.JSON.JSON_Array :=
+                    Value.Value.Get ("advanced_refactorings");
+               begin
+                  Result.Advanced_Refactorings (Add_Parameter) :=
+                    (for some Refactoring of Advanced_Refactorings =>
+                       Refactoring.Kind in GNATCOLL.JSON.JSON_String_Type
+                       and then GNATCOLL.JSON.Get (Refactoring) =
+                                  GNATCOLL.JSON.UTF8_String'("add_parameter"));
+               end;
+            end if;
+         end if;
+      end return;
+   end Parse;
 
 end LSP.Ada_Handlers;

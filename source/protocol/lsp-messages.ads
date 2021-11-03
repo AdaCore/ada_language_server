@@ -4634,7 +4634,7 @@ package LSP.Messages is
       textDocument: TextDocumentClientCapabilities;
       window: Optional_WindowClientCapabilities;
       general: Optional_GeneralClientCapabilities;
-      --  experimental?: any;
+      experimental: Optional_LSP_Any;
    end record;
 
    procedure Read_ClientCapabilities
