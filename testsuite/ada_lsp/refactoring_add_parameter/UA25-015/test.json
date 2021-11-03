@@ -56,6 +56,11 @@
                                     }
                                 }
                             }
+                        },
+                        "experimental": {
+                            "advanced_refactorings": [
+                                "add_parameter"
+                            ]
                         }
                     }
                 }
@@ -118,12 +123,12 @@
             },
             "wait": [
                 {
-                   "jsonrpc": "2.0",
-                   "id": 2,
-                   "method": "window/workDoneProgress/create",
-                   "params": {
-                      "token": "<ANY>"
-                   }
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
                 }
             ]
         }
@@ -175,7 +180,7 @@
                     "jsonrpc": "2.0",
                     "id": 1,
                     "result": [
-                        "<DOES_NOT_HAVE>",
+                        "<HAS>",
                         {
                             "title": "Add Parameter",
                             "kind": "refactor.rewrite",
@@ -254,8 +259,7 @@
                 {
                     "jsonrpc": "2.0",
                     "id": 3,
-                    "result": {
-                    }
+                    "result": {}
                 }
             ]
         }
@@ -356,7 +360,7 @@
                     "jsonrpc": "2.0",
                     "id": 5,
                     "result": [
-                        "<DOES_NOT_HAVE>",
+                        "<HAS>",
                         {
                             "title": "Add Parameter",
                             "kind": "refactor.rewrite",

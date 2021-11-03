@@ -244,6 +244,13 @@ package LSP.Types is
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Item   : VSS.Unicode.UTF16_Code_Unit_Count);
 
+   ----------------------
+   -- Optional_LSP_Any --
+   ----------------------
+
+   package Optional_LSP_Anys is new LSP.Generic_Optional (LSP_Any);
+   type Optional_LSP_Any is new Optional_LSP_Anys.Optional_Type;
+
    ---------------------
    -- Optional_Number --
    ---------------------
