@@ -4208,6 +4208,8 @@ package body LSP.Message_IO is
                Optional_WindowClientCapabilities'Read (S, V.window);
             elsif Key = "general" then
                Optional_GeneralClientCapabilities'Read (S, V.general);
+            elsif Key = "experimental" then
+               Optional_LSP_Any'Read (S, V.experimental);
             else
                JS.Skip_Value;
             end if;
@@ -4232,6 +4234,8 @@ package body LSP.Message_IO is
       Optional_WindowClientCapabilities'Write (S, V.window);
       JS.Key ("general");
       Optional_GeneralClientCapabilities'Write (S, V.general);
+      JS.Key ("experimental");
+      Optional_LSP_Any'Write (S, V.experimental);
       JS.End_Object;
    end Write_ClientCapabilities;
 

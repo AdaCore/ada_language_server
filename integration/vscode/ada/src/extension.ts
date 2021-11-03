@@ -28,6 +28,7 @@ import * as process from 'process';
 import GPRTaskProvider from './gprTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
+import { ALSClientFeatures } from './alsClientFeatures';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
@@ -66,6 +67,7 @@ export function activate(context: vscode.ExtensionContext): void {
         executeCommand: alsCommandExecutor(client),
     };
     client.clientOptions.middleware = alsMiddleware;
+    client.registerFeature(new ALSClientFeatures());
 
     const disposable = client.start();
     // Push the disposable to the context's subscriptions so that the

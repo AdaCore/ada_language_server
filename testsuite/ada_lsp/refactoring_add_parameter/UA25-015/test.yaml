@@ -1,0 +1,6 @@
+title: 'refactoring_add_parameters_UA25-015_0'
+
+description: >
+    Check that the Add_Parameter codeAction is avaiable when the client
+    provides the userInputProvider capability, and that it executes
+    correctly.
