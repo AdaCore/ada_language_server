@@ -423,7 +423,7 @@
                        },
                        "severity": 1,
                        "source": "project",
-                       "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                       "message": "No project found in root directory. Please create a project file and add it to the configuration."
                      }
                   ]
                },
@@ -479,7 +479,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -548,7 +548,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -604,7 +604,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -686,7 +686,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -742,7 +742,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -824,7 +824,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -880,7 +880,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -962,7 +962,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
@@ -1018,7 +1018,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project found project in root directory. Please create a project fila and add it to the configuration."
+                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
                   ]
                },
