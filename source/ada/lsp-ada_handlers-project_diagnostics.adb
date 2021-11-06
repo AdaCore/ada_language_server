@@ -26,8 +26,8 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
 
    No_Project_Found_Message : constant VSS.Strings.Virtual_String :=
      VSS.Strings.To_Virtual_String
-       ("No project found project in root directory. " &
-        "Please create a project fila and add it to the configuration.");
+       ("No project found in root directory. " &
+        "Please create a project file and add it to the configuration.");
 
    Multiple_Projects_Found_Message : constant VSS.Strings.Virtual_String :=
      VSS.Strings.To_Virtual_String
