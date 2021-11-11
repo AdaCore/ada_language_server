@@ -32,6 +32,13 @@ if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
     git rebase --verbose origin/edge
 fi
 
+# Audit the npm packages
+cd integration/vscode/ada
+npm install
+# Run npm audit to check for any vulnerabilities
+npm audit
+cd -
+
 # Get libadalang binaries
 mkdir -p $prefix
 FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
