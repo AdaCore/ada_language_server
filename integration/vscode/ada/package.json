@@ -255,7 +255,6 @@
         "glob": "^7.1.7",
         "mocha": "^9.0.2",
         "prettier": "^2.3.2",
-        "prettier-eslint": "^12.0.0",
         "typescript": "^4.3.5",
         "vscode-test": "^1.5.2",
         "vscode-tmgrammar-test": "^0.0.11"
