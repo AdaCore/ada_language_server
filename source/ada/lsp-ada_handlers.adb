@@ -3684,7 +3684,8 @@ package body LSP.Ada_Handlers is
          Self.Project_Tree.Load
            (GPR,
             Self.Project_Environment,
-            Errors => On_Error'Unrestricted_Access);
+            Report_Missing_Dirs => False,
+            Errors              => On_Error'Unrestricted_Access);
          for File of Self.Project_Environment.Predefined_Source_Files loop
             Self.Project_Predefined_Sources.Include (File);
          end loop;
