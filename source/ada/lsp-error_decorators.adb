@@ -512,6 +512,66 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.ExecuteCommand_Response
         renames Workspace_Execute_Command_Request;
 
+   --------------------------------------------
+   -- On_Workspace_Will_Create_Files_Request --
+   --------------------------------------------
+
+   function Workspace_Will_Create_Files_Request
+     is new Generic_Request
+       (Request    => LSP.Messages.Server_Requests
+                        .Workspace_Will_Create_Files_Request,
+        Response   => LSP.Messages.Server_Responses.WillCreateFiles_Response,
+        Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+        On_Request => LSP.Server_Request_Handlers
+                        .On_Workspace_Will_Create_Files_Request);
+
+   overriding function On_Workspace_Will_Create_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Create_Files_Request)
+      return LSP.Messages.Server_Responses.WillCreateFiles_Response
+        renames Workspace_Will_Create_Files_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Rename_Files_Request --
+   --------------------------------------------
+
+   function Workspace_Will_Rename_Files_Request
+     is new Generic_Request
+       (Request    => LSP.Messages.Server_Requests
+                        .Workspace_Will_Rename_Files_Request,
+        Response   => LSP.Messages.Server_Responses.WillRenameFiles_Response,
+        Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+        On_Request => LSP.Server_Request_Handlers
+                        .On_Workspace_Will_Rename_Files_Request);
+
+   overriding function On_Workspace_Will_Rename_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Rename_Files_Request)
+      return LSP.Messages.Server_Responses.WillRenameFiles_Response
+        renames Workspace_Will_Rename_Files_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Delete_Files_Request --
+   --------------------------------------------
+
+   function Workspace_Will_Delete_Files_Request
+     is new Generic_Request
+       (Request    => LSP.Messages.Server_Requests
+                        .Workspace_Will_Delete_Files_Request,
+        Response   => LSP.Messages.Server_Responses.WillDeleteFiles_Response,
+        Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+        On_Request => LSP.Server_Request_Handlers
+                        .On_Workspace_Will_Delete_Files_Request);
+
+   overriding function On_Workspace_Will_Delete_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Delete_Files_Request)
+      return LSP.Messages.Server_Responses.WillDeleteFiles_Response
+        renames Workspace_Will_Delete_Files_Request;
+
    --------------------------------------
    -- On_ALS_Show_Dependencies_Request --
    --------------------------------------

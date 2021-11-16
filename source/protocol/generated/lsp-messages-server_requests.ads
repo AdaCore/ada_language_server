@@ -398,6 +398,45 @@ package LSP.Messages.Server_Requests is
      (Self    : Workspace_Execute_Command_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Workspace_Will_Create_Files_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        CreateFilesParams,
+        Server_Request_Receiver'Class);
+
+   type Workspace_Will_Create_Files_Request is
+     new Workspace_Will_Create_Files_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Will_Create_Files_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   package Workspace_Will_Rename_Files_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        RenameFilesParams,
+        Server_Request_Receiver'Class);
+
+   type Workspace_Will_Rename_Files_Request is
+     new Workspace_Will_Rename_Files_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Will_Rename_Files_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   package Workspace_Will_Delete_Files_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DeleteFilesParams,
+        Server_Request_Receiver'Class);
+
+   type Workspace_Will_Delete_Files_Request is
+     new Workspace_Will_Delete_Files_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Workspace_Will_Delete_Files_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package ALS_Show_Dependencies_Requests is
      new LSP.Generic_Requests
        (Server_Request,

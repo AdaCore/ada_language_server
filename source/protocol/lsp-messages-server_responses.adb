@@ -277,6 +277,39 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : WillCreateFiles_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_WillCreateFiles_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : WillRenameFiles_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_WillRenameFiles_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
+     (Self    : WillDeleteFiles_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_WillDeleteFiles_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : Shutdown_Response;
       Handler : access Server_Response_Sender'Class)
    is

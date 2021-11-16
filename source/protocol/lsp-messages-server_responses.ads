@@ -258,6 +258,39 @@ package LSP.Messages.Server_Responses is
      (Self    : ExecuteCommand_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package WillCreateFiles_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => Optional_WorkspaceEdit_Or_Null);
+
+   type WillCreateFiles_Response is
+     new WillCreateFiles_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : WillCreateFiles_Response;
+      Handler : access Server_Response_Sender'Class);
+
+   package WillRenameFiles_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => Optional_WorkspaceEdit_Or_Null);
+
+   type WillRenameFiles_Response is
+     new WillRenameFiles_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : WillRenameFiles_Response;
+      Handler : access Server_Response_Sender'Class);
+
+   package WillDeleteFiles_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => Optional_WorkspaceEdit_Or_Null);
+
+   type WillDeleteFiles_Response is
+     new WillDeleteFiles_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : WillDeleteFiles_Response;
+      Handler : access Server_Response_Sender'Class);
+
    type Shutdown_Response is new Server_Response with null record;
 
    overriding procedure Visit

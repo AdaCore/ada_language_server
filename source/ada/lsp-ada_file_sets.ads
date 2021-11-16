@@ -43,6 +43,10 @@ package LSP.Ada_File_Sets is
      (Self : in out Indexed_File_Set'Class;
       File : GNATCOLL.VFS.Virtual_File);
 
+   procedure Exclude
+     (Self : in out Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File);
+
    function Length (Self : Indexed_File_Set'Class) return Natural;
 
    function Contains

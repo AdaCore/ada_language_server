@@ -211,6 +211,8 @@ LSP_Messages_Generic_Type_Snippet_Noparams = """
 
 LSP_Server_Handlers_Header = """--  Automatically generated, do not edit.
 
+pragma Style_Checks (Off);
+
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 
@@ -305,6 +307,12 @@ REQUESTS = [
      'Symbol_Response'),
     ('workspace/executeCommand', 'Workspace_Execute_Command',
      'ExecuteCommandParams', 'ExecuteCommand_Response'),
+    ('workspace/willCreateFiles', 'Workspace_Will_Create_Files',
+     'CreateFilesParams', 'WillCreateFiles_Response'),
+    ('workspace/willRenameFiles', 'Workspace_Will_Rename_Files',
+     'RenameFilesParams', 'WillRenameFiles_Response'),
+    ('workspace/willDeleteFiles', 'Workspace_Will_Delete_Files',
+     'DeleteFilesParams', 'WillDeleteFiles_Response'),
 
     # ALS-specific requests
     ('textDocument/alsShowDependencies', 'ALS_Show_Dependencies',
@@ -327,6 +335,13 @@ NOTIFICATIONS = [
      'DidChangeWorkspaceFoldersParams'),
     ('workspace/didChangeWatchedFiles', 'DidChangeWatchedFiles',
      'DidChangeWatchedFilesParams'),
+    ('workspace/didCreateFiles', 'DidCreateFiles',
+     'CreateFilesParams'),
+    ('workspace/didRenameFiles', 'DidRenameFiles',
+     'RenameFilesParams'),
+    ('workspace/didDeleteFiles', 'DidDeleteFiles',
+     'DeleteFilesParams'),
+
     ('$/cancelRequest', 'Cancel', 'CancelParams'),
 
     # TODO: rename these to TextDocumentDidOpen/DidChange/DidSave/DidClose?

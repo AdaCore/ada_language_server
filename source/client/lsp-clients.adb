@@ -1161,6 +1161,48 @@ package body LSP.Clients is
       Self.Send_Notification ("$/cancelRequest", Message);
    end On_Cancel_Notification;
 
+   ------------------------------------
+   -- On_DidCreateFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.CreateFilesParams)
+   is
+      Message : DidCreateFiles_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("$workspace/didCreateFiles", Message);
+   end On_DidCreateFiles_Notification;
+
+   ------------------------------------
+   -- On_DidRenameFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.RenameFilesParams)
+   is
+      Message : DidRenameFiles_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("$workspace/didRenameFiles", Message);
+   end On_DidRenameFiles_Notification;
+
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DeleteFilesParams)
+   is
+      Message : DidDeleteFiles_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("$workspace/didDeleteFiles", Message);
+   end On_DidDeleteFiles_Notification;
+
    -------------------------------------
    -- Text_Document_Highlight_Request --
    -------------------------------------

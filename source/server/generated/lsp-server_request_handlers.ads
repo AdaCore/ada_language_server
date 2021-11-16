@@ -1,5 +1,7 @@
 --  Automatically generated, do not edit.
 
+pragma Style_Checks (Off);
+
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 
@@ -186,6 +188,24 @@ package LSP.Server_Request_Handlers is
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response
+        is abstract;
+
+   function On_Workspace_Will_Create_Files_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Workspace_Will_Create_Files_Request)
+      return LSP.Messages.Server_Responses.WillCreateFiles_Response
+        is abstract;
+
+   function On_Workspace_Will_Rename_Files_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Workspace_Will_Rename_Files_Request)
+      return LSP.Messages.Server_Responses.WillRenameFiles_Response
+        is abstract;
+
+   function On_Workspace_Will_Delete_Files_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Workspace_Will_Delete_Files_Request)
+      return LSP.Messages.Server_Responses.WillDeleteFiles_Response
         is abstract;
 
    function On_ALS_Show_Dependencies_Request

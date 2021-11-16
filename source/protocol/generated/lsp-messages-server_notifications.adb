@@ -70,6 +70,27 @@ package body LSP.Messages.Server_Notifications is
    end Visit;
 
    overriding procedure Visit
+     (Self    : DidCreateFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_DidCreateFiles_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : DidRenameFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_DidRenameFiles_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : DidDeleteFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_DidDeleteFiles_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Cancel_Notification;
       Handler : access Server_Notification_Receiver'Class) is
    begin
@@ -125,6 +146,18 @@ begin
    Map.Insert
      ("workspace/didChangeWatchedFiles",
       DidChangeWatchedFiles_Notification'Tag);
+
+   Map.Insert
+     ("workspace/didCreateFiles",
+      DidCreateFiles_Notification'Tag);
+
+   Map.Insert
+     ("workspace/didRenameFiles",
+      DidRenameFiles_Notification'Tag);
+
+   Map.Insert
+     ("workspace/didDeleteFiles",
+      DidDeleteFiles_Notification'Tag);
 
    Map.Insert
      ("$/cancelRequest",

@@ -109,6 +109,39 @@ package body LSP.Fuzz_Decorators is
       Self.Handler.On_Cancel_Notification (Value);
    end On_Cancel_Notification;
 
+   ------------------------------------
+   -- On_DidCreateFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.CreateFilesParams) is
+   begin
+      Self.Handler.On_DidCreateFiles_Notification (Value);
+   end On_DidCreateFiles_Notification;
+
+   ------------------------------------
+   -- On_DidRenameFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.RenameFilesParams) is
+   begin
+      Self.Handler.On_DidRenameFiles_Notification (Value);
+   end On_DidRenameFiles_Notification;
+
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.DeleteFilesParams) is
+   begin
+      Self.Handler.On_DidDeleteFiles_Notification (Value);
+   end On_DidDeleteFiles_Notification;
+
    -----------------------------------------
    -- On_DidOpenTextDocument_Notification --
    -----------------------------------------

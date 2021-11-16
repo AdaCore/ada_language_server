@@ -18,6 +18,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Containers;
 with Ada.Strings.Unbounded;
+with Ada.Strings.UTF_Encoding;
 
 with GNATCOLL.JSON;
 
@@ -30,6 +31,10 @@ package body LSP.Message_Loggers is
 
    function "+" (Text : LSP.Types.LSP_URI) return String
      renames LSP.Types.To_UTF_8_String;
+   function "+"
+     (Text : VSS.Strings.Virtual_String'Class)
+      return Ada.Strings.UTF_Encoding.UTF_8_String
+      renames VSS.Strings.Conversions.To_UTF_8_String;
 
    function Image (Value : LSP.Types.LSP_Number_Or_String) return String;
    function Image (Value : LSP.Types.Optional_Boolean) return String;
@@ -41,6 +46,12 @@ package body LSP.Message_Loggers is
    function Image (Value : LSP.Messages.TextDocumentIdentifier) return String;
    function Image (Value : LSP.Messages.FormattingOptions) return String;
    function Image (Value : LSP.Messages.TextEdit_Vector) return String;
+   function Image (Value : LSP.Messages.FileCreate) return String;
+   function Image (Value : LSP.Messages.FileRename) return String;
+   function Image (Value : LSP.Messages.FileDelete) return String;
+   function Image (Value : LSP.Messages.CreateFilesParams) return String;
+   function Image (Value : LSP.Messages.RenameFilesParams) return String;
+   function Image (Value : LSP.Messages.DeleteFilesParams) return String;
 
    function Image
      (Value : LSP.Messages.DocumentRangeFormattingParams) return String;
@@ -199,6 +210,152 @@ package body LSP.Message_Loggers is
    function Image (Value : LSP.Messages.TextEdit_Vector) return String is
    begin
       return Ada.Containers.Count_Type'Image (Value.Length);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.FileCreate) return String
+   is
+      use Ada.Characters.Latin_1;
+   begin
+      return "{uri: " & Quotation & (+Value.uri) & Quotation & "}";
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.FileRename) return String
+   is
+      use Ada.Characters.Latin_1;
+   begin
+      return
+        "{oldUri: " & Quotation & (+Value.oldUri) & Quotation & "; "
+        & "newUri: " & Quotation & (+Value.newUri) & Quotation & "}";
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.FileDelete) return String
+   is
+      use Ada.Characters.Latin_1;
+   begin
+      return "{uri: " & Quotation & (+Value.uri) & Quotation & "}";
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.CreateFilesParams) return String is
+      function Reduce_FileCreate_Vector return String;
+      --  Joins the Value.files elements seperated by a comma
+
+      ------------------
+      -- Reduce_Rules --
+      ------------------
+
+      function Reduce_FileCreate_Vector return String is
+         use FileCreate_Vectors.Element_Vectors;
+         use Ada.Strings.Unbounded;
+
+         Files_Cursor   : Cursor := Value.files.First;
+         Reduced_Vector : Unbounded_String := Null_Unbounded_String;
+
+      begin
+         if Has_Element (Files_Cursor) then
+            Append (Reduced_Vector, Image (Element (Files_Cursor)));
+            Next (Files_Cursor);
+            while Has_Element (Files_Cursor) loop
+               Append (Reduced_Vector, ", ");
+               Append (Reduced_Vector, Image (Element (Files_Cursor)));
+               Next (Files_Cursor);
+            end loop;
+         end if;
+
+         return To_String (Reduced_Vector);
+      end Reduce_FileCreate_Vector;
+
+   begin
+      return "files: [" & Reduce_FileCreate_Vector & "]";
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.RenameFilesParams) return String is
+      function Reduce_FileRename_Vector return String;
+      --  Joins the Value.files elements seperated by a comma
+
+      ------------------------------
+      -- Reduce_FileRename_Vector --
+      ------------------------------
+
+      function Reduce_FileRename_Vector return String is
+         use FileRename_Vectors.Element_Vectors;
+         use Ada.Strings.Unbounded;
+
+         Files_Cursor   : Cursor := Value.files.First;
+         Reduced_Vector : Unbounded_String := Null_Unbounded_String;
+
+      begin
+         if Has_Element (Files_Cursor) then
+            Append (Reduced_Vector, Image (Element (Files_Cursor)));
+            Next (Files_Cursor);
+            while Has_Element (Files_Cursor) loop
+               Append (Reduced_Vector, ", ");
+               Append (Reduced_Vector, Image (Element (Files_Cursor)));
+               Next (Files_Cursor);
+            end loop;
+         end if;
+
+         return To_String (Reduced_Vector);
+      end Reduce_FileRename_Vector;
+
+   begin
+      return "files: [" & Reduce_FileRename_Vector & "]";
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.DeleteFilesParams) return String is
+      function Reduce_FileDelete_Vector return String;
+      --  Joins the Value.files elements seperated by a comma
+
+      ------------------------------
+      -- Reduce_FileDelete_Vector --
+      ------------------------------
+
+      function Reduce_FileDelete_Vector return String is
+         use FileDelete_Vectors.Element_Vectors;
+         use Ada.Strings.Unbounded;
+
+         Files_Cursor   : Cursor := Value.files.First;
+         Reduced_Vector : Unbounded_String := Null_Unbounded_String;
+
+      begin
+         if Has_Element (Files_Cursor) then
+            Append (Reduced_Vector, Image (Element (Files_Cursor)));
+            Next (Files_Cursor);
+            while Has_Element (Files_Cursor) loop
+               Append (Reduced_Vector, ", ");
+               Append (Reduced_Vector, Image (Element (Files_Cursor)));
+               Next (Files_Cursor);
+            end loop;
+         end if;
+
+         return To_String (Reduced_Vector);
+      end Reduce_FileDelete_Vector;
+
+   begin
+      return "files: [" & Reduce_FileDelete_Vector & "]";
    end Image;
 
    -----------
@@ -836,6 +993,99 @@ package body LSP.Message_Loggers is
         ("ExecuteCommand_Response: "
          & Image (Value));
    end On_ExecuteCommand_Response;
+
+   ---------------------------------
+   -- On_WillCreateFiles_Response --
+   ---------------------------------
+
+   overriding procedure On_WillCreateFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillCreateFiles_Response)
+   is
+      Message : constant String :=
+         "WillCreateFiles_Response: " & Image (Value);
+
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace (Message & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace (Message);
+   end On_WillCreateFiles_Response;
+
+   ------------------------------------
+   -- On_DidCreateFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.CreateFilesParams) is
+   begin
+      Self.Trace.Trace ("DidCreateFiles_Notification: " & Image (Value));
+   end On_DidCreateFiles_Notification;
+
+   ---------------------------------
+   -- On_WillRenameFiles_Response --
+   ---------------------------------
+
+   overriding procedure On_WillRenameFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillRenameFiles_Response)
+   is
+      Message : constant String :=
+         "WillRenameFiles_Response: " & Image (Value);
+
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace (Message & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace (Message);
+   end On_WillRenameFiles_Response;
+
+   ------------------------------------
+   -- On_DidRenameFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.RenameFilesParams) is
+   begin
+      Self.Trace.Trace ("DidRenameFiles_Notification: " & Image (Value));
+   end On_DidRenameFiles_Notification;
+
+   ---------------------------------
+   -- On_WillDeleteFiles_Response --
+   ---------------------------------
+
+   overriding procedure On_WillDeleteFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillDeleteFiles_Response)
+   is
+      Message : constant String :=
+         "WillDeleteFiles_Response: " & Image (Value);
+
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace (Message & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace (Message);
+   end On_WillDeleteFiles_Response;
+
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.DeleteFilesParams) is
+   begin
+      Self.Trace.Trace ("DidDeleteFiles_Notification: " & Image (Value));
+   end On_DidDeleteFiles_Notification;
 
    --------------------------
    -- On_Exit_Notification --
@@ -1815,6 +2065,51 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & VSS.Strings.Conversions.To_UTF_8_String (Value.params.command));
    end On_Workspace_Execute_Command_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Create_Files_Request --
+   --------------------------------------------
+
+   overriding procedure On_Workspace_Will_Create_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Create_Files_Request) is
+   begin
+      Self.Trace.Trace
+        ("Workspace_Will_Create_Files_Request : "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Workspace_Will_Create_Files_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Rename_Files_Request --
+   --------------------------------------------
+
+   overriding procedure On_Workspace_Will_Rename_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Rename_Files_Request) is
+   begin
+      Self.Trace.Trace
+        ("Workspace_Will_Rename_Files_Request : "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Workspace_Will_Rename_Files_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Delete_Files_Request --
+   --------------------------------------------
+
+   overriding procedure On_Workspace_Will_Delete_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Delete_Files_Request) is
+   begin
+      Self.Trace.Trace
+        ("Workspace_Will_Delete_Files_Request : "
+         & Image (Value)
+         & Image (Value.params));
+   end On_Workspace_Will_Delete_Files_Request;
 
    ----------------------------------
    -- On_Workspace_Symbols_Request --

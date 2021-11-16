@@ -82,6 +82,45 @@ package LSP.Messages.Server_Notifications is
      (Self    : DidChangeWatchedFiles_Notification;
       Handler : access Server_Notification_Receiver'Class);
 
+   package DidCreateFiles_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        CreateFilesParams,
+        Server_Notification_Receiver'Class);
+
+   type DidCreateFiles_Notification is
+     new DidCreateFiles_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : DidCreateFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
+   package DidRenameFiles_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        RenameFilesParams,
+        Server_Notification_Receiver'Class);
+
+   type DidRenameFiles_Notification is
+     new DidRenameFiles_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : DidRenameFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
+   package DidDeleteFiles_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        DeleteFilesParams,
+        Server_Notification_Receiver'Class);
+
+   type DidDeleteFiles_Notification is
+     new DidDeleteFiles_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : DidDeleteFiles_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
    package Cancel_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,
