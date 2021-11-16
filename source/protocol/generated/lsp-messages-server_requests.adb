@@ -225,6 +225,27 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Workspace_Will_Create_Files_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Workspace_Will_Create_Files_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : Workspace_Will_Rename_Files_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Workspace_Will_Rename_Files_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : Workspace_Will_Delete_Files_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Workspace_Will_Delete_Files_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : ALS_Show_Dependencies_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -362,6 +383,18 @@ begin
    Map.Insert
      ("workspace/executeCommand",
       Workspace_Execute_Command_Request'Tag);
+
+   Map.Insert
+     ("workspace/willCreateFiles",
+      Workspace_Will_Create_Files_Request'Tag);
+
+   Map.Insert
+     ("workspace/willRenameFiles",
+      Workspace_Will_Rename_Files_Request'Tag);
+
+   Map.Insert
+     ("workspace/willDeleteFiles",
+      Workspace_Will_Delete_Files_Request'Tag);
 
    Map.Insert
      ("textDocument/alsShowDependencies",

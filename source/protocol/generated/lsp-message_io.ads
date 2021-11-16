@@ -356,6 +356,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CodeLensWorkspaceClientCapabilities);
 
+   procedure Read_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.FileOperationsClientCapabilities);
+
+   procedure Write_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.FileOperationsClientCapabilities);
+
    procedure Read_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.WorkspaceClientCapabilities);
@@ -716,14 +724,6 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.GeneralClientCapabilities);
 
-   procedure Read_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.fileOperationsClientCapabilities);
-
-   procedure Write_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.fileOperationsClientCapabilities);
-
    procedure Read_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ClientCapabilities);
@@ -916,13 +916,13 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.FileOperationRegistrationOptions);
 
-   procedure Read_fileOperationsServerCapabilities
+   procedure Read_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Messages.fileOperationsServerCapabilities);
+      V : out LSP.Messages.FileOperationsServerCapabilities);
 
-   procedure Write_fileOperationsServerCapabilities
+   procedure Write_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Messages.fileOperationsServerCapabilities);
+      V : LSP.Messages.FileOperationsServerCapabilities);
 
    procedure Read_workspace_Options
      (S : access Ada.Streams.Root_Stream_Type'Class;

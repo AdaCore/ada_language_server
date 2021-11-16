@@ -207,6 +207,21 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request);
 
+   overriding procedure On_Workspace_Will_Create_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Create_Files_Request);
+
+   overriding procedure On_Workspace_Will_Rename_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Rename_Files_Request);
+
+   overriding procedure On_Workspace_Will_Delete_Files_Request
+     (Self   : access Message_Logger;
+      Value  : LSP.Messages.Server_Requests.
+                 Workspace_Will_Delete_Files_Request);
+
    overriding procedure On_Color_Presentation_Request
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Color_Presentation_Request);
@@ -326,6 +341,30 @@ private
    overriding procedure On_ExecuteCommand_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.ExecuteCommand_Response);
+
+   overriding procedure On_WillCreateFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillCreateFiles_Response);
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.CreateFilesParams);
+
+   overriding procedure On_WillRenameFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillRenameFiles_Response);
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.RenameFilesParams);
+
+   overriding procedure On_WillDeleteFiles_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.WillDeleteFiles_Response);
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.DeleteFilesParams);
 
    overriding procedure On_Shutdown_Response
      (Self   : in out Message_Logger;

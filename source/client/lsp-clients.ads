@@ -78,6 +78,18 @@ package LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.CancelParams);
 
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.CreateFilesParams);
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.RenameFilesParams);
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.DeleteFilesParams);
+
    procedure Set_Response_Handler
      (Self  : in out Client'Class;
       Value : access LSP.Clients.Response_Handlers.Response_Handler'Class);

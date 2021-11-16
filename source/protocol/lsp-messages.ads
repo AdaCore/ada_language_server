@@ -1518,6 +1518,11 @@ package LSP.Messages is
    package Optional_WorkspaceEdits is new LSP.Generic_Optional (WorkspaceEdit);
    type Optional_WorkspaceEdit is new Optional_WorkspaceEdits.Optional_Type;
 
+   package Optional_WorkspaceEdit_Or_Nulls is
+     new LSP.Generic_Optional (WorkspaceEdit, Write_Unset_As_Null => True);
+   type Optional_WorkspaceEdit_Or_Null is
+     new Optional_WorkspaceEdit_Or_Nulls.Optional_Type;
+
    --```typescript
    --interface TextDocumentItem {
    --	/**
@@ -2167,6 +2172,33 @@ package LSP.Messages is
    type Optional_CodeLensWorkspaceClientCapabilities is
      new Optional_CodeLensWorkspaceClientCapabilities_Package.Optional_Type;
 
+   type FileOperationsClientCapabilities is record
+      dynamicRegistration: Optional_Boolean;
+      didCreate: Optional_Boolean;
+      willCreate: Optional_Boolean;
+      didRename: Optional_Boolean;
+      willRename: Optional_Boolean;
+      didDelete: Optional_Boolean;
+      willDelete: Optional_Boolean;
+   end record;
+
+   procedure Read_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationsClientCapabilities);
+
+   procedure Write_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationsClientCapabilities);
+
+   for FileOperationsClientCapabilities'Read use Read_FileOperationsClientCapabilities;
+   for FileOperationsClientCapabilities'Write use Write_FileOperationsClientCapabilities;
+
+   package Optional_FileOperationsClientCapabilities_Package is
+     new LSP.Generic_Optional (FileOperationsClientCapabilities);
+
+   type Optional_FileOperationsClientCapabilities is
+     new Optional_FileOperationsClientCapabilities_Package.Optional_Type;
+
    type WorkspaceClientCapabilities is record
       applyEdit: Optional_Boolean;
       workspaceEdit: WorkspaceEditClientCapabilities;
@@ -2178,6 +2210,7 @@ package LSP.Messages is
       configuration: Optional_Boolean;
       semanticTokens: Optional_SemanticTokensWorkspaceClientCapabilities;
       codeLens: Optional_CodeLensWorkspaceClientCapabilities;
+      fileOperations: Optional_FileOperationsClientCapabilities;
    end record;
 
    procedure Read_WorkspaceClientCapabilities
@@ -4427,33 +4460,6 @@ package LSP.Messages is
    type Optional_GeneralClientCapabilities is
      new Optional_GeneralClientCapabilities_Package.Optional_Type;
 
-   type fileOperationsClientCapabilities is record
-      dynamicRegistration: Optional_Boolean;
-      didCreate: Optional_Boolean;
-      willCreate: Optional_Boolean;
-      didRename: Optional_Boolean;
-      willRename: Optional_Boolean;
-      didDelete: Optional_Boolean;
-      willDelete: Optional_Boolean;
-   end record;
-
-   procedure Read_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsClientCapabilities);
-
-   procedure Write_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsClientCapabilities);
-
-   for fileOperationsClientCapabilities'Read use Read_fileOperationsClientCapabilities;
-   for fileOperationsClientCapabilities'Write use Write_fileOperationsClientCapabilities;
-
-   package Optional_fileOperationsClientCapabilities_Package is
-     new LSP.Generic_Optional (fileOperationsClientCapabilities);
-
-   type Optional_fileOperationsClientCapabilities is
-     new Optional_fileOperationsClientCapabilities_Package.Optional_Type;
-
    --```typescript
    --interface ClientCapabilities {
    --	/**
@@ -5779,7 +5785,7 @@ package LSP.Messages is
    type Optional_FileOperationRegistrationOptions is
      new Optional_FileOperationRegistrationOptions_Package.Optional_Type;
 
-   type fileOperationsServerCapabilities is record
+   type FileOperationsServerCapabilities is record
       didCreate: Optional_FileOperationRegistrationOptions;
       willCreate: Optional_FileOperationRegistrationOptions;
       didRename: Optional_FileOperationRegistrationOptions;
@@ -5788,27 +5794,27 @@ package LSP.Messages is
       willDelete: Optional_FileOperationRegistrationOptions;
    end record;
 
-   procedure Read_fileOperationsServerCapabilities
+   procedure Read_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsServerCapabilities);
-   procedure Write_fileOperationsServerCapabilities
+      V : out FileOperationsServerCapabilities);
+   procedure Write_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsServerCapabilities);
+      V : FileOperationsServerCapabilities);
 
-   for fileOperationsServerCapabilities'Write use
-     Write_fileOperationsServerCapabilities;
-   for fileOperationsServerCapabilities'Read use
-     Read_fileOperationsServerCapabilities;
+   for FileOperationsServerCapabilities'Write use
+     Write_FileOperationsServerCapabilities;
+   for FileOperationsServerCapabilities'Read use
+     Read_FileOperationsServerCapabilities;
 
-   package Optional_fileOperationsServerCapabilities_Package is
-     new LSP.Generic_Optional (fileOperationsServerCapabilities);
+   package Optional_FileOperationsServerCapabilities_Package is
+     new LSP.Generic_Optional (FileOperationsServerCapabilities);
 
-   type Optional_fileOperationsServerCapabilities is
-     new Optional_fileOperationsServerCapabilities_Package.Optional_Type;
+   type Optional_FileOperationsServerCapabilities is
+     new Optional_FileOperationsServerCapabilities_Package.Optional_Type;
 
    type workspace_Options is record
       workspaceFolders: Optional_WorkspaceFoldersServerCapabilities;
-      fileOperations: Optional_fileOperationsServerCapabilities;
+      fileOperations: Optional_FileOperationsServerCapabilities;
    end record;
 
    procedure Read_workspace_Options
@@ -6767,6 +6773,8 @@ package LSP.Messages is
             CodeAction : CodeActionRegistrationOptions;
          when Rename_Registration_Option =>
             Rename : RenameRegistrationOptions;
+         when File_Operation_Registration_Option =>
+            FileOperation : FileOperationRegistrationOptions;
       end case;
    end record;
 

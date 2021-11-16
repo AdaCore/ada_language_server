@@ -297,10 +297,10 @@ private
       Project_Status : Load_Project_Status := No_Project_Found;
       --  Status of loading the project
 
---      Scenario : LSP.Types.LSP_Any;
+      --  Scenario : LSP.Types.LSP_Any;
       --  Last used scenario variables
 
---      Charset : Ada.Strings.Unbounded.Unbounded_String;
+      --  Charset : Ada.Strings.Unbounded.Unbounded_String;
       --  Character set from didChangeConfiguration
 
       Project_Dirs_Loaded : File_Sets.Set;
@@ -316,7 +316,6 @@ private
       Experimental_Client_Capabilities :
         LSP.Ada_Handlers.Experimental_Client_Capabilities :=
           (Advanced_Refactorings => (others => False));
-
    end record;
 
    overriding procedure Before_Work
@@ -451,6 +450,36 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response;
+
+   overriding function On_Workspace_Will_Create_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Create_Files_Request)
+      return LSP.Messages.Server_Responses.WillCreateFiles_Response;
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CreateFilesParams);
+
+   overriding function On_Workspace_Will_Rename_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Rename_Files_Request)
+      return LSP.Messages.Server_Responses.WillRenameFiles_Response;
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.RenameFilesParams);
+
+   overriding function On_Workspace_Will_Delete_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Delete_Files_Request)
+      return LSP.Messages.Server_Responses.WillDeleteFiles_Response;
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DeleteFilesParams);
 
    overriding function On_Color_Presentation_Request
      (Self    : access Message_Handler;

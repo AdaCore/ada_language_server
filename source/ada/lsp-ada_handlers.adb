@@ -18,6 +18,7 @@
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
+with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
@@ -178,6 +179,32 @@ package body LSP.Ada_Handlers is
      (Self     : access Message_Handler'Class;
       Document : not null LSP.Ada_Documents.Document_Access);
    --  Publish diagnostic messages for given document if needed
+
+   function Is_Ada_Source
+     (Self : access Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+            return Boolean
+   is (To_Lower (Self.Project_Tree.Info (File).Language) = "ada");
+   --  Checks if File is an Ada source of Self's project. This is needed
+   --  to filter non Ada sources on notifications like
+   --  DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles since it's not
+   --  possible to filter them in the FileOperationRegistrationOptions.
+
+   function Compute_File_Operations_Server_Capabilities
+     (Self : access Message_Handler)
+      return LSP.Messages.Optional_FileOperationsServerCapabilities;
+   --  Computes FileOperationsServerCapabilities based on the client's
+   --  capabilities. If the client does have any, then this function returns
+   --  an unset object.
+
+   function Compute_File_Operation_Registration_Options
+     (Self : access Message_Handler)
+      return LSP.Messages.FileOperationRegistrationOptions;
+   --  Computes FileOperationRegistrationOptions based on the project held by
+   --  Self. These registration options will include any file that is in a
+   --  source folder of Self's project. We can't filter non Ada sources here,
+   --  only on the DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles
+   --  notifications.
 
    type File_Span is record
       File : GNATCOLL.VFS.Virtual_File;
@@ -643,6 +670,92 @@ package body LSP.Ada_Handlers is
       end if;
    end Ensure_Project_Loaded;
 
+   -------------------------------------------------
+   -- Compute_File_Operations_Server_Capabilities --
+   -------------------------------------------------
+
+   function Compute_File_Operations_Server_Capabilities
+     (Self : access Message_Handler)
+      return LSP.Messages.Optional_FileOperationsServerCapabilities
+   is
+      use LSP.Messages;
+      Client_Capabilities :
+        LSP.Messages.Optional_FileOperationsClientCapabilities
+          renames Self.Client.capabilities.workspace.fileOperations;
+   begin
+      if Client_Capabilities.Is_Set
+        and then not Self.Contexts.Each_Context.Is_Empty
+      then
+         declare
+            Registration_Options :
+              constant Optional_FileOperationRegistrationOptions :=
+                (Is_Set => True,
+                 Value  => Self.Compute_File_Operation_Registration_Options);
+         begin
+            return Server_Capabilities :
+                     Optional_FileOperationsServerCapabilities (Is_Set => True)
+            do
+               if Client_Capabilities.Value.didCreate = True then
+                  Server_Capabilities.Value.didCreate := Registration_Options;
+               end if;
+               if Client_Capabilities.Value.willCreate = True then
+                  Server_Capabilities.Value.willCreate := Registration_Options;
+               end if;
+               if Client_Capabilities.Value.didRename = True then
+                  Server_Capabilities.Value.didRename := Registration_Options;
+               end if;
+               if Client_Capabilities.Value.willRename = True then
+                  Server_Capabilities.Value.willRename := Registration_Options;
+               end if;
+               if Client_Capabilities.Value.didDelete = True then
+                  Server_Capabilities.Value.didDelete := Registration_Options;
+               end if;
+               if Client_Capabilities.Value.willDelete = True then
+                  Server_Capabilities.Value.willDelete := Registration_Options;
+               end if;
+            end return;
+         end;
+      else
+         return Optional_FileOperationsServerCapabilities'(Is_Set => False);
+      end if;
+   end Compute_File_Operations_Server_Capabilities;
+
+   -------------------------------------------------
+   -- Compute_File_Operation_Registration_Options --
+   -------------------------------------------------
+
+   function Compute_File_Operation_Registration_Options
+     (Self : access Message_Handler)
+      return LSP.Messages.FileOperationRegistrationOptions
+   is
+      use LSP.Messages;
+
+      File_Operation_Filters : LSP.Messages.FileOperationFilter_Vector;
+
+   begin
+      for Context of Self.Contexts.Each_Context loop
+         for Source_Dir of Context.List_Source_Directories loop
+            declare
+               Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
+                 GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
+               Scheme        : constant VSS.Strings.Virtual_String := "file";
+               Sources_Glob  : constant VSS.Strings.Virtual_String :=
+                 VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
+
+               File_Operation_Filter :
+                 constant LSP.Messages.FileOperationFilter :=
+                   (scheme => (Is_Set => True, Value => Scheme),
+                    pattern => (glob => Sources_Glob, others => <>));
+            begin
+               File_Operation_Filters.Append (File_Operation_Filter);
+            end;
+         end loop;
+      end loop;
+
+      return
+        FileOperationRegistrationOptions'(filters => File_Operation_Filters);
+   end Compute_File_Operation_Registration_Options;
+
    ------------------------
    -- Initialize_Request --
    ------------------------
@@ -652,6 +765,7 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Initialize_Request)
       return LSP.Messages.Server_Responses.Initialize_Response
    is
+      use LSP.Messages;
       use all type LSP.Types.Optional_Boolean;
 
       Value            : LSP.Messages.InitializeParams renames Request.params;
@@ -846,6 +960,23 @@ package body LSP.Ada_Handlers is
       --  Log the context root
       Self.Trace.Trace
         ("Context root: " & VSS.Strings.Conversions.To_UTF_8_String (Root));
+
+      --  Client/ServerCapabilities.workspace.fileOperations capabilities
+
+      declare
+         File_Operation_Capabilities :
+           constant Optional_FileOperationsServerCapabilities :=
+             Self.Compute_File_Operations_Server_Capabilities;
+
+      begin
+         if File_Operation_Capabilities.Is_Set then
+            Response.result.capabilities.workspace :=
+              (Is_Set => True,
+               Value =>
+                 (workspaceFolders => (Is_Set => False),
+                  fileOperations   => File_Operation_Capabilities));
+         end if;
+      end;
 
       --  Experimental Client Capabilities
       Self.Experimental_Client_Capabilities :=
@@ -3463,6 +3594,12 @@ package body LSP.Ada_Handlers is
       Relocate  : Virtual_File := No_File;
       Root      : Virtual_File := No_File;
 
+      --  Is client capable of dynamically registering file operations?
+      Dynamically_Register_File_Operations : constant Boolean :=
+        Self.Client.capabilities.workspace.fileOperations.Is_Set
+        and then Self.Client.capabilities.workspace.fileOperations.
+                   Value.dynamicRegistration.Is_Set = True;
+
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
@@ -3595,6 +3732,65 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
+      --  Dynamically register file operations if supported by the client
+      if Dynamically_Register_File_Operations
+        and then not Self.Contexts.Each_Context.Is_Empty
+      then
+         declare
+            Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
+            Registration : LSP.Messages.Registration;
+            Registration_Options :
+              constant LSP.Messages.FileOperationRegistrationOptions :=
+                Self.Compute_File_Operation_Registration_Options;
+            File_Operations_Client_Capabilities :
+              constant LSP.Messages.FileOperationsClientCapabilities :=
+                Self.Client.capabilities.workspace.fileOperations.Value;
+
+         begin
+            Registration.registerOptions :=
+              (LSP.Types.File_Operation_Registration_Option,
+               FileOperation => Registration_Options);
+
+            if File_Operations_Client_Capabilities.willCreate = True then
+               Registration.id := "Will_Create";
+               Registration.method := "workspace/willCreateFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            if File_Operations_Client_Capabilities.didCreate = True then
+               Registration.id := "Did_Create";
+               Registration.method := "workspace/didCreateFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            if File_Operations_Client_Capabilities.willRename = True then
+               Registration.id := "Will_Rename";
+               Registration.method := "workspace/willRenameFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            if File_Operations_Client_Capabilities.didRename = True then
+               Registration.id := "Did_Rename";
+               Registration.method := "workspace/didRenameFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            if File_Operations_Client_Capabilities.willDelete = True then
+               Registration.id := "Will_Delete";
+               Registration.method := "workspace/willDeleteFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            if File_Operations_Client_Capabilities.didDelete = True then
+               Registration.id := "Did_Delete";
+               Registration.method := "workspace/didDeleteFiles";
+               Request.params.registrations.Append (Registration);
+            end if;
+
+            Self.Server.On_RegisterCapability_Request (Request);
+         end;
+      end if;
+
       Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
@@ -3606,25 +3802,117 @@ package body LSP.Ada_Handlers is
      (Self  : access Message_Handler;
       Value : LSP.Messages.DidChangeWatchedFilesParams)
    is
-      Document : LSP.Ada_Documents.Document_Access;
-      File     : GNATCOLL.VFS.Virtual_File;
-   begin
-      --  Look through each changes
-      for Change of Value.changes loop
-         --  A watched file has changed on disk. If there is an open
-         --  document for this file, nothing to do: the document takes
-         --  precedence over the filesystem.
+      URI  : LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
 
-         Document := Self.Get_Open_Document (Change.uri);
+      procedure Process_Created_File;
+      --  Processes a created file
 
-         if Document = null then
+      procedure Process_Deleted_File;
+      --  Processes a deleted file
+
+      procedure Process_Changed_File;
+      --  Processes a changed file
+
+      --------------------------
+      -- Process_Created_File --
+      --------------------------
+
+      procedure Process_Created_File
+      is
+         use VSS.Strings.Conversions;
+
+         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+           Self.Contexts_For_File (File);
+
+         function Has_Dir
+           (Context : LSP.Ada_Contexts.Context)
+            return Boolean
+         is (Context.List_Source_Directories.Contains (File.Dir));
+         --  Return True if File is in a source directory of the project held
+         --  by Context.
+
+      begin
+         --  If the file was created by the client, then the DidCreateFiles
+         --  notification might have been received from it. In that case,
+         --  Contexts wont be empty, and all we need to do is check if
+         --  there's an open document. If there is, it takes precedence over
+         --  the filesystem.
+         --  If Contexts is empty, then we need to check if is a new source
+         --  that needs to be added. For instance, a source that was moved
+         --  to the the project source directories.
+
+         if Contexts.Is_Empty then
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (File);
+               Context.Index_File (File);
+
+               Self.Trace.Trace
+                 ("Included " & File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
+
+         else
+            if Self.Get_Open_Document (URI) = null then
+               for Context of Contexts loop
+                  Context.Index_File (File);
+               end loop;
+            end if;
+         end if;
+      end Process_Created_File;
+
+      ---------------------------
+      -- Process_Deleted_Files --
+      ---------------------------
+
+      procedure Process_Deleted_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, remove from the sources list
+            --  and reindex the file for each context where it is
+            --  relevant.
+            File := Self.To_File (URI);
+
+            for C of Self.Contexts_For_File (File) loop
+               C.Exclude_File (File);
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Deleted_File;
+
+      --------------------------
+      -- Process_Changed_File --
+      --------------------------
+
+      procedure Process_Changed_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
             --  If there is no document, reindex the file for each
             --  context where it is relevant.
-            File := Self.To_File (Change.uri);
+            File := Self.To_File (URI);
 
             for C of Self.Contexts_For_File (File) loop
                C.Index_File (File);
             end loop;
+         end if;
+      end Process_Changed_File;
+
+   begin
+      --  Look through each change, filtering non Ada source files
+      for Change of Value.changes loop
+         URI := Change.uri;
+         File := Self.To_File (URI);
+         if Self.Is_Ada_Source (File) then
+            case Change.a_type is
+               when LSP.Messages.Created =>
+                  Process_Created_File;
+               when LSP.Messages.Deleted =>
+                  Process_Deleted_File;
+               when LSP.Messages.Changed =>
+                  Process_Changed_File;
+            end case;
          end if;
       end loop;
    end On_DidChangeWatchedFiles_Notification;
@@ -4003,6 +4291,281 @@ package body LSP.Ada_Handlers is
               Error    => (Is_Set => False),
               others   => <>);
    end On_Workspace_Execute_Command_Request;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Create_Files_Request --
+   --------------------------------------------
+
+   overriding function On_Workspace_Will_Create_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Create_Files_Request)
+      return LSP.Messages.Server_Responses.WillCreateFiles_Response
+   is
+      Response : LSP.Messages.Server_Responses.WillCreateFiles_Response
+        (Is_Error => False);
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_Workspace_Will_Create_Files_Request");
+      return Response;
+   end On_Workspace_Will_Create_Files_Request;
+
+   ------------------------------------
+   -- On_DidCreateFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.CreateFilesParams) is
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_DidCreateFiles_Notification");
+
+      --  New sources were created on this project, so recompute its view
+
+      Self.Project_Tree.Recompute_View;
+
+      --  For each created file of Value.files:
+      --  - find the contexts that contains its directory
+      --  - add it to those contexts
+      --  - index it on those contexts
+
+      for File of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+
+            Created_File : constant Virtual_File :=
+              Self.To_File (To_LSP_URI (File.uri));
+
+            function Has_Dir
+              (Context : LSP.Ada_Contexts.Context)
+                  return Boolean
+            is (Context.List_Source_Directories.Contains
+                (Created_File.Dir));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+         begin
+            if Self.Is_Ada_Source (Created_File) then
+               for Context of Self.Contexts.Each_Context
+                 (Has_Dir'Unrestricted_Access)
+               loop
+                  Context.Include_File (Created_File);
+                  Context.Index_File (Created_File);
+
+                  Self.Trace.Trace
+                    ("Included " & Created_File.Display_Base_Name
+                     & " in context " & To_UTF_8_String (Context.Id));
+               end loop;
+            end if;
+         end;
+      end loop;
+
+      Self.Trace.Trace
+        ("Finished Message_Handler On_DidCreateFiles_Notification");
+   end On_DidCreateFiles_Notification;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Rename_Files_Request --
+   --------------------------------------------
+
+   overriding function On_Workspace_Will_Rename_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Rename_Files_Request)
+      return LSP.Messages.Server_Responses.WillRenameFiles_Response
+   is
+      Response : LSP.Messages.Server_Responses.WillRenameFiles_Response
+        (Is_Error => False);
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_Workspace_Will_Rename_Files_Request");
+      return Response;
+   end On_Workspace_Will_Rename_Files_Request;
+
+   ------------------------------------
+   -- On_DidRenameFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.RenameFilesParams)
+   is
+      use LSP.Ada_Context_Sets;
+
+      package URI_Contexts_Maps is new
+        Ada.Containers.Indefinite_Hashed_Maps
+          (Key_Type        => LSP_URI,
+           Element_Type    => Context_Lists.List,
+           Hash            => Hash,
+           Equivalent_Keys => Equal,
+           "="             => Context_Lists."=");
+
+      subtype URI_Contexts_Map is URI_Contexts_Maps.Map;
+
+      URIs_Contexts : URI_Contexts_Map;
+
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_DidRenameFiles_Notification");
+
+      --  Some project sources were renamed, so recompute its view
+
+      Self.Project_Tree.Recompute_View;
+
+      --  For each oldUri of Value.files:
+      --  - map it to a list of context that contains it
+      --  - remove it from those contexts
+      --  - re-index it on those contexts so that an empty unit is reparsed
+
+      for File_Rename of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+
+            Old_File : constant Virtual_File :=
+              Self.To_File (To_LSP_URI (File_Rename.oldUri));
+
+            function Has_File
+              (Context : LSP.Ada_Contexts.Context)
+               return Boolean
+            is (Context.Is_Part_Of_Project (Old_File));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+            URI_Contexts : Context_Lists.List;
+
+         begin
+            if Self.Is_Ada_Source (Old_File) then
+               for Context of Self.Contexts.Each_Context
+                 (Has_File'Unrestricted_Access)
+               loop
+                  URI_Contexts.Append (Context);
+                  Context.Exclude_File (Old_File);
+                  Context.Index_File (Old_File);
+
+                  Self.Trace.Trace
+                    ("Excluded " & Old_File.Display_Full_Name
+                     & " from context " & To_UTF_8_String (Context.Id));
+               end loop;
+
+               URIs_Contexts.Insert
+                 (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
+            end if;
+         end;
+      end loop;
+
+      --  For each (oldUri, newUri) tuple:
+      --  - add newUri to all contexts that contained oldUri
+      --  - index the newUri (using the appriate method depending if
+      --    (there's an open document of not)
+
+      for File_Rename of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+
+            New_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (LSP.Types.To_LSP_URI (File_Rename.newUri));
+            Document : constant LSP.Ada_Documents.Document_Access :=
+              Get_Open_Document
+                (Self,
+                 LSP.Messages.DocumentUri
+                   (LSP.Types.To_LSP_URI (File_Rename.newUri)));
+            Is_Document_Open : constant Boolean := Document /= null;
+
+         begin
+            if Self.Is_Ada_Source (New_File) then
+               for Context of
+                 URIs_Contexts.Constant_Reference
+                   (To_LSP_URI (File_Rename.oldUri))
+               loop
+                  Context.Include_File (New_File);
+                  if Is_Document_Open then
+                     Context.Index_Document (Document.all);
+                  else
+                     Context.Index_File (New_File);
+                  end if;
+                  Self.Trace.Trace
+                    ("Included " & New_File.Display_Base_Name & " in context "
+                     & To_UTF_8_String (Context.Id));
+               end loop;
+            end if;
+         end;
+      end loop;
+
+      Self.Trace.Trace
+        ("Finished Message_Handler On_DidRenameFiles_Notification");
+   end On_DidRenameFiles_Notification;
+
+   --------------------------------------------
+   -- On_Workspace_Will_Delete_Files_Request --
+   --------------------------------------------
+
+   overriding function On_Workspace_Will_Delete_Files_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Delete_Files_Request)
+      return LSP.Messages.Server_Responses.WillDeleteFiles_Response
+   is
+      Response : LSP.Messages.Server_Responses.WillDeleteFiles_Response
+        (Is_Error => False);
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_Workspace_Will_Delete_Files_Request");
+      return Response;
+   end On_Workspace_Will_Delete_Files_Request;
+
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DeleteFilesParams) is
+   begin
+      Self.Trace.Trace
+        ("Message_Handler On_DidDeleteFiles_Notification");
+
+      --  Some project sources were deleted, so recompute its view
+
+      Self.Project_Tree.Recompute_View;
+
+      --  For each delete file of Value.files:
+      --  - find the contexts that contains it
+      --  - remove it from those contexts
+      --  - re-index it on those contexts so that an empty unit is reparsed
+
+      for File of Value.files loop
+         declare
+            Deleted_File : constant Virtual_File :=
+              Self.To_File (To_LSP_URI (File.uri));
+
+            function Has_File
+              (Context : LSP.Ada_Contexts.Context)
+               return Boolean
+            is (Context.Is_Part_Of_Project (Deleted_File));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+         begin
+            if Self.Is_Ada_Source (Deleted_File) then
+               for Context of Self.Contexts.Each_Context
+                 (Has_File'Unrestricted_Access)
+               loop
+                  Context.Exclude_File (Deleted_File);
+                  Context.Index_File (Deleted_File);
+
+                  Self.Trace.Trace
+                    ("Excluded " & Deleted_File.Display_Base_Name
+                     & " from context "
+                     & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+               end loop;
+            end if;
+         end;
+      end loop;
+
+      Self.Trace.Trace
+        ("Finished Message_Handler On_DidDeleteFiles_Notification");
+   end On_DidDeleteFiles_Notification;
 
    ----------------------------------
    -- On_Workspace_Symbols_Request --

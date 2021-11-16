@@ -263,7 +263,8 @@ package LSP.Types is
                   Execute_Command_Registration_Option,
          Did_Change_Watched_Files_Registration_Option,
                       Code_Action_Registration_Option,
-                           Rename_Registration_Option);
+                           Rename_Registration_Option,
+                   File_Operation_Registration_Option);
 
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
