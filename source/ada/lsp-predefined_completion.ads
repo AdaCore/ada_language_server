@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020, AdaCore                          --
+--                     Copyright (C) 2020-2021, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,8 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
 with GNATCOLL.Traces; use GNATCOLL.Traces;
+
+with VSS.Strings;
 
 with LSP.Messages;    use LSP.Messages;
 
@@ -28,18 +29,18 @@ package LSP.Predefined_Completion is
    --  the user's compiler version.
 
    procedure Get_Aspects
-     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result  : in out CompletionItem_Vector);
+     (Prefix : VSS.Strings.Virtual_String;
+      Result : in out CompletionItem_Vector);
    --  Return completion for aspects, filtering the results using Prefix.
 
    procedure Get_Attributes
-     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result  : in out CompletionItem_Vector);
+     (Prefix : VSS.Strings.Virtual_String;
+      Result : in out CompletionItem_Vector);
    --  Return completion for attributes, filtering the results using Prefix.
 
    procedure Get_Pragmas
-     (Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Result  : in out CompletionItem_Vector);
+     (Prefix : VSS.Strings.Virtual_String;
+      Result : in out CompletionItem_Vector);
    --  Return completion for pragmas, filtering the results using Prefix.
 
 end LSP.Predefined_Completion;

@@ -15,9 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
-with Langkit_Support.Text;
+with VSS.Strings;
 
 with LSP.Predefined_Completion;
 
@@ -44,8 +42,9 @@ package body LSP.Ada_Completions.Aspects is
    begin
       if Parent.Kind in Libadalang.Common.Ada_Aspect_Assoc_Range then
          declare
-            Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Langkit_Support.Text.To_UTF8 (Node.Text);
+            Prefix : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.To_Virtual_String (Node.Text);
+
          begin
             LSP.Predefined_Completion.Get_Aspects
               (Prefix => Prefix,

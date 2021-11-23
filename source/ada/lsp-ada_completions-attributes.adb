@@ -15,9 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
-with Langkit_Support.Text;
+with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Predefined_Completion;
@@ -41,8 +39,11 @@ package body LSP.Ada_Completions.Attributes is
    begin
       if Filter.Is_Attribute_Ref then
          declare
-            Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-              Langkit_Support.Text.To_UTF8 (Node.Text);
+            use type VSS.Strings.Virtual_String;
+
+            Prefix : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.To_Virtual_String (Node.Text);
+
          begin
             LSP.Predefined_Completion.Get_Attributes
               (Prefix => (if Prefix /= "'" then Prefix else ""),

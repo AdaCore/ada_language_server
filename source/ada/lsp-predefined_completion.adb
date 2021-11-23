@@ -1,3 +1,20 @@
+------------------------------------------------------------------------------
+--                         Language Server Protocol                         --
+--                                                                          --
+--                     Copyright (C) 2020-2021, AdaCore                     --
+--                                                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.  You should have  received  a copy of the GNU --
+-- General  Public  License  distributed  with  this  software;   see  file --
+-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+-- of the license.                                                          --
+------------------------------------------------------------------------------
+
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 with GNATCOLL.JSON;     use GNATCOLL.JSON;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
@@ -186,14 +203,10 @@ package body LSP.Predefined_Completion is
    -----------------
 
    procedure Get_Aspects
-     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
+     (Prefix  : VSS.Strings.Virtual_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items
-        (Prefix =>
-           VSS.Strings.Conversions.To_Virtual_String (Prefix),
-         Items  => Aspects,
-         Result => Result);
+      Filter_Items (Prefix => Prefix, Items => Aspects, Result => Result);
    end Get_Aspects;
 
    --------------------
@@ -201,14 +214,10 @@ package body LSP.Predefined_Completion is
    --------------------
 
    procedure Get_Attributes
-     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
+     (Prefix  : VSS.Strings.Virtual_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items
-        (Prefix =>
-           VSS.Strings.Conversions.To_Virtual_String (Prefix),
-         Items  => Attributes,
-         Result => Result);
+      Filter_Items (Prefix => Prefix, Items => Attributes, Result => Result);
    end Get_Attributes;
 
    -----------------
@@ -216,14 +225,10 @@ package body LSP.Predefined_Completion is
    -----------------
 
    procedure Get_Pragmas
-     (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
+     (Prefix  : VSS.Strings.Virtual_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items
-        (Prefix =>
-           VSS.Strings.Conversions.To_Virtual_String (Prefix),
-         Items  => Pragmas,
-         Result => Result);
+      Filter_Items (Prefix => Prefix, Items => Pragmas, Result => Result);
    end Get_Pragmas;
 
 end LSP.Predefined_Completion;
