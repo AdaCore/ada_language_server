@@ -41,8 +41,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
      (Self         : in out Command'Class;
       Context      : LSP.Ada_Contexts.Context;
       Where        : LSP.Messages.TextDocumentPositionParams;
-      With_Clause  : LSP.Types.LSP_String;
-      Prefix       : LSP.Types.LSP_String) is
+      With_Clause  : VSS.Strings.Virtual_String;
+      Prefix       : VSS.Strings.Virtual_String) is
    begin
       Self.Context := Context.Id;
       Self.Where := Where;
@@ -75,9 +75,9 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
                elsif Key = "with_clause" then
-                  LSP.Types.Read (JS, V.With_Clause);
+                  LSP.Types.Read_String (JS, V.With_Clause);
                elsif Key = "prefix" then
-                  LSP.Types.Read (JS, V.Prefix);
+                  LSP.Types.Read_String (JS, V.Prefix);
                else
                   JS.Skip_Value;
                end if;
@@ -103,7 +103,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
 
       function Create_Suggestion_Title
         (Suggestion : Laltools.Refactor_Imports.Import_Suggestion)
-               return LSP.Types.LSP_String;
+         return VSS.Strings.Virtual_String;
       --  Creates the suggestion text that will be shown by the client to
       --  to the developer. The text is costumized based on the need of
       --  and with clause and/or prefix.
@@ -113,7 +113,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       ------------------------------
       function Create_Suggestion_Title
         (Suggestion : Laltools.Refactor_Imports.Import_Suggestion)
-         return LSP.Types.LSP_String
+         return VSS.Strings.Virtual_String
       is
          Title : Ada.Strings.Wide_Wide_Unbounded.
            Unbounded_Wide_Wide_String
@@ -134,7 +134,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
             Title := Title & "Prefix the object with "
               & Suggestion.Prefix_Text;
          end if;
-         return LSP.Types.To_LSP_String
+         return VSS.Strings.To_Virtual_String
            (Langkit_Support.Text.To_Text (Title));
       end Create_Suggestion_Title;
 
@@ -143,10 +143,12 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
         (Context     => Context.all,
          Where       => ((uri => Where.uri),
                          Where.span.first),
-         With_Clause => LSP.Types.To_LSP_String
-           (Langkit_Support.Text.To_Text (Suggestion.With_Clause_Text)),
-         Prefix      => LSP.Types.To_LSP_String
-           (Langkit_Support.Text.To_Text (Suggestion.Prefix_Text)));
+         With_Clause =>
+           VSS.Strings.Conversions.To_Virtual_String
+             (Suggestion.With_Clause_Text),
+         Prefix      =>
+           VSS.Strings.Conversions.To_Virtual_String
+             (Suggestion.Prefix_Text));
       Pointer.Set (Self);
       Item :=
         (title       => Create_Suggestion_Title (Suggestion),
@@ -159,7 +161,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
          command     => (Is_Set => True,
                          Value  =>
                            (Is_Unknown => False,
-                            title      => LSP.Types.Empty_LSP_String,
+                            title      => <>,
                             Custom     => Pointer)));
       Commands_Vector.Append (Item);
    end Append_Suggestion;
@@ -178,7 +180,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
    is
       use type Libadalang.Common.Ada_Node_Kind_Type;
       use type Libadalang.Slocs.Source_Location;
-      use type LSP.Types.LSP_String;
+      use type VSS.Strings.Virtual_String;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -211,7 +213,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
 
       --  Add prefix.
 
-      if not LSP.Types.Is_Empty (Self.Prefix)
+      if not Self.Prefix.Is_Empty
         and then Node.Kind = Libadalang.Common.Ada_Identifier
       then
          --  If this is a DottedName them remove the current prefix and replace
@@ -226,9 +228,8 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
 
             Loc := LSP.Lal_Utils.Get_Node_Location (Node.Parent);
             Edit.span := (Loc.span.first, Loc.span.last);
-            Edit.newText := LSP.Types.To_LSP_String
-              (LSP.Types.To_UTF_8_String (Self.Prefix)
-               & Langkit_Support.Text.To_UTF8 (Node.Text));
+            Edit.newText :=
+              Self.Prefix & VSS.Strings.To_Virtual_String (Node.Text);
          else
             Loc := LSP.Lal_Utils.Get_Node_Location (Node);
             Edit.span := (Loc.span.first, Loc.span.first);
@@ -255,29 +256,28 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
 
       --  Add with clause.
 
-      if not LSP.Types.Is_Empty (Self.With_Clause) then
+      if not Self.With_Clause.Is_Empty then
          declare
             Last : Boolean;
             S    : constant Libadalang.Slocs.Source_Location :=
               Laltools.Common.Get_Insert_With_Location
                 (Node      => Laltools.Common.Get_Compilation_Unit (Node),
                  Pack_Name =>
-                   Langkit_Support.Text.From_UTF8
-                     (LSP.Types.To_UTF_8_String (Self.With_Clause)),
+                   VSS.Strings.Conversions.To_Wide_Wide_String
+                     (Self.With_Clause),
                  Last      => Last);
          begin
             if S /= Libadalang.Slocs.No_Source_Location then
                Edit.span := LSP.Lal_Utils.To_Span (S);
                if Last then
-                  Edit.newText := LSP.Types.To_LSP_String
-                    (Document.Line_Terminator
-                     & LSP.Types.To_UTF_8_String
-                       ("with " & Self.With_Clause & ";"));
+                  Edit.newText :=
+                    Document.Line_Terminator
+                      & "with " & Self.With_Clause & ";";
+
                else
-                  Edit.newText := LSP.Types.To_LSP_String
-                    (LSP.Types.To_UTF_8_String
-                       ("with " & Self.With_Clause & ";")
-                     & Document.Line_Terminator);
+                  Edit.newText :=
+                    "with " & Self.With_Clause & ";"
+                      & Document.Line_Terminator;
                end if;
 
                if Message_Handler.Versioned_Documents then
@@ -330,9 +330,9 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
       JS.Key ("with_clause");
-      LSP.Types.Write (S, V.With_Clause);
+      LSP.Types.Write_String (S, V.With_Clause);
       JS.Key ("prefix");
-      LSP.Types.Write (S, V.Prefix);
+      LSP.Types.Write_String (S, V.Prefix);
       JS.End_Object;
    end Write_Command;
 

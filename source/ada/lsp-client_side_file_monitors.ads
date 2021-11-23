@@ -17,9 +17,10 @@
 
 with GNATCOLL.VFS;
 
+with VSS.Strings;
+
 with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
 with LSP.File_Monitors;
-with LSP.Types;
 
 package LSP.Client_Side_File_Monitors is
 
@@ -32,7 +33,7 @@ private
      is limited new LSP.File_Monitors.File_Monitor with
    record
       Last_Id         : Positive := 1;
-      Registration_Id : LSP.Types.LSP_String;
+      Registration_Id : VSS.Strings.Virtual_String;
    end record;
 
    overriding procedure Monitor_Directories

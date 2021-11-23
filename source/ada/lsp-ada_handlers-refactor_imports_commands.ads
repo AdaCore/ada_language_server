@@ -19,7 +19,7 @@
 
 with Ada.Streams;
 
-private with VSS.Strings;
+with VSS.Strings;
 
 with Laltools.Refactor_Imports;
 
@@ -36,8 +36,8 @@ package LSP.Ada_Handlers.Refactor_Imports_Commands is
      (Self         : in out Command'Class;
       Context      : LSP.Ada_Contexts.Context;
       Where        : LSP.Messages.TextDocumentPositionParams;
-      With_Clause  : LSP.Types.LSP_String;
-      Prefix       : LSP.Types.LSP_String);
+      With_Clause  : VSS.Strings.Virtual_String;
+      Prefix       : VSS.Strings.Virtual_String);
    --  Initializes Command
 
    procedure Append_Suggestion
@@ -54,8 +54,8 @@ private
    type Command is new LSP.Commands.Command with record
       Context      : VSS.Strings.Virtual_String;
       Where        : LSP.Messages.TextDocumentPositionParams;
-      With_Clause  : LSP.Types.LSP_String;
-      Prefix       : LSP.Types.LSP_String;
+      With_Clause  : VSS.Strings.Virtual_String;
+      Prefix       : VSS.Strings.Virtual_String;
    end record;
 
    overriding function Create

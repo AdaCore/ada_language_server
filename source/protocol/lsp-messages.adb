@@ -2400,7 +2400,8 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       Found   : Boolean := False;  --  True as we know the actual type
-      newText : LSP_String;  --  newText value if not Found
+      newText : VSS.Strings.Virtual_String;  --  newText value if not Found
+
    begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
@@ -2414,11 +2415,11 @@ package body LSP.Messages is
             JS.R.Read_Next;
             if Key = "newText" then
                if not Found then
-                  LSP.Types.Read (S, newText);
+                  LSP.Types.Read_String (S, newText);
                elsif V.Is_TextEdit then
-                  LSP.Types.Read (S, V.TextEdit.newText);
+                  LSP.Types.Read_String (S, V.TextEdit.newText);
                else
-                  LSP.Types.Read (S, V.InsertReplaceEdit.newText);
+                  LSP.Types.Read_String (S, V.InsertReplaceEdit.newText);
                end if;
             elsif Key = "insert" then
                if not Found then
@@ -2507,25 +2508,25 @@ package body LSP.Messages is
                   if not V.command.Is_Set then
                      V.command := (Is_Set => True, Value => <>);
                      V.command.Value.title := V.title;
-                     V.title := Empty_LSP_String;
+                     V.title := VSS.Strings.Empty_Virtual_String;
                   end if;
-                  LSP.Types.Read (S, V.command.Value.command);
+                  LSP.Types.Read_String (S, V.command.Value.command);
                else
                   Optional_Command'Read (S, V.command);
                   Is_CodeAction := True;
                end if;
             elsif Key = "title" then
                if V.command.Is_Set and not Is_CodeAction then
-                  LSP.Types.Read (S, V.command.Value.title);
+                  LSP.Types.Read_String (S, V.command.Value.title);
                else
-                  LSP.Types.Read (S, V.title);
+                  LSP.Types.Read_String (S, V.title);
                end if;
             elsif Key = "arguments" then
                --  "arguments" field is part of Command
                if not V.command.Is_Set then
                   V.command := (Is_Set => True, Value => <>);
                   V.command.Value.title := V.title;
-                  V.title := Empty_LSP_String;
+                  V.title := VSS.Strings.Empty_Virtual_String;
                end if;
                Optional_Any_Vector'Read (S, V.command.Value.arguments);
             elsif Key = "kind" then
@@ -2584,9 +2585,9 @@ package body LSP.Messages is
             Look_Ahead.Read_Next;
 
             if Key = "command" then
-               LSP.Types.Read (Nested'Access, V.command);
+               LSP.Types.Read_String (Nested'Access, V.command);
             elsif Key = "title" then
-               LSP.Types.Read (Nested'Access, V.title);
+               LSP.Types.Read_String (Nested'Access, V.title);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
                   Optional_Any_Vector'Read (Nested'Access, V.arguments);
@@ -2746,7 +2747,7 @@ package body LSP.Messages is
                Optional_ProgressToken'Read
                  (Nested'Access, V.Base.workDoneToken);
             elsif Key = "command" then
-               LSP.Types.Read (Nested'Access, V.command);
+               LSP.Types.Read_String (Nested'Access, V.command);
             elsif Key = "arguments" then
                if Tag in Ada.Tags.No_Tag then
                   Optional_Any_Vector'Read (Nested'Access, V.arguments);
@@ -2878,7 +2879,7 @@ package body LSP.Messages is
                   JS.R.Read_Next;
 
                   if Key = "language" then
-                     LSP.Types.Read (S, V.language);
+                     LSP.Types.Read_String (S, V.language);
                   elsif Key = "value" then
                      LSP.Types.Read_String (S, V.value);
                   else
@@ -3469,7 +3470,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      if LSP.Types.Is_Empty (V.title) and then V.command.Is_Set then
+      if V.title.Is_Empty and then V.command.Is_Set then
          Optional_Command'Write (S, V.command);
       else
          JS.Start_Object;
@@ -3501,7 +3502,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
       Temp : LSP.Commands.Command_Access;
    begin
-      if V.Is_Unknown and then Is_Empty (V.command) then
+      if V.Is_Unknown and then V.command.Is_Empty then
          return;
       end if;
 
@@ -4016,7 +4017,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
       kind        : VSS.Strings.Virtual_String;
-      title       : LSP_String;
+      title       : VSS.Strings.Virtual_String;
       cancellable : Optional_Boolean;
       message     : Optional_String;
       percentage  : Optional_Number;
@@ -4038,7 +4039,7 @@ package body LSP.Messages is
                if Key = "kind" then
                   LSP.Types.Read_String (S, kind);
                elsif Key = "title" then
-                  LSP.Types.Read (S, title);
+                  LSP.Types.Read_String (S, title);
                elsif Key = "cancellable" then
                   Optional_Boolean'Read (S, cancellable);
                elsif Key = "message" then
@@ -4292,14 +4293,16 @@ package body LSP.Messages is
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
          declare
+            use type VSS.Strings.Virtual_String;
+
             Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
                VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
          begin
             JS.R.Read_Next;
             if Key = "id" then
-               LSP.Types.Read (S, V.id);
+               LSP.Types.Read_String (S, V.id);
             elsif Key = "method" then
-               LSP.Types.Read (S, V.method);
+               LSP.Types.Read_String (S, V.method);
 
                --  Now set V.registerOptions.Kind according to the "method"
 

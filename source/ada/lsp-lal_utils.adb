@@ -856,7 +856,9 @@ package body LSP.Lal_Utils is
    function To_TextEdit
      (E : Laltools.Refactor.Text_Edit)
       return LSP.Messages.TextEdit
-   is (LSP.Messages.TextEdit'(To_Span (E.Location), To_LSP_String (E.Text)));
+   is (LSP.Messages.TextEdit'
+         (To_Span (E.Location),
+          VSS.Strings.Conversions.To_Virtual_String (E.Text)));
 
    -----------------------
    -- To_Workspace_Edit --
@@ -1024,9 +1026,9 @@ package body LSP.Lal_Utils is
                   Content : constant LSP.Messages.AnnotatedTextEdit :=
                     LSP.Messages.AnnotatedTextEdit'
                       (span    => ((0, 0), (0, 0)),
-                       newText => To_LSP_String
-                         (Ada.Strings.Unbounded.
-                            To_String (File_Creation.Content)),
+                       newText =>
+                         VSS.Strings.Conversions.To_Virtual_String
+                           (File_Creation.Content),
                        others  => <>);
 
                begin
@@ -1334,7 +1336,7 @@ package body LSP.Lal_Utils is
         LSP.Lal_Utils.Get_Node_Location (Main_Item);
    begin
       return LSP.Messages.CallHierarchyItem'
-        (name           => To_LSP_String (Name.Text),
+        (name           => VSS.Strings.To_Virtual_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
          tags           => (Is_Set => False),
          detail         =>
@@ -1363,7 +1365,7 @@ package body LSP.Lal_Utils is
         Get_Node_Location (Ada_Node (Node));
    begin
       Item := LSP.Messages.CallHierarchyItem'
-        (name           => To_LSP_String (Node.Text),
+        (name           => VSS.Strings.To_Virtual_String (Node.Text),
          kind           => Get_Decl_Kind (Decl),
          tags           => <>,
          detail         => <>,
