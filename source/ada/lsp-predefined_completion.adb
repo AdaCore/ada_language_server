@@ -22,7 +22,7 @@ package body LSP.Predefined_Completion is
    --  Load all the predefined completion items for the given Ada version.
 
    procedure Filter_Items
-     (Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
+     (Prefix : VSS.Strings.Virtual_String;
       Items  : CompletionItem_Vector;
       Result : in out CompletionItem_Vector);
    --  Filter all the given items using Prefix (i.e: remove the items that
@@ -168,16 +168,13 @@ package body LSP.Predefined_Completion is
    ------------------
 
    procedure Filter_Items
-     (Prefix : Ada.Strings.UTF_Encoding.UTF_8_String;
+     (Prefix : VSS.Strings.Virtual_String;
       Items  : CompletionItem_Vector;
       Result : in out CompletionItem_Vector) is
    begin
       for Item of Items loop
-         if Starts_With
-           (Text           =>
-              LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Item.label)),
-            Prefix         => Prefix,
-            Case_Sensitive => False)
+         if Item.label.Starts_With
+           (Prefix, VSS.Strings.Identifier_Caseless)
          then
             Result.Append (Item);
          end if;
@@ -192,7 +189,11 @@ package body LSP.Predefined_Completion is
      (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items (Prefix => Prefix, Items => Aspects, Result => Result);
+      Filter_Items
+        (Prefix =>
+           VSS.Strings.Conversions.To_Virtual_String (Prefix),
+         Items  => Aspects,
+         Result => Result);
    end Get_Aspects;
 
    --------------------
@@ -203,7 +204,11 @@ package body LSP.Predefined_Completion is
      (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items (Prefix => Prefix, Items => Attributes, Result => Result);
+      Filter_Items
+        (Prefix =>
+           VSS.Strings.Conversions.To_Virtual_String (Prefix),
+         Items  => Attributes,
+         Result => Result);
    end Get_Attributes;
 
    -----------------
@@ -214,7 +219,11 @@ package body LSP.Predefined_Completion is
      (Prefix  : Ada.Strings.UTF_Encoding.UTF_8_String;
       Result  : in out CompletionItem_Vector) is
    begin
-      Filter_Items (Prefix => Prefix, Items => Pragmas, Result => Result);
+      Filter_Items
+        (Prefix =>
+           VSS.Strings.Conversions.To_Virtual_String (Prefix),
+         Items  => Pragmas,
+         Result => Result);
    end Get_Pragmas;
 
 end LSP.Predefined_Completion;

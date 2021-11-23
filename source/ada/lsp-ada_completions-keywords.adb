@@ -15,9 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
-with Langkit_Support.Text;
 with Libadalang.Common;
 
 with VSS.Strings;
@@ -59,28 +56,25 @@ package body LSP.Ada_Completions.Keywords is
       end if;
 
       declare
-         Item   : LSP.Messages.CompletionItem;
-         Prefix : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           Langkit_Support.Text.To_UTF8 (Node.Text);
-
+         Item     : LSP.Messages.CompletionItem;
+         Prefix   : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String  (Node.Text);
          Keywords : constant Libadalang.Analysis.Unbounded_Text_Type_Array :=
            Node.P_Valid_Keywords;
+
       begin
          for Keyword of Keywords loop
             declare
                Label : constant VSS.Strings.Virtual_String :=
                  LSP.Lal_Utils.To_Virtual_String (Keyword);
-               String : constant LSP.Types.LSP_String :=
-                 LSP.Types.To_LSP_String (Label);
+
             begin
-               if LSP.Types.Starts_With
-                 (Text           => String,
-                  Prefix         => Prefix,
-                  Case_Sensitive => False)
+               if Label.Starts_With
+                    (Prefix, VSS.Strings.Identifier_Caseless)
                then
                   Item.label := Label;
                   Item.insertTextFormat := (True, LSP.Messages.PlainText);
-                  Item.insertText := (True, String);
+                  Item.insertText := (True, LSP.Types.To_LSP_String (Label));
                   Item.kind := (True, LSP.Messages.Keyword);
                   Result.items.Append (Item);
                end if;

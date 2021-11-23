@@ -3408,7 +3408,7 @@ package body LSP.Ada_Handlers is
             File := +Ada.Get (projectFile).Get;
 
             --  Drop uri scheme if present
-            if LSP.Types.Starts_With (File, "file:") then
+            if LSP.Types.To_Virtual_String (File).Starts_With ("file:") then
                File := Self.URI_To_File (File);
             end if;
          end if;
