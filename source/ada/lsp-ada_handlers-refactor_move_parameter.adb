@@ -55,7 +55,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
          return Langkit_Support.Text.Text_Type;
       --  Returns 'forward' if D = Forward and 'backward' if D = Backward
 
-      function Create_Code_Action_Title return LSP.Types.LSP_String;
+      function Create_Code_Action_Title return VSS.Strings.Virtual_String;
       --  Creates the code action text that will be shown by the client to
       --  to the developer. The text is costumized based on the name and number
       --  of parameters that will be removed.
@@ -64,13 +64,12 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       -- Create_Code_Action_Title --
       ------------------------------
 
-      function Create_Code_Action_Title return LSP.Types.LSP_String
-      is
+      function Create_Code_Action_Title return VSS.Strings.Virtual_String is
          Parameter_Name : constant Langkit_Support.Text.Text_Type :=
            Get_Parameter_Name (Target_Subp, Parameter_Index);
 
       begin
-         return LSP.Types.To_LSP_String
+         return VSS.Strings.To_Virtual_String
            ("Move "
             & Parameter_Name
             & " "
@@ -116,7 +115,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
            (Is_Set => True,
             Value  =>
               (Is_Unknown => False,
-               title      => LSP.Types.Empty_LSP_String,
+               title      => <>,
                Custom     => Pointer)));
 
       Commands_Vector.Append (Code_Action);

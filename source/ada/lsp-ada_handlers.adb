@@ -17,6 +17,7 @@
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
+with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Exceptions;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
@@ -108,7 +109,8 @@ package body LSP.Ada_Handlers is
       As_Flags => (LSP.Messages.Child => True, others => False));
    --  Convenient constants
 
-   Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
+   Line_Feed : constant Wide_Wide_Character :=
+     Ada.Characters.Wide_Wide_Latin_1.LF;
    Backspace : constant Character := Ada.Characters.Latin_1.BS;
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
@@ -132,7 +134,7 @@ package body LSP.Ada_Handlers is
 
    procedure Show_Message
      (Self : access Message_Handler;
-      Text : String;
+      Text : VSS.Strings.Virtual_String;
       Mode : LSP.Messages.MessageType := LSP.Messages.Error);
    --  Convenience function to send a message to the user.
 
@@ -636,9 +638,10 @@ package body LSP.Ada_Handlers is
          --  We have found more than one project: warn the user!
 
          Self.Show_Message
-           ("More than one .gpr found." & Line_Feed &
-              "Note: you can configure a project " &
-              " through the ada.projectFile setting.");
+           (VSS.Strings.To_Virtual_String
+              ("More than one .gpr found." & Line_Feed &
+                 "Note: you can configure a project " &
+                 " through the ada.projectFile setting."));
          Self.Load_Implicit_Project (Multiple_Projects_Found);
       end if;
    end Ensure_Project_Loaded;
@@ -1077,7 +1080,7 @@ package body LSP.Ada_Handlers is
             Pointer.Set (Command);
 
             Item :=
-              (title       => +"Name parameters in the call",
+              (title       => "Name parameters in the call",
                kind        => (Is_Set => True,
                                Value  => LSP.Messages.RefactorRewrite),
                diagnostics => (Is_Set => False),
@@ -1087,7 +1090,7 @@ package body LSP.Ada_Handlers is
                command     => (Is_Set => True,
                                Value  =>
                                  (Is_Unknown => False,
-                                  title      => +"",
+                                  title      => <>,
                                   Custom     => Pointer)));
 
             Result.Append (Item);
@@ -1411,8 +1414,8 @@ package body LSP.Ada_Handlers is
                   Arg     : constant LSP.Types.LSP_Any :=
                     LSP.Types.Create ("ada.projectFile");
                begin
-                  Command.title := +"Open settings for ada.projectFile";
-                  Command.command := +"workbench.action.openSettings";
+                  Command.title := "Open settings for ada.projectFile";
+                  Command.command := "workbench.action.openSettings";
                   Command.arguments := (Is_Set => True, Value => <>);
                   Command.arguments.Value.Append (Arg);
 
@@ -1429,8 +1432,8 @@ package body LSP.Ada_Handlers is
                end;
             when No_Project_Found =>
                declare
-                  Title  : constant LSP.Types.LSP_String :=
-                    +"Create a default project file (default.gpr)";
+                  Title  : constant VSS.Strings.Virtual_String :=
+                    "Create a default project file (default.gpr)";
                   URI    : constant LSP.Messages.DocumentUri :=
                     LSP.Types.File_To_URI
                       (Self.Root.Join ("default.gpr").Display_Full_Name);
@@ -1441,7 +1444,7 @@ package body LSP.Ada_Handlers is
                       others => <>));
                   Text   : constant LSP.Messages.AnnotatedTextEdit :=
                     ((span => ((0, 0), (0, 0)),
-                      newText => +"project Default is end Default;",
+                      newText => "project Default is end Default;",
                       others => <>));
                   Insert : constant LSP.Messages.Document_Change :=
                     (LSP.Messages.Text_Document_Edit,
@@ -2368,7 +2371,7 @@ package body LSP.Ada_Handlers is
         (LSP.Messages.MarkedString'
            (Is_String => False,
             value     => Decl_Text,
-            language  => +"ada"));
+            language  => "ada"));
 
       --  Append the declaration's location.
       --  In addition, append the project's name if we are dealing with an
@@ -2718,8 +2721,7 @@ package body LSP.Ada_Handlers is
 
          declare
             Signature : LSP.Messages.SignatureInformation :=
-              (label          =>
-                 LSP.Types.To_LSP_String (Get_Hover_Text (Decl_Node)),
+              (label          => Get_Hover_Text (Decl_Node),
                documentation  =>
                  (Is_Set => True,
                   Value  =>
@@ -2730,8 +2732,7 @@ package body LSP.Ada_Handlers is
                               (Decl_Node).Doc.To_String))),
                activeParameter =>
                  (Is_Set => True,
-                  Value  => Param_Index
-                 ),
+                  Value  => Param_Index),
                others          => <>
               );
          begin
@@ -2754,7 +2755,7 @@ package body LSP.Ada_Handlers is
       begin
          if Is_Signature_Active
            (Parameters      => Signature_Info.parameters,
-            Sig_Label       => Signature_Info.label,
+            Sig_Label       => To_LSP_String (Signature_Info.label),
             Position        => Position,
             Designator      => Designator,
             Active_Position => Active_Position)
@@ -2982,7 +2983,7 @@ package body LSP.Ada_Handlers is
          others   => <>);
 
       Pattern : constant Search_Pattern'Class := Build
-        (Pattern        => LSP.Types.To_Virtual_String (Value.query),
+        (Pattern        => Value.query,
          Case_Sensitive => Value.case_sensitive = LSP.Types.True,
          Whole_Word     => Value.whole_word = LSP.Types.True,
          Negate         => Value.negate = LSP.Types.True,
@@ -3175,7 +3176,7 @@ package body LSP.Ada_Handlers is
             end Process_Box;
 
          begin
-            Diff := Length (Value.newName) - Name'Length;
+            Diff := Natural (Value.newName.Character_Length) - Name'Length;
 
             while Token /= No_Token loop
                declare
@@ -3187,7 +3188,9 @@ package body LSP.Ada_Handlers is
                   then
                      Text_Edit.Location := This_Span;
                      Text_Edit.Text :=
-                       To_UTF_8_Unbounded_String (Value.newName);
+                       To_Unbounded_String
+                         (VSS.Strings.Conversions.To_UTF_8_String
+                            (Value.newName));
 
                      if Diff /= 0
                        and then Laltools.Common.Contains
@@ -3296,7 +3299,9 @@ package body LSP.Ada_Handlers is
 
          Safe_Renamer := Laltools.Refactor.Safe_Rename.Create_Safe_Renamer
            (Definition => Definition,
-            New_Name   => To_Unbounded_Text_Type (Value.newName),
+            New_Name   =>
+              Libadalang.Text.To_Unbounded_Text
+                (VSS.Strings.Conversions.To_Wide_Wide_String (Value.newName)),
             Algorithm  => Algorithm);
 
          Context_Edits := Safe_Renamer.Refactor (Analysis_Units'Access);
@@ -3525,11 +3530,11 @@ package body LSP.Ada_Handlers is
                others   => <>);
          begin
             Selector.Append (Filter);
-            Registration.method := +"textDocument/rangeFormatting";
+            Registration.method := "textDocument/rangeFormatting";
             Registration.registerOptions :=
               (LSP.Types.Text_Document_Registration_Option,
                (documentSelector => Selector));
-            Registration.id := +"rf";
+            Registration.id := "rf";
             Request.params.registrations.Append (Registration);
             Self.Server.On_RegisterCapability_Request (Request);
             Self.Range_Formatting_Enabled := True;
@@ -3723,11 +3728,10 @@ package body LSP.Ada_Handlers is
             Self.Trace.Trace (E);
             Errors.a_type := LSP.Messages.Error;
 
-            LSP.Types.Append
-              (Errors.message,
-               LSP.Types.To_LSP_String
+            Errors.message.Append
+              (VSS.Strings.Conversions.To_Virtual_String
                  ("Unable to load project file: " &
-                  (+GPR.Full_Name.all) & Line_Feed));
+                    String (GPR.Full_Name.all) & Ada.Characters.Latin_1.LF));
 
             --  The project was invalid: fallback on loading the implicit
             --  project.
@@ -3737,7 +3741,7 @@ package body LSP.Ada_Handlers is
       --  Report the errors, if any
       if not Error_Text.Is_Empty then
          for Line of Error_Text loop
-            LSP.Types.Append (Errors.message, LSP.Types.To_LSP_String (Line));
+            Errors.message.Append (Line);
          end loop;
          Self.Server.On_Show_Message (Errors);
       end if;
@@ -3822,7 +3826,7 @@ package body LSP.Ada_Handlers is
          --  We could do better, send request, wait for client response and
          --  start progress-report sending only after response.
          P.Begin_Param.token := Self.Indexing_Token;
-         P.Begin_Param.value.title := +"Indexing";
+         P.Begin_Param.value.title := "Indexing";
          P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
          Self.Server.On_Progress (P);
       end Emit_Progress_Begin;
@@ -3998,7 +4002,7 @@ package body LSP.Ada_Handlers is
       end On_Inaccessible_Name;
 
       Pattern : constant Search_Pattern'Class := Build
-        (Pattern        => LSP.Types.To_Virtual_String (Request.params.query),
+        (Pattern        => Request.params.query,
          Case_Sensitive => Request.params.case_sensitive = LSP.Types.True,
          Whole_Word     => Request.params.whole_word = LSP.Types.True,
          Negate         => Request.params.negate = LSP.Types.True,
@@ -4748,10 +4752,10 @@ package body LSP.Ada_Handlers is
 
    procedure Show_Message
      (Self : access Message_Handler;
-      Text : String;
+      Text : VSS.Strings.Virtual_String;
       Mode : LSP.Messages.MessageType := LSP.Messages.Error) is
    begin
-      Self.Server.On_Show_Message ((Mode, +Text));
+      Self.Server.On_Show_Message ((Mode, Text));
    end Show_Message;
 
    --------------------------------------
@@ -4765,7 +4769,8 @@ package body LSP.Ada_Handlers is
       if Notifications_For_Imprecise.Is_Active then
          Self.Server.On_Show_Message
            ((LSP.Messages.Warning,
-            +("The result of '" & Operation & "' is approximate.")));
+            VSS.Strings.Conversions.To_Virtual_String
+              ("The result of '" & Operation & "' is approximate.")));
       end if;
    end Show_Imprecise_Reference_Warning;
 

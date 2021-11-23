@@ -49,14 +49,14 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
         Target_Separate.P_Defining_Name.F_Name;
       Where        : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location (Subp_Name);
-      Action_Title : constant LSP.Types.LSP_String :=
-        LSP.Types.To_LSP_String
+      Action_Title : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.To_Virtual_String
           ("Suppress separate subprogram " & Subp_Name.Text);
 
    begin
       Self.Initialize
-        (Context           => Context.all,
-         Where             => ((uri => Where.uri), Where.span.first));
+        (Context => Context.all,
+         Where   => ((uri => Where.uri), Where.span.first));
 
       Pointer.Set (Self);
 
@@ -73,7 +73,7 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
            (Is_Set => True,
             Value  =>
               (Is_Unknown => False,
-               title      => LSP.Types.Empty_LSP_String,
+               title      => <>,
                Custom     => Pointer)));
 
       Commands_Vector.Append (Code_Action);

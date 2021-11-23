@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Unchecked_Deallocation;
 
@@ -252,10 +251,7 @@ package body LSP.Ada_Documents is
 
                Self.Span_To_Markers
                  (Change.span.Value, First_Marker, Last_Marker);
-               Self.Text.Replace
-                 (First_Marker,
-                  Last_Marker,
-                  To_Virtual_String (Change.text));
+               Self.Text.Replace (First_Marker, Last_Marker, Change.text);
 
                --  Markers inside modified range of lines need to be
                --  recomputed, markers outside of this range has been
@@ -308,7 +304,7 @@ package body LSP.Ada_Documents is
             end;
 
          else
-            Self.Text := To_Virtual_String (Change.text);
+            Self.Text := Change.text;
 
             --  We're setting the whole text: compute the indexes now.
             Self.Recompute_Indexes;
@@ -454,7 +450,7 @@ package body LSP.Ada_Documents is
             LSP.Messages.Prepend
               (Edit, LSP.Messages.TextEdit'
                  (span    => Changed_Block_Span,
-                  newText => To_LSP_String (Changed_Block_Text)));
+                  newText => Changed_Block_Text));
 
             --  clearing
             Changed_Block_Text.Clear;
@@ -1162,13 +1158,20 @@ package body LSP.Ada_Documents is
    -- Line_Terminator --
    ---------------------
 
-   function Line_Terminator (Self : Document'Class) return String is
+   function Line_Terminator
+     (Self : Document'Class) return VSS.Strings.Virtual_String is
    begin
       if Self.Line_Terminator.Is_Empty then
          --  Document has no line terminator yet, return LF as most used
-         return (1 => Ada.Characters.Latin_1.LF);
+         --
+         --  Should it be platform specific? CRLF for Windows, CR for Mac?
+
+         return
+           VSS.Strings.To_Virtual_String
+             ((1 => Ada.Characters.Wide_Wide_Latin_1.LF));
+
       else
-         return VSS.Strings.Conversions.To_UTF_8_String (Self.Line_Terminator);
+         return Self.Line_Terminator;
       end if;
    end Line_Terminator;
 

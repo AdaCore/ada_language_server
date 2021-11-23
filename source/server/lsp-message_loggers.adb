@@ -810,7 +810,7 @@ package body LSP.Message_Loggers is
       Self.Trace.Trace
         ("Execute_Command_Request: "
          & Image (Value)
-         & (+Value.params.command));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.command));
    end On_Execute_Command_Request;
 
    --------------------------------
@@ -928,7 +928,7 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & (+Value.params.item.uri)
          & " : "
-         & (+Value.params.item.name));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.item.name));
    end On_Incoming_Calls_Request;
 
    --------------------------------
@@ -966,7 +966,7 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & (+Value.params.item.uri)
          & " : "
-         & (+Value.params.item.name));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.item.name));
    end On_Outgoing_Calls_Request;
 
    --------------------------------
@@ -1235,7 +1235,7 @@ package body LSP.Message_Loggers is
    begin
       Self.Trace.Trace
         ("Log_Message: "
-         & (+Params.message));
+         & VSS.Strings.Conversions.To_UTF_8_String (Params.message));
    end On_Log_Message;
 
    ----------------------------
@@ -1339,7 +1339,9 @@ package body LSP.Message_Loggers is
         ("Rename_Request: "
          & Image (Value)
          & Image (Pos)
-         & " to " & (+Value.params.newName));
+         & " to "
+         & VSS.Strings.Conversions.To_UTF_8_String
+           (Value.params.newName));
    end On_Rename_Request;
 
    ------------------------
@@ -1447,7 +1449,7 @@ package body LSP.Message_Loggers is
    begin
       Self.Trace.Trace
         ("Show_Message: "
-         & (+Params.message));
+         & VSS.Strings.Conversions.To_UTF_8_String (Params.message));
    end On_Show_Message;
 
    -----------------------------------
@@ -1577,7 +1579,7 @@ package body LSP.Message_Loggers is
       Self.Trace.Trace
         ("ShowMessage_Request: "
          & Image (Value)
-         & (+Value.params.message));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.message));
    end On_ShowMessage_Request;
 
    -----------------------------
@@ -1807,7 +1809,7 @@ package body LSP.Message_Loggers is
       Self.Trace.Trace
         ("Workspace_Execute_Command_Request: "
          & Image (Value)
-         & (+Value.params.command));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.command));
    end On_Workspace_Execute_Command_Request;
 
    ----------------------------------
@@ -1822,7 +1824,7 @@ package body LSP.Message_Loggers is
       Self.Trace.Trace
         ("Workspace_Symbols_Request: "
          & Image (Value)
-         & (+Value.params.query));
+         & VSS.Strings.Conversions.To_UTF_8_String (Value.params.query));
    end On_Workspace_Symbols_Request;
 
    ----------------------------------------

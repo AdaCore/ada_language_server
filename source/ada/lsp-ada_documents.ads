@@ -276,7 +276,8 @@ package LSP.Ada_Documents is
       return Langkit_Support.Slocs.Source_Location;
    --  Convert a Positon to a Source_Location
 
-   function Line_Terminator (Self : Document'Class) return String;
+   function Line_Terminator
+     (Self : Document'Class) return VSS.Strings.Virtual_String;
    --  Return line terminator for the document
 
 private

@@ -28,9 +28,10 @@ package body LSP.Fuzz_Decorators is
 
    package Document_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Messages.DocumentUri,
-      Element_Type    => LSP.Types.LSP_String,
+      Element_Type    => VSS.Strings.Virtual_String,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types.Equal);
+      Equivalent_Keys => LSP.Types.Equal,
+      "="             => VSS.Strings."=");
 
    Open_Docs : Document_Maps.Map;
    --  Container for documents indexed by URI
@@ -114,9 +115,7 @@ package body LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidOpenTextDocumentParams) is
    begin
-      Open_Docs.Insert
-        (Value.textDocument.uri,
-         LSP.Types.To_LSP_String (Value.textDocument.text));
+      Open_Docs.Insert (Value.textDocument.uri, Value.textDocument.text);
       --  This will raise Constraint_Error if the doc is already open
 
       Self.Handler.On_DidOpenTextDocument_Notification (Value);
@@ -136,7 +135,8 @@ package body LSP.Fuzz_Decorators is
       Doc_Content : LSP_String;
 
    begin
-      Doc_Content := Open_Docs.Element (Value.textDocument.uri);
+      Doc_Content :=
+        LSP.Types.To_LSP_String (Open_Docs.Element (Value.textDocument.uri));
 
       for Change of Value.contentChanges loop
          if Change.span.Is_Set then
@@ -163,16 +163,17 @@ package body LSP.Fuzz_Decorators is
                end loop;
                Doc_Content := Unbounded_Slice
                  (Doc_Content, 1, Natural (Start_Ind))
-                 & Change.text
+                 & LSP.Types.To_LSP_String (Change.text)
                  & Unbounded_Slice
                  (Doc_Content, Natural (End_Ind + 1), Length (Doc_Content));
             end;
          else
-            Doc_Content := Change.text;
+            Doc_Content := LSP.Types.To_LSP_String (Change.text);
          end if;
       end loop;
 
-      Open_Docs.Replace (Value.textDocument.uri, Doc_Content);
+      Open_Docs.Replace
+        (Value.textDocument.uri, LSP.Types.To_Virtual_String (Doc_Content));
 
       --  Let the real handler update the document
       Self.Handler.On_DidChangeTextDocument_Notification (Value);
