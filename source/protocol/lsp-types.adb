@@ -657,50 +657,6 @@ package body LSP.Types is
    -------------------
 
    function To_LSP_String
-     (Text : GNATCOLL.JSON.UTF8_Unbounded_String) return LSP_String
-   is
-      Res : LSP_String;
-      Len : constant Natural := Length (Text);
-      Current_Index : Positive := 1;
-
-      subtype Continuation_Character is Character range
-        Character'Val (2#1000_0000#) .. Character'Val (2#1011_1111#);
-   begin
-      loop
-         --  Process the decoding in chunks
-         declare
-            Bound : Natural := Natural'Min (Current_Index + Chunk_Size, Len);
-            Chunk : constant String (Current_Index .. Bound) := Slice
-              (Text, Current_Index, Bound);
-         begin
-            --  We don't want to cut a chunk in the middle of a long
-            --  character, so look at the last 4 bytes and cut before
-            --  any such long character, and cut if needs be.
-            if Bound /= Len then
-               for J in reverse 0 .. 3 loop
-                  if Chunk (Bound - J) not in Continuation_Character then
-                     --  This character is not a continuation character: it's
-                     --  OK to cut before it, and start the next chunk with it.
-                     Bound := Bound - J - 1;
-                     exit;
-                  end if;
-               end loop;
-            end if;
-            Append
-              (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Decode
-                 (Chunk (Current_Index .. Bound)));
-            Current_Index := Bound + 1;
-            exit when Current_Index > Len;
-         end;
-      end loop;
-      return Res;
-   end To_LSP_String;
-
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
      (Text : Wide_Wide_String) return LSP_String
    is
       UTF_16 : constant Wide_String :=

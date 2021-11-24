@@ -132,8 +132,6 @@ package LSP.Types is
 
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;
-   function To_LSP_String (Text : GNATCOLL.JSON.UTF8_Unbounded_String)
-     return LSP_String;
    --  Convert given UTF-8 string into LSP_String
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
