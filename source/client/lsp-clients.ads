@@ -170,7 +170,7 @@ package LSP.Clients is
    procedure Workspace_Apply_Edit
      (Self    : in out Client'Class;
       Request : LSP.Types.LSP_Number_Or_String;
-      Failure : LSP.Types.Optional_String);
+      Failure : LSP.Types.Optional_Virtual_String);
 
    procedure Void_Response
      (Self    : in out Client'Class;

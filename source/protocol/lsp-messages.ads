@@ -8868,8 +8868,8 @@ package LSP.Messages is
    --}
    --```
    type ApplyWorkspaceEditParams is record
-      label: Optional_String;
-      edit: WorkspaceEdit;
+      label : Optional_Virtual_String;
+      edit  : WorkspaceEdit;
    end record;
 
    --```typescript
@@ -8896,9 +8896,9 @@ package LSP.Messages is
    --}
    --```
    type ApplyWorkspaceEditResult is record
-      applied: Boolean;
-      failureReason: Optional_String;
-      failedChange: Optional_uinteger;
+      applied       : Boolean;
+      failureReason : Optional_Virtual_String;
+      failedChange  : Optional_uinteger;
    end record;
 
    procedure Read_ApplyWorkspaceEditResult

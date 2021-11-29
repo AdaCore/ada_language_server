@@ -148,7 +148,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    begin
       Apply.params.label :=
         (Is_Set => True,
-         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
+         Value  =>
+           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
 
       if Message_Handler.Versioned_Documents then
          Edits.documentChanges.Append

@@ -1276,7 +1276,7 @@ package body LSP.Clients is
    procedure Workspace_Apply_Edit
      (Self    : in out Client'Class;
       Request : LSP.Types.LSP_Number_Or_String;
-      Failure : LSP.Types.Optional_String)
+      Failure : LSP.Types.Optional_Virtual_String)
    is
       Message : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response :=
         (Is_Error => False,

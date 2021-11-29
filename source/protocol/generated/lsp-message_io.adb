@@ -8084,7 +8084,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "label" then
-               Optional_String'Read (S, V.label);
+               Optional_Virtual_String'Read (S, V.label);
             elsif Key = "edit" then
                WorkspaceEdit'Read (S, V.edit);
             else
@@ -8104,7 +8104,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("label");
-      Optional_String'Write (S, V.label);
+      Optional_Virtual_String'Write (S, V.label);
       JS.Key ("edit");
       WorkspaceEdit'Write (S, V.edit);
       JS.End_Object;
@@ -8129,7 +8129,7 @@ package body LSP.Message_IO is
             if Key = "applied" then
                LSP.Types.Read_Boolean (JS, V.applied);
             elsif Key = "failureReason" then
-               Optional_String'Read (S, V.failureReason);
+               Optional_Virtual_String'Read (S, V.failureReason);
             elsif Key = "failedChange" then
                Optional_uinteger'Read (S, V.failedChange);
             else
@@ -8150,7 +8150,7 @@ package body LSP.Message_IO is
       JS.Start_Object;
       Write_Boolean (JS, "applied", V.applied);
       JS.Key ("failureReason");
-      Optional_String'Write (S, V.failureReason);
+      Optional_Virtual_String'Write (S, V.failureReason);
       JS.Key ("failedChange");
       Optional_uinteger'Write (S, V.failedChange);
       JS.End_Object;

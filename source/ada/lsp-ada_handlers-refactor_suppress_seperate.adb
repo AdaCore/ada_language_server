@@ -158,7 +158,8 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
    begin
       Apply.params.label :=
         (Is_Set => True,
-         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
+         Value  =>
+           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
       Target_Separate :=
         Get_Node_As_Name (Node).Parent.Parent.Parent.As_Basic_Decl;
 
