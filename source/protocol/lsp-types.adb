@@ -450,34 +450,6 @@ package body LSP.Types is
    end Read;
 
    --------------------------
-   -- Read_Optional_String --
-   --------------------------
-
-   procedure Read_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : out LSP.Types.Optional_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-   begin
-      case JS.R.Event_Kind is
-         when VSS.JSON.Pull_Readers.Null_Value =>
-
-            Item := (Is_Set => False);
-
-         when VSS.JSON.Pull_Readers.String_Value =>
-            Item := (Is_Set => True,
-                     Value  => To_LSP_String (JS.R.String_Value));
-
-         when others =>
-            raise Constraint_Error;
-      end case;
-
-      JS.R.Read_Next;
-   end Read_Optional_String;
-
-   --------------------------
    -- Read_Nullable_String --
    --------------------------
 
@@ -962,22 +934,6 @@ package body LSP.Types is
          Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
-
-   ---------------------------
-   -- Write_Optional_String --
-   ---------------------------
-
-   procedure Write_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : LSP.Types.Optional_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if Item.Is_Set then
-         JS.Write_String (Item.Value);
-      end if;
-   end Write_Optional_String;
 
    ---------------------------
    -- Write_Nullable_String --

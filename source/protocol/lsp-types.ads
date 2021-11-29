@@ -294,29 +294,8 @@ package LSP.Types is
      Item   : LSP.Types.Optional_Boolean);
 
    ---------------------
-   -- Optional_String --
+   -- Nullable_String --
    ---------------------
-
-   type Optional_String (Is_Set : Boolean := False) is record
-      case Is_Set is
-         when True =>
-            Value : LSP_String;
-         when False =>
-            null;
-      end case;
-   end record;
-
-   procedure Read_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : out LSP.Types.Optional_String);
-   --  Read optional string from the JSON stream
-
-   procedure Write_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : LSP.Types.Optional_String);
-
-   for Optional_String'Read use Read_Optional_String;
-   for Optional_String'Write use Write_Optional_String;
 
    type Nullable_String (Is_Set : Boolean := False) is record
       case Is_Set is
