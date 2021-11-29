@@ -299,7 +299,8 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
    begin
       Apply.params.label :=
         (Is_Set => True,
-         Value  => LSP.Types.To_LSP_String (Command'External_Tag));
+         Value  =>
+           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
       Target_Subp := Resolve_Name_Precisely (Get_Node_As_Name (Node));
 
       if Target_Subp.Is_Null then
