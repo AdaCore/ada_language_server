@@ -7598,23 +7598,23 @@ package LSP.Messages is
      new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
-      label: VSS.Strings.Virtual_String;
-      kind : Optional_CompletionItemKind;
-      tags: Optional_CompletionItemTagSet;
-      detail: Optional_String;
-      documentation: Optional_String_Or_MarkupContent;
-      deprecated: Optional_Boolean;
-      preselect: Optional_Boolean;
-      sortText: Optional_String;
-      filterText: Optional_String;
-      insertText: Optional_String;
-      insertTextFormat: Optional_InsertTextFormat;
-      insertTextMode: Optional_InsertTextMode;
-      textEdit: Optional_TextEdit_Or_InsertReplaceEdit;
-      additionalTextEdits: TextEdit_Vector;
-      commitCharacters: Optional_LSP_String_Vector;
-      command: Optional_Command;
-      data : Optional_Location;
+      label               : VSS.Strings.Virtual_String;
+      kind                : Optional_CompletionItemKind;
+      tags                : Optional_CompletionItemTagSet;
+      detail              : Optional_Virtual_String;
+      documentation       : Optional_String_Or_MarkupContent;
+      deprecated          : Optional_Boolean;
+      preselect           : Optional_Boolean;
+      sortText            : Optional_Virtual_String;
+      filterText          : Optional_Virtual_String;
+      insertText          : Optional_Virtual_String;
+      insertTextFormat    : Optional_InsertTextFormat;
+      insertTextMode      : Optional_InsertTextMode;
+      textEdit            : Optional_TextEdit_Or_InsertReplaceEdit;
+      additionalTextEdits : TextEdit_Vector;
+      commitCharacters    : Optional_LSP_String_Vector;
+      command             : Optional_Command;
+      data                : Optional_Location;
    end record;
 
    procedure Read_CompletionItem

@@ -4231,9 +4231,7 @@ package body LSP.Ada_Handlers is
             BD : constant Libadalang.Analysis.Basic_Decl :=
               Node.As_Basic_Decl;
          begin
-            Item.detail :=
-              (True,
-               To_LSP_String (Compute_Completion_Detail (BD)));
+            Item.detail := (True, Compute_Completion_Detail (BD));
 
             --  Property_Errors can occur when calling
             --  Get_Documentation on unsupported docstrings, so

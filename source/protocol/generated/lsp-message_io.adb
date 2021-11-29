@@ -7038,7 +7038,7 @@ package body LSP.Message_IO is
             elsif Key = "tags" then
                Optional_CompletionItemTagSet'Read (S, V.tags);
             elsif Key = "detail" then
-               Optional_String'Read (S, V.detail);
+               Optional_Virtual_String'Read (S, V.detail);
             elsif Key = "documentation" then
                Optional_String_Or_MarkupContent'Read (S, V.documentation);
             elsif Key = "deprecated" then
@@ -7046,11 +7046,11 @@ package body LSP.Message_IO is
             elsif Key = "preselect" then
                Optional_Boolean'Read (S, V.preselect);
             elsif Key = "sortText" then
-               Optional_String'Read (S, V.sortText);
+               Optional_Virtual_String'Read (S, V.sortText);
             elsif Key = "filterText" then
-               Optional_String'Read (S, V.filterText);
+               Optional_Virtual_String'Read (S, V.filterText);
             elsif Key = "insertText" then
-               Optional_String'Read (S, V.insertText);
+               Optional_Virtual_String'Read (S, V.insertText);
             elsif Key = "insertTextFormat" then
                Optional_InsertTextFormat'Read (S, V.insertTextFormat);
             elsif Key = "insertTextMode" then
@@ -7088,7 +7088,7 @@ package body LSP.Message_IO is
       JS.Key ("tags");
       Optional_CompletionItemTagSet'Write (S, V.tags);
       JS.Key ("detail");
-      Optional_String'Write (S, V.detail);
+      Optional_Virtual_String'Write (S, V.detail);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Write (S, V.documentation);
       JS.Key ("deprecated");
@@ -7096,11 +7096,11 @@ package body LSP.Message_IO is
       JS.Key ("preselect");
       Optional_Boolean'Write (S, V.preselect);
       JS.Key ("sortText");
-      Optional_String'Write (S, V.sortText);
+      Optional_Virtual_String'Write (S, V.sortText);
       JS.Key ("filterText");
-      Optional_String'Write (S, V.filterText);
+      Optional_Virtual_String'Write (S, V.filterText);
       JS.Key ("insertText");
-      Optional_String'Write (S, V.insertText);
+      Optional_Virtual_String'Write (S, V.insertText);
       JS.Key ("insertTextFormat");
       Optional_InsertTextFormat'Write (S, V.insertTextFormat);
       JS.Key ("insertTextMode");
