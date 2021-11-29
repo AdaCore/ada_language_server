@@ -22,7 +22,6 @@ with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
-with Ada.Strings.Wide_Wide_Unbounded;
 with GNATCOLL.JSON;
 
 with VSS.String_Vectors;
@@ -136,11 +135,6 @@ package LSP.Types is
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
    function To_LSP_String
-     (Text : Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String)
-      return LSP_String
-   is (To_LSP_String
-       (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Text)));
-   function To_LSP_String
      (Item : VSS.Strings.Virtual_String) return LSP_String;
 
    function To_UTF_8_String (Value : LSP_String)
@@ -150,16 +144,9 @@ package LSP.Types is
    --  large (such as the content of a file), prefer calling
    --  To_UTF_8_Unbounded_String below.
 
-   function To_UTF_8_Unbounded_String (Value : LSP_String)
-     return GNATCOLL.JSON.UTF8_Unbounded_String;
-   --  Same as To_UTF_8_String above, but returns an Unbounded_String.
-
    function To_Virtual_String
      (Item : LSP_String) return VSS.Strings.Virtual_String;
    --  Converts LSP_String to Virtual_String.
-
-   function Is_Empty (Text : LSP_String) return Boolean;
-   --  Check if given Text is an empty string
 
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash
