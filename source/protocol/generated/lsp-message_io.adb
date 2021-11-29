@@ -9012,7 +9012,7 @@ package body LSP.Message_IO is
             if Key = "triggerKind" then
                SignatureHelpTriggerKind'Read (S, V.triggerKind);
             elsif Key = "triggerCharacter" then
-               Optional_String'Read (S, V.triggerCharacter);
+               Optional_Virtual_String'Read (S, V.triggerCharacter);
             elsif Key = "isRetrigger" then
                LSP.Types.Read_Boolean (JS, V.isRetrigger);
             elsif Key = "activeSignatureHelp" then
@@ -9036,7 +9036,7 @@ package body LSP.Message_IO is
       JS.Key ("triggerKind");
       SignatureHelpTriggerKind'Write (S, V.triggerKind);
       JS.Key ("triggerCharacter");
-      Optional_String'Write (S, V.triggerCharacter);
+      Optional_Virtual_String'Write (S, V.triggerCharacter);
       Write_Boolean (JS, "isRetrigger", V.isRetrigger);
       JS.Key ("activeSignatureHelp");
       Optional_SignatureHelp'Write (S, V.activeSignatureHelp);

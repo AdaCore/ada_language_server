@@ -2655,6 +2655,7 @@ package body LSP.Ada_Handlers is
       use Libadalang.Analysis;
       use Langkit_Support.Slocs;
       use LSP.Messages;
+      use type VSS.Strings.Virtual_String;
 
       Value   : LSP.Messages.SignatureHelpParams renames
         Request.params;
@@ -2847,7 +2848,7 @@ package body LSP.Ada_Handlers is
            or else
            --  Adding a ',' will not add new results only filter the previous
              (Value.context.Value.triggerCharacter.Is_Set
-              and then Value.context.Value.triggerCharacter.Value = (+",")))
+              and then Value.context.Value.triggerCharacter.Value = ","))
       then
          --  At this point, we are filtering the previous signatures:
          --  * Don't recompute the list of signature

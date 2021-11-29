@@ -9801,7 +9801,7 @@ package LSP.Messages is
    --```
    type SignatureHelpContext is record
       triggerKind         : SignatureHelpTriggerKind;
-      triggerCharacter    : Optional_String;
+      triggerCharacter    : Optional_Virtual_String;
       isRetrigger         : Boolean;
       activeSignatureHelp : Optional_SignatureHelp;
    end record;
