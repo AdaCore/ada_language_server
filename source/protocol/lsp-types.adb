@@ -35,9 +35,6 @@ package body LSP.Types is
 
    use type VSS.JSON.Pull_Readers.JSON_Event_Kind;
 
-   Chunk_Size    : constant := 512;
-   --  When processing strings in chunks, this is the size of the chunk
-
    function No_Any return LSP_Any is
      (GNATCOLL.JSON.JSON_Null with null record);
 
@@ -97,15 +94,6 @@ package body LSP.Types is
          return LSP.Types.Hash (Item.String);
       end if;
    end Hash;
-
-   --------------
-   -- Is_Empty --
-   --------------
-
-   function Is_Empty (Text : LSP_String) return Boolean is
-   begin
-      return Length (Text) = 0;
-   end Is_Empty;
 
    ----------
    -- Read --
@@ -648,30 +636,6 @@ package body LSP.Types is
    begin
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
    end To_UTF_8_String;
-
-   -------------------------------
-   -- To_UTF_8_Unbounded_String --
-   -------------------------------
-
-   function To_UTF_8_Unbounded_String
-     (Value : LSP_String) return GNATCOLL.JSON.UTF8_Unbounded_String
-   is
-      Res  : Ada.Strings.Unbounded.Unbounded_String;
-      Len  : constant Natural := Length (Value);
-      Current_Index : Natural := 1;
-      Next_Index    : Natural;
-   begin
-      --  Perform the encoding chunk by chunk, so as not to blow the stack
-      loop
-         Next_Index := Natural'Min (Current_Index + Chunk_Size, Len);
-         Ada.Strings.Unbounded.Append
-           (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Encode
-              (Slice (Value, Current_Index, Next_Index)));
-         Current_Index := Next_Index + 1;
-         exit when Current_Index > Len;
-      end loop;
-      return Res;
-   end To_UTF_8_Unbounded_String;
 
    -----------------------
    -- To_Virtual_String --
