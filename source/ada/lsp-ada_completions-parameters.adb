@@ -21,7 +21,8 @@ with Langkit_Support.Text;       use Langkit_Support.Text;
 with Laltools.Common;
 with Libadalang.Common;
 
-with VSS.Strings;
+with VSS.Strings.Character_Iterators;
+with VSS.Strings.Conversions;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Documents;
@@ -51,7 +52,7 @@ package body LSP.Ada_Completions.Parameters is
         LSP.Lal_Utils.Get_Call_Expr (Node);
       Token_Kind        : Libadalang.Common.Token_Kind :=
         Kind (Data (Token));
-      Whitespace_Prefix : LSP_String := Empty_LSP_String;
+      Whitespace_Prefix : VSS.Strings.Virtual_String;
       --  Empty if we already have a whitespace before a ","
 
       Designators     : Laltools.Common.Node_Vectors.Vector;
@@ -115,8 +116,9 @@ package body LSP.Ada_Completions.Parameters is
 
       if Token_Kind = Ada_Whitespace then
          Token_Kind := Kind (Data (Previous (Token, Exclude_Trivia => True)));
+
       elsif Token_Kind = Ada_Comma then
-         Whitespace_Prefix := Whitespace_Prefix & " ";
+         Whitespace_Prefix.Append (" ");
       end if;
 
       declare
@@ -134,12 +136,11 @@ package body LSP.Ada_Completions.Parameters is
          for N of reverse Self.Context.Find_All_Env_Elements (Name_Node) loop
             if N.Kind in Ada_Basic_Subp_Decl then
                declare
-                  Params_Snippet : LSP_String := Empty_LSP_String;
-
                   Spec           : constant Libadalang.Analysis.Base_Subp_Spec
                     := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
-
+                  Params_Snippet : VSS.Strings.Virtual_String;
                   Snippet_Index  : Integer;
+
                begin
                   if Spec /= Libadalang.Analysis.No_Base_Subp_Spec
                     and then LSP.Lal_Utils.Match_Designators
@@ -155,6 +156,7 @@ package body LSP.Ada_Completions.Parameters is
                            Name      : constant VSS.Strings.Virtual_String :=
                              VSS.Strings.To_Virtual_String (Name_Text);
                            Item      : LSP.Messages.CompletionItem;
+                           Aux       : VSS.Strings.Virtual_String;
 
                         begin
                            if not Is_Present (Name_Text) then
@@ -167,40 +169,50 @@ package body LSP.Ada_Completions.Parameters is
                                  Item.label := Name;
                                  Item.insertTextFormat :=
                                    (True, LSP.Messages.PlainText);
-                                 Item.insertText :=
-                                   (True,
-                                    Whitespace_Prefix
-                                    & LSP.Types.To_LSP_String (Name)
-                                    & " => ");
+                                 Item.insertText := (True, Value => <>);
+                                 Item.insertText.Value.Append
+                                   (Whitespace_Prefix);
+                                 Item.insertText.Value.Append (Name);
+                                 Item.insertText.Value.Append (" => ");
                                  Item.kind := (True, LSP.Messages.Field);
                                  Unsorted_Res.Append (Item);
                               end if;
 
-                              Params_Snippet :=
-                                LSP.Types.To_LSP_String (Name)
-                                & " => "
-                                & "$"
-                                & To_LSP_String
-                                (GNATCOLL.Utils.Image
-                                   (Snippet_Index, Min_Width => 1))
-                                & ", "
-                                & Params_Snippet;
+                              Aux.Append (Name);
+                              Aux.Append (" => ");
+                              Aux.Append ("$");
+                              Aux.Append
+                                (VSS.Strings.Conversions.To_Virtual_String
+                                   (GNATCOLL.Utils.Image
+                                        (Snippet_Index, Min_Width => 1)));
+                              Aux.Append (", ");
+                              Params_Snippet.Prepend (Aux);
                            end if;
                            Snippet_Index := Snippet_Index - 1;
                         end;
                      end loop;
 
                      --  If the string is empty => nothing to do
-                     if Params_Snippet /= Empty_LSP_String
+                     if not Params_Snippet.Is_Empty
                        and then Token_Kind in Ada_Par_Open | Ada_Comma
                      then
-                        --  Remove the last 2 characters which are ", " and
-                        --  replace it by ")" and the final tab stop
-                        Params_Snippet := Unbounded_Slice
-                          (Params_Snippet,
-                           1,
-                           Length (Params_Snippet) - 2);
-                        Params_Snippet := Params_Snippet & ")$0";
+                        declare
+                           Last    :
+                            VSS.Strings.Character_Iterators.Character_Iterator
+                             := Params_Snippet.Last_Character;
+                           Success : Boolean with Unreferenced;
+
+                        begin
+                           --  Remove the last 2 characters which are ", " and
+                           --  replace it by ")" and the final tab stop
+                           Success := Last.Backward;
+                           Success := Last.Backward;
+
+                           Params_Snippet :=
+                             Params_Snippet.Slice
+                               (Params_Snippet.First_Character, Last);
+                           Params_Snippet.Append (")$0");
+                        end;
 
                         declare
                            Snippet_Name : constant LSP_String :=
@@ -211,8 +223,9 @@ package body LSP.Ada_Completions.Parameters is
                              (Snippet_Name);
                            Item.insertTextFormat :=
                              (True, LSP.Messages.Snippet);
-                           Item.insertText :=
-                             (True, Whitespace_Prefix & Params_Snippet);
+                           Item.insertText := (True, Value => <>);
+                           Item.insertText.Value.Append (Whitespace_Prefix);
+                           Item.insertText.Value.Append (Params_Snippet);
                            Item.kind := (True, LSP.Messages.Snippet);
                            LSP.Ada_Documents.Set_Completion_Item_Documentation
                              (Context                 => Self.Context.all,
@@ -236,11 +249,11 @@ package body LSP.Ada_Completions.Parameters is
                --  Use a "+" as the first sorted character to be shown before
                --  the items from the other providers ("+" is lower than
                --  the alphanumeric symbol and "~" in the ASCII table)
-               Unsort_Item.sortText :=
-                 (True,
-                  To_LSP_String
-                    ("+"
-                     & GNATCOLL.Utils.Image (Cpt, Min_Width => Min_Width)));
+               Unsort_Item.sortText := (True, Value => <>);
+               Unsort_Item.sortText.Value.Append ('+');
+               Unsort_Item.sortText.Value.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (GNATCOLL.Utils.Image (Cpt, Min_Width => Min_Width)));
                Result.items.Append (Unsort_Item);
                Cpt := Cpt + 1;
             end loop;
