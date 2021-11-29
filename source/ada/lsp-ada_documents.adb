@@ -972,9 +972,7 @@ package body LSP.Ada_Documents is
                                 (name              =>
                                    LSP.Lal_Utils.To_Virtual_String (Name.Text),
                                  detail            =>
-                                   (Is_Set => True,
-                                    Value  => LSP.Types.To_LSP_String
-                                      (Profile)),
+                                   (Is_Set => True, Value  => Profile),
                                  kind              => Kind,
                                  deprecated        => (Is_Set => False),
                                  tags              => LSP.Messages.Empty,
@@ -1057,9 +1055,8 @@ package body LSP.Ada_Documents is
                   detail            =>
                     (Is_Set => True,
                      Value  =>
-                       LSP.Types.To_LSP_String
-                         (LSP.Lal_Utils.To_Virtual_String
-                              ("(" & (Pragma_Node.F_Args.Text & ")")))),
+                       LSP.Lal_Utils.To_Virtual_String
+                         ("(" & (Pragma_Node.F_Args.Text & ")"))),
                   kind              => Property,
                   tags              => LSP.Messages.Empty,
                   deprecated        => (Is_Set => False),

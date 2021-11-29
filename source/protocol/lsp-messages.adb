@@ -2674,7 +2674,7 @@ package body LSP.Messages is
                if Key = "name" then
                   LSP.Types.Read_String (S, Item.name);
                elsif Key = "detail" then
-                  Optional_String'Read (S, Item.detail);
+                  Optional_Virtual_String'Read (S, Item.detail);
                elsif Key = "kind" then
                   SymbolKind'Read (S, Item.kind);
                elsif Key = "tags" then
@@ -3557,7 +3557,7 @@ package body LSP.Messages is
                JS.Start_Object;
                Write_String (JS, "name", Item.name);
                JS.Key ("detail");
-               Optional_String'Write (S, Item.detail);
+               Optional_Virtual_String'Write (S, Item.detail);
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
                JS.Key ("tags");
