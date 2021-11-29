@@ -202,7 +202,7 @@ package LSP.Types is
          when True =>
             Boolean : Standard.Boolean;
          when False =>
-            String : LSP_String;
+            String  : VSS.Strings.Virtual_String;
       end case;
    end record;
 

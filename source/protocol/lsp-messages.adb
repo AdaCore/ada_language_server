@@ -3405,13 +3405,12 @@ package body LSP.Messages is
       ---------------------
 
       procedure Each_Annotation (Name : VSS.Strings.Virtual_String) is
-         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           VSS.Strings.Conversions.To_UTF_8_String (Name);
          Item : ChangeAnnotation;
+
       begin
          JS.R.Read_Next;  --  Skip Key
          ChangeAnnotation'Read (S, Item);
-         V.changeAnnotations.Insert (To_LSP_String (Key), Item);
+         V.changeAnnotations.Insert (Name, Item);
       end Each_Annotation;
 
    begin
@@ -3919,8 +3918,7 @@ package body LSP.Messages is
          JS.Start_Object;
 
          for J in V.changeAnnotations.Iterate loop
-            JS.Key
-              (LSP.Types.To_Virtual_String (ChangeAnnotation_Maps.Key (J)));
+            JS.Key (ChangeAnnotation_Maps.Key (J));
             ChangeAnnotation'Write (S, ChangeAnnotation_Maps.Element (J));
          end loop;
 

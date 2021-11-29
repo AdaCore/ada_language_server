@@ -1009,7 +1009,7 @@ package LSP.Messages is
    type AnnotatedTextEdit_Vector is new AnnotatedTextEdit_Vectors.Vector
      with null record;
 
-   subtype ChangeAnnotationIdentifier is LSP_String;
+   subtype ChangeAnnotationIdentifier is VSS.Strings.Virtual_String;
 
    --
    --```typescript
@@ -1456,7 +1456,7 @@ package LSP.Messages is
      (Key_Type        => ChangeAnnotationIdentifier,
       Element_Type    => ChangeAnnotation,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
+      Equivalent_Keys => VSS.Strings."=");
 
    --```typescript
    --export interface WorkspaceEdit {

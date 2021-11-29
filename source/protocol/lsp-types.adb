@@ -321,7 +321,7 @@ package body LSP.Types is
       case JS.R.Event_Kind is
          when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_Boolean => False,
-                  String     => To_LSP_String (JS.R.String_Value));
+                  String     => JS.R.String_Value);
             JS.R.Read_Next;
 
          when VSS.JSON.Pull_Readers.Boolean_Value =>
