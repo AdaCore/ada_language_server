@@ -300,7 +300,7 @@ package LSP.Types is
    type Nullable_String (Is_Set : Boolean := False) is record
       case Is_Set is
          when True =>
-            Value : LSP_String;
+            Value : VSS.Strings.Virtual_String;
          when False =>
             null;
       end case;

@@ -28,8 +28,6 @@ with LSP.Messages; use LSP.Messages;
 
 package body LSP.Message_Loggers is
 
-   function "+" (Text : LSP.Types.LSP_String) return String
-     renames LSP.Types.To_UTF_8_String;
    function "+" (Text : LSP.Types.LSP_URI) return String
      renames LSP.Types.To_UTF_8_String;
 
@@ -1121,7 +1119,8 @@ package body LSP.Message_Loggers is
          Self.Trace.Trace
            ("Initialize_Request: "
             & Image (Value)
-            & (+Value.params.rootPath.Value.Value));
+            & VSS.Strings.Conversions.To_UTF_8_String
+                (Value.params.rootPath.Value.Value));
       elsif Value.params.rootPath.Is_Set then
          Self.Trace.Trace
            ("Initialize_Request: "
