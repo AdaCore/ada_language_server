@@ -468,7 +468,7 @@ package body LSP.Types is
 
          when VSS.JSON.Pull_Readers.String_Value =>
             Item := (Is_Set => True,
-                     Value  => To_LSP_String (JS.R.String_Value));
+                     Value  => JS.R.String_Value);
 
          when others =>
             raise Constraint_Error;

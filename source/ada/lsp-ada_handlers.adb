@@ -259,7 +259,7 @@ package body LSP.Ada_Handlers is
 
    function URI_To_File
      (Self : Message_Handler'Class;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String;
+      URI  : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
    --  Turn URI into path
 
    -----------------------
@@ -656,17 +656,19 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Initialize_Response
    is
       use all type LSP.Types.Optional_Boolean;
-      Value    : LSP.Messages.InitializeParams renames Request.params;
-      Code_Action : LSP.Messages.Optional_CodeActionClientCapabilities renames
-        Value.capabilities.textDocument.codeAction;
-      Has_Rename : LSP.Messages.Optional_RenameClientCapabilities renames
+
+      Value           : LSP.Messages.InitializeParams renames Request.params;
+      Code_Action     : LSP.Messages.Optional_CodeActionClientCapabilities
+        renames Value.capabilities.textDocument.codeAction;
+      Has_Rename      : LSP.Messages.Optional_RenameClientCapabilities renames
         Value.capabilities.textDocument.rename;
       Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
         Value.capabilities.experimental;
-      Response : LSP.Messages.Server_Responses.Initialize_Response
+      Response        : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
-      Root     : LSP.Types.LSP_String;
+      Root            : VSS.Strings.Virtual_String;
       codeActionKinds : LSP.Messages.CodeActionKindSet;
+
    begin
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
@@ -821,7 +823,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       if Value.rootUri.Is_Set
-        and then not LSP.Types.Is_Empty (Value.rootUri.Value)
+        and then not Value.rootUri.Value.Is_Empty
       then
          Root := Self.URI_To_File (Value.rootUri.Value);
       elsif Value.rootPath.Is_Set and then Value.rootPath.Value.Is_Set then
@@ -833,15 +835,17 @@ package body LSP.Ada_Handlers is
       --  rather than a workspace - don't provide a root at all. In that case
       --  use the current directory as root.
 
-      if LSP.Types.Is_Empty (Root) then
-         Root := +".";
+      if Root.Is_Empty then
+         Root := ".";
       end if;
 
-      Self.Root := Create_From_UTF8 (To_UTF_8_String (Root));
+      Self.Root :=
+        Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Root));
       Self.Client := Value;
 
       --  Log the context root
-      Self.Trace.Trace ("Context root: " & To_UTF_8_String (Root));
+      Self.Trace.Trace
+        ("Context root: " & VSS.Strings.Conversions.To_UTF_8_String (Root));
 
       --  Experimental Client Capabilities
       Self.Experimental_Client_Capabilities :=
@@ -3410,11 +3414,12 @@ package body LSP.Ada_Handlers is
         "followSymlinks";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
-      File      : LSP.Types.LSP_String;
+      File      : VSS.Strings.Virtual_String;
       Charset   : Unbounded_String;
       Variables : LSP.Types.LSP_Any;
       Relocate  : Virtual_File := No_File;
       Root      : Virtual_File := No_File;
+
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
@@ -3428,10 +3433,12 @@ package body LSP.Ada_Handlers is
          end if;
 
          if Ada.Has_Field (projectFile) then
-            File := +Ada.Get (projectFile).Get;
+            File :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (String'(Ada.Get (projectFile).Get));
 
             --  Drop uri scheme if present
-            if LSP.Types.To_Virtual_String (File).Starts_With ("file:") then
+            if File.Starts_With ("file:") then
                File := Self.URI_To_File (File);
             end if;
          end if;
@@ -3494,13 +3501,15 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      if File /= Empty_LSP_String then
+      if not File.Is_Empty then
          --  The projectFile may be either an absolute path or a
          --  relative path; if so, we're assuming it's relative
          --  to Self.Root.
          declare
-            Project_File : constant String := To_UTF_8_String (File);
-            GPR : Virtual_File;
+            Project_File : constant String :=
+              VSS.Strings.Conversions.To_UTF_8_String (File);
+            GPR          : Virtual_File;
+
          begin
             if Is_Absolute_Path (Project_File) then
                GPR := Create_From_UTF8 (Project_File);
@@ -4828,13 +4837,15 @@ package body LSP.Ada_Handlers is
 
    function URI_To_File
      (Self : Message_Handler'Class;
-      URI  : LSP.Types.LSP_String) return LSP.Types.LSP_String
+      URI  : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
    is
-      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
+      To     : constant URIs.URI_String :=
+        VSS.Strings.Conversions.To_UTF_8_String (URI);
       Result : constant String := URIs.Conversions.To_File
         (To, Normalize => Self.Follow_Symlinks);
+
    begin
-      return LSP.Types.To_LSP_String (Result);
+      return VSS.Strings.Conversions.To_Virtual_String (Result);
    end URI_To_File;
 
    -----------------
