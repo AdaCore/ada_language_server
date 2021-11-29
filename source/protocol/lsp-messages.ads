@@ -8260,17 +8260,17 @@ package LSP.Messages is
    --}
    --```
    type DocumentSymbol is record
-      name: VSS.Strings.Virtual_String;
-      detail: Optional_String;
-      kind: SymbolKind;
-      tags: SymbolTagSet;
-      deprecated: Optional_Boolean;
-      span: LSP.Messages.Span;
-      selectionRange: LSP.Messages.Span;
-      alsIsDeclaration : Optional_Boolean;
+      name              : VSS.Strings.Virtual_String;
+      detail            : Optional_Virtual_String;
+      kind              : SymbolKind;
+      tags              : SymbolTagSet;
+      deprecated        : Optional_Boolean;
+      span              : LSP.Messages.Span;
+      selectionRange    : LSP.Messages.Span;
+      alsIsDeclaration  : Optional_Boolean;
       alsIsAdaProcedure : Optional_Boolean;
-      alsVisibility : Optional_Als_Visibility;
-      children: Boolean;  --  True if emit children in JSON
+      alsVisibility     : Optional_Als_Visibility;
+      children          : Boolean;  --  True if emit children in JSON
    end record;
 
    package DocumentSymbol_Trees is new Ada.Containers.Multiway_Trees
