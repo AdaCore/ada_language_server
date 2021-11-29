@@ -8895,7 +8895,7 @@ package body LSP.Message_IO is
             elsif Key = "endCharacter" then
                Optional_Number'Read (S, V.endCharacter);
             elsif Key = "kind" then
-               Optional_String'Read (S, V.kind);
+               Optional_Virtual_String'Read (S, V.kind);
             else
                JS.Skip_Value;
             end if;
@@ -8921,7 +8921,7 @@ package body LSP.Message_IO is
       JS.Key ("endCharacter");
       Optional_Number'Write (S, V.endCharacter);
       JS.Key ("kind");
-      Optional_String'Write (S, V.kind);
+      Optional_Virtual_String'Write (S, V.kind);
       JS.End_Object;
    end Write_FoldingRange;
 

@@ -9653,11 +9653,11 @@ package LSP.Messages is
    --}
    --```
    type FoldingRange is record
-      startLine: Line_Number;
-      startCharacter: Optional_Number;
-      endLine: Line_Number;
-      endCharacter: Optional_Number;
-      kind: Optional_String;
+      startLine      : Line_Number;
+      startCharacter : Optional_Number;
+      endLine        : Line_Number;
+      endCharacter   : Optional_Number;
+      kind           : Optional_Virtual_String;
    end record;
 
    procedure Read_FoldingRange
@@ -9675,11 +9675,11 @@ package LSP.Messages is
    type FoldingRange_Vector is
      new FoldingRange_Vectors.Vector with null record;
 
-   subtype FoldingRangeKind is LSP_String;
+   subtype FoldingRangeKind is VSS.Strings.Virtual_String;
    --  FIXME: replace with enumeration type???
-   function Comment return FoldingRangeKind is (+"comment");
-   Imports : constant FoldingRangeKind := +"imports";
-   Region  : constant FoldingRangeKind := +"region";
+   function Comment return FoldingRangeKind is ("comment");
+   Imports : constant FoldingRangeKind := "imports";
+   Region  : constant FoldingRangeKind := "region";
 
    --```typescript
    --interface DocumentColorParams extends WorkDoneProgressParams,
