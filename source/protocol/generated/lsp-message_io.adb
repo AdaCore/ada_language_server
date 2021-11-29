@@ -8179,7 +8179,7 @@ package body LSP.Message_IO is
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
@@ -8205,7 +8205,7 @@ package body LSP.Message_IO is
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.Key ("percentage");
       Optional_Number'Write (S, V.percentage);
       JS.End_Object;
@@ -8232,7 +8232,7 @@ package body LSP.Message_IO is
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
@@ -8256,7 +8256,7 @@ package body LSP.Message_IO is
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.Key ("percentage");
       Optional_Number'Write (S, V.percentage);
       JS.End_Object;
@@ -8281,7 +8281,7 @@ package body LSP.Message_IO is
             if Key = "kind" then
                LSP.Types.Read_String (S, V.kind);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             else
                JS.Skip_Value;
             end if;
@@ -8301,7 +8301,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       LSP.Types.Write_String (S, V.kind);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.End_Object;
    end Write_WorkDoneProgressEnd;
 

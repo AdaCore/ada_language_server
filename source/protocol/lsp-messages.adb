@@ -4019,7 +4019,7 @@ package body LSP.Messages is
       kind        : VSS.Strings.Virtual_String;
       title       : VSS.Strings.Virtual_String;
       cancellable : Optional_Boolean;
-      message     : Optional_String;
+      message     : Optional_Virtual_String;
       percentage  : Optional_Number;
       token       : LSP_Number_Or_String;
 
@@ -4043,7 +4043,7 @@ package body LSP.Messages is
                elsif Key = "cancellable" then
                   Optional_Boolean'Read (S, cancellable);
                elsif Key = "message" then
-                  Optional_String'Read (S, message);
+                  Optional_Virtual_String'Read (S, message);
                elsif Key = "percentage" then
                   Optional_Number'Read (S, percentage);
                else
@@ -4114,7 +4114,7 @@ package body LSP.Messages is
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Begin_Param.value.cancellable);
             JS.Key ("message");
-            Optional_String'Write (S, V.Begin_Param.value.message);
+            Optional_Virtual_String'Write (S, V.Begin_Param.value.message);
             JS.Key ("percentage");
             Optional_Number'Write (S, V.Begin_Param.value.percentage);
             JS.End_Object;
@@ -4126,7 +4126,7 @@ package body LSP.Messages is
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Report_Param.value.cancellable);
             JS.Key ("message");
-            Optional_String'Write (S, V.Report_Param.value.message);
+            Optional_Virtual_String'Write (S, V.Report_Param.value.message);
             JS.Key ("percentage");
             Optional_Number'Write (S, V.Report_Param.value.percentage);
             JS.End_Object;
@@ -4136,7 +4136,7 @@ package body LSP.Messages is
             JS.Start_Object;
             Write_String (JS, "kind", +"end");
             JS.Key ("message");
-            Optional_String'Write (S, V.End_Param.value.message);
+            Optional_Virtual_String'Write (S, V.End_Param.value.message);
             JS.End_Object;
       end case;
 
