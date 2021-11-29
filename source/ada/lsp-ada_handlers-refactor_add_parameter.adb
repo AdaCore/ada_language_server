@@ -16,9 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
-
-with GNATCOLL.JSON;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
@@ -149,11 +148,6 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      function "+"
-        (Value : LSP.Types.LSP_String)
-         return GNATCOLL.JSON.UTF8_Unbounded_String
-         renames LSP.Types.To_UTF_8_Unbounded_String;
-
       use type Langkit_Support.Slocs.Line_Number;
       use type Langkit_Support.Slocs.Column_Number;
 
@@ -166,7 +160,8 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
             Langkit_Support.Slocs.Column_Number
               (Self.Where.span.first.character) + 1),
          New_Parameter =>
-           +LSP.Types.To_LSP_String (Self.New_Parameter));
+           Ada.Strings.Unbounded.To_Unbounded_String
+             (VSS.Strings.Conversions.To_UTF_8_String (Self.New_Parameter)));
 
       Edits := Adder.Refactor (Analysis_Units'Access);
 

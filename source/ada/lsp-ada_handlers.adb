@@ -1396,10 +1396,13 @@ package body LSP.Ada_Handlers is
       procedure Append_Project_Status
         (Result : in out LSP.Messages.CodeAction_Vector)
       is
+         use type VSS.Strings.Virtual_String;
+
          Diagnostics : LSP.Messages.Diagnostic_Vector;
+
       begin
          for Item of Params.context.diagnostics loop
-            if Item.source.Is_Set and then Item.source.Value = +"project" then
+            if Item.source.Is_Set and then Item.source.Value = "project" then
                Diagnostics.Append (Item);
             end if;
          end loop;
@@ -3527,7 +3530,7 @@ package body LSP.Ada_Handlers is
             Registration : LSP.Messages.Registration;
             Selector     : LSP.Messages.DocumentSelector;
             Filter       : constant LSP.Messages.DocumentFilter :=
-              (language => (True, +"ada"),
+              (language => (True, "ada"),
                others   => <>);
          begin
             Selector.Append (Filter);
