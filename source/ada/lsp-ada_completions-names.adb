@@ -144,6 +144,7 @@ package body LSP.Ada_Completions.Names is
          BD                  : Basic_Decl;
          Completion_Count    : Natural := Natural (Result.items.Length);
          Name                : VSS.Strings.Virtual_String;
+         Underscore          : constant VSS.Strings.Virtual_String := "_";
 
       begin
          while Next (Raw_Completions, Item) loop
@@ -154,9 +155,13 @@ package body LSP.Ada_Completions.Names is
                   Name :=
                     LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
 
+                  if Name.Ends_With (Underscore) then
+                     --  Skip `root_types_` until UB30-020 is fixed.
+                     null;
+
                   --  If we are not completing a dotted name, filter the
                   --  raw completion results by the node's prefix.
-                  if Dotted_Node.Kind in
+                  elsif Dotted_Node.Kind in
                        Libadalang.Common.Ada_Dotted_Name_Range
                     or else Name.Starts_With
                       (Prefix, VSS.Strings.Identifier_Caseless)
