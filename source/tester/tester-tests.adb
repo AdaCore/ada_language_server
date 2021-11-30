@@ -806,8 +806,11 @@ package body Tester.Tests is
         GNATCOLL.JSON.Read (Data);
 
    begin
-      --  Reset watchdog and timer on each message
-      Self.Watch_Dog.Restart;
+      if not Self.In_Debug then
+         --  Reset watchdog and timer on each message
+         Self.Watch_Dog.Restart;
+      end if;
+
       Self.Started := Ada.Calendar.Clock;
 
       GNATCOLL.JSON.Append (Self.Full_Server_Output, JSON);
