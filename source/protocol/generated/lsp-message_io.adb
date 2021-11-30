@@ -4869,9 +4869,9 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "firstTriggerCharacter" then
-               LSP.Types.Read (S, V.firstTriggerCharacter);
+               LSP.Types.Read_String (S, V.firstTriggerCharacter);
             elsif Key = "moreTriggerCharacter" then
-               Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
+               Optional_Virtual_String_Vector'Read (S, V.moreTriggerCharacter);
             else
                JS.Skip_Value;
             end if;
@@ -4891,9 +4891,9 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("firstTriggerCharacter");
-      LSP.Types.Write (S, V.firstTriggerCharacter);
+      LSP.Types.Write_String (S, V.firstTriggerCharacter);
       JS.Key ("moreTriggerCharacter");
-      Optional_LSP_String_Vector'Write (S, V.moreTriggerCharacter);
+      Optional_Virtual_String_Vector'Write (S, V.moreTriggerCharacter);
       JS.End_Object;
    end Write_DocumentOnTypeFormattingOptions;
 
