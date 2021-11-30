@@ -90,6 +90,11 @@ package LSP.Messages is
    type Optional_LSP_String_Vector is
      new Optional_LSP_String_Vectors.Optional_Type;
 
+   package Optional_Virtual_String_Vectors is
+     new LSP.Generic_Optional (VSS.String_Vectors.Virtual_String_Vector);
+   type Optional_Virtual_String_Vector is
+     new Optional_Virtual_String_Vectors.Optional_Type;
+
    --```typescript
    --interface Message {
    --	jsonrpc: string;
@@ -5408,8 +5413,8 @@ package LSP.Messages is
    --}
    --```
    type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
-      firstTriggerCharacter : LSP_String;
-      moreTriggerCharacter  : Optional_LSP_String_Vector;
+      firstTriggerCharacter : VSS.Strings.Virtual_String;
+      moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_DocumentOnTypeFormattingOptions
