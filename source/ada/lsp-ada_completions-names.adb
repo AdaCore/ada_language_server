@@ -15,15 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
-with Langkit_Support.Text;
-
 with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Lal_Utils;
-with LSP.Types;
 
 package body LSP.Ada_Completions.Names is
 
@@ -139,9 +134,9 @@ package body LSP.Ada_Completions.Names is
 
       declare
          use Libadalang.Analysis;
-         Prefix   : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           Langkit_Support.Text.To_UTF8 (Node.Text);
 
+         Prefix              : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String (Node.Text);
          Raw_Completions     : constant Completion_Item_Iterator :=
            Dotted_Node.P_Complete;
 
@@ -149,6 +144,7 @@ package body LSP.Ada_Completions.Names is
          BD                  : Basic_Decl;
          Completion_Count    : Natural := Natural (Result.items.Length);
          Name                : VSS.Strings.Virtual_String;
+
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
@@ -161,12 +157,9 @@ package body LSP.Ada_Completions.Names is
                   --  If we are not completing a dotted name, filter the
                   --  raw completion results by the node's prefix.
                   if Dotted_Node.Kind in
-                    Libadalang.Common.Ada_Dotted_Name_Range
-
-                    or else LSP.Types.Starts_With
-                      (LSP.Types.LSP_String'(LSP.Types.To_LSP_String (Name)),
-                       Prefix         => Prefix,
-                       Case_Sensitive => False)
+                       Libadalang.Common.Ada_Dotted_Name_Range
+                    or else Name.Starts_With
+                      (Prefix, VSS.Strings.Identifier_Caseless)
                   then
                      Completion_Count := Completion_Count + 1;
 

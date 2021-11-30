@@ -132,8 +132,6 @@ package LSP.Types is
 
    function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP_String;
-   function To_LSP_String (Text : GNATCOLL.JSON.UTF8_Unbounded_String)
-     return LSP_String;
    --  Convert given UTF-8 string into LSP_String
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
@@ -162,18 +160,6 @@ package LSP.Types is
 
    function Is_Empty (Text : LSP_String) return Boolean;
    --  Check if given Text is an empty string
-
-   function Starts_With
-     (Text           : LSP_String;
-      Prefix         : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Case_Sensitive : Boolean := True) return Boolean;
-   --  Check if Text starts with given prefix
-
-   function Ends_With
-     (Text           : LSP_String;
-      Suffix         : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Case_Sensitive : Boolean := True) return Boolean;
-   --  Check if Text starts with given suffix
 
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash

@@ -102,14 +102,15 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
         (Node : Libadalang.Analysis.Ada_Node;
          Name : VSS.Strings.Virtual_String)
       is
-         use type LSP.Types.LSP_String;
-         Loc    : constant LSP.Messages.Location :=
+         use type VSS.Strings.Virtual_String;
+
+         Loc  : constant LSP.Messages.Location :=
            LSP.Lal_Utils.Get_Node_Location (Node);
-         Edit   : LSP.Messages.AnnotatedTextEdit;
+         Edit : LSP.Messages.AnnotatedTextEdit;
 
       begin
          Edit.span := (Loc.span.first, Loc.span.first);
-         Edit.newText := LSP.Types.To_LSP_String (Name) & " => ";
+         Edit.newText := Name & " => ";
 
          if Message_Handler.Versioned_Documents then
             Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);

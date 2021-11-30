@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
@@ -554,55 +553,6 @@ package body LSP.Types is
           (Stream.R.Number_Value.Integer_Value);
       Stream.R.Read_Next;
    end Read_UTF16_Code_Unit_Count;
-   -----------------
-   -- Starts_With --
-   -----------------
-
-   function Starts_With
-     (Text           : LSP_String;
-      Prefix         : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Case_Sensitive : Boolean := True) return Boolean
-   is
-      use Ada.Characters.Handling;
-
-      Value : constant String := To_UTF_8_String (Text);
-   begin
-      if Value'Length < Prefix'Length then
-         return False;
-      end if;
-
-      if Case_Sensitive then
-         return Value (1 .. Prefix'Length) = Prefix;
-      else
-         return To_Lower (Value (1 .. Prefix'Length)) = To_Lower (Prefix);
-      end if;
-   end Starts_With;
-
-   ---------------
-   -- Ends_With --
-   ---------------
-
-   function Ends_With
-     (Text           : LSP_String;
-      Suffix         : Ada.Strings.UTF_Encoding.UTF_8_String;
-      Case_Sensitive : Boolean := True) return Boolean
-   is
-      use Ada.Characters.Handling;
-
-      Value : constant String := To_UTF_8_String (Text);
-   begin
-      if Value'Length < Suffix'Length then
-         return False;
-      end if;
-
-      if Case_Sensitive then
-         return Value (Value'Last - Suffix'Length + 1 .. Value'Last) = Suffix;
-      else
-         return To_Lower
-           (Value (Value'Last - Suffix'Length + 1 .. Value'Last))
-             = To_Lower (Suffix);
-      end if;
-   end Ends_With;
 
    -------------------
    -- To_LSP_String --
@@ -700,50 +650,6 @@ package body LSP.Types is
         Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Text);
    begin
       return To_Unbounded_Wide_String (UTF_16);
-   end To_LSP_String;
-
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
-     (Text : GNATCOLL.JSON.UTF8_Unbounded_String) return LSP_String
-   is
-      Res : LSP_String;
-      Len : constant Natural := Length (Text);
-      Current_Index : Positive := 1;
-
-      subtype Continuation_Character is Character range
-        Character'Val (2#1000_0000#) .. Character'Val (2#1011_1111#);
-   begin
-      loop
-         --  Process the decoding in chunks
-         declare
-            Bound : Natural := Natural'Min (Current_Index + Chunk_Size, Len);
-            Chunk : constant String (Current_Index .. Bound) := Slice
-              (Text, Current_Index, Bound);
-         begin
-            --  We don't want to cut a chunk in the middle of a long
-            --  character, so look at the last 4 bytes and cut before
-            --  any such long character, and cut if needs be.
-            if Bound /= Len then
-               for J in reverse 0 .. 3 loop
-                  if Chunk (Bound - J) not in Continuation_Character then
-                     --  This character is not a continuation character: it's
-                     --  OK to cut before it, and start the next chunk with it.
-                     Bound := Bound - J - 1;
-                     exit;
-                  end if;
-               end loop;
-            end if;
-            Append
-              (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Decode
-                 (Chunk (Current_Index .. Bound)));
-            Current_Index := Bound + 1;
-            exit when Current_Index > Len;
-         end;
-      end loop;
-      return Res;
    end To_LSP_String;
 
    -------------------

@@ -15,11 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Strings.Conversions;
+
 with LSP.Messages.Client_Requests;
+with LSP.Types;
 
 package body LSP.Client_Side_File_Monitors is
 
-   method : constant String := "workspace/didChangeWatchedFiles";
+   method : constant VSS.Strings.Virtual_String :=
+     "workspace/didChangeWatchedFiles";
 
    -------------------------
    -- Monitor_Directories --
@@ -32,7 +36,7 @@ package body LSP.Client_Side_File_Monitors is
       Request      : LSP.Messages.Client_Requests.RegisterCapability_Request;
       Registration : LSP.Messages.Registration :=
         ((id     => <>,
-          method => LSP.Types.To_LSP_String (method),
+          method => method,
           registerOptions =>
             (Kind => LSP.Types.Did_Change_Watched_Files_Registration_Option,
              others => <>)));
@@ -41,21 +45,26 @@ package body LSP.Client_Side_File_Monitors is
       Self.Stop_Monitoring_Directories;
       --  Construct a registration id
       Self.Registration_Id :=
-        LSP.Types.To_LSP_String ("fm" & Integer'Image (-Self.Last_Id));
+        VSS.Strings.To_Virtual_String
+          ("fm" & Integer'Wide_Wide_Image (-Self.Last_Id));
       Self.Last_Id := Self.Last_Id + 1;
       Registration.id := Self.Registration_Id;
 
       for Dir of Directories loop
          declare
+            use type VSS.Strings.Virtual_String;
+
             Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
               Dir.Full_Name;
 
-            Glob : constant LSP.Types.LSP_String :=
-              LSP.Types.To_LSP_String (String (Full_Name) & "*");
+            Glob : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.Conversions.To_Virtual_String (String (Full_Name))
+              & "*";
 
             Watcher   : constant LSP.Messages.FileSystemWatcher :=
               (kind => (LSP.Messages.WatchKind => True),
                globPattern => Glob);
+
          begin
             Registration.registerOptions.DidChangeWatchedFiles.watchers.Append
               (Watcher);
@@ -76,13 +85,13 @@ package body LSP.Client_Side_File_Monitors is
       Request : LSP.Messages.Client_Requests.UnregisterCapability_Request;
       Unregistration : constant LSP.Messages.Unregistration :=
         ((id     => Self.Registration_Id,
-          method => LSP.Types.To_LSP_String (method)));
+          method => method));
 
    begin
-      if not LSP.Types.Is_Empty (Self.Registration_Id) then
+      if not Self.Registration_Id.Is_Empty then
          Request.params.unregisterations.Append (Unregistration);
          Self.Client.On_UnregisterCapability_Request (Request);
-         Self.Registration_Id := LSP.Types.Empty_LSP_String;
+         Self.Registration_Id := VSS.Strings.Empty_Virtual_String;
       end if;
    end Stop_Monitoring_Directories;
 

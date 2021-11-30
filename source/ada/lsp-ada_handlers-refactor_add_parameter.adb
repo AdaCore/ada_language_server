@@ -56,8 +56,7 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
       Pointer.Set (Self);
 
       Code_Action :=
-        (title       => LSP.Types.To_LSP_String
-           (Ada.Strings.UTF_Encoding.UTF_8_String'("Add Parameter")),
+        (title       => "Add Parameter",
          kind        =>
            (Is_Set => True,
             Value  => LSP.Messages.RefactorRewrite),
@@ -69,7 +68,7 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
            (Is_Set => True,
             Value  =>
               (Is_Unknown => False,
-               title      => LSP.Types.Empty_LSP_String,
+               title      => <>,
                Custom     => Pointer)));
 
       Commands_Vector.Append (Code_Action);

@@ -49,7 +49,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       Where       : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location (Target_Subp.P_Defining_Name.F_Name);
 
-      function Create_Code_Action_Title return LSP.Types.LSP_String;
+      function Create_Code_Action_Title return VSS.Strings.Virtual_String;
       --  Creates the code action text that will be shown by the client to the
       --  developer. The text is costumized based on the name, number of
       --  parameters, and the new mode of those parameters.
@@ -67,8 +67,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       -- Create_Action_Title --
       -------------------------
 
-      function Create_Code_Action_Title return LSP.Types.LSP_String
-      is
+      function Create_Code_Action_Title return VSS.Strings.Virtual_String is
          use type LSP.Types.LSP_String;
 
          First_Parameter_Name : constant LSP.Types.LSP_String :=
@@ -134,7 +133,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
             end if;
          end if;
 
-         return Action_Title;
+         return LSP.Types.To_Virtual_String (Action_Title);
       end Create_Code_Action_Title;
 
       -----------
@@ -181,7 +180,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
            (Is_Set => True,
             Value  =>
               (Is_Unknown => False,
-               title      => LSP.Types.Empty_LSP_String,
+               title      => <>,
                Custom     => Pointer)));
 
       Commands_Vector.Append (Code_Action);

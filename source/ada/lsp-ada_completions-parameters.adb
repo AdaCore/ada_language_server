@@ -15,13 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with GNATCOLL.Utils;
 
 with Langkit_Support.Text;       use Langkit_Support.Text;
 with Laltools.Common;
 with Libadalang.Common;
+
+with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Documents;
@@ -120,8 +120,8 @@ package body LSP.Ada_Completions.Parameters is
       end if;
 
       declare
-         Prefix    : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           Langkit_Support.Text.To_UTF8 (Node.Text);
+         Prefix    : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String (Node.Text);
          Name_Node : constant Libadalang.Analysis.Name :=
            Call_Expr_Node.F_Name;
 
@@ -151,31 +151,33 @@ package body LSP.Ada_Completions.Parameters is
                         Length        => Snippet_Index)
                      loop
                         declare
-                           Item      : LSP.Messages.CompletionItem;
                            Name_Text : constant Text_Type := N.Text;
-                           Name      : constant LSP_String :=
-                             To_LSP_String (Name_Text);
+                           Name      : constant VSS.Strings.Virtual_String :=
+                             VSS.Strings.To_Virtual_String (Name_Text);
+                           Item      : LSP.Messages.CompletionItem;
+
                         begin
                            if not Is_Present (Name_Text) then
                               if Token_Kind in Ada_Par_Open | Ada_Comma
                                 or else
-                                  LSP.Types.Starts_With
-                                    (Text           => Name,
-                                     Prefix         => Prefix,
-                                     Case_Sensitive => False)
+                                  Name.Starts_With
+                                    (Prefix,
+                                     VSS.Strings.Identifier_Caseless)
                               then
-                                 Item.label := To_Virtual_String (Name);
+                                 Item.label := Name;
                                  Item.insertTextFormat :=
                                    (True, LSP.Messages.PlainText);
                                  Item.insertText :=
                                    (True,
-                                    Whitespace_Prefix & Name & " => ");
+                                    Whitespace_Prefix
+                                    & LSP.Types.To_LSP_String (Name)
+                                    & " => ");
                                  Item.kind := (True, LSP.Messages.Field);
                                  Unsorted_Res.Append (Item);
                               end if;
 
                               Params_Snippet :=
-                                Name
+                                LSP.Types.To_LSP_String (Name)
                                 & " => "
                                 & "$"
                                 & To_LSP_String
