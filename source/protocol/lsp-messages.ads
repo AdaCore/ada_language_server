@@ -37,6 +37,7 @@ with VSS.Strings;
 with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
+with LSP.Generic_Optional_With_Read_Write;
 with LSP.Generic_Sets;
 with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
@@ -91,7 +92,10 @@ package LSP.Messages is
      new Optional_LSP_String_Vectors.Optional_Type;
 
    package Optional_Virtual_String_Vectors is
-     new LSP.Generic_Optional (VSS.String_Vectors.Virtual_String_Vector);
+     new LSP.Generic_Optional_With_Read_Write
+       (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
+        Element_Read  => LSP.Types.Read_String_Vector,
+        Element_Write => LSP.Types.Write_String_Vector);
    type Optional_Virtual_String_Vector is
      new Optional_Virtual_String_Vectors.Optional_Type;
 
