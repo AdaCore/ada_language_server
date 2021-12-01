@@ -2674,7 +2674,7 @@ package body LSP.Messages is
                if Key = "name" then
                   LSP.Types.Read_String (S, Item.name);
                elsif Key = "detail" then
-                  Optional_String'Read (S, Item.detail);
+                  Optional_Virtual_String'Read (S, Item.detail);
                elsif Key = "kind" then
                   SymbolKind'Read (S, Item.kind);
                elsif Key = "tags" then
@@ -3405,13 +3405,12 @@ package body LSP.Messages is
       ---------------------
 
       procedure Each_Annotation (Name : VSS.Strings.Virtual_String) is
-         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           VSS.Strings.Conversions.To_UTF_8_String (Name);
          Item : ChangeAnnotation;
+
       begin
          JS.R.Read_Next;  --  Skip Key
          ChangeAnnotation'Read (S, Item);
-         V.changeAnnotations.Insert (To_LSP_String (Key), Item);
+         V.changeAnnotations.Insert (Name, Item);
       end Each_Annotation;
 
    begin
@@ -3557,7 +3556,7 @@ package body LSP.Messages is
                JS.Start_Object;
                Write_String (JS, "name", Item.name);
                JS.Key ("detail");
-               Optional_String'Write (S, Item.detail);
+               Optional_Virtual_String'Write (S, Item.detail);
                JS.Key ("kind");
                SymbolKind'Write (S, Item.kind);
                JS.Key ("tags");
@@ -3919,8 +3918,7 @@ package body LSP.Messages is
          JS.Start_Object;
 
          for J in V.changeAnnotations.Iterate loop
-            JS.Key
-              (LSP.Types.To_Virtual_String (ChangeAnnotation_Maps.Key (J)));
+            JS.Key (ChangeAnnotation_Maps.Key (J));
             ChangeAnnotation'Write (S, ChangeAnnotation_Maps.Element (J));
          end loop;
 
@@ -4019,7 +4017,7 @@ package body LSP.Messages is
       kind        : VSS.Strings.Virtual_String;
       title       : VSS.Strings.Virtual_String;
       cancellable : Optional_Boolean;
-      message     : Optional_String;
+      message     : Optional_Virtual_String;
       percentage  : Optional_Number;
       token       : LSP_Number_Or_String;
 
@@ -4043,7 +4041,7 @@ package body LSP.Messages is
                elsif Key = "cancellable" then
                   Optional_Boolean'Read (S, cancellable);
                elsif Key = "message" then
-                  Optional_String'Read (S, message);
+                  Optional_Virtual_String'Read (S, message);
                elsif Key = "percentage" then
                   Optional_Number'Read (S, percentage);
                else
@@ -4114,7 +4112,7 @@ package body LSP.Messages is
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Begin_Param.value.cancellable);
             JS.Key ("message");
-            Optional_String'Write (S, V.Begin_Param.value.message);
+            Optional_Virtual_String'Write (S, V.Begin_Param.value.message);
             JS.Key ("percentage");
             Optional_Number'Write (S, V.Begin_Param.value.percentage);
             JS.End_Object;
@@ -4126,7 +4124,7 @@ package body LSP.Messages is
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Report_Param.value.cancellable);
             JS.Key ("message");
-            Optional_String'Write (S, V.Report_Param.value.message);
+            Optional_Virtual_String'Write (S, V.Report_Param.value.message);
             JS.Key ("percentage");
             Optional_Number'Write (S, V.Report_Param.value.percentage);
             JS.End_Object;
@@ -4136,7 +4134,7 @@ package body LSP.Messages is
             JS.Start_Object;
             Write_String (JS, "kind", +"end");
             JS.Key ("message");
-            Optional_String'Write (S, V.End_Param.value.message);
+            Optional_Virtual_String'Write (S, V.End_Param.value.message);
             JS.End_Object;
       end case;
 

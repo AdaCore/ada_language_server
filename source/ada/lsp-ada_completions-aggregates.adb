@@ -17,12 +17,10 @@
 
 with GNATCOLL.Utils;
 
-with VSS.Strings;
-
-with Langkit_Support.Text;
+with VSS.Strings.Character_Iterators;
+with VSS.Strings.Conversions;
 
 with LSP.Lal_Utils;
-with LSP.Types;
 
 package body LSP.Ada_Completions.Aggregates is
 
@@ -43,7 +41,6 @@ package body LSP.Ada_Completions.Aggregates is
       use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Messages;
-      use LSP.Types;
 
       Aggr_Type          : constant Base_Type_Decl :=
         Node.P_Expression_Type.P_Canonical_Type;
@@ -52,13 +49,13 @@ package body LSP.Ada_Completions.Aggregates is
       function Get_Snippet_For_Component
         (Param              : Base_Formal_Param_Decl;
          Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String;
+         Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String;
       --  Return a snippet for the given component
 
       function Get_Snippet_For_Discriminant
         (Disc               : Discriminant_Values;
          Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String;
+         Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String;
       --  Return a snippet for the given discriminant
 
       function Get_Label_For_Shape
@@ -75,9 +72,9 @@ package body LSP.Ada_Completions.Aggregates is
       function Get_Snippet_For_Component
         (Param              : Base_Formal_Param_Decl;
          Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String
+         Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String
       is
-         Snippet    : LSP_String;
+         Snippet    : VSS.Strings.Virtual_String;
          Param_Ids  : constant Defining_Name_List :=
            (case Param.Kind is
                when Ada_Component_Decl_Range =>
@@ -92,23 +89,23 @@ package body LSP.Ada_Completions.Aggregates is
                when Ada_Discriminant_Spec    =>
                  As_Discriminant_Spec (Param).F_Type_Expr,
                when others                   => No_Type_Expr);
+
       begin
          for Id of Param_Ids loop
             if Use_Named_Notation then
-               Snippet := Snippet & To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Id.Text)
-                  & " => ");
+               Snippet.Append (VSS.Strings.To_Virtual_String (Id.Text));
+               Snippet.Append (" => ");
             end if;
 
-            Snippet := Snippet & To_LSP_String
-              ("${"
-               & GNATCOLL.Utils.Image (Idx, Min_Width => 1)
-               & ":"
-               & Langkit_Support.Text.To_UTF8 (Id.Text)
-               & " : "
-               & Langkit_Support.Text.To_UTF8
-                 (Param_Type.Text)
-               & "}, ");
+            Snippet.Append ("${");
+            Snippet.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+            Snippet.Append (":");
+            Snippet.Append (VSS.Strings.To_Virtual_String (Id.Text));
+            Snippet.Append (" : ");
+            Snippet.Append (VSS.Strings.To_Virtual_String (Param_Type.Text));
+            Snippet.Append ("}, ");
          end loop;
 
          return Snippet;
@@ -121,71 +118,79 @@ package body LSP.Ada_Completions.Aggregates is
       function Get_Snippet_For_Discriminant
         (Disc               : Discriminant_Values;
          Idx                : Natural;
-         Use_Named_Notation : Boolean) return LSP_String
+         Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String
       is
-         Snippet : LSP_String;
-         Values  : constant Alternatives_List'Class :=
+         Snippet    : VSS.Strings.Virtual_String;
+         Values     : constant Alternatives_List'Class :=
            Libadalang.Analysis.Values (Disc);
          Value_Node : Ada_Node;
-      begin
 
+      begin
          if Use_Named_Notation then
             if Values.Children_Count = 1 then
                Value_Node := Values.Child (Values.First_Child_Index);
 
-               Snippet := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Discriminant (Disc).Text))
-                 & " => ";
+               Snippet.Append
+                 (VSS.Strings.To_Virtual_String (Discriminant (Disc).Text));
+               Snippet.Append (" => ");
 
                if Value_Node.Kind in Ada_Others_Designator_Range then
-                  Snippet := Snippet & To_LSP_String
-                    ("${"
-                     & GNATCOLL.Utils.Image
-                       (Idx, Min_Width => 1)
-                     & ":"
-                     & Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & "}, ");
+                  Snippet.Append  ("${");
+                  Snippet.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                  Snippet.Append (":");
+                  Snippet.Append
+                    (VSS.Strings.To_Virtual_String (Values.Text));
+                  Snippet.Append ("}, ");
+
                else
-                  Snippet := Snippet & To_LSP_String
-                    (Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & ", ");
+                  Snippet.Append
+                    (VSS.Strings.To_Virtual_String (Values.Text));
+                  Snippet.Append (", ");
                end if;
+
             else
-               Snippet := To_LSP_String
-                 (Langkit_Support.Text.To_UTF8 (Discriminant (Disc).Text)
-                  & " => "
-                  & "${"
-                  & GNATCOLL.Utils.Image
-                    (Idx, Min_Width => 1)
-                  & ":"
-                  & Langkit_Support.Text.To_UTF8 (Values.Text)
-                  & "}, ");
+               Snippet.Append
+                 (VSS.Strings.To_Virtual_String (Discriminant (Disc).Text));
+               Snippet.Append (" => ");
+               Snippet.Append ("${");
+               Snippet.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+               Snippet.Append (":");
+               Snippet.Append (VSS.Strings.To_Virtual_String (Values.Text));
+               Snippet.Append ("}, ");
             end if;
+
          else
             if Values.Children_Count = 1 then
                Value_Node := Values.Child (Values.First_Child_Index);
 
                if Value_Node.Kind in Ada_Others_Designator_Range then
-                  Snippet := Snippet & To_LSP_String
-                    ("${"
-                     & GNATCOLL.Utils.Image
-                       (Idx, Min_Width => 1)
-                     & ":"
-                     & Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & "}, ");
+                  Snippet.Append ("${");
+                  Snippet.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                  Snippet.Append (":");
+                  Snippet.Append
+                    (VSS.Strings.To_Virtual_String (Values.Text));
+                  Snippet.Append ("}, ");
+
                else
-                  Snippet := Snippet & To_LSP_String
-                    (Langkit_Support.Text.To_UTF8 (Values.Text)
-                     & ", ");
+                  Snippet.Append
+                    (VSS.Strings.To_Virtual_String (Values.Text));
+                  Snippet.Append (", ");
                end if;
+
             else
-               Snippet := To_LSP_String
-                 ("${"
-                  & GNATCOLL.Utils.Image
-                    (Idx, Min_Width => 1)
-                  & ":"
-                  & Langkit_Support.Text.To_UTF8 (Values.Text)
-                  & "}, ");
+               Snippet.Append ("${");
+               Snippet.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+               Snippet.Append (":");
+               Snippet.Append (VSS.Strings.To_Virtual_String (Values.Text));
+               Snippet.Append ("}, ");
             end if;
          end if;
 
@@ -244,9 +249,10 @@ package body LSP.Ada_Completions.Aggregates is
             Item          : CompletionItem;
             Idx           : Positive := 1;
             Nb_Components : Natural := 0;
-            Insert_Text   : LSP_String;
+            Insert_Text   : VSS.Strings.Virtual_String;
             Base_Type     : constant Base_Type_Decl := Aggr_Type.P_Base_Type
               (Origin => Node);
+
          begin
             for Shape of Shapes loop
                declare
@@ -260,14 +266,13 @@ package body LSP.Ada_Completions.Aggregates is
                     (True, LSP.Messages.Snippet);
                   Item.detail :=
                     (True,
-                     LSP.Types.To_LSP_String
-                       (LSP.Lal_Utils.Compute_Completion_Detail
-                            (Aggr_Type.As_Basic_Decl)));
+                     LSP.Lal_Utils.Compute_Completion_Detail
+                       (Aggr_Type.As_Basic_Decl));
                   Item.insertTextFormat :=
                     Optional_InsertTextFormat'
                       (Is_Set => True,
                        Value  => Snippet);
-                  Insert_Text := Empty_LSP_String;
+                  Insert_Text.Clear;
 
                   --  Compute number of components to know if named notation
                   --  should be used.
@@ -292,9 +297,9 @@ package body LSP.Ada_Completions.Aggregates is
                   --  extension aggregate notation (see RM 4.3.2 for more
                   --  info).
                   if not Base_Type.Is_Null and then Base_Type.P_Is_Private then
-                     Insert_Text := LSP.Types.To_LSP_String
-                       (Langkit_Support.Text.To_UTF8 (Base_Type.F_Name.Text))
-                       & " with ";
+                     Insert_Text :=
+                       VSS.Strings.To_Virtual_String
+                         (Base_Type.F_Name.Text & " with ");
 
                      declare
                         Base_Discs : constant Base_Formal_Param_Decl_Array :=
@@ -312,11 +317,11 @@ package body LSP.Ada_Completions.Aggregates is
                                     >= Named_Notation_Threshold);
 
                         for Disc of Base_Discs loop
-                           Insert_Text := Insert_Text
-                             & Get_Snippet_For_Component
-                             (Param              => Disc,
-                              Idx                => Idx,
-                              Use_Named_Notation => Use_Named_Notation);
+                           Insert_Text.Append
+                             (Get_Snippet_For_Component
+                                (Param              => Disc,
+                                 Idx                => Idx,
+                                 Use_Named_Notation => Use_Named_Notation));
 
                            Idx := Idx + 1;
                         end loop;
@@ -325,40 +330,50 @@ package body LSP.Ada_Completions.Aggregates is
 
                   --  Compute the snippets for the record discriminants, if any
                   for Disc of Discriminants loop
-                     Insert_Text := Insert_Text
-                       & Get_Snippet_For_Discriminant
-                       (Disc               => Disc,
-                        Idx                => Idx,
-                        Use_Named_Notation => Use_Named_Notation);
+                     Insert_Text.Append
+                       (Get_Snippet_For_Discriminant
+                          (Disc               => Disc,
+                           Idx                => Idx,
+                           Use_Named_Notation => Use_Named_Notation));
                      Idx := Idx + 1;
                   end loop;
 
                   --  Compute the snippets for the record components
                   for Comp of Components loop
-                     Insert_Text := Insert_Text
-                       & Get_Snippet_For_Component
-                       (Param              => Comp,
-                        Idx                => Idx,
-                        Use_Named_Notation => Use_Named_Notation);
+                     Insert_Text.Append
+                       (Get_Snippet_For_Component
+                          (Param              => Comp,
+                           Idx                => Idx,
+                           Use_Named_Notation => Use_Named_Notation));
 
                      Idx := Idx + 1;
                   end loop;
 
                   if Idx > 1 then
-                     --  Remove the "}, " substring that has been
-                     --  appended in the last loop iteration.
-                     Insert_Text := Unbounded_Slice
-                       (Insert_Text,
-                        1,
-                        Length (Insert_Text) - 2);
+                     declare
+                        Last     :
+                          VSS.Strings.Character_Iterators.Character_Iterator
+                            := Insert_Text.Last_Character;
+                        Success  : Boolean with Unreferenced;
 
-                     --  Insert '$0' (i.e: the final tab stop) at the
-                     --  end.
-                     Insert_Text := Insert_Text & ")$0";
-                     Item.insertText :=
-                       (Is_Set => True,
-                        Value  => Insert_Text);
-                     Result.Append (Item);
+                     begin
+                        --  Remove the "}, " substring that has been
+                        --  appended in the last loop iteration.
+
+                        Success := Last.Backward;
+                        Success := Last.Backward;
+
+                        Insert_Text :=
+                          Insert_Text.Slice
+                            (Insert_Text.First_Character, Last);
+
+                        --  Insert '$0' (i.e: the final tab stop) at the
+                        --  end.
+                        Insert_Text.Append (")$0");
+
+                        Item.insertText := (True, Insert_Text);
+                        Result.Append (Item);
+                     end;
                   end if;
                end;
             end loop;

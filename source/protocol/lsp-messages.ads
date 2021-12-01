@@ -37,6 +37,7 @@ with VSS.Strings;
 with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
+with LSP.Generic_Optional_With_Read_Write;
 with LSP.Generic_Sets;
 with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
@@ -89,6 +90,14 @@ package LSP.Messages is
      new LSP.Generic_Optional (LSP_String_Vector);
    type Optional_LSP_String_Vector is
      new Optional_LSP_String_Vectors.Optional_Type;
+
+   package Optional_Virtual_String_Vectors is
+     new LSP.Generic_Optional_With_Read_Write
+       (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
+        Element_Read  => LSP.Types.Read_String_Vector,
+        Element_Write => LSP.Types.Write_String_Vector);
+   type Optional_Virtual_String_Vector is
+     new Optional_Virtual_String_Vectors.Optional_Type;
 
    --```typescript
    --interface Message {
@@ -841,14 +850,14 @@ package LSP.Messages is
    --}
    --```
    type Diagnostic is record
-      span: LSP.Messages.Span;
-      severity: Optional_DiagnosticSeverity;
-      code: LSP_Number_Or_String;
-      codeDescription: Optional_CodeDescription;
-      source: Optional_String;
-      message: VSS.Strings.Virtual_String;
-      tags: Optional_DiagnosticTagSet;
-      relatedInformation: DiagnosticRelatedInformation_Vector;
+      span               : LSP.Messages.Span;
+      severity           : Optional_DiagnosticSeverity;
+      code               : LSP_Number_Or_String;
+      codeDescription    : Optional_CodeDescription;
+      source             : Optional_Virtual_String;
+      message            : VSS.Strings.Virtual_String;
+      tags               : Optional_DiagnosticTagSet;
+      relatedInformation : DiagnosticRelatedInformation_Vector;
       --  data?: unknown;
    end record;
 
@@ -989,7 +998,7 @@ package LSP.Messages is
    --```
    type AnnotatedTextEdit is new TextEdit with record
       --  Make id optional to represent both AnnotatedTextEdit and TextEdit
-      annotationId: Optional_String;
+      annotationId : Optional_Virtual_String;
    end record;
 
    procedure Read_AnnotatedTextEdit
@@ -1009,7 +1018,7 @@ package LSP.Messages is
    type AnnotatedTextEdit_Vector is new AnnotatedTextEdit_Vectors.Vector
      with null record;
 
-   subtype ChangeAnnotationIdentifier is LSP_String;
+   subtype ChangeAnnotationIdentifier is VSS.Strings.Virtual_String;
 
    --
    --```typescript
@@ -1295,10 +1304,10 @@ package LSP.Messages is
    for CreateFileOptions'Write use Write_CreateFileOptions;
 
    type CreateFile is record
-      kind    : FileResourceChangeKind range create .. create := create;
-      uri     : DocumentUri;
-      options : CreateFileOptions;
-      annotationId: Optional_String;
+      kind         : FileResourceChangeKind range create .. create := create;
+      uri          : DocumentUri;
+      options      : CreateFileOptions;
+      annotationId : Optional_Virtual_String;
    end record;
 
    procedure Read_CreateFile
@@ -1327,11 +1336,11 @@ package LSP.Messages is
    for RenameFileOptions'Write use Write_RenameFileOptions;
 
    type RenameFile is record
-      kind    : FileResourceChangeKind range rename .. rename := rename;
-      oldUri  : DocumentUri;
-      newUri  : DocumentUri;
-      options : RenameFileOptions;
-      annotationId: Optional_String;
+      kind         : FileResourceChangeKind range rename .. rename := rename;
+      oldUri       : DocumentUri;
+      newUri       : DocumentUri;
+      options      : RenameFileOptions;
+      annotationId : Optional_Virtual_String;
    end record;
 
    procedure Read_RenameFile
@@ -1360,10 +1369,10 @@ package LSP.Messages is
    for DeleteFileOptions'Write use Write_DeleteFileOptions;
 
    type DeleteFile is record
-      kind    : FileResourceChangeKind range delete .. delete := delete;
-      uri     : DocumentUri;
-      options : DeleteFileOptions;
-      annotationId: Optional_String;
+      kind         : FileResourceChangeKind range delete .. delete := delete;
+      uri          : DocumentUri;
+      options      : DeleteFileOptions;
+      annotationId : Optional_Virtual_String;
    end record;
 
    procedure Read_DeleteFile
@@ -1438,7 +1447,7 @@ package LSP.Messages is
    type ChangeAnnotation is record
       label             : VSS.Strings.Virtual_String;
       needsConfirmation : Optional_Boolean;
-      description       : Optional_String;
+      description       : Optional_Virtual_String;
    end record;
 
    procedure Read_ChangeAnnotation
@@ -1456,7 +1465,7 @@ package LSP.Messages is
      (Key_Type        => ChangeAnnotationIdentifier,
       Element_Type    => ChangeAnnotation,
       Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=");
+      Equivalent_Keys => VSS.Strings."=");
 
    --```typescript
    --export interface WorkspaceEdit {
@@ -1629,9 +1638,9 @@ package LSP.Messages is
    --}
    --```
    type DocumentFilter is record
-      language: LSP.Types.Optional_String;
-      scheme: LSP.Types.Optional_String;
-      pattern: LSP.Types.Optional_String;
+      language : LSP.Types.Optional_Virtual_String;
+      scheme   : LSP.Types.Optional_Virtual_String;
+      pattern  : LSP.Types.Optional_Virtual_String;
    end record;
 
    package DocumentFilter_Vectors is new
@@ -4348,7 +4357,7 @@ package LSP.Messages is
    --```
    type MarkdownClientCapabilities is record
       parser  : VSS.Strings.Virtual_String;
-      version : Optional_String;
+      version : Optional_Virtual_String;
    end record;
 
    procedure Read_MarkdownClientCapabilities
@@ -4386,7 +4395,7 @@ package LSP.Messages is
    --```
    type RegularExpressionsClientCapabilities is record
       engine  : VSS.Strings.Virtual_String;
-      version : Optional_String;
+      version : Optional_Virtual_String;
    end record;
 
    procedure Read_RegularExpressionsClientCapabilities
@@ -4794,7 +4803,7 @@ package LSP.Messages is
 
    type ProgramInfo is record
       name    : VSS.Strings.Virtual_String;
-      version : Optional_String;
+      version : Optional_Virtual_String;
    end record;
 
    procedure Read_ProgramInfo
@@ -4925,15 +4934,15 @@ package LSP.Messages is
    --}
    --```
    type InitializeParams is new WorkDoneProgressParams with record
-      processId: Optional_Number;
-      clientInfo: Optional_ProgramInfo;
-      locale: Optional_String;
-      rootPath: Optional_Nullable_String;
-      rootUri: Nullable_String;
+      processId        : Optional_Number;
+      clientInfo       : Optional_ProgramInfo;
+      locale           : Optional_Virtual_String;
+      rootPath         : Optional_Nullable_String;
+      rootUri          : Nullable_String;
       --  initializationOptions?: any;
-      capabilities: ClientCapabilities;
-      trace: Optional_TraceValue;
-      workspaceFolders: Optional_WorkspaceFolder_Vector;
+      capabilities     : ClientCapabilities;
+      trace            : Optional_TraceValue;
+      workspaceFolders : Optional_WorkspaceFolder_Vector;
    end record;
 
    procedure Read_InitializeParams
@@ -5127,8 +5136,8 @@ package LSP.Messages is
    --  TextDocumentRegistrationOptions and we don't have multiple inheritance (or
    --  something similar) for Ada types.
    type TSW_RegistrationOptions is new WorkDoneProgressOptions with record
-      id: Optional_String;
-      documentSelector:  LSP.Messages.DocumentSelector;
+      id              : Optional_Virtual_String;
+      documentSelector: LSP.Messages.DocumentSelector;
    end record;
 
    procedure Read_TSW_RegistrationOptions
@@ -5262,7 +5271,7 @@ package LSP.Messages is
    --}
    --```
    type DocumentSymbolOptions is new WorkDoneProgressOptions with record
-      label: Optional_String;
+      label : Optional_Virtual_String;
    end record;
 
    procedure Read_DocumentSymbolOptions
@@ -5408,8 +5417,8 @@ package LSP.Messages is
    --}
    --```
    type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
-      firstTriggerCharacter : LSP_String;
-      moreTriggerCharacter  : Optional_LSP_String_Vector;
+      firstTriggerCharacter : VSS.Strings.Virtual_String;
+      moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_DocumentOnTypeFormattingOptions
@@ -5740,8 +5749,8 @@ package LSP.Messages is
    for FileOperationPattern'Read use Read_FileOperationPattern;
 
    type FileOperationFilter is record
-      scheme: Optional_String;
-      pattern: FileOperationPattern;
+      scheme  : Optional_Virtual_String;
+      pattern : FileOperationPattern;
    end record;
 
    procedure Read_FileOperationFilter
@@ -7099,8 +7108,8 @@ package LSP.Messages is
    --}
    --```
    type DidSaveTextDocumentParams is record
-      textDocument: TextDocumentIdentifier;
-      text: Optional_String;
+      textDocument : TextDocumentIdentifier;
+      text         : Optional_Virtual_String;
    end record;
 
    procedure Read_DidSaveTextDocumentParams
@@ -7598,23 +7607,23 @@ package LSP.Messages is
      new Optional_TextEdit_Or_InsertReplaceEdits.Optional_Type;
 
    type CompletionItem is record
-      label: VSS.Strings.Virtual_String;
-      kind : Optional_CompletionItemKind;
-      tags: Optional_CompletionItemTagSet;
-      detail: Optional_String;
-      documentation: Optional_String_Or_MarkupContent;
-      deprecated: Optional_Boolean;
-      preselect: Optional_Boolean;
-      sortText: Optional_String;
-      filterText: Optional_String;
-      insertText: Optional_String;
-      insertTextFormat: Optional_InsertTextFormat;
-      insertTextMode: Optional_InsertTextMode;
-      textEdit: Optional_TextEdit_Or_InsertReplaceEdit;
-      additionalTextEdits: TextEdit_Vector;
-      commitCharacters: Optional_LSP_String_Vector;
-      command: Optional_Command;
-      data : Optional_Location;
+      label               : VSS.Strings.Virtual_String;
+      kind                : Optional_CompletionItemKind;
+      tags                : Optional_CompletionItemTagSet;
+      detail              : Optional_Virtual_String;
+      documentation       : Optional_String_Or_MarkupContent;
+      deprecated          : Optional_Boolean;
+      preselect           : Optional_Boolean;
+      sortText            : Optional_Virtual_String;
+      filterText          : Optional_Virtual_String;
+      insertText          : Optional_Virtual_String;
+      insertTextFormat    : Optional_InsertTextFormat;
+      insertTextMode      : Optional_InsertTextMode;
+      textEdit            : Optional_TextEdit_Or_InsertReplaceEdit;
+      additionalTextEdits : TextEdit_Vector;
+      commitCharacters    : Optional_LSP_String_Vector;
+      command             : Optional_Command;
+      data                : Optional_Location;
    end record;
 
    procedure Read_CompletionItem
@@ -8260,17 +8269,17 @@ package LSP.Messages is
    --}
    --```
    type DocumentSymbol is record
-      name: VSS.Strings.Virtual_String;
-      detail: Optional_String;
-      kind: SymbolKind;
-      tags: SymbolTagSet;
-      deprecated: Optional_Boolean;
-      span: LSP.Messages.Span;
-      selectionRange: LSP.Messages.Span;
-      alsIsDeclaration : Optional_Boolean;
+      name              : VSS.Strings.Virtual_String;
+      detail            : Optional_Virtual_String;
+      kind              : SymbolKind;
+      tags              : SymbolTagSet;
+      deprecated        : Optional_Boolean;
+      span              : LSP.Messages.Span;
+      selectionRange    : LSP.Messages.Span;
+      alsIsDeclaration  : Optional_Boolean;
       alsIsAdaProcedure : Optional_Boolean;
-      alsVisibility : Optional_Als_Visibility;
-      children: Boolean;  --  True if emit children in JSON
+      alsVisibility     : Optional_Als_Visibility;
+      children          : Boolean;  --  True if emit children in JSON
    end record;
 
    package DocumentSymbol_Trees is new Ada.Containers.Multiway_Trees
@@ -8289,13 +8298,13 @@ package LSP.Messages is
    for DocumentSymbol_Tree'Write use Write_DocumentSymbol_Tree;
 
    type SymbolInformation is record
-      name: VSS.Strings.Virtual_String;
-      kind: SymbolKind;
+      name              : VSS.Strings.Virtual_String;
+      kind              : SymbolKind;
       alsIsAdaProcedure : Optional_Boolean;
-      tags: SymbolTagSet;
-      deprecated: Optional_Boolean;
-      location: LSP.Messages.Location;
-      containerName: Optional_String;
+      tags              : SymbolTagSet;
+      deprecated        : Optional_Boolean;
+      location          : LSP.Messages.Location;
+      containerName     : Optional_Virtual_String;
    end record;
 
    procedure Read_SymbolInformation
@@ -8634,9 +8643,9 @@ package LSP.Messages is
    --}
    --```
    type DocumentLink is record
-      span: LSP.Messages.Span;
-      target: Optional_String;
-      tooltip: Optional_String;
+      span    : LSP.Messages.Span;
+      target  : Optional_Virtual_String;
+      tooltip : Optional_Virtual_String;
       --  data?: any
    end record;
 
@@ -8868,8 +8877,8 @@ package LSP.Messages is
    --}
    --```
    type ApplyWorkspaceEditParams is record
-      label: Optional_String;
-      edit: WorkspaceEdit;
+      label : Optional_Virtual_String;
+      edit  : WorkspaceEdit;
    end record;
 
    --```typescript
@@ -8896,9 +8905,9 @@ package LSP.Messages is
    --}
    --```
    type ApplyWorkspaceEditResult is record
-      applied: Boolean;
-      failureReason: Optional_String;
-      failedChange: Optional_uinteger;
+      applied       : Boolean;
+      failureReason : Optional_Virtual_String;
+      failedChange  : Optional_uinteger;
    end record;
 
    procedure Read_ApplyWorkspaceEditResult
@@ -8954,7 +8963,7 @@ package LSP.Messages is
       kind        : VSS.Strings.Virtual_String := "begin";
       title       : VSS.Strings.Virtual_String;
       cancellable : Optional_Boolean;
-      message     : Optional_String;
+      message     : Optional_Virtual_String;
       percentage  : Optional_Number;
    end record;
 
@@ -8995,7 +9004,7 @@ package LSP.Messages is
    type WorkDoneProgressReport is record
       kind        : VSS.Strings.Virtual_String := "report";
       cancellable : Optional_Boolean;
-      message     : Optional_String;
+      message     : Optional_Virtual_String;
       percentage  : Optional_Number;
    end record;
 
@@ -9013,7 +9022,7 @@ package LSP.Messages is
    --```
    type WorkDoneProgressEnd is record
       kind    : VSS.Strings.Virtual_String := "end";
-      message : Optional_String;
+      message : Optional_Virtual_String;
    end record;
 
    --  Reads/Writers
@@ -9157,8 +9166,8 @@ package LSP.Messages is
    --}
    --```
    type ConfigurationItem is record
-      scopeUri: Optional_String;
-      section: Optional_String;
+      scopeUri : Optional_Virtual_String;
+      section  : Optional_Virtual_String;
    end record;
 
    procedure Read_ConfigurationItem
@@ -9257,7 +9266,7 @@ package LSP.Messages is
 
    type CompletionContext is record
       triggerKind: CompletionTriggerKind;
-      triggerCharacter: Optional_String;
+      triggerCharacter: Optional_Virtual_String;
    end record;
 
    procedure Read_CompletionContext
@@ -9653,11 +9662,11 @@ package LSP.Messages is
    --}
    --```
    type FoldingRange is record
-      startLine: Line_Number;
-      startCharacter: Optional_Number;
-      endLine: Line_Number;
-      endCharacter: Optional_Number;
-      kind: Optional_String;
+      startLine      : Line_Number;
+      startCharacter : Optional_Number;
+      endLine        : Line_Number;
+      endCharacter   : Optional_Number;
+      kind           : Optional_Virtual_String;
    end record;
 
    procedure Read_FoldingRange
@@ -9675,11 +9684,11 @@ package LSP.Messages is
    type FoldingRange_Vector is
      new FoldingRange_Vectors.Vector with null record;
 
-   subtype FoldingRangeKind is LSP_String;
+   subtype FoldingRangeKind is VSS.Strings.Virtual_String;
    --  FIXME: replace with enumeration type???
-   function Comment return FoldingRangeKind is (+"comment");
-   Imports : constant FoldingRangeKind := +"imports";
-   Region  : constant FoldingRangeKind := +"region";
+   function Comment return FoldingRangeKind is ("comment");
+   Imports : constant FoldingRangeKind := "imports";
+   Region  : constant FoldingRangeKind := "region";
 
    --```typescript
    --interface DocumentColorParams extends WorkDoneProgressParams,
@@ -9801,7 +9810,7 @@ package LSP.Messages is
    --```
    type SignatureHelpContext is record
       triggerKind         : SignatureHelpTriggerKind;
-      triggerCharacter    : Optional_String;
+      triggerCharacter    : Optional_Virtual_String;
       isRetrigger         : Boolean;
       activeSignatureHelp : Optional_SignatureHelp;
    end record;
@@ -9966,8 +9975,8 @@ package LSP.Messages is
    --}
    --```
    type LinkedEditingRanges is record
-      ranges: Span_Vector;
-      wordPattern: Optional_String;
+      ranges      : Span_Vector;
+      wordPattern : Optional_Virtual_String;
    end record;
 
    procedure Read_LinkedEditingRanges
@@ -10052,7 +10061,7 @@ package LSP.Messages is
       name           : VSS.Strings.Virtual_String;
       kind           : SymbolKind;
       tags           : Optional_SymbolTagSet;
-      detail         : Optional_String;
+      detail         : Optional_Virtual_String;
       uri            : DocumentUri;
       span           : LSP.Messages.Span;  --  range: is reserved word
       selectionRange : LSP.Messages.Span;
@@ -10201,8 +10210,8 @@ package LSP.Messages is
    --}
    --```
    type SemanticTokens is record
-      resultId: Optional_String;
-      data: uinteger_Vector;
+      resultId : Optional_Virtual_String;
+      data     : uinteger_Vector;
    end record;
 
    procedure Read_SemanticTokens
@@ -10309,8 +10318,8 @@ package LSP.Messages is
      with null record;
 
    type SemanticTokensDelta is record
-      resultId: Optional_String;
-      edits: SemanticTokensEdit_Vector;
+      resultId : Optional_Virtual_String;
+      edits    : SemanticTokensEdit_Vector;
    end record;
 
    procedure Read_SemanticTokensDelta
@@ -10768,8 +10777,8 @@ package LSP.Messages is
    --}
    --```
    type LogTraceParams is record
-      message: VSS.Strings.Virtual_String;
-      verbose: Optional_String;
+      message : VSS.Strings.Virtual_String;
+      verbose : Optional_Virtual_String;
    end record;
 
    procedure Read_LogTraceParams

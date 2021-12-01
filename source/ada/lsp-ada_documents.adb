@@ -972,9 +972,7 @@ package body LSP.Ada_Documents is
                                 (name              =>
                                    LSP.Lal_Utils.To_Virtual_String (Name.Text),
                                  detail            =>
-                                   (Is_Set => True,
-                                    Value  => LSP.Types.To_LSP_String
-                                      (Profile)),
+                                   (Is_Set => True, Value  => Profile),
                                  kind              => Kind,
                                  deprecated        => (Is_Set => False),
                                  tags              => LSP.Messages.Empty,
@@ -1057,9 +1055,8 @@ package body LSP.Ada_Documents is
                   detail            =>
                     (Is_Set => True,
                      Value  =>
-                       LSP.Types.To_LSP_String
-                         (LSP.Lal_Utils.To_Virtual_String
-                              ("(" & (Pragma_Node.F_Args.Text & ")")))),
+                       LSP.Lal_Utils.To_Virtual_String
+                         ("(" & (Pragma_Node.F_Args.Text & ")"))),
                   kind              => Property,
                   tags              => LSP.Messages.Empty,
                   deprecated        => (Is_Set => False),
@@ -1804,33 +1801,34 @@ package body LSP.Ada_Documents is
       Min_Width      : constant Natural := Completions_Count'Img'Length - 1;
       --  The -1 remove the whitespace added by 'Img
 
-      function Get_Sort_text (Base_Label : LSP_String) return LSP_String;
+      function Get_Sort_Text
+        (Base_Label : VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String;
       --  Return a suitable sortText according to the completion item's
       --  visibility and position in the completion list.
 
       -------------------
-      -- Get_Sort_text --
+      -- Get_Sort_Text --
       -------------------
 
-      function Get_Sort_text (Base_Label : LSP_String) return LSP_String is
-         Sort_Text : LSP_String := Empty_LSP_String;
+      function Get_Sort_Text
+        (Base_Label : VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String is
       begin
+         return Sort_Text : VSS.Strings.Virtual_String do
+            if Pos /= -1 then
+               Sort_Text :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width));
+            end if;
 
-         if Pos /= -1 then
-            Sort_Text :=
-              To_LSP_String
-                (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width))
-                & Sort_Text;
-         end if;
+            Sort_Text.Append (Base_Label);
 
-         Sort_Text := Sort_Text & Base_Label;
-
-         if not Is_Visible then
-            Sort_Text := "~" & Sort_Text;
-         end if;
-
-         return Sort_Text;
-      end Get_Sort_text;
+            if not Is_Visible then
+               Sort_Text.Prepend ('~');
+            end if;
+         end return;
+      end Get_Sort_Text;
 
    begin
       Item.label := Label;
@@ -1838,9 +1836,10 @@ package body LSP.Ada_Documents is
                             (LSP.Lal_Utils.Get_Decl_Kind (BD)));
 
       declare
-         Base_Label : constant LSP_String := LSP.Types.To_LSP_String
-           (Item.label);
-         Sort_Text  : constant LSP_String := Get_Sort_text (Base_Label);
+         Base_Label : constant VSS.Strings.Virtual_String :=  Item.label;
+         Sort_Text  : constant VSS.Strings.Virtual_String :=
+           Get_Sort_Text (Base_Label);
+
       begin
          if not Is_Visible then
             Item.insertText := (True, Base_Label);
@@ -1849,7 +1848,7 @@ package body LSP.Ada_Documents is
          end if;
 
          --  Set the sortText if needed
-         if Sort_Text /= Empty_LSP_String then
+         if not Sort_Text.Is_Empty then
             Item.sortText := (True, Sort_Text);
          end if;
       end;
@@ -1987,9 +1986,7 @@ package body LSP.Ada_Documents is
             --  Insert '$0' (i.e: the final tab stop) at the end.
             Insert_Text.Append (")$0");
 
-            Item.insertText :=
-              (Is_Set => True,
-               Value  => LSP.Types.To_LSP_String (Insert_Text));
+            Item.insertText := (True, Insert_Text);
          end if;
       end;
 
@@ -2012,10 +2009,7 @@ package body LSP.Ada_Documents is
       --  requested (i.e: when the client does not support lazy computation
       --  for these fields).
       if Compute_Doc_And_Details then
-         Item.detail :=
-           (True,
-            LSP.Types.To_LSP_String
-              (LSP.Lal_Utils.Compute_Completion_Detail (BD)));
+         Item.detail := (True, LSP.Lal_Utils.Compute_Completion_Detail (BD));
 
          --  Property_Errors can occur when calling
          --  Get_Documentation on unsupported docstrings, so

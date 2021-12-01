@@ -52,7 +52,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
    begin
       Self.Last_Status := Self.Handler.Project_Status;
       Item.span := ((0, 0), (0, 0));
-      Item.source := (True, LSP.Types.To_LSP_String (String'("project")));
+      Item.source := (True, "project");
       Item.severity := (True, LSP.Messages.Error);
 
       case Self.Last_Status is

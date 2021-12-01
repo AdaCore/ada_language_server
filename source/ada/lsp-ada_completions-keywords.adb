@@ -21,7 +21,6 @@ with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Lal_Utils;
-with LSP.Types;
 
 package body LSP.Ada_Completions.Keywords is
 
@@ -74,7 +73,7 @@ package body LSP.Ada_Completions.Keywords is
                then
                   Item.label := Label;
                   Item.insertTextFormat := (True, LSP.Messages.PlainText);
-                  Item.insertText := (True, LSP.Types.To_LSP_String (Label));
+                  Item.insertText := (True, Label);
                   Item.kind := (True, LSP.Messages.Keyword);
                   Result.items.Append (Item);
                end if;

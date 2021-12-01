@@ -611,9 +611,11 @@ package body LSP.Clients is
       Data    : Ada.Strings.Unbounded.Unbounded_String;
       Success : in out Boolean)
    is
+      use type VSS.Strings.Virtual_String;
+
       procedure Look_Ahead
         (Id       : out LSP.Types.LSP_Number_Or_String;
-         Method   : out LSP.Types.Optional_String;
+         Method   : out LSP.Types.Optional_Virtual_String;
          Token    : out LSP.Types.LSP_Number_Or_String;
          Is_Error : in out Boolean);
 
@@ -626,7 +628,7 @@ package body LSP.Clients is
 
       procedure Look_Ahead
         (Id       : out LSP.Types.LSP_Number_Or_String;
-         Method   : out LSP.Types.Optional_String;
+         Method   : out LSP.Types.Optional_Virtual_String;
          Token    : out LSP.Types.LSP_Number_Or_String;
          Is_Error : in out Boolean)
       is
@@ -670,9 +672,7 @@ package body LSP.Clients is
 
                elsif Key = "method" then
                   pragma Assert (R.Is_String_Value);
-                  Method := (Is_Set => True,
-                             Value  =>
-                               LSP.Types.To_LSP_String (R.String_Value));
+                  Method := (True, R.String_Value);
                   R.Read_Next;
 
                elsif Key = "error" then
@@ -732,7 +732,7 @@ package body LSP.Clients is
       Stream : aliased LSP.JSON_Streams.JSON_Stream
         (Is_Server_Side => False, R => Reader'Unchecked_Access);
       Id     : LSP.Types.LSP_Number_Or_String;
-      Method : LSP.Types.Optional_String;
+      Method : LSP.Types.Optional_Virtual_String;
       Token  : LSP.Types.LSP_Number_Or_String :=
         (Is_Number => False, String => VSS.Strings.Empty_Virtual_String);
 
@@ -841,9 +841,7 @@ package body LSP.Clients is
                      error =>
                        (True,
                         (code    => LSP.Messages.MethodNotFound,
-                         message =>
-                           LSP.Types.To_Virtual_String
-                             ("Unknown method:" & Method.Value),
+                         message => "Unknown method:" & Method.Value,
                          data    => <>)),
                      others => <>);
                begin
@@ -874,7 +872,8 @@ package body LSP.Clients is
             Position : constant Notification_Maps.Cursor :=
               Self.Notif_Decoders.Find
                 (Ada.Strings.Unbounded.To_Unbounded_String
-                   (LSP.Types.To_UTF_8_String (Method.Value)));
+                   (VSS.Strings.Conversions.To_UTF_8_String (Method.Value)));
+
          begin
             if Notification_Maps.Has_Element (Position) then
                Notification_Maps.Element (Position).all
@@ -1276,7 +1275,7 @@ package body LSP.Clients is
    procedure Workspace_Apply_Edit
      (Self    : in out Client'Class;
       Request : LSP.Types.LSP_Number_Or_String;
-      Failure : LSP.Types.Optional_String)
+      Failure : LSP.Types.Optional_Virtual_String)
    is
       Message : LSP.Messages.Client_Responses.ApplyWorkspaceEdit_Response :=
         (Is_Error => False,

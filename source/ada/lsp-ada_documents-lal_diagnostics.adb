@@ -36,7 +36,7 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
    is
       Item : LSP.Messages.Diagnostic;
    begin
-      Item.source := (True, LSP.Types.To_LSP_String (String'("libadalang")));
+      Item.source := (True, "libadalang");
       Self.Errors := Self.Get_Diagnostics (Context);
 
       for J in Self.Errors.List'Range loop

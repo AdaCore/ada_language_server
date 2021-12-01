@@ -1339,10 +1339,7 @@ package body LSP.Lal_Utils is
         (name           => VSS.Strings.To_Virtual_String (Name.Text),
          kind           => LSP.Lal_Utils.Get_Decl_Kind (Main_Item),
          tags           => (Is_Set => False),
-         detail         =>
-           (True,
-            LSP.Types.To_LSP_String
-              (LSP.Lal_Utils.Node_Location_Image (Name))),
+         detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
          uri            => Where.uri,
          span           => Where.span,
          selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));

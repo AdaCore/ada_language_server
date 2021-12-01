@@ -22,7 +22,6 @@ with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Unbounded.Wide_Hash;
-with Ada.Strings.Wide_Wide_Unbounded;
 with GNATCOLL.JSON;
 
 with VSS.String_Vectors;
@@ -136,11 +135,6 @@ package LSP.Types is
    function To_LSP_String (Text : Wide_Wide_String)
      return LSP_String;
    function To_LSP_String
-     (Text : Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String)
-      return LSP_String
-   is (To_LSP_String
-       (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Text)));
-   function To_LSP_String
      (Item : VSS.Strings.Virtual_String) return LSP_String;
 
    function To_UTF_8_String (Value : LSP_String)
@@ -150,16 +144,9 @@ package LSP.Types is
    --  large (such as the content of a file), prefer calling
    --  To_UTF_8_Unbounded_String below.
 
-   function To_UTF_8_Unbounded_String (Value : LSP_String)
-     return GNATCOLL.JSON.UTF8_Unbounded_String;
-   --  Same as To_UTF_8_String above, but returns an Unbounded_String.
-
    function To_Virtual_String
      (Item : LSP_String) return VSS.Strings.Virtual_String;
    --  Converts LSP_String to Virtual_String.
-
-   function Is_Empty (Text : LSP_String) return Boolean;
-   --  Check if given Text is an empty string
 
    function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Unbounded.Wide_Hash
@@ -202,7 +189,7 @@ package LSP.Types is
          when True =>
             Boolean : Standard.Boolean;
          when False =>
-            String : LSP_String;
+            String  : VSS.Strings.Virtual_String;
       end case;
    end record;
 
@@ -294,34 +281,13 @@ package LSP.Types is
      Item   : LSP.Types.Optional_Boolean);
 
    ---------------------
-   -- Optional_String --
+   -- Nullable_String --
    ---------------------
-
-   type Optional_String (Is_Set : Boolean := False) is record
-      case Is_Set is
-         when True =>
-            Value : LSP_String;
-         when False =>
-            null;
-      end case;
-   end record;
-
-   procedure Read_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : out LSP.Types.Optional_String);
-   --  Read optional string from the JSON stream
-
-   procedure Write_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : LSP.Types.Optional_String);
-
-   for Optional_String'Read use Read_Optional_String;
-   for Optional_String'Write use Write_Optional_String;
 
    type Nullable_String (Is_Set : Boolean := False) is record
       case Is_Set is
          when True =>
-            Value : LSP_String;
+            Value : VSS.Strings.Virtual_String;
          when False =>
             null;
       end case;

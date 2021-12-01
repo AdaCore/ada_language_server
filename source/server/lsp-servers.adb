@@ -19,7 +19,6 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
-with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
@@ -46,10 +45,6 @@ package body LSP.Servers is
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
    Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-     LSP.Types.To_LSP_String;
 
    procedure Process_One_Message
      (Self        : in out Server'Class;
@@ -294,7 +289,7 @@ package body LSP.Servers is
       procedure Process_JSON_Document
         (Vector : Ada.Strings.Unbounded.Unbounded_String)
       is
-         use type LSP.Types.LSP_String;
+         use type VSS.Strings.Virtual_String;
 
          Memory : aliased
            VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
@@ -302,13 +297,13 @@ package body LSP.Servers is
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
             Version    : out LSP.Types.LSP_String;
-            Method     : out LSP.Types.Optional_String;
+            Method     : out LSP.Types.Optional_Virtual_String;
             Error      : out LSP.Messages.Optional_ResponseError);
 
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
             Version    : out LSP.Types.LSP_String;
-            Method     : out LSP.Types.Optional_String;
+            Method     : out LSP.Types.Optional_Virtual_String;
             Error      : out LSP.Messages.Optional_ResponseError)
          is
             use all type VSS.JSON.Pull_Readers.JSON_Event_Kind;
@@ -356,8 +351,7 @@ package body LSP.Servers is
                   elsif Key = "method" then
                      pragma Assert (JS.R.Is_String_Value);
                      Method := (Is_Set => True,
-                                Value  =>
-                                  LSP.Types.To_LSP_String (JS.R.String_Value));
+                                Value  => JS.R.String_Value);
                      JS.R.Read_Next;
 
                   elsif Key = "error" then
@@ -379,9 +373,10 @@ package body LSP.Servers is
          Is_Exit_Notification : Boolean;
 
          Version    : LSP.Types.LSP_String;
-         Method     : LSP.Types.Optional_String;
+         Method     : LSP.Types.Optional_Virtual_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
          Error      : LSP.Messages.Optional_ResponseError;
+
       begin
          Memory.Set_Data
            (VSS.Stream_Element_Vectors.Conversions
@@ -410,7 +405,7 @@ package body LSP.Servers is
          elsif LSP.Types.Assigned (Request_Id) then  --  This is a request
 
             if not Initialized then
-               if Method.Value = +"initialize" then
+               if Method.Value = "initialize" then
                   Initialized := True;
                else
                   Send_Not_Initialized (Self, Request_Id);
@@ -422,8 +417,7 @@ package body LSP.Servers is
                Request :=
                  new LSP.Messages.Server_Requests.Server_Request'Class'
                    (LSP.Servers.Decode_Request
-                      (Memory'Unchecked_Access,
-                       LSP.Types.To_Virtual_String (Method.Value)));
+                      (Memory'Unchecked_Access, Method.Value));
 
             exception
                when UR : Unknown_Method =>
@@ -450,15 +444,14 @@ package body LSP.Servers is
             Message := Message_Access (Request);
 
          elsif Initialized
-           or else Method.Value = +"exit"
+           or else Method.Value = "exit"
          then
             --  This is a notification
             begin
                Notification :=
                  new Messages.Server_Notifications.Server_Notification'Class'
                    (LSP.Servers.Decode_Notification
-                      (Memory'Unchecked_Access,
-                       LSP.Types.To_Virtual_String (Method.Value)));
+                      (Memory'Unchecked_Access, Method.Value));
 
             exception
                when E : Unknown_Method =>

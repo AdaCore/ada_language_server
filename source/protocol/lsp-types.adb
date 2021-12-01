@@ -35,9 +35,6 @@ package body LSP.Types is
 
    use type VSS.JSON.Pull_Readers.JSON_Event_Kind;
 
-   Chunk_Size    : constant := 512;
-   --  When processing strings in chunks, this is the size of the chunk
-
    function No_Any return LSP_Any is
      (GNATCOLL.JSON.JSON_Null with null record);
 
@@ -97,15 +94,6 @@ package body LSP.Types is
          return LSP.Types.Hash (Item.String);
       end if;
    end Hash;
-
-   --------------
-   -- Is_Empty --
-   --------------
-
-   function Is_Empty (Text : LSP_String) return Boolean is
-   begin
-      return Length (Text) = 0;
-   end Is_Empty;
 
    ----------
    -- Read --
@@ -321,7 +309,7 @@ package body LSP.Types is
       case JS.R.Event_Kind is
          when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_Boolean => False,
-                  String     => To_LSP_String (JS.R.String_Value));
+                  String     => JS.R.String_Value);
             JS.R.Read_Next;
 
          when VSS.JSON.Pull_Readers.Boolean_Value =>
@@ -450,34 +438,6 @@ package body LSP.Types is
    end Read;
 
    --------------------------
-   -- Read_Optional_String --
-   --------------------------
-
-   procedure Read_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : out LSP.Types.Optional_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
-   begin
-      case JS.R.Event_Kind is
-         when VSS.JSON.Pull_Readers.Null_Value =>
-
-            Item := (Is_Set => False);
-
-         when VSS.JSON.Pull_Readers.String_Value =>
-            Item := (Is_Set => True,
-                     Value  => To_LSP_String (JS.R.String_Value));
-
-         when others =>
-            raise Constraint_Error;
-      end case;
-
-      JS.R.Read_Next;
-   end Read_Optional_String;
-
-   --------------------------
    -- Read_Nullable_String --
    --------------------------
 
@@ -496,7 +456,7 @@ package body LSP.Types is
 
          when VSS.JSON.Pull_Readers.String_Value =>
             Item := (Is_Set => True,
-                     Value  => To_LSP_String (JS.R.String_Value));
+                     Value  => JS.R.String_Value);
 
          when others =>
             raise Constraint_Error;
@@ -676,30 +636,6 @@ package body LSP.Types is
    begin
       return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
    end To_UTF_8_String;
-
-   -------------------------------
-   -- To_UTF_8_Unbounded_String --
-   -------------------------------
-
-   function To_UTF_8_Unbounded_String
-     (Value : LSP_String) return GNATCOLL.JSON.UTF8_Unbounded_String
-   is
-      Res  : Ada.Strings.Unbounded.Unbounded_String;
-      Len  : constant Natural := Length (Value);
-      Current_Index : Natural := 1;
-      Next_Index    : Natural;
-   begin
-      --  Perform the encoding chunk by chunk, so as not to blow the stack
-      loop
-         Next_Index := Natural'Min (Current_Index + Chunk_Size, Len);
-         Ada.Strings.Unbounded.Append
-           (Res, Ada.Strings.UTF_Encoding.Wide_Strings.Encode
-              (Slice (Value, Current_Index, Next_Index)));
-         Current_Index := Next_Index + 1;
-         exit when Current_Index > Len;
-      end loop;
-      return Res;
-   end To_UTF_8_Unbounded_String;
 
    -----------------------
    -- To_Virtual_String --
@@ -962,22 +898,6 @@ package body LSP.Types is
          Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
-
-   ---------------------------
-   -- Write_Optional_String --
-   ---------------------------
-
-   procedure Write_Optional_String
-     (S    : access Ada.Streams.Root_Stream_Type'Class;
-      Item : LSP.Types.Optional_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      if Item.Is_Set then
-         JS.Write_String (Item.Value);
-      end if;
-   end Write_Optional_String;
 
    ---------------------------
    -- Write_Nullable_String --

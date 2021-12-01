@@ -674,7 +674,7 @@ package body LSP.Message_IO is
             elsif Key = "codeDescription" then
                Optional_CodeDescription'Read (S, V.codeDescription);
             elsif Key = "source" then
-               Optional_String'Read (S, V.source);
+               Optional_Virtual_String'Read (S, V.source);
             elsif Key = "message" then
                LSP.Types.Read_String (S, V.message);
             elsif Key = "tags" then
@@ -706,7 +706,7 @@ package body LSP.Message_IO is
       JS.Key ("codeDescription");
       Optional_CodeDescription'Write (S, V.codeDescription);
       JS.Key ("source");
-      Optional_String'Write (S, V.source);
+      Optional_Virtual_String'Write (S, V.source);
       JS.Key ("message");
       LSP.Types.Write_String (S, V.message);
       JS.Key ("tags");
@@ -780,7 +780,7 @@ package body LSP.Message_IO is
             elsif Key = "newText" then
                LSP.Types.Read_String (S, V.newText);
             elsif Key = "annotationId" then
-               Optional_String'Read (S, V.annotationId);
+               Optional_Virtual_String'Read (S, V.annotationId);
             else
                JS.Skip_Value;
             end if;
@@ -802,7 +802,7 @@ package body LSP.Message_IO is
       JS.Key ("newText");
       LSP.Types.Write_String (S, V.newText);
       JS.Key ("annotationId");
-      Optional_String'Write (S, V.annotationId);
+      Optional_Virtual_String'Write (S, V.annotationId);
       JS.End_Object;
    end Write_AnnotatedTextEdit;
 
@@ -1091,7 +1091,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                CreateFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
-               Optional_String'Read (S, V.annotationId);
+               Optional_Virtual_String'Read (S, V.annotationId);
             else
                JS.Skip_Value;
             end if;
@@ -1115,7 +1115,7 @@ package body LSP.Message_IO is
       JS.Key ("options");
       CreateFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
-      Optional_String'Write (S, V.annotationId);
+      Optional_Virtual_String'Write (S, V.annotationId);
       JS.End_Object;
    end Write_CreateFile;
 
@@ -1187,7 +1187,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                RenameFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
-               Optional_String'Read (S, V.annotationId);
+               Optional_Virtual_String'Read (S, V.annotationId);
             else
                JS.Skip_Value;
             end if;
@@ -1213,7 +1213,7 @@ package body LSP.Message_IO is
       JS.Key ("options");
       RenameFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
-      Optional_String'Write (S, V.annotationId);
+      Optional_Virtual_String'Write (S, V.annotationId);
       JS.End_Object;
    end Write_RenameFile;
 
@@ -1283,7 +1283,7 @@ package body LSP.Message_IO is
             elsif Key = "options" then
                DeleteFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
-               Optional_String'Read (S, V.annotationId);
+               Optional_Virtual_String'Read (S, V.annotationId);
             else
                JS.Skip_Value;
             end if;
@@ -1307,7 +1307,7 @@ package body LSP.Message_IO is
       JS.Key ("options");
       DeleteFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
-      Optional_String'Write (S, V.annotationId);
+      Optional_Virtual_String'Write (S, V.annotationId);
       JS.End_Object;
    end Write_DeleteFile;
 
@@ -1332,7 +1332,7 @@ package body LSP.Message_IO is
             elsif Key = "needsConfirmation" then
                Optional_Boolean'Read (S, V.needsConfirmation);
             elsif Key = "description" then
-               Optional_String'Read (S, V.description);
+               Optional_Virtual_String'Read (S, V.description);
             else
                JS.Skip_Value;
             end if;
@@ -1354,7 +1354,7 @@ package body LSP.Message_IO is
       JS.Key ("needsConfirmation");
       Optional_Boolean'Write (S, V.needsConfirmation);
       JS.Key ("description");
-      Optional_String'Write (S, V.description);
+      Optional_Virtual_String'Write (S, V.description);
       JS.End_Object;
    end Write_ChangeAnnotation;
 
@@ -4011,7 +4011,7 @@ package body LSP.Message_IO is
             if Key = "parser" then
                LSP.Types.Read_String (S, V.parser);
             elsif Key = "version" then
-               Optional_String'Read (S, V.version);
+               Optional_Virtual_String'Read (S, V.version);
             else
                JS.Skip_Value;
             end if;
@@ -4031,7 +4031,7 @@ package body LSP.Message_IO is
       JS.Key ("parser");
       LSP.Types.Write_String (S, V.parser);
       JS.Key ("version");
-      Optional_String'Write (S, V.version);
+      Optional_Virtual_String'Write (S, V.version);
       JS.End_Object;
    end Write_MarkdownClientCapabilities;
 
@@ -4054,7 +4054,7 @@ package body LSP.Message_IO is
             if Key = "engine" then
                LSP.Types.Read_String (S, V.engine);
             elsif Key = "version" then
-               Optional_String'Read (S, V.version);
+               Optional_Virtual_String'Read (S, V.version);
             else
                JS.Skip_Value;
             end if;
@@ -4074,7 +4074,7 @@ package body LSP.Message_IO is
       JS.Key ("engine");
       LSP.Types.Write_String (S, V.engine);
       JS.Key ("version");
-      Optional_String'Write (S, V.version);
+      Optional_Virtual_String'Write (S, V.version);
       JS.End_Object;
    end Write_RegularExpressionsClientCapabilities;
 
@@ -4387,7 +4387,7 @@ package body LSP.Message_IO is
             if Key = "name" then
                LSP.Types.Read_String (S, V.name);
             elsif Key = "version" then
-               Optional_String'Read (S, V.version);
+               Optional_Virtual_String'Read (S, V.version);
             else
                JS.Skip_Value;
             end if;
@@ -4407,7 +4407,7 @@ package body LSP.Message_IO is
       JS.Key ("name");
       LSP.Types.Write_String (S, V.name);
       JS.Key ("version");
-      Optional_String'Write (S, V.version);
+      Optional_Virtual_String'Write (S, V.version);
       JS.End_Object;
    end Write_ProgramInfo;
 
@@ -4485,7 +4485,7 @@ package body LSP.Message_IO is
             elsif Key = "clientInfo" then
                Optional_ProgramInfo'Read (S, V.clientInfo);
             elsif Key = "locale" then
-               Optional_String'Read (S, V.locale);
+               Optional_Virtual_String'Read (S, V.locale);
             elsif Key = "rootPath" then
                Optional_Nullable_String'Read (S, V.rootPath);
             elsif Key = "rootUri" then
@@ -4519,7 +4519,7 @@ package body LSP.Message_IO is
       JS.Key ("clientInfo");
       Optional_ProgramInfo'Write (S, V.clientInfo);
       JS.Key ("locale");
-      Optional_String'Write (S, V.locale);
+      Optional_Virtual_String'Write (S, V.locale);
       JS.Key ("rootPath");
       Optional_Nullable_String'Write (S, V.rootPath);
       JS.Key ("rootUri");
@@ -4689,7 +4689,7 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "id" then
-               Optional_String'Read (S, V.id);
+               Optional_Virtual_String'Read (S, V.id);
             elsif Key = "documentSelector" then
                LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
             else
@@ -4711,7 +4711,7 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("id");
-      Optional_String'Write (S, V.id);
+      Optional_Virtual_String'Write (S, V.id);
       JS.Key ("documentSelector");
       LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
       JS.End_Object;
@@ -4736,7 +4736,7 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "label" then
-               Optional_String'Read (S, V.label);
+               Optional_Virtual_String'Read (S, V.label);
             else
                JS.Skip_Value;
             end if;
@@ -4756,7 +4756,7 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("label");
-      Optional_String'Write (S, V.label);
+      Optional_Virtual_String'Write (S, V.label);
       JS.End_Object;
    end Write_DocumentSymbolOptions;
 
@@ -4869,9 +4869,9 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "firstTriggerCharacter" then
-               LSP.Types.Read (S, V.firstTriggerCharacter);
+               LSP.Types.Read_String (S, V.firstTriggerCharacter);
             elsif Key = "moreTriggerCharacter" then
-               Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
+               Optional_Virtual_String_Vector'Read (S, V.moreTriggerCharacter);
             else
                JS.Skip_Value;
             end if;
@@ -4891,9 +4891,9 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("firstTriggerCharacter");
-      LSP.Types.Write (S, V.firstTriggerCharacter);
+      LSP.Types.Write_String (S, V.firstTriggerCharacter);
       JS.Key ("moreTriggerCharacter");
-      Optional_LSP_String_Vector'Write (S, V.moreTriggerCharacter);
+      Optional_Virtual_String_Vector'Write (S, V.moreTriggerCharacter);
       JS.End_Object;
    end Write_DocumentOnTypeFormattingOptions;
 
@@ -5219,7 +5219,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "scheme" then
-               Optional_String'Read (S, V.scheme);
+               Optional_Virtual_String'Read (S, V.scheme);
             elsif Key = "pattern" then
                FileOperationPattern'Read (S, V.pattern);
             else
@@ -5239,7 +5239,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("scheme");
-      Optional_String'Write (S, V.scheme);
+      Optional_Virtual_String'Write (S, V.scheme);
       JS.Key ("pattern");
       FileOperationPattern'Write (S, V.pattern);
       JS.End_Object;
@@ -6734,7 +6734,7 @@ package body LSP.Message_IO is
             if Key = "textDocument" then
                TextDocumentIdentifier'Read (S, V.textDocument);
             elsif Key = "text" then
-               Optional_String'Read (S, V.text);
+               Optional_Virtual_String'Read (S, V.text);
             else
                JS.Skip_Value;
             end if;
@@ -6754,7 +6754,7 @@ package body LSP.Message_IO is
       JS.Key ("textDocument");
       TextDocumentIdentifier'Write (S, V.textDocument);
       JS.Key ("text");
-      Optional_String'Write (S, V.text);
+      Optional_Virtual_String'Write (S, V.text);
       JS.End_Object;
    end Write_DidSaveTextDocumentParams;
 
@@ -7038,7 +7038,7 @@ package body LSP.Message_IO is
             elsif Key = "tags" then
                Optional_CompletionItemTagSet'Read (S, V.tags);
             elsif Key = "detail" then
-               Optional_String'Read (S, V.detail);
+               Optional_Virtual_String'Read (S, V.detail);
             elsif Key = "documentation" then
                Optional_String_Or_MarkupContent'Read (S, V.documentation);
             elsif Key = "deprecated" then
@@ -7046,11 +7046,11 @@ package body LSP.Message_IO is
             elsif Key = "preselect" then
                Optional_Boolean'Read (S, V.preselect);
             elsif Key = "sortText" then
-               Optional_String'Read (S, V.sortText);
+               Optional_Virtual_String'Read (S, V.sortText);
             elsif Key = "filterText" then
-               Optional_String'Read (S, V.filterText);
+               Optional_Virtual_String'Read (S, V.filterText);
             elsif Key = "insertText" then
-               Optional_String'Read (S, V.insertText);
+               Optional_Virtual_String'Read (S, V.insertText);
             elsif Key = "insertTextFormat" then
                Optional_InsertTextFormat'Read (S, V.insertTextFormat);
             elsif Key = "insertTextMode" then
@@ -7088,7 +7088,7 @@ package body LSP.Message_IO is
       JS.Key ("tags");
       Optional_CompletionItemTagSet'Write (S, V.tags);
       JS.Key ("detail");
-      Optional_String'Write (S, V.detail);
+      Optional_Virtual_String'Write (S, V.detail);
       JS.Key ("documentation");
       Optional_String_Or_MarkupContent'Write (S, V.documentation);
       JS.Key ("deprecated");
@@ -7096,11 +7096,11 @@ package body LSP.Message_IO is
       JS.Key ("preselect");
       Optional_Boolean'Write (S, V.preselect);
       JS.Key ("sortText");
-      Optional_String'Write (S, V.sortText);
+      Optional_Virtual_String'Write (S, V.sortText);
       JS.Key ("filterText");
-      Optional_String'Write (S, V.filterText);
+      Optional_Virtual_String'Write (S, V.filterText);
       JS.Key ("insertText");
-      Optional_String'Write (S, V.insertText);
+      Optional_Virtual_String'Write (S, V.insertText);
       JS.Key ("insertTextFormat");
       Optional_InsertTextFormat'Write (S, V.insertTextFormat);
       JS.Key ("insertTextMode");
@@ -7618,7 +7618,7 @@ package body LSP.Message_IO is
             elsif Key = "location" then
                LSP.Messages.Location'Read (S, V.location);
             elsif Key = "containerName" then
-               Optional_String'Read (S, V.containerName);
+               Optional_Virtual_String'Read (S, V.containerName);
             else
                JS.Skip_Value;
             end if;
@@ -7648,7 +7648,7 @@ package body LSP.Message_IO is
       JS.Key ("location");
       LSP.Messages.Location'Write (S, V.location);
       JS.Key ("containerName");
-      Optional_String'Write (S, V.containerName);
+      Optional_Virtual_String'Write (S, V.containerName);
       JS.End_Object;
    end Write_SymbolInformation;
 
@@ -8084,7 +8084,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "label" then
-               Optional_String'Read (S, V.label);
+               Optional_Virtual_String'Read (S, V.label);
             elsif Key = "edit" then
                WorkspaceEdit'Read (S, V.edit);
             else
@@ -8104,7 +8104,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("label");
-      Optional_String'Write (S, V.label);
+      Optional_Virtual_String'Write (S, V.label);
       JS.Key ("edit");
       WorkspaceEdit'Write (S, V.edit);
       JS.End_Object;
@@ -8129,7 +8129,7 @@ package body LSP.Message_IO is
             if Key = "applied" then
                LSP.Types.Read_Boolean (JS, V.applied);
             elsif Key = "failureReason" then
-               Optional_String'Read (S, V.failureReason);
+               Optional_Virtual_String'Read (S, V.failureReason);
             elsif Key = "failedChange" then
                Optional_uinteger'Read (S, V.failedChange);
             else
@@ -8150,7 +8150,7 @@ package body LSP.Message_IO is
       JS.Start_Object;
       Write_Boolean (JS, "applied", V.applied);
       JS.Key ("failureReason");
-      Optional_String'Write (S, V.failureReason);
+      Optional_Virtual_String'Write (S, V.failureReason);
       JS.Key ("failedChange");
       Optional_uinteger'Write (S, V.failedChange);
       JS.End_Object;
@@ -8179,7 +8179,7 @@ package body LSP.Message_IO is
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
@@ -8205,7 +8205,7 @@ package body LSP.Message_IO is
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.Key ("percentage");
       Optional_Number'Write (S, V.percentage);
       JS.End_Object;
@@ -8232,7 +8232,7 @@ package body LSP.Message_IO is
             elsif Key = "cancellable" then
                Optional_Boolean'Read (S, V.cancellable);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             elsif Key = "percentage" then
                Optional_Number'Read (S, V.percentage);
             else
@@ -8256,7 +8256,7 @@ package body LSP.Message_IO is
       JS.Key ("cancellable");
       Optional_Boolean'Write (S, V.cancellable);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.Key ("percentage");
       Optional_Number'Write (S, V.percentage);
       JS.End_Object;
@@ -8281,7 +8281,7 @@ package body LSP.Message_IO is
             if Key = "kind" then
                LSP.Types.Read_String (S, V.kind);
             elsif Key = "message" then
-               Optional_String'Read (S, V.message);
+               Optional_Virtual_String'Read (S, V.message);
             else
                JS.Skip_Value;
             end if;
@@ -8301,7 +8301,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       LSP.Types.Write_String (S, V.kind);
       JS.Key ("message");
-      Optional_String'Write (S, V.message);
+      Optional_Virtual_String'Write (S, V.message);
       JS.End_Object;
    end Write_WorkDoneProgressEnd;
 
@@ -8404,9 +8404,9 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "scopeUri" then
-               Optional_String'Read (S, V.scopeUri);
+               Optional_Virtual_String'Read (S, V.scopeUri);
             elsif Key = "section" then
-               Optional_String'Read (S, V.section);
+               Optional_Virtual_String'Read (S, V.section);
             else
                JS.Skip_Value;
             end if;
@@ -8424,9 +8424,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("scopeUri");
-      Optional_String'Write (S, V.scopeUri);
+      Optional_Virtual_String'Write (S, V.scopeUri);
       JS.Key ("section");
-      Optional_String'Write (S, V.section);
+      Optional_Virtual_String'Write (S, V.section);
       JS.End_Object;
    end Write_ConfigurationItem;
 
@@ -8509,7 +8509,7 @@ package body LSP.Message_IO is
             if Key = "triggerKind" then
                CompletionTriggerKind'Read (S, V.triggerKind);
             elsif Key = "triggerCharacter" then
-               Optional_String'Read (S, V.triggerCharacter);
+               Optional_Virtual_String'Read (S, V.triggerCharacter);
             else
                JS.Skip_Value;
             end if;
@@ -8529,7 +8529,7 @@ package body LSP.Message_IO is
       JS.Key ("triggerKind");
       CompletionTriggerKind'Write (S, V.triggerKind);
       JS.Key ("triggerCharacter");
-      Optional_String'Write (S, V.triggerCharacter);
+      Optional_Virtual_String'Write (S, V.triggerCharacter);
       JS.End_Object;
    end Write_CompletionContext;
 
@@ -8895,7 +8895,7 @@ package body LSP.Message_IO is
             elsif Key = "endCharacter" then
                Optional_Number'Read (S, V.endCharacter);
             elsif Key = "kind" then
-               Optional_String'Read (S, V.kind);
+               Optional_Virtual_String'Read (S, V.kind);
             else
                JS.Skip_Value;
             end if;
@@ -8921,7 +8921,7 @@ package body LSP.Message_IO is
       JS.Key ("endCharacter");
       Optional_Number'Write (S, V.endCharacter);
       JS.Key ("kind");
-      Optional_String'Write (S, V.kind);
+      Optional_Virtual_String'Write (S, V.kind);
       JS.End_Object;
    end Write_FoldingRange;
 
@@ -9012,7 +9012,7 @@ package body LSP.Message_IO is
             if Key = "triggerKind" then
                SignatureHelpTriggerKind'Read (S, V.triggerKind);
             elsif Key = "triggerCharacter" then
-               Optional_String'Read (S, V.triggerCharacter);
+               Optional_Virtual_String'Read (S, V.triggerCharacter);
             elsif Key = "isRetrigger" then
                LSP.Types.Read_Boolean (JS, V.isRetrigger);
             elsif Key = "activeSignatureHelp" then
@@ -9036,7 +9036,7 @@ package body LSP.Message_IO is
       JS.Key ("triggerKind");
       SignatureHelpTriggerKind'Write (S, V.triggerKind);
       JS.Key ("triggerCharacter");
-      Optional_String'Write (S, V.triggerCharacter);
+      Optional_Virtual_String'Write (S, V.triggerCharacter);
       Write_Boolean (JS, "isRetrigger", V.isRetrigger);
       JS.Key ("activeSignatureHelp");
       Optional_SignatureHelp'Write (S, V.activeSignatureHelp);
@@ -9258,7 +9258,7 @@ package body LSP.Message_IO is
             if Key = "ranges" then
                Span_Vector'Read (S, V.ranges);
             elsif Key = "wordPattern" then
-               Optional_String'Read (S, V.wordPattern);
+               Optional_Virtual_String'Read (S, V.wordPattern);
             else
                JS.Skip_Value;
             end if;
@@ -9278,7 +9278,7 @@ package body LSP.Message_IO is
       JS.Key ("ranges");
       Span_Vector'Write (S, V.ranges);
       JS.Key ("wordPattern");
-      Optional_String'Write (S, V.wordPattern);
+      Optional_Virtual_String'Write (S, V.wordPattern);
       JS.End_Object;
    end Write_LinkedEditingRanges;
 
@@ -9305,7 +9305,7 @@ package body LSP.Message_IO is
             elsif Key = "tags" then
                Optional_SymbolTagSet'Read (S, V.tags);
             elsif Key = "detail" then
-               Optional_String'Read (S, V.detail);
+               Optional_Virtual_String'Read (S, V.detail);
             elsif Key = "uri" then
                LSP.Types.Read (S, V.uri);
             elsif Key = "range" then
@@ -9335,7 +9335,7 @@ package body LSP.Message_IO is
       JS.Key ("tags");
       Optional_SymbolTagSet'Write (S, V.tags);
       JS.Key ("detail");
-      Optional_String'Write (S, V.detail);
+      Optional_Virtual_String'Write (S, V.detail);
       JS.Key ("uri");
       LSP.Types.Write (S, V.uri);
       JS.Key ("range");
@@ -9503,7 +9503,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "resultId" then
-               Optional_String'Read (S, V.resultId);
+               Optional_Virtual_String'Read (S, V.resultId);
             elsif Key = "data" then
                uinteger_Vector'Read (S, V.data);
             else
@@ -9523,7 +9523,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("resultId");
-      Optional_String'Write (S, V.resultId);
+      Optional_Virtual_String'Write (S, V.resultId);
       JS.Key ("data");
       uinteger_Vector'Write (S, V.data);
       JS.End_Object;
@@ -9683,7 +9683,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "resultId" then
-               Optional_String'Read (S, V.resultId);
+               Optional_Virtual_String'Read (S, V.resultId);
             elsif Key = "edits" then
                SemanticTokensEdit_Vector'Read (S, V.edits);
             else
@@ -9703,7 +9703,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("resultId");
-      Optional_String'Write (S, V.resultId);
+      Optional_Virtual_String'Write (S, V.resultId);
       JS.Key ("edits");
       SemanticTokensEdit_Vector'Write (S, V.edits);
       JS.End_Object;
@@ -10306,7 +10306,7 @@ package body LSP.Message_IO is
             if Key = "message" then
                LSP.Types.Read_String (S, V.message);
             elsif Key = "verbose" then
-               Optional_String'Read (S, V.verbose);
+               Optional_Virtual_String'Read (S, V.verbose);
             else
                JS.Skip_Value;
             end if;
@@ -10326,7 +10326,7 @@ package body LSP.Message_IO is
       JS.Key ("message");
       LSP.Types.Write_String (S, V.message);
       JS.Key ("verbose");
-      Optional_String'Write (S, V.verbose);
+      Optional_Virtual_String'Write (S, V.verbose);
       JS.End_Object;
    end Write_LogTraceParams;
 
