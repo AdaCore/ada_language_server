@@ -29,6 +29,7 @@ with VSS.Strings;
 with VSS.Unicode;
 
 with LSP.Generic_Optional;
+with LSP.Generic_Optional_With_Read_Write;
 
 limited with LSP.JSON_Streams;
 
@@ -377,5 +378,17 @@ package LSP.Types is
 
    for Optional_Virtual_String'Read use Read_Optional_Virtual_String;
    for Optional_Virtual_String'Write use Write_Optional_Virtual_String;
+
+   ------------------------------------
+   -- Optional_Virtual_String_Vector --
+   ------------------------------------
+
+   package Optional_Virtual_String_Vectors is
+     new LSP.Generic_Optional_With_Read_Write
+       (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
+        Element_Read  => LSP.Types.Read_String_Vector,
+        Element_Write => LSP.Types.Write_String_Vector);
+   type Optional_Virtual_String_Vector is
+     new Optional_Virtual_String_Vectors.Optional_Type;
 
 end LSP.Types;
