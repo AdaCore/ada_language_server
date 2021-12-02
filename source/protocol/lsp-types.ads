@@ -17,7 +17,7 @@
 
 --  This package provides basic types to implement Language Server Protocol.
 
-with Ada.Containers.Vectors;
+with Ada.Containers;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
@@ -29,6 +29,7 @@ with VSS.Strings;
 with VSS.Unicode;
 
 with LSP.Generic_Optional;
+with LSP.Generic_Optional_With_Read_Write;
 
 limited with LSP.JSON_Streams;
 
@@ -100,26 +101,6 @@ package LSP.Types is
 
    Empty_LSP_String : constant LSP_String :=
      LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
-
-   package LSP_String_Vectors is
-     new Ada.Containers.Vectors (Positive, LSP_String, "=");
-
-   type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
-   --  Vector of strings
-
-   procedure Read_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP_String_Vector);
-
-   procedure Write_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP_String_Vector);
-
-   for LSP_String_Vector'Read use Read_LSP_String_Vector;
-   for LSP_String_Vector'Write use Write_LSP_String_Vector;
-
-   Empty_Vector : constant LSP_String_Vector :=
-     (LSP_String_Vectors.Vector with null record);
 
    procedure Read_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -306,7 +287,8 @@ package LSP.Types is
    for Nullable_String'Read use Read_Nullable_String;
    for Nullable_String'Write use Write_Nullable_String;
 
-   subtype MessageActionItem_Vector is LSP_String_Vector;
+   subtype MessageActionItem_Vector
+     is VSS.String_Vectors.Virtual_String_Vector;
 
    type Registration_Option_Kinds is
      (Absent,
@@ -396,5 +378,17 @@ package LSP.Types is
 
    for Optional_Virtual_String'Read use Read_Optional_Virtual_String;
    for Optional_Virtual_String'Write use Write_Optional_Virtual_String;
+
+   ------------------------------------
+   -- Optional_Virtual_String_Vector --
+   ------------------------------------
+
+   package Optional_Virtual_String_Vectors is
+     new LSP.Generic_Optional_With_Read_Write
+       (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
+        Element_Read  => LSP.Types.Read_String_Vector,
+        Element_Write => LSP.Types.Write_String_Vector);
+   type Optional_Virtual_String_Vector is
+     new Optional_Virtual_String_Vectors.Optional_Type;
 
 end LSP.Types;

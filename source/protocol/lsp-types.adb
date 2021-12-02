@@ -358,38 +358,6 @@ package body LSP.Types is
       JS.R.Read_Next;
    end Read_LSP_Number_Or_String;
 
-   ----------------------------
-   -- Read_LSP_String_Vector --
-   ----------------------------
-
-   procedure Read_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP_String_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      V.Clear;
-
-      if JS.R.Is_Start_Array then
-         JS.R.Read_Next;
-
-         while not JS.R.Is_End_Array loop
-            declare
-               Item : LSP_String;
-            begin
-               LSP.Types.Read (S, Item);
-               V.Append (Item);
-            end;
-         end loop;
-
-      elsif JS.R.Is_String_Value then
-         V.Append (To_LSP_String (JS.R.String_Value));
-      end if;
-
-      JS.R.Read_Next;
-   end Read_LSP_String_Vector;
-
    ---------------------------
    -- Read_Optional_Boolean --
    ---------------------------
@@ -985,26 +953,6 @@ package body LSP.Types is
          Write_String (S, V.String);
       end if;
    end Write_LSP_Number_Or_String;
-
-   -----------------------------
-   -- Write_LSP_String_Vector --
-   -----------------------------
-
-   procedure Write_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP_String_Vector)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Array;
-
-      for J in 1 .. V.Last_Index loop
-         JS.Write_String (V.Element (J));
-      end loop;
-
-      JS.End_Array;
-   end Write_LSP_String_Vector;
 
    ----------------------------
    -- Write_Number_Or_String --

@@ -28,7 +28,6 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
-with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
 with VSS.String_Vectors;
@@ -37,16 +36,11 @@ with VSS.Strings;
 with LSP.Commands;
 with LSP.Errors;
 with LSP.Generic_Optional;
-with LSP.Generic_Optional_With_Read_Write;
 with LSP.Generic_Sets;
 with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
@@ -85,19 +79,6 @@ package LSP.Messages is
    --export type decimal = number;
    --```
    subtype decimal is LSP.Types.LSP_Number;  --  FIXME
-
-   package Optional_LSP_String_Vectors is
-     new LSP.Generic_Optional (LSP_String_Vector);
-   type Optional_LSP_String_Vector is
-     new Optional_LSP_String_Vectors.Optional_Type;
-
-   package Optional_Virtual_String_Vectors is
-     new LSP.Generic_Optional_With_Read_Write
-       (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
-        Element_Read  => LSP.Types.Read_String_Vector,
-        Element_Write => LSP.Types.Write_String_Vector);
-   type Optional_Virtual_String_Vector is
-     new Optional_Virtual_String_Vectors.Optional_Type;
 
    --```typescript
    --interface Message {
@@ -5022,9 +5003,9 @@ package LSP.Messages is
    --}
    --```
    type CompletionOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      allCommitCharacters: Optional_LSP_String_Vector;
-      resolveProvider: LSP.Types.Optional_Boolean;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      allCommitCharacters : Optional_Virtual_String_Vector;
+      resolveProvider     : LSP.Types.Optional_Boolean;
    end record;
 
    procedure Read_CompletionOptions
@@ -5070,8 +5051,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      retriggerCharacters: Optional_LSP_String_Vector;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      retriggerCharacters : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_SignatureHelpOptions
@@ -6512,9 +6493,9 @@ package LSP.Messages is
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      allCommitCharacters: Optional_LSP_String_Vector;
-      resolveProvider: Optional_Boolean;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      allCommitCharacters : Optional_Virtual_String_Vector;
+      resolveProvider     : Optional_Boolean;
    end record;
 
    procedure Read_CompletionRegistrationOptions
@@ -6532,8 +6513,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      retriggerCharacters: Optional_LSP_String_Vector;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      retriggerCharacters : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_SignatureHelpRegistrationOptions
@@ -6577,7 +6558,7 @@ package LSP.Messages is
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
       firstTriggerCharacter : VSS.Strings.Virtual_String;
-      moreTriggerCharacter  : Optional_LSP_String_Vector;
+      moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_DocumentOnTypeFormattingRegistrationOptions
@@ -7621,7 +7602,7 @@ package LSP.Messages is
       insertTextMode      : Optional_InsertTextMode;
       textEdit            : Optional_TextEdit_Or_InsertReplaceEdit;
       additionalTextEdits : TextEdit_Vector;
-      commitCharacters    : Optional_LSP_String_Vector;
+      commitCharacters    : Optional_Virtual_String_Vector;
       command             : Optional_Command;
       data                : Optional_Location;
    end record;
