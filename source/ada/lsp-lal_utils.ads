@@ -295,14 +295,6 @@ package LSP.Lal_Utils is
    --  CompletionItem.documentation field. It currently returns the comments
    --  associated with the given basic decl and its location.
 
-   function To_Unbounded_Text_Type
-     (Item : LSP.Types.LSP_String)
-      return Langkit_Support.Text.Unbounded_Text_Type;
-   --  Converts a string from LSP_String to Unbounded_Text_Type. The intent
-   --  of this function is to convert names and small strings but not buffers.
-   --  It's dangerous to return a string when the string might be giant,
-   --  therefore, a buffer should not be passed to this function.
-
    function To_Virtual_String
      (Item : Langkit_Support.Text.Text_Type)
       return VSS.Strings.Virtual_String;
