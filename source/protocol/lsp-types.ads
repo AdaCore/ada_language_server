@@ -17,7 +17,7 @@
 
 --  This package provides basic types to implement Language Server Protocol.
 
-with Ada.Containers.Vectors;
+with Ada.Containers;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
@@ -100,26 +100,6 @@ package LSP.Types is
 
    Empty_LSP_String : constant LSP_String :=
      LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
-
-   package LSP_String_Vectors is
-     new Ada.Containers.Vectors (Positive, LSP_String, "=");
-
-   type LSP_String_Vector is new LSP_String_Vectors.Vector with null record;
-   --  Vector of strings
-
-   procedure Read_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP_String_Vector);
-
-   procedure Write_LSP_String_Vector
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP_String_Vector);
-
-   for LSP_String_Vector'Read use Read_LSP_String_Vector;
-   for LSP_String_Vector'Write use Write_LSP_String_Vector;
-
-   Empty_Vector : constant LSP_String_Vector :=
-     (LSP_String_Vectors.Vector with null record);
 
    procedure Read_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
