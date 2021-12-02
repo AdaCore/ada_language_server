@@ -306,7 +306,8 @@ package LSP.Types is
    for Nullable_String'Read use Read_Nullable_String;
    for Nullable_String'Write use Write_Nullable_String;
 
-   subtype MessageActionItem_Vector is LSP_String_Vector;
+   subtype MessageActionItem_Vector
+     is VSS.String_Vectors.Virtual_String_Vector;
 
    type Registration_Option_Kinds is
      (Absent,
