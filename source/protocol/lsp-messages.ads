@@ -86,11 +86,6 @@ package LSP.Messages is
    --```
    subtype decimal is LSP.Types.LSP_Number;  --  FIXME
 
-   package Optional_LSP_String_Vectors is
-     new LSP.Generic_Optional (LSP_String_Vector);
-   type Optional_LSP_String_Vector is
-     new Optional_LSP_String_Vectors.Optional_Type;
-
    package Optional_Virtual_String_Vectors is
      new LSP.Generic_Optional_With_Read_Write
        (Element_Type  => VSS.String_Vectors.Virtual_String_Vector,
