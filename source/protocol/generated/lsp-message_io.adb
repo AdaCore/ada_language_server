@@ -4552,9 +4552,9 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "triggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.triggerCharacters);
             elsif Key = "allCommitCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.allCommitCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.allCommitCharacters);
             elsif Key = "resolveProvider" then
                LSP.Types.Optional_Boolean'Read (S, V.resolveProvider);
             else
@@ -4576,9 +4576,9 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.triggerCharacters);
       JS.Key ("allCommitCharacters");
-      Optional_LSP_String_Vector'Write (S, V.allCommitCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.allCommitCharacters);
       JS.Key ("resolveProvider");
       LSP.Types.Optional_Boolean'Write (S, V.resolveProvider);
       JS.End_Object;
@@ -4603,9 +4603,9 @@ package body LSP.Message_IO is
             if Key = "workDoneProgress" then
                Optional_Boolean'Read (S, V.workDoneProgress);
             elsif Key = "triggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.triggerCharacters);
             elsif Key = "retriggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.retriggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.retriggerCharacters);
             else
                JS.Skip_Value;
             end if;
@@ -4625,9 +4625,9 @@ package body LSP.Message_IO is
       JS.Key ("workDoneProgress");
       Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.triggerCharacters);
       JS.Key ("retriggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.retriggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.retriggerCharacters);
       JS.End_Object;
    end Write_SignatureHelpOptions;
 
@@ -5982,9 +5982,9 @@ package body LSP.Message_IO is
             if Key = "documentSelector" then
                LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
             elsif Key = "triggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.triggerCharacters);
             elsif Key = "allCommitCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.allCommitCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.allCommitCharacters);
             elsif Key = "resolveProvider" then
                Optional_Boolean'Read (S, V.resolveProvider);
             else
@@ -6006,9 +6006,9 @@ package body LSP.Message_IO is
       JS.Key ("documentSelector");
       LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
       JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.triggerCharacters);
       JS.Key ("allCommitCharacters");
-      Optional_LSP_String_Vector'Write (S, V.allCommitCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.allCommitCharacters);
       JS.Key ("resolveProvider");
       Optional_Boolean'Write (S, V.resolveProvider);
       JS.End_Object;
@@ -6033,9 +6033,9 @@ package body LSP.Message_IO is
             if Key = "documentSelector" then
                LSP.Messages.DocumentSelector'Read (S, V.documentSelector);
             elsif Key = "triggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.triggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.triggerCharacters);
             elsif Key = "retriggerCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.retriggerCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.retriggerCharacters);
             else
                JS.Skip_Value;
             end if;
@@ -6055,9 +6055,9 @@ package body LSP.Message_IO is
       JS.Key ("documentSelector");
       LSP.Messages.DocumentSelector'Write (S, V.documentSelector);
       JS.Key ("triggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.triggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.triggerCharacters);
       JS.Key ("retriggerCharacters");
-      Optional_LSP_String_Vector'Write (S, V.retriggerCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.retriggerCharacters);
       JS.End_Object;
    end Write_SignatureHelpRegistrationOptions;
 
@@ -6125,7 +6125,7 @@ package body LSP.Message_IO is
             elsif Key = "firstTriggerCharacter" then
                LSP.Types.Read_String (S, V.firstTriggerCharacter);
             elsif Key = "moreTriggerCharacter" then
-               Optional_LSP_String_Vector'Read (S, V.moreTriggerCharacter);
+               Optional_Virtual_String_Vector'Read (S, V.moreTriggerCharacter);
             else
                JS.Skip_Value;
             end if;
@@ -6147,7 +6147,7 @@ package body LSP.Message_IO is
       JS.Key ("firstTriggerCharacter");
       LSP.Types.Write_String (S, V.firstTriggerCharacter);
       JS.Key ("moreTriggerCharacter");
-      Optional_LSP_String_Vector'Write (S, V.moreTriggerCharacter);
+      Optional_Virtual_String_Vector'Write (S, V.moreTriggerCharacter);
       JS.End_Object;
    end Write_DocumentOnTypeFormattingRegistrationOptions;
 
@@ -7060,7 +7060,7 @@ package body LSP.Message_IO is
             elsif Key = "additionalTextEdits" then
                TextEdit_Vector'Read (S, V.additionalTextEdits);
             elsif Key = "commitCharacters" then
-               Optional_LSP_String_Vector'Read (S, V.commitCharacters);
+               Optional_Virtual_String_Vector'Read (S, V.commitCharacters);
             elsif Key = "command" then
                Optional_Command'Read (S, V.command);
             elsif Key = "data" then
@@ -7110,7 +7110,7 @@ package body LSP.Message_IO is
       JS.Key ("additionalTextEdits");
       TextEdit_Vector'Write (S, V.additionalTextEdits);
       JS.Key ("commitCharacters");
-      Optional_LSP_String_Vector'Write (S, V.commitCharacters);
+      Optional_Virtual_String_Vector'Write (S, V.commitCharacters);
       JS.Key ("command");
       Optional_Command'Write (S, V.command);
       JS.Key ("data");

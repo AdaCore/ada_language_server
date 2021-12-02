@@ -5022,9 +5022,9 @@ package LSP.Messages is
    --}
    --```
    type CompletionOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      allCommitCharacters: Optional_LSP_String_Vector;
-      resolveProvider: LSP.Types.Optional_Boolean;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      allCommitCharacters : Optional_Virtual_String_Vector;
+      resolveProvider     : LSP.Types.Optional_Boolean;
    end record;
 
    procedure Read_CompletionOptions
@@ -5070,8 +5070,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpOptions is new WorkDoneProgressOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      retriggerCharacters: Optional_LSP_String_Vector;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      retriggerCharacters : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_SignatureHelpOptions
@@ -6512,9 +6512,9 @@ package LSP.Messages is
    --}
    --```
    type CompletionRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      allCommitCharacters: Optional_LSP_String_Vector;
-      resolveProvider: Optional_Boolean;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      allCommitCharacters : Optional_Virtual_String_Vector;
+      resolveProvider     : Optional_Boolean;
    end record;
 
    procedure Read_CompletionRegistrationOptions
@@ -6532,8 +6532,8 @@ package LSP.Messages is
    --}
    --```
    type SignatureHelpRegistrationOptions is new TextDocumentRegistrationOptions with record
-      triggerCharacters: Optional_LSP_String_Vector;
-      retriggerCharacters: Optional_LSP_String_Vector;
+      triggerCharacters   : Optional_Virtual_String_Vector;
+      retriggerCharacters : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_SignatureHelpRegistrationOptions
@@ -6577,7 +6577,7 @@ package LSP.Messages is
    --```
    type DocumentOnTypeFormattingRegistrationOptions is new TextDocumentRegistrationOptions with record
       firstTriggerCharacter : VSS.Strings.Virtual_String;
-      moreTriggerCharacter  : Optional_LSP_String_Vector;
+      moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
 
    procedure Read_DocumentOnTypeFormattingRegistrationOptions
@@ -7621,7 +7621,7 @@ package LSP.Messages is
       insertTextMode      : Optional_InsertTextMode;
       textEdit            : Optional_TextEdit_Or_InsertReplaceEdit;
       additionalTextEdits : TextEdit_Vector;
-      commitCharacters    : Optional_LSP_String_Vector;
+      commitCharacters    : Optional_Virtual_String_Vector;
       command             : Optional_Command;
       data                : Optional_Location;
    end record;

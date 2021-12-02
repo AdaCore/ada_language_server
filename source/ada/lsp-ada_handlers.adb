@@ -15,6 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+pragma Warnings (Off);
+pragma Ada_2020;
+pragma Ada_2022;
+pragma Warnings (On);
+--  Different versions of the GNAT compiler use different names for this
+--  pragma.
+
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
@@ -29,6 +36,7 @@ with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
+with VSS.Characters.Latin;
 with VSS.Strings;
 with VSS.Strings.Conversions;
 
@@ -111,7 +119,7 @@ package body LSP.Ada_Handlers is
 
    Line_Feed : constant Wide_Wide_Character :=
      Ada.Characters.Wide_Wide_Latin_1.LF;
-   Backspace : constant Character := Ada.Characters.Latin_1.BS;
+   --  Backspace : constant Character := Ada.Characters.Latin_1.BS;
 
    function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
      return LSP.Types.LSP_String renames
@@ -657,19 +665,24 @@ package body LSP.Ada_Handlers is
    is
       use all type LSP.Types.Optional_Boolean;
 
-      Value           : LSP.Messages.InitializeParams renames Request.params;
-      Code_Action     : LSP.Messages.Optional_CodeActionClientCapabilities
+      Value            : LSP.Messages.InitializeParams renames Request.params;
+      Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
         renames Value.capabilities.textDocument.codeAction;
-      Has_Rename      : LSP.Messages.Optional_RenameClientCapabilities renames
+      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities renames
         Value.capabilities.textDocument.rename;
       Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
         Value.capabilities.experimental;
-      Response        : LSP.Messages.Server_Responses.Initialize_Response
+      Response         : LSP.Messages.Server_Responses.Initialize_Response
         (Is_Error => False);
-      Root            : VSS.Strings.Virtual_String;
-      codeActionKinds : LSP.Messages.CodeActionKindSet;
+      Root             : VSS.Strings.Virtual_String;
+      codeActionKinds  : LSP.Messages.CodeActionKindSet;
+      Backspace_String : VSS.Strings.Virtual_String;
+      Retrigger_Vector : VSS.String_Vectors.Virtual_String_Vector;
 
    begin
+      Backspace_String.Append (VSS.Characters.Latin.Backspace);
+      Retrigger_Vector.Append (Backspace_String);
+
       Response.result.capabilities.declarationProvider :=
         (Is_Set => True,
          Value => (Is_Boolean => True, Bool => True));
@@ -724,15 +737,13 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Full));
       Response.result.capabilities.signatureHelpProvider :=
         (True,
-         (triggerCharacters   => (True, Empty_Vector & (+",") & (+"(")),
-          retriggerCharacters => (True, Empty_Vector & (+(1 => Backspace))),
+         (triggerCharacters   => (True, (",", "(")),
+          retriggerCharacters => (True, Retrigger_Vector),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
          (resolveProvider     => LSP.Types.True,
-          triggerCharacters   => (True,
-                                  Empty_Vector & (+".")
-                                  & (+",") & (+"'") & (+"(")),
+          triggerCharacters   => (True, (".", ",", "'", "(")),
           allCommitCharacters => (Is_Set => False),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.hoverProvider :=
