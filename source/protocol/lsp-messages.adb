@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.UTF_Encoding;
 with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 
@@ -3516,7 +3517,8 @@ package body LSP.Messages is
          Write_String
            (JS,
             "command",
-            +Ada.Tags.External_Tag (V.Custom.Unchecked_Get'Tag));
+            VSS.Strings.Conversions.To_Virtual_String
+              (Ada.Tags.External_Tag (V.Custom.Unchecked_Get'Tag)));
          JS.Key ("arguments");
          JS.Start_Array;
          Temp := LSP.Commands.Command_Access (V.Custom.Unchecked_Get);
@@ -4107,7 +4109,7 @@ package body LSP.Messages is
             Write_Number_Or_String (JS, "token", V.Begin_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, "kind", +"begin");
+            Write_String (JS, "kind", "begin");
             Write_String (JS, "title", V.Begin_Param.value.title);
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Begin_Param.value.cancellable);
@@ -4120,7 +4122,7 @@ package body LSP.Messages is
             Write_Number_Or_String (JS, "token", V.Report_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, "kind", +"report");
+            Write_String (JS, "kind", "report");
             Write_Optional_Boolean (JS, "cancellable",
                                     V.Report_Param.value.cancellable);
             JS.Key ("message");
@@ -4132,7 +4134,7 @@ package body LSP.Messages is
             Write_Number_Or_String (JS, "token", V.End_Param.token);
             JS.Key ("value");
             JS.Start_Object;
-            Write_String (JS, "kind", +"end");
+            Write_String (JS, "kind", "end");
             JS.Key ("message");
             Optional_Virtual_String'Write (S, V.End_Param.value.message);
             JS.End_Object;

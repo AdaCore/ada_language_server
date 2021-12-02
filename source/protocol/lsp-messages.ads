@@ -28,7 +28,6 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Multiway_Trees;
 with Ada.Streams;
-with Ada.Strings.UTF_Encoding;
 with Ada.Tags;
 
 with VSS.String_Vectors;
@@ -42,10 +41,6 @@ with LSP.Generic_Vectors;
 with LSP.Types; use LSP.Types;
 
 package LSP.Messages is
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-      return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    pragma Style_Checks ("M175-bcht");
    --  Disable style checks, because some TypeScript snippets are too wide.
