@@ -154,7 +154,7 @@ package body Tester.Tests is
       use type Ada.Calendar.Time;
 
       Request : constant GNATCOLL.JSON.JSON_Value := Command.Get ("request");
-      Wait    : constant GNATCOLL.JSON.JSON_Array := Command.Get ("wait").Get;
+      Wait    : constant GNATCOLL.JSON.JSON_Array := Get (Command, "wait");
       Sort    : constant GNATCOLL.JSON.JSON_Value := Command.Get ("sortReply");
 
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
@@ -404,7 +404,7 @@ package body Tester.Tests is
          end if;
       end Program_Name;
 
-      Command_Line : constant JSON_Array := Command.Get ("cmd").Get;
+      Command_Line : constant JSON_Array := Get (Command.Get ("cmd"));
       ALS_Var      : constant GNAT.OS_Lib.String_Access := Getenv ("ALS");
       ALS_Exe      : constant String :=
         (if ALS_Var /= null then ALS_Var.all else "");
@@ -461,7 +461,7 @@ package body Tester.Tests is
 
       Exit_Code   : constant Spawn.Processes.Process_Exit_Code :=
         Spawn.Processes.Process_Exit_Code
-          (Integer'(Command.Get ("exit_code").Get));
+          (Integer'(Get (Get (Command, "exit_code"))));
       Stop_Client : constant GNATCOLL.JSON.JSON_Value :=
         Command.Get ("close_stdin");
 

@@ -43,7 +43,7 @@ project LSP_Server is
    for Main use ("lsp-ada_driver.adb");
 
    package Compiler is
-      for Default_Switches ("Ada") use LSP.Ada_Switches;
+      for Default_Switches ("Ada") use LSP.Compiler'Default_Switches ("Ada");
       for Switches ("lsp-ada_driver.adb") use
         LSP.Ada_Switches & ("-gnateDVERSION=""" & VERSION & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");

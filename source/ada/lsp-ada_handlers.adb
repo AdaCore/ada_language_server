@@ -15,13 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
-pragma Ada_2020;
-pragma Ada_2022;
-pragma Warnings (On);
---  Different versions of the GNAT compiler use different names for this
---  pragma.
-
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
@@ -111,10 +104,10 @@ package body LSP.Ada_Handlers is
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
-      As_Flags => (LSP.Messages.Parent => True, others => False));
+      As_Flags => [LSP.Messages.Parent => True, others => False]);
    Is_Child : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
-      As_Flags => (LSP.Messages.Child => True, others => False));
+      As_Flags => [LSP.Messages.Child => True, others => False]);
    --  Convenient constants
 
    Line_Feed : constant Wide_Wide_Character :=
@@ -554,7 +547,7 @@ package body LSP.Ada_Handlers is
 
       Load_Empty_Project
         (Self.Project_Tree.all, Self.Project_Environment);
-      Attr := (1 => new String'("Ada"));
+      Attr := [1 => new String'("Ada")];
       Set_Attribute
         (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
       GNAT.Strings.Free (Attr (1));
@@ -737,13 +730,13 @@ package body LSP.Ada_Handlers is
                LSP.Messages.Full));
       Response.result.capabilities.signatureHelpProvider :=
         (True,
-         (triggerCharacters   => (True, (",", "(")),
+         (triggerCharacters   => (True, [",", "("]),
           retriggerCharacters => (True, Retrigger_Vector),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.completionProvider :=
         (True,
          (resolveProvider     => LSP.Types.True,
-          triggerCharacters   => (True, (".", ",", "'", "(")),
+          triggerCharacters   => (True, [".", ",", "'", "("]),
           allCommitCharacters => (Is_Set => False),
           workDoneProgress    => LSP.Types.None));
       Response.result.capabilities.hoverProvider :=
@@ -775,7 +768,7 @@ package body LSP.Ada_Handlers is
 
       Response.result.capabilities.alsReferenceKinds :=
         (Is_Set => True,
-         Value  => (Is_Server_Side => True, As_Flags => (others => True)));
+         Value  => (Is_Server_Side => True, As_Flags => [others => True]));
 
       Response.result.capabilities.foldingRangeProvider :=
         (Is_Set => True,
@@ -2441,7 +2434,7 @@ package body LSP.Ada_Handlers is
       Imprecise  : Boolean := False;
 
       Additional_Kinds : LSP.Messages.AlsReferenceKind_Array :=
-        (others => False);
+        [others => False];
 
       procedure Process_Context (C : Context_Access);
       --  Process the references found in one context and append
@@ -3435,18 +3428,18 @@ package body LSP.Ada_Handlers is
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
             Relocate := Create_From_UTF8
-              (To_UTF_8_String (+Ada.Get (relocateBuildTree).Get));
+              (To_UTF_8_String (+Get (Get (Ada, relocateBuildTree))));
          end if;
 
          if Ada.Has_Field (rootDir) then
             Root := Create_From_UTF8
-              (To_UTF_8_String (+Ada.Get (rootDir).Get));
+              (To_UTF_8_String (+Get (Get (Ada, rootDir))));
          end if;
 
          if Ada.Has_Field (projectFile) then
             File :=
               VSS.Strings.Conversions.To_Virtual_String
-                (String'(Ada.Get (projectFile).Get));
+                (String'(Get (Get (Ada, projectFile))));
 
             --  Drop uri scheme if present
             if File.Starts_With ("file:") then
@@ -4176,14 +4169,14 @@ package body LSP.Ada_Handlers is
            Compute_Doc_And_Details => Compute_Doc_And_Details);
 
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
-        (P1'Unchecked_Access,
+        [P1'Unchecked_Access,
          P2'Unchecked_Access,
          P3'Unchecked_Access,
          P4'Unchecked_Access,
          P5'Unchecked_Access,
          P6'Unchecked_Access,
          P7'Unchecked_Access,
-         P8'Unchecked_Access);
+         P8'Unchecked_Access];
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
@@ -4961,7 +4954,7 @@ package body LSP.Ada_Handlers is
       return Experimental_Client_Capabilities is
    begin
       return Result : Experimental_Client_Capabilities :=
-               (Advanced_Refactorings => (others => False))
+               (Advanced_Refactorings => [others => False])
       do
          if Value.Is_Set then
             if Value.Value.

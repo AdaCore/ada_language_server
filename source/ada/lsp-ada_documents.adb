@@ -1517,11 +1517,12 @@ package body LSP.Ada_Documents is
                Names : constant Defining_Name_List := Param.F_Ids;
                Init  : constant Expr := Param.F_Default_Expr;
                Item  : VSS.Strings.Virtual_String;
+               Mode  : constant Ada_Mode := Param.F_Mode;
 
             begin
                Item.Append (" :");
 
-               case Param.F_Mode is
+               case Mode is
                   when Ada_Mode_Default | Ada_Mode_In =>
                      Item.Append (" in ");
                   when Ada_Mode_In_Out =>
@@ -2099,8 +2100,9 @@ package body LSP.Ada_Documents is
                      Inserted);
 
                   Self.Symbol_Cache (Cursor).Append
-                    ((Node.As_Defining_Name,
-                     Global_Visible.Unchecked_Get.Evaluate (Node)));
+                    (Name_Information'
+                       (Node.As_Defining_Name,
+                        Global_Visible.Unchecked_Get.Evaluate (Node)));
                end if;
             end;
          end loop;

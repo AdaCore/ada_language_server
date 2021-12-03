@@ -232,9 +232,10 @@ package body LSP.Ada_File_Sets is
                   Inserted);
 
                Self.All_Symbols (Cursor).Append
-                 ((File,
-                   Start_Sloc,
-                   Global_Visible.Unchecked_Get.Evaluate (Node)));
+                 (Name_Information'
+                    (File,
+                     Start_Sloc,
+                     Global_Visible.Unchecked_Get.Evaluate (Node)));
             end if;
          end;
       end loop;
