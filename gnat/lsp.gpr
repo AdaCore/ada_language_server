@@ -56,23 +56,29 @@ project LSP is
 
    -- Compute the list of default switches to build Ada unit
 
+   Common_Ada_Switches := (
+      --  Generate debug information even in production: this is useful to
+      --  get meaningful tracebacks.
+      "-g",
+
+      --  Compile with "-gnatX" to support the "[]" syntax for array
+      --  aggregates: this is the common ground between all compilers
+      --  commonly used to build the language server.
+      "-gnatX");
+
    Ada_Switches := ();
    case Build_Mode is
       when "prod" =>
          Ada_Switches := (
             --  Compile with optimizations
-            "-O2",
-
-            --  Generate debug information: this is useful to get meaningful
-            --  tracebacks.
-            "-g"
+            "-O2"
          );
 
       when "dev" =>
          Ada_Switches := (
             --  Compile with no optimization and with debug information to ease
             --  investigation in debuggers.
-            "-O0", "-g",
+            "-O0",
 
             --  Enable all warnings and GNAT stylechecks (plus O: check for
             --  overriding indicators).
@@ -84,7 +90,6 @@ project LSP is
             --  Enable stack overflow checks
             "-fstack-check"
          );
-
    end case;
 
    case Warnings_As_Errors is
@@ -93,7 +98,7 @@ project LSP is
    end case;
 
    package Compiler is
-      for Default_Switches ("Ada") use Ada_Switches;
+      for Default_Switches ("Ada") use Common_Ada_Switches & Ada_Switches;
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
 
