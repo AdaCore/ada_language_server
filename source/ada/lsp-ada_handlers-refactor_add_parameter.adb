@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
@@ -160,8 +159,8 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
             Langkit_Support.Slocs.Column_Number
               (Self.Where.span.first.character) + 1),
          New_Parameter =>
-           Ada.Strings.Unbounded.To_Unbounded_String
-             (VSS.Strings.Conversions.To_UTF_8_String (Self.New_Parameter)));
+           VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+             (Self.New_Parameter));
 
       Edits := Adder.Refactor (Analysis_Units'Access);
 
