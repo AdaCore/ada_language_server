@@ -871,8 +871,8 @@ package body LSP.Clients is
          declare
             Position : constant Notification_Maps.Cursor :=
               Self.Notif_Decoders.Find
-                (Ada.Strings.Unbounded.To_Unbounded_String
-                   (VSS.Strings.Conversions.To_UTF_8_String (Method.Value)));
+                (VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+                   (Method.Value));
 
          begin
             if Notification_Maps.Has_Element (Position) then

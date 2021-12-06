@@ -3200,9 +3200,8 @@ package body LSP.Ada_Handlers is
                   then
                      Text_Edit.Location := This_Span;
                      Text_Edit.Text :=
-                       To_Unbounded_String
-                         (VSS.Strings.Conversions.To_UTF_8_String
-                            (Value.newName));
+                       VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+                         (Value.newName);
 
                      if Diff /= 0
                        and then Laltools.Common.Contains
