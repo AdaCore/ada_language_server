@@ -30,8 +30,9 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with VSS.Characters.Latin;
-with VSS.Strings;
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
+with VSS.Unicode;
 
 with LSP.Ada_Documents;        use LSP.Ada_Documents;
 with LSP.Search;               use LSP.Search;
@@ -2701,7 +2702,7 @@ package body LSP.Ada_Handlers is
 
       function Is_Signature_Active
         (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : LSP.Types.LSP_String;
+         Sig_Label       : VSS.Strings.Virtual_String;
          Position        : LSP.Types.LSP_Number;
          Designator      : Libadalang.Analysis.Ada_Node;
          Active_Position : out LSP.Types.LSP_Number)
@@ -2763,7 +2764,7 @@ package body LSP.Ada_Handlers is
       begin
          if Is_Signature_Active
            (Parameters      => Signature_Info.parameters,
-            Sig_Label       => To_LSP_String (Signature_Info.label),
+            Sig_Label       => Signature_Info.label,
             Position        => Position,
             Designator      => Designator,
             Active_Position => Active_Position)
@@ -2787,13 +2788,11 @@ package body LSP.Ada_Handlers is
 
       function Is_Signature_Active
         (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : LSP.Types.LSP_String;
+         Sig_Label       : VSS.Strings.Virtual_String;
          Position        : LSP.Types.LSP_Number;
          Designator      : Libadalang.Analysis.Ada_Node;
          Active_Position : out LSP.Types.LSP_Number)
-         return Boolean
-      is
-         use VSS.Strings;
+         return Boolean is
       begin
          Active_Position := 0;
          if Designator = No_Ada_Node then
@@ -2803,27 +2802,55 @@ package body LSP.Ada_Handlers is
             return Position < LSP_Number (Parameters.Length);
          else
             declare
-               Name : constant Virtual_String :=
+               Name : constant VSS.Strings.Virtual_String :=
                  LSP.Lal_Utils.To_Virtual_String (Designator.Text);
-               Converted_Name : constant LSP_String :=
-                 LSP.Types.To_LSP_String (Name);
+
             begin
                for Param of Parameters loop
-                  --  Convert to lower case?
-                  if Param.label.Is_String then
-                     if Param.label.String = Name then
-                        return True;
+                  declare
+                     use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+                     First   :
+                       VSS.Strings.Character_Iterators.Character_Iterator
+                         := Sig_Label.First_Character;
+                     Last    :
+                       VSS.Strings.Character_Iterators.Character_Iterator
+                         := Sig_Label.First_Character;
+                     Success : Boolean with Unreferenced;
+
+                  begin
+                     --  Convert to lower case?
+                     if Param.label.Is_String then
+                        if Param.label.String = Name then
+                           return True;
+                        end if;
+
+                     else
+                        while First.First_UTF16_Offset < Param.label.From
+                          and then First.Forward
+                        loop
+                           null;
+                        end loop;
+
+                        --  'till' is exclusive offset, thus lookup for it
+                        --  location and move backward to point to last
+                        --  character of the slice
+
+                        while Last.First_UTF16_Offset < Param.label.Till
+                          and then Last.Forward
+                        loop
+                           null;
+                        end loop;
+
+                        Success := Last.Backward;
+
+                        if Sig_Label.Slice (First, Last) = Name then
+                           return True;
+                        end if;
                      end if;
-                  else
-                     if Slice (Sig_Label,
-                               Integer (Param.label.From),
-                               Integer (Param.label.Till))
-                       = Converted_Name
-                     then
-                        return True;
-                     end if;
-                  end if;
-                  Active_Position := Active_Position + 1;
+
+                     Active_Position := Active_Position + 1;
+                  end;
                end loop;
             end;
          end if;
