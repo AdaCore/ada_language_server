@@ -2297,27 +2297,28 @@ package body LSP.Ada_Handlers is
       end Callback;
 
    begin
-      Self.Imprecise_Resolve_Name (Context, Value, Definition);
+      if Document /= null then
+         Self.Imprecise_Resolve_Name (Context, Value, Definition);
 
-      if Definition = No_Defining_Name or else Request.Canceled then
-         return Response;
+         if Definition = No_Defining_Name or else Request.Canceled then
+            return Response;
+         end if;
+
+         --  Find all references will return all the references except the
+         --  declaration ...
+         Document.Find_All_References
+           (Context    => Context.all,
+            Definition => Definition,
+            Callback   => Callback'Access);
+
+         --  ... add it manually
+         Append_Location
+           (Result   => Response.result,
+            Document => Document,
+            File     => File,
+            Node     => Definition,
+            Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
       end if;
-
-      --  Find all references will return all the references except the
-      --  declaration ...
-      Document.Find_All_References
-        (Context    => Context.all,
-         Definition => Definition,
-         Callback   => Callback'Access);
-
-      --  ... add it manually
-      Append_Location
-        (Result   => Response.result,
-         Document => Document,
-         File     => File,
-         Node     => Definition,
-         Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
-
       return Response;
    end On_Highlight_Request;
 
