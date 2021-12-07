@@ -114,10 +114,6 @@ package body LSP.Ada_Handlers is
      Ada.Characters.Wide_Wide_Latin_1.LF;
    --  Backspace : constant Character := Ada.Characters.Latin_1.BS;
 
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
-
    procedure Log_Imprecise_Xref_Message
      (Self     : access Message_Handler;
       URI      : LSP.Messages.DocumentUri;
@@ -606,8 +602,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Trace.Trace ("Project loading ...");
-      Self.Trace.Trace ("Root : " & To_UTF_8_String
-                        (+Self.Root.Display_Full_Name));
+      Self.Trace.Trace ("Root : " & Self.Root.Display_Full_Name);
 
       --  We're going to look for a project in Root: list all the files
       --  in this directory, looking for .gpr files.
@@ -3426,13 +3421,11 @@ package body LSP.Ada_Handlers is
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
-            Relocate := Create_From_UTF8
-              (To_UTF_8_String (+Get (Get (Ada, relocateBuildTree))));
+            Relocate := Create_From_UTF8 (Get (Get (Ada, relocateBuildTree)));
          end if;
 
          if Ada.Has_Field (rootDir) then
-            Root := Create_From_UTF8
-              (To_UTF_8_String (+Get (Get (Ada, rootDir))));
+            Root := Create_From_UTF8 (Get (Get (Ada, rootDir)));
          end if;
 
          if Ada.Has_Field (projectFile) then
