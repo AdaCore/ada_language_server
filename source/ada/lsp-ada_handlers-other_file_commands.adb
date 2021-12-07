@@ -44,7 +44,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                JS.R.Read_Next;
 
                if Key = "uri" then
-                  LSP.Types.Read (JS, V.URI);
+                  LSP.Types.Read_LSP_URI (JS, V.URI);
                else
                   JS.Skip_Value;
                end if;
@@ -113,7 +113,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.URI);
+      LSP.Types.Write_LSP_URI (S, V.URI);
       JS.End_Object;
    end Write_Command;
 

@@ -932,6 +932,8 @@ package body LSP.Lal_Utils is
       Rename              : Boolean := False)
       return LSP.Messages.WorkspaceEdit
    is
+      use type VSS.Strings.Virtual_String;
+
       File_URI : LSP.Types.LSP_URI;
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
@@ -1061,7 +1063,10 @@ package body LSP.Lal_Utils is
                    Rename_File => LSP.Messages.RenameFile'
                      (oldUri       => File_URI,
                       newUri       =>
-                        (if Rename then File_URI & ".bak" else File_URI),
+                        (if Rename
+                         then LSP.Types.To_LSP_URI
+                           (LSP.Types.To_Virtual_String (File_URI) & ".bak")
+                         else File_URI),
                       others => <>))));
 
                Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);

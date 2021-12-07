@@ -16,16 +16,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Strings.UTF_Encoding.Wide_Strings;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
-with Ada.Unchecked_Deallocation;
+with Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash;
 with Interfaces;
 
 with VSS.JSON.Pull_Readers;
-with VSS.Characters;
 with VSS.Strings.Conversions;
-with VSS.Strings.Character_Iterators;
 
 with LSP.JSON_Streams;
 
@@ -50,6 +46,17 @@ package body LSP.Types is
       return Id.Is_Number or else not Id.String.Is_Empty;
    end Assigned;
 
+   -----------
+   -- Equal --
+   -----------
+
+   function Equal (Left, Right : LSP_URI) return Boolean is
+      use type VSS.Strings.Virtual_String;
+
+   begin
+      return Left.URI = Right.URI;
+   end Equal;
+
    -----------------
    -- File_To_URI --
    -----------------
@@ -58,7 +65,7 @@ package body LSP.Types is
       Result : constant URIs.URI_String :=
         URIs.Conversions.From_File (File);
    begin
-      return LSP.Types.To_LSP_String (Result);
+      return (URI => VSS.Strings.Conversions.To_Virtual_String (Result));
    end File_To_URI;
 
    function File_To_URI (File : Ada.Strings.Unbounded.Unbounded_String)
@@ -96,20 +103,23 @@ package body LSP.Types is
    end Hash;
 
    ----------
-   -- Read --
+   -- Hash --
    ----------
 
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Types.LSP_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   function Hash (Item : LSP_URI) return Ada.Containers.Hash_Type is
+     (Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash
+        (VSS.Strings.Conversions.To_Wide_Wide_String (Item.URI)));
+
+   ------------------
+   -- Read_LSP_URI --
+   ------------------
+
+   procedure Read_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out LSP_URI) is
    begin
-      pragma Assert (JS.R.Is_String_Value);
-      V := To_LSP_String (JS.R.String_Value);
-      JS.R.Read_Next;
-   end Read;
+      Read_String (S, Item.URI);
+   end Read_LSP_URI;
 
    -----------------
    -- Read_String --
@@ -482,233 +492,14 @@ package body LSP.Types is
       Stream.R.Read_Next;
    end Read_UTF16_Code_Unit_Count;
 
-   -------------------
-   -- To_LSP_String --
-   -------------------
+   ----------------
+   -- To_LSP_URI --
+   ----------------
 
-   function To_LSP_String
-     (Item : VSS.Strings.Virtual_String) return LSP_String
-   is
-      --  It is temporary conversion function to process data without use of
-      --  primary stack, thus to prevent crashes on conversion of big data.
-      --  It takes into account that content of Virtual_String is always valid,
-      --  there are no any checks for invalid ranges of code points here.
-
-      procedure Free is
-        new Ada.Unchecked_Deallocation
-          (Wide_String, Ada.Strings.Wide_Unbounded.Wide_String_Access);
-
-      High_Surrogate_First : constant := 16#D800#;
-      Low_Surrogate_First  : constant := 16#DC00#;
-
-      High_Surrogate_First_Store : constant
-        := High_Surrogate_First - 16#1_0000# / 16#400#;
-      --  Code point is converted to surrogate pair as:
-      --
-      --  S (J)     := HB + (C - 0x10000) >> 10
-      --  S (J + 1) := LB + (C - 0x10000) & 0x3FF
-      --
-      --  to optimize implementation they are rewritten as:
-      --
-      --  S (J + 1) := LB + C & 0x3FF
-      --  S (J)     := (HB - 0x10000 >> 10) + C >> 10
-      --               ^^^^^^^^^^^^^^^^^^^^
-      --  This constant represents constant part of the expression.
-
-      Aux      : Ada.Strings.Wide_Unbounded.Wide_String_Access :=
-        new Wide_String (1 .. Natural (Item.Character_Length) * 2);
-      --  Abstract character can occupi up to two code units in UTF-16
-      --  encoding. Reserve enought space to avoid reallocations.
-      Last     : Natural := 0;
-      Position : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Item.First_Character;
-
+   function To_LSP_URI (Item : VSS.Strings.Virtual_String) return LSP_URI is
    begin
-      if not Position.Has_Element then
-         Free (Aux);
-
-         return Empty_LSP_String;
-      end if;
-
-      loop
-         declare
-            use type VSS.Unicode.Code_Point;
-
-            C : constant VSS.Unicode.Code_Point :=
-              VSS.Characters.Virtual_Character'Pos (Position.Element);
-
-         begin
-            if C <= 16#FFFF# then
-               Last := Last + 1;
-               Aux (Last) := Wide_Character'Val (C);
-
-            else
-               Last := Last + 1;
-               Aux (Last) :=
-                 Wide_Character'Val
-                   (High_Surrogate_First_Store + C / 16#400#);
-               Last := Last + 1;
-               Aux (Last) :=
-                 Wide_Character'Val (Low_Surrogate_First + C mod 16#400#);
-            end if;
-
-            exit when not Position.Forward;
-         end;
-      end loop;
-
-      return Result : LSP_String do
-         Set_Unbounded_Wide_String (Result, Aux (1 .. Last));
-         Free (Aux);
-      end return;
-
-   exception
-      when others =>
-         Free (Aux);
-
-         raise;
-   end To_LSP_String;
-
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP_String is
-      UTF_16 : constant Wide_String :=
-        Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Text);
-   begin
-      return To_Unbounded_Wide_String (UTF_16);
-   end To_LSP_String;
-
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
-     (Text : Wide_Wide_String) return LSP_String
-   is
-      UTF_16 : constant Wide_String :=
-        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Text);
-   begin
-      return To_Unbounded_Wide_String (UTF_16);
-   end To_LSP_String;
-
-   ---------------------
-   -- To_UTF_8_String --
-   ---------------------
-
-   function To_UTF_8_String (Value : LSP_String)
-     return Ada.Strings.UTF_Encoding.UTF_8_String
-   is
-      Wide : constant Wide_String := To_Wide_String (Value);
-   begin
-      return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
-   end To_UTF_8_String;
-
-   -----------------------
-   -- To_Virtual_String --
-   -----------------------
-
-   function To_Virtual_String
-     (Item : LSP_String) return VSS.Strings.Virtual_String
-   is
-      High_Surrogate_First  : constant := 16#D800#;
-      Low_Surrogate_First   : constant := 16#DC00#;
-      Surrogate_Kind_Mask   : constant := 16#FC00#;
-      Masked_High_Surrogate : constant := 16#D800#;
-
-      UCS4_Fixup : constant
-        := High_Surrogate_First * 16#400# + Low_Surrogate_First - 16#1_0000#;
-      --  When code point is encoded as pair of surrogates its value computed
-      --  as:
-      --
-      --    C := (S (J) - HB) << 10 + S (J + 1) - LB + 0x10000
-      --
-      --  to optimize number of computations this expression is transformed to
-      --
-      --    C := S (J) << 10 + S (J + 1) - (HB << 10 + LB - 0x10000)
-      --                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
-      --  This constant represents constant part of the expression.
-
-      Aux   : Ada.Strings.Unbounded.String_Access :=
-        new String (1 .. Length (Item) * 4);
-      Last  : Natural := 0;
-      Index : Positive := 1;
-
-   begin
-      while Index <= Length (Item) loop
-         declare
-            use type VSS.Unicode.Code_Point;
-
-            C : VSS.Unicode.Code_Point :=
-              Wide_Character'Pos (Element (Item, Index));
-
-         begin
-            Index := Index + 1;
-
-            if (C and Surrogate_Kind_Mask) = Masked_High_Surrogate then
-               C :=
-                 C * 16#400#
-                 + Wide_Character'Pos (Element (Item, Index))
-                 - UCS4_Fixup;
-               Index := Index + 1;
-            end if;
-
-            case C is
-               when 16#0000# .. 16#007F# =>
-                  Last := Last + 1;
-                  Aux (Last) := Character'Val (C);
-
-               when 16#0080# .. 16#07FF# =>
-                  Last := Last + 1;
-                  Aux (Last) := Character'Val (2#11000000# or (C / 16#40#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val (2#10000000# or (C and 2#00111111#));
-
-               when 16#0800# .. 16#FFFF# =>
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val (2#11100000# or (C / 16#1000#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val
-                      (2#10000000# or ((C / 16#40#) and 2#00111111#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val (2#10000000# or (C and 2#00111111#));
-
-               when 16#01_0000# .. 16#10_FFFF# =>
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val (2#11110000# or (C / 16#4_0000#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val
-                      (2#10000000# or ((C / 16#1000#) and 2#00111111#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val
-                      (2#10000000# or ((C / 16#40#) and 2#00111111#));
-                  Last := Last + 1;
-                  Aux (Last) :=
-                    Character'Val (2#10000000# or (C and 2#00111111#));
-            end case;
-         end;
-      end loop;
-
-      return Result : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Virtual_String (Aux (1 .. Last))
-      do
-         Free (Aux);
-      end return;
-
-   exception
-      when others =>
-         Free (Aux);
-
-         raise;
-   end To_Virtual_String;
+      return (URI => Item);
+   end To_LSP_URI;
 
    -----------------------
    -- To_Virtual_String --
@@ -731,19 +522,25 @@ package body LSP.Types is
       end if;
    end To_Virtual_String;
 
-   -----------
-   -- Write --
-   -----------
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
 
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Types.LSP_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   function To_Virtual_String
+     (Self : LSP_URI) return VSS.Strings.Virtual_String is
    begin
-      JS.Write_String (V);  --  To_UTF_8_Unbounded_String
-   end Write;
+      return Self.URI;
+   end To_Virtual_String;
+
+   ---------------------
+   -- To_UTF_8_String --
+   ---------------------
+
+   function To_UTF_8_String
+     (Item : LSP_URI) return Ada.Strings.UTF_Encoding.UTF_8_String is
+   begin
+      return VSS.Strings.Conversions.To_UTF_8_String (Item.URI);
+   end To_UTF_8_String;
 
    ---------------
    -- Write_Any --
@@ -920,24 +717,22 @@ package body LSP.Types is
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : VSS.Strings.Virtual_String;
-     Item   : LSP.Types.LSP_String) is
-   begin
-      Stream.Key (Key);
-      Stream.Write_String (Item);
-   end Write_String;
-
-   ------------------
-   -- Write_String --
-   ------------------
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : VSS.Strings.Virtual_String;
      Item   : VSS.Strings.Virtual_String) is
    begin
       Stream.Key (Key);
       Stream.Write_String (Item);
    end Write_String;
+
+   -------------------
+   -- Write_LSP_URI --
+   -------------------
+
+   procedure Write_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : LSP_URI) is
+   begin
+      Write_String (S, Item.URI);
+   end Write_LSP_URI;
 
    --------------------------------
    -- Write_LSP_Number_Or_String --

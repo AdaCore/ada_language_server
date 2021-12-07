@@ -21,7 +21,6 @@ with Ada.Containers;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.Wide_Unbounded.Wide_Hash;
 with GNATCOLL.JSON;
 
 with VSS.String_Vectors;
@@ -69,22 +68,10 @@ package LSP.Types is
    for LSP_Number'Read use Read;
    for LSP_Number'Write use Write;
 
-   type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Types.LSP_String);
-   --  Read string from the stream
-
    procedure Read_String
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VSS.Strings.Virtual_String);
    --  Read string from the stream
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Types.LSP_String);
-   --  Write string to the stream
 
    procedure Write_String
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -99,9 +86,6 @@ package LSP.Types is
    --   for LSP_String'Read use Read;
    --   for LSP_String'Write use Write;
 
-   Empty_LSP_String : constant LSP_String :=
-     LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
-
    procedure Read_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VSS.String_Vectors.Virtual_String_Vector);
@@ -109,30 +93,6 @@ package LSP.Types is
    procedure Write_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : VSS.String_Vectors.Virtual_String_Vector);
-
-   function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP_String;
-   --  Convert given UTF-8 string into LSP_String
-   function To_LSP_String (Text : Wide_Wide_String)
-     return LSP_String;
-   function To_LSP_String
-     (Item : VSS.Strings.Virtual_String) return LSP_String;
-
-   function To_UTF_8_String (Value : LSP_String)
-     return Ada.Strings.UTF_Encoding.UTF_8_String;
-   --  Convert given LSP_String into UTF-8 string. Note that this
-   --  allocates strings on the stack: if the string is potentially
-   --  large (such as the content of a file), prefer calling
-   --  To_UTF_8_Unbounded_String below.
-
-   function To_Virtual_String
-     (Item : LSP_String) return VSS.Strings.Virtual_String;
-   --  Converts LSP_String to Virtual_String.
-
-   function Hash (Text : LSP_String) return Ada.Containers.Hash_Type is
-     (Ada.Strings.Wide_Unbounded.Wide_Hash
-        (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Text)));
-   --  Compute hash of the Text
 
    type LSP_Number_Or_String (Is_Number : Boolean := False) is record
       case Is_Number is
@@ -308,11 +268,6 @@ package LSP.Types is
    procedure Write_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
      Key    : VSS.Strings.Virtual_String;
-     Item   : LSP.Types.LSP_String);
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : VSS.Strings.Virtual_String;
      Item   : VSS.Strings.Virtual_String);
 
    procedure Write_Number
@@ -337,9 +292,9 @@ package LSP.Types is
 
    subtype ProgressToken is LSP_Number_Or_String;
 
-   type LSP_URI is new LSP_String;
+   type LSP_URI is private;
 
-   function Equal (Left, Right : LSP_URI) return Boolean renames "=";
+   function Equal (Left, Right : LSP_URI) return Boolean;
    --  Let's try to avoid URI comparison.
 
    overriding function "=" (Left, Right : LSP_URI) return Boolean is abstract;
@@ -352,6 +307,29 @@ package LSP.Types is
 
    function File_To_URI
      (File : Ada.Strings.Unbounded.Unbounded_String) return LSP.Types.LSP_URI;
+
+   function To_UTF_8_String
+     (Item : LSP_URI) return Ada.Strings.UTF_Encoding.UTF_8_String;
+
+   function To_LSP_URI (Item : VSS.Strings.Virtual_String) return LSP_URI;
+   --  Convert string into internal representation.
+
+   function To_Virtual_String
+     (Self : LSP_URI) return VSS.Strings.Virtual_String;
+   --  Convert URI to string
+
+   function Hash (Item : LSP_URI) return Ada.Containers.Hash_Type;
+   --  Compute hash of the URI
+
+   procedure Read_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out LSP_URI);
+   --  Read an LSP_URI from the JSON stream
+
+   procedure Write_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : LSP_URI);
+   --  Write an LSP_URI to the JSON stream
 
    -----------------------------
    -- Optional_Virtual_String --
@@ -390,5 +368,14 @@ package LSP.Types is
         Element_Write => LSP.Types.Write_String_Vector);
    type Optional_Virtual_String_Vector is
      new Optional_Virtual_String_Vectors.Optional_Type;
+
+private
+
+   type LSP_URI is record
+      URI : VSS.Strings.Virtual_String;
+   end record;
+
+   for LSP_URI'Read use Read_LSP_URI;
+   for LSP_URI'Write use Write_LSP_URI;
 
 end LSP.Types;

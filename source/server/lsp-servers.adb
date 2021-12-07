@@ -296,13 +296,13 @@ package body LSP.Servers is
 
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
-            Version    : out LSP.Types.LSP_String;
+            Version    : out VSS.Strings.Virtual_String;
             Method     : out LSP.Types.Optional_Virtual_String;
             Error      : out LSP.Messages.Optional_ResponseError);
 
          procedure Decode_JSON_RPC_Headers
            (Request_Id : out LSP.Types.LSP_Number_Or_String;
-            Version    : out LSP.Types.LSP_String;
+            Version    : out VSS.Strings.Virtual_String;
             Method     : out LSP.Types.Optional_Virtual_String;
             Error      : out LSP.Messages.Optional_ResponseError)
          is
@@ -345,7 +345,7 @@ package body LSP.Servers is
 
                   elsif Key = "jsonrpc" then
                      pragma Assert (JS.R.Is_String_Value);
-                     Version := LSP.Types.To_LSP_String (JS.R.String_Value);
+                     Version := JS.R.String_Value;
                      JS.R.Read_Next;
 
                   elsif Key = "method" then
@@ -372,7 +372,7 @@ package body LSP.Servers is
 
          Is_Exit_Notification : Boolean;
 
-         Version    : LSP.Types.LSP_String;
+         Version    : VSS.Strings.Virtual_String;
          Method     : LSP.Types.Optional_Virtual_String;
          Request_Id : LSP.Types.LSP_Number_Or_String;
          Error      : LSP.Messages.Optional_ResponseError;

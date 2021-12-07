@@ -25,9 +25,12 @@ generic
    Write_Empty : LSP.On_Empty_Array;
    --  How to write an empty array: skip, write `[]` or write `null`
 
+   with function "=" (Left, Right : Element) return Boolean is <>;
+
 package LSP.Generic_Vectors is
 
-   package Element_Vectors is new Ada.Containers.Vectors (Positive, Element);
+   package Element_Vectors is
+     new Ada.Containers.Vectors (Positive, Element);
 
    type Vector is new Element_Vectors.Vector with null record;
 

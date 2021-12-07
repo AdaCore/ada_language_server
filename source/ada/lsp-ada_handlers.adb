@@ -30,8 +30,9 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with VSS.Characters.Latin;
-with VSS.Strings;
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
+with VSS.Unicode;
 
 with LSP.Ada_Documents;        use LSP.Ada_Documents;
 with LSP.Search;               use LSP.Search;
@@ -113,10 +114,6 @@ package body LSP.Ada_Handlers is
    Line_Feed : constant Wide_Wide_Character :=
      Ada.Characters.Wide_Wide_Latin_1.LF;
    --  Backspace : constant Character := Ada.Characters.Latin_1.BS;
-
-   function "+" (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP.Types.LSP_String renames
-       LSP.Types.To_LSP_String;
 
    procedure Log_Imprecise_Xref_Message
      (Self     : access Message_Handler;
@@ -606,8 +603,7 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Trace.Trace ("Project loading ...");
-      Self.Trace.Trace ("Root : " & To_UTF_8_String
-                        (+Self.Root.Display_Full_Name));
+      Self.Trace.Trace ("Root : " & Self.Root.Display_Full_Name);
 
       --  We're going to look for a project in Root: list all the files
       --  in this directory, looking for .gpr files.
@@ -2297,27 +2293,28 @@ package body LSP.Ada_Handlers is
       end Callback;
 
    begin
-      Self.Imprecise_Resolve_Name (Context, Value, Definition);
+      if Document /= null then
+         Self.Imprecise_Resolve_Name (Context, Value, Definition);
 
-      if Definition = No_Defining_Name or else Request.Canceled then
-         return Response;
+         if Definition = No_Defining_Name or else Request.Canceled then
+            return Response;
+         end if;
+
+         --  Find all references will return all the references except the
+         --  declaration ...
+         Document.Find_All_References
+           (Context    => Context.all,
+            Definition => Definition,
+            Callback   => Callback'Access);
+
+         --  ... add it manually
+         Append_Location
+           (Result   => Response.result,
+            Document => Document,
+            File     => File,
+            Node     => Definition,
+            Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
       end if;
-
-      --  Find all references will return all the references except the
-      --  declaration ...
-      Document.Find_All_References
-        (Context    => Context.all,
-         Definition => Definition,
-         Callback   => Callback'Access);
-
-      --  ... add it manually
-      Append_Location
-        (Result   => Response.result,
-         Document => Document,
-         File     => File,
-         Node     => Definition,
-         Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
-
       return Response;
    end On_Highlight_Request;
 
@@ -2705,7 +2702,7 @@ package body LSP.Ada_Handlers is
 
       function Is_Signature_Active
         (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : LSP.Types.LSP_String;
+         Sig_Label       : VSS.Strings.Virtual_String;
          Position        : LSP.Types.LSP_Number;
          Designator      : Libadalang.Analysis.Ada_Node;
          Active_Position : out LSP.Types.LSP_Number)
@@ -2767,7 +2764,7 @@ package body LSP.Ada_Handlers is
       begin
          if Is_Signature_Active
            (Parameters      => Signature_Info.parameters,
-            Sig_Label       => To_LSP_String (Signature_Info.label),
+            Sig_Label       => Signature_Info.label,
             Position        => Position,
             Designator      => Designator,
             Active_Position => Active_Position)
@@ -2791,13 +2788,11 @@ package body LSP.Ada_Handlers is
 
       function Is_Signature_Active
         (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : LSP.Types.LSP_String;
+         Sig_Label       : VSS.Strings.Virtual_String;
          Position        : LSP.Types.LSP_Number;
          Designator      : Libadalang.Analysis.Ada_Node;
          Active_Position : out LSP.Types.LSP_Number)
-         return Boolean
-      is
-         use VSS.Strings;
+         return Boolean is
       begin
          Active_Position := 0;
          if Designator = No_Ada_Node then
@@ -2807,27 +2802,55 @@ package body LSP.Ada_Handlers is
             return Position < LSP_Number (Parameters.Length);
          else
             declare
-               Name : constant Virtual_String :=
+               Name : constant VSS.Strings.Virtual_String :=
                  LSP.Lal_Utils.To_Virtual_String (Designator.Text);
-               Converted_Name : constant LSP_String :=
-                 LSP.Types.To_LSP_String (Name);
+
             begin
                for Param of Parameters loop
-                  --  Convert to lower case?
-                  if Param.label.Is_String then
-                     if Param.label.String = Name then
-                        return True;
+                  declare
+                     use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+                     First   :
+                       VSS.Strings.Character_Iterators.Character_Iterator
+                         := Sig_Label.First_Character;
+                     Last    :
+                       VSS.Strings.Character_Iterators.Character_Iterator
+                         := Sig_Label.First_Character;
+                     Success : Boolean with Unreferenced;
+
+                  begin
+                     --  Convert to lower case?
+                     if Param.label.Is_String then
+                        if Param.label.String = Name then
+                           return True;
+                        end if;
+
+                     else
+                        while First.First_UTF16_Offset < Param.label.From
+                          and then First.Forward
+                        loop
+                           null;
+                        end loop;
+
+                        --  'till' is exclusive offset, thus lookup for it
+                        --  location and move backward to point to last
+                        --  character of the slice
+
+                        while Last.First_UTF16_Offset < Param.label.Till
+                          and then Last.Forward
+                        loop
+                           null;
+                        end loop;
+
+                        Success := Last.Backward;
+
+                        if Sig_Label.Slice (First, Last) = Name then
+                           return True;
+                        end if;
                      end if;
-                  else
-                     if Slice (Sig_Label,
-                               Integer (Param.label.From),
-                               Integer (Param.label.Till))
-                       = Converted_Name
-                     then
-                        return True;
-                     end if;
-                  end if;
-                  Active_Position := Active_Position + 1;
+
+                     Active_Position := Active_Position + 1;
+                  end;
                end loop;
             end;
          end if;
@@ -3426,13 +3449,11 @@ package body LSP.Ada_Handlers is
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
          if Ada.Has_Field (relocateBuildTree) then
-            Relocate := Create_From_UTF8
-              (To_UTF_8_String (+Get (Get (Ada, relocateBuildTree))));
+            Relocate := Create_From_UTF8 (Get (Get (Ada, relocateBuildTree)));
          end if;
 
          if Ada.Has_Field (rootDir) then
-            Root := Create_From_UTF8
-              (To_UTF_8_String (+Get (Get (Ada, rootDir))));
+            Root := Create_From_UTF8 (Get (Get (Ada, rootDir)));
          end if;
 
          if Ada.Has_Field (projectFile) then
@@ -4813,11 +4834,16 @@ package body LSP.Ada_Handlers is
       end if;
    end After_Work;
 
+   ---------------
+   -- From_File --
+   ---------------
+
    function From_File
      (Self : Message_Handler'Class;
       File : Virtual_File) return LSP.Messages.DocumentUri is
-        (LSP.Types.To_LSP_String
-          (URIs.Conversions.From_File (File.Display_Full_Name)));
+        (LSP.Types.To_LSP_URI
+           (VSS.Strings.Conversions.To_Virtual_String
+                (URIs.Conversions.From_File (File.Display_Full_Name))));
 
    -------------
    -- To_File --
@@ -4850,21 +4876,6 @@ package body LSP.Ada_Handlers is
    begin
       return VSS.Strings.Conversions.To_Virtual_String (Result);
    end URI_To_File;
-
-   -----------------
-   -- File_To_URI --
-   -----------------
-
-   function File_To_URI
-     (Self : Message_Handler'Class;
-      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      pragma Unreferenced (Self);
-      Result : constant URIs.URI_String :=
-        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end File_To_URI;
 
    ---------------------------------
    -- On_ALS_Check_Syntax_Request --
