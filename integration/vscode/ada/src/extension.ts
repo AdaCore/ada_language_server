@@ -82,6 +82,24 @@ export function activate(context: vscode.ExtensionContext): void {
         });
     }
 
+    //  React to changes in configuration to recompute predefined tasks if the user
+    //  changes scenario variables' values.
+    function configChanged(e: vscode.ConfigurationChangeEvent) {
+        if (e.affectsConfiguration('ada.scenarioVariables')) {
+            for (const item of alsTaskProvider) {
+                item.dispose();
+            }
+            alsTaskProvider = [
+                vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
+                vscode.tasks.registerTaskProvider(
+                    gnatproveTaskProvider.gnatproveType,
+                    new gnatproveTaskProvider()
+                ),
+            ];
+        }
+    }
+
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
 }
 
