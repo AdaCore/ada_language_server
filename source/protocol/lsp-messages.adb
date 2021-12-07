@@ -2296,6 +2296,18 @@ package body LSP.Messages is
       V : Search_Kind)
      renames LSP.Message_IO.Write_Search_Kind;
 
+   ---------
+   -- "=" --
+   ---------
+
+   overriding function "=" (Left, Right : Location) return Boolean is
+   begin
+      return
+        LSP.Types.Equal (Left.uri, Right.uri)
+        and Left.span = Right.span
+        and Left.alsKind = Right.alsKind;
+   end "=";
+
    -------------------
    -- Method_To_Tag --
    -------------------
@@ -3379,8 +3391,6 @@ package body LSP.Messages is
       ----------
 
       procedure Each (Name : VSS.Strings.Virtual_String) is
-         Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-           VSS.Strings.Conversions.To_UTF_8_String (Name);
          Vector : TextEdit_Vector;
       begin
          JS.R.Read_Next;  --  Skip Key
@@ -3398,7 +3408,7 @@ package body LSP.Messages is
 
          JS.R.Read_Next;
 
-         V.changes.Insert (To_LSP_String (Key), Vector);
+         V.changes.Insert (LSP.Types.To_LSP_URI (Name), Vector);
       end Each;
 
       ---------------------

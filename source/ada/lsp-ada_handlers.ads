@@ -540,11 +540,6 @@ private
    --  If the document is not opened, then it returns a
    --  VersionedTextDocumentIdentifier with a null version.
 
-   function File_To_URI
-     (Self : Message_Handler'Class;
-      File : LSP.Types.LSP_String) return LSP.Types.LSP_String;
-   --  Convert file name to URI
-
    overriding function On_ALS_Check_Syntax_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)

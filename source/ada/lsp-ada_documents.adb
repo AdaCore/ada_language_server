@@ -1794,7 +1794,6 @@ package body LSP.Ada_Documents is
       Completions_Count        : Natural)
       return LSP.Messages.CompletionItem
    is
-      use LSP.Types;
       use LSP.Messages;
 
       Item           : CompletionItem;

@@ -347,7 +347,7 @@ write_component = {
 """,
     "DocumentUri": """\
       JS.Key ("{key}");
-      LSP.Types.Write (S, V.{name});
+      LSP.Types.Write_LSP_URI (S, V.{name});
 """,
     "Boolean": """\
       {kind}_Boolean (JS, "{key}", V.{name});
@@ -373,7 +373,7 @@ read_component = {
                LSP.Types.Read (S, V.{name});
             els""",
     "DocumentUri": """if Key = "{key}" then
-               LSP.Types.Read (S, V.{name});
+               LSP.Types.Read_LSP_URI (S, V.{name});
             els""",
     "Boolean": """if Key = "{key}" then
                LSP.Types.Read_Boolean (JS, V.{name});

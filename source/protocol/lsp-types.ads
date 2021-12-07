@@ -337,9 +337,9 @@ package LSP.Types is
 
    subtype ProgressToken is LSP_Number_Or_String;
 
-   type LSP_URI is new LSP_String;
+   type LSP_URI is private;
 
-   function Equal (Left, Right : LSP_URI) return Boolean renames "=";
+   function Equal (Left, Right : LSP_URI) return Boolean;
    --  Let's try to avoid URI comparison.
 
    overriding function "=" (Left, Right : LSP_URI) return Boolean is abstract;
@@ -352,6 +352,29 @@ package LSP.Types is
 
    function File_To_URI
      (File : Ada.Strings.Unbounded.Unbounded_String) return LSP.Types.LSP_URI;
+
+   function To_UTF_8_String
+     (Item : LSP_URI) return Ada.Strings.UTF_Encoding.UTF_8_String;
+
+   function To_LSP_URI (Item : VSS.Strings.Virtual_String) return LSP_URI;
+   --  Convert string into internal representation.
+
+   function To_Virtual_String
+     (Self : LSP_URI) return VSS.Strings.Virtual_String;
+   --  Convert URI to string
+
+   function Hash (Item : LSP_URI) return Ada.Containers.Hash_Type;
+   --  Compute hash of the URI
+
+   procedure Read_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out LSP_URI);
+   --  Read an LSP_URI from the JSON stream
+
+   procedure Write_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : LSP_URI);
+   --  Write an LSP_URI to the JSON stream
 
    -----------------------------
    -- Optional_Virtual_String --
@@ -390,5 +413,14 @@ package LSP.Types is
         Element_Write => LSP.Types.Write_String_Vector);
    type Optional_Virtual_String_Vector is
      new Optional_Virtual_String_Vectors.Optional_Type;
+
+private
+
+   type LSP_URI is record
+      URI : VSS.Strings.Virtual_String;
+   end record;
+
+   for LSP_URI'Read use Read_LSP_URI;
+   for LSP_URI'Write use Write_LSP_URI;
 
 end LSP.Types;
