@@ -94,6 +94,7 @@ package URIs is
    --  Parse given text of uri into the URI object.
 
    package Conversions is
+
       function From_File (Full_Path : String) return URI_String
         with Pre => GNAT.OS_Lib.Is_Absolute_Path (Full_Path);
       --  Convert from file to URI in form of file://path
