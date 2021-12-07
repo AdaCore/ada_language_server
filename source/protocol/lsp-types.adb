@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Strings.UTF_Encoding.Wide_Strings;
-with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
 with Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash;
 with Ada.Unchecked_Deallocation;
@@ -114,22 +112,6 @@ package body LSP.Types is
    function Hash (Item : LSP_URI) return Ada.Containers.Hash_Type is
      (Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash
         (VSS.Strings.Conversions.To_Wide_Wide_String (Item.URI)));
-
-   ----------
-   -- Read --
-   ----------
-
-   procedure Read
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out LSP.Types.LSP_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      pragma Assert (JS.R.Is_String_Value);
-      V := To_LSP_String (JS.R.String_Value);
-      JS.R.Read_Next;
-   end Read;
 
    ------------------
    -- Read_LSP_URI --
@@ -599,31 +581,6 @@ package body LSP.Types is
          raise;
    end To_LSP_String;
 
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String (Text : Ada.Strings.UTF_Encoding.UTF_8_String)
-     return LSP_String is
-      UTF_16 : constant Wide_String :=
-        Ada.Strings.UTF_Encoding.Wide_Strings.Decode (Text);
-   begin
-      return To_Unbounded_Wide_String (UTF_16);
-   end To_LSP_String;
-
-   -------------------
-   -- To_LSP_String --
-   -------------------
-
-   function To_LSP_String
-     (Text : Wide_Wide_String) return LSP_String
-   is
-      UTF_16 : constant Wide_String :=
-        Ada.Strings.UTF_Encoding.Wide_Wide_Strings.Encode (Text);
-   begin
-      return To_Unbounded_Wide_String (UTF_16);
-   end To_LSP_String;
-
    ----------------
    -- To_LSP_URI --
    ----------------
@@ -632,18 +589,6 @@ package body LSP.Types is
    begin
       return (URI => Item);
    end To_LSP_URI;
-
-   ---------------------
-   -- To_UTF_8_String --
-   ---------------------
-
-   function To_UTF_8_String (Value : LSP_String)
-     return Ada.Strings.UTF_Encoding.UTF_8_String
-   is
-      Wide : constant Wide_String := To_Wide_String (Value);
-   begin
-      return Ada.Strings.UTF_Encoding.Wide_Strings.Encode (Wide);
-   end To_UTF_8_String;
 
    -----------------------
    -- To_Virtual_String --
@@ -790,20 +735,6 @@ package body LSP.Types is
    begin
       return VSS.Strings.Conversions.To_UTF_8_String (Item.URI);
    end To_UTF_8_String;
-
-   -----------
-   -- Write --
-   -----------
-
-   procedure Write
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : LSP.Types.LSP_String)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Write_String (V);  --  To_UTF_8_Unbounded_String
-   end Write;
 
    ---------------
    -- Write_Any --
@@ -971,19 +902,6 @@ package body LSP.Types is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Write_String (V);
-   end Write_String;
-
-   ------------------
-   -- Write_String --
-   ------------------
-
-   procedure Write_String
-    (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
-     Key    : VSS.Strings.Virtual_String;
-     Item   : LSP.Types.LSP_String) is
-   begin
-      Stream.Key (Key);
-      Stream.Write_String (Item);
    end Write_String;
 
    ------------------
