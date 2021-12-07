@@ -520,6 +520,8 @@ package LSP.Messages is
       alsKind : AlsReferenceKind_Set := Empty_Set;
    end record;
 
+   overriding function "=" (Left, Right : Location) return Boolean;
+
    procedure Read_Location
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out Location);

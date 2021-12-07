@@ -19,6 +19,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding.Wide_Strings;
 with Ada.Strings.UTF_Encoding.Wide_Wide_Strings;
 with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
+with Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
 
@@ -50,6 +51,17 @@ package body LSP.Types is
       return Id.Is_Number or else not Id.String.Is_Empty;
    end Assigned;
 
+   -----------
+   -- Equal --
+   -----------
+
+   function Equal (Left, Right : LSP_URI) return Boolean is
+      use type VSS.Strings.Virtual_String;
+
+   begin
+      return Left.URI = Right.URI;
+   end Equal;
+
    -----------------
    -- File_To_URI --
    -----------------
@@ -58,7 +70,7 @@ package body LSP.Types is
       Result : constant URIs.URI_String :=
         URIs.Conversions.From_File (File);
    begin
-      return LSP.Types.To_LSP_String (Result);
+      return (URI => VSS.Strings.Conversions.To_Virtual_String (Result));
    end File_To_URI;
 
    function File_To_URI (File : Ada.Strings.Unbounded.Unbounded_String)
@@ -96,6 +108,14 @@ package body LSP.Types is
    end Hash;
 
    ----------
+   -- Hash --
+   ----------
+
+   function Hash (Item : LSP_URI) return Ada.Containers.Hash_Type is
+     (Ada.Strings.Wide_Wide_Fixed.Wide_Wide_Hash
+        (VSS.Strings.Conversions.To_Wide_Wide_String (Item.URI)));
+
+   ----------
    -- Read --
    ----------
 
@@ -110,6 +130,17 @@ package body LSP.Types is
       V := To_LSP_String (JS.R.String_Value);
       JS.R.Read_Next;
    end Read;
+
+   ------------------
+   -- Read_LSP_URI --
+   ------------------
+
+   procedure Read_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : out LSP_URI) is
+   begin
+      Read_String (S, Item.URI);
+   end Read_LSP_URI;
 
    -----------------
    -- Read_String --
@@ -593,6 +624,15 @@ package body LSP.Types is
       return To_Unbounded_Wide_String (UTF_16);
    end To_LSP_String;
 
+   ----------------
+   -- To_LSP_URI --
+   ----------------
+
+   function To_LSP_URI (Item : VSS.Strings.Virtual_String) return LSP_URI is
+   begin
+      return (URI => Item);
+   end To_LSP_URI;
+
    ---------------------
    -- To_UTF_8_String --
    ---------------------
@@ -730,6 +770,26 @@ package body LSP.Types is
          return Item.String;
       end if;
    end To_Virtual_String;
+
+   -----------------------
+   -- To_Virtual_String --
+   -----------------------
+
+   function To_Virtual_String
+     (Self : LSP_URI) return VSS.Strings.Virtual_String is
+   begin
+      return Self.URI;
+   end To_Virtual_String;
+
+   ---------------------
+   -- To_UTF_8_String --
+   ---------------------
+
+   function To_UTF_8_String
+     (Item : LSP_URI) return Ada.Strings.UTF_Encoding.UTF_8_String is
+   begin
+      return VSS.Strings.Conversions.To_UTF_8_String (Item.URI);
+   end To_UTF_8_String;
 
    -----------
    -- Write --
@@ -938,6 +998,17 @@ package body LSP.Types is
       Stream.Key (Key);
       Stream.Write_String (Item);
    end Write_String;
+
+   -------------------
+   -- Write_LSP_URI --
+   -------------------
+
+   procedure Write_LSP_URI
+     (S    : access Ada.Streams.Root_Stream_Type'Class;
+      Item : LSP_URI) is
+   begin
+      Write_String (S, Item.URI);
+   end Write_LSP_URI;
 
    --------------------------------
    -- Write_LSP_Number_Or_String --

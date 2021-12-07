@@ -672,17 +672,22 @@ package body LSP.Message_Loggers is
      (Self  : access Message_Logger;
       Value : LSP.Messages.DidChangeWatchedFilesParams)
    is
-      use LSP.Types;
-      Result : LSP.Types.LSP_String;
+      Result : VSS.Strings.Virtual_String;
+
    begin
       for Change of Value.changes loop
-         Append (Result, " " & LSP.Types.LSP_String (Change.uri) & ": " &
-                   Change.a_type'Wide_Image & ";");
+         Result.Append (' ');
+         Result.Append (LSP.Types.To_Virtual_String (Change.uri));
+         Result.Append (": ");
+         Result.Append
+           (VSS.Strings.To_Virtual_String (Change.a_type'Wide_Wide_Image));
+         Result.Append (";");
       end loop;
 
       Self.Trace.Trace
         ("DidChangeWatchedFiles_Notification:"
-         & Ada.Characters.Latin_1.LF & To_UTF_8_String (Result));
+         & Ada.Characters.Latin_1.LF
+         & VSS.Strings.Conversions.To_UTF_8_String (Result));
    end On_DidChangeWatchedFiles_Notification;
 
    -------------------------------------------

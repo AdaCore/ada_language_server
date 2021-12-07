@@ -4813,11 +4813,16 @@ package body LSP.Ada_Handlers is
       end if;
    end After_Work;
 
+   ---------------
+   -- From_File --
+   ---------------
+
    function From_File
      (Self : Message_Handler'Class;
       File : Virtual_File) return LSP.Messages.DocumentUri is
-        (LSP.Types.To_LSP_String
-          (URIs.Conversions.From_File (File.Display_Full_Name)));
+        (LSP.Types.To_LSP_URI
+           (VSS.Strings.Conversions.To_Virtual_String
+                (URIs.Conversions.From_File (File.Display_Full_Name))));
 
    -------------
    -- To_File --
@@ -4850,21 +4855,6 @@ package body LSP.Ada_Handlers is
    begin
       return VSS.Strings.Conversions.To_Virtual_String (Result);
    end URI_To_File;
-
-   -----------------
-   -- File_To_URI --
-   -----------------
-
-   function File_To_URI
-     (Self : Message_Handler'Class;
-      File : LSP.Types.LSP_String) return LSP.Types.LSP_String
-   is
-      pragma Unreferenced (Self);
-      Result : constant URIs.URI_String :=
-        URIs.Conversions.From_File (LSP.Types.To_UTF_8_String (File));
-   begin
-      return LSP.Types.To_LSP_String (Result);
-   end File_To_URI;
 
    ---------------------------------
    -- On_ALS_Check_Syntax_Request --

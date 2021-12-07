@@ -440,7 +440,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "range" then
                LSP.Messages.Span'Read (S, V.span);
             elsif Key = "alsKind" then
@@ -462,7 +462,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("range");
       LSP.Messages.Span'Write (S, V.span);
       JS.Key ("alsKind");
@@ -823,7 +823,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             else
                JS.Skip_Value;
             end if;
@@ -841,7 +841,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.End_Object;
    end Write_TextDocumentIdentifier;
 
@@ -862,7 +862,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "version" then
                LSP_Number'Read (S, V.version);
             else
@@ -882,7 +882,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("version");
       LSP_Number'Write (S, V.version);
       JS.End_Object;
@@ -905,7 +905,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "version" then
                Nullable_Number'Read (S, V.version);
             else
@@ -925,7 +925,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("version");
       Nullable_Number'Write (S, V.version);
       JS.End_Object;
@@ -1087,7 +1087,7 @@ package body LSP.Message_IO is
             if Key = "kind" then
                FileResourceChangeKind'Read (S, V.kind);
             elsif Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "options" then
                CreateFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
@@ -1111,7 +1111,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       FileResourceChangeKind'Write (S, V.kind);
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("options");
       CreateFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
@@ -1181,9 +1181,9 @@ package body LSP.Message_IO is
             if Key = "kind" then
                FileResourceChangeKind'Read (S, V.kind);
             elsif Key = "oldUri" then
-               LSP.Types.Read (S, V.oldUri);
+               LSP.Types.Read_LSP_URI (S, V.oldUri);
             elsif Key = "newUri" then
-               LSP.Types.Read (S, V.newUri);
+               LSP.Types.Read_LSP_URI (S, V.newUri);
             elsif Key = "options" then
                RenameFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
@@ -1207,9 +1207,9 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       FileResourceChangeKind'Write (S, V.kind);
       JS.Key ("oldUri");
-      LSP.Types.Write (S, V.oldUri);
+      LSP.Types.Write_LSP_URI (S, V.oldUri);
       JS.Key ("newUri");
-      LSP.Types.Write (S, V.newUri);
+      LSP.Types.Write_LSP_URI (S, V.newUri);
       JS.Key ("options");
       RenameFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
@@ -1279,7 +1279,7 @@ package body LSP.Message_IO is
             if Key = "kind" then
                FileResourceChangeKind'Read (S, V.kind);
             elsif Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "options" then
                DeleteFileOptions'Read (S, V.options);
             elsif Key = "annotationId" then
@@ -1303,7 +1303,7 @@ package body LSP.Message_IO is
       JS.Key ("kind");
       FileResourceChangeKind'Write (S, V.kind);
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("options");
       DeleteFileOptions'Write (S, V.options);
       JS.Key ("annotationId");
@@ -1375,7 +1375,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "languageId" then
                LSP.Types.Read_String (S, V.languageId);
             elsif Key = "version" then
@@ -1399,7 +1399,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("languageId");
       LSP.Types.Write_String (S, V.languageId);
       JS.Key ("version");
@@ -4256,7 +4256,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "name" then
                LSP.Types.Read_String (S, V.name);
             else
@@ -4276,7 +4276,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("name");
       LSP.Types.Write_String (S, V.name);
       JS.End_Object;
@@ -6835,7 +6835,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "type" then
                FileChangeType'Read (S, V.a_type);
             else
@@ -6855,7 +6855,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("type");
       FileChangeType'Write (S, V.a_type);
       JS.End_Object;
@@ -6917,7 +6917,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "version" then
                Optional_Number'Read (S, V.version);
             elsif Key = "diagnostics" then
@@ -6939,7 +6939,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("version");
       Optional_Number'Write (S, V.version);
       JS.Key ("diagnostics");
@@ -9307,7 +9307,7 @@ package body LSP.Message_IO is
             elsif Key = "detail" then
                Optional_Virtual_String'Read (S, V.detail);
             elsif Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "range" then
                LSP.Messages.Span'Read (S, V.span);
             elsif Key = "selectionRange" then
@@ -9337,7 +9337,7 @@ package body LSP.Message_IO is
       JS.Key ("detail");
       Optional_Virtual_String'Write (S, V.detail);
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("range");
       LSP.Messages.Span'Write (S, V.span);
       JS.Key ("selectionRange");
@@ -9977,7 +9977,7 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "external" then
                Optional_Boolean'Read (S, V.external);
             elsif Key = "takeFocus" then
@@ -10001,7 +10001,7 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("external");
       Optional_Boolean'Write (S, V.external);
       JS.Key ("takeFocus");
@@ -10500,9 +10500,9 @@ package body LSP.Message_IO is
          begin
             JS.R.Read_Next;
             if Key = "uri" then
-               LSP.Types.Read (S, V.uri);
+               LSP.Types.Read_LSP_URI (S, V.uri);
             elsif Key = "projectUri" then
-               LSP.Types.Read (S, V.projectUri);
+               LSP.Types.Read_LSP_URI (S, V.projectUri);
             else
                JS.Skip_Value;
             end if;
@@ -10520,9 +10520,9 @@ package body LSP.Message_IO is
    begin
       JS.Start_Object;
       JS.Key ("uri");
-      LSP.Types.Write (S, V.uri);
+      LSP.Types.Write_LSP_URI (S, V.uri);
       JS.Key ("projectUri");
-      LSP.Types.Write (S, V.projectUri);
+      LSP.Types.Write_LSP_URI (S, V.projectUri);
       JS.End_Object;
    end Write_ALS_Unit_Description;
 
