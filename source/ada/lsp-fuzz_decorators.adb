@@ -17,12 +17,14 @@
 
 with Ada.Characters.Wide_Latin_1; use Ada.Characters.Wide_Latin_1;
 with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Wide_Unbounded;  use Ada.Strings.Wide_Unbounded;
+with Ada.Strings.UTF_Encoding.Conversions;
 
 with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
-with LSP.Types; use LSP.Types;
+with LSP.Types;                   use LSP.Types;
 
 package body LSP.Fuzz_Decorators is
 
@@ -132,11 +134,37 @@ package body LSP.Fuzz_Decorators is
       use type VSS.Strings.Virtual_String;
       use type VSS.Unicode.UTF16_Code_Unit_Count;
 
-      Doc_Content : LSP_String;
+      function To_Unbounded_UTF_16_String
+        (Item : VSS.Strings.Virtual_String) return Unbounded_Wide_String;
+
+      function To_Virtual_String
+        (Item : Unbounded_Wide_String) return VSS.Strings.Virtual_String;
+
+      --------------------------------
+      -- To_Unbounded_UTF_16_String --
+      --------------------------------
+
+      function To_Unbounded_UTF_16_String
+        (Item : VSS.Strings.Virtual_String) return Unbounded_Wide_String is
+           (To_Unbounded_Wide_String
+              (Ada.Strings.UTF_Encoding.Conversions.Convert
+                 (VSS.Strings.Conversions.To_UTF_8_String (Item))));
+
+      -----------------------
+      -- To_Virtual_String --
+      -----------------------
+
+      function To_Virtual_String
+        (Item : Unbounded_Wide_String) return VSS.Strings.Virtual_String is
+          (VSS.Strings.Conversions.To_Virtual_String
+             (Ada.Strings.UTF_Encoding.Conversions.Convert
+                (To_Wide_String (Item))));
+
+      Doc_Content : Unbounded_Wide_String;
 
    begin
       Doc_Content :=
-        LSP.Types.To_LSP_String (Open_Docs.Element (Value.textDocument.uri));
+        To_Unbounded_UTF_16_String (Open_Docs (Value.textDocument.uri));
 
       for Change of Value.contentChanges loop
          if Change.span.Is_Set then
@@ -163,24 +191,24 @@ package body LSP.Fuzz_Decorators is
                end loop;
                Doc_Content := Unbounded_Slice
                  (Doc_Content, 1, Natural (Start_Ind))
-                 & LSP.Types.To_LSP_String (Change.text)
+                 & To_Unbounded_UTF_16_String (Change.text)
                  & Unbounded_Slice
                  (Doc_Content, Natural (End_Ind + 1), Length (Doc_Content));
             end;
          else
-            Doc_Content := LSP.Types.To_LSP_String (Change.text);
+            Doc_Content := To_Unbounded_UTF_16_String (Change.text);
          end if;
       end loop;
 
       Open_Docs.Replace
-        (Value.textDocument.uri, LSP.Types.To_Virtual_String (Doc_Content));
+        (Value.textDocument.uri, To_Virtual_String (Doc_Content));
 
       --  Let the real handler update the document
       Self.Handler.On_DidChangeTextDocument_Notification (Value);
 
       --  Compare the results of the basic implementation and the real one
       if Self.Doc_Provider.Get_Open_Document (Value.textDocument.uri).Text
-        /= LSP.Types.To_Virtual_String (Doc_Content)
+        /= To_Virtual_String (Doc_Content)
       then
          declare
             Vector : VSS.String_Vectors.Virtual_String_Vector;
@@ -190,7 +218,7 @@ package body LSP.Fuzz_Decorators is
                  .Text);
 
             Vector.Append (" /= ");
-            Vector.Append (LSP.Types.To_Virtual_String (Doc_Content));
+            Vector.Append (To_Virtual_String (Doc_Content));
 
             Self.Trace.Trace
               (VSS.Strings.Conversions.To_UTF_8_String
