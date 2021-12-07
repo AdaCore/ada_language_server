@@ -21,7 +21,6 @@ with Ada.Containers;
 with Ada.Streams;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.Wide_Unbounded;
 with GNATCOLL.JSON;
 
 with VSS.String_Vectors;
@@ -69,8 +68,6 @@ package LSP.Types is
    for LSP_Number'Read use Read;
    for LSP_Number'Write use Write;
 
-   type LSP_String is new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
-
    procedure Read_String
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VSS.Strings.Virtual_String);
@@ -89,9 +86,6 @@ package LSP.Types is
    --   for LSP_String'Read use Read;
    --   for LSP_String'Write use Write;
 
-   Empty_LSP_String : constant LSP_String :=
-     LSP_String (Ada.Strings.Wide_Unbounded.Null_Unbounded_Wide_String);
-
    procedure Read_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out VSS.String_Vectors.Virtual_String_Vector);
@@ -99,13 +93,6 @@ package LSP.Types is
    procedure Write_String_Vector
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : VSS.String_Vectors.Virtual_String_Vector);
-
-   function To_LSP_String
-     (Item : VSS.Strings.Virtual_String) return LSP_String;
-
-   function To_Virtual_String
-     (Item : LSP_String) return VSS.Strings.Virtual_String;
-   --  Converts LSP_String to Virtual_String.
 
    type LSP_Number_Or_String (Is_Number : Boolean := False) is record
       case Is_Number is
