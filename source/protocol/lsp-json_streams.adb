@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Types;
-
 package body LSP.JSON_Streams is
 
    procedure Write_Key (Self : in out Write_Stream);
@@ -233,19 +231,6 @@ package body LSP.JSON_Streams is
       pragma Assert (Self.R = null);
       Write_Key (Self.W);
       Self.W.Writer.String_Value (Item);
-   end Write_String;
-
-   ------------------
-   -- Write_String --
-   ------------------
-
-   procedure Write_String
-    (Self : in out JSON_Stream'Class;
-     Item : LSP.Types.LSP_String) is
-   begin
-      pragma Assert (Self.R = null);
-      Write_Key (Self.W);
-      Self.W.Writer.String_Value (LSP.Types.To_Virtual_String (Item));
    end Write_String;
 
 end LSP.JSON_Streams;

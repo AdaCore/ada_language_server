@@ -26,8 +26,6 @@ private with VSS.JSON.Push_Writers;
 with VSS.Strings;
 with VSS.Text_Streams;
 
-limited with LSP.Types;
-
 package LSP.JSON_Streams is
 --   pragma Elaborate_Body;
 
@@ -84,11 +82,6 @@ package LSP.JSON_Streams is
    procedure Write_String
     (Self : in out JSON_Stream'Class;
      Item : VSS.Strings.Virtual_String);
-   --  The same as Write, but optimized for strings.
-
-   procedure Write_String
-    (Self : in out JSON_Stream'Class;
-     Item : LSP.Types.LSP_String);
    --  The same as Write, but optimized for strings.
 
    procedure Write_Integer
