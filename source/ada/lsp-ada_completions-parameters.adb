@@ -27,7 +27,6 @@ with VSS.Strings.Conversions;
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Documents;
 with LSP.Lal_Utils;
-with LSP.Types;                   use LSP.Types;
 
 package body LSP.Ada_Completions.Parameters is
 
@@ -215,12 +214,17 @@ package body LSP.Ada_Completions.Parameters is
                         end;
 
                         declare
-                           Snippet_Name : constant LSP_String :=
-                             "Params of " & To_LSP_String (Name_Node.Text);
+                           use type VSS.Strings.Virtual_String;
+
+                           Snippet_Name : constant
+                             VSS.Strings.Virtual_String :=
+                               "Params of "
+                               & VSS.Strings.To_Virtual_String
+                                   (Name_Node.Text);
                            Item         : LSP.Messages.CompletionItem;
+
                         begin
-                           Item.label := To_Virtual_String
-                             (Snippet_Name);
+                           Item.label := Snippet_Name;
                            Item.insertTextFormat :=
                              (True, LSP.Messages.Snippet);
                            Item.insertText := (True, Value => <>);

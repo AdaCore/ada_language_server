@@ -52,7 +52,7 @@ private
       Where             : LSP.Messages.TextDocumentPositionParams;
       First_Param_Index : LSP.Types.LSP_Number;
       Last_Param_Index  : LSP.Types.LSP_Number;
-      New_Mode          : LSP.Types.LSP_String;
+      New_Mode          : VSS.Strings.Virtual_String;
    end record;
 
    overriding
@@ -77,7 +77,7 @@ private
       Where             : LSP.Messages.TextDocumentPositionParams;
       First_Param_Index : LSP.Types.LSP_Number;
       Last_Param_Index  : LSP.Types.LSP_Number;
-      New_Mode          : LSP.Types.LSP_String);
+      New_Mode          : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command

@@ -16,10 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-
 with Ada.Strings.UTF_Encoding;
-
-with Langkit_Support.Text;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
@@ -32,6 +29,8 @@ with LSP.Lal_Utils;
 with VSS.Strings.Conversions;
 
 package body LSP.Ada_Handlers.Refactor_Move_Parameter is
+
+   use type VSS.Strings.Virtual_String;
 
    ------------------------
    -- Append_Code_Action --
@@ -51,8 +50,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
         LSP.Lal_Utils.Get_Node_Location (Target_Subp.P_Defining_Name.F_Name);
 
       function Image
-        (D : Move_Direction_Type)
-         return Langkit_Support.Text.Text_Type;
+        (D : Move_Direction_Type) return VSS.Strings.Virtual_String;
       --  Returns 'forward' if D = Forward and 'backward' if D = Backward
 
       function Create_Code_Action_Title return VSS.Strings.Virtual_String;
@@ -65,15 +63,16 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       ------------------------------
 
       function Create_Code_Action_Title return VSS.Strings.Virtual_String is
-         Parameter_Name : constant Langkit_Support.Text.Text_Type :=
-           Get_Parameter_Name (Target_Subp, Parameter_Index);
+         Parameter_Name : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Get_Parameter_Name (Target_Subp, Parameter_Index));
 
       begin
-         return VSS.Strings.To_Virtual_String
-           ("Move "
-            & Parameter_Name
-            & " "
-            & Image (Move_Direction));
+         return
+           "Move "
+           & Parameter_Name
+           & " "
+           & Image (Move_Direction);
       end Create_Code_Action_Title;
 
       -----------
@@ -81,8 +80,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       -----------
 
       function Image
-        (D : Move_Direction_Type)
-         return Langkit_Support.Text.Text_Type is
+        (D : Move_Direction_Type) return VSS.Strings.Virtual_String is
       begin
          case D is
             when Backward => return "backward";
@@ -98,7 +96,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
            ((uri => Where.uri),
             Where.span.first),
          Parameter_Index => LSP.Types.LSP_Number (Parameter_Index),
-         Direction       => LSP.Types.To_LSP_String (Image (Move_Direction)));
+         Direction       => Image (Move_Direction));
 
       Pointer.Set (Self);
 
@@ -130,12 +128,12 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       Context          : LSP.Ada_Contexts.Context;
       Where            : LSP.Messages.TextDocumentPositionParams;
       Parameter_Index  : LSP.Types.LSP_Number;
-      Direction        : LSP.Types.LSP_String) is
+      Direction        : VSS.Strings.Virtual_String) is
    begin
-      Self.Context := Context.Id;
-      Self.Where := Where;
+      Self.Context         := Context.Id;
+      Self.Where           := Where;
       Self.Parameter_Index := Parameter_Index;
-      Self.Direction := Direction;
+      Self.Direction       := Direction;
    end Initialize;
 
    ------------
@@ -171,7 +169,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
                   LSP.Types.Read (JS, V.Parameter_Index);
 
                elsif Key = "direction" then
-                  LSP.Types.Read (JS, V.Direction);
+                  LSP.Types.Read_String (JS, V.Direction);
 
                else
                   JS.Skip_Value;
@@ -220,8 +218,6 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      use type LSP.Types.LSP_String;
-
    begin
       Apply.params.label :=
         (Is_Set => True,
@@ -234,9 +230,9 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.InvalidRequest,
-               message => VSS.Strings.To_Virtual_String
-                 ("Could not execute Move Parameter command. "
-                  & "The target subprogram could not be resolved precisely."),
+               message =>
+                 "Could not execute Move Parameter command. "
+                 & "The target subprogram could not be resolved precisely.",
                data    => <>));
          return;
       end if;
@@ -295,7 +291,7 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       JS.Key ("parameter_index");
       LSP.Types.Write (S, C.Parameter_Index);
       JS.Key ("direction");
-      LSP.Types.Write (S, C.Direction);
+      LSP.Types.Write_String (S, C.Direction);
       JS.End_Object;
    end Write_Command;
 

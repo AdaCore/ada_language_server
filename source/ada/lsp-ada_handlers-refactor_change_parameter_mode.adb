@@ -60,7 +60,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       --  and one handler for mode Ada_Mode_Default (which is a removal since
       --  the Image of Ada_Mode_Default is an empty string).
 
-      function Image (M : Ada_Mode) return LSP.Types.LSP_String;
+      function Image (M : Ada_Mode) return VSS.Strings.Virtual_String;
       --  Converts an Ada_Mode to a String
 
       -------------------------
@@ -68,16 +68,16 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       -------------------------
 
       function Create_Code_Action_Title return VSS.Strings.Virtual_String is
-         use type LSP.Types.LSP_String;
+         use type VSS.Strings.Virtual_String;
 
-         First_Parameter_Name : constant LSP.Types.LSP_String :=
-           LSP.Types.To_LSP_String
+         First_Parameter_Name : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
              (Get_Parameter_Name (Target_Subp, Parameters_Indices.First));
-         Last_Parameter_Name  : constant LSP.Types.LSP_String :=
-           LSP.Types.To_LSP_String
+         Last_Parameter_Name  : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
              (Get_Parameter_Name (Target_Subp, Parameters_Indices.Last));
 
-         Action_Title : LSP.Types.LSP_String;
+         Action_Title : VSS.Strings.Virtual_String;
 
       begin
          if Parameters_Indices.First = Parameters_Indices.Last then
@@ -133,27 +133,27 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
             end if;
          end if;
 
-         return LSP.Types.To_Virtual_String (Action_Title);
+         return Action_Title;
       end Create_Code_Action_Title;
 
       -----------
       -- Image --
       -----------
 
-      function Image (M : Ada_Mode) return LSP.Types.LSP_String is
+      function Image (M : Ada_Mode) return VSS.Strings.Virtual_String is
       begin
          case M is
             when Ada_Mode_In =>
-               return LSP.Types.To_LSP_String (String'("in"));
+               return "in";
 
             when Ada_Mode_Out =>
-               return LSP.Types.To_LSP_String (String'("out"));
+               return "out";
 
             when Ada_Mode_In_Out =>
-               return LSP.Types.To_LSP_String (String'("in out"));
+               return "in out";
 
             when Ada_Mode_Default =>
-               return LSP.Types.To_LSP_String (String'(""));
+               return "";
          end case;
       end Image;
 
@@ -223,7 +223,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
                   LSP.Types.Read (JS, C.Last_Param_Index);
 
                elsif Key = "new_mode" then
-                  LSP.Types.Read (JS, C.New_Mode);
+                  LSP.Types.Read_String (JS, C.New_Mode);
 
                else
                   JS.Skip_Value;
@@ -275,15 +275,16 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      function Value (M : LSP.Types.LSP_String) return Ada_Mode;
+      function Value (M : VSS.Strings.Virtual_String) return Ada_Mode;
       --  Converts an LSP_String to an Ada_Mode
 
       -----------
       -- Value --
       -----------
 
-      function Value (M : LSP.Types.LSP_String) return Ada_Mode is
-         use type LSP.Types.LSP_String;
+      function Value (M : VSS.Strings.Virtual_String) return Ada_Mode is
+         use type VSS.Strings.Virtual_String;
+
       begin
          if M = "in" then
             return Ada_Mode_In;
@@ -351,13 +352,13 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       Where             : LSP.Messages.TextDocumentPositionParams;
       First_Param_Index : LSP.Types.LSP_Number;
       Last_Param_Index  : LSP.Types.LSP_Number;
-      New_Mode          : LSP.Types.LSP_String) is
+      New_Mode          : VSS.Strings.Virtual_String) is
    begin
-      Self.Context := Context.Id;
-      Self.Where := Where;
+      Self.Context           := Context.Id;
+      Self.Where             := Where;
       Self.First_Param_Index := First_Param_Index;
-      Self.Last_Param_Index := Last_Param_Index;
-      Self.New_Mode := New_Mode;
+      Self.Last_Param_Index  := Last_Param_Index;
+      Self.New_Mode          := New_Mode;
    end Initialize;
 
    -------------------
@@ -381,7 +382,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       JS.Key ("last_parameter");
       LSP.Types.Write (S, C.Last_Param_Index);
       JS.Key ("new_mode");
-      LSP.Types.Write (S, C.New_Mode);
+      LSP.Types.Write_String (S, C.New_Mode);
       JS.End_Object;
    end Write_Command;
 end LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
