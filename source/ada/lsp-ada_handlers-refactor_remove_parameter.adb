@@ -59,16 +59,16 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
       ------------------------------
 
       function Create_Code_Action_Title return VSS.Strings.Virtual_String is
-         use type LSP.Types.LSP_String;
+         use type VSS.Strings.Virtual_String;
 
-         First_Parameter_Name : constant LSP.Types.LSP_String :=
-           LSP.Types.To_LSP_String
+         First_Parameter_Name : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
              (Get_Parameter_Name (Target_Subp, Parameters_Indices.First));
-         Last_Parameter_Name  : constant LSP.Types.LSP_String :=
-           LSP.Types.To_LSP_String
+         Last_Parameter_Name  : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
              (Get_Parameter_Name (Target_Subp, Parameters_Indices.Last));
 
-         Action_Title : LSP.Types.LSP_String;
+         Action_Title : VSS.Strings.Virtual_String;
 
       begin
          if Parameters_Indices.First = Parameters_Indices.Last then
@@ -92,7 +92,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
               & Last_Parameter_Name;
          end if;
 
-         return LSP.Types.To_Virtual_String (Action_Title);
+         return Action_Title;
       end Create_Code_Action_Title;
 
    begin

@@ -51,7 +51,7 @@ private
       Context         : VSS.Strings.Virtual_String;
       Where           : LSP.Messages.TextDocumentPositionParams;
       Parameter_Index : LSP.Types.LSP_Number;
-      Direction       : LSP.Types.LSP_String;
+      Direction       : VSS.Strings.Virtual_String;
    end record;
 
    overriding function Create
@@ -73,7 +73,7 @@ private
       Context         : LSP.Ada_Contexts.Context;
       Where           : LSP.Messages.TextDocumentPositionParams;
       Parameter_Index : LSP.Types.LSP_Number;
-      Direction       : LSP.Types.LSP_String);
+      Direction       : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command

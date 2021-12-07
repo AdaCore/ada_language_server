@@ -3243,7 +3243,8 @@ package body LSP.Messages is
      (JS  : in out LSP.JSON_Streams.JSON_Stream'Class;
       Tag : out Ada.Tags.Tag)
    is
-      Command : LSP_String;
+      Command : VSS.Strings.Virtual_String;
+
    begin
       Tag := Ada.Tags.No_Tag;
 
@@ -3256,10 +3257,12 @@ package body LSP.Messages is
             JS.R.Read_Next;
 
             if Key = "command" then
-               LSP.Types.Read (JS'Access, Command);
+               LSP.Types.Read_String (JS'Access, Command);
+
                if JS.Is_Server_Side then
                   Tag := Ada.Tags.Internal_Tag
-                    (LSP.Types.To_UTF_8_String (Command));
+                    (VSS.Strings.Conversions.To_UTF_8_String (Command));
+
                else
                   --  There is a discrepancy between server code and client
                   --  code when decoding a "command": the server has a
