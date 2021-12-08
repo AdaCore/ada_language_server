@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "Test that callHierarchy/incomingCalls works on abstract subps."
+         "Basic test for the 'overriding' reference kind"
       ]
    },
    {
@@ -15,29 +15,32 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-1",
+            "id": 1,
             "method": "initialize",
             "params": {
-               "processId": 253542,
+               "processId": 277648,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
                      "applyEdit": true,
-                     "workspaceEdit": {},
-                     "didChangeConfiguration": {},
-                     "didChangeWatchedFiles": {},
-                     "executeCommand": {}
+                     "workspaceEdit": {}
                   },
                   "textDocument": {
                      "synchronization": {},
                      "completion": {
                         "dynamicRegistration": true,
                         "completionItem": {
-                           "snippetSupport": true,
+                           "snippetSupport": false,
                            "documentationFormat": [
                               "plaintext",
                               "markdown"
-                           ]
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
                         }
                      },
                      "hover": {},
@@ -46,13 +49,9 @@
                      "definition": {},
                      "typeDefinition": {},
                      "implementation": {},
-                     "references": {},
-                     "documentHighlight": {},
                      "documentSymbol": {
                         "hierarchicalDocumentSymbolSupport": true
                      },
-                     "codeLens": {},
-                     "colorProvider": {},
                      "formatting": {
                         "dynamicRegistration": false
                      },
@@ -64,18 +63,14 @@
                      },
                      "foldingRange": {
                         "lineFoldingOnly": true
-                     },
-                     "selectionRange": {},
-                     "linkedEditingRange": {},
-                     "callHierarchy": {},
-                     "moniker": {}
+                     }
                   }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-1",
+               "id": 1,
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
@@ -89,6 +84,15 @@
                         "resolveProvider": true
                      },
                      "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
                      "declarationProvider": true,
                      "definitionProvider": true,
                      "typeDefinitionProvider": true,
@@ -100,6 +104,18 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-other-file",
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-refactor-add-parameters",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode",
+                           "als-suppress-separate"
+                        ]
+                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,
@@ -112,7 +128,8 @@
                         "parent",
                         "child",
                         "overriding"
-                     ]
+                     ],
+                     "alsCheckSyntaxProvider": true
                   }
                }
             }
@@ -138,7 +155,7 @@
                   "ada": {
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": false,
+                     "enableDiagnostics": true,
                      "followSymlinks": false
                   }
                }
@@ -154,10 +171,10 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{p.ads}",
+                  "uri": "$URI{parents.ads}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "package P is\n   type Root is abstract tagged null record;\n\n   procedure Foo (R : Root) is abstract;\nend P;\n"
+                  "text": "package Parents is\n\n   type Parent_Type is tagged null record;\n   \n   procedure Primitive (A : Parent_Type) is null;\n\nend Parents;\n"
                }
             }
          },
@@ -168,128 +185,56 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-6",
-            "method": "textDocument/prepareCallHierarchy",
+            "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{p.ads}"
-               },
-               "position": {
-                  "line": 3,
-                  "character": 13
+                  "uri": "$URI{children.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Parents; use Parents;\n\npackage Children is\n\n   type Child_Type is new Parent_Type with null record;\n   \n   overriding procedure Primitive (A : Child_Type) is null;\n\nend Children;\n"
                }
             }
          },
-         "wait": [
-            {
-               "id": "ada-6",
-               "result": [
-                  {
-                     "name": "Foo",
-                     "kind": 12,
-                     "detail": "at p.ads (4:14)",
-                     "uri": "$URI{p.ads}",
-                     "range": {
-                        "start": {
-                           "line": 3,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 3,
-                           "character": 40
-                        }
-                     },
-                     "selectionRange": {
-                        "start": {
-                           "line": 3,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 3,
-                           "character": 16
-                        }
-                     }
-                  }
-               ]
-            }
-         ]
+         "wait": []
       }
    },
    {
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-7",
-            "method": "callHierarchy/incomingCalls",
+            "id": 9,
+            "method": "textDocument/references",
             "params": {
-               "item": {
-                  "name": "",
-                  "kind": 12,
-                  "uri": "$URI{p.ads}",
-                  "range": {
-                     "start": {
-                        "line": 3,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 3,
-                        "character": 13
-                     }
-                  },
-                  "selectionRange": {
-                     "start": {
-                        "line": 3,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 3,
-                        "character": 13
-                     }
-                  }
+               "textDocument": {
+                  "uri": "$URI{parents.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 13
+               },
+               "context": {
+                  "includeDeclaration": false
                }
             }
          },
          "wait": [
             {
-               "id": "ada-7",
+               "id": 9,
                "result": [
                   {
-                     "from": {
-                        "name": "Main",
-                        "kind": 12,
-                        "uri": "$URI{main.adb}",
-                        "range": {
-                           "start": {
-                              "line": 3,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 3,
-                              "character": 14
-                           }
+                     "uri": "$URI{children.ads}",
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 24
                         },
-                        "selectionRange": {
-                           "start": {
-                              "line": 3,
-                              "character": 10
-                           },
-                           "end": {
-                              "line": 3,
-                              "character": 14
-                           }
+                        "end": {
+                           "line": 6,
+                           "character": 33
                         }
                      },
-                     "fromRanges": [
-                        {
-                           "start": {
-                              "line": 6,
-                              "character": 3
-                           },
-                           "end": {
-                              "line": 6,
-                              "character": 6
-                           }
-                        }
+                     "alsKind": [
+                        "overriding"
                      ]
                   }
                ]
@@ -301,12 +246,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-8",
+            "id": 11,
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": "ada-8",
+               "id": 11,
                "result": null
             }
          ]
