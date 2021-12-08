@@ -361,6 +361,8 @@ package body LSP.Message_IO is
                return "parent";
             when Child =>
                return "child";
+            when Overriding_Decl =>
+               return "overriding";
          end case;
       end To_Virtual_String;
 
