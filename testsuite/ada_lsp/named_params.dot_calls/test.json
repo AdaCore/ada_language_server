@@ -98,12 +98,13 @@
                           },
                           "alsReferenceKinds": [
                               "reference",
-                         "access",
+                              "access",
                               "write",
                               "call",
                               "dispatching call",
                               "parent",
-                              "child"
+                              "child",
+                              "overriding"
                           ]
                       }
                   }

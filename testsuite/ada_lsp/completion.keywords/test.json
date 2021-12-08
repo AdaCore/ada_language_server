@@ -77,7 +77,8 @@
                         "call",
                         "dispatching call",
                         "parent",
-                        "child"
+                        "child",
+                        "overriding"
                      ],
                      "implementationProvider": true,
                      "foldingRangeProvider": true,

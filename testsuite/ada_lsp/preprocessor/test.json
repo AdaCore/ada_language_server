@@ -108,7 +108,8 @@
                         "call",
                         "dispatching call",
                         "parent",
-                        "child"
+                        "child",
+                        "overriding"
                      ]
                   }
                }
@@ -297,7 +298,7 @@
             }
          ]
       }
-   },  
+   },
    {"comment": "------------------------ check proper navigation after the one which returned no result"},
    {
       "send": {
