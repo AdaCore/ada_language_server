@@ -82,7 +82,7 @@ project LSP is
 
             --  Enable all warnings and GNAT stylechecks (plus O: check for
             --  overriding indicators).
-            "-gnatwa", "-gnatygO",
+            "-gnatwaJ", "-gnatygO",
 
             --  Enable assertions and all validity checking options
             "-gnata", "-gnatVa",
