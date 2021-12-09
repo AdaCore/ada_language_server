@@ -414,7 +414,7 @@
                         "registerOptions": {
                            "watchers": [
                               {
-                                 "globPattern": "${DIR}/*"
+                                 "globPattern": "${DIR}${DIR_SEP}*"
                               }
                            ]
                         }
@@ -454,7 +454,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -468,7 +468,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -482,7 +482,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -496,7 +496,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -510,7 +510,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -524,7 +524,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -591,8 +591,8 @@
       "shell": [
          "cp",
          "-a",
-         "${DIR}/qux/qux.ads",
-         "."
+         "${DIR}${DIR_SEP}qux${DIR_SEP}qux.ads",
+         "${DIR}${DIR_SEP}"
       ]
    },
    {
@@ -885,10 +885,11 @@
    },
    {
       "shell": [
-         "sed",
-         "-i",
-         "s/Bar/Baz/",
-         "${DIR}/qux.ads"
+         "${PYTHON}",
+         "${DIR}${DIR_SEP}replace.py",
+         "Bar",
+         "Baz",
+         "${DIR}${DIR_SEP}qux.ads"
       ]
    },
    {
@@ -972,10 +973,11 @@
    },
    {
       "shell": [
-         "sed",
-         "-i",
-         "s/Baz/Bar/",
-         "${DIR}/qux.ads"
+         "${PYTHON}",
+         "${DIR}${DIR_SEP}replace.py",
+         "Baz",
+         "Bar",
+         "${DIR}${DIR_SEP}qux.ads"
       ]
    },
    {
@@ -1037,7 +1039,7 @@
    {
       "shell": [
          "rm",
-         "${DIR}/qux.ads"
+         "${DIR}${DIR_SEP}qux.ads"
       ]
    },
    {

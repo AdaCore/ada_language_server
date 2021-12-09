@@ -464,15 +464,6 @@
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child"
-                     ],
                      "alsCheckSyntaxProvider": true
                   }
                }
@@ -524,7 +515,7 @@
                         "registerOptions": {
                            "watchers": [
                               {
-                                 "globPattern": "${DIR}/*"
+                                 "globPattern": "${DIR}${DIR_SEP}*"
                               }
                            ]
                         }
@@ -564,7 +555,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -578,7 +569,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -592,7 +583,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -606,7 +597,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -620,7 +611,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -634,7 +625,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}/*"
+                                    "glob": "${DIR}${DIR_SEP}*"
                                  }
                               }
                            ]
@@ -969,7 +960,7 @@
    {
       "shell": [
          "rm",
-         "${DIR}/qux.ads"
+         "${DIR}${DIR_SEP}qux.ads"
       ]
    },
    {
