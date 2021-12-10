@@ -2438,15 +2438,19 @@ package body LSP.Ada_Handlers is
       --  them to Response.results.
 
       function Get_Reference_Kind
-        (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set;
-      --  Fetch reference kind for given node
+        (Node               : Ada_Node;
+         Is_Overriding_Decl : Boolean := False)
+         return LSP.Messages.AlsReferenceKind_Set;
+      --  Fetch reference kind for given node.
 
       ------------------------
       -- Get_Reference_Kind --
       ------------------------
 
       function Get_Reference_Kind
-        (Node : Ada_Node) return LSP.Messages.AlsReferenceKind_Set
+        (Node               : Ada_Node;
+         Is_Overriding_Decl : Boolean := False)
+         return LSP.Messages.AlsReferenceKind_Set
       is
          use LSP.Messages;
 
@@ -2490,6 +2494,8 @@ package body LSP.Ada_Handlers is
             when E : Libadalang.Common.Property_Error =>
                Log (Self.Trace, E);
          end;
+
+         Result.As_Flags (LSP.Messages.Overriding_Decl) := Is_Overriding_Decl;
 
          --  If the result has not any set flags at this point, flag it as a
          --  simple reference.
@@ -2553,16 +2559,27 @@ package body LSP.Ada_Handlers is
             then
                Additional_Kinds (LSP.Messages.Simple) := True;
             end if;
+
+            --  Find all the references
+            C.Find_All_References (Definition, Callback'Access);
+
+            --  Find all the overriding declarations, if any
+            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+               Append_Location
+                 (Response.result,
+                  Subp.P_Defining_Name,
+                  Get_Reference_Kind
+                    (Definition.As_Ada_Node,
+                     Is_Overriding_Decl => True));
+            end loop;
+
+            if Value.context.includeDeclaration then
+               Append_Location
+                 (Response.result,
+                  Definition,
+                  Get_Reference_Kind (Definition.As_Ada_Node));
+            end if;
          end;
-
-         C.Find_All_References (Definition, Callback'Access);
-
-         if Value.context.includeDeclaration then
-            Append_Location
-              (Response.result,
-               Definition,
-               Get_Reference_Kind (Definition.As_Ada_Node));
-         end if;
       end Process_Context;
 
    begin

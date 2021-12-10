@@ -38,7 +38,8 @@
                          "access",
                         "write",
                         "call",
-                        "dispatching call", "parent", "child"
+                        "dispatching call", "parent", "child",
+                        "overriding"
                      ],
                      "hoverProvider": true,
                      "definitionProvider": true,

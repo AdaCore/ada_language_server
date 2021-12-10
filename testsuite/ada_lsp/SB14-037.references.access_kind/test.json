@@ -57,7 +57,8 @@
                         "access",
                         "write",
                         "call",
-                        "dispatching call", "parent", "child"
+                        "dispatching call", "parent", "child",
+                        "overriding"
                      ],
                      "hoverProvider": true,
                      "definitionProvider": true,
@@ -115,13 +116,13 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer;\n   procedure Foo (V : access Integer) is\n   begin\n      V.all := 3;\n   end Foo;\nbegin\n   A := 1;\n   Foo (A'Unrestricted_Access);\n   Ada.Text_IO.Put_Line (A'Image);\nend Main;\n", 
-                  "version": 0, 
-                  "uri": "$URI{main.adb}", 
+                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   A : Integer;\n   procedure Foo (V : access Integer) is\n   begin\n      V.all := 3;\n   end Foo;\nbegin\n   A := 1;\n   Foo (A'Unrestricted_Access);\n   Ada.Text_IO.Put_Line (A'Image);\nend Main;\n",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
                   "languageId": "Ada"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
          "wait": []
@@ -132,94 +133,94 @@
          "request": {
             "params": {
                "position": {
-                  "line": 3, 
+                  "line": 3,
                   "character": 3
-               }, 
+               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
-               }, 
+               },
                "context": {
                   "includeDeclaration": true
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "id": 2, 
+            },
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "textDocument/references"
-         }, 
+         },
          "wait": [
             {
-               "id": 2, 
+               "id": 2,
                "result": [
                   {
                      "range": {
                         "start": {
-                           "line": 3, 
+                           "line": 3,
                            "character": 3
-                        }, 
+                        },
                         "end": {
-                           "line": 3, 
+                           "line": 3,
                            "character": 4
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "reference"
-                     ], 
+                     ],
                      "uri": "$URI{main.adb}"
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 9, 
+                           "line": 9,
                            "character": 3
-                        }, 
+                        },
                         "end": {
-                           "line": 9, 
+                           "line": 9,
                            "character": 4
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "write"
-                     ], 
+                     ],
                      "uri": "$URI{main.adb}"
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 10, 
+                           "line": 10,
                            "character": 8
-                        }, 
+                        },
                         "end": {
-                           "line": 10, 
+                           "line": 10,
                            "character": 9
                         }
-                     }, 
+                     },
                      "alsKind": [
-                        "access", 
+                        "access",
                         "write"
-                     ], 
+                     ],
                      "uri": "$URI{main.adb}"
-                  }, 
+                  },
                   {
                      "range": {
                         "start": {
-                           "line": 11, 
+                           "line": 11,
                            "character": 25
-                        }, 
+                        },
                         "end": {
-                           "line": 11, 
+                           "line": 11,
                            "character": 26
                         }
-                     }, 
+                     },
                      "alsKind": [
                         "reference"
-                     ], 
+                     ],
                      "uri": "$URI{main.adb}"
                   }
                ]
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -227,13 +228,13 @@
                "textDocument": {
                   "uri": "$URI{main.adb}"
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "textDocument/didClose"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {

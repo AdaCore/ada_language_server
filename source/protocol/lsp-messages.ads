@@ -429,7 +429,14 @@ package LSP.Messages is
    --  }
 
    type AlsReferenceKind is
-     (Simple, Access_Ref, Write, Static_Call, Dispatching_Call, Parent, Child);
+     (Simple,
+      Access_Ref,
+      Write,
+      Static_Call,
+      Dispatching_Call,
+      Parent,
+      Child,
+      Overriding_Decl);
 
    procedure Read_AlsReferenceKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
