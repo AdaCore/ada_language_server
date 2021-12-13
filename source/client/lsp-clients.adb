@@ -1172,7 +1172,7 @@ package body LSP.Clients is
       Message : DidCreateFiles_Notification :=
         (params => Value, others => <>);
    begin
-      Self.Send_Notification ("$workspace/didCreateFiles", Message);
+      Self.Send_Notification ("workspace/didCreateFiles", Message);
    end On_DidCreateFiles_Notification;
 
    ------------------------------------
@@ -1186,7 +1186,7 @@ package body LSP.Clients is
       Message : DidRenameFiles_Notification :=
         (params => Value, others => <>);
    begin
-      Self.Send_Notification ("$workspace/didRenameFiles", Message);
+      Self.Send_Notification ("workspace/didRenameFiles", Message);
    end On_DidRenameFiles_Notification;
 
    ------------------------------------
@@ -1200,7 +1200,7 @@ package body LSP.Clients is
       Message : DidDeleteFiles_Notification :=
         (params => Value, others => <>);
    begin
-      Self.Send_Notification ("$workspace/didDeleteFiles", Message);
+      Self.Send_Notification ("workspace/didDeleteFiles", Message);
    end On_DidDeleteFiles_Notification;
 
    -------------------------------------
