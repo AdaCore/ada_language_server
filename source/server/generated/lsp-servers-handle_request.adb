@@ -357,6 +357,42 @@ begin
          end;
       end if;
 
+      if Request in Workspace_Will_Create_Files_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Workspace_Will_Create_Files_Request
+                  (Workspace_Will_Create_Files_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Workspace_Will_Rename_Files_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Workspace_Will_Rename_Files_Request
+                  (Workspace_Will_Rename_Files_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in Workspace_Will_Delete_Files_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_Workspace_Will_Delete_Files_Request
+                  (Workspace_Will_Delete_Files_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
       if Request in ALS_Show_Dependencies_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=

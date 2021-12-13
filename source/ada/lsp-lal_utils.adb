@@ -810,17 +810,21 @@ package body LSP.Lal_Utils is
       return LSP.Messages.Span
    is
       use type VSS.Unicode.UTF16_Code_Unit_Count;
+      use type Langkit_Support.Slocs.Source_Location_Range;
 
       Result : constant LSP.Messages.Span :=
-        (first =>
-           (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
-            character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
-              (Value.Start_Column) - 1),
-         last =>
-           (line => LSP.Types.Line_Number (Value.End_Line) - 1,
-            character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!
-              (Value.End_Column) - 1));
-      --  XXX Code unit offset computation is incorrect here
+        (if Value = Langkit_Support.Slocs.No_Source_Location_Range then
+           LSP.Messages.Empty_Span
+         else
+           (first =>
+                (line      => LSP.Types.Line_Number (Value.Start_Line) - 1,
+                 character => LSP.Types.UTF_16_Index   --  FIXME (UTF16 index)!
+                   (Value.Start_Column) - 1),
+            last =>
+              (line => LSP.Types.Line_Number (Value.End_Line) - 1,
+               character => LSP.Types.UTF_16_Index  --  FIXME (UTF16 index)!
+                 (Value.End_Column) - 1)));
+         --  XXX Code unit offset computation is incorrect here
 
    begin
       return Result;

@@ -859,6 +859,28 @@ package body LSP.Ada_Contexts is
       end if;
    end Index_File;
 
+   ------------------
+   -- Include_File --
+   ------------------
+
+   procedure Include_File
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File) is
+   begin
+      Self.Source_Files.Include (File);
+   end Include_File;
+
+   ------------------
+   -- Exclude_File --
+   ------------------
+
+   procedure Exclude_File
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File) is
+   begin
+      Self.Source_Files.Exclude (File);
+   end Exclude_File;
+
    --------------------
    -- Index_Document --
    --------------------

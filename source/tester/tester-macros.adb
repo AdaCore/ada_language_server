@@ -179,6 +179,7 @@ package body Tester.Macros is
       Env_With_Dir : Spawn.Environments.Process_Environment := Env;
    begin
       Env_With_Dir.Insert ("DIR", Directory);
+      Env_With_Dir.Insert ("DIR_SEP", GNAT.OS_Lib.Directory_Separator & "");
       Test := Expand (Test, Env_With_Dir, Directory);
    end Expand;
 

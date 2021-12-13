@@ -97,6 +97,21 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response)
         is abstract;
 
+   procedure On_WillCreateFiles_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.WillCreateFiles_Response)
+   is abstract;
+
+   procedure On_WillRenameFiles_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.WillRenameFiles_Response)
+   is abstract;
+
+   procedure On_WillDeleteFiles_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.WillDeleteFiles_Response)
+   is abstract;
+
    procedure On_DocumentColor_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.DocumentColor_Response)

@@ -31,6 +31,18 @@ package LSP.Server_Notification_Receivers is
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.DidChangeWatchedFilesParams) is abstract;
 
+   procedure On_DidCreateFiles_Notification
+     (Self  : access Server_Notification_Receiver;
+      Value : LSP.Messages.CreateFilesParams) is abstract;
+
+   procedure On_DidRenameFiles_Notification
+     (Self  : access Server_Notification_Receiver;
+      Value : LSP.Messages.RenameFilesParams) is abstract;
+
+   procedure On_DidDeleteFiles_Notification
+     (Self  : access Server_Notification_Receiver;
+      Value : LSP.Messages.DeleteFilesParams) is abstract;
+
    procedure On_Cancel_Notification
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.CancelParams) is abstract;

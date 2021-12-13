@@ -199,6 +199,16 @@ package LSP.Ada_Contexts is
    --  If PLE is True, Populate_Lexical_Env is called at the end, which will
    --  increase the speed of semantic requests.
 
+   procedure Include_File
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File);
+   --  Includes File in Self's source files
+
+   procedure Exclude_File
+     (Self    : in out Context;
+      File    : GNATCOLL.VFS.Virtual_File);
+   --  Excludes File from Self's source files
+
    procedure Index_Document
      (Self     : in out Context;
       Document : in out LSP.Ada_Documents.Document);

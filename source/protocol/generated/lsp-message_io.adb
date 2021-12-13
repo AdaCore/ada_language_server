@@ -1959,6 +1959,69 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_CodeLensWorkspaceClientCapabilities;
 
+   procedure Read_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out FileOperationsClientCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "dynamicRegistration" then
+               Optional_Boolean'Read (S, V.dynamicRegistration);
+            elsif Key = "didCreate" then
+               Optional_Boolean'Read (S, V.didCreate);
+            elsif Key = "willCreate" then
+               Optional_Boolean'Read (S, V.willCreate);
+            elsif Key = "didRename" then
+               Optional_Boolean'Read (S, V.didRename);
+            elsif Key = "willRename" then
+               Optional_Boolean'Read (S, V.willRename);
+            elsif Key = "didDelete" then
+               Optional_Boolean'Read (S, V.didDelete);
+            elsif Key = "willDelete" then
+               Optional_Boolean'Read (S, V.willDelete);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_FileOperationsClientCapabilities;
+
+   procedure Write_FileOperationsClientCapabilities
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : FileOperationsClientCapabilities)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("dynamicRegistration");
+      Optional_Boolean'Write (S, V.dynamicRegistration);
+      JS.Key ("didCreate");
+      Optional_Boolean'Write (S, V.didCreate);
+      JS.Key ("willCreate");
+      Optional_Boolean'Write (S, V.willCreate);
+      JS.Key ("didRename");
+      Optional_Boolean'Write (S, V.didRename);
+      JS.Key ("willRename");
+      Optional_Boolean'Write (S, V.willRename);
+      JS.Key ("didDelete");
+      Optional_Boolean'Write (S, V.didDelete);
+      JS.Key ("willDelete");
+      Optional_Boolean'Write (S, V.willDelete);
+      JS.End_Object;
+   end Write_FileOperationsClientCapabilities;
+
    procedure Read_WorkspaceClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out WorkspaceClientCapabilities)
@@ -1995,6 +2058,8 @@ package body LSP.Message_IO is
                Optional_SemanticTokensWorkspaceClientCapabilities'Read (S, V.semanticTokens);
             elsif Key = "codeLens" then
                Optional_CodeLensWorkspaceClientCapabilities'Read (S, V.codeLens);
+            elsif Key = "fileOperations" then
+               Optional_FileOperationsClientCapabilities'Read (S, V.fileOperations);
             else
                JS.Skip_Value;
             end if;
@@ -2031,6 +2096,8 @@ package body LSP.Message_IO is
       Optional_SemanticTokensWorkspaceClientCapabilities'Write (S, V.semanticTokens);
       JS.Key ("codeLens");
       Optional_CodeLensWorkspaceClientCapabilities'Write (S, V.codeLens);
+      JS.Key ("fileOperations");
+      Optional_FileOperationsClientCapabilities'Write (S, V.fileOperations);
       JS.End_Object;
    end Write_WorkspaceClientCapabilities;
 
@@ -4123,69 +4190,6 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_GeneralClientCapabilities;
 
-   procedure Read_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      pragma Assert (JS.R.Is_Start_Object);
-      JS.R.Read_Next;
-
-      while not JS.R.Is_End_Object loop
-         pragma Assert (JS.R.Is_Key_Name);
-         declare
-            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
-         begin
-            JS.R.Read_Next;
-            if Key = "dynamicRegistration" then
-               Optional_Boolean'Read (S, V.dynamicRegistration);
-            elsif Key = "didCreate" then
-               Optional_Boolean'Read (S, V.didCreate);
-            elsif Key = "willCreate" then
-               Optional_Boolean'Read (S, V.willCreate);
-            elsif Key = "didRename" then
-               Optional_Boolean'Read (S, V.didRename);
-            elsif Key = "willRename" then
-               Optional_Boolean'Read (S, V.willRename);
-            elsif Key = "didDelete" then
-               Optional_Boolean'Read (S, V.didDelete);
-            elsif Key = "willDelete" then
-               Optional_Boolean'Read (S, V.willDelete);
-            else
-               JS.Skip_Value;
-            end if;
-         end;
-      end loop;
-      JS.R.Read_Next;
-   end Read_fileOperationsClientCapabilities;
-
-   procedure Write_fileOperationsClientCapabilities
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsClientCapabilities)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("dynamicRegistration");
-      Optional_Boolean'Write (S, V.dynamicRegistration);
-      JS.Key ("didCreate");
-      Optional_Boolean'Write (S, V.didCreate);
-      JS.Key ("willCreate");
-      Optional_Boolean'Write (S, V.willCreate);
-      JS.Key ("didRename");
-      Optional_Boolean'Write (S, V.didRename);
-      JS.Key ("willRename");
-      Optional_Boolean'Write (S, V.willRename);
-      JS.Key ("didDelete");
-      Optional_Boolean'Write (S, V.didDelete);
-      JS.Key ("willDelete");
-      Optional_Boolean'Write (S, V.willDelete);
-      JS.End_Object;
-   end Write_fileOperationsClientCapabilities;
-
    procedure Read_ClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out ClientCapabilities)
@@ -5286,9 +5290,9 @@ package body LSP.Message_IO is
       JS.End_Object;
    end Write_FileOperationRegistrationOptions;
 
-   procedure Read_fileOperationsServerCapabilities
+   procedure Read_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsServerCapabilities)
+      V : out FileOperationsServerCapabilities)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -5320,11 +5324,11 @@ package body LSP.Message_IO is
          end;
       end loop;
       JS.R.Read_Next;
-   end Read_fileOperationsServerCapabilities;
+   end Read_FileOperationsServerCapabilities;
 
-   procedure Write_fileOperationsServerCapabilities
+   procedure Write_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsServerCapabilities)
+      V : FileOperationsServerCapabilities)
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
@@ -5343,7 +5347,7 @@ package body LSP.Message_IO is
       JS.Key ("willDelete");
       Optional_FileOperationRegistrationOptions'Write (S, V.willDelete);
       JS.End_Object;
-   end Write_fileOperationsServerCapabilities;
+   end Write_FileOperationsServerCapabilities;
 
    procedure Read_workspace_Options
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -5364,7 +5368,7 @@ package body LSP.Message_IO is
             if Key = "workspaceFolders" then
                Optional_WorkspaceFoldersServerCapabilities'Read (S, V.workspaceFolders);
             elsif Key = "fileOperations" then
-               Optional_fileOperationsServerCapabilities'Read (S, V.fileOperations);
+               Optional_FileOperationsServerCapabilities'Read (S, V.fileOperations);
             else
                JS.Skip_Value;
             end if;
@@ -5384,7 +5388,7 @@ package body LSP.Message_IO is
       JS.Key ("workspaceFolders");
       Optional_WorkspaceFoldersServerCapabilities'Write (S, V.workspaceFolders);
       JS.Key ("fileOperations");
-      Optional_fileOperationsServerCapabilities'Write (S, V.fileOperations);
+      Optional_FileOperationsServerCapabilities'Write (S, V.fileOperations);
       JS.End_Object;
    end Write_workspace_Options;
 

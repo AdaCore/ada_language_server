@@ -169,6 +169,17 @@ package body LSP.Ada_File_Sets is
       Self.Files.Include (File);
    end Include;
 
+   -------------
+   -- Exclude --
+   -------------
+
+   procedure Exclude
+     (Self : in out Indexed_File_Set'Class;
+      File : GNATCOLL.VFS.Virtual_File) is
+   begin
+      Self.Files.Exclude (File);
+   end Exclude;
+
    ----------------
    -- Index_File --
    ----------------

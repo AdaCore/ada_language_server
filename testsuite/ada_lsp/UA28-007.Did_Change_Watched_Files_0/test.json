@@ -1,0 +1,1106 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 6199,
+               "rootPath": "${DIR}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ],
+                        "failureHandling": "textOnlyTransactional",
+                        "normalizesLineEndings": true,
+                        "changeAnnotationSupport": {
+                           "groupsOnLabel": true
+                        }
+                     },
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "didChangeWatchedFiles": {
+                        "dynamicRegistration": true
+                     },
+                     "symbol": {
+                        "dynamicRegistration": true
+                     },
+                     "codeLens": {
+                        "refreshSupport": true
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     },
+                     "configuration": true,
+                     "workspaceFolders": true,
+                     "semanticTokens": {
+                        "refreshSupport": true
+                     },
+                     "fileOperations": {
+                        "dynamicRegistration": true,
+                        "didCreate": true,
+                        "didRename": true,
+                        "didDelete": true,
+                        "willCreate": true,
+                        "willRename": true,
+                        "willDelete": true
+                     }
+                  },
+                  "textDocument": {
+                     "publishDiagnostics": {
+                        "relatedInformation": true,
+                        "versionSupport": false,
+                        "tagSupport": {
+                           "valueSet": [
+                              1,
+                              2
+                           ]
+                        },
+                        "codeDescriptionSupport": true,
+                        "dataSupport": true
+                     },
+                     "synchronization": {
+                        "dynamicRegistration": true,
+                        "willSave": true,
+                        "willSaveWaitUntil": true,
+                        "didSave": true
+                     },
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": {
+                              "valueSet": [
+                                 1
+                              ]
+                           },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": {
+                              "valueSet": [
+                                 1,
+                                 2
+                              ]
+                           }
+                        }
+                     },
+                     "hover": {
+                        "dynamicRegistration": true,
+                        "contentFormat": [
+                           "markdown",
+                           "plaintext"
+                        ]
+                     },
+                     "signatureHelp": {
+                        "dynamicRegistration": true,
+                        "signatureInformation": {
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "parameterInformation": {
+                              "labelOffsetSupport": true
+                           },
+                           "activeParameterSupport": true
+                        },
+                        "contextSupport": true
+                     },
+                     "definition": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     },
+                     "references": {
+                        "dynamicRegistration": true
+                     },
+                     "documentHighlight": {
+                        "dynamicRegistration": true
+                     },
+                     "documentSymbol": {
+                        "dynamicRegistration": true,
+                        "hierarchicalDocumentSymbolSupport": true,
+                        "tagSupport": {
+                           "valueSet": [
+                              1
+                           ]
+                        },
+                        "labelSupport": true
+                     },
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "isPreferredSupport": true,
+                        "disabledSupport": true,
+                        "dataSupport": true,
+                        "resolveSupport": {
+                           "properties": [
+                              "edit"
+                           ]
+                        },
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "",
+                                 "quickfix",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite",
+                                 "source",
+                                 "source.organizeImports"
+                              ]
+                           }
+                        },
+                        "honorsChangeAnnotations": false
+                     },
+                     "codeLens": {
+                        "dynamicRegistration": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": true
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": true
+                     },
+                     "rename": {
+                        "dynamicRegistration": true,
+                        "prepareSupport": true,
+                        "prepareSupportDefaultBehavior": 1,
+                        "honorsChangeAnnotations": true
+                     },
+                     "documentLink": {
+                        "dynamicRegistration": true,
+                        "tooltipSupport": true
+                     },
+                     "typeDefinition": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     },
+                     "implementation": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     },
+                     "colorProvider": {
+                        "dynamicRegistration": true
+                     },
+                     "foldingRange": {
+                        "dynamicRegistration": true,
+                        "rangeLimit": 5000,
+                        "lineFoldingOnly": true
+                     },
+                     "declaration": {
+                        "dynamicRegistration": true,
+                        "linkSupport": true
+                     },
+                     "selectionRange": {
+                        "dynamicRegistration": true
+                     },
+                     "callHierarchy": {
+                        "dynamicRegistration": true
+                     },
+                     "semanticTokens": {
+                        "dynamicRegistration": true,
+                        "tokenTypes": [
+                           "namespace",
+                           "type",
+                           "class",
+                           "enum",
+                           "interface",
+                           "struct",
+                           "typeParameter",
+                           "parameter",
+                           "variable",
+                           "property",
+                           "enumMember",
+                           "event",
+                           "function",
+                           "method",
+                           "macro",
+                           "keyword",
+                           "modifier",
+                           "comment",
+                           "string",
+                           "number",
+                           "regexp",
+                           "operator"
+                        ],
+                        "tokenModifiers": [
+                           "declaration",
+                           "definition",
+                           "readonly",
+                           "static",
+                           "deprecated",
+                           "abstract",
+                           "async",
+                           "modification",
+                           "documentation",
+                           "defaultLibrary"
+                        ],
+                        "formats": [
+                           "relative"
+                        ],
+                        "requests": {
+                           "range": true,
+                           "full": {
+                              "delta": true
+                           }
+                        },
+                        "multilineTokenSupport": false,
+                        "overlappingTokenSupport": false
+                     },
+                     "linkedEditingRange": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "window": {
+                     "showMessage": {
+                        "messageActionItem": {
+                           "additionalPropertiesSupport": true
+                        }
+                     },
+                     "showDocument": {
+                        "support": true
+                     },
+                     "workDoneProgress": true
+                  },
+                  "general": {
+                     "regularExpressions": {
+                        "engine": "ECMAScript",
+                        "version": "ES2020"
+                     },
+                     "markdown": {
+                        "parser": "marked",
+                        "version": "1.1.0"
+                     }
+                  }
+               },
+               "trace": "off",
+               "workspaceFolders": [
+                  {
+                     "uri": "$URI{.}",
+                     "name": "UA28-007.Did_Change_Watched_Files_0"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {
+                        "codeActionKinds": [
+                           "quickfix",
+                           "refactor.rewrite"
+                        ]
+                     },
+                     "documentFormattingProvider": true,
+                     "renameProvider": {
+                        "prepareProvider": true
+                     },
+                     "foldingRangeProvider": true,
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "off"
+                     },
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "method": "client/registerCapability",
+               "params": {
+                  "registrations": [
+                     {
+                        "id": "fm-1",
+                        "method": "workspace/didChangeWatchedFiles",
+                        "registerOptions": {
+                           "watchers": [
+                              {
+                                 "globPattern": "${DIR}${DIR_SEP}*"
+                              }
+                           ]
+                        }
+                     }
+                  ]
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "id": 3,
+               "method": "client/registerCapability",
+               "params": {
+                  "registrations": [
+                     {
+                        "id": "rf",
+                        "method": "textDocument/rangeFormatting",
+                        "registerOptions": {
+                           "documentSelector": [
+                              "ada"
+                           ]
+                        }
+                     }
+                  ]
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "id": 4,
+               "method": "client/registerCapability",
+               "params": {
+                  "registrations": [
+                     {
+                        "id": "Will_Create",
+                        "method": "workspace/willCreateFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "Did_Create",
+                        "method": "workspace/didCreateFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "Will_Rename",
+                        "method": "workspace/willRenameFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "Did_Rename",
+                        "method": "workspace/didRenameFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "Will_Delete",
+                        "method": "workspace/willDeleteFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "id": "Did_Delete",
+                        "method": "workspace/didDeleteFiles",
+                        "registerOptions": {
+                           "filters": [
+                              {
+                                 "scheme": "file",
+                                 "pattern": {
+                                    "glob": "${DIR}${DIR_SEP}*"
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  ]
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Foo;\nwith Qux;\n\nprocedure Main is\nbegin\n   Foo.Bar;\n   Qux.Bar;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "shell": [
+         "cp",
+         "-a",
+         "${DIR}${DIR_SEP}qux${DIR_SEP}qux.ads",
+         "${DIR}${DIR_SEP}"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeWatchedFiles",
+            "params": {
+               "changes": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "type": 1
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 11
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/documentSymbol",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": [
+                  {
+                     "name": "Foo",
+                     "kind": 3,
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 9
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 0,
+                           "character": 5
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 8
+                        }
+                     }
+                  },
+                  {
+                     "name": "Qux",
+                     "kind": 3,
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 9
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 1,
+                           "character": 5
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 8
+                        }
+                     }
+                  },
+                  {
+                     "name": "Main",
+                     "detail": "",
+                     "kind": 12,
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 9
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 3,
+                           "character": 10
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 14
+                        }
+                     },
+                     "alsIsDeclaration": false,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1,
+                     "children": []
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{qux.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Foo;\n\npackage Qux is\n   procedure Bar renames Foo.Bar;\nend Qux;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/documentSymbol",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{qux.ads}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  {
+                     "name": "Foo",
+                     "kind": 3,
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 9
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 0,
+                           "character": 5
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 8
+                        }
+                     }
+                  },
+                  {
+                     "name": "Qux",
+                     "detail": "",
+                     "kind": 4,
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 8
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 11
+                        }
+                     },
+                     "alsIsDeclaration": true,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1,
+                     "children": [
+                        {
+                           "name": "Bar",
+                           "detail": "",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 33
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 16
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1,
+                           "children": []
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{qux.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "shell": [
+         "${PYTHON}",
+         "${DIR}${DIR_SEP}replace.py",
+         "Bar",
+         "Baz",
+         "${DIR}${DIR_SEP}qux.ads"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeWatchedFiles",
+            "params": {
+               "changes": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "type": 2
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 11
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "shell": [
+         "${PYTHON}",
+         "${DIR}${DIR_SEP}replace.py",
+         "Baz",
+         "Bar",
+         "${DIR}${DIR_SEP}qux.ads"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeWatchedFiles",
+            "params": {
+               "changes": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "type": 2
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 8,
+               "result": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 16
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "shell": [
+         "rm",
+         "${DIR}${DIR_SEP}qux.ads"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeWatchedFiles",
+            "params": {
+               "changes": [
+                  {
+                     "uri": "$URI{qux.ads}",
+                     "type": 3
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 7
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

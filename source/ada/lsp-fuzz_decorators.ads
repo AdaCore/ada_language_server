@@ -68,6 +68,18 @@ package LSP.Fuzz_Decorators is
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.CancelParams);
 
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.CreateFilesParams);
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.RenameFilesParams);
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.DeleteFilesParams);
+
    overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Fuzz_Notification_Decorator;
       Value : LSP.Messages.DidOpenTextDocumentParams);

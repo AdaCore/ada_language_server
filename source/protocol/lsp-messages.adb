@@ -706,10 +706,10 @@ package body LSP.Messages is
       V : out LSP.Messages.FileChangeType)
       renames LSP.Message_IO.Read_FileChangeType;
 
-   procedure Read_fileOperationsClientCapabilities
+   procedure Read_FileOperationsClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsClientCapabilities)
-      renames LSP.Message_IO.Read_fileOperationsClientCapabilities;
+      V : out FileOperationsClientCapabilities)
+      renames LSP.Message_IO.Read_FileOperationsClientCapabilities;
 
    procedure Read_FileOperationPatternKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -736,10 +736,10 @@ package body LSP.Messages is
       V : out FileOperationRegistrationOptions)
       renames LSP.Message_IO.Read_FileOperationRegistrationOptions;
 
-   procedure Read_fileOperationsServerCapabilities
+   procedure Read_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out fileOperationsServerCapabilities)
-      renames LSP.Message_IO.Read_fileOperationsServerCapabilities;
+      V : out FileOperationsServerCapabilities)
+      renames LSP.Message_IO.Read_FileOperationsServerCapabilities;
 
    procedure Read_FileCreate
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -1871,15 +1871,15 @@ package body LSP.Messages is
       V : FileOperationRegistrationOptions)
       renames LSP.Message_IO.Write_FileOperationRegistrationOptions;
 
-   procedure Write_fileOperationsServerCapabilities
+   procedure Write_FileOperationsServerCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsServerCapabilities)
-      renames LSP.Message_IO.Write_fileOperationsServerCapabilities;
+      V : FileOperationsServerCapabilities)
+      renames LSP.Message_IO.Write_FileOperationsServerCapabilities;
 
-   procedure Write_fileOperationsClientCapabilities
+   procedure Write_FileOperationsClientCapabilities
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : fileOperationsClientCapabilities)
-      renames LSP.Message_IO.Write_fileOperationsClientCapabilities;
+      V : FileOperationsClientCapabilities)
+      renames LSP.Message_IO.Write_FileOperationsClientCapabilities;
 
    procedure Write_FileCreate
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -4248,6 +4248,8 @@ package body LSP.Messages is
             CodeActionRegistrationOptions'Read (S, V.CodeAction);
          when Rename_Registration_Option =>
             RenameRegistrationOptions'Read (S, V.Rename);
+         when File_Operation_Registration_Option =>
+            FileOperationRegistrationOptions'Read (S, V.FileOperation);
       end case;
    end Read_Registration_Option;
 
@@ -4286,6 +4288,8 @@ package body LSP.Messages is
             CodeActionRegistrationOptions'Write (S, V.CodeAction);
          when Rename_Registration_Option =>
             RenameRegistrationOptions'Write (S, V.Rename);
+         when File_Operation_Registration_Option =>
+            FileOperationRegistrationOptions'Write (S, V.FileOperation);
       end case;
    end Write_Registration_Option;
 

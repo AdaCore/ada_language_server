@@ -173,6 +173,24 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
       return LSP.Messages.Server_Responses.ExecuteCommand_Response;
 
+   overriding function On_Workspace_Will_Create_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Create_Files_Request)
+      return LSP.Messages.Server_Responses.WillCreateFiles_Response;
+
+   overriding function On_Workspace_Will_Rename_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Rename_Files_Request)
+      return LSP.Messages.Server_Responses.WillRenameFiles_Response;
+
+   overriding function On_Workspace_Will_Delete_Files_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.
+                  Workspace_Will_Delete_Files_Request)
+      return LSP.Messages.Server_Responses.WillDeleteFiles_Response;
+
    overriding function On_ALS_Show_Dependencies_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
