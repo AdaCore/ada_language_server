@@ -31,6 +31,8 @@ with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Sources;
 with Libadalang.Iterators;
 
+with Laltools.Common;
+
 with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
@@ -2053,7 +2055,55 @@ package body LSP.Ada_Documents is
       use type LSP.Messages.Search_Kind;
 
       procedure Refresh_Symbol_Cache;
-      procedure Insert (Item : Name_Information);
+      --  Find intresting definings names in the document and put them
+      --  into Self.Symbol_Cache
+
+      procedure Insert
+        (Item : Name_Information;
+         Name : Libadalang.Analysis.Defining_Name);
+      --  Populate Result with the name information if Result doesn't have
+      --  the Name already
+
+      function Get_Defining_Name
+        (Loc : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Analysis.Defining_Name;
+
+      -----------------------
+      -- Get_Defining_Name --
+      -----------------------
+
+      function Get_Defining_Name
+        (Loc : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Analysis.Defining_Name
+      is
+         Unit : constant Libadalang.Analysis.Analysis_Unit :=
+             Self.Unit (Context);
+
+         Name : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
+      begin
+         return Laltools.Common.Get_Name_As_Defining (Name);
+      end Get_Defining_Name;
+
+      ------------
+      -- Insert --
+      ------------
+
+      procedure Insert
+        (Item : Name_Information;
+         Name : Libadalang.Analysis.Defining_Name) is
+      begin
+         if not Result.Contains (Name) and then
+           (not Only_Public or else Item.Is_Public)
+         then
+            Result.Insert
+              (Name,
+               (Is_Dot_Call  => False,
+                Is_Visible   => False,
+                Use_Snippets => False,
+                Pos          => <>));
+         end if;
+      end Insert;
 
       --------------------------
       -- Refresh_Symbol_Cache --
@@ -2100,31 +2150,19 @@ package body LSP.Ada_Documents is
 
                   Self.Symbol_Cache (Cursor).Append
                     (Name_Information'
-                       (Node.As_Defining_Name,
+                       (Langkit_Support.Slocs.Start_Sloc (Node.Sloc_Range),
                         Global_Visible.Unchecked_Get.Evaluate (Node)));
                end if;
             end;
          end loop;
       end Refresh_Symbol_Cache;
 
-      procedure Insert (Item : Name_Information) is
-      begin
-         if not Result.Contains (Item.Name) and then
-           (not Only_Public or else Item.Is_Public)
-         then
-            Result.Insert
-              (Item.Name,
-               (Is_Dot_Call  => False,
-                Is_Visible   => False,
-                Use_Snippets => False,
-                Pos          => <>));
-         end if;
-      end Insert;
-
       Cursor      : Symbol_Maps.Cursor;
+
+      --  In "Celling" mode we scan only range of cache where a key prefix
+      --  matches lowercased pattern as is.
       Use_Celling : constant Boolean :=
-        not Pattern.Get_Case_Sensitive
-        and then not Pattern.Get_Negate
+        not Pattern.Get_Negate
         and then ((Pattern.Get_Kind = LSP.Messages.Full_Text
                    and then Pattern.Get_Whole_Word)
                   or else Pattern.Get_Kind = LSP.Messages.Start_Word_Text);
@@ -2142,33 +2180,38 @@ package body LSP.Ada_Documents is
       end if;
 
       while Symbol_Maps.Has_Element (Cursor) loop
-         if Pattern.Get_Case_Sensitive then
-            --  Match each element individually because
-            --  Symbol_Cache is case insensitive
-            for Item of Self.Symbol_Cache (Cursor) loop
-               if Pattern.Match
-                 (LSP.Lal_Utils.To_Virtual_String
-                    (Item.Name.As_Ada_Node.Text))
-               then
-                  Insert (Item);
-               end if;
 
-               exit when Canceled.all;
-            end loop;
-
-         elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
-            --  Symbol_Cache is case insensitive so if the key is matched
-            --  this means that all elements are also matched the pattern
-            for Item of Self.Symbol_Cache (Cursor) loop
-               Insert (Item);
-
-               exit when Canceled.all;
-            end loop;
-
-         else
+         if Use_Celling
+           and then not Pattern.Match (Symbol_Maps.Key (Cursor))
+         then
+            --  We use "Celling mode" and key stops matching,
             --  Symbol_Cache is ordered so we will not find any
             --  matches more
+
             exit when Use_Celling or else Canceled.all;
+
+         else
+
+            for Item of Self.Symbol_Cache (Cursor) loop
+               declare
+                  Defining_Name : constant Libadalang.Analysis.Defining_Name :=
+                    Get_Defining_Name (Item.Loc);
+               begin
+                  --  Match each element individually in case of sensitive
+                  --  search or non-celling mode
+                  if (Use_Celling and then not Pattern.Get_Case_Sensitive)
+                    or else Pattern.Match
+                      (LSP.Lal_Utils.To_Virtual_String
+                        (Defining_Name.As_Ada_Node.Text))
+                  then
+                     Insert (Item, Defining_Name);
+                  end if;
+
+                  exit when Canceled.all;
+
+               end;
+            end loop;
+
          end if;
 
          Symbol_Maps.Next (Cursor);

@@ -38,7 +38,6 @@ package body LSP.Search.Approximate is
       --  errors.
 
       Mask   : Character_Masks;
-      Status : constant Approximate_Status_Access := new Approximate_Status;
       Min    : Virtual_Character := Virtual_Character'Last;
       Max    : Virtual_Character := Virtual_Character'First;
       C      : Virtual_Character;
@@ -87,8 +86,7 @@ package body LSP.Search.Approximate is
            (if Pattern.Character_Length <= 4 then 0
             elsif Pattern.Character_Length <= 10 then 1
             else 2),
-         Result          => Status,
-         Matched         => 2 ** (Natural (Pattern.Character_Length) - 1));
+         Matched        => 2 ** (Natural (Pattern.Character_Length) - 1));
    end Build;
 
    --------------
@@ -97,12 +95,9 @@ package body LSP.Search.Approximate is
 
    overriding procedure Finalize (Self : in out Approximate_Search) is
       procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (Approximate_Status, Approximate_Status_Access);
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
         (Character_Mask_Array, Character_Masks);
    begin
       Unchecked_Free (Self.Pattern);
-      Unchecked_Free (Self.Result);
    end Finalize;
 
    -----------
@@ -118,6 +113,7 @@ package body LSP.Search.Approximate is
         Text.First_Character;
 
       C      : VSS.Characters.Virtual_Character;
+      Status : Approximate_Status := (others => 0);
       Tmp_R  : Approximate_Status;
       Offset : Mask;
       Result : Boolean := False;
@@ -125,16 +121,15 @@ package body LSP.Search.Approximate is
 
    begin
       --  Initialize the pattern with K ones
-      Self.Result.all := (others => 0);
       for K in 1 .. Self.Max_Errors loop
-         Self.Result (K) := Shift_Left (Self.Result (K - 1), 1) or 1;
+         Status (K) := Shift_Left (Status (K - 1), 1) or 1;
       end loop;
 
       Each_Symbol :
       while P.Has_Element loop
          C     := P.Element;
          Dummy := P.Forward;
-         Tmp_R := Self.Result.all;
+         Tmp_R := Status;
 
          if C in Self.Pattern'Range then
             Offset := Self.Pattern (C);
@@ -142,22 +137,22 @@ package body LSP.Search.Approximate is
             Offset := 0;
          end if;
 
-         Self.Result (0) := (Shift_Left (Tmp_R (0), 1) or 1) and Offset;
+         Status (0) := (Shift_Left (Tmp_R (0), 1) or 1) and Offset;
 
          for K in 1 .. Self.Max_Errors loop
-            Self.Result (K) :=
+            Status (K) :=
               ((Shift_Left (Tmp_R (K), 1) or 1) and Offset)
               or (Shift_Left (Tmp_R (K - Approximate_Substitution_Cost)
-                              or Self.Result
+                              or Status
                                 (K - Approximate_Deletion_Cost), 1) or 1)
               or Tmp_R (K - Approximate_Insertion_Cost);
          end loop;
 
-         for K in Self.Result'First .. Self.Max_Errors loop
+         for K in Status'First .. Self.Max_Errors loop
             if P.Character_Index - Self.Text.Character_Length -
               Character_Count (K) + 1 >=
               Text.First_Character.Character_Index
-              and then (Self.Result (K) and Self.Matched) /= 0
+              and then (Status (K) and Self.Matched) /= 0
             then
                Result := True;
                exit Each_Symbol;
