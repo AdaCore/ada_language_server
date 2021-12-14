@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
-with Ada.Unchecked_Deallocation;
 
 with VSS.Strings;             use VSS.Strings;
 with VSS.Strings.Conversions;
@@ -34,11 +33,10 @@ package body LSP.Search.Start_Word_Text is
       Negate         : Boolean := False)
       return Search_Pattern'Class
    is
-      BM : constant Boyer_Moore_Pattern_Access :=
-        new GNATCOLL.Boyer_Moore.Pattern;
+      BM : GNATCOLL.Boyer_Moore.Pattern;
    begin
       Compile
-        (BM.all,
+        (BM,
          VSS.Strings.Conversions.To_UTF_8_String (Pattern),
          Case_Sensitive => Case_Sensitive);
 
@@ -57,11 +55,8 @@ package body LSP.Search.Start_Word_Text is
    --------------
 
    overriding procedure Finalize (Self : in out Start_Word_Text_Search) is
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (GNATCOLL.Boyer_Moore.Pattern, Boyer_Moore_Pattern_Access);
    begin
-      GNATCOLL.Boyer_Moore.Free (Self.Boyer.all);
-      Unchecked_Free (Self.Boyer);
+      GNATCOLL.Boyer_Moore.Free (Self.Boyer);
       Finalize (Search_Pattern (Self));
    end Finalize;
 
@@ -78,7 +73,7 @@ package body LSP.Search.Start_Word_Text is
         VSS.Strings.Conversions.To_UTF_8_String (Text);
 
    begin
-      if GNATCOLL.Boyer_Moore.Search (Self.Boyer.all, T) = T'First then
+      if GNATCOLL.Boyer_Moore.Search (Self.Boyer, T) = T'First then
          return not Self.Negate;
       else
          return Self.Negate;

@@ -2142,25 +2142,16 @@ package body LSP.Ada_Documents is
       end if;
 
       while Symbol_Maps.Has_Element (Cursor) loop
-         if Pattern.Get_Case_Sensitive then
-            --  Match each element individually because
-            --  Symbol_Cache is case insensitive
+         if Pattern.Match (Symbol_Maps.Key (Cursor)) then
             for Item of Self.Symbol_Cache (Cursor) loop
-               if Pattern.Match
-                 (LSP.Lal_Utils.To_Virtual_String
-                    (Item.Name.As_Ada_Node.Text))
+               --  Match each element individually if case sensitive search
+               if not Pattern.Get_Case_Sensitive
+                 or else Pattern.Match
+                            (LSP.Lal_Utils.To_Virtual_String
+                              (Item.Name.As_Ada_Node.Text))
                then
                   Insert (Item);
                end if;
-
-               exit when Canceled.all;
-            end loop;
-
-         elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
-            --  Symbol_Cache is case insensitive so if the key is matched
-            --  this means that all elements are also matched the pattern
-            for Item of Self.Symbol_Cache (Cursor) loop
-               Insert (Item);
 
                exit when Canceled.all;
             end loop;

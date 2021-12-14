@@ -53,7 +53,6 @@ private
 
    type Approximate_Status is
      array (-Approximate_Max_Cost .. Approximate_Max_Errors) of Mask;
-   type Approximate_Status_Access is access all Approximate_Status;
 
    type Approximate_Search is new Search_Pattern with record
       Pattern : Character_Masks;
@@ -64,7 +63,6 @@ private
 
       Max_Errors : Natural := Approximate_Max_Errors;
 
-      Result  : Approximate_Status_Access;
       Matched : Mask;
       --  Value in Result that indicates when the character matches
    end record;

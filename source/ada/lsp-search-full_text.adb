@@ -17,7 +17,6 @@
 
 with Ada.Characters.Handling;
 with Ada.Strings.UTF_Encoding;
-with Ada.Unchecked_Deallocation;
 
 with VSS.Strings;             use VSS.Strings;
 with VSS.Strings.Conversions;
@@ -35,11 +34,10 @@ package body LSP.Search.Full_Text is
       Negate         : Boolean := False)
       return Search_Pattern'Class
    is
-      BM : constant Boyer_Moore_Pattern_Access :=
-        new GNATCOLL.Boyer_Moore.Pattern;
+      BM : GNATCOLL.Boyer_Moore.Pattern;
    begin
       Compile
-        (BM.all,
+        (BM,
          VSS.Strings.Conversions.To_UTF_8_String (Pattern),
          Case_Sensitive => Case_Sensitive);
 
@@ -58,11 +56,8 @@ package body LSP.Search.Full_Text is
    --------------
 
    overriding procedure Finalize (Self : in out Full_Text_Search) is
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (GNATCOLL.Boyer_Moore.Pattern, Boyer_Moore_Pattern_Access);
    begin
-      GNATCOLL.Boyer_Moore.Free (Self.Boyer.all);
-      Unchecked_Free (Self.Boyer);
+      GNATCOLL.Boyer_Moore.Free (Self.Boyer);
       Finalize (Search_Pattern (Self));
    end Finalize;
 
@@ -79,7 +74,6 @@ package body LSP.Search.Full_Text is
       T     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         VSS.Strings.Conversions.To_UTF_8_String (Text);
       S     : Integer := T'First;
-      F     : constant Integer := T'Last;
 
       function Is_Word_Delimiter (C : Character) return Boolean;
       function Is_Word_Delimiter (C : Character) return Boolean is
@@ -90,18 +84,15 @@ package body LSP.Search.Full_Text is
 
    begin
       loop
-         Index := GNATCOLL.Boyer_Moore.Search
-           (Self.Boyer.all, T (S .. F));
+         Index := GNATCOLL.Boyer_Moore.Search (Self.Boyer, T (S .. T'Last));
 
          exit when not Self.Whole_Word
-           or else Index = -1
-           or else Index > T'Last
+           or else Index not in T'Range  --  Actually we check Index = -1 here
            or else
                --  Check we have word delimiters on either sides
-           ((Index = T'First
-             or else Is_Word_Delimiter (T (Index - 1)))
-              and then
-                (Index = T'Last - T'Length + 1
+           ((Index = T'First or else Is_Word_Delimiter (T (Index - 1)))
+            and then
+             (Index + T'Length > T'Last
                  or else Is_Word_Delimiter (T (Index + T'Length))));
          S := Index + 1;
       end loop;
