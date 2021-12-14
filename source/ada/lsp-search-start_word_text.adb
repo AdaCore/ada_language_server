@@ -49,7 +49,7 @@ package body LSP.Search.Start_Word_Text is
          Case_Sensitive => Case_Sensitive,
          Negate         => Negate,
          Whole_Word     => Whole_Word,
-         Kind           => LSP.Messages.Full_Text);
+         Kind           => LSP.Messages.Start_Word_Text);
    end Build;
 
    --------------

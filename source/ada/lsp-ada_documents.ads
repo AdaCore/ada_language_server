@@ -286,7 +286,7 @@ private
       "="          => VSS.Strings.Markers."=");
 
    type Name_Information is record
-      Name      : Libadalang.Analysis.Defining_Name;
+      Loc       : Langkit_Support.Slocs.Source_Location;
       Is_Public : Boolean;
    end record;
 
