@@ -28,10 +28,8 @@ package LSP.Search.Start_Word_Text is
 
 private
 
-   type Boyer_Moore_Pattern_Access is access all GNATCOLL.Boyer_Moore.Pattern;
-
    type Start_Word_Text_Search is new Search_Pattern with record
-      Boyer : Boyer_Moore_Pattern_Access;
+      Boyer : GNATCOLL.Boyer_Moore.Pattern;
    end record;
 
    overriding procedure Finalize (Self : in out Start_Word_Text_Search);
