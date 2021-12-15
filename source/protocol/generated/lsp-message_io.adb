@@ -4394,6 +4394,8 @@ package body LSP.Message_IO is
                LSP.Types.Read_String (S, V.name);
             elsif Key = "version" then
                Optional_Virtual_String'Read (S, V.version);
+            elsif Key = "log_filename" then
+               Optional_Virtual_String'Read (S, V.log_filename);
             else
                JS.Skip_Value;
             end if;
@@ -4414,6 +4416,8 @@ package body LSP.Message_IO is
       LSP.Types.Write_String (S, V.name);
       JS.Key ("version");
       Optional_Virtual_String'Write (S, V.version);
+      JS.Key ("log_filename");
+      Optional_Virtual_String'Write (S, V.log_filename);
       JS.End_Object;
    end Write_ProgramInfo;
 
