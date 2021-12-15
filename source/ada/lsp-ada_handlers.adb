@@ -978,6 +978,13 @@ package body LSP.Ada_Handlers is
          end if;
       end;
 
+      Response.result.serverInfo := LSP.Messages.Optional_ProgramInfo'
+        (True,
+         (log_filename =>
+              (True, VSS.Strings.Conversions.To_Virtual_String
+                 (Runtime_Indexing.Get_Stream_File.Display_Full_Name)),
+          others       => <>));
+
       --  Experimental Client Capabilities
       Self.Experimental_Client_Capabilities :=
         Parse (Experimental_Client_Capabilities);
