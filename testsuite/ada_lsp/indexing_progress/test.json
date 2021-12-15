@@ -109,36 +109,6 @@
                "params": {
                   "token": "<ANY>",
                   "value": {
-                     "kind": "report",
-                     "percentage": 25
-                  }
-               },
-               "method": "$/progress"
-            },
-            {
-               "params": {
-                  "token": "<ANY>",
-                  "value": {
-                     "kind": "report",
-                     "percentage": 50
-                  }
-               },
-               "method": "$/progress"
-            },
-            {
-               "params": {
-                  "token": "<ANY>",
-                  "value": {
-                     "kind": "report",
-                     "percentage": 75
-                  }
-               },
-               "method": "$/progress"
-            },
-            {
-               "params": {
-                  "token": "<ANY>",
-                  "value": {
                      "kind": "end"
                   }
                },
