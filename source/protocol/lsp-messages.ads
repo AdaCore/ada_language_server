@@ -4798,8 +4798,11 @@ package LSP.Messages is
    for Text_Progress_Params'Write use Write_Text_Progress_Params;
 
    type ProgramInfo is record
-      name    : VSS.Strings.Virtual_String;
-      version : Optional_Virtual_String;
+      name         : VSS.Strings.Virtual_String;
+      version      : Optional_Virtual_String;
+
+      log_filename : Optional_Virtual_String;
+      --  The absolute path of the Ada Language Server log file, if any
    end record;
 
    procedure Read_ProgramInfo
