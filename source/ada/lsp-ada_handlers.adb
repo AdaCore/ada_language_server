@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
@@ -4151,10 +4152,12 @@ package body LSP.Ada_Handlers is
    procedure Index_Files (Self : access Message_Handler) is
 
       procedure Emit_Progress_Begin;
-      procedure Emit_Progress_Report (Percent : Natural);
+      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural);
       procedure Emit_Progress_End;
       --  Emit a message to inform that the indexing has begun / is in
       --  progress / has finished.
+
+      Progress_Report_Sent : Time := Clock;
 
       -------------------------
       -- Emit_Progress_Begin --
@@ -4184,12 +4187,32 @@ package body LSP.Ada_Handlers is
       -- Emit_Progress_Report --
       --------------------------
 
-      procedure Emit_Progress_Report (Percent : Natural) is
+      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural) is
          P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
+
+         function Image (N : Natural) return Wide_Wide_String;
+         function Image (N : Natural) return Wide_Wide_String is
+            S : constant Wide_Wide_String := Natural'Wide_Wide_Image (N);
+         begin
+            return S (S'First + 1 .. S'Last);
+         end Image;
+
+         Current : constant Time := Clock;
       begin
+         if Current - Progress_Report_Sent < 0.5 then
+            --  Send only 2 notifications per second
+            return;
+         end if;
+         Progress_Report_Sent := Current;
+
          P.Report_Param.token := Self.Indexing_Token;
          P.Report_Param.value.percentage :=
-           (Is_Set => True, Value => LSP_Number (Percent));
+           (Is_Set => True, Value => LSP_Number
+              ((Files_Indexed * 100) / Total_Files));
+         P.Report_Param.value.message :=
+           (Is_Set => True,
+            Value  => VSS.Strings.To_Virtual_String
+              (Image (Files_Indexed) & "/" & Image (Total_Files) & " files"));
          Self.Server.On_Progress (P);
       end Emit_Progress_Report;
 
@@ -4204,8 +4227,6 @@ package body LSP.Ada_Handlers is
          Self.Server.On_Progress (P);
       end Emit_Progress_End;
 
-      Last_Percent    : Natural := 0;
-      Current_Percent : Natural := 0;
    begin
       --  Prevent work if the indexing has been explicitly disabled or
       --  if we have other messages to process.
@@ -4228,14 +4249,8 @@ package body LSP.Ada_Handlers is
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
 
             if not Self.Open_Documents.Contains (File) then
-               Current_Percent := (Self.Total_Files_Indexed * 100)
-                 / Self.Total_Files_To_Index;
-               --  If the value of the indexing increased by at least one
-               --  percent, emit one progress report.
-               if Current_Percent > Last_Percent then
-                  Emit_Progress_Report (Current_Percent);
-                  Last_Percent := Current_Percent;
-               end if;
+               Emit_Progress_Report
+                 (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
 
                for Context of Self.Contexts_For_File (File) loop
                   --  Set Reparse to False to avoid issues with LAL envs
