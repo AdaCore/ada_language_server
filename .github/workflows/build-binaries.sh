@@ -49,6 +49,17 @@ else
     export BUILD_MODE=prod
 fi
 
+pip install --user subprojects/langkit/
+
+# Python used in GitHub CI on Windows can't understand
+# make's notation of absolute path in form of /d/PATH,
+# where /d is drive D: Let's use relative path instead
+sed -i -e '/langkit/s/.{CURDIR}/../' subprojects/gpr/Makefile
+
+make -C subprojects/gpr setup prefix=$prefix \
+ GPR2KBDIR=./gprconfig_kb/db ENABLE_SHARED=no \
+ ${DEBUG:+BUILD=debug} all install
+
 make LIBRARY_TYPE=static all check
 
 function fix_rpath ()
