@@ -60,6 +60,21 @@ jobs:
         with:
           repository: AdaCore/libadalang-tools
           path: subprojects/libadalang-tools
+      - name: Get Langkit
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/langkit
+          path: subprojects/langkit
+      - name: Get gpr
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/gpr
+          path: subprojects/gpr
+      - name: Get gprconfig_kb
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/gprconfig_kb
+          path: subprojects/gpr/gprconfig_kb
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
