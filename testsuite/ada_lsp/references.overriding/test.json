@@ -68,70 +68,72 @@
                }
             }
          },
-         "wait": [
-            {
-               "id": 1,
-               "result": {
-                  "capabilities": {
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-other-file",
-                           "als-named-parameters",
-                           "als-refactor-imports",
-                           "als-refactor-add-parameters",
-                           "als-refactor-remove-parameters",
-                           "als-refactor-move-parameter",
-                           "als-refactor-change-parameter-mode",
-                           "als-suppress-separate"
-                        ]
-                     },
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ],
-                     "alsCheckSyntaxProvider": true
-                  }
-               }
+          "wait": [
+	      {
+		  "jsonrpc": "2.0",
+		  "id": 1,
+		  "result": {
+		      "capabilities": {
+			  "textDocumentSync": 2,
+			  "completionProvider": {
+			      "triggerCharacters": [
+				  ".",
+				  ",",
+				  "'",
+				  "("
+			      ],
+			      "resolveProvider": true
+			  },
+			  "hoverProvider": true,
+			  "signatureHelpProvider": {
+			      "triggerCharacters": [
+				  ",",
+				  "("
+			      ],
+			      "retriggerCharacters": [
+				  "\b"
+			      ]
+			  },
+			  "declarationProvider": true,
+			  "definitionProvider": true,
+			  "typeDefinitionProvider": true,
+			  "implementationProvider": true,
+			  "referencesProvider": true,
+			  "documentHighlightProvider": true,
+			  "documentSymbolProvider": true,
+			  "codeActionProvider": {
+			  },
+			  "documentFormattingProvider": true,
+			  "renameProvider": {
+			  },
+			  "foldingRangeProvider": true,
+			  "executeCommandProvider": {
+			      "commands": [
+				  "als-other-file",
+				  "als-named-parameters",
+				  "als-refactor-imports",
+				  "als-refactor-remove-parameters",
+				  "als-refactor-move-parameter",
+				  "als-refactor-change-parameter-mode",
+				  "als-suppress-separate"
+			      ]
+			  },
+			  "workspaceSymbolProvider": true,
+			  "callHierarchyProvider": {
+			  },
+			  "alsShowDepsProvider": true,
+			  "alsReferenceKinds": [
+			      "reference",
+			      "access",
+			      "write",
+			      "call",
+			      "dispatching call",
+			      "parent",
+			      "child",
+			      "overriding"
+			  ]
+		      }
+		  }
             }
          ]
       }
