@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Langkit_Support.Errors;
+
 with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
@@ -91,16 +93,15 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
-      --  Don't complete numeric literals or attributes
-      if Filter.Is_Numeric_Literal or else Filter.Is_Attribute_Ref then
+      --  Don't complete numeric literals, attributes nor end labels
+      if Filter.Is_Numeric_Literal
+        or else Filter.Is_Attribute_Ref
+        or else Filter.Is_End_Label
+      then
          return;
       end if;
 
-      --  Check if we are completing an end label. If it's the case, we want
-      --  to disable snippets since end labels don't expect any parameters.
-
-      if Filter.Is_End_Label
-        or else not Sibling.Is_Null
+      if not Sibling.Is_Null
         or else
           (not Parent.Is_Null
              and then Parent.Kind in Libadalang.Common.Ada_Param_Assoc_Range)
@@ -108,8 +109,6 @@ package body LSP.Ada_Completions.Names is
          --  Snippets should not be used in the following cases:
          --
          --   . The Use_Snippets parameter if set to False
-         --
-         --   . When the queried node is within an end label
          --
          --   . When the queried node has a sibling: this is to avoid proposing
          --     snippets when a list of parameters is already present on the
@@ -179,6 +178,9 @@ package body LSP.Ada_Completions.Names is
             end if;
          end loop;
       end;
+   exception
+      when Langkit_Support.Errors.Property_Error =>
+         null;
    end Propose_Completion;
 
 end LSP.Ada_Completions.Names;
