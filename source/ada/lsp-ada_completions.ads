@@ -78,11 +78,10 @@ package LSP.Ada_Completions is
       Result : in out LSP.Messages.CompletionList) is abstract;
    --  Populate Names and Result with completions for given Source_Location.
    --  Names works for defining name completions to create snippets and to
-   --  avoid duplicates. The Token's span encloses Sloc or Sloc can be at the
-   --  next character after the Token if the token not a trivia.
+   --  avoid duplicates. The Token's span encloses Sloc-1, but not Sloc itself.
    --
-   --  Example: abc;  or abc<space>
-   --  Cursor:     ^        ^
+   --  Example: abc|;  or abc|<space>
+   --  Cursor:     ^         ^
    --  Consider `abc;` or `abc<space>` and Sloc is a character after `c`, then
    --  Token is `abc`, because a user expect it to te completed.
    --  The Node is immediate enclosing AST node for the token.
