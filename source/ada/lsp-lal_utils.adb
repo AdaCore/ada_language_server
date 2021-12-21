@@ -1791,4 +1791,38 @@ package body LSP.Lal_Utils is
       end return;
    end Is_Global_Visible;
 
+   ------------------
+   -- Is_End_Token --
+   ------------------
+
+   function Is_End_Token (Token : Libadalang.Common.Token_Reference)
+                             return Boolean
+   is
+      End_Token : constant Libadalang.Common.Token_Data_Type :=
+        Libadalang.Common.Data (Token);
+
+      Token_Kind : constant Libadalang.Common.Token_Kind :=
+        Libadalang.Common.Kind (End_Token);
+   begin
+      return Token_Kind = Libadalang.Common.Ada_End;
+   end Is_End_Token;
+
+   -----------------------
+   -- Skip_Dotted_Names --
+   -----------------------
+
+   function Skip_Dotted_Names (Node : Libadalang.Analysis.Ada_Node)
+                                  return Libadalang.Analysis.Ada_Node
+   is
+      Parent : Libadalang.Analysis.Ada_Node := Node;
+   begin
+      while not Parent.Is_Null
+        and then Parent.Kind = Libadalang.Common.Ada_Dotted_Name
+      loop
+         Parent := Parent.Parent;
+      end loop;
+
+      return Parent;
+   end Skip_Dotted_Names;
+
 end LSP.Lal_Utils;

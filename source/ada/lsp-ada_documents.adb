@@ -2294,9 +2294,16 @@ package body LSP.Ada_Documents is
       Node  : constant Libadalang.Analysis.Ada_Node :=
         (if Root = No_Ada_Node then Root else Root.Lookup (From));
 
+      Parent : constant Libadalang.Analysis.Ada_Node :=
+        (if Node = No_Ada_Node then Node else Node.Parent);
+
       Filter : LSP.Ada_Completions.Filters.Filter;
    begin
-      if Node.Kind in Libadalang.Common.Ada_String_Literal_Range then
+      if Parent.Is_Null
+        or else (Parent.Kind not in
+          Libadalang.Common.Ada_Dotted_Name | Libadalang.Common.Ada_End_Name
+          and then Node.Kind in Libadalang.Common.Ada_String_Literal_Range)
+      then
          --  Do nothing when inside a string
          return;
       end if;

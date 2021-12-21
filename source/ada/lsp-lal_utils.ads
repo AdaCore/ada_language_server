@@ -325,4 +325,12 @@ package LSP.Lal_Utils is
    --  A node under query is a defined name visible at a library level, such
    --  as declaration in a public part of a library level project.
 
+   function Is_End_Token
+     (Token : Libadalang.Common.Token_Reference) return Boolean;
+   --  Check if Token is <end>.
+
+   function Skip_Dotted_Names
+     (Node : Libadalang.Analysis.Ada_Node) return Libadalang.Analysis.Ada_Node;
+   --  While Node.Kind is the Dotted_Name go up.
+
 end LSP.Lal_Utils;

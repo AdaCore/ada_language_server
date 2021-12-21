@@ -195,7 +195,17 @@
                "id": 2,
                "result": {
                   "isIncomplete": false,
-                  "items": []
+                  "items": [
+                     {
+                       "label": "Add;",
+                       "kind": 14,
+                       "preselect": true,
+                       "sortText": "Add;",
+                       "insertText": "Add;\n",
+                       "additionalTextEdits": [
+                       ]
+                     }
+                  ]
                }
             }
          ]
@@ -243,18 +253,17 @@
                "id": 3,
                "result": {
                   "isIncomplete": false,
-                   "items": [
-                       {
-                           "label": "Add",
-                           "kind": 3,
-                           "detail": "function Add (A, B : Integer) return Integer",
-                           "documentation": "at main.adb (3:4)",
-                           "sortText": "1Add",
-                           "additionalTextEdits": [
-                           ]
-                       }
-                   ]
-
+                  "items": [
+                     {
+                       "label": "Add;",
+                       "kind": 14,
+                       "preselect": true,
+                       "sortText": "Add;",
+                       "insertText": "Add;\n",
+                       "additionalTextEdits": [
+                       ]
+                     }
+                  ]
                }
             }
          ]
