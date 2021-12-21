@@ -72,7 +72,6 @@ package body LSP.Predefined_Completion is
       is
          Item : CompletionItem;
       begin
-         Item.insertTextFormat := (True, PlainText);
          Item.label :=
            VSS.Strings.Conversions.To_Virtual_String
              (String'(Value.Get ("_name")));
@@ -80,7 +79,6 @@ package body LSP.Predefined_Completion is
            (True,
             VSS.Strings.Conversions.To_Virtual_String
               (String'(Value.Get ("_origin"))));
-         Item.insertText := (True, Item.label);
          Item.documentation :=
            (Is_Set => True,
             Value  => String_Or_MarkupContent'
@@ -88,7 +86,7 @@ package body LSP.Predefined_Completion is
                String    =>
                  VSS.Strings.Conversions.To_Virtual_String
                    (String'(Value.Get ("DOC")))));
-         Item.kind := (True, Keyword);
+         Item.kind := (True, Text);
 
          Items.Append (Item);
       end Load_Item;
