@@ -2236,7 +2236,7 @@ package body LSP.Ada_Documents is
         (Sloc  : Langkit_Support.Slocs.Source_Location)
          return Libadalang.Common.Token_Reference;
       --  Get token under completion for given cursor position.
-      --  If cursor at the first symbol of a trivia return previous token:
+      --  If cursor at the first symbol of a token return previous token:
       --  XXX___
       --     ^ cursor just after a token mean user is completion XXX token.
 
@@ -2259,9 +2259,7 @@ package body LSP.Ada_Documents is
             else Libadalang.Common.Previous (Token));
 
       begin
-         if Libadalang.Common.No_Token not in Token | Prev
-           and then not Libadalang.Common.Is_Trivia (Prev)
-         then
+         if Libadalang.Common.No_Token not in Token | Prev then
             declare
                Data  : constant Libadalang.Common.Token_Data_Type :=
                  Libadalang.Common.Data (Token);
