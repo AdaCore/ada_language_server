@@ -1,0 +1,3551 @@
+[
+   {
+      "comment": [
+         "Check completions for end label variants"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 2243210,
+               "clientInfo": {
+                  "name": "Visual Studio Code",
+                  "version": "1.63.2"
+               },
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ],
+                        "normalizesLineEndings": true
+                     },
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "symbol": {},
+                     "executeCommand": {},
+                     "configuration": true,
+                     "workspaceFolders": true,
+                     "fileOperations": {
+                        "dynamicRegistration": true,
+                        "didCreate": true,
+                        "didRename": true,
+                        "didDelete": true,
+                        "willCreate": true,
+                        "willRename": true,
+                        "willDelete": true
+                     }
+                  },
+                  "textDocument": {
+                     "publishDiagnostics": {},
+                     "synchronization": {},
+                     "completion": {
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": {
+                              "valueSet": [
+                                 1
+                              ]
+                           },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": {
+                              "valueSet": [
+                                 1,
+                                 2
+                              ]
+                           }
+                        },
+                        "completionItemKind": {
+                           "valueSet": [
+                              1,
+                              2,
+                              3,
+                              4,
+                              5,
+                              6,
+                              7,
+                              8,
+                              9,
+                              10,
+                              11,
+                              12,
+                              13,
+                              14,
+                              15,
+                              16,
+                              17,
+                              18,
+                              19,
+                              20,
+                              21,
+                              22,
+                              23,
+                              24,
+                              25
+                           ]
+                        }
+                     },
+                     "documentSymbol": {},
+                     "codeAction": {}
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Ada.Text_IO;\n\nprocedure GNAT.Main is\n\n   task T is\n      entry Start;\n   end T;\n\n   task body T is\n   begin\n      select\n         accept Start do\n            null;\n         end Start;\n      or\n         terminate;\n      end select;\n   end T;\n\n   function \"+\" (X : Integer) return Integer is\n   begin\n      return F : Integer do\n         F := X;\n      end return;\n   end \"+\";\n\n   package Pkg is end Pkg;\n\n   generic\n   package GP is\n      function GF return Integer;\n   end GP;\n\n   package body GP is\n      function GF return Integer is\n      begin\n         return 0;\n      end GF;\n   end GP;\n\n   protected PO is\n      entry E (X : Integer);\n   end PO;\n\n   protected body PO is\n      entry E (X : Integer) when True is\n      begin\n         null;\n      end E;\n\n   end PO;\n\n   type Rec is record\n      X : Natural;\n   end record;\n   for Rec use record\n      X at 0 range 0 .. 31;\n   end record;\n\n   type Optional_Integer (Is_Set : Boolean := True) is record\n      case Is_Set is\n         when True  => X : Integer;\n         when False => null;\n      end case;\n   end record;\nbegin\n   select\n      T.Start;\n   then abort\n      Ada.Text_IO.New_Line;\n   end select;\n\n   Blk:\n   declare\n   begin\n      null;\n   end Blk;\n\n   for S in Boolean'Range loop\n      begin\n         null;\n      end;\n   end loop;\n\n   case True is\n      when True | False =>\n         if True then\n            null;\n         end if;\n   end case;\n\nend GNAT.Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "T;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "T;",
+                        "insertText": "T;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "T;",
+               "insertTextFormat": 1,
+               "insertText": "T;\n",
+               "kind": 14,
+               "sortText": "T;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 14,
+               "result": {
+                  "label": "T;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "T;",
+                  "insertText": "T;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "T;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "T;",
+                        "insertText": "T;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "T;",
+               "insertTextFormat": 1,
+               "insertText": "T;\n",
+               "kind": 14,
+               "sortText": "T;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 17,
+               "result": {
+                  "label": "T;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "T;",
+                  "insertText": "T;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 26,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 13
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 26,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Start;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Start;",
+                        "insertText": "Start;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 27,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Start;",
+               "insertTextFormat": 1,
+               "insertText": "Start;\n",
+               "kind": 14,
+               "sortText": "Start;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 27,
+               "result": {
+                  "label": "Start;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Start;",
+                  "insertText": "Start;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 29,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 14
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 29,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Start;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Start;",
+                        "insertText": "Start;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 30,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Start;",
+               "insertTextFormat": 1,
+               "insertText": "Start;\n",
+               "kind": 14,
+               "sortText": "Start;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 30,
+               "result": {
+                  "label": "Start;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Start;",
+                  "insertText": "Start;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 37,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 16,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 37,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "select;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "select;",
+                        "insertText": "select;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 38,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "select;",
+               "insertTextFormat": 1,
+               "insertText": "select;\n",
+               "kind": 14,
+               "sortText": "select;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 38,
+               "result": {
+                  "label": "select;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "select;",
+                  "insertText": "select;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 40,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 16,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 40,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "select;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "select;",
+                        "insertText": "select;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 41,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "select;",
+               "insertTextFormat": 1,
+               "insertText": "select;\n",
+               "kind": 14,
+               "sortText": "select;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 41,
+               "result": {
+                  "label": "select;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "select;",
+                  "insertText": "select;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 17,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 44,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "T;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "T;",
+                        "insertText": "T;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 45,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "T;",
+               "insertTextFormat": 1,
+               "insertText": "T;\n",
+               "kind": 14,
+               "sortText": "T;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 45,
+               "result": {
+                  "label": "T;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "T;",
+                  "insertText": "T;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 47,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 17,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 47,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "T;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "T;",
+                        "insertText": "T;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 48,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "T;",
+               "insertTextFormat": 1,
+               "insertText": "T;\n",
+               "kind": 14,
+               "sortText": "T;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 48,
+               "result": {
+                  "label": "T;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "T;",
+                  "insertText": "T;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 58,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 23,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 58,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "return;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "return;",
+                        "insertText": "return;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 59,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "return;",
+               "insertTextFormat": 1,
+               "insertText": "return;\n",
+               "kind": 14,
+               "sortText": "return;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 59,
+               "result": {
+                  "label": "return;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "return;",
+                  "insertText": "return;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 61,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 23,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 61,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "return;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "return;",
+                        "insertText": "return;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 62,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "return;",
+               "insertTextFormat": 1,
+               "insertText": "return;\n",
+               "kind": 14,
+               "sortText": "return;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 62,
+               "result": {
+                  "label": "return;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "return;",
+                  "insertText": "return;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 65,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 24,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 65,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "\"+\";",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "\"+\";",
+                        "insertText": "\"+\";\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 66,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "\"+\";",
+               "insertTextFormat": 1,
+               "insertText": "\"+\";\n",
+               "kind": 14,
+               "sortText": "\"+\";",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 66,
+               "result": {
+                  "label": "\"+\";",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "\"+\";",
+                  "insertText": "\"+\";\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 68,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 24,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 68,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "\"+\";",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "\"+\";",
+                        "insertText": "\"+\";\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 69,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "\"+\";",
+               "insertTextFormat": 1,
+               "insertText": "\"+\";\n",
+               "kind": 14,
+               "sortText": "\"+\";",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 69,
+               "result": {
+                  "label": "\"+\";",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "\"+\";",
+                  "insertText": "\"+\";\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 80,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 26,
+                  "character": 22
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 80,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Pkg;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Pkg;",
+                        "insertText": "Pkg;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 81,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Pkg;",
+               "insertTextFormat": 1,
+               "insertText": "Pkg;\n",
+               "kind": 14,
+               "sortText": "Pkg;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 81,
+               "result": {
+                  "label": "Pkg;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Pkg;",
+                  "insertText": "Pkg;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 83,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 26,
+                  "character": 23
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 83,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Pkg;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Pkg;",
+                        "insertText": "Pkg;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 84,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Pkg;",
+               "insertTextFormat": 1,
+               "insertText": "Pkg;\n",
+               "kind": 14,
+               "sortText": "Pkg;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 84,
+               "result": {
+                  "label": "Pkg;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Pkg;",
+                  "insertText": "Pkg;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 93,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 31,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 93,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GP;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GP;",
+                        "insertText": "GP;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 94,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GP;",
+               "insertTextFormat": 1,
+               "insertText": "GP;\n",
+               "kind": 14,
+               "sortText": "GP;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 94,
+               "result": {
+                  "label": "GP;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GP;",
+                  "insertText": "GP;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 96,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 31,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 96,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GP;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GP;",
+                        "insertText": "GP;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 97,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GP;",
+               "insertTextFormat": 1,
+               "insertText": "GP;\n",
+               "kind": 14,
+               "sortText": "GP;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 97,
+               "result": {
+                  "label": "GP;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GP;",
+                  "insertText": "GP;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 111,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 37,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 111,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GF;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GF;",
+                        "insertText": "GF;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 112,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GF;",
+               "insertTextFormat": 1,
+               "insertText": "GF;\n",
+               "kind": 14,
+               "sortText": "GF;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 112,
+               "result": {
+                  "label": "GF;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GF;",
+                  "insertText": "GF;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 114,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 37,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 114,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GF;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GF;",
+                        "insertText": "GF;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 115,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GF;",
+               "insertTextFormat": 1,
+               "insertText": "GF;\n",
+               "kind": 14,
+               "sortText": "GF;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 115,
+               "result": {
+                  "label": "GF;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GF;",
+                  "insertText": "GF;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 119,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 38,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 119,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GP;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GP;",
+                        "insertText": "GP;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 120,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GP;",
+               "insertTextFormat": 1,
+               "insertText": "GP;\n",
+               "kind": 14,
+               "sortText": "GP;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 120,
+               "result": {
+                  "label": "GP;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GP;",
+                  "insertText": "GP;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 122,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 38,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 122,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GP;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GP;",
+                        "insertText": "GP;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 123,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GP;",
+               "insertTextFormat": 1,
+               "insertText": "GP;\n",
+               "kind": 14,
+               "sortText": "GP;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 123,
+               "result": {
+                  "label": "GP;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GP;",
+                  "insertText": "GP;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 130,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 42,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 130,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "PO;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "PO;",
+                        "insertText": "PO;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 131,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "PO;",
+               "insertTextFormat": 1,
+               "insertText": "PO;\n",
+               "kind": 14,
+               "sortText": "PO;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 131,
+               "result": {
+                  "label": "PO;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "PO;",
+                  "insertText": "PO;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 133,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 42,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 133,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "PO;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "PO;",
+                        "insertText": "PO;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 134,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "PO;",
+               "insertTextFormat": 1,
+               "insertText": "PO;\n",
+               "kind": 14,
+               "sortText": "PO;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 134,
+               "result": {
+                  "label": "PO;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "PO;",
+                  "insertText": "PO;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 144,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 48,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 144,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "E;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "E;",
+                        "insertText": "E;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 145,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "E;",
+               "insertTextFormat": 1,
+               "insertText": "E;\n",
+               "kind": 14,
+               "sortText": "E;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 145,
+               "result": {
+                  "label": "E;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "E;",
+                  "insertText": "E;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 147,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 48,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 147,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "E;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "E;",
+                        "insertText": "E;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 148,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "E;",
+               "insertTextFormat": 1,
+               "insertText": "E;\n",
+               "kind": 14,
+               "sortText": "E;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 148,
+               "result": {
+                  "label": "E;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "E;",
+                  "insertText": "E;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 152,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 50,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 152,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "PO;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "PO;",
+                        "insertText": "PO;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 153,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "PO;",
+               "insertTextFormat": 1,
+               "insertText": "PO;\n",
+               "kind": 14,
+               "sortText": "PO;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 153,
+               "result": {
+                  "label": "PO;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "PO;",
+                  "insertText": "PO;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 155,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 50,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 155,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "PO;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "PO;",
+                        "insertText": "PO;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 156,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "PO;",
+               "insertTextFormat": 1,
+               "insertText": "PO;\n",
+               "kind": 14,
+               "sortText": "PO;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 156,
+               "result": {
+                  "label": "PO;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "PO;",
+                  "insertText": "PO;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 161,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 54,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 161,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 162,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 162,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 164,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 54,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 164,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 165,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 165,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 172,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 57,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 172,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 173,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 173,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 175,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 57,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 175,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 176,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 176,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 184,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 63,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 184,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "case;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "case;",
+                        "insertText": "case;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 185,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "case;",
+               "insertTextFormat": 1,
+               "insertText": "case;\n",
+               "kind": 14,
+               "sortText": "case;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 185,
+               "result": {
+                  "label": "case;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "case;",
+                  "insertText": "case;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 187,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 63,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 187,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "case;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "case;",
+                        "insertText": "case;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 188,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "case;",
+               "insertTextFormat": 1,
+               "insertText": "case;\n",
+               "kind": 14,
+               "sortText": "case;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 188,
+               "result": {
+                  "label": "case;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "case;",
+                  "insertText": "case;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 192,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 64,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 192,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 193,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 193,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 195,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 64,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 195,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "record;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "record;",
+                        "insertText": "record;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 196,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "record;",
+               "insertTextFormat": 1,
+               "insertText": "record;\n",
+               "kind": 14,
+               "sortText": "record;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 196,
+               "result": {
+                  "label": "record;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "record;",
+                  "insertText": "record;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 210,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 70,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 210,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "select;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "select;",
+                        "insertText": "select;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 211,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "select;",
+               "insertTextFormat": 1,
+               "insertText": "select;\n",
+               "kind": 14,
+               "sortText": "select;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 211,
+               "result": {
+                  "label": "select;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "select;",
+                  "insertText": "select;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 213,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 70,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 213,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "select;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "select;",
+                        "insertText": "select;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 214,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "select;",
+               "insertTextFormat": 1,
+               "insertText": "select;\n",
+               "kind": 14,
+               "sortText": "select;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 214,
+               "result": {
+                  "label": "select;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "select;",
+                  "insertText": "select;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 222,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 76,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 222,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Blk;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Blk;",
+                        "insertText": "Blk;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 223,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Blk;",
+               "insertTextFormat": 1,
+               "insertText": "Blk;\n",
+               "kind": 14,
+               "sortText": "Blk;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 223,
+               "result": {
+                  "label": "Blk;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Blk;",
+                  "insertText": "Blk;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 225,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 76,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 225,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Blk;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "Blk;",
+                        "insertText": "Blk;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 226,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Blk;",
+               "insertTextFormat": 1,
+               "insertText": "Blk;\n",
+               "kind": 14,
+               "sortText": "Blk;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 226,
+               "result": {
+                  "label": "Blk;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "Blk;",
+                  "insertText": "Blk;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 233,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 81,
+                  "character": 9
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 233,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "end;",
+                        "kind": 14,
+                        "preselect": false,
+                        "sortText": "end;",
+                        "insertText": "end;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 234,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "end;",
+               "insertTextFormat": 1,
+               "insertText": "end;\n",
+               "kind": 14,
+               "sortText": "end;",
+               "additionalTextEdits": [],
+               "preselect": false
+            }
+         },
+         "wait": [
+            {
+               "id": 234,
+               "result": {
+                  "label": "end;",
+                  "kind": 14,
+                  "preselect": false,
+                  "sortText": "end;",
+                  "insertText": "end;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 238,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 82,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 238,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "loop;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "loop;",
+                        "insertText": "loop;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 239,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "loop;",
+               "insertTextFormat": 1,
+               "insertText": "loop;\n",
+               "kind": 14,
+               "sortText": "loop;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 239,
+               "result": {
+                  "label": "loop;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "loop;",
+                  "insertText": "loop;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 241,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 82,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 241,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "loop;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "loop;",
+                        "insertText": "loop;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 242,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "loop;",
+               "insertTextFormat": 1,
+               "insertText": "loop;\n",
+               "kind": 14,
+               "sortText": "loop;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 242,
+               "result": {
+                  "label": "loop;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "loop;",
+                  "insertText": "loop;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 249,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 88,
+                  "character": 13
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 249,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "if;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "if;",
+                        "insertText": "if;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 250,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "if;",
+               "insertTextFormat": 1,
+               "insertText": "if;\n",
+               "kind": 14,
+               "sortText": "if;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 250,
+               "result": {
+                  "label": "if;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "if;",
+                  "insertText": "if;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 252,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 88,
+                  "character": 14
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 252,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "if;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "if;",
+                        "insertText": "if;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 253,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "if;",
+               "insertTextFormat": 1,
+               "insertText": "if;\n",
+               "kind": 14,
+               "sortText": "if;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 253,
+               "result": {
+                  "label": "if;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "if;",
+                  "insertText": "if;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 260,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 89,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 260,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "case;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "case;",
+                        "insertText": "case;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 261,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "case;",
+               "insertTextFormat": 1,
+               "insertText": "case;\n",
+               "kind": 14,
+               "sortText": "case;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 261,
+               "result": {
+                  "label": "case;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "case;",
+                  "insertText": "case;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 263,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 89,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 263,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "case;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "case;",
+                        "insertText": "case;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 264,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "case;",
+               "insertTextFormat": 1,
+               "insertText": "case;\n",
+               "kind": 14,
+               "sortText": "case;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 264,
+               "result": {
+                  "label": "case;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "case;",
+                  "insertText": "case;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 268,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 91,
+                  "character": 4
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 268,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GNAT.Main;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GNAT.Main;",
+                        "insertText": "GNAT.Main;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 269,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GNAT.Main;",
+               "insertTextFormat": 1,
+               "insertText": "GNAT.Main;\n",
+               "kind": 14,
+               "sortText": "GNAT.Main;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 269,
+               "result": {
+                  "label": "GNAT.Main;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GNAT.Main;",
+                  "insertText": "GNAT.Main;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 271,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{gnat-main.adb}"
+               },
+               "position": {
+                  "line": 91,
+                  "character": 5
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 271,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "GNAT.Main;",
+                        "kind": 14,
+                        "preselect": true,
+                        "sortText": "GNAT.Main;",
+                        "insertText": "GNAT.Main;\n",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 272,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "GNAT.Main;",
+               "insertTextFormat": 1,
+               "insertText": "GNAT.Main;\n",
+               "kind": 14,
+               "sortText": "GNAT.Main;",
+               "additionalTextEdits": [],
+               "preselect": true
+            }
+         },
+         "wait": [
+            {
+               "id": 272,
+               "result": {
+                  "label": "GNAT.Main;",
+                  "kind": 14,
+                  "preselect": true,
+                  "sortText": "GNAT.Main;",
+                  "insertText": "GNAT.Main;\n",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": "shutdown",
+               "result": null
+            }
+         ]
+      }
+   },
+  {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
