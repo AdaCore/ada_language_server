@@ -43,6 +43,7 @@ with LSP.Ada_Completions;
 with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
+with LSP.Ada_Completions.End_Names;
 with LSP.Ada_Completions.Keywords;
 with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
@@ -4789,6 +4790,7 @@ package body LSP.Ada_Handlers is
         LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
           (Context                 => Context,
            Compute_Doc_And_Details => Compute_Doc_And_Details);
+      P9 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
 
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         [P1'Unchecked_Access,
@@ -4798,7 +4800,8 @@ package body LSP.Ada_Handlers is
          P5'Unchecked_Access,
          P6'Unchecked_Access,
          P7'Unchecked_Access,
-         P8'Unchecked_Access];
+         P8'Unchecked_Access,
+         P9'Unchecked_Access];
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
@@ -4806,6 +4809,8 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
+      P9.Line_Terminator := Document.Line_Terminator;
+
       Document.Get_Completions_At
         (Context                  => Context.all,
          Providers                => Providers,
