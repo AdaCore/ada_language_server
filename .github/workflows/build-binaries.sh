@@ -49,7 +49,13 @@ else
     export BUILD_MODE=prod
 fi
 
+if [ $RUNNER_OS = macOS ]; then
+  ls -l /Applications/Xcode_12.4.app/Contents/Developer/Library || true
+  find /Applications/Xcode_12.4.app/ -name libgmp*.dylib || true
+fi
+
 make LIBRARY_TYPE=static all check
+cp -v /tmp/als.map integration/vscode/ada/darwin/
 
 function fix_rpath ()
 {

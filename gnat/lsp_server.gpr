@@ -57,10 +57,12 @@ project LSP_Server is
             case OS is
                when "Windows_NT" =>
                   for Switches ("Ada") use ("-static", "-static-libstdc++", "-static-libgcc");
-               when "osx" | "unix" =>
+               when "unix" =>
                   --  On UNIX, we want to link libc dynamically: needed to find
                   --  a recent version of iconv_open (and a recommended practice)
                   for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+               when "osx" =>
+                  for Switches ("Ada") use ("-Wl,-no_weak_imports", "-Wl,-Map=/tmp/als.map");
              end case;
          when "relocatable" =>
             null;

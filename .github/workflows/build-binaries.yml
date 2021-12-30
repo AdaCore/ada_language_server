@@ -9,14 +9,15 @@ name: Build binaries
 env:
   DEFAULT_TAG: 23.0.999
   AWS_DEFAULT_REGION: eu-west-1
+  MACOSX_DEPLOYMENT_TARGET: 10.11
 jobs:
   build:
     name: Build and deploy
     strategy:
       fail-fast: false
       matrix: # Build debug and production
-        debug: ['', 'debug']      # '' if production, 'debug' for debug
-        os: [macos-10.15, ubuntu-18.04, windows-latest]
+        debug: ['debug']      # '' if production, 'debug' for debug
+        os: [macos-10.15]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python 3.8
@@ -87,13 +88,13 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Archive ALS binary
-        if: ${{ github.event_name == 'push' }}
+        #if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@v2
         with:
           name: als-${{ runner.os }}-${{ matrix.debug }}
           path: integration/vscode/ada/[ldw]*/*
   package:
-    if: ${{ github.event_name == 'push' }}
+          # if: ${{ github.event_name == 'push' }}
     needs: build
     runs-on: ubuntu-latest
     steps:
