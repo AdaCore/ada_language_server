@@ -128,9 +128,7 @@ package body Tester.Tests is
 
    procedure Do_Fail
      (Self : in out Test;
-      Text : Spawn.String_Vectors.UTF_8_String_Vector)
-   is
-      pragma Unreferenced (Self);
+      Text : Spawn.String_Vectors.UTF_8_String_Vector) is
    begin
       Ada.Text_IO.Put_Line ("Test failed!");
 
