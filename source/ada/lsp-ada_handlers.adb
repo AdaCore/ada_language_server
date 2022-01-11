@@ -3714,6 +3714,8 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
+      Self.Ensure_Project_Loaded;
+
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
       if not Self.Range_Formatting_Enabled
@@ -3799,8 +3801,6 @@ package body LSP.Ada_Handlers is
             Self.Server.On_RegisterCapability_Request (Request);
          end;
       end if;
-
-      Self.Ensure_Project_Loaded;
    end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------

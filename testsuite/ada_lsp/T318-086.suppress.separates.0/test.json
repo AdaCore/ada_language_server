@@ -39,16 +39,7 @@
                      "executeCommand": {
                         "dynamicRegistration": true
                      },
-                     "configuration": true,
-                     "fileOperations": {
-                        "dynamicRegistration": true,
-                        "didCreate": true,
-                        "didRename": true,
-                        "didDelete": true,
-                        "willCreate": true,
-                        "willRename": true,
-                        "willDelete": true
-                     }
+                     "configuration": true
                   },
                   "textDocument": {
                      "publishDiagnostics": {
