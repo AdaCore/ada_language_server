@@ -29,6 +29,10 @@ pragma Warnings (Off, "is an internal GNAT unit");
 with System.Soft_Links;
 with System.Secondary_Stack;
 
+with VSS.Application;
+with VSS.Standard_Paths;
+with VSS.Strings.Conversions;
+
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
 with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
@@ -55,9 +59,6 @@ with LSP.Stdio_Streams;
 --------------------
 
 procedure LSP.Ada_Driver is
-
-   function Getenv (Var : String) return String;
-   --  Return the value set for the given environment variable
 
    procedure On_Uncaught_Exception (E : Exception_Occurrence);
    --  Reset LAL contexts in Message_Handler after catching some exception.
@@ -88,18 +89,6 @@ procedure LSP.Ada_Driver is
    --  This decorator catches all Property_Error exceptions and provides
    --  default responses for each request. It also reset Libadalang Context
    --  on any other exception.
-
-   ------------
-   -- Getenv --
-   ------------
-
-   function Getenv (Var : String) return String is
-      Str : GNAT.Strings.String_Access := GNAT.OS_Lib.Getenv (Var);
-   begin
-      return S : constant String := Str.all do
-         GNAT.Strings.Free (Str);
-      end return;
-   end Getenv;
 
    ---------------------------
    -- On_Uncaught_Exception --
@@ -156,12 +145,18 @@ procedure LSP.Ada_Driver is
 
    Cmdline                : Command_Line_Configuration;
 
-   Fuzzing_Activated      : constant Boolean := Getenv ("ALS_FUZZING") /= "";
+   Fuzzing_Activated      : constant Boolean :=
+     not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
 
-   ALS_Home               : constant String := Getenv ("ALS_HOME");
+   ALS_Home               : constant VSS.Strings.Virtual_String :=
+     VSS.Application.System_Environment.Value ("ALS_HOME");
    Home_Dir               : constant Virtual_File :=
-                            (if ALS_Home /= "" then Create (+ALS_Home)
-                             else Get_Home_Directory);
+     Create_From_UTF8
+       (VSS.Strings.Conversions.To_UTF_8_String
+          ((if ALS_Home.Is_Empty
+              then VSS.Standard_Paths.Writable_Location
+                     (VSS.Standard_Paths.Home_Location)
+              else ALS_Home)));
    ALS_Dir                : constant Virtual_File := Home_Dir / ".als";
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
