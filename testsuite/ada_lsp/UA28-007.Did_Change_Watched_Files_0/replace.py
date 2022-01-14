@@ -1,5 +1,3 @@
-#!/bin/python
-
 import sys
 import os
 
@@ -9,7 +7,7 @@ if len(sys.argv) != 4:
 
 file_path = os.path.dirname(sys.argv[3])
 if not os.path.exists(file_path):
-    raise ValueError(f"Invalid file path: {file_path}")
+    raise ValueError("Invalid file path: {}".format(file_path))
 
 with open(sys.argv[3], "r") as file:
     filedata = file.read()
