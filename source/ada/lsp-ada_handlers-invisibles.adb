@@ -88,8 +88,8 @@ package body LSP.Ada_Handlers.Invisibles is
       if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
          --  Don't provide completion after a dot
          return;
-      elsif Filter.Is_Numeric_Literal then
-         --  Don't provide completion in a numeric literal
+      elsif Filter.Is_Numeric_Literal or Filter.Is_End_Label then
+         --  Don't provide completion in a numeric literal nor end label
          return;
       end if;
 
