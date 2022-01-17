@@ -5586,8 +5586,8 @@ package body LSP.Ada_Handlers is
                   Result.Advanced_Refactorings (Add_Parameter) :=
                     (for some Refactoring of Advanced_Refactorings =>
                        Refactoring.Kind in GNATCOLL.JSON.JSON_String_Type
-                       and then GNATCOLL.JSON.Get (Refactoring) =
-                                  GNATCOLL.JSON.UTF8_String'("add_parameter"));
+                       and then Standard."=" (GNATCOLL.JSON.Get (Refactoring),
+                                 GNATCOLL.JSON.UTF8_String'("add_parameter")));
                end;
             end if;
          end if;
