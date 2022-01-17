@@ -56,11 +56,14 @@ pip install --user subprojects/langkit/
 # where /d is drive D: Let's use relative path instead
 sed -i -e '/langkit/s/.{CURDIR}/../' subprojects/gpr/Makefile
 
+ar dv ./cached_gnat/gnat_native_11.2.3_f008a8a7/lib/gcc/x86_64-apple-darwin19.6.0/11.2.0/adalib/libgnat.a socket.o expect.o
+
 make -C subprojects/gpr setup prefix=$prefix \
  GPR2KBDIR=./gprconfig_kb/db ENABLE_SHARED=no \
  ${DEBUG:+BUILD=debug} all install
 
 make LIBRARY_TYPE=static all check
+grep -R -l -F darwin_check_fd_set_overflow .
 
 function fix_rpath ()
 {
