@@ -170,6 +170,7 @@ The extension includes a task provider. It provides two "auto-detected" tasks
 (under `/Terminal/Run Task...` menu):
 * "ada: Build current project" - launch `gprbuild` to build the current GPR project
 * "ada: Check current file" - launch `gprbuild` to check errors in the current editor
+* "ada: Clean current project" - launch `gprclean` to clean the current GPR project
 * "ada: Run gnatprove on the current project" - launch `gnatprove` for the current GPR project
 * "ada: Run gnatprove on the current file" - launch `gnatprove` to check errors in the current editor
 
