@@ -211,6 +211,18 @@
                 }
             },
             {
+                "type": "gprclean",
+                "required": [
+                    "projectFile"
+                ],
+                "properties": {
+                    "projectFile": {
+                        "type": "string",
+                        "description": "The project file"
+                    }
+                }
+            },
+            {
                 "type": "gnatprove",
                 "required": [
                     "projectFile"

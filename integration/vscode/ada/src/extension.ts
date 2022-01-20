@@ -26,12 +26,14 @@ import {
 import * as process from 'process';
 
 import GPRTaskProvider from './gprTaskProvider';
+import cleanTaskProvider from './cleanTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
+    vscode.tasks.registerTaskProvider(cleanTaskProvider.cleanTaskType, new cleanTaskProvider()),
 
     vscode.tasks.registerTaskProvider(
         gnatproveTaskProvider.gnatproveType,
@@ -99,6 +101,7 @@ export function activate(context: vscode.ExtensionContext): void {
             }
             alsTaskProvider = [
                 vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
+                vscode.tasks.registerTaskProvider(cleanTaskProvider.cleanTaskType, new cleanTaskProvider()),
                 vscode.tasks.registerTaskProvider(
                     gnatproveTaskProvider.gnatproveType,
                     new gnatproveTaskProvider()
