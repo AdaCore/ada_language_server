@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -69,7 +69,7 @@ package LSP.Servers is
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
-      Server       : not null LSP.Server_Backends.Server_Backend_Access;
+      Server       : LSP.Server_Backends.Server_Backend_Access;
       On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
@@ -225,7 +225,7 @@ private
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
          .Server_Notification_Receiver_Access;
-         Server       : not null LSP.Server_Backends.Server_Backend_Access);
+         Server       : LSP.Server_Backends.Server_Backend_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;

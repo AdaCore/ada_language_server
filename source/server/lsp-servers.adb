@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -114,6 +114,20 @@ package body LSP.Servers is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => LSP.Messages.Message'Class,
       Name   => Message_Access);
+
+   type Null_Server_Backend is limited new LSP.Server_Backends.Server_Backend
+     with null record;
+   --  Server_Backend stub
+
+   overriding procedure Before_Work
+     (Self    : access Null_Server_Backend;
+      Message : LSP.Messages.Message'Class) is null;
+
+   overriding procedure After_Work
+     (Self    : access Null_Server_Backend;
+      Message : LSP.Messages.Message'Class) is null;
+
+   Null_Server : aliased Null_Server_Backend;
 
    ------------
    -- Append --
@@ -763,7 +777,7 @@ package body LSP.Servers is
         LSP.Server_Request_Handlers.Server_Request_Handler_Access;
       Notification : not null
         LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
-      Server       : not null LSP.Server_Backends.Server_Backend_Access;
+      Server       : LSP.Server_Backends.Server_Backend_Access;
       On_Error     : not null Uncaught_Exception_Handler;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
@@ -1140,7 +1154,7 @@ package body LSP.Servers is
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
            .Server_Notification_Receiver_Access;
-         Server       : not null LSP.Server_Backends.Server_Backend_Access);
+         Server       : LSP.Server_Backends.Server_Backend_Access);
       --  Initializes internal data structures
 
       procedure Process_Message (Message : in out Message_Access);
@@ -1154,12 +1168,18 @@ package body LSP.Servers is
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
            .Server_Notification_Receiver_Access;
-         Server       : not null LSP.Server_Backends.Server_Backend_Access)
+         Server       : LSP.Server_Backends.Server_Backend_Access)
       is
+         use type LSP.Server_Backends.Server_Backend_Access;
       begin
          Req_Handler := Request;
          Notif_Handler := Notification;
-         Server_Backend := Server;
+
+         if Server = null then
+            Server_Backend := Null_Server'Access;
+         else
+            Server_Backend := Server;
+         end if;
       end Initialize;
 
       ---------------------
@@ -1244,7 +1264,7 @@ package body LSP.Servers is
            .Server_Request_Handler_Access;
          Notification : not null LSP.Server_Notification_Receivers
            .Server_Notification_Receiver_Access;
-         Server       : not null LSP.Server_Backends.Server_Backend_Access)
+         Server       : LSP.Server_Backends.Server_Backend_Access)
       do
          Initialize (Request, Notification, Server);
       end Start;
