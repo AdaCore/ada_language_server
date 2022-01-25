@@ -42,29 +42,36 @@ let alsTaskProvider: vscode.Disposable[] = [
 ];
 
 export function activate(context: vscode.ExtensionContext): void {
-    let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
-    if (process.env.ALS) serverModule = process.env.ALS;
-    // The debug options for the server
-    // let debugOptions = { execArgv: [] };
-    // If the extension is launched in debug mode then the debug server options are used
-    // Otherwise the run options are used
-    const serverOptions: ServerOptions = {
-        run: { command: serverModule },
-        debug: { command: serverModule },
-    };
-    // Options to control the language client
-    const clientOptions: LanguageClientOptions = {
-        // Register the server for ada sources documents
-        documentSelector: [{ scheme: 'file', language: 'ada' }],
-        synchronize: {
-            // Synchronize the setting section 'ada' to the server
-            configurationSection: 'ada',
-            // Notify the server about file changes to Ada files contain in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/.{adb,ads,adc,ada}'),
-        },
-    };
-    // Create the language client and start the client.
-    const client = new LanguageClient('ada', 'Ada Language Server', serverOptions, clientOptions);
+    function createClient(id: string, name: string, extra: string[], pattern: string) {
+        let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
+        if (process.env.ALS) serverModule = process.env.ALS;
+        // The debug options for the server
+        // let debugOptions = { execArgv: [] };
+        // If the extension is launched in debug mode then the debug server options are used
+        // Otherwise the run options are used
+        const serverOptions: ServerOptions = {
+            run: { command: serverModule, args: extra },
+            debug: { command: serverModule, args: extra },
+        };
+        // Options to control the language client
+        const clientOptions: LanguageClientOptions = {
+            // Register the server for ada sources documents
+            documentSelector: [{ scheme: 'file', language: id }],
+            synchronize: {
+                // Synchronize the setting section 'ada' to the server
+                configurationSection: 'ada',
+                // Notify the server about file changes to Ada files contain in the workspace
+                fileEvents: vscode.workspace.createFileSystemWatcher(pattern),
+            },
+        };
+        // Create the language client
+        return new LanguageClient(id, name, serverOptions, clientOptions);
+    }
+    // Create the GPR language client and start it.
+    const gprClient = createClient('gpr', 'GPR Language Server', ['--language-gpr'], '**/.{gpr}');
+    context.subscriptions.push(gprClient.start());
+    // Create the Ada language client and start it.
+    const client = createClient('ada', 'Ada Language Server', [], '**/.{adb,ads,adc,ada}');
     const alsMiddleware: Middleware = {
         executeCommand: alsCommandExecutor(client),
     };
@@ -100,8 +107,14 @@ export function activate(context: vscode.ExtensionContext): void {
                 item.dispose();
             }
             alsTaskProvider = [
-                vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
-                vscode.tasks.registerTaskProvider(cleanTaskProvider.cleanTaskType, new cleanTaskProvider()),
+                vscode.tasks.registerTaskProvider(
+                    GPRTaskProvider.gprBuildType,
+                    new GPRTaskProvider()
+                ),
+                vscode.tasks.registerTaskProvider(
+                    cleanTaskProvider.cleanTaskType,
+                    new cleanTaskProvider()
+                ),
                 vscode.tasks.registerTaskProvider(
                     gnatproveTaskProvider.gnatproveType,
                     new gnatproveTaskProvider()
