@@ -13,6 +13,7 @@
     ],
     "activationEvents": [
         "onLanguage:ada",
+        "onLanguage:gpr",
         "onCommand:workbench.action.tasks.runTask",
         "onCommand:ada.otherFile"
     ],
@@ -120,7 +121,18 @@
                             "verbose"
                         ],
                         "default": "off",
-                        "description": "Traces the communication between VSCode and the language server."
+                        "description": "Traces the communication between VSCode and the Ada language server."
+                    },
+                    "gpr.trace.server": {
+                        "scope": "window",
+                        "type": "string",
+                        "enum": [
+                            "off",
+                            "messages",
+                            "verbose"
+                        ],
+                        "default": "off",
+                        "description": "Traces the communication between VSCode and the GPR language server."
                     },
                     "ada.projectFile": {
                         "scope": "resource",
