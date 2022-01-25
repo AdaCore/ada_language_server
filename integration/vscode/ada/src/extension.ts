@@ -59,8 +59,8 @@ export function activate(context: vscode.ExtensionContext): void {
         synchronize: {
             // Synchronize the setting section 'ada' to the server
             configurationSection: 'ada',
-            // Notify the server about file changes to '.clientrc files contain in the workspace
-            fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc'),
+            // Notify the server about file changes to Ada files contain in the workspace
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/.{adb,ads,adc,ada}'),
         },
     };
     // Create the language client and start the client.
