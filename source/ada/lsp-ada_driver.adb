@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -49,6 +49,7 @@ with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
+with LSP.GPR_Handlers;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Servers;
@@ -77,14 +78,15 @@ procedure LSP.Ada_Driver is
    Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
    --  Traces that logs all input & output. For debugging purposes.
 
-   Server  : aliased LSP.Servers.Server;
-   Stream  : aliased LSP.Stdio_Streams.Stdio_Stream;
-   Handler : aliased LSP.Ada_Handlers.Message_Handler
+   Server      : aliased LSP.Servers.Server;
+   Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
+   Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Server_Trace);
+   GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler;
 
    Error_Decorator : aliased LSP.Error_Decorators.Error_Decorator
      (Server_Trace,
-      Handler'Unchecked_Access,
+      Ada_Handler'Unchecked_Access,
       On_Uncaught_Exception'Unrestricted_Access);
    --  This decorator catches all Property_Error exceptions and provides
    --  default responses for each request. It also reset Libadalang Context
@@ -100,7 +102,7 @@ procedure LSP.Ada_Driver is
              "EXCEPTION: " & Exception_Name (E) &
                Ada.Characters.Latin_1.LF &
                Symbolic_Traceback (E));
-      Handler.Handle_Error;
+      Ada_Handler.Handle_Error;
    end On_Uncaught_Exception;
 
    ---------------------
@@ -165,6 +167,7 @@ procedure LSP.Ada_Driver is
    Config_File            : Virtual_File;
    Help_Arg               : aliased Boolean := False;
    Version_Arg            : aliased Boolean := False;
+   Language_GPR_Arg       : aliased Boolean := False;
 
    Memory_Monitor_Enabled : Boolean;
 begin
@@ -178,6 +181,12 @@ begin
       Output      => Tracefile_Name'Access,
       Long_Switch => "--tracefile=",
       Help        => "Full path to a file containing traces configuration");
+
+   Define_Switch
+     (Cmdline,
+      Output      => Language_GPR_Arg'Access,
+      Long_Switch => "--language-gpr",
+      Help        => "Handle GPR language instead of Ada");
 
    Define_Switch
      (Cmdline,
@@ -246,17 +255,28 @@ begin
    Memory_Monitor_Enabled := Create ("DEBUG.ADA_MEMORY").Is_Active;
 
    if Memory_Monitor_Enabled then
-      GNATCOLL.Memory.Configure
-        (Activate_Monitor => True);
+      GNATCOLL.Memory.Configure (Activate_Monitor => True);
    end if;
 
-   --  Load predefined completion items
-   LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
+   if not Language_GPR_Arg then
+      --  Load predefined completion items
+      LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
+      Register_Commands;
+   end if;
 
    Server.Initialize (Stream'Unchecked_Access);
+
    begin
-      Register_Commands;
-      if Fuzzing_Activated then
+      if Language_GPR_Arg then
+         Server.Run
+           (GPR_Handler'Unchecked_Access,
+            GPR_Handler'Unchecked_Access,
+            Server       => null,
+            On_Error     => On_Uncaught_Exception'Unrestricted_Access,
+            Server_Trace => Server_Trace,
+            In_Trace     => In_Trace,
+            Out_Trace    => Out_Trace);
+      elsif Fuzzing_Activated then
          --  Fuzzing mode means registering the fuzzing decorators and
          --  registering Die_On_Uncaught as error handler.
          declare
@@ -267,13 +287,13 @@ begin
             Fuzz_Notifications : aliased
               LSP.Fuzz_Decorators.Fuzz_Notification_Decorator
                 (Server_Trace,
-                 Handler'Unchecked_Access,
-                 Handler'Unchecked_Access);
+                 Ada_Handler'Unchecked_Access,
+                 Ada_Handler'Unchecked_Access);
          begin
             Server.Run
               (Fuzz_Requests'Unchecked_Access,
                Fuzz_Notifications'Unchecked_Access,
-               Server       => Handler'Unchecked_Access,
+               Server       => Ada_Handler'Unchecked_Access,
                On_Error     => Die_On_Uncaught'Unrestricted_Access,
                Server_Trace => Server_Trace,
                In_Trace     => In_Trace,
@@ -282,8 +302,8 @@ begin
       else
          Server.Run
            (Error_Decorator'Unchecked_Access,
-            Handler'Unchecked_Access,
-            Server       => Handler'Unchecked_Access,
+            Ada_Handler'Unchecked_Access,
+            Server       => Ada_Handler'Unchecked_Access,
             On_Error     => On_Uncaught_Exception'Unrestricted_Access,
             Server_Trace => Server_Trace,
             In_Trace     => In_Trace,
@@ -296,6 +316,7 @@ begin
             & Exception_Name (E) & " - " &  Exception_Message (E));
          Server_Trace.Trace (Symbolic_Traceback (E));
    end;
+
    Server_Trace.Trace ("Shutting server down ...");
 
    --  Dump the memory statistics if the memory monitor trace is active
@@ -310,7 +331,7 @@ begin
    end if;
 
    Server.Finalize;
-   Handler.Cleanup;
+   Ada_Handler.Cleanup;
 
    --  Clean secondary stack up
    declare
