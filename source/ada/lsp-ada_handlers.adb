@@ -374,7 +374,6 @@ package body LSP.Ada_Handlers is
    is
       Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
-      use type LSP.Ada_Documents.Document_Access;
 
    begin
       --  If the target textDocument hasn't been opened in the editor
@@ -768,7 +767,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Initialize_Response
    is
       use LSP.Messages;
-      use all type LSP.Types.Optional_Boolean;
 
       Value            : LSP.Messages.InitializeParams renames Request.params;
       Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
