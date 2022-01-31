@@ -70,6 +70,7 @@ jobs:
         with:
           repository: AdaCore/gpr
           path: subprojects/gpr
+          ref: edge
       - name: Get gprconfig_kb
         uses: actions/checkout@v2
         with:
