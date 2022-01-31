@@ -16,13 +16,10 @@
 ------------------------------------------------------------------------------
 --  A completion provider for pragmas
 
-with VSS.Strings;
-
 package LSP.Ada_Completions.End_Names is
 
-   type End_Name_Completion_Provider is new Completion_Provider with record
-      Line_Terminator : VSS.Strings.Virtual_String;
-   end record;
+   type End_Name_Completion_Provider is
+     new Completion_Provider with null record;
 
    overriding procedure Propose_Completion
      (Self   : End_Name_Completion_Provider;

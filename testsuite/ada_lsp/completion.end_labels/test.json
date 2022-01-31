@@ -201,7 +201,7 @@
                        "kind": 14,
                        "preselect": true,
                        "sortText": "Add;",
-                       "insertText": "Add;\n",
+                       "insertText": "Add;",
                        "additionalTextEdits": [
                        ]
                      }
@@ -259,7 +259,7 @@
                        "kind": 14,
                        "preselect": true,
                        "sortText": "Add;",
-                       "insertText": "Add;\n",
+                       "insertText": "Add;",
                        "additionalTextEdits": [
                        ]
                      }
