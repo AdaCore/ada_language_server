@@ -621,7 +621,6 @@ package body LSP.Ada_Documents is
       use LSP.Types;
       use LSP.Messages;
       use Langkit_Support.Slocs;
-      use type LSP.Types.Line_Number;
       use type LSP.Types.UTF_16_Index;
 
       Input     : Char_Vector;
