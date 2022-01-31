@@ -784,7 +784,8 @@ package body LSP.Ada_Contexts is
      (Self         : Context;
       Document     : LSP.Ada_Documents.Document_Access;
       Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True)
+      Project_Only : Boolean := True;
+      Previous     : Boolean := False)
       return Libadalang.Analysis.Ada_Node
    is
       use type Libadalang.Analysis.Ada_Node;
@@ -794,10 +795,13 @@ package body LSP.Ada_Contexts is
 
       Unit : Libadalang.Analysis.Analysis_Unit;
 
-      URI  : constant LSP.Messages.DocumentUri := Position.textDocument.uri;
-      Name : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+      URI      : constant LSP.Messages.DocumentUri :=
+        Position.textDocument.uri;
+      Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Self.URI_To_File (URI);
-      File : constant Virtual_File := Create_From_UTF8 (Name);
+      File     : constant Virtual_File := Create_From_UTF8 (Name);
+      Col_Incr : constant Langkit_Support.Slocs.Column_Number :=
+        (if Previous then 0 else 1);
    begin
       --  We're about to get a node from an analysis unit. Either the document
       --  is open for it, in which case we read the document, or the
@@ -807,7 +811,8 @@ package body LSP.Ada_Contexts is
       --  the project.
 
       if Document /= null then
-         return Document.Get_Node_At (Self, Position.position);
+         return Document.Get_Node_At
+           (Self, Position.position, Previous => Previous);
       elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
          Unit := Self.LAL_Context.Get_From_File
            (Name,
@@ -821,7 +826,7 @@ package body LSP.Ada_Contexts is
               ((Line   => Langkit_Support.Slocs.Line_Number
                 (Position.position.line) + 1,
                 Column => Langkit_Support.Slocs.Column_Number
-                  (Position.position.character) + 1));
+                  (Position.position.character) + Col_Incr));
       else
          return Libadalang.Analysis.No_Ada_Node;
       end if;

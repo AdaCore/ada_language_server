@@ -1181,17 +1181,22 @@ package body LSP.Ada_Documents is
    function Get_Node_At
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position)
+      Position : LSP.Messages.Position;
+      Previous : Boolean := False)
       return Libadalang.Analysis.Ada_Node
    is
       use Langkit_Support.Slocs;
 
       Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
-      Sloc : constant Langkit_Support.Slocs.Source_Location :=
+      Sloc : Langkit_Support.Slocs.Source_Location :=
         Self.Get_Source_Location (Position);
    begin
       if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
+      end if;
+
+      if Previous and then Sloc.Column > 0 then
+         Sloc.Column := Sloc.Column - 1;
       end if;
 
       return Unit.Root.Lookup (Sloc);
