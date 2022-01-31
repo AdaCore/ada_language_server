@@ -2833,8 +2833,8 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      Node : constant Libadalang.Analysis.Ada_Node :=
-        C.Get_Node_At (Document, Value);
+      Node : Libadalang.Analysis.Ada_Node :=
+        C.Get_Node_At (Document, Value, Previous => True);
 
       Sloc : constant Langkit_Support.Slocs.Source_Location :=
         Document.Get_Source_Location (Value.position);
@@ -3028,6 +3028,32 @@ package body LSP.Ada_Handlers is
          Name_Node        => Name_Node);
 
       if Name_Node = Libadalang.Analysis.No_Name then
+         --  Try again with the current position
+         Node := C.Get_Node_At (Document, Value, Previous => False);
+         Get_Call_Expr_Name
+           (Node             => Node,
+            Cursor           => Sloc,
+            Active_Position  => Active_Position,
+            Designator       => Designator,
+            Prev_Designators => Prev_Designators,
+            Name_Node        => Name_Node);
+
+         if Name_Node = Libadalang.Analysis.No_Name then
+            return Response;
+         end if;
+      end if;
+
+      --  Is this a type cast?
+      if Name_Node.P_Name_Designated_Type /= No_Ada_Node
+        --  Does the cast make sense?
+        and then Active_Position = 0
+        --  Do we have the previous signatures?
+        and then Value.context.Is_Set
+        and then Value.context.Value.activeSignatureHelp.Is_Set
+      then
+         --  At this point, the user is writing a typecast in a previous
+         --  signature => keep showing the previous signatures.
+         Response.result := Value.context.Value.activeSignatureHelp.Value;
          return Response;
       end if;
 

@@ -1,12 +1,12 @@
 [
    {
       "comment": [
-         "Test signatureHelp when having a nested call inside the initial ",
-         "call. The signature should switch to the nested call and then go ",
-         "back to the initial one."
+         "Test signatureHelp for type cast: no signature should be shown",
+         "and it should not affect already shown signature when nested",
+         "inside a call."
       ]
-   }, 
-   {
+   },
+{
       "start": {
          "cmd": [
             "${ALS}"
@@ -72,21 +72,23 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
             "params": {
                "settings": {
                   "ada": {
                      "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
-                     "defaultCharset": "ISO-8859-1"
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
-            "method": "workspace/didChangeConfiguration"
-         }, 
+            }
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -97,7 +99,7 @@
                   "uri": "$URI{foo.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "procedure Foo \nis\n   procedure Bar (A : Integer; B, C : Integer);\n   function FooBar (A : Integer) return Integer;\n\n   ---------\n   -- Bar --\n   ---------\n\n   procedure Bar (A : Integer; B, C : Integer) is\n   begin\n      null;\n   end Bar;\n\n   ------------\n   -- FooBar --\n   ------------\n\n   function FooBar (A : Integer) return Integer is\n   begin\n      return A;\n   end FooBar;\nbegin\n   Bar \nend Foo;\n"
+                  "text": "procedure Foo \nis\n   procedure Bar (A : Integer; B, C : Integer);\n\n   ---------\n   -- Bar --\n   ---------\n\n   procedure Bar (A : Integer; B, C : Integer) is\n   begin\n      null;\n   end Bar;\nbegin\n   Bar (1\nend Foo;\n"
                }
             }
          },
@@ -128,15 +130,15 @@
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 7
+                           "line": 13,
+                           "character": 9
                         },
                         "end": {
-                           "line": 23,
-                           "character": 7
+                           "line": 13,
+                           "character": 9
                         }
                      },
-                     "text": "("
+                     "text": ","
                   }
                ]
             }
@@ -148,45 +150,44 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-5",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 10
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 8
+                  "line": 13,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": false
                }
             }
          },
-         "wait": [
-            {
-               "id": "ada-5",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 0
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
+         "wait": []
+
       }
    },
    {
@@ -203,65 +204,20 @@
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 8
+                           "line": 13,
+                           "character": 10
                         },
                         "end": {
-                           "line": 23,
-                           "character": 8
+                           "line": 13,
+                           "character": 10
                         }
                      },
-                     "text": "1"
+                     "text": " "
                   }
                ]
             }
          },
          "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-9",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 9
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-9",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 0
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
       }
    },
    {
@@ -278,590 +234,20 @@
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 9
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 9
-                        }
-                     },
-                     "text": ","
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-12",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 10
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-12",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 4
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 10
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 10
-                        }
-                     },
-                     "text": " "
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-14",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 11
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-14",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 5
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
+                           "line": 13,
                            "character": 11
                         },
                         "end": {
-                           "line": 23,
+                           "line": 13,
                            "character": 11
                         }
                      },
-                     "text": "F"
+                     "text": "Integer "
                   }
                ]
             }
          },
          "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-16",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 12
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-16",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 6
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 12
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 12
-                        }
-                     },
-                     "text": "o"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-19",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 13
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-19",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 7
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 13
-                        }
-                     },
-                     "text": "o"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-22",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 14
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-22",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 8
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 14
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 14
-                        }
-                     },
-                     "text": "B"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-25",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 15
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-25",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 9
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 15
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 15
-                        }
-                     },
-                     "text": "a"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-28",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 16
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-28",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 10
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 16
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 16
-                        }
-                     },
-                     "text": "r"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-31",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 17
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-31",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 1
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
       }
    },
    {
@@ -878,15 +264,15 @@
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 17
+                           "line": 13,
+                           "character": 19
                         },
                         "end": {
-                           "line": 23,
-                           "character": 17
+                           "line": 13,
+                           "character": 19
                         }
                      },
-                     "text": " "
+                     "text": "("
                   }
                ]
             }
@@ -898,21 +284,48 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-34",
+            "id": 24,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 18
+                  "line": 13,
+                  "character": 20
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-34",
+               "id": 24,
                "result": {
                   "signatures": [
                      {
@@ -953,153 +366,15 @@
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 18
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 18
-                        }
-                     },
-                     "text": "("
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-36",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 19
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-36",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "function FooBar (A : Integer) return Integer",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           }
-                        ],
-                        "activeParameter": 0
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 13
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 19
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 19
-                        }
-                     },
-                     "text": "2"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-40",
-            "method": "textDocument/signatureHelp",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 23,
-                  "character": 20
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-40",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "function FooBar (A : Integer) return Integer",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           }
-                        ],
-                        "activeParameter": 0
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 14
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
+                           "line": 13,
                            "character": 20
                         },
                         "end": {
-                           "line": 23,
+                           "line": 13,
                            "character": 20
                         }
                      },
-                     "text": ")"
+                     "text": "Natural "
                   }
                ]
             }
@@ -1111,21 +386,47 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-43",
+            "id": 36,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 21
+                  "line": 13,
+                  "character": 28
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-43",
+               "id": 36,
                "result": {
                   "signatures": [
                      {
@@ -1160,21 +461,21 @@
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}",
-                  "version": 15
+                  "version": 20
                },
                "contentChanges": [
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 21
+                           "line": 13,
+                           "character": 28
                         },
                         "end": {
-                           "line": 23,
-                           "character": 21
+                           "line": 13,
+                           "character": 28
                         }
                      },
-                     "text": ","
+                     "text": "("
                   }
                ]
             }
@@ -1186,21 +487,48 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-45",
+            "id": 38,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 22
+                  "line": 13,
+                  "character": 29
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-45",
+               "id": 38,
                "result": {
                   "signatures": [
                      {
@@ -1217,7 +545,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 2
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
@@ -1235,21 +563,21 @@
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}",
-                  "version": 16
+                  "version": 21
                },
                "contentChanges": [
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 22
+                           "line": 13,
+                           "character": 29
                         },
                         "end": {
-                           "line": 23,
-                           "character": 22
+                           "line": 13,
+                           "character": 29
                         }
                      },
-                     "text": " "
+                     "text": "1"
                   }
                ]
             }
@@ -1261,21 +589,47 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-47",
+            "id": 40,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 23
+                  "line": 13,
+                  "character": 30
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-47",
+               "id": 40,
                "result": {
                   "signatures": [
                      {
@@ -1292,7 +646,7 @@
                               "label": "C"
                            }
                         ],
-                        "activeParameter": 2
+                        "activeParameter": 1
                      }
                   ],
                   "activeSignature": 0,
@@ -1306,73 +660,22 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 17
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 23,
-                           "character": 23
-                        },
-                        "end": {
-                           "line": 23,
-                           "character": 23
-                        }
-                     },
-                     "text": "3"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-51",
-            "method": "textDocument/signatureHelp",
+            "id": 41,
+            "method": "textDocument/documentHighlight",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 24
+                  "line": 13,
+                  "character": 29
                }
             }
          },
          "wait": [
             {
-               "id": "ada-51",
-               "result": {
-                  "signatures": [
-                     {
-                        "label": "procedure Bar (A : Integer; B, C : Integer)",
-                        "documentation": "",
-                        "parameters": [
-                           {
-                              "label": "A"
-                           },
-                           {
-                              "label": "B"
-                           },
-                           {
-                              "label": "C"
-                           }
-                        ],
-                        "activeParameter": 2
-                     }
-                  ],
-                  "activeSignature": 0,
-                  "activeParameter": 0
-               }
+               "id": 41,
+               "result": []
             }
          ]
       }
@@ -1385,18 +688,18 @@
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}",
-                  "version": 18
+                  "version": 22
                },
                "contentChanges": [
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 24
+                           "line": 13,
+                           "character": 30
                         },
                         "end": {
-                           "line": 23,
-                           "character": 24
+                           "line": 13,
+                           "character": 30
                         }
                      },
                      "text": ")"
@@ -1411,21 +714,816 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-54",
+            "id": 42,
             "method": "textDocument/signatureHelp",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 23,
-                  "character": 25
+                  "line": 13,
+                  "character": 31
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
                }
             }
          },
          "wait": [
             {
-               "id": "ada-54",
+               "id": 42,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 23
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 31
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 31
+                        }
+                     },
+                     "text": " + Natural "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 34
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 42
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 42
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 58,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 43
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 58,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 35
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 43
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 43
+                        }
+                     },
+                     "text": "2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 60,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 44
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 60,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 36
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 44
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 44
+                        }
+                     },
+                     "text": ")"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 62,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 45
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 62,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 37
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 45
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 45
+                        }
+                     },
+                     "text": ")"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 63,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 46
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 63,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 38
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 46
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 46
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 67,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 47
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 67,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 2
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 39
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 47
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 47
+                        }
+                     },
+                     "text": " "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 40
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 48
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 48
+                        }
+                     },
+                     "text": "3"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 70,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 49
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 2
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 70,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "A"
+                           },
+                           {
+                              "label": "B"
+                           },
+                           {
+                              "label": "C"
+                           }
+                        ],
+                        "activeParameter": 2
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 41
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 13,
+                           "character": 49
+                        },
+                        "end": {
+                           "line": 13,
+                           "character": 49
+                        }
+                     },
+                     "text": ")"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 72,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 50
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "procedure Bar (A : Integer; B, C : Integer)",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "A"
+                              },
+                              {
+                                 "label": "B"
+                              },
+                              {
+                                 "label": "C"
+                              }
+                           ],
+                           "activeParameter": 2
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 72,
                "result": {
                   "signatures": []
                }
@@ -1441,18 +1539,18 @@
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}",
-                  "version": 19
+                  "version": 42
                },
                "contentChanges": [
                   {
                      "range": {
                         "start": {
-                           "line": 23,
-                           "character": 25
+                           "line": 13,
+                           "character": 50
                         },
                         "end": {
-                           "line": 23,
-                           "character": 25
+                           "line": 13,
+                           "character": 50
                         }
                      },
                      "text": ";"
@@ -1473,6 +1571,16 @@
                   "uri": "$URI{foo.adb}"
                }
             }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 75,
+            "method": "shutdown"
          },
          "wait": []
       }
