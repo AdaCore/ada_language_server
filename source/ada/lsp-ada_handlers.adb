@@ -1914,7 +1914,9 @@ package body LSP.Ada_Handlers is
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
          Manual_Fallback         : Defining_Name;
+         Definition_Node         : Basic_Decl := No_Basic_Decl;
          Decl_For_Find_Overrides : Basic_Decl := No_Basic_Decl;
+         Entry_Decl_Node         : Entry_Decl := No_Entry_Decl;
       begin
          if Name_Node = No_Name then
             return;
@@ -1939,17 +1941,24 @@ package body LSP.Ada_Handlers is
             Other_Part := Laltools.Common.Find_Next_Part
               (Definition, Self.Trace);
 
-            Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+            Definition_Node := Definition.P_Basic_Decl;
 
             --  Search for overriding subprograms only if we are on an
             --  abstract subprogram.
             if Display_Method_Ancestry_Policy = Never
               or else
                 (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
-                        and then Decl_For_Find_Overrides.Kind
+                        and then Definition_Node.Kind
                         not in Ada_Abstract_Subp_Decl_Range)
             then
                Decl_For_Find_Overrides := No_Basic_Decl;
+            else
+               Decl_For_Find_Overrides := Definition_Node;
+            end if;
+
+            --  Search for accept statements only if we are on an entry
+            if Definition_Node.Kind in Ada_Entry_Decl_Range then
+               Entry_Decl_Node := Definition_Node.As_Entry_Decl;
             end if;
 
             if Other_Part = No_Defining_Name then
@@ -2000,6 +2009,12 @@ package body LSP.Ada_Handlers is
                end loop;
                Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
             end;
+         end if;
+
+         if Entry_Decl_Node /= Libadalang.Analysis.No_Entry_Decl then
+            for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
+               Append_Location (Response.result, Accept_Node.F_Name);
+            end loop;
          end if;
       end Resolve_In_Context;
 
