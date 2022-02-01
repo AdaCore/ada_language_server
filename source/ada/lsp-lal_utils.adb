@@ -18,6 +18,7 @@
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
+with System;
 
 with GNATCOLL.Utils;
 
@@ -1631,7 +1632,9 @@ package body LSP.Lal_Utils is
             Bytes    => To_Unbounded_String (Output));
 
       begin
-         Langkit_Support.Token_Data_Handlers.Initialize (TDH, Symbols);
+         Langkit_Support.Token_Data_Handlers.Initialize
+           (TDH, Symbols, System.Null_Address);
+
          Libadalang.Lexer.Extract_Tokens
            (Input,
             TDH         => TDH,
