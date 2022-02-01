@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Strings;
+
 with LSP.Lal_Utils;
 
 package body LSP.Ada_Completions.End_Names is
@@ -251,7 +253,6 @@ package body LSP.Ada_Completions.End_Names is
 
       End_Text    : VSS.Strings.Virtual_String;
       Label       : VSS.Strings.Virtual_String;
-      Insert_Text : VSS.Strings.Virtual_String;
       Has_Space   : Boolean := Libadalang.Common.Is_Trivia (Token);
       End_Token   : Libadalang.Common.Token_Data_Type;
       Item        : LSP.Messages.CompletionItem;
@@ -321,8 +322,6 @@ package body LSP.Ada_Completions.End_Names is
 
       Label.Append (End_Text);
       Label.Append (';');
-      Insert_Text := Label;
-      Insert_Text.Append (Self.Line_Terminator);
 
       Item := (label               => Label,
                kind                => (True, LSP.Messages.Keyword),
@@ -333,7 +332,7 @@ package body LSP.Ada_Completions.End_Names is
                preselect           => (True, Has_Space),
                sortText            => (True, Label),
                filterText          => (Is_Set => False),
-               insertText          => (True, Insert_Text),
+               insertText          => (True, Label),
                insertTextFormat    => (Is_Set => False),
                insertTextMode      => (Is_Set => False),
                textEdit            => (Is_Set => False),

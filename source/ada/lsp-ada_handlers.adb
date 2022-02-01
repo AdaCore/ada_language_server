@@ -4809,8 +4809,6 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
    begin
-      P9.Line_Terminator := Document.Line_Terminator;
-
       Document.Get_Completions_At
         (Context                  => Context.all,
          Providers                => Providers,

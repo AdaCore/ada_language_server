@@ -221,7 +221,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;\n",
+                        "insertText": "T;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -239,7 +239,7 @@
             "params": {
                "label": "T;",
                "insertTextFormat": 1,
-               "insertText": "T;\n",
+               "insertText": "T;",
                "kind": 14,
                "sortText": "T;",
                "additionalTextEdits": [],
@@ -254,7 +254,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "T;",
-                  "insertText": "T;\n",
+                  "insertText": "T;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -292,7 +292,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;\n",
+                        "insertText": "T;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -310,7 +310,7 @@
             "params": {
                "label": "T;",
                "insertTextFormat": 1,
-               "insertText": "T;\n",
+               "insertText": "T;",
                "kind": 14,
                "sortText": "T;",
                "additionalTextEdits": [],
@@ -325,7 +325,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "T;",
-                  "insertText": "T;\n",
+                  "insertText": "T;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -363,7 +363,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Start;",
-                        "insertText": "Start;\n",
+                        "insertText": "Start;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -381,7 +381,7 @@
             "params": {
                "label": "Start;",
                "insertTextFormat": 1,
-               "insertText": "Start;\n",
+               "insertText": "Start;",
                "kind": 14,
                "sortText": "Start;",
                "additionalTextEdits": [],
@@ -396,7 +396,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Start;",
-                  "insertText": "Start;\n",
+                  "insertText": "Start;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -434,7 +434,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Start;",
-                        "insertText": "Start;\n",
+                        "insertText": "Start;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -452,7 +452,7 @@
             "params": {
                "label": "Start;",
                "insertTextFormat": 1,
-               "insertText": "Start;\n",
+               "insertText": "Start;",
                "kind": 14,
                "sortText": "Start;",
                "additionalTextEdits": [],
@@ -467,7 +467,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Start;",
-                  "insertText": "Start;\n",
+                  "insertText": "Start;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -505,7 +505,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;\n",
+                        "insertText": "select;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -523,7 +523,7 @@
             "params": {
                "label": "select;",
                "insertTextFormat": 1,
-               "insertText": "select;\n",
+               "insertText": "select;",
                "kind": 14,
                "sortText": "select;",
                "additionalTextEdits": [],
@@ -538,7 +538,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "select;",
-                  "insertText": "select;\n",
+                  "insertText": "select;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -576,7 +576,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;\n",
+                        "insertText": "select;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -594,7 +594,7 @@
             "params": {
                "label": "select;",
                "insertTextFormat": 1,
-               "insertText": "select;\n",
+               "insertText": "select;",
                "kind": 14,
                "sortText": "select;",
                "additionalTextEdits": [],
@@ -609,7 +609,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "select;",
-                  "insertText": "select;\n",
+                  "insertText": "select;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -647,7 +647,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;\n",
+                        "insertText": "T;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -665,7 +665,7 @@
             "params": {
                "label": "T;",
                "insertTextFormat": 1,
-               "insertText": "T;\n",
+               "insertText": "T;",
                "kind": 14,
                "sortText": "T;",
                "additionalTextEdits": [],
@@ -680,7 +680,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "T;",
-                  "insertText": "T;\n",
+                  "insertText": "T;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -718,7 +718,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;\n",
+                        "insertText": "T;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -736,7 +736,7 @@
             "params": {
                "label": "T;",
                "insertTextFormat": 1,
-               "insertText": "T;\n",
+               "insertText": "T;",
                "kind": 14,
                "sortText": "T;",
                "additionalTextEdits": [],
@@ -751,7 +751,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "T;",
-                  "insertText": "T;\n",
+                  "insertText": "T;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -789,7 +789,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "return;",
-                        "insertText": "return;\n",
+                        "insertText": "return;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -807,7 +807,7 @@
             "params": {
                "label": "return;",
                "insertTextFormat": 1,
-               "insertText": "return;\n",
+               "insertText": "return;",
                "kind": 14,
                "sortText": "return;",
                "additionalTextEdits": [],
@@ -822,7 +822,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "return;",
-                  "insertText": "return;\n",
+                  "insertText": "return;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -860,7 +860,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "return;",
-                        "insertText": "return;\n",
+                        "insertText": "return;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -878,7 +878,7 @@
             "params": {
                "label": "return;",
                "insertTextFormat": 1,
-               "insertText": "return;\n",
+               "insertText": "return;",
                "kind": 14,
                "sortText": "return;",
                "additionalTextEdits": [],
@@ -893,7 +893,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "return;",
-                  "insertText": "return;\n",
+                  "insertText": "return;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -931,7 +931,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "\"+\";",
-                        "insertText": "\"+\";\n",
+                        "insertText": "\"+\";",
                         "additionalTextEdits": []
                      }
                   ]
@@ -949,7 +949,7 @@
             "params": {
                "label": "\"+\";",
                "insertTextFormat": 1,
-               "insertText": "\"+\";\n",
+               "insertText": "\"+\";",
                "kind": 14,
                "sortText": "\"+\";",
                "additionalTextEdits": [],
@@ -964,7 +964,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "\"+\";",
-                  "insertText": "\"+\";\n",
+                  "insertText": "\"+\";",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1002,7 +1002,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "\"+\";",
-                        "insertText": "\"+\";\n",
+                        "insertText": "\"+\";",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1020,7 +1020,7 @@
             "params": {
                "label": "\"+\";",
                "insertTextFormat": 1,
-               "insertText": "\"+\";\n",
+               "insertText": "\"+\";",
                "kind": 14,
                "sortText": "\"+\";",
                "additionalTextEdits": [],
@@ -1035,7 +1035,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "\"+\";",
-                  "insertText": "\"+\";\n",
+                  "insertText": "\"+\";",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1073,7 +1073,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Pkg;",
-                        "insertText": "Pkg;\n",
+                        "insertText": "Pkg;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1091,7 +1091,7 @@
             "params": {
                "label": "Pkg;",
                "insertTextFormat": 1,
-               "insertText": "Pkg;\n",
+               "insertText": "Pkg;",
                "kind": 14,
                "sortText": "Pkg;",
                "additionalTextEdits": [],
@@ -1106,7 +1106,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Pkg;",
-                  "insertText": "Pkg;\n",
+                  "insertText": "Pkg;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1144,7 +1144,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Pkg;",
-                        "insertText": "Pkg;\n",
+                        "insertText": "Pkg;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1162,7 +1162,7 @@
             "params": {
                "label": "Pkg;",
                "insertTextFormat": 1,
-               "insertText": "Pkg;\n",
+               "insertText": "Pkg;",
                "kind": 14,
                "sortText": "Pkg;",
                "additionalTextEdits": [],
@@ -1177,7 +1177,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Pkg;",
-                  "insertText": "Pkg;\n",
+                  "insertText": "Pkg;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1215,7 +1215,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;\n",
+                        "insertText": "GP;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1233,7 +1233,7 @@
             "params": {
                "label": "GP;",
                "insertTextFormat": 1,
-               "insertText": "GP;\n",
+               "insertText": "GP;",
                "kind": 14,
                "sortText": "GP;",
                "additionalTextEdits": [],
@@ -1248,7 +1248,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GP;",
-                  "insertText": "GP;\n",
+                  "insertText": "GP;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1286,7 +1286,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;\n",
+                        "insertText": "GP;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1304,7 +1304,7 @@
             "params": {
                "label": "GP;",
                "insertTextFormat": 1,
-               "insertText": "GP;\n",
+               "insertText": "GP;",
                "kind": 14,
                "sortText": "GP;",
                "additionalTextEdits": [],
@@ -1319,7 +1319,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GP;",
-                  "insertText": "GP;\n",
+                  "insertText": "GP;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1357,7 +1357,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GF;",
-                        "insertText": "GF;\n",
+                        "insertText": "GF;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1375,7 +1375,7 @@
             "params": {
                "label": "GF;",
                "insertTextFormat": 1,
-               "insertText": "GF;\n",
+               "insertText": "GF;",
                "kind": 14,
                "sortText": "GF;",
                "additionalTextEdits": [],
@@ -1390,7 +1390,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GF;",
-                  "insertText": "GF;\n",
+                  "insertText": "GF;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1428,7 +1428,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GF;",
-                        "insertText": "GF;\n",
+                        "insertText": "GF;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1446,7 +1446,7 @@
             "params": {
                "label": "GF;",
                "insertTextFormat": 1,
-               "insertText": "GF;\n",
+               "insertText": "GF;",
                "kind": 14,
                "sortText": "GF;",
                "additionalTextEdits": [],
@@ -1461,7 +1461,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GF;",
-                  "insertText": "GF;\n",
+                  "insertText": "GF;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1499,7 +1499,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;\n",
+                        "insertText": "GP;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1517,7 +1517,7 @@
             "params": {
                "label": "GP;",
                "insertTextFormat": 1,
-               "insertText": "GP;\n",
+               "insertText": "GP;",
                "kind": 14,
                "sortText": "GP;",
                "additionalTextEdits": [],
@@ -1532,7 +1532,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GP;",
-                  "insertText": "GP;\n",
+                  "insertText": "GP;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1570,7 +1570,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;\n",
+                        "insertText": "GP;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1588,7 +1588,7 @@
             "params": {
                "label": "GP;",
                "insertTextFormat": 1,
-               "insertText": "GP;\n",
+               "insertText": "GP;",
                "kind": 14,
                "sortText": "GP;",
                "additionalTextEdits": [],
@@ -1603,7 +1603,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GP;",
-                  "insertText": "GP;\n",
+                  "insertText": "GP;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1641,7 +1641,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;\n",
+                        "insertText": "PO;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1659,7 +1659,7 @@
             "params": {
                "label": "PO;",
                "insertTextFormat": 1,
-               "insertText": "PO;\n",
+               "insertText": "PO;",
                "kind": 14,
                "sortText": "PO;",
                "additionalTextEdits": [],
@@ -1674,7 +1674,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "PO;",
-                  "insertText": "PO;\n",
+                  "insertText": "PO;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1712,7 +1712,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;\n",
+                        "insertText": "PO;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1730,7 +1730,7 @@
             "params": {
                "label": "PO;",
                "insertTextFormat": 1,
-               "insertText": "PO;\n",
+               "insertText": "PO;",
                "kind": 14,
                "sortText": "PO;",
                "additionalTextEdits": [],
@@ -1745,7 +1745,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "PO;",
-                  "insertText": "PO;\n",
+                  "insertText": "PO;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1783,7 +1783,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "E;",
-                        "insertText": "E;\n",
+                        "insertText": "E;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1801,7 +1801,7 @@
             "params": {
                "label": "E;",
                "insertTextFormat": 1,
-               "insertText": "E;\n",
+               "insertText": "E;",
                "kind": 14,
                "sortText": "E;",
                "additionalTextEdits": [],
@@ -1816,7 +1816,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "E;",
-                  "insertText": "E;\n",
+                  "insertText": "E;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1854,7 +1854,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "E;",
-                        "insertText": "E;\n",
+                        "insertText": "E;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1872,7 +1872,7 @@
             "params": {
                "label": "E;",
                "insertTextFormat": 1,
-               "insertText": "E;\n",
+               "insertText": "E;",
                "kind": 14,
                "sortText": "E;",
                "additionalTextEdits": [],
@@ -1887,7 +1887,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "E;",
-                  "insertText": "E;\n",
+                  "insertText": "E;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1925,7 +1925,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;\n",
+                        "insertText": "PO;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -1943,7 +1943,7 @@
             "params": {
                "label": "PO;",
                "insertTextFormat": 1,
-               "insertText": "PO;\n",
+               "insertText": "PO;",
                "kind": 14,
                "sortText": "PO;",
                "additionalTextEdits": [],
@@ -1958,7 +1958,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "PO;",
-                  "insertText": "PO;\n",
+                  "insertText": "PO;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -1996,7 +1996,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;\n",
+                        "insertText": "PO;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2014,7 +2014,7 @@
             "params": {
                "label": "PO;",
                "insertTextFormat": 1,
-               "insertText": "PO;\n",
+               "insertText": "PO;",
                "kind": 14,
                "sortText": "PO;",
                "additionalTextEdits": [],
@@ -2029,7 +2029,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "PO;",
-                  "insertText": "PO;\n",
+                  "insertText": "PO;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2067,7 +2067,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2085,7 +2085,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2100,7 +2100,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2138,7 +2138,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2156,7 +2156,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2171,7 +2171,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2209,7 +2209,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2227,7 +2227,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2242,7 +2242,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2280,7 +2280,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2298,7 +2298,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2313,7 +2313,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2351,7 +2351,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;\n",
+                        "insertText": "case;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2369,7 +2369,7 @@
             "params": {
                "label": "case;",
                "insertTextFormat": 1,
-               "insertText": "case;\n",
+               "insertText": "case;",
                "kind": 14,
                "sortText": "case;",
                "additionalTextEdits": [],
@@ -2384,7 +2384,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "case;",
-                  "insertText": "case;\n",
+                  "insertText": "case;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2422,7 +2422,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;\n",
+                        "insertText": "case;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2440,7 +2440,7 @@
             "params": {
                "label": "case;",
                "insertTextFormat": 1,
-               "insertText": "case;\n",
+               "insertText": "case;",
                "kind": 14,
                "sortText": "case;",
                "additionalTextEdits": [],
@@ -2455,7 +2455,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "case;",
-                  "insertText": "case;\n",
+                  "insertText": "case;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2493,7 +2493,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2511,7 +2511,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2526,7 +2526,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2564,7 +2564,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;\n",
+                        "insertText": "record;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2582,7 +2582,7 @@
             "params": {
                "label": "record;",
                "insertTextFormat": 1,
-               "insertText": "record;\n",
+               "insertText": "record;",
                "kind": 14,
                "sortText": "record;",
                "additionalTextEdits": [],
@@ -2597,7 +2597,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "record;",
-                  "insertText": "record;\n",
+                  "insertText": "record;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2635,7 +2635,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;\n",
+                        "insertText": "select;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2653,7 +2653,7 @@
             "params": {
                "label": "select;",
                "insertTextFormat": 1,
-               "insertText": "select;\n",
+               "insertText": "select;",
                "kind": 14,
                "sortText": "select;",
                "additionalTextEdits": [],
@@ -2668,7 +2668,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "select;",
-                  "insertText": "select;\n",
+                  "insertText": "select;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2706,7 +2706,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;\n",
+                        "insertText": "select;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2724,7 +2724,7 @@
             "params": {
                "label": "select;",
                "insertTextFormat": 1,
-               "insertText": "select;\n",
+               "insertText": "select;",
                "kind": 14,
                "sortText": "select;",
                "additionalTextEdits": [],
@@ -2739,7 +2739,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "select;",
-                  "insertText": "select;\n",
+                  "insertText": "select;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2777,7 +2777,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Blk;",
-                        "insertText": "Blk;\n",
+                        "insertText": "Blk;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2795,7 +2795,7 @@
             "params": {
                "label": "Blk;",
                "insertTextFormat": 1,
-               "insertText": "Blk;\n",
+               "insertText": "Blk;",
                "kind": 14,
                "sortText": "Blk;",
                "additionalTextEdits": [],
@@ -2810,7 +2810,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Blk;",
-                  "insertText": "Blk;\n",
+                  "insertText": "Blk;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2848,7 +2848,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Blk;",
-                        "insertText": "Blk;\n",
+                        "insertText": "Blk;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2866,7 +2866,7 @@
             "params": {
                "label": "Blk;",
                "insertTextFormat": 1,
-               "insertText": "Blk;\n",
+               "insertText": "Blk;",
                "kind": 14,
                "sortText": "Blk;",
                "additionalTextEdits": [],
@@ -2881,7 +2881,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "Blk;",
-                  "insertText": "Blk;\n",
+                  "insertText": "Blk;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2919,7 +2919,7 @@
                         "kind": 14,
                         "preselect": false,
                         "sortText": "end;",
-                        "insertText": "end;\n",
+                        "insertText": "end;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -2937,7 +2937,7 @@
             "params": {
                "label": "end;",
                "insertTextFormat": 1,
-               "insertText": "end;\n",
+               "insertText": "end;",
                "kind": 14,
                "sortText": "end;",
                "additionalTextEdits": [],
@@ -2952,7 +2952,7 @@
                   "kind": 14,
                   "preselect": false,
                   "sortText": "end;",
-                  "insertText": "end;\n",
+                  "insertText": "end;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -2990,7 +2990,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "loop;",
-                        "insertText": "loop;\n",
+                        "insertText": "loop;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3008,7 +3008,7 @@
             "params": {
                "label": "loop;",
                "insertTextFormat": 1,
-               "insertText": "loop;\n",
+               "insertText": "loop;",
                "kind": 14,
                "sortText": "loop;",
                "additionalTextEdits": [],
@@ -3023,7 +3023,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "loop;",
-                  "insertText": "loop;\n",
+                  "insertText": "loop;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3061,7 +3061,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "loop;",
-                        "insertText": "loop;\n",
+                        "insertText": "loop;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3079,7 +3079,7 @@
             "params": {
                "label": "loop;",
                "insertTextFormat": 1,
-               "insertText": "loop;\n",
+               "insertText": "loop;",
                "kind": 14,
                "sortText": "loop;",
                "additionalTextEdits": [],
@@ -3094,7 +3094,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "loop;",
-                  "insertText": "loop;\n",
+                  "insertText": "loop;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3132,7 +3132,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "if;",
-                        "insertText": "if;\n",
+                        "insertText": "if;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3150,7 +3150,7 @@
             "params": {
                "label": "if;",
                "insertTextFormat": 1,
-               "insertText": "if;\n",
+               "insertText": "if;",
                "kind": 14,
                "sortText": "if;",
                "additionalTextEdits": [],
@@ -3165,7 +3165,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "if;",
-                  "insertText": "if;\n",
+                  "insertText": "if;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3203,7 +3203,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "if;",
-                        "insertText": "if;\n",
+                        "insertText": "if;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3221,7 +3221,7 @@
             "params": {
                "label": "if;",
                "insertTextFormat": 1,
-               "insertText": "if;\n",
+               "insertText": "if;",
                "kind": 14,
                "sortText": "if;",
                "additionalTextEdits": [],
@@ -3236,7 +3236,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "if;",
-                  "insertText": "if;\n",
+                  "insertText": "if;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3274,7 +3274,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;\n",
+                        "insertText": "case;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3292,7 +3292,7 @@
             "params": {
                "label": "case;",
                "insertTextFormat": 1,
-               "insertText": "case;\n",
+               "insertText": "case;",
                "kind": 14,
                "sortText": "case;",
                "additionalTextEdits": [],
@@ -3307,7 +3307,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "case;",
-                  "insertText": "case;\n",
+                  "insertText": "case;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3345,7 +3345,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;\n",
+                        "insertText": "case;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3363,7 +3363,7 @@
             "params": {
                "label": "case;",
                "insertTextFormat": 1,
-               "insertText": "case;\n",
+               "insertText": "case;",
                "kind": 14,
                "sortText": "case;",
                "additionalTextEdits": [],
@@ -3378,7 +3378,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "case;",
-                  "insertText": "case;\n",
+                  "insertText": "case;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3416,7 +3416,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GNAT.Main;",
-                        "insertText": "GNAT.Main;\n",
+                        "insertText": "GNAT.Main;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3434,7 +3434,7 @@
             "params": {
                "label": "GNAT.Main;",
                "insertTextFormat": 1,
-               "insertText": "GNAT.Main;\n",
+               "insertText": "GNAT.Main;",
                "kind": 14,
                "sortText": "GNAT.Main;",
                "additionalTextEdits": [],
@@ -3449,7 +3449,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GNAT.Main;",
-                  "insertText": "GNAT.Main;\n",
+                  "insertText": "GNAT.Main;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
@@ -3487,7 +3487,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GNAT.Main;",
-                        "insertText": "GNAT.Main;\n",
+                        "insertText": "GNAT.Main;",
                         "additionalTextEdits": []
                      }
                   ]
@@ -3505,7 +3505,7 @@
             "params": {
                "label": "GNAT.Main;",
                "insertTextFormat": 1,
-               "insertText": "GNAT.Main;\n",
+               "insertText": "GNAT.Main;",
                "kind": 14,
                "sortText": "GNAT.Main;",
                "additionalTextEdits": [],
@@ -3520,7 +3520,7 @@
                   "kind": 14,
                   "preselect": true,
                   "sortText": "GNAT.Main;",
-                  "insertText": "GNAT.Main;\n",
+                  "insertText": "GNAT.Main;",
                   "insertTextFormat": 1,
                   "additionalTextEdits": []
                }
