@@ -63,7 +63,9 @@ To build the language server you need:
    built)
  * The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
  * The [VSS](https://github.com/AdaCore/VSS) library
- * The a process [spawn](https://github.com/AdaCore/spawn) library
+ * The process [spawn](https://github.com/AdaCore/spawn) library
+ * The [libgpr2](https://github.com/AdaCore/gpr) library
+ * The [ada_libfswatch](https://github.com/AdaCore/ada_libfswatch) bindings
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
 environment variable.
