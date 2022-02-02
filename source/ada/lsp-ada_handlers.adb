@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,6 +52,7 @@ with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor_Add_Parameter;
+with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
@@ -79,6 +80,7 @@ with Laltools.Refactor_Imports;
 with Laltools.Refactor.Subprogram_Signature;
 with Laltools.Refactor.Safe_Rename;
 with Laltools.Refactor.Suppress_Separate;
+with Laltools.Refactor.Extract_Subprogram;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1242,6 +1244,70 @@ package body LSP.Ada_Handlers is
 
          Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
 
+         procedure Extract_Subprogram_Code_Action;
+         --  Checks if the Extract Subprogram refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         ------------------------------------
+         -- Extract_Subprogram_Code_Action --
+         ------------------------------------
+
+         procedure Extract_Subprogram_Code_Action is
+            use LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+            use Langkit_Support.Slocs;
+            use Laltools.Refactor.Extract_Subprogram;
+            use type LSP.Messages.Position;
+
+            Single_Location : constant Boolean :=
+              Params.span.first = Params.span.last;
+
+            Section_To_Extract_SLOC : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
+               Column_Number (Params.span.first.character) + 1,
+               Column_Number (Params.span.last.character) + 1);
+
+            Available_Subprogram_Kinds : Available_Subprogram_Kinds_Type;
+
+            Extract_Subprogram_Command : Command;
+
+         begin
+            if not Single_Location then
+               if Is_Extract_Subprogram_Available
+                 (Node.Unit,
+                  Section_To_Extract_SLOC,
+                  Available_Subprogram_Kinds)
+               then
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Procedure) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context                    => Context,
+                        Commands_Vector            => Result,
+                        Where                      =>
+                          (Params.textDocument.uri,
+                           Params.span,
+                           LSP.Messages.Empty_Set),
+                        Subprogram_Kind            =>
+                          Ada_Subp_Kind_Procedure);
+                  end if;
+
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Function) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context                    => Context,
+                        Commands_Vector            => Result,
+                        Where                      =>
+                          (Params.textDocument.uri,
+                           Params.span,
+                           LSP.Messages.Empty_Set),
+                        Subprogram_Kind            =>
+                          Ada_Subp_Kind_Function);
+                  end if;
+
+                  Found := True;
+                  Done := True;
+               end if;
+            end if;
+         end Extract_Subprogram_Code_Action;
+
       begin
          case Kind is
             when Libadalang.Common.Ada_Stmt
@@ -1350,6 +1416,9 @@ package body LSP.Ada_Handlers is
          end case;
 
          --  Refactoring Code Actions
+
+         --  Extract Subprogram
+         Extract_Subprogram_Code_Action;
 
          --  Add Parameter
          --  This refactoring is only available for clients that can provide
