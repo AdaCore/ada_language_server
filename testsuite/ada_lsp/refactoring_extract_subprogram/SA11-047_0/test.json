@@ -1,0 +1,307 @@
+[
+    {
+        "comment": [
+            "test automatically generated"
+        ]
+    },
+    {
+        "start": {
+            "cmd": [
+                "${ALS}"
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "processId": 59002,
+                    "locale": "en-gb",
+                    "rootPath": "$URI{.}",
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "workspace": {
+                            "applyEdit": true,
+                            "workspaceEdit": {
+                                "documentChanges": true,
+                                "resourceOperations": [
+                                    "create",
+                                    "rename",
+                                    "delete"
+                                ]
+                            },
+                            "executeCommand": {
+                                "dynamicRegistration": true
+                            }
+                        },
+                        "textDocument": {
+                            "codeAction": {
+                                "dynamicRegistration": true,
+                                "codeActionLiteralSupport": {
+                                    "codeActionKind": {
+                                        "valueSet": [
+                                            "<HAS>",
+                                            "refactor",
+                                            "refactor.extract",
+                                            "refactor.inline",
+                                            "refactor.rewrite"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "experimental": {
+                            "advanced_refactorings": [
+                                "add_parameter"
+                            ]
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "result": {
+                        "capabilities": {
+                            "codeActionProvider": {
+                                "codeActionKinds": [
+                                    "<HAS>",
+                                    "refactor.rewrite"
+                                ]
+                            },
+                            "executeCommandProvider": {
+                                "commands": [
+                                    "<HAS>",
+                                    "als-refactor-extract-subprogram"
+                                ]
+                            },
+                            "alsCheckSyntaxProvider": true
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "initialized",
+                "params": {}
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration",
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "trace": {
+                                "server": "off"
+                            },
+                            "projectFile": "default.gpr",
+                            "scenarioVariables": {},
+                            "defaultCharset": "iso-8859-1",
+                            "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                            "enableDiagnostics": true,
+                            "renameInComments": false
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is\nbegin\n   null;\nend Main;\n"
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "textDocument/codeAction",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "range": {
+                        "start": {
+                            "line": 2,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 2,
+                            "character": 5
+                        }
+                    },
+                    "context": {
+                        "diagnostics": []
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": 2,
+                    "result": [
+                        {
+                            "title": "Extract Procedure",
+                            "kind": "refactor.extract",
+                            "command": {
+                                "title": "",
+                                "command": "als-refactor-extract-subprogram",
+                                "arguments": [
+                                    {
+                                        "context_id": "Default",
+                                        "section_to_extract_sloc": {
+                                            "uri": "$URI{main.adb}",
+                                            "range": {
+                                                "start": {
+                                                    "line": 2,
+                                                    "character": 3
+                                                },
+                                                "end": {
+                                                    "line": 2,
+                                                    "character": 5
+                                                }
+                                            }
+                                        },
+                                        "subprogram_kind": "ADA_SUBP_KIND_PROCEDURE"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "workspace/executeCommand",
+                "params": {
+                    "command": "als-refactor-extract-subprogram",
+                    "arguments": [
+                        {
+                            "context_id": "Default",
+                            "section_to_extract_sloc": {
+                                "uri": "$URI{main.adb}",
+                                "range": {
+                                    "start": {
+                                        "line": 2,
+                                        "character": 3
+                                    },
+                                    "end": {
+                                        "line": 2,
+                                        "character": 5
+                                    }
+                                }
+                            },
+                            "subprogram_kind": "ADA_SUBP_KIND_PROCEDURE"
+                        }
+                    ]
+                }
+            },
+            "wait": [
+                {
+                    "id": 3,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 1,
+                                                    "character": 0
+                                                },
+                                                "end": {
+                                                    "line": 1,
+                                                    "character": 0
+                                                }
+                                            },
+                                            "newText": "\n   procedure Extracted;\n\n   procedure Extracted is\n   begin\n      null;\n   end Extracted;\n\n"
+                                        },
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 2,
+                                                    "character": 3
+                                                },
+                                                "end": {
+                                                    "line": 2,
+                                                    "character": 8
+                                                }
+                                            },
+                                            "newText": "Extracted;"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 19,
+                "method": "shutdown"
+            },
+            "wait": [
+                {
+                    "id": 19,
+                    "result": null
+                }
+            ]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

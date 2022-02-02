@@ -46,6 +46,7 @@ with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -131,6 +132,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Imports_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Extract_Subprogram.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Add_Parameter.Command'Tag);
       LSP.Commands.Register
