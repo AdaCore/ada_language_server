@@ -478,6 +478,7 @@ package body LSP.Lal_Utils is
       use Langkit_Support.Slocs;
       In_Assoc_List  : Boolean  := False;
       --  True if the cursor is a node of the Assoc_List
+      Is_New_Param  : Boolean  := False;
 
       Call_Expr_Node : constant Libadalang.Analysis.Call_Expr :=
         Get_Call_Expr (Node);
@@ -485,9 +486,9 @@ package body LSP.Lal_Utils is
       function Cursor_In_Node (N : Ada_Node) return Boolean;
       --  Check if N contains the cursor
 
-      function Is_New_Param return Boolean;
-      --  Check the token near the current location to find if we are writing
-      --  a new param not added in the Assoc_List.
+      function Cursor_On_Last_Par return Boolean;
+      --  Return True when the cursor is located on the closing parenthesis
+      --  of Call_Expr_Node
 
       --------------------
       -- Cursor_In_Node --
@@ -514,26 +515,32 @@ package body LSP.Lal_Utils is
          end case;
       end Cursor_In_Node;
 
-      ------------------
-      -- Is_New_Param --
-      ------------------
+      ------------------------
+      -- Cursor_On_Last_Par --
+      ------------------------
 
-      function Is_New_Param return Boolean is
-         Result : Token_Reference := Node.Unit.Lookup_Token (Cursor);
-         K      : constant Token_Kind := Kind (Data (Result));
+      function Cursor_On_Last_Par return Boolean is
+         Call_Text : constant Langkit_Support.Text.Text_Type :=
+           Call_Expr_Node.Text;
+         Open_Cpt  : Natural := 0;
+         Close_Cpt : Natural := 0;
       begin
-         --  LAL is returning the same tree
-         --  for "Foo (1" and "Foo (1," thus we must look at the token)
-         if K = Ada_Comma then
-            return True;
-         elsif Kind (Data (Result)) = Ada_Whitespace then
-            --  Handle the case "Foo (1," followed by whitespaces
-            Result := Previous (Result, Exclude_Trivia => True);
-            return Kind (Data (Result)) = Ada_Comma;
-         else
+         if Call_Text (Call_Text'Last) /= ')' then
+            --  Not on a closing parenthesis
             return False;
          end if;
-      end Is_New_Param;
+
+         --  Count the open/closing parentheses
+         for C of Call_Text loop
+            if C = '(' then
+               Open_Cpt := Open_Cpt + 1;
+            elsif C = ')' then
+               Close_Cpt := Close_Cpt + 1;
+            end if;
+         end loop;
+
+         return Open_Cpt = Close_Cpt;
+      end Cursor_On_Last_Par;
 
    begin
       Active_Position := 0;
@@ -541,7 +548,10 @@ package body LSP.Lal_Utils is
       Prev_Designators := Laltools.Common.Node_Vectors.Empty_Vector;
       Name_Node := Libadalang.Analysis.No_Name;
 
-      if Call_Expr_Node = No_Call_Expr then
+      if Call_Expr_Node = No_Call_Expr
+        or else (End_Sloc (Call_Expr_Node.Sloc_Range) = Cursor
+                 and then Cursor_On_Last_Par)
+      then
          return;
       end if;
 
@@ -569,6 +579,14 @@ package body LSP.Lal_Utils is
 
          --  Find the position in the Assoc_List
          if Suffix_Node.Kind in Ada_Assoc_List_Range then
+            declare
+               Assoc_Text : constant Langkit_Support.Text.Text_Type :=
+                 Suffix_Node.Text;
+            begin
+               --  In case of "Foo (1," the assoc_list text will be "1,"
+               Is_New_Param := Assoc_Text (Assoc_Text'Last) = ',';
+            end;
+
             for Assoc of Suffix_Node.As_Assoc_List loop
                Designator := Assoc.As_Param_Assoc.F_Designator;
                Active_Position := Active_Position + 1;

@@ -126,7 +126,8 @@ package LSP.Ada_Documents is
    function Get_Node_At
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position)
+      Position : LSP.Messages.Position;
+      Previous : Boolean := False)
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
 

@@ -374,7 +374,6 @@ package body LSP.Ada_Handlers is
    is
       Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
-      use type LSP.Ada_Documents.Document_Access;
 
    begin
       --  If the target textDocument hasn't been opened in the editor
@@ -768,7 +767,6 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.Server_Responses.Initialize_Response
    is
       use LSP.Messages;
-      use all type LSP.Types.Optional_Boolean;
 
       Value            : LSP.Messages.InitializeParams renames Request.params;
       Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
@@ -1914,7 +1912,9 @@ package body LSP.Ada_Handlers is
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
          Manual_Fallback         : Defining_Name;
+         Definition_Node         : Basic_Decl := No_Basic_Decl;
          Decl_For_Find_Overrides : Basic_Decl := No_Basic_Decl;
+         Entry_Decl_Node         : Entry_Decl := No_Entry_Decl;
       begin
          if Name_Node = No_Name then
             return;
@@ -1939,17 +1939,24 @@ package body LSP.Ada_Handlers is
             Other_Part := Laltools.Common.Find_Next_Part
               (Definition, Self.Trace);
 
-            Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+            Definition_Node := Definition.P_Basic_Decl;
 
             --  Search for overriding subprograms only if we are on an
             --  abstract subprogram.
             if Display_Method_Ancestry_Policy = Never
               or else
                 (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
-                        and then Decl_For_Find_Overrides.Kind
+                        and then Definition_Node.Kind
                         not in Ada_Abstract_Subp_Decl_Range)
             then
                Decl_For_Find_Overrides := No_Basic_Decl;
+            else
+               Decl_For_Find_Overrides := Definition_Node;
+            end if;
+
+            --  Search for accept statements only if we are on an entry
+            if Definition_Node.Kind in Ada_Entry_Decl_Range then
+               Entry_Decl_Node := Definition_Node.As_Entry_Decl;
             end if;
 
             if Other_Part = No_Defining_Name then
@@ -2000,6 +2007,12 @@ package body LSP.Ada_Handlers is
                end loop;
                Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
             end;
+         end if;
+
+         if Entry_Decl_Node /= Libadalang.Analysis.No_Entry_Decl then
+            for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
+               Append_Location (Response.result, Accept_Node.F_Name);
+            end loop;
          end if;
       end Resolve_In_Context;
 
@@ -2833,8 +2846,8 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      Node : constant Libadalang.Analysis.Ada_Node :=
-        C.Get_Node_At (Document, Value);
+      Node : Libadalang.Analysis.Ada_Node :=
+        C.Get_Node_At (Document, Value, Previous => True);
 
       Sloc : constant Langkit_Support.Slocs.Source_Location :=
         Document.Get_Source_Location (Value.position);
@@ -3028,6 +3041,32 @@ package body LSP.Ada_Handlers is
          Name_Node        => Name_Node);
 
       if Name_Node = Libadalang.Analysis.No_Name then
+         --  Try again with the current position
+         Node := C.Get_Node_At (Document, Value, Previous => False);
+         Get_Call_Expr_Name
+           (Node             => Node,
+            Cursor           => Sloc,
+            Active_Position  => Active_Position,
+            Designator       => Designator,
+            Prev_Designators => Prev_Designators,
+            Name_Node        => Name_Node);
+
+         if Name_Node = Libadalang.Analysis.No_Name then
+            return Response;
+         end if;
+      end if;
+
+      --  Is this a type cast?
+      if Name_Node.P_Name_Designated_Type /= No_Ada_Node
+        --  Does the cast make sense?
+        and then Active_Position = 0
+        --  Do we have the previous signatures?
+        and then Value.context.Is_Set
+        and then Value.context.Value.activeSignatureHelp.Is_Set
+      then
+         --  At this point, the user is writing a typecast in a previous
+         --  signature => keep showing the previous signatures.
+         Response.result := Value.context.Value.activeSignatureHelp.Value;
          return Response;
       end if;
 
