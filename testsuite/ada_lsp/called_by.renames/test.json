@@ -343,10 +343,6 @@
          },
          "wait": [
             {
-               "id": "ada-11",
-               "result": []
-            },
-            {
                "id": "ada-12",
                "result": [
                   {
