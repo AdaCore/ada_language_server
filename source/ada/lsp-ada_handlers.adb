@@ -57,6 +57,7 @@ with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
@@ -81,6 +82,7 @@ with Laltools.Refactor.Subprogram_Signature;
 with Laltools.Refactor.Safe_Rename;
 with Laltools.Refactor.Suppress_Separate;
 with Laltools.Refactor.Extract_Subprogram;
+with Laltools.Refactor.Pull_Up_Declaration;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1257,6 +1259,14 @@ package body LSP.Ada_Handlers is
          procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
          --  Contruct a command and append it to Result
 
+         procedure Extract_Subprogram_Code_Action;
+         --  Checks if the Extract Subprogram refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Pull_Up_Declaration_Code_Action;
+         --  Checks if the Pull Up Declaration refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          --------------------
          -- Append_Command --
          --------------------
@@ -1296,12 +1306,6 @@ package body LSP.Ada_Handlers is
             Found := True;
             Found_Named_Parameters := True;
          end Append_Command;
-
-         Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
-
-         procedure Extract_Subprogram_Code_Action;
-         --  Checks if the Extract Subprogram refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
 
          ------------------------------------
          -- Extract_Subprogram_Code_Action --
@@ -1362,6 +1366,48 @@ package body LSP.Ada_Handlers is
                end if;
             end if;
          end Extract_Subprogram_Code_Action;
+
+         -------------------------------------
+         -- Pull_Up_Declaration_Code_Action --
+         -------------------------------------
+
+         procedure Pull_Up_Declaration_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use Laltools.Refactor.Pull_Up_Declaration;
+            use LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+            use LSP.Messages;
+
+            --  This code action is not available when a range of text is
+            --  selected.
+
+            Single_Location : constant Boolean :=
+              Params.span.first = Params.span.last;
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Column_Number (Params.span.first.character) + 1);
+
+            Pull_Up_Declaration_Command :
+              LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command;
+
+         begin
+            if Single_Location
+              and then Is_Pull_Up_Declaration_Available (Node.Unit, Location)
+            then
+               Pull_Up_Declaration_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Params.textDocument.uri,
+                     span    => Params.span,
+                     alsKind => Empty_Set));
+
+               Found := True;
+               Done := True;
+            end if;
+         end Pull_Up_Declaration_Code_Action;
+
+         Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
 
       begin
          case Kind is
@@ -1474,6 +1520,9 @@ package body LSP.Ada_Handlers is
 
          --  Extract Subprogram
          Extract_Subprogram_Code_Action;
+
+         --  Pull Up Declaration
+         Pull_Up_Declaration_Code_Action;
 
          --  Add Parameter
          --  This refactoring is only available for clients that can provide
