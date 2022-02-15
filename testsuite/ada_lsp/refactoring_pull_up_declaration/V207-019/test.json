@@ -1,0 +1,333 @@
+[
+    {
+        "comment": [
+            "test automatically generated"
+        ]
+    },
+    {
+        "start": {
+            "cmd": [
+                "${ALS}"
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "processId": 59002,
+                    "locale": "en-gb",
+                    "rootPath": "$URI{.}",
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "workspace": {
+                            "applyEdit": true,
+                            "workspaceEdit": {
+                                "documentChanges": true,
+                                "resourceOperations": [
+                                    "create",
+                                    "rename",
+                                    "delete"
+                                ]
+                            },
+                            "executeCommand": {
+                                "dynamicRegistration": true
+                            }
+                        },
+                        "textDocument": {
+                            "codeAction": {
+                                "dynamicRegistration": true,
+                                "codeActionLiteralSupport": {
+                                    "codeActionKind": {
+                                        "valueSet": [
+                                            "<HAS>",
+                                            "refactor",
+                                            "refactor.extract",
+                                            "refactor.inline",
+                                            "refactor.rewrite"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "experimental": {
+                            "advanced_refactorings": [
+                                "add_parameter"
+                            ]
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "result": {
+                        "capabilities": {
+                            "codeActionProvider": {
+                                "codeActionKinds": [
+                                    "<HAS>",
+                                    "refactor.rewrite"
+                                ]
+                            },
+                            "executeCommandProvider": {
+                                "commands": [
+                                    "<HAS>",
+                                    "als-refactor-extract-subprogram"
+                                ]
+                            },
+                            "alsCheckSyntaxProvider": true
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "initialized",
+                "params": {}
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration",
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "trace": {
+                                "server": "off"
+                            },
+                            "projectFile": "default.gpr",
+                            "scenarioVariables": {},
+                            "defaultCharset": "iso-8859-1",
+                            "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                            "enableDiagnostics": true,
+                            "renameInComments": false
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is\nbegin\n   declare\n      procedure Foo is null;\n\n   begin\n      null;\n   end;\nend Main;\n"
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "textDocument/codeAction",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 16
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 16
+                        }
+                    },
+                    "context": {
+                        "diagnostics": []
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": 2,
+                    "result": [
+                        {
+                            "title": "Pull Up Declaration",
+                            "kind": "refactor.extract",
+                            "command": {
+                                "title": "",
+                                "command": "als-refactor-pull_up_declaration",
+                                "arguments": [
+                                    {
+                                        "context": "Default",
+                                        "where": {
+                                            "uri": "$URI{main.adb}",
+                                            "range": {
+                                                "start": {
+                                                    "line": 3,
+                                                    "character": 16
+                                                },
+                                                "end": {
+                                                    "line": 3,
+                                                    "character": 16
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "title": "Add Parameter",
+                            "kind": "refactor.rewrite",
+                            "command": {
+                                "title": "",
+                                "command": "als-refactor-add-parameters",
+                                "arguments": [
+                                    {
+                                        "context_id": "Default",
+                                        "where": {
+                                            "uri": "$URI{main.adb}",
+                                            "range": {
+                                                "start": {
+                                                    "line": 3,
+                                                    "character": 16
+                                                },
+                                                "end": {
+                                                    "line": 3,
+                                                    "character": 16
+                                                }
+                                            }
+                                        },
+                                        "newParameter": "",
+                                        "requiresFullSpecification": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "method": "workspace/executeCommand",
+                "params": {
+                    "command": "als-refactor-pull_up_declaration",
+                    "arguments": [
+                        {
+                            "context": "Default",
+                            "where": {
+                                "uri": "$URI{main.adb}",
+                                "range": {
+                                    "start": {
+                                        "line": 3,
+                                        "character": 16
+                                    },
+                                    "end": {
+                                        "line": 3,
+                                        "character": 16
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "wait": [
+                {
+                    "id": 3,
+                    "method": "workspace/applyEdit",
+                    "params": {
+                        "edit": {
+                            "documentChanges": [
+                                {
+                                    "textDocument": {
+                                        "uri": "$URI{main.adb}",
+                                        "version": 1
+                                    },
+                                    "edits": [
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 1,
+                                                    "character": 0
+                                                },
+                                                "end": {
+                                                    "line": 1,
+                                                    "character": 0
+                                                }
+                                            },
+                                            "newText": "\n   procedure Foo is null;\n"
+                                        },
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 3,
+                                                    "character": 0
+                                                },
+                                                "end": {
+                                                    "line": 4,
+                                                    "character": 0
+                                                }
+                                            },
+                                            "newText": ""
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 19,
+                "method": "shutdown"
+            },
+            "wait": [
+                {
+                    "id": 19,
+                    "result": null
+                }
+            ]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
