@@ -36,15 +36,24 @@ package body LSP.Ada_Completions.Attributes is
       Result : in out LSP.Messages.CompletionList)
    is
       pragma Unreferenced (Names);
+
+      use Libadalang.Analysis;
+      use Libadalang.Common;
    begin
       if Filter.Is_Attribute_Ref then
          declare
             use type VSS.Strings.Virtual_String;
-
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Libadalang.Common.Kind (Libadalang.Common.Data (Token));
             Prefix : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.To_Virtual_String (Node.Text);
+              (if Token_Kind = Ada_Tick then
+                  VSS.Strings.To_Virtual_String ("'")
+               else
+                  VSS.Strings.To_Virtual_String (Node.Text));
 
          begin
+            --  If we are right after the "'" we should list all the possible
+            --  attributes, so set the prefix to the empty string.
             LSP.Predefined_Completion.Get_Attributes
               (Prefix => (if Prefix /= "'" then Prefix else ""),
                Result => Result.items);
