@@ -50,6 +50,10 @@ package body LSP.Ada_Completions.Aspects is
               (Prefix => Prefix,
                Result => Result.items);
          end;
+      elsif Node.Kind in Libadalang.Common.Ada_Aspect_Spec_Range then
+         LSP.Predefined_Completion.Get_Aspects
+           (Prefix => VSS.Strings.Empty_Virtual_String,
+            Result => Result.items);
       end if;
    end Propose_Completion;
 
