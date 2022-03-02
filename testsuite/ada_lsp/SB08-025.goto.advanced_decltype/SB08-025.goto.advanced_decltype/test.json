@@ -1,0 +1,358 @@
+[
+   {
+      "comment": [
+         "Test goto requests for 'single type task' and protected node."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 1,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "definitionProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}", 
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   task Bar is\n      entry Start;\n   end Bar;\n\n   task body Bar is\n   begin\n      accept Start;\n   end Foo;\n\n   protected Obj is\n      function Get return Integer;\n   private\n      Local : Integer := 0;\n   end Obj;\n\n   protected body Obj is\n      function Get return Integer is\n      begin\n         return Local;\n      end Get;\n   end Obj;\nbegin\n   Bar.Start;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 8
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 16
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 13
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 11
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 10,
+                  "character": 13
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 16,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 16,
+                           "character": 21
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 16,
+                  "character": 18
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 10,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 10,
+                           "character": 16
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 11,
+                  "character": 15
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 17,
+                           "character": 15
+                        },
+                        "end": {
+                           "line": 17,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 17,
+                  "character": 15
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 14,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 11,
+                           "character": 15
+                        },
+                        "end": {
+                           "line": 11,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
