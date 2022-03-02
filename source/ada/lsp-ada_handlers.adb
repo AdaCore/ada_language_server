@@ -2083,6 +2083,20 @@ package body LSP.Ada_Handlers is
             --  Search for accept statements only if we are on an entry
             if Definition_Node.Kind in Ada_Entry_Decl_Range then
                Entry_Decl_Node := Definition_Node.As_Entry_Decl;
+            elsif Definition_Node.Kind in
+              Ada_Single_Task_Type_Decl_Range | Ada_Protected_Type_Decl_Range
+            then
+               --  These node types are not handled by Find_Next_Part
+               --  (LAL design limitations)
+               declare
+                  Other_Part_For_Decl : constant Basic_Decl :=
+                    Laltools.Common.Find_Next_Part_For_Decl
+                      (Definition_Node, Self.Trace);
+               begin
+                  if Other_Part_For_Decl /= No_Basic_Decl then
+                     Other_Part := Other_Part_For_Decl.P_Defining_Name;
+                  end if;
+               end;
             end if;
 
             if Other_Part = No_Defining_Name then
