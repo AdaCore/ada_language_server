@@ -19,6 +19,7 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
+with VSS.String_Vectors;
 
 with VSS.Strings;
 private with VSS.Strings.Markers;
@@ -172,7 +173,8 @@ package LSP.Ada_Documents is
       Context  : LSP.Ada_Contexts.Context;
       Span     : LSP.Messages.Span;
       Cmd      : Pp.Command_Lines.Cmd_Line;
-      Edit     : out LSP.Messages.TextEdit_Vector)
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
       return Boolean;
    --  Format document or its part defined in Span
 

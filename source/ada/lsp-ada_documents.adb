@@ -22,6 +22,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.Strings;
 
 with GNATCOLL.Utils;
+with GNATCOLL.VFS;
 
 with VSS.Characters;
 with VSS.Strings.Conversions;
@@ -34,7 +35,6 @@ with Libadalang.Iterators;
 
 with Laltools.Common;
 
-with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
@@ -611,7 +611,8 @@ package body LSP.Ada_Documents is
       Context  : LSP.Ada_Contexts.Context;
       Span     : LSP.Messages.Span;
       Cmd      : Pp.Command_Lines.Cmd_Line;
-      Edit     : out LSP.Messages.TextEdit_Vector)
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
       return Boolean
    is
       use Utils.Char_Vectors;
@@ -626,7 +627,7 @@ package body LSP.Ada_Documents is
       Output    : Char_Vector;
       Out_Span  : LSP.Messages.Span;
 
-      Messages  : Pp.Scanner.Source_Message_Vector;
+      PP_Messages  : Pp.Scanner.Source_Message_Vector;
 
       Sloc : constant Source_Location_Range :=
         (if Span = LSP.Messages.Empty_Span
@@ -641,16 +642,18 @@ package body LSP.Ada_Documents is
          --  Align Span to line bounds
          if Span.first.character /= 0 then
             return Self.Formatting
-              (Context => Context,
-               Span    => ((Span.first.line, 0), Span.last),
-               Cmd     => Cmd,
-               Edit    => Edit);
+              (Context  => Context,
+               Span     => ((Span.first.line, 0), Span.last),
+               Cmd      => Cmd,
+               Edit     => Edit,
+               Messages => Messages);
          elsif Span.last.character /= 0 then
             return Self.Formatting
-              (Context => Context,
-               Span    => (Span.first, (Span.last.line + 1, 0)),
-               Cmd     => Cmd,
-               Edit    => Edit);
+              (Context  => Context,
+               Span     => (Span.first, (Span.last.line + 1, 0)),
+               Cmd      => Cmd,
+               Edit     => Edit,
+               Messages => Messages);
          end if;
       end if;
 
@@ -665,10 +668,31 @@ package body LSP.Ada_Documents is
          In_Sloc   => Sloc,
          Output    => Output,
          Out_Sloc  => Out_Sloc,
-         Messages  => Messages);
+         Messages  => PP_Messages);
 
-      if not Messages.Is_Empty then
-         return False;
+      --  Prolerly format the messages received from gnatpp, using the
+      --  the GNAT standard way for messages (i.e: <filename>:<sloc>: <msg>)
+
+      if not PP_Messages.Is_Empty then
+
+         declare
+            Filename : constant String := URI_To_File
+              (Self => Context, URI => Self.URI);
+            File     : constant GNATCOLL.VFS.Virtual_File :=
+              GNATCOLL.VFS.Create_From_UTF8 (Filename);
+         begin
+            for Error of PP_Messages loop
+               Messages.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (File.Display_Base_Name
+                     & ":"
+                     & Pp.Scanner.Sloc_Image (Error.Sloc)
+                     & ": "
+                     & String (To_Array (Error.Text))));
+            end loop;
+
+            return False;
+         end;
       end if;
 
       S := new String'(Output.To_Array);
