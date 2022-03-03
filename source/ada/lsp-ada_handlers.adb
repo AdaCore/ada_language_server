@@ -208,6 +208,14 @@ package body LSP.Ada_Handlers is
    --  only on the DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles
    --  notifications.
 
+   function Format
+     (Self     : in out LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions)
+      return LSP.Messages.Server_Responses.Formatting_Response;
+   --  Format the text of the given document in the given range (span).
+
    type File_Span is record
       File : GNATCOLL.VFS.Virtual_File;
       Span : LSP.Messages.Span;
@@ -756,6 +764,55 @@ package body LSP.Ada_Handlers is
       return
         FileOperationRegistrationOptions'(filters => File_Operation_Filters);
    end Compute_File_Operation_Registration_Options;
+
+   ------------
+   -- Format --
+   ------------
+
+   function Format
+     (Self     : in out LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions)
+         return LSP.Messages.Server_Responses.Formatting_Response
+   is
+      Response : LSP.Messages.Server_Responses.Formatting_Response
+        (Is_Error => False);
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+   begin
+      Self.Format
+        (Document => Document,
+         Span     => Span,
+         Options  => Options,
+         Edit     => Response.Result,
+         Success  => Success,
+         Messages => Messages);
+
+      if not Success then
+         declare
+            use VSS.Strings;
+
+            Response  : LSP.Messages.Server_Responses.Formatting_Response
+              (Is_Error => True);
+            Error_Msg : VSS.Strings.Virtual_String;
+         begin
+            --  Display error messages from gnatpp, if any
+            for Msg of Messages loop
+               Error_Msg := Error_Msg & Msg;
+            end loop;
+
+            Response.Error :=
+              (True,
+               (code    => LSP.Errors.InternalError,
+                message => Error_Msg,
+                data    => <>));
+            return Response;
+         end;
+      end if;
+
+      return Response;
+   end Format;
 
    ------------------------
    -- Initialize_Request --
@@ -4945,15 +5002,11 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Formatting_Request)
       return LSP.Messages.Server_Responses.Formatting_Response
    is
-      Success  : Boolean;
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Request.params.textDocument.uri);
-
-      Response : LSP.Messages.Server_Responses.Formatting_Response
-        (Is_Error => False);
    begin
       if Document.Has_Diagnostics (Context.all) then
          return Response : LSP.Messages.Server_Responses.Formatting_Response
@@ -4967,26 +5020,18 @@ package body LSP.Ada_Handlers is
          end return;
       end if;
 
-      Context.Format
-        (Document,
-         LSP.Messages.Empty_Span,
-         Request.params.options,
-         Response.result,
-         Success);
+      declare
+         use LSP.Messages;
 
-      if not Success then
-         return Response : LSP.Messages.Server_Responses.Formatting_Response
-           (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => "Internal error",
-                data    => <>));
-         end return;
-      end if;
-
-      return Response;
+         Response : constant Server_Responses.Formatting_Response :=
+           Format
+             (Self     => Context.all,
+              Document => Document,
+              Span     => LSP.Messages.Empty_Span,
+              Options  => Request.params.options);
+      begin
+         return Response;
+      end;
    end On_Formatting_Request;
 
    ---------------------------------------
@@ -5332,15 +5377,12 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
       return LSP.Messages.Server_Responses.Range_Formatting_Response
    is
-      Success  : Boolean;
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Request.params.textDocument.uri);
 
-      Response : LSP.Messages.Server_Responses.Range_Formatting_Response
-        (Is_Error => False);
    begin
       if Document.Has_Diagnostics (Context.all) then
          return Response : LSP.Messages.Server_Responses.
@@ -5354,26 +5396,26 @@ package body LSP.Ada_Handlers is
          end return;
       end if;
 
-      Context.Format
-        (Document,
-         Request.params.span,
-         Request.params.options,
-         Response.result,
-         Success);
+      declare
+         use LSP.Messages;
 
-      if not Success then
-         return Response : LSP.Messages.Server_Responses.
-           Range_Formatting_Response (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => "Internal error",
-                data    => <>));
-         end return;
-      end if;
+         Result   : constant Server_Responses.Formatting_Response :=
+           Format
+             (Self     => Context.all,
+              Document => Document,
+              Span     => Request.params.span,
+              Options  => Request.params.options);
+         Response : Server_Responses.Range_Formatting_Response
+           (Is_Error => Result.Is_Error);
+      begin
+         if not Result.Is_Error then
+            Response.Result := Result.result;
+         else
+            Response.Error := Result.error;
+         end if;
 
-      return Response;
+         return Response;
+      end;
    end On_Range_Formatting_Request;
 
    ------------------
