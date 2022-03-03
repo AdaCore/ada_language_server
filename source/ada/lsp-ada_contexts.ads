@@ -32,6 +32,7 @@ with Libadalang.Common;
 
 with Utils.Command_Lines;
 with Pp.Command_Lines;
+with VSS.String_Vectors;
 
 with VSS.Strings;
 
@@ -102,7 +103,8 @@ package LSP.Ada_Contexts is
       Span     : LSP.Messages.Span;
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean);
+      Success  : out Boolean;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector);
 
    procedure Find_All_References
      (Self       : Context;
