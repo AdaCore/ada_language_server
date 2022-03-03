@@ -744,7 +744,8 @@ package body LSP.Ada_Contexts is
       Span     : LSP.Messages.Span;
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean)
+      Success  : out Boolean;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
    is
    begin
       Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
@@ -758,10 +759,11 @@ package body LSP.Ada_Contexts is
          Options.insertSpaces);
 
       Success := Document.Formatting
-        (Context => Self,
-         Span    => Span,
-         Cmd     => Self.PP_Options,
-         Edit    => Edit);
+        (Context  => Self,
+         Span     => Span,
+         Cmd      => Self.PP_Options,
+         Edit     => Edit,
+         Messages => Messages);
    end Format;
 
    ----------
