@@ -2188,10 +2188,13 @@ package body LSP.Ada_Documents is
                begin
                   --  Match each element individually in case of sensitive
                   --  search or non-celling mode
-                  if (Use_Celling and then not Pattern.Get_Case_Sensitive)
-                    or else Pattern.Match
-                      (LSP.Lal_Utils.To_Virtual_String
-                        (Defining_Name.As_Ada_Node.Text))
+                  if not Defining_Name.Is_Null
+                    and then
+                      ((Use_Celling
+                        and then not Pattern.Get_Case_Sensitive)
+                       or else Pattern.Match
+                         (LSP.Lal_Utils.To_Virtual_String
+                            (Defining_Name.As_Ada_Node.Text)))
                   then
                      Insert (Item, Defining_Name);
                   end if;
