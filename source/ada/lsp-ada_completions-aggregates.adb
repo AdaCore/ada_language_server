@@ -42,8 +42,12 @@ package body LSP.Ada_Completions.Aggregates is
       use Libadalang.Common;
       use LSP.Messages;
 
+      Expr_Type : constant Base_Type_Decl := Node.P_Expression_Type;
       Aggr_Type          : constant Base_Type_Decl :=
-        Node.P_Expression_Type.P_Canonical_Type;
+        (if not Expr_Type.Is_Null then
+            Expr_Type.P_Canonical_Type
+         else
+            No_Base_Type_Decl);
       Use_Named_Notation : Boolean := False;
 
       function Get_Snippet_For_Component
@@ -240,6 +244,12 @@ package body LSP.Ada_Completions.Aggregates is
       end Get_Label_For_Shape;
 
    begin
+      --  If the aggregate node has no type (e.g: representation clauses),
+      --  return immediately.
+      if Expr_Type.Is_Null then
+         return;
+      end if;
+
       if Aggr_Type.Kind in Ada_Type_Decl_Range then
          declare
             Shapes        : constant Libadalang.Analysis.Shape_Array :=
