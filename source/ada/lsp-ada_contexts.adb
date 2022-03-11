@@ -20,6 +20,7 @@ with Ada.Characters.Handling;     use Ada.Characters.Handling;
 with GNAT.Strings;
 
 with GNATCOLL.Projects;           use GNATCOLL.Projects;
+with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
 with VSS.Strings.Conversions;
@@ -37,6 +38,8 @@ with Langkit_Support.Slocs;
 with Utils.Command_Lines.Common;
 
 package body LSP.Ada_Contexts is
+
+   Indexing_Trace : constant Trace_Handle := Create ("ALS.INDEXING", Off);
 
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
@@ -859,11 +862,21 @@ package body LSP.Ada_Contexts is
            Charset => Self.Get_Charset,
            Reparse => Reparse);
    begin
+      Trace
+        (Indexing_Trace,
+         "Indexing " & (if PLE then "(PLE) " else "") &
+         File.Display_Full_Name);
+
       Self.Source_Files.Index_File (File, Unit);
 
       if PLE then
          Libadalang.Analysis.Populate_Lexical_Env (Unit);
       end if;
+
+      Trace
+        (Indexing_Trace,
+         "Done indexing." & Integer'Image (Unit.Diagnostics'Length) &
+         " diagnostic(s) found.");
    end Index_File;
 
    ------------------
