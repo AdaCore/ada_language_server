@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -186,7 +186,7 @@ package body LSP.Ada_Handlers is
      (Self : access Message_Handler;
       File : GNATCOLL.VFS.Virtual_File)
             return Boolean
-   is (To_Lower (Self.Project_Tree.Info (File).Language) = "ada");
+   is (Is_Ada_File (Self.Project_Tree, File));
    --  Checks if File is an Ada source of Self's project. This is needed
    --  to filter non Ada sources on notifications like
    --  DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles since it's not
@@ -3560,8 +3560,10 @@ package body LSP.Ada_Handlers is
                         Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor),
                         Text_Edit);
 
-                     Unit := C.LAL_Context.Get_From_File
-                       (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor));
+                     Unit := C.Get_AU
+                       (GNATCOLL.VFS.Create_From_UTF8
+                          (String (Text_Edit_Ordered_Maps.Key
+                           (Text_Edits_Cursor))));
                      Node := Unit.Root.Lookup
                        ((Text_Edit.Location.Start_Line,
                          Text_Edit.Location.Start_Column));
@@ -4148,7 +4150,9 @@ package body LSP.Ada_Handlers is
             Report_Missing_Dirs => False,
             Errors              => On_Error'Unrestricted_Access);
          for File of Self.Project_Environment.Predefined_Source_Files loop
-            Self.Project_Predefined_Sources.Include (File);
+            if Self.Is_Ada_Source (File) then
+               Self.Project_Predefined_Sources.Include (File);
+            end if;
          end loop;
          if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
             declare

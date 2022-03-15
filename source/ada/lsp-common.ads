@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,6 +19,7 @@
 
 with Ada.Exceptions;
 with GNAT.OS_Lib;
+with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
@@ -68,5 +69,11 @@ package LSP.Common is
      (Item : VSS.Characters.Virtual_Character) return Boolean;
    --  Return True when given character belongs to 'separator' category,
    --  defined by Ada 2012 Reference Manual.
+
+   function Is_Ada_File
+     (Tree : GNATCOLL.Projects.Project_Tree_Access;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Return whether the file is an Ada file according to the project's
+   --  naming scheme.
 
 end LSP.Common;
