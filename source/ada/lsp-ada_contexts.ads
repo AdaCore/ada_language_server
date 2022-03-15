@@ -83,6 +83,11 @@ package LSP.Ada_Contexts is
       URI  : LSP.Types.LSP_URI)
       return Ada.Strings.UTF_Encoding.UTF_8_String;
 
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_URI)
+      return GNATCOLL.VFS.Virtual_File;
+
    function Get_Node_At
      (Self         : Context;
       Document     : LSP.Ada_Documents.Document_Access;
@@ -194,6 +199,14 @@ package LSP.Ada_Contexts is
      (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set;
    --  List the source directories in non-externally-built projects
 
+   function Get_AU
+     (Self    : Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit;
+   --  Wrapper around Libadalang.Analysis.Get_From_File, taking into
+   --  account the context's charset, and only processing the file
+   --  if it's an Ada source. Return No_Analysis_Unit if it's not.
+
    procedure Index_File
      (Self    : in out Context;
       File    : GNATCOLL.VFS.Virtual_File;
@@ -272,6 +285,11 @@ private
       Is_Fallback_Context : Boolean := False;
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
+
+      Tree                : GNATCOLL.Projects.Project_Tree_Access;
+      --  The loaded project tree: we need to keep a reference to this
+      --  in order to figure out which files are Ada and which are not.
+      --  Do not deallocate: this is owned by the Message_Handler.
 
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.

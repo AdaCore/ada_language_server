@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
+with Ada.Characters.Handling;     use Ada.Characters.Handling;
+
 with Ada.Exceptions;           use Ada.Exceptions;
 with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
@@ -596,5 +598,38 @@ package body LSP.Common is
           | VSS.Characters.Line_Separator
           | VSS.Characters.Paragraph_Separator;
    end Is_Ada_Separator;
+
+   -----------------
+   -- Is_Ada_File --
+   -----------------
+
+   function Is_Ada_File
+     (Tree : GNATCOLL.Projects.Project_Tree_Access;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean
+   is
+      use GNATCOLL.Projects;
+      Set : File_Info_Set;
+   begin
+      --  Defensive programming; this shouldn't happen
+      if Tree = null then
+         return False;
+      end if;
+
+      Set := Tree.Info_Set (File);
+      if not Set.Is_Empty then
+         --  The file can be listed in several projects with different
+         --  Info_Sets, in the case of aggregate projects. However,
+         --  assume that the language is the same in all projects,
+         --  so look only at the first entry in the set.
+         declare
+            Info : constant File_Info'Class :=
+                     File_Info'Class (Set.First_Element);
+         begin
+            return To_Lower (Info.Language) = "ada";
+         end;
+      end if;
+
+      return False;
+   end Is_Ada_File;
 
 end LSP.Common;
