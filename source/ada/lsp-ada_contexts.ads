@@ -273,6 +273,11 @@ private
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
 
+      Tree                : GNATCOLL.Projects.Project_Tree_Access;
+      --  The loaded project tree: we need to keep a reference to this
+      --  in order to figure out which files are Ada and which are not.
+      --  Do not deallocate: this is owned by the Message_Handler.
+
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.
 

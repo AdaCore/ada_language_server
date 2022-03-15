@@ -158,7 +158,7 @@ package body LSP.Ada_Handlers is
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (LSP.Ada_Documents.Document, Internal_Document_Access);
 
-   procedure Release_Project_Info (Self : access Message_Handler);
+   procedure Release_Contexts_And_Project_Info (Self : access Message_Handler);
    --  Release the memory associated to project information in Self
 
    function Contexts_For_File
@@ -458,13 +458,17 @@ package body LSP.Ada_Handlers is
       end if;
    end Imprecise_Resolve_Name;
 
-   --------------------------
-   -- Release_Project_Info --
-   --------------------------
+   ---------------------------------------
+   -- Release_Contexts_And_Project_Info --
+   ---------------------------------------
 
-   procedure Release_Project_Info (Self : access Message_Handler) is
+   procedure Release_Contexts_And_Project_Info
+     (Self : access Message_Handler)
+   is
       use GNATCOLL.Projects;
    begin
+      Self.Contexts.Cleanup;
+
       if Self.Project_Tree /= null then
          Self.Project_Tree.Unload;
          Free (Self.Project_Tree);
@@ -479,7 +483,7 @@ package body LSP.Ada_Handlers is
       Self.Files_To_Index.Clear;
       Self.Total_Files_To_Index := 1;
       Self.Total_Files_Indexed := 0;
-   end Release_Project_Info;
+   end Release_Contexts_And_Project_Info;
 
    -------------
    -- Cleanup --
@@ -497,11 +501,8 @@ package body LSP.Ada_Handlers is
       end loop;
       Self.Open_Documents.Clear;
 
-      --  Cleanup contexts
-      Self.Contexts.Cleanup;
-
-      --  Cleanup project and environment
-      Self.Release_Project_Info;
+      --  Cleanup contexts, project and environment
+      Self.Release_Contexts_And_Project_Info;
    end Cleanup;
 
    -----------------------
@@ -553,13 +554,10 @@ package body LSP.Ada_Handlers is
 
       Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
    begin
-      --  Unload all the contexts
-      Self.Contexts.Cleanup;
-
       Self.Trace.Trace ("Loading the implicit project");
 
       Self.Project_Status := Status;
-      Self.Release_Project_Info;
+      Self.Release_Contexts_And_Project_Info;
       Self.Project_Environment :=
         new LSP.Ada_Project_Environments.LSP_Project_Environment;
       Initialize (Self.Project_Environment);
@@ -4200,11 +4198,8 @@ package body LSP.Ada_Handlers is
       end Create_Context_For_Non_Aggregate;
 
    begin
-      --  Unload all the contexts
-      Self.Contexts.Cleanup;
-
       --  Unload the project tree and the project environment
-      Self.Release_Project_Info;
+      Self.Release_Contexts_And_Project_Info;
 
       --  We're loading an actual project
       Self.Project_Status := Status;
@@ -4253,7 +4248,7 @@ package body LSP.Ada_Handlers is
          end if;
       exception
          when E : Invalid_Project =>
-            Self.Release_Project_Info;
+            Self.Release_Contexts_And_Project_Info;
 
             Self.Trace.Trace (E);
             Errors.a_type := LSP.Messages.Error;

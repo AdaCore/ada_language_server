@@ -707,7 +707,7 @@ package body LSP.Ada_Contexts is
 
    begin
       Self.Id := VSS.Strings.Conversions.To_Virtual_String (Root.Name);
-
+      Self.Tree := Tree;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
@@ -777,6 +777,8 @@ package body LSP.Ada_Contexts is
    begin
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
+      Self.Tree := null;
+
       --  Destroy GnatPP command line
       Utils.Command_Lines.Clear (Self.PP_Options);
    end Free;
