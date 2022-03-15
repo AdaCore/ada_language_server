@@ -83,6 +83,11 @@ package LSP.Ada_Contexts is
       URI  : LSP.Types.LSP_URI)
       return Ada.Strings.UTF_Encoding.UTF_8_String;
 
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_URI)
+      return GNATCOLL.VFS.Virtual_File;
+
    function Get_Node_At
      (Self         : Context;
       Document     : LSP.Ada_Documents.Document_Access;
@@ -193,6 +198,14 @@ package LSP.Ada_Contexts is
    function List_Source_Directories
      (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set;
    --  List the source directories in non-externally-built projects
+
+   function Get_AU
+     (Self    : Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit;
+   --  Wrapper around Libadalang.Analysis.Get_From_File, taking into
+   --  account the context's charset, and only processing the file
+   --  if it's an Ada source. Return No_Analysis_Unit if it's not.
 
    procedure Index_File
      (Self    : in out Context;

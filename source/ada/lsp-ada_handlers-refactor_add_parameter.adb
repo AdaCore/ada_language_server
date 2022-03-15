@@ -152,7 +152,7 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
 
    begin
       Adder := Create
-        (Unit          => Context.LAL_Context.Get_From_File
+        (Unit          => Context.Get_AU
            (Context.URI_To_File (Self.Where.uri)),
          Location      =>
            (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
