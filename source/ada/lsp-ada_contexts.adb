@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,6 +41,8 @@ package body LSP.Ada_Contexts is
 
    Indexing_Trace : constant Trace_Handle := Create ("ALS.INDEXING", Off);
 
+   use type Libadalang.Analysis.Analysis_Unit;
+
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
 
@@ -62,6 +64,12 @@ package body LSP.Ada_Contexts is
       return Ada.Strings.UTF_Encoding.UTF_8_String
         is (URIs.Conversions.To_File (LSP.Types.To_UTF_8_String (URI),
             Self.Follow_Symlinks));
+
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Types.LSP_URI)
+      return GNATCOLL.VFS.Virtual_File is
+        (GNATCOLL.VFS.Create_From_UTF8 (Self.URI_To_File (URI)));
 
    -------------------------
    -- Append_Declarations --
@@ -186,6 +194,25 @@ package body LSP.Ada_Contexts is
       end;
    end Append_Declarations;
 
+   ------------
+   -- Get_AU --
+   ------------
+
+   function Get_AU
+     (Self    : Context;
+      File    : GNATCOLL.VFS.Virtual_File;
+      Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit is
+   begin
+      if not Is_Ada_File (Self.Tree, File) then
+         return Libadalang.Analysis.No_Analysis_Unit;
+      end if;
+
+      return Self.LAL_Context.Get_From_File
+        (File.Display_Full_Name,
+         Charset => Self.Get_Charset,
+         Reparse => Reparse);
+   end Get_AU;
+
    --------------------
    -- Analysis_Units --
    --------------------
@@ -198,9 +225,8 @@ package body LSP.Ada_Contexts is
       Index : Natural := Source_Units'First;
    begin
       for File in Self.Source_Files.Iterate loop
-         Source_Units (Index) := Self.LAL_Context.Get_From_File
-           (LSP.Ada_File_Sets.File_Sets.Element (File).Display_Full_Name,
-            Charset => Self.Get_Charset);
+         Source_Units (Index) := Self.Get_AU
+           (LSP.Ada_File_Sets.File_Sets.Element (File));
          Index := Index + 1;
       end loop;
       return Source_Units;
@@ -526,10 +552,7 @@ package body LSP.Ada_Contexts is
          return Libadalang.Analysis.Defining_Name
       is
          Unit : constant Libadalang.Analysis.Analysis_Unit :=
-             Self.LAL_Context.Get_From_File
-               (File.Display_Full_Name,
-                Charset => Self.Get_Charset);
-
+                  Self.Get_AU (File);
          Name : constant Libadalang.Analysis.Name :=
            Laltools.Common.Get_Node_As_Name (Unit.Root.Lookup (Loc));
       begin
@@ -610,26 +633,13 @@ package body LSP.Ada_Contexts is
            Root.Source_Files (Recursive => True);
          All_Ada_Sources : File_Array (1 .. All_Sources'Length);
          Free_Index      : Natural := All_Ada_Sources'First;
-         Set             : File_Info_Set;
       begin
          --  Iterate through all sources, returning only those that have Ada
          --  as language.
          for J in All_Sources'Range loop
-            Set := Tree.Info_Set (All_Sources (J));
-            if not Set.Is_Empty then
-               --  The file can be listed in several projects with different
-               --  Info_Sets, in the case of aggregate projects. However,
-               --  assume that the language is the same in all projects,
-               --  so look only at the first entry in the set.
-               declare
-                  Info : constant File_Info'Class :=
-                    File_Info'Class (Set.First_Element);
-               begin
-                  if To_Lower (Info.Language) = "ada" then
-                     All_Ada_Sources (Free_Index) := All_Sources (J);
-                     Free_Index := Free_Index + 1;
-                  end if;
-               end;
+            if Is_Ada_File (Self.Tree, All_Sources (J)) then
+               All_Ada_Sources (Free_Index) := All_Sources (J);
+               Free_Index := Free_Index + 1;
             end if;
          end loop;
 
@@ -821,19 +831,17 @@ package body LSP.Ada_Contexts is
          return Document.Get_Node_At
            (Self, Position.position, Previous => Previous);
       elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
-         Unit := Self.LAL_Context.Get_From_File
-           (Name,
-            Charset => Self.Get_Charset);
+         Unit := Self.Get_AU (File);
 
-            if Unit.Root = Libadalang.Analysis.No_Ada_Node then
-               return Libadalang.Analysis.No_Ada_Node;
-            end if;
+         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
+            return Libadalang.Analysis.No_Ada_Node;
+         end if;
 
-            return Unit.Root.Lookup
-              ((Line   => Langkit_Support.Slocs.Line_Number
-                (Position.position.line) + 1,
-                Column => Langkit_Support.Slocs.Column_Number
-                  (Position.position.character) + Col_Incr));
+         return Unit.Root.Lookup
+           ((Line   => Langkit_Support.Slocs.Line_Number
+             (Position.position.line) + 1,
+             Column => Langkit_Support.Slocs.Column_Number
+               (Position.position.character) + Col_Incr));
       else
          return Libadalang.Analysis.No_Ada_Node;
       end if;
@@ -858,27 +866,35 @@ package body LSP.Ada_Contexts is
       Reparse : Boolean := True;
       PLE     : Boolean := True)
    is
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Self.LAL_Context.Get_From_File
-          (File.Display_Full_Name,
-           Charset => Self.Get_Charset,
-           Reparse => Reparse);
    begin
+      --  Add a trace before the call to Get_AU, so we can see in the traces
+      --  the memory being consumed by Get_AU + Indexing for this file.
       Trace
         (Indexing_Trace,
          "Indexing " & (if PLE then "(PLE) " else "") &
-         File.Display_Full_Name);
+           File.Display_Full_Name);
 
-      Self.Source_Files.Index_File (File, Unit);
+      declare
+         Unit : Libadalang.Analysis.Analysis_Unit;
+      begin
+         Unit := Self.Get_AU (File, Reparse => Reparse);
 
-      if PLE then
-         Libadalang.Analysis.Populate_Lexical_Env (Unit);
-      end if;
+         if Unit = Libadalang.Analysis.No_Analysis_Unit then
+            Trace (Indexing_Trace, "No AU found: not indexing");
+            return;
+         end if;
 
-      Trace
-        (Indexing_Trace,
-         "Done indexing." & Integer'Image (Unit.Diagnostics'Length) &
-         " diagnostic(s) found.");
+         Self.Source_Files.Index_File (File, Unit);
+
+         if PLE then
+            Libadalang.Analysis.Populate_Lexical_Env (Unit);
+         end if;
+
+         Trace
+           (Indexing_Trace,
+            "Done indexing." & Integer'Image (Unit.Diagnostics'Length) &
+              " diagnostic(s) found.");
+      end;
    end Index_File;
 
    ------------------
