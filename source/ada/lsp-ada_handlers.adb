@@ -2407,7 +2407,7 @@ package body LSP.Ada_Handlers is
 
       --  We have received a document: add it to the documents container
       Object.Initialize (URI, Value.textDocument.text, Diag);
-      Self.Open_Documents.Insert (File, Object);
+      Self.Open_Documents.Include (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
@@ -3120,10 +3120,10 @@ package body LSP.Ada_Handlers is
 
                      First   :
                        VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.First_Character;
+                         := Sig_Label.At_First_Character;
                      Last    :
                        VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.First_Character;
+                         := Sig_Label.At_First_Character;
                      Success : Boolean with Unreferenced;
 
                   begin

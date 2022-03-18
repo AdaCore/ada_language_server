@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -363,7 +363,7 @@ package body LSP.Ada_Completions.Aggregates is
                      declare
                         Last     :
                           VSS.Strings.Character_Iterators.Character_Iterator
-                            := Insert_Text.Last_Character;
+                            := Insert_Text.At_Last_Character;
                         Success  : Boolean with Unreferenced;
 
                      begin
@@ -375,7 +375,7 @@ package body LSP.Ada_Completions.Aggregates is
 
                         Insert_Text :=
                           Insert_Text.Slice
-                            (Insert_Text.First_Character, Last);
+                            (Insert_Text.At_First_Character, Last);
 
                         --  Insert '$0' (i.e: the final tab stop) at the
                         --  end.

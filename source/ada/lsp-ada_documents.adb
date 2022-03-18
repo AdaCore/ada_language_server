@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -139,7 +139,7 @@ package body LSP.Ada_Documents is
 
       declare
          J                    : VSS.Strings.Line_Iterators.Line_Iterator :=
-           Self.Text.First_Line
+           Self.Text.At_First_Line
              (Terminators     => LSP_New_Line_Function_Set,
               Keep_Terminator => True);
          Last_Line_Terminated : Boolean := False;
@@ -187,7 +187,7 @@ package body LSP.Ada_Documents is
 
       M    : VSS.Strings.Markers.Character_Marker;
       J    : VSS.Strings.Line_Iterators.Line_Iterator :=
-        Self.Text.Line
+        Self.Text.At_Line
           (Position        => Start_Marker,
            Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
@@ -272,7 +272,7 @@ package body LSP.Ada_Documents is
 
                else
                   Start_Index  := Self.Line_To_Marker.First_Index;
-                  Start_Marker := Self.Text.First_Character.Marker;
+                  Start_Marker := Self.Text.At_First_Character.Marker;
                end if;
 
                --  Use marker of the line after the last modified line as end
@@ -586,7 +586,7 @@ package body LSP.Ada_Documents is
                  Old_Lines (Old_Lines.Length);
                Iterator  :
                  constant VSS.Strings.Character_Iterators.Character_Iterator :=
-                   Last_Line.Last_Character;
+                   Last_Line.At_Last_Character;
 
             begin
                --  Replace the wrong location by the end of the buffer
@@ -1678,7 +1678,7 @@ package body LSP.Ada_Documents is
       use type VSS.Strings.Character_Index;
 
       Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Position.line));
+        Self.Text.At_Character (Self.Line_To_Marker (Position.line));
 
       Line_Offset : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         Iterator.First_UTF16_Offset;
@@ -1999,9 +1999,9 @@ package body LSP.Ada_Documents is
             declare
                First   : constant
                  VSS.Strings.Character_Iterators.Character_Iterator :=
-                   Insert_Text.First_Character;
+                   Insert_Text.At_First_Character;
                Last    : VSS.Strings.Character_Iterators.Character_Iterator :=
-                 Insert_Text.Last_Character;
+                 Insert_Text.At_Last_Character;
                Success : Boolean with Unreferenced;
 
             begin
@@ -2373,12 +2373,12 @@ package body LSP.Ada_Documents is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Span.first.line));
+        Self.Text.At_Character (Self.Line_To_Marker (Span.first.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
       J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.Character (Self.Line_To_Marker (Span.last.line));
+        Self.Text.At_Character (Self.Line_To_Marker (Span.last.line));
       U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J2.First_UTF16_Offset;
 
@@ -2422,7 +2422,7 @@ package body LSP.Ada_Documents is
           (Self.Line_To_Marker (Start_Line),
            Self.Line_To_Marker (Start_Line + 1));
       Start_Iterator  : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Start_Line_Text.First_Character;
+        Start_Line_Text.At_First_Character;
 
       End_Line        : constant LSP.Types.Line_Number :=
         LSP.Types.Line_Number (Segment.End_Line) - 1;
@@ -2431,7 +2431,7 @@ package body LSP.Ada_Documents is
           (Self.Line_To_Marker (End_Line),
            Self.Line_To_Marker (End_Line + 1));
       End_Iterator   : VSS.Strings.Character_Iterators.Character_Iterator :=
-        End_Line_Text.First_Character;
+        End_Line_Text.At_First_Character;
       Success        : Boolean with Unreferenced;
 
    begin

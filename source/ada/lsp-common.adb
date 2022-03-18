@@ -231,9 +231,10 @@ package body LSP.Common is
                      Skip_Space : Boolean := True;
 
                      J : VSS.Strings.Character_Iterators.Character_Iterator :=
-                       Line.First_Character;
+                       Line.Before_First_Character;
+
                   begin
-                     while J.Has_Element loop
+                     while J.Forward loop
                         Char := J.Element;
 
                         if not Is_Space (Char) then
@@ -243,8 +244,6 @@ package body LSP.Common is
                            Skip_Space := True;
                            Value.Append (' ');
                         end if;
-
-                        exit when not J.Forward;
                      end loop;
 
                      Result.Append (Value);
@@ -289,15 +288,12 @@ package body LSP.Common is
       is
          Result : Natural := 0;
          J      : VSS.Strings.Character_Iterators.Character_Iterator :=
-           Line.First_Character;
-      begin
-         if J.Has_Element then
-            while Is_Space (J.Element) loop
-               Result := Result + 1;
+           Line.Before_First_Character;
 
-               exit when not J.Forward;
-            end loop;
-         end if;
+      begin
+         while J.Forward and then Is_Space (J.Element) loop
+            Result := Result + 1;
+         end loop;
 
          return Result;
       end Get_Indent;
@@ -467,10 +463,10 @@ package body LSP.Common is
          Skip : Natural) return VSS.Strings.Virtual_String
       is
          From : VSS.Strings.Character_Iterators.
-           Character_Iterator := Line.First_Character;
+           Character_Iterator := Line.At_First_Character;
 
          To   : constant VSS.Strings.Character_Iterators.
-           Character_Iterator := Line.Last_Character;
+           Character_Iterator := Line.At_Last_Character;
 
       begin
          for J in 1 .. Skip loop

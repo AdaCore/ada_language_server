@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2021, AdaCore                        --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,29 +30,6 @@ with VSS.String_Vectors;
 with VSS.Strings.Cursors.Iterators.Characters;
 
 package body LSP.Preprocessor is
-
-   function To_Wide_Wide (S : Virtual_String) return Wide_Wide_String;
-   --  Utility function, until VSS provides this.
-   --  NOTE: not suitable on big strings!
-
-   ------------------
-   -- To_Wide_Wide --
-   ------------------
-
-   function To_Wide_Wide (S : Virtual_String) return Wide_Wide_String is
-      Result : Wide_Wide_String (1 .. Integer (S.Character_Length));
-      It     : VSS.Strings.Cursors.Iterators.Characters.Character_Iterator
-        := S.First_Character;
-      First_Free : Positive := 1;
-      Success : Boolean := True;
-   begin
-      while It.Has_Element and then Success loop
-         Result (First_Free) := Wide_Wide_Character (It.Element);
-         Success := It.Forward;
-         First_Free := First_Free + 1;
-      end loop;
-      return Result (1 .. First_Free - 1);
-   end To_Wide_Wide;
 
    -----------------------
    -- Preprocess_Buffer --
@@ -116,7 +93,9 @@ package body LSP.Preprocessor is
 
          if Send_This_Line_To_Libadalang then
             declare
-               To_Add : constant Wide_Wide_String := To_Wide_Wide (Line);
+               To_Add : constant Wide_Wide_String :=
+                 VSS.Strings.Conversions.To_Wide_Wide_String (Line);
+
             begin
                Result.Buffer
                  (Result.Last + 1
@@ -147,9 +126,10 @@ package body LSP.Preprocessor is
          use VSS.Characters;
          Found_CR : Boolean := False;
          Found_LF : Boolean := False;
-         It       : Character_Iterator := Buffer.First_Character;
+         It       : Character_Iterator := Buffer.Before_First_Character;
+
       begin
-         while It.Has_Element loop
+         while It.Forward loop
             if It.Element = Virtual_Character
               (Ada.Characters.Wide_Wide_Latin_1.LF)
             then
@@ -166,8 +146,6 @@ package body LSP.Preprocessor is
                   exit;
                end if;
             end if;
-
-            exit when not It.Forward;
          end loop;
 
          if Found_LF then
