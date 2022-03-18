@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -44,14 +44,13 @@ package body LSP.Search.Approximate is
    begin
       declare
          P : VSS.Strings.Cursors.Iterators.Characters.Character_Iterator :=
-           Pattern.First_Character;
+           Pattern.Before_First_Character;
+
       begin
-         while P.Has_Element loop
+         while P.Forward loop
             C   := P.Element;
             Min := Virtual_Character'Min (Min, C);
             Max := Virtual_Character'Max (Max, C);
-
-            exit when not P.Forward;
          end loop;
       end;
 
@@ -59,16 +58,16 @@ package body LSP.Search.Approximate is
       Mask.all := (others => 0);
 
       --  Compared to the paper, we revert the bit ordering in S
+
       declare
          P : VSS.Strings.Cursors.Iterators.Characters.Character_Iterator :=
-           Pattern.First_Character;
+           Pattern.Before_First_Character;
+
       begin
-         while P.Has_Element loop
+         while P.Forward loop
             C := P.Element;
 
             Mask (C) := Mask (C) or 2 ** Natural (P.Character_Index - 2);
-
-            exit when not P.Forward;
          end loop;
       end;
 
@@ -108,14 +107,13 @@ package body LSP.Search.Approximate is
       return Boolean
    is
       P : VSS.Strings.Cursors.Iterators.Characters.Character_Iterator :=
-        Text.First_Character;
+        Text.Before_First_Character;
 
       C      : VSS.Characters.Virtual_Character;
       Status : Approximate_Status := (others => 0);
       Tmp_R  : Approximate_Status;
       Offset : Mask;
       Result : Boolean := False;
-      Dummy  : Boolean;
 
    begin
       --  Initialize the pattern with K ones
@@ -124,9 +122,8 @@ package body LSP.Search.Approximate is
       end loop;
 
       Each_Symbol :
-      while P.Has_Element loop
+      while P.Forward loop
          C     := P.Element;
-         Dummy := P.Forward;
          Tmp_R := Status;
 
          if C in Self.Pattern'Range then

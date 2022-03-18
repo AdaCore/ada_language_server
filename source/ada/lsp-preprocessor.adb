@@ -126,9 +126,10 @@ package body LSP.Preprocessor is
          use VSS.Characters;
          Found_CR : Boolean := False;
          Found_LF : Boolean := False;
-         It       : Character_Iterator := Buffer.First_Character;
+         It       : Character_Iterator := Buffer.Before_First_Character;
+
       begin
-         while It.Has_Element loop
+         while It.Forward loop
             if It.Element = Virtual_Character
               (Ada.Characters.Wide_Wide_Latin_1.LF)
             then
@@ -145,8 +146,6 @@ package body LSP.Preprocessor is
                   exit;
                end if;
             end if;
-
-            exit when not It.Forward;
          end loop;
 
          if Found_LF then
