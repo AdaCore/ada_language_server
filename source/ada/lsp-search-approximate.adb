@@ -66,9 +66,7 @@ package body LSP.Search.Approximate is
          while P.Has_Element loop
             C := P.Element;
 
-            Mask (C) := Mask (C) or 2 ** Natural
-              (P.Character_Index - 1 -
-                 Pattern.First_Character.Character_Index);
+            Mask (C) := Mask (C) or 2 ** Natural (P.Character_Index - 2);
 
             exit when not P.Forward;
          end loop;
@@ -149,9 +147,8 @@ package body LSP.Search.Approximate is
          end loop;
 
          for K in Status'First .. Self.Max_Errors loop
-            if P.Character_Index - Self.Text.Character_Length -
-              Character_Count (K) + 1 >=
-              Text.First_Character.Character_Index
+            if P.Character_Index - Self.Text.Character_Length
+                 - Character_Count (K) + 1 >= 1
               and then (Status (K) and Self.Matched) /= 0
             then
                Result := True;
