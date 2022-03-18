@@ -463,10 +463,10 @@ package body LSP.Common is
          Skip : Natural) return VSS.Strings.Virtual_String
       is
          From : VSS.Strings.Character_Iterators.
-           Character_Iterator := Line.First_Character;
+           Character_Iterator := Line.At_First_Character;
 
          To   : constant VSS.Strings.Character_Iterators.
-           Character_Iterator := Line.Last_Character;
+           Character_Iterator := Line.At_Last_Character;
 
       begin
          for J in 1 .. Skip loop
