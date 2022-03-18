@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -198,7 +198,7 @@ package body LSP.Ada_Completions.Parameters is
                         declare
                            Last    :
                             VSS.Strings.Character_Iterators.Character_Iterator
-                             := Params_Snippet.Last_Character;
+                             := Params_Snippet.At_Last_Character;
                            Success : Boolean with Unreferenced;
 
                         begin
@@ -209,7 +209,7 @@ package body LSP.Ada_Completions.Parameters is
 
                            Params_Snippet :=
                              Params_Snippet.Slice
-                               (Params_Snippet.First_Character, Last);
+                               (Params_Snippet.At_First_Character, Last);
                            Params_Snippet.Append (")$0");
                         end;
 

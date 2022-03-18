@@ -3037,10 +3037,10 @@ package body LSP.Ada_Handlers is
 
                      First   :
                        VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.First_Character;
+                         := Sig_Label.At_First_Character;
                      Last    :
                        VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.First_Character;
+                         := Sig_Label.At_First_Character;
                      Success : Boolean with Unreferenced;
 
                   begin
