@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -51,10 +51,10 @@ package body LSP.Search.Fuzzy is
       return Boolean
    is
       Pattern_Iterator : VSS.Strings.Cursors.Iterators.Characters.
-        Character_Iterator := Self.Text.First_Character;
+        Character_Iterator := Self.Text.At_First_Character;
 
       Text_Iterator    : VSS.Strings.Cursors.Iterators.Characters.
-        Character_Iterator := Text.First_Character;
+        Character_Iterator := Text.At_First_Character;
 
       Pattern_Char, Text_Char : VSS.Characters.Virtual_Character;
 
