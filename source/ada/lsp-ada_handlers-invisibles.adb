@@ -93,14 +93,15 @@ package body LSP.Ada_Handlers.Invisibles is
          return;
       end if;
 
-      --  Return immediately if we are dealing with a null node or if the
+      --  Return immediately if we are dealing with a null node, or if the
       --  node's parent is a Defining_Name, meaning that we are declaring a
-      --  new symbol.
+      --  new symbol, or if we are dealing with a whole list of nodes.
 
       if Node.Is_Null or else
         (not Node.Parent.Is_Null and then Node.Parent.Kind in
            Libadalang.Common.Ada_Defining_Name_Range
-             | Libadalang.Common.Ada_Dotted_Name_Range)
+             | Libadalang.Common.Ada_Dotted_Name_Range
+               | Libadalang.Common.Ada_Ada_Node_List_Range)
       then
          return;
       end if;
