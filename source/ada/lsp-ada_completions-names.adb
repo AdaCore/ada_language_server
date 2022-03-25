@@ -90,9 +90,11 @@ package body LSP.Ada_Completions.Names is
       Parent := Dotted_Node.Parent;
       Sibling := Dotted_Node.Next_Sibling;
 
-      --  Return without asing Libadalang for completion results we are dealing
-      --  with a syntax error.
-      if Dotted_Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
+      --  Return without asking Libadalang for completion results we are
+      --  dealing with a syntax error or with a node list.
+      if Dotted_Node.Kind in Libadalang.Common.Ada_Error_Decl_Range
+        | Libadalang.Common.Ada_Ada_Node_List_Range
+      then
          return;
       end if;
 
