@@ -1,0 +1,30 @@
+[
+    {
+        "start": {
+            "cmd": ["${ALS}", "--language-gpr"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{ "id": 0 }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "id": 1, "method":"shutdown", "params":null},
+            "wait":[{ "id": 1, "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
