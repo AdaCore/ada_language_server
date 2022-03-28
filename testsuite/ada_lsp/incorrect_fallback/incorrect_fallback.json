@@ -168,20 +168,7 @@
                "params": {
                   "uri": "$URI{test.adb}",
                   "diagnostics": [
-                     {
-                        "range": {
-                           "start": {
-                              "line": 7,
-                              "character": 13
-                           },
-                           "end": {
-                              "line": 7,
-                              "character": 14
-                           }
-                        },
-                        "source": "libadalang",
-                        "message": "Expected '<>', got ')'"
-                     },
+                     "<HAS>",
                      {
                         "range": {
                           "start": {
@@ -195,21 +182,6 @@
                         },
                         "source": "libadalang",
                         "message": "Missing ';'"
-                     },
-                     {
-                       "range": {
-                         "start": {
-                           "line": 0,
-                           "character": 0
-                         },
-                         "end": {
-                           "line": 0,
-                           "character": 0
-                         }
-                       },
-                       "severity": 1,
-                       "source": "project",
-                       "message": "No project found in root directory. Please create a project file and add it to the configuration."
                      }
                   ]
                },
