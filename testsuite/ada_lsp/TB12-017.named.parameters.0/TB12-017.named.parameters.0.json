@@ -189,19 +189,7 @@
                     "params": {
                         "uri": "$URI{src/main.adb}",
                         "diagnostics": [
-                            {
-                                "range": {
-                                    "start": {
-                                        "line": 7,
-                                        "character": 13
-                                    },
-                                    "end": {
-                                        "line": 7,
-                                        "character": 14
-                                    }
-                                },
-                                "message": "Expected '<>', got ')'"
-                            },
+                            "<HAS>",
                             {
                                 "range": {
                                     "start": {
