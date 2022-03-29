@@ -369,8 +369,10 @@ package body LSP.GPR_Handlers is
       Request : LSP.Messages.Server_Requests.Shutdown_Request)
       return LSP.Messages.Server_Responses.Shutdown_Response
    is
+      pragma Unreferenced (Request);
    begin
-      return raise Program_Error with "Unimplemented request";
+      return Response : LSP.Messages.Server_Responses.Shutdown_Response
+        (Is_Error => False);
    end On_Shutdown_Request;
 
    -------------------------------

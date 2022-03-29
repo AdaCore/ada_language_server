@@ -11,9 +11,6 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
 
-# Testsuite directory
-TD=testsuite/ada_lsp
-
 GPRBUILD=gprbuild -j0 -XSUPERPROJECT=
 GPRCLEAN=gprclean -XSUPERPROJECT=
 
@@ -140,7 +137,7 @@ check: all
         if [ `$(PYTHON) -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
            (cd testsuite ; sh run.sh ) ; \
         else \
-           for a in $(TD)/*/*.json; do \
+           for a in testsuite/*_lsp/*/*.json; do \
               echo $$a ; \
               (cd `dirname $$a ` ; $(TESTER) `basename $$a`) ;\
            done; \
