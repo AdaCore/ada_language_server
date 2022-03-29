@@ -20,6 +20,8 @@ import * as vscode from 'vscode';
 enum taskKinds {
     proveProject, // Run gnatprove for the project
     proveFile, // Run gnatprove for the single file
+    proveRegion, // Run gnatprove for the selection
+    proveLine, // Run gnatprove for the single line
 }
 
 export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode.Task> {
@@ -43,7 +45,16 @@ export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Task> {
-        return task;
+        const definition = task.definition;
+        //  Arguments for proof of selected region need to be evaluated here
+        if (definition.taskKind == taskKinds.proveRegion) {
+            const args = getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-region=${fileBasename}:' + getSelectedRegion(vscode.window.activeTextEditor)]);
+            const shell = new vscode.ShellExecution('gnatprove', args);
+            return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
+        }
+        else {
+            return task;
+        }
     }
 }
 
@@ -65,27 +76,54 @@ const getTasks = (): vscode.Task[] => {
     //  Run gnatprove on current project
     const proveProject = makeTask(
         taskKinds.proveProject,
-        getGnatproveArgs('${config:ada.projectFile}'),
-        'Run gnatprove on the current project'
+        getGnatproveArgs('${config:ada.projectFile}', []),
+        'Prove project'
     );
 
     //  Run gnatprove on a file
     const proveFile = makeTask(
         taskKinds.proveFile,
-        getGnatproveArgs('${config:ada.projectFile}', '${fileBasename}'),
-        'Run gnatprove on the current file'
+        getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}']),
+        'Prove file'
     );
+
+    //  Run gnatprove on a region
+    const proveRegion = makeTask(
+        taskKinds.proveRegion,
+        [], //  Actual arguments added at the time of resolveTask
+        'Prove selected region'
+    );
+
+    //  Run gnatprove on a line
+    const proveLine = makeTask(
+        taskKinds.proveLine,
+        getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-line=${fileBasename}:${lineNumber}']),
+        'Prove line'
+    );
+
     result.push(proveProject);
     result.push(proveFile);
+    result.push(proveRegion);
+    result.push(proveLine);
 
     return result;
 };
 
-const getGnatproveArgs = (projectFile?: string, file?: string): string[] => {
-    //  Append file (if any) and `-gnatef` to generate full file names in errors/warnings
-    const arg = file ? [file] : [];
+const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
+    if (editor) {
+        const selection = editor.selections[0];
+        //  Line numbers start at 0 in VS Code, and at 1 in GNAT
+        return (selection.start.line + 1).toString() + ':' + (selection.end.line + 1).toString();
+    }
+    else {
+        return '0:0';
+    }
+};
+
+const getGnatproveArgs = (projectFile: string, args: string[]): string[] => {
+    //  Append args (if any) and `-gnatef` to generate full file names in errors/warnings
     const p_gnatef = ['-cargs', '-gnatef'];
-    return commonArgs(projectFile).concat(arg, p_gnatef);
+    return commonArgs(projectFile).concat(args, p_gnatef);
 };
 
 //  return '-P project.gpr -XVAR=value` optiona
