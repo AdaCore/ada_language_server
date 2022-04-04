@@ -166,13 +166,15 @@ specification. See [corresponding document](doc/README.md).
 
 ### Auto-detected tasks
 
-The extension includes a task provider. It provides two "auto-detected" tasks
+The extension includes a task provider. It provides the following "auto-detected" tasks
 (under `/Terminal/Run Task...` menu):
 * "ada: Build current project" - launch `gprbuild` to build the current GPR project
 * "ada: Check current file" - launch `gprbuild` to check errors in the current editor
 * "ada: Clean current project" - launch `gprclean` to clean the current GPR project
-* "ada: Run gnatprove on the current project" - launch `gnatprove` for the current GPR project
-* "ada: Run gnatprove on the current file" - launch `gnatprove` to check errors in the current editor
+* "ada: Prove project" - launch `gnatprove` on the current GPR project
+* "ada: Prove file" - launch `gnatprove` on the file in the current editor
+* "ada: Prove selected region" - launch `gnatprove` on the selected region in the current editor
+* "ada: Prove line" - launch `gnatprove` on the cursor line in the current editor
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
