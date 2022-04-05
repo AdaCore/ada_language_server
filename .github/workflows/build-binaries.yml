@@ -60,6 +60,11 @@ jobs:
         with:
           repository: AdaCore/libadalang-tools
           path: subprojects/libadalang-tools
+      - name: Get Templates Parser
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/templates-parser
+          path: subprojects/templates-parser
       - name: Get Langkit
         uses: actions/checkout@v2
         with:
