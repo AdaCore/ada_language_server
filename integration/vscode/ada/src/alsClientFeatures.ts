@@ -49,12 +49,12 @@ export class ALSClientFeatures implements StaticFeature {
     fillClientCapabilities(capabilities: ClientCapabilities): void {
         if (capabilities.experimental === undefined) {
             capabilities.experimental = {
-                advanced_refactorings: ['add_parameter'],
+                advanced_refactorings: ['add_parameter', 'change_parameters_type'],
             };
         } else {
             (
                 capabilities.experimental as { advanced_refactorings: string[] }
-            ).advanced_refactorings = ['add_parameter'];
+            ).advanced_refactorings = ['add_parameter', 'change_parameters_type'];
         }
     }
 

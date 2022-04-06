@@ -24,6 +24,8 @@ import { LanguageClient } from 'vscode-languageclient/node';
 import {
     AddParameterCommandArgs,
     alsAddParameterCommandExecutor,
+    alsChangeParametersTypeCommandExecutor,
+    ChangeParametersTypeCommandArgs,
 } from './refactoring/alsAddParameterCommand';
 
 /**
@@ -56,6 +58,12 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             const proceedWithExecution = await alsAddParameterCommandExecutor(
                 client,
                 args[0] as AddParameterCommandArgs
+            );
+            if (!proceedWithExecution) return Promise.resolve(undefined);
+        } else if (command === 'als-refactor-change_parameters_type') {
+            const proceedWithExecution = await alsChangeParametersTypeCommandExecutor(
+                client,
+                args[0] as ChangeParametersTypeCommandArgs
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         }

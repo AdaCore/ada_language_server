@@ -45,6 +45,7 @@ with LSP.Ada_Handlers.Refactor_Add_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
@@ -134,7 +135,13 @@ procedure LSP.Ada_Driver is
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Imports_Commands.Command'Tag);
       LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Suppress_Seperate.Command'Tag);
+      LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Extract_Subprogram.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command'Tag);
+
+      --  Refactoring - Change Subprogram Signature Commands
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Add_Parameter.Command'Tag);
       LSP.Commands.Register
@@ -144,9 +151,7 @@ procedure LSP.Ada_Driver is
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Change_Parameter_Mode.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Suppress_Seperate.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command'Tag);
+        (LSP.Ada_Handlers.Refactor_Change_Parameters_Type.Command'Tag);
    end Register_Commands;
 
    use GNAT.Strings;
