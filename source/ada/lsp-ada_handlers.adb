@@ -51,6 +51,7 @@ with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor_Add_Parameter;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
@@ -83,6 +84,7 @@ with Laltools.Refactor.Safe_Rename;
 with Laltools.Refactor.Suppress_Separate;
 with Laltools.Refactor.Extract_Subprogram;
 with Laltools.Refactor.Pull_Up_Declaration;
+with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1261,6 +1263,10 @@ package body LSP.Ada_Handlers is
          procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
          --  Contruct a command and append it to Result
 
+         procedure Change_Parameters_Type_Code_Action;
+         --  Checks if the Change Parameters Type refactoring tool is avaiable,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Extract_Subprogram_Code_Action;
          --  Checks if the Extract Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -1308,6 +1314,42 @@ package body LSP.Ada_Handlers is
             Found := True;
             Found_Named_Parameters := True;
          end Append_Command;
+
+         ----------------------------------------
+         -- Change_Parameters_Type_Code_Action --
+         ----------------------------------------
+
+         procedure Change_Parameters_Type_Code_Action is
+            use Langkit_Support.Slocs;
+            use Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
+            use LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
+               Column_Number (Params.span.first.character) + 1,
+               Column_Number (Params.span.last.character) + 1);
+
+            Syntax_Rules : Laltools.Common.Grammar_Rule_Vector;
+
+            Change_Parameters_Type_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Type_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span,
+                  New_Parameter_Syntax_Rules       => Syntax_Rules)
+            then
+               Change_Parameters_Type_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Params.textDocument.uri,
+                     span    => Params.span,
+                     alsKind => LSP.Messages.Empty_Set),
+                  Syntax_Rules                => Syntax_Rules);
+            end if;
+         end Change_Parameters_Type_Code_Action;
 
          ------------------------------------
          -- Extract_Subprogram_Code_Action --
@@ -1526,12 +1568,14 @@ package body LSP.Ada_Handlers is
          --  Pull Up Declaration
          Pull_Up_Declaration_Code_Action;
 
-         --  Add Parameter
-         --  This refactoring is only available for clients that can provide
-         --  user inputs.
+         --  These refactorings iare only available for clients that can
+         --  provide user inputs:
+         --  - Add Parameter
+         --  - Change Parameters Type
 
+         --  Add Parameter
          if Self.Experimental_Client_Capabilities.
-           Advanced_Refactorings (Add_Parameter)
+              Advanced_Refactorings (Add_Parameter)
          then
             declare
                use LSP.Ada_Handlers.Refactor_Add_Parameter;
@@ -1578,6 +1622,13 @@ package body LSP.Ada_Handlers is
                   Done := True;
                end if;
             end;
+         end if;
+
+         --  Change Parameters Type
+         if Self.Experimental_Client_Capabilities.
+              Advanced_Refactorings (Change_Parameters_Type)
+         then
+            Change_Parameters_Type_Code_Action;
          end if;
 
          --  Remove Parameter
@@ -5759,20 +5810,25 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
       return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response
    is
-      use Ada.Strings.UTF_Encoding;
-      use Libadalang.Analysis;
+      use Laltools.Common;
       use LSP.Messages.Server_Responses;
       use VSS.Strings;
 
       function "+"
         (Item : Virtual_String'Class)
-         return UTF_8_String
+         return Ada.Strings.UTF_Encoding.UTF_8_String
          renames VSS.Strings.Conversions.To_UTF_8_String;
+
+      function "+"
+        (Item : Virtual_String'Class)
+         return Unbounded_String
+         renames VSS.Strings.Conversions.To_Unbounded_UTF_8_String;
 
       Invalid_Rule_Error_Message : constant Virtual_String :=
         "Error parsing the grammar rules for the syntax check";
 
-      Input : constant UTF_8_String := +Request.params.Input;
+      Input : constant Unbounded_String := +Request.params.Input;
+      Rules : Grammar_Rule_Vector;
 
       Valid : Boolean := False;
 
@@ -5783,27 +5839,17 @@ package body LSP.Ada_Handlers is
          raise Constraint_Error;
       end if;
 
+      for Rule_Image of Request.params.Rules  loop
+         --  A Constraint_Error can be raised here is an invalid rule is
+         --  received in the request parameters.
+         Rules.Append (Grammar_Rule'Value (+Rule_Image));
+      end loop;
+
       --  The input cannot be empty and only needs to be valid against one of
       --  the rules.
 
       if Input /= "" then
-         for Rule_Image of Request.params.Rules loop
-            declare
-               Rule : constant Grammar_Rule :=
-                 Grammar_Rule'Value (+Rule_Image);
-               --  A Constraint_Error can be raised here is an invalid rule
-               --  is received in the request parameters.
-
-               Unit : constant Analysis_Unit :=
-                 Create_Context.Get_From_Buffer
-                   (Filename => "", Buffer => Input, Rule => Rule);
-
-            begin
-               Valid := not Unit.Has_Diagnostics;
-            end;
-
-            exit when Valid;
-         end loop;
+         Valid := Validate_Syntax (Input, Rules);
       end if;
 
       if Valid then
@@ -5848,12 +5894,23 @@ package body LSP.Ada_Handlers is
                declare
                   Advanced_Refactorings : constant GNATCOLL.JSON.JSON_Array :=
                     Value.Value.Get ("advanced_refactorings");
+                  Advanced_Refactoring  :
+                    LSP.Ada_Handlers.Advanced_Refactorings;
                begin
-                  Result.Advanced_Refactorings (Add_Parameter) :=
-                    (for some Refactoring of Advanced_Refactorings =>
-                       Refactoring.Kind in GNATCOLL.JSON.JSON_String_Type
-                       and then Standard."=" (GNATCOLL.JSON.Get (Refactoring),
-                                 GNATCOLL.JSON.UTF8_String'("add_parameter")));
+                  for Refactoring of Advanced_Refactorings loop
+                     if Refactoring.Kind in GNATCOLL.JSON.JSON_String_Type then
+                        begin
+                           Advanced_Refactoring :=
+                             LSP.Ada_Handlers.Advanced_Refactorings'Value
+                               (GNATCOLL.JSON.Get (Refactoring));
+                           Result.Advanced_Refactorings
+                             (Advanced_Refactoring) := True;
+                        exception
+                           when others =>
+                              null;
+                        end;
+                     end if;
+                  end loop;
                end;
             end if;
          end if;

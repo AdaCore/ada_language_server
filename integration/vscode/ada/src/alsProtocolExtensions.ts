@@ -33,6 +33,8 @@ export enum AdaGrammarRule {
     Defining_Id_Rule = 'Defining_Id_Rule',
     Defining_Id_List_Rule = 'Defining_Id_List_Rule',
     Param_Spec_Rule = 'Param_Spec_Rule',
+    Anonymous_Type_Rule = 'Anonymous_Type_Rule',
+    Subtype_Indication_Rule = 'Subtype_Indication_Rule',
 }
 
 /**
