@@ -218,7 +218,7 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "insertText": "Disc => 1, A => ${2:A : Integer}, D => ${3:D : Integer})$0",
+                        "insertText": "Disc => 1, A => ${2:Integer}, D => ${3:Integer})$0",
                         "kind": 15,
                         "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => 1",
@@ -226,7 +226,7 @@
                         "insertTextFormat": 2
                      },
                      {
-                        "insertText": "Disc => 2, Z => ${5:Z : Integer}, D => ${6:D : Integer})$0",
+                        "insertText": "Disc => 2, Z => ${5:Integer}, D => ${6:Integer})$0",
                         "kind": 15,
                         "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => 2",
@@ -234,7 +234,7 @@
                         "insertTextFormat": 2
                      },
                      {
-                        "insertText": "Disc => ${7:others}, B => ${8:B : Integer}, D => ${9:D : Integer})$0",
+                        "insertText": "Disc => ${7:others}, B => ${8:Integer}, D => ${9:Integer})$0",
                         "kind": 15,
                         "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => others",
