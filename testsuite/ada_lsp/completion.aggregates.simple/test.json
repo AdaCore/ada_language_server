@@ -197,7 +197,7 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "insertText": "A => ${1:A : Integer}, B => ${2:B : Integer}, C => ${3:C : Integer})$0",
+                        "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer})$0",
                         "kind": 15,
                         "detail": "type Aggr_Type_1 is record\n   A : Integer;\n   B : Integer;\n   C : Integer;\nend record;",
                         "label": "Aggregate for Aggr_Type_1",
