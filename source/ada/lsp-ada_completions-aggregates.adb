@@ -99,17 +99,26 @@ package body LSP.Ada_Completions.Aggregates is
             if Use_Named_Notation then
                Snippet.Append (VSS.Strings.To_Virtual_String (Id.Text));
                Snippet.Append (" => ");
+               Snippet.Append ("${");
+               Snippet.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+               Snippet.Append (":");
+               Snippet.Append
+                 (VSS.Strings.To_Virtual_String (Param_Type.Text));
+               Snippet.Append ("}, ");
+            else
+               Snippet.Append ("${");
+               Snippet.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+               Snippet.Append (":");
+               Snippet.Append (VSS.Strings.To_Virtual_String (Id.Text));
+               Snippet.Append (" : ");
+               Snippet.Append
+                 (VSS.Strings.To_Virtual_String (Param_Type.Text));
+               Snippet.Append ("}, ");
             end if;
-
-            Snippet.Append ("${");
-            Snippet.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
-            Snippet.Append (":");
-            Snippet.Append (VSS.Strings.To_Virtual_String (Id.Text));
-            Snippet.Append (" : ");
-            Snippet.Append (VSS.Strings.To_Virtual_String (Param_Type.Text));
-            Snippet.Append ("}, ");
          end loop;
 
          return Snippet;
