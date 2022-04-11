@@ -81,6 +81,11 @@ jobs:
         with:
           repository: AdaCore/gprconfig_kb
           path: subprojects/gpr/gprconfig_kb
+      - name: Get GNATdoc
+        uses: actions/checkout@v2
+        with:
+          repository: AdaCore/gnatdoc
+          path: subprojects/gnatdoc
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
