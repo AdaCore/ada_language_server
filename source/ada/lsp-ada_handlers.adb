@@ -85,6 +85,9 @@ with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
+with GNATdoc.Comments.Extractor;
+with GNATdoc.Comments.Helpers;
+
 with URIs;
 
 package body LSP.Ada_Handlers is
@@ -2608,9 +2611,29 @@ package body LSP.Ada_Handlers is
       --  Append the comments associated with the basic declaration
       --  if any.
 
-      Comments_Text :=
-        VSS.Strings.To_Virtual_String
-           (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
+      if Decl.Kind = Ada_Subp_Decl then
+         --  Use GNATdoc to extract documentation.
+
+         declare
+            Options       : GNATdoc.Comments.Extractor.Extractor_Options;
+            Documentation : GNATdoc.Comments.Structured_Comment_Access :=
+              GNATdoc.Comments.Extractor.Extract (Decl.As_Subp_Decl, Options);
+
+         begin
+            Comments_Text :=
+              GNATdoc.Comments.Helpers.Get_Subprogram_Description
+                (Documentation.all);
+            GNATdoc.Comments.Free (Documentation);
+         end;
+
+      else
+         --  Fallback to Libadalang's implementaton for other kind of
+         --  entities.
+
+         Comments_Text :=
+           VSS.Strings.To_Virtual_String
+             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
+      end if;
 
       if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
