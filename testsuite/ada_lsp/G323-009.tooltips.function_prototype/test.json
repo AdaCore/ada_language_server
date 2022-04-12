@@ -134,7 +134,7 @@
                         "language": "ada"
                      },
                      "at x.ads (3:4)",
-                     "yo\n"
+                     "yo\n\n@return\n"
                   ]
                }
             }
