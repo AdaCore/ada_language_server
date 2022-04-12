@@ -62,7 +62,7 @@ ifeq ($(COVERAGE),)
 	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS)
 else
 	COVERAGE_BUILD_FLAGS= $(LIBRARY_FLAGS) \
-		--implicit-with=gnatcov_rts_full \
+		--implicit-with=gnatcov_rts \
 		--src-subdirs=gnatcov-instr \
 		-XALS_WARN_ERRORS=false \
 		-XSPAWN_WARN_ERRORS=false \
