@@ -2875,7 +2875,7 @@ package body LSP.Messages is
       case JS.R.Event_Kind is
          when VSS.JSON.Pull_Readers.String_Value =>
             V := (Is_String => True,
-                  Value     => JS.R.String_Value);
+                  value     => JS.R.String_Value);
 
             JS.R.Read_Next;
          when VSS.JSON.Pull_Readers.Start_Object =>
