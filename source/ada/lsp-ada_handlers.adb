@@ -790,7 +790,7 @@ package body LSP.Ada_Handlers is
         (Document => Document,
          Span     => Span,
          Options  => Options,
-         Edit     => Response.Result,
+         Edit     => Response.result,
          Success  => Success,
          Messages => Messages);
 
@@ -807,7 +807,7 @@ package body LSP.Ada_Handlers is
                Error_Msg := Error_Msg & Msg;
             end loop;
 
-            Response.Error :=
+            Response.error :=
               (True,
                (code    => LSP.Errors.InternalError,
                 message => Error_Msg,
@@ -1856,7 +1856,7 @@ package body LSP.Ada_Handlers is
 
       --  No particular response in case of success.
       return (Is_Error => False,
-              Error    => (Is_Set => False),
+              error    => (Is_Set => False),
               others   => <>);
    end On_Execute_Command_Request;
 
@@ -2626,7 +2626,7 @@ package body LSP.Ada_Handlers is
       begin
          if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
             Append_Location
-              (Result   => Response.Result,
+              (Result   => Response.result,
                Document => Document,
                File     => File,
                Node     => Node,
@@ -3803,7 +3803,7 @@ package body LSP.Ada_Handlers is
          return Response : LSP.Messages.Server_Responses.Rename_Response
            (Is_Error => True)
          do
-            Response.Error :=
+            Response.error :=
               (True,
                (code    => LSP.Errors.InternalError,
                 message => VSS.Strings.Conversions.To_Virtual_String
@@ -4561,7 +4561,7 @@ package body LSP.Ada_Handlers is
 
       --  No particular response in case of success.
       return (Is_Error => False,
-              Error    => (Is_Set => False),
+              error    => (Is_Set => False),
               others   => <>);
    end On_Workspace_Execute_Command_Request;
 
@@ -5563,9 +5563,9 @@ package body LSP.Ada_Handlers is
            (Is_Error => Result.Is_Error);
       begin
          if not Result.Is_Error then
-            Response.Result := Result.result;
+            Response.result := Result.result;
          else
-            Response.Error := Result.error;
+            Response.error := Result.error;
          end if;
 
          return Response;
