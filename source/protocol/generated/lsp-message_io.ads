@@ -1644,6 +1644,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.CallHierarchyOutgoingCall);
 
+   procedure Read_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.SemanticTokensParams);
+
+   procedure Write_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.SemanticTokensParams);
+
    procedure Read_SemanticTokens
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.SemanticTokens);

@@ -3806,7 +3806,8 @@ package LSP.Messages is
    --}
    --```
    type SemanticTokenTypes is
-     (a_type,
+     (namespace,
+      a_type,
       class,
       enum,
       an_interface,
@@ -10192,7 +10193,18 @@ package LSP.Messages is
    --	textDocument: TextDocumentIdentifier;
    --}
    --```
-   subtype SemanticTokensParams is DocumentSymbolParams;
+   type SemanticTokensParams is new Progress_Partial_Params with record
+      textDocument   : TextDocumentIdentifier;
+   end record;
+
+   procedure Read_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensParams);
+   procedure Write_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensParams);
+   for SemanticTokensParams'Read use Read_SemanticTokensParams;
+   for SemanticTokensParams'Write use Write_SemanticTokensParams;
 
    --```typescript
    --export interface SemanticTokens {

@@ -546,6 +546,11 @@ package body LSP.Messages is
       V : out SemanticTokensOptions)
       renames LSP.Message_IO.Read_SemanticTokensOptions;
 
+   procedure Read_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensParams)
+      renames LSP.Message_IO.Read_SemanticTokensParams;
+
    procedure Read_SemanticTokens
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out SemanticTokens)
@@ -1685,6 +1690,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : SemanticTokensOptions)
       renames LSP.Message_IO.Write_SemanticTokensOptions;
+
+   procedure Write_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensParams)
+      renames LSP.Message_IO.Write_SemanticTokensParams;
 
    procedure Write_SemanticTokens
      (S : access Ada.Streams.Root_Stream_Type'Class;
