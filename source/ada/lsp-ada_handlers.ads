@@ -32,6 +32,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
+with LSP.Ada_Highlighters;
 
 with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
@@ -290,6 +291,9 @@ private
       --  False if the client disables symlink following. In this case
       --  URIs from client should match file names reported by LAL and
       --  GNATCOLL.Project.
+
+      Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
+      --  Semantic token highlighter for Ada
 
       ----------------------
       -- Project handling --

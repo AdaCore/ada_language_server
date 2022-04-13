@@ -832,8 +832,10 @@ package body LSP.Ada_Handlers is
       Value            : LSP.Messages.InitializeParams renames Request.params;
       Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
         renames Value.capabilities.textDocument.codeAction;
-      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities renames
-        Value.capabilities.textDocument.rename;
+      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities
+        renames Value.capabilities.textDocument.rename;
+      Semantic_Tokens  : LSP.Messages.Optional_SemanticTokensClientCapabilities
+        renames Value.capabilities.textDocument.semanticTokens;
       Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
         Value.capabilities.experimental;
       Response         : LSP.Messages.Server_Responses.Initialize_Response
@@ -995,6 +997,20 @@ package body LSP.Ada_Handlers is
       then
          Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
            (Self.Server);
+      end if;
+
+      if Semantic_Tokens.Is_Set then
+         declare
+            Legend : LSP.Messages.SemanticTokensLegend;
+         begin
+            Self.Highlighter.Initialize (Semantic_Tokens.Value, Legend);
+
+            Response.result.capabilities.semanticTokensProvider :=
+              (True,
+               (legend => Legend,
+                full   => (True, (diff => <>)),
+                others => <>));
+         end;
       end if;
 
       if Value.rootUri.Is_Set
