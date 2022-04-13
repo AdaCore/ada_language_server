@@ -152,6 +152,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response)
        is abstract;
 
+   procedure On_SemanticTokens_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.SemanticTokens_Response)
+       is abstract;
+
    procedure On_Shutdown_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.Shutdown_Response) is abstract;

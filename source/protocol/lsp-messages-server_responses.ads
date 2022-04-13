@@ -325,6 +325,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Range_Formatting_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package SemanticTokens_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => SemanticTokens);
+
+   type SemanticTokens_Response is
+     new SemanticTokens_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : SemanticTokens_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package ALS_Check_Syntax_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => ALS_Check_Syntax_Result);
