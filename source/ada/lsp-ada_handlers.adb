@@ -3435,6 +3435,27 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Document_Links_Request;
 
+   -------------------------------------
+   -- On_Document_Tokens_Full_Request --
+   -------------------------------------
+
+   overriding function On_Document_Tokens_Full_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response
+   is
+      pragma Unreferenced (Self, Request);
+      Response : LSP.Messages.Server_Responses.SemanticTokens_Response
+        (Is_Error => True);
+   begin
+      Response.error :=
+        (True,
+         (code => LSP.Errors.InternalError,
+          message => "Not implemented",
+          data => <>));
+      return Response;
+   end On_Document_Tokens_Full_Request;
+
    ---------------------------------
    -- On_Document_Symbols_Request --
    ---------------------------------

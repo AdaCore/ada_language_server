@@ -190,6 +190,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : Document_Tokens_Full_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_Document_Tokens_Full_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Prepare_Call_Hierarchy_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -363,6 +370,10 @@ begin
    Map.Insert
      ("textDocument/selectionRange",
       Selection_Range_Request'Tag);
+
+   Map.Insert
+     ("textDocument/semanticTokens/full",
+      Document_Tokens_Full_Request'Tag);
 
    Map.Insert
      ("textDocument/prepareCallHierarchy",

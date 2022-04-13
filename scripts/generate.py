@@ -297,6 +297,8 @@ REQUESTS = [
      'DocumentRangeFormattingParams', 'Range_Formatting_Response'),
     ('textDocument/selectionRange', 'Selection_Range',
      'SelectionRangeParams', 'SelectionRange_Response'),
+    ('textDocument/semanticTokens/full', 'Document_Tokens_Full',
+     'SemanticTokensParams', 'SemanticTokens_Response'),
     ('textDocument/prepareCallHierarchy', 'Prepare_Call_Hierarchy',
      'CallHierarchyPrepareParams', 'PrepareCallHierarchy_Response'),
     ('callHierarchy/incomingCalls', 'Incoming_Calls',
