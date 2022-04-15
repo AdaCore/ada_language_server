@@ -444,7 +444,7 @@
                         "value": "procedure Foo (X : Integer)"
                      },
                      "at a.ads (4:4)",
-                     "Doc for Foo\n\n@param X\n"
+                     "Doc for Foo\n\n@param X"
                   ]
                }
             }
