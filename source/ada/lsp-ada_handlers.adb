@@ -2742,7 +2742,11 @@ package body LSP.Ada_Handlers is
       --  Append the comments associated with the basic declaration
       --  if any.
 
-      if Decl.Kind = Ada_Subp_Decl then
+      if Decl.Kind in Ada_Abstract_Subp_Decl
+                    | Ada_Expr_Function
+                    | Ada_Null_Subp_Decl
+                    | Ada_Subp_Decl
+      then
          --  Use GNATdoc to extract documentation.
 
          declare
@@ -2751,7 +2755,7 @@ package body LSP.Ada_Handlers is
                 (Style    => Self.Options.Documentation.Style,
                  Fallback => True);
             Documentation : GNATdoc.Comments.Structured_Comment_Access :=
-              GNATdoc.Comments.Extractor.Extract (Decl.As_Subp_Decl, Options);
+              GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
 
          begin
             Comments_Text :=
