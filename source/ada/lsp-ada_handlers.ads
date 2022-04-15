@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,6 +25,8 @@ with VSS.String_Vectors;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
+
+private with GNATdoc.Comments.Extractor;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -90,13 +92,22 @@ private
       Comments : Boolean := True;
    end record;
 
+   --  Options for documentation
+   type Documentation_Options is record
+      Style : GNATdoc.Comments.Extractor.Documentation_Style :=
+        GNATdoc.Comments.Extractor.GNAT;
+   end record;
+
    -- Options holder --
    type Options_Holder is record
-      Refactoring : Refactoring_Options;
+      Refactoring   : Refactoring_Options;
       --  Configuration options for refactoring
 
-      Folding : Folding_Options;
+      Folding       : Folding_Options;
       --  folding options
+
+      Documentation : Documentation_Options;
+      --  Configuration options for documentation
    end record;
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;

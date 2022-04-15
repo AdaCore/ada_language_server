@@ -89,7 +89,6 @@ with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
-with GNATdoc.Comments.Extractor;
 with GNATdoc.Comments.Helpers;
 
 with URIs;
@@ -2747,7 +2746,10 @@ package body LSP.Ada_Handlers is
          --  Use GNATdoc to extract documentation.
 
          declare
-            Options       : GNATdoc.Comments.Extractor.Extractor_Options;
+            Options       : constant
+              GNATdoc.Comments.Extractor.Extractor_Options :=
+                (Style    => Self.Options.Documentation.Style,
+                 Fallback => True);
             Documentation : GNATdoc.Comments.Structured_Comment_Access :=
               GNATdoc.Comments.Extractor.Extract (Decl.As_Subp_Decl, Options);
 
@@ -3846,6 +3848,8 @@ package body LSP.Ada_Handlers is
         "displayMethodAncestryOnNavigation";
       followSymlinks                    : constant String :=
         "followSymlinks";
+      documentationStyle                : constant String :=
+        "documentationStyle";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : VSS.Strings.Virtual_String;
@@ -3936,6 +3940,19 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (followSymlinks) then
             Self.Follow_Symlinks := Ada.Get (followSymlinks);
+         end if;
+
+         if Ada.Has_Field (documentationStyle) then
+            begin
+               Self.Options.Documentation.Style :=
+                 GNATdoc.Comments.Extractor.Documentation_Style'Value
+                   (Ada.Get (documentationStyle));
+
+            exception
+               when Constraint_Error =>
+                  Self.Options.Documentation.Style :=
+                    GNATdoc.Comments.Extractor.GNAT;
+            end;
          end if;
       end if;
 
