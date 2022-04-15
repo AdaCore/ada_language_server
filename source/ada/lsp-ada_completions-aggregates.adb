@@ -43,11 +43,9 @@ package body LSP.Ada_Completions.Aggregates is
       use LSP.Messages;
 
       Expr_Type : constant Base_Type_Decl := Node.P_Expression_Type;
-      Aggr_Type          : constant Base_Type_Decl :=
-        (if not Expr_Type.Is_Null then
-            Expr_Type.P_Canonical_Type
-         else
-            No_Base_Type_Decl);
+      Aggr_Type : constant Base_Type_Decl :=
+        (if Expr_Type.Is_Null then No_Base_Type_Decl else Expr_Type);
+
       Use_Named_Notation : Boolean := False;
 
       function Get_Snippet_For_Component
