@@ -2764,6 +2764,28 @@ package body LSP.Ada_Handlers is
             GNATdoc.Comments.Free (Documentation);
          end;
 
+      elsif Decl.Kind = Ada_Param_Spec
+        and then Decl.P_Parent_Basic_Decl.Kind in Ada_Subp_Decl
+      then
+         --  Use GNATdoc to extract documentation.
+
+         declare
+            Options       : constant
+              GNATdoc.Comments.Extractor.Extractor_Options :=
+                (Style    => Self.Options.Documentation.Style,
+                 Fallback => True);
+            Documentation : GNATdoc.Comments.Structured_Comment_Access :=
+              GNATdoc.Comments.Extractor.Extract
+                (Decl.P_Parent_Basic_Decl.As_Basic_Decl, Options);
+
+         begin
+            Comments_Text :=
+              GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
+                (Documentation.all,
+                 To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+            GNATdoc.Comments.Free (Documentation);
+         end;
+
       else
          --  Fallback to Libadalang's implementaton for other kind of
          --  entities.
