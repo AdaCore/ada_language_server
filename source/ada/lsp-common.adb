@@ -307,7 +307,7 @@ package body LSP.Common is
            LSP.Lal_Utils.To_Virtual_String (Node.Text);
 
          Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
-           Text.Split_Lines;
+           Text.Split_Lines (LSP_New_Line_Function_Set);
 
       begin
          --  For single-line subprogram specifications, we display the
