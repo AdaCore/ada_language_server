@@ -26,6 +26,8 @@ with GNATCOLL.Utils;           use GNATCOLL.Utils;
 with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
 
+with GNATdoc.Comments.Helpers;
+
 with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
 
@@ -34,7 +36,9 @@ with LSP.Lal_Utils;
 package body LSP.Common is
 
    function Get_Hover_Text_For_Node
-     (Node : Ada_Node'Class) return VSS.String_Vectors.Virtual_String_Vector;
+     (Node          : Ada_Node'Class;
+      Documentation : GNATdoc.Comments.Structured_Comment_Access)
+      return VSS.String_Vectors.Virtual_String_Vector;
    --  Return a pretty printed version of the node's text to be
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.
@@ -158,7 +162,9 @@ package body LSP.Common is
    -----------------------------
 
    function Get_Hover_Text_For_Node
-     (Node : Ada_Node'Class) return VSS.String_Vectors.Virtual_String_Vector
+     (Node          : Ada_Node'Class;
+      Documentation : GNATdoc.Comments.Structured_Comment_Access)
+      return VSS.String_Vectors.Virtual_String_Vector
    is
       Result : VSS.String_Vectors.Virtual_String_Vector;
 
@@ -303,42 +309,53 @@ package body LSP.Common is
       ------------------------------
 
       procedure Get_Subp_Spec_Hover_Text is
-         Text   : constant VSS.Strings.Virtual_String :=
-           LSP.Lal_Utils.To_Virtual_String (Node.Text);
 
-         Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
-           Text.Split_Lines (LSP_New_Line_Function_Set);
+         use type GNATdoc.Comments.Structured_Comment_Access;
 
       begin
-         --  For single-line subprogram specifications, we display the
-         --  associated text directly.
-         --  For multi-line ones, remove the identation blankspaces to replace
-         --  them by a fixed number of blankspaces.
-
-         if Lines.Length = 1 then
-            Result.Append (Text);
+         if Documentation /= null then
+            Result := GNATdoc.Comments.Helpers.Get_Subprogram_Snippet
+              (Documentation.all);
 
          else
-            Result.Append (Lines (1));
+            declare
+               Text  : constant VSS.Strings.Virtual_String :=
+                 LSP.Lal_Utils.To_Virtual_String (Node.Text);
+               Lines : constant VSS.String_Vectors.Virtual_String_Vector :=
+                 Text.Split_Lines (LSP_New_Line_Function_Set);
 
-            for J in 2 .. Lines.Length loop
-               declare
-                  Line   : VSS.Strings.Virtual_String := Lines (J);
-                  Indent : constant Natural := Get_Indent (Line);
-               begin
-                  if not Line.Is_Empty then
-                     Line := Tail_From (Line, Indent);
+            begin
+               --  For single-line subprogram specifications, we display the
+               --  associated text directly.
+               --  For multi-line ones, remove the identation blankspaces to
+               --  replace them by a fixed number of blankspaces.
 
-                     if Line.Starts_With ("(") then
-                        Line.Prepend ("  ");
-                     else
-                        Line.Prepend ("   ");
-                     end if;
+               if Lines.Length = 1 then
+                  Result.Append (Text);
 
-                     Result.Append (Line);
-                  end if;
-               end;
-            end loop;
+               else
+                  Result.Append (Lines (1));
+
+                  for J in 2 .. Lines.Length loop
+                     declare
+                        Line   : VSS.Strings.Virtual_String := Lines (J);
+                        Indent : constant Natural := Get_Indent (Line);
+                     begin
+                        if not Line.Is_Empty then
+                           Line := Tail_From (Line, Indent);
+
+                           if Line.Starts_With ("(") then
+                              Line.Prepend ("  ");
+                           else
+                              Line.Prepend ("   ");
+                           end if;
+
+                           Result.Append (Line);
+                        end if;
+                     end;
+                  end loop;
+               end if;
+            end;
          end if;
 
          --  Append "is abstract" to the resulting hover text if the subprogram
@@ -510,7 +527,9 @@ package body LSP.Common is
    --------------------
 
    function Get_Hover_Text
-     (Decl : Basic_Decl'Class) return VSS.Strings.Virtual_String
+     (Decl          : Basic_Decl'Class;
+      Documentation : GNATdoc.Comments.Structured_Comment_Access := null)
+      return VSS.Strings.Virtual_String
    is
       Decl_Text      : VSS.String_Vectors.Virtual_String_Vector;
       Subp_Spec_Node : Base_Subp_Spec;
@@ -522,7 +541,7 @@ package body LSP.Common is
       Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
 
       if Subp_Spec_Node /= No_Base_Subp_Spec then
-         Decl_Text := Get_Hover_Text_For_Node (Subp_Spec_Node);
+         Decl_Text := Get_Hover_Text_For_Node (Subp_Spec_Node, Documentation);
 
          --  Append the aspects to the declaration text, if any.
          declare
@@ -538,7 +557,7 @@ package body LSP.Common is
                      Append_To_Last_Line (Aspects_Text, ',');
                   end if;
 
-                  Aspects_Text.Append (Get_Hover_Text_For_Node (Aspect));
+                  Aspects_Text.Append (Get_Hover_Text_For_Node (Aspect, null));
                end loop;
 
                if not Aspects_Text.Is_Empty then
@@ -549,7 +568,7 @@ package body LSP.Common is
          end;
 
       else
-         Decl_Text := Get_Hover_Text_For_Node (Decl);
+         Decl_Text := Get_Hover_Text_For_Node (Decl, null);
       end if;
 
       return Decl_Text.Join_Lines (Document_LSP_New_Line_Function, False);
