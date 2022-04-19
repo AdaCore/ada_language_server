@@ -2687,6 +2687,12 @@ package body LSP.Ada_Handlers is
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
+      Options       : constant
+        GNATdoc.Comments.Extractor.Extractor_Options :=
+          (Style    => Self.Options.Documentation.Style,
+           Fallback => True);
+      Documentation : GNATdoc.Comments.Structured_Comment_Access;
+
    begin
       Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
 
@@ -2701,14 +2707,42 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
+      --  Extract documentation with GNATdoc when supported.
+
+      if Decl.Kind in Ada_Abstract_Subp_Decl
+                    | Ada_Expr_Function
+                    | Ada_Null_Subp_Decl
+                    | Ada_Subp_Decl
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Subprogram_Description
+                (Documentation.all);
+
+      elsif Decl.Kind = Ada_Param_Spec
+        and then Decl.P_Parent_Basic_Decl.Kind in Ada_Subp_Decl
+      then
+         Documentation :=
+            GNATdoc.Comments.Extractor.Extract
+              (Decl.P_Parent_Basic_Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
+             (Documentation.all,
+              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+      end if;
+
       --  If the basic declaration is an enum literal, display the whole
       --  enumeration type declaration instead.
+
       if Decl.Kind in Ada_Enum_Literal_Decl then
          Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
          Decl_Text := Get_Hover_Text (Decl);
       else
-         Decl_Text := Get_Hover_Text (Decl);
+         Decl_Text := Get_Hover_Text (Decl, Documentation);
       end if;
+
+      GNATdoc.Comments.Free (Documentation);
 
       if Decl_Text.Is_Empty then
          return Response;
@@ -2742,53 +2776,9 @@ package body LSP.Ada_Handlers is
       --  Append the comments associated with the basic declaration
       --  if any.
 
-      if Decl.Kind in Ada_Abstract_Subp_Decl
-                    | Ada_Expr_Function
-                    | Ada_Null_Subp_Decl
-                    | Ada_Subp_Decl
-      then
-         --  Use GNATdoc to extract documentation.
-
-         declare
-            Options       : constant
-              GNATdoc.Comments.Extractor.Extractor_Options :=
-                (Style    => Self.Options.Documentation.Style,
-                 Fallback => True);
-            Documentation : GNATdoc.Comments.Structured_Comment_Access :=
-              GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
-
-         begin
-            Comments_Text :=
-              GNATdoc.Comments.Helpers.Get_Subprogram_Description
-                (Documentation.all);
-            GNATdoc.Comments.Free (Documentation);
-         end;
-
-      elsif Decl.Kind = Ada_Param_Spec
-        and then Decl.P_Parent_Basic_Decl.Kind in Ada_Subp_Decl
-      then
-         --  Use GNATdoc to extract documentation.
-
-         declare
-            Options       : constant
-              GNATdoc.Comments.Extractor.Extractor_Options :=
-                (Style    => Self.Options.Documentation.Style,
-                 Fallback => True);
-            Documentation : GNATdoc.Comments.Structured_Comment_Access :=
-              GNATdoc.Comments.Extractor.Extract
-                (Decl.P_Parent_Basic_Decl.As_Basic_Decl, Options);
-
-         begin
-            Comments_Text :=
-              GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
-                (Documentation.all,
-                 To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
-            GNATdoc.Comments.Free (Documentation);
-         end;
-
-      else
-         --  Fallback to Libadalang's implementaton for other kind of
-         --  entities.
+      if Comments_Text.Is_Empty then
+         --  Last chance to obtain documentation. It is not needed when
+         --  GNATdoc is used.
 
          Comments_Text :=
            VSS.Strings.To_Virtual_String
