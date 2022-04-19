@@ -678,7 +678,7 @@ package body LSP.Ada_Handlers is
          Self.Show_Message
            (VSS.Strings.To_Virtual_String
               ("More than one .gpr found." & Line_Feed &
-                 "Note: you can configure a project " &
+                 "Note: in VS Code you can configure a project " &
                  " through the ada.projectFile setting."));
          Self.Load_Implicit_Project (Multiple_Projects_Found);
       end if;
@@ -3963,9 +3963,8 @@ package body LSP.Ada_Handlers is
                Relocate,
                Root);
          end;
+         Self.Ensure_Project_Loaded;
       end if;
-
-      Self.Ensure_Project_Loaded;
 
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
