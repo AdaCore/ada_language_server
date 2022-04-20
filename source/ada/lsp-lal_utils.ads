@@ -51,7 +51,7 @@ package LSP.Lal_Utils is
    --  See description of Kind in Get_Node_Location comments.
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    procedure Append_Location
      (Result : in out LSP.Messages.Location_Vector;
@@ -60,7 +60,7 @@ package LSP.Lal_Utils is
    --  The same for Location_Vector.
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    procedure Append_Location
      (Result   : in out LSP.Messages.DocumentHighlight_Vector;
@@ -88,7 +88,7 @@ package LSP.Lal_Utils is
    --  given Kind.
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    function Get_Node_Location
      (Node : Libadalang.Analysis.Ada_Node'Class;
@@ -98,7 +98,7 @@ package LSP.Lal_Utils is
    --  result with given Kind.
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    function Get_Token_Span
      (Token : Libadalang.Common.Token_Reference)
@@ -106,7 +106,7 @@ package LSP.Lal_Utils is
    --  Return the span of the given token.
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    function To_Span
      (Value : Langkit_Support.Slocs.Source_Location_Range)
@@ -114,7 +114,7 @@ package LSP.Lal_Utils is
    --  Convert Source_Location_Range to Span
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    function To_Span
      (Value : Langkit_Support.Slocs.Source_Location)
@@ -122,7 +122,7 @@ package LSP.Lal_Utils is
    --  Convert Source_Location to Span
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Docuemnt.To_LSP_Range instead, or add necessary wrapper.
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
    function To_TextEdit
      (E : Laltools.Refactor.Text_Edit)
