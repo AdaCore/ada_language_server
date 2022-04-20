@@ -188,25 +188,25 @@
                   {
                      "name": "Bar",
                      "kind": 12,
-                     "detail": "at common_pack.ads (3:14)",
-                     "uri": "$URI{common/common_pack.ads}",
+                     "detail": "at common_pack.adb (16:14)",
+                     "uri": "$URI{common/common_pack.adb}",
                      "range": {
                         "start": {
-                           "line": 2,
+                           "line": 15,
                            "character": 3
                         },
                         "end": {
-                           "line": 2,
-                           "character": 17
+                           "line": 18,
+                           "character": 11
                         }
                      },
                      "selectionRange": {
                         "start": {
-                           "line": 2,
+                           "line": 15,
                            "character": 13
                         },
                         "end": {
-                           "line": 2,
+                           "line": 15,
                            "character": 16
                         }
                      }
