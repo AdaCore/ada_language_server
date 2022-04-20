@@ -3,52 +3,84 @@
     "name": "Ada",
     "comment": "Ada grammar file",
     "scopeName": "source.ada",
-    "fileTypes": ["adb", "adc", "ads"],
-    "uuid": "4DDE765F-8597-4242-86C5-377654070343",
-    "patterns": [{
-        "name": "comment.line.double-dash.ada",
-        "match": "--[^\\n\\r]*"
-    }, {
-        "name": "constant.numeric.ada",
-        "patterns": [
-            { "include": "#based_literal" },
-            { "include": "#decimal_literal" }
-        ]
-    }, {
-        "name": "constant.character.ada",
-        "match": "'.'"
-    }, {
-        "name": "constant.lanuage.ada",
-        "match": "\\b(?i:(null|true|false))\\b"
-    }, {
-        "name": "keyword.control.ada",
-        "match": "\\b(?i:(abort|case|delay|else|elsif|exit|for|goto|if|loop|pragma|raise|requeue|return|terminate|then|until|while))\\b"
-    }, {
-        "name": "keyword.operator.ada",
-        "match": "\\b(?i:(abs|and|in|mod|not|of|or|rem|xor))\\b"
-    }, {
-        "name": "keyword.other.ada",
-        "match": "\\b(?i:(abstract|accept|access|aliased|all|array|at|begin|body|constant|declare|delta|digits|do|end|entry|exception|function|generic|interface|is|limited|new|others|out|overriding|package|private|procedure|protected|range|record|renames|reverse|select|separate|some|subtype|synchronized|tagged|task|type|use|when|with))\\b"
-    }, {
-        "name": "string.quoted.double.ada",
-        "match": "\"([^\"]|\"\")*\""
-    }, {
-        "name": "keyword.operator.assignment.ada",
-        "match": ":="
-    }, {
-        "name": "keyword.operator.ada",
-        "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\–|\\.|/|<|=|>|\\|"
-    }, {
-        "name": "storage.type.ada",
-        "match": "\\b(?i:(Boolean|Integer|Natural|Positive|Character|String))\\b"
-    }, {
-        "name": "entity.name.ada",
-        "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
-    }],
+    "fileTypes": [
+        "adb",
+        "adc",
+        "ads"
+    ],
+    "patterns": [
+        {
+            "name": "comment.line.ada",
+            "match": "--[^\\n\\r]*"
+        },
+        {
+            "name": "constant.numeric.ada",
+            "patterns": [
+                {
+                    "include": "#based_literal"
+                },
+                {
+                    "include": "#decimal_literal"
+                }
+            ]
+        },
+        {
+            "name": "constant.character.ada",
+            "match": "'.'"
+        },
+        {
+            "name": "variable.other.constant.ada",
+            "match": "\\b(?i:(null))\\b"
+        },
+        {
+            "name": "keyword.other.ada",
+            "match": "\\b(?i:(abort|abstract|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|exception|for|function|generic|if|interface|is|limited|loop|new|of|others|overriding|package|private|procedure|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
+        },
+        {
+            "name": "keyword.control.ada",
+            "match": "\\b(?i:(accept|delay|entry|exit|goto|pragma|raise|requeue|terminate|until))\\b"
+        },
+        {
+            "name": "entity.name.operator.ada",
+            "match": "\\b(?i:(abs|and|mod|not|or|rem|xor))\\b"
+        },
+        {
+            "name": "storage.modifier.ada",
+            "match": "\\b(?i:(access|aliased|in|out))\\b"
+        },
+        {
+            "name": "string.quoted.double.ada",
+            "begin": "\"",
+            "end": "\"(?=[^\"])",
+            "patterns": [
+                {
+                    "name": "constant.character.escape",
+                    "match": "\"\""
+                }
+            ]
+        },
+        {
+            "name": "entity.name.operator.assignment.ada",
+            "match": ":="
+        },
+        {
+            "name": "entity.name.operator.ada",
+            "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\-|\\.|/|<|=|>|\\|"
+        },
+        {
+            "name": "entity.name.tag.ada",
+            "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
+        }
+    ],
     "repository": {
         "decimal_literal": {
             "name": "constant.numeric.ada",
-            "match": "\\d[0-9_]*(\\.\\d[0-9_]*)?([eE][-+]?\\d[0-9_]*)?"
+            "match": "\\d[0-9_]*(\\.\\d[0-9_]*)?([eE]([-+])?\\d[0-9_]*)?",
+            "captures": {
+                "3": {
+                    "name": "keyword.operator.plus.exponent"
+                }
+            }
         },
         "based_literal": {
             "name": "constant.numeric.ada",
