@@ -187,16 +187,16 @@
                   {
                      "name": "Foo",
                      "kind": 12,
-                     "detail": "at p.ads (2:13)",
-                     "uri": "$URI{p.ads}",
+                     "detail": "at p.adb (2:13)",
+                     "uri": "$URI{p.adb}",
                      "range": {
                         "start": {
                            "line": 1,
                            "character": 3
                         },
                         "end": {
-                           "line": 1,
-                           "character": 31
+                           "line": 4,
+                           "character": 11
                         }
                      },
                      "selectionRange": {

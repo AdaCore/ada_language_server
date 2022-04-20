@@ -5340,36 +5340,52 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
       return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
    is
-      Value : LSP.Messages.CallHierarchyPrepareParams renames
+      Value     : LSP.Messages.CallHierarchyPrepareParams renames
         Request.params;
 
-      Response : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
+      Response  : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
         (Is_Error => False);
 
       Imprecise : Boolean := False;
 
-      C : constant Context_Access :=
+      C         : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the PrepareCallHierarchy request, we're only interested in the
       --  "best" response value, not in the list of values for all contexts
 
-      Node : constant Libadalang.Analysis.Name :=
+      Node      : constant Libadalang.Analysis.Name :=
         Laltools.Common.Get_Node_As_Name
           (C.Get_Node_At
             (Get_Open_Document (Self, Value.textDocument.uri), Value));
 
-      Name : constant Libadalang.Analysis.Defining_Name :=
+      Name      : constant Libadalang.Analysis.Defining_Name :=
         Laltools.Common.Resolve_Name
           (Node,
            Self.Trace,
            Imprecise);
 
+      Decl      : Libadalang.Analysis.Basic_Decl;
+      Next_Part : Libadalang.Analysis.Basic_Decl;
    begin
       if Name.Is_Null then
          return Response;
       end if;
 
-      Response.result.Append (To_Call_Hierarchy_Item (Name));
+      Decl := Name.P_Basic_Decl;
+
+      if Decl.Is_Null or else not Decl.P_Is_Subprogram then
+         return Response;
+      end if;
+
+      Next_Part :=
+        Laltools.Common.Find_Next_Part_For_Decl (Decl, Self.Trace);
+
+      if Next_Part.Is_Null then
+         Next_Part := Decl;
+      end if;
+
+      Response.result.Append
+        (To_Call_Hierarchy_Item (Next_Part.P_Defining_Name));
 
       if Imprecise then
          Self.Show_Imprecise_Reference_Warning ("prepareCallHierarchy");
