@@ -66,7 +66,7 @@ sed -i -e '/langkit/s/.{CURDIR}/../' subprojects/gpr/Makefile
 
 make -C subprojects/gpr setup prefix=$prefix \
  GPR2KBDIR=./gprconfig_kb/db ENABLE_SHARED=no \
- ${DEBUG:+BUILD=debug} build-static install-static
+ ${DEBUG:+BUILD=debug} build-lib-static install-lib-static
 
 make -C subprojects/templates-parser setup prefix=$prefix \
  ENABLE_SHARED=no \
