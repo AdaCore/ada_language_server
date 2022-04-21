@@ -333,4 +333,9 @@ package LSP.Lal_Utils is
      (Node : Libadalang.Analysis.Ada_Node) return Libadalang.Analysis.Ada_Node;
    --  While Node.Kind is the Dotted_Name go up.
 
+   function Is_Synthetic
+     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean;
+   --  Check if Node is in a synthetic file (like "__standard").
+   --  TODO: Replace this with LAL property as it will be available.
+
 end LSP.Lal_Utils;

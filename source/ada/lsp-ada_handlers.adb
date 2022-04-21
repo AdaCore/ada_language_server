@@ -833,8 +833,10 @@ package body LSP.Ada_Handlers is
       Value            : LSP.Messages.InitializeParams renames Request.params;
       Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
         renames Value.capabilities.textDocument.codeAction;
-      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities renames
-        Value.capabilities.textDocument.rename;
+      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities
+        renames Value.capabilities.textDocument.rename;
+      Semantic_Tokens  : LSP.Messages.Optional_SemanticTokensClientCapabilities
+        renames Value.capabilities.textDocument.semanticTokens;
       Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
         Value.capabilities.experimental;
       Response         : LSP.Messages.Server_Responses.Initialize_Response
@@ -996,6 +998,20 @@ package body LSP.Ada_Handlers is
       then
          Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
            (Self.Server);
+      end if;
+
+      if Semantic_Tokens.Is_Set then
+         declare
+            Legend : LSP.Messages.SemanticTokensLegend;
+         begin
+            Self.Highlighter.Initialize (Semantic_Tokens.Value, Legend);
+
+            Response.result.capabilities.semanticTokensProvider :=
+              (True,
+               (legend => Legend,
+                full   => (True, (diff => <>)),
+                others => <>));
+         end;
       end if;
 
       if Value.rootUri.Is_Set
@@ -2688,6 +2704,12 @@ package body LSP.Ada_Handlers is
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
+      Options       : constant
+        GNATdoc.Comments.Extractor.Extractor_Options :=
+          (Style    => Self.Options.Documentation.Style,
+           Fallback => True);
+      Documentation : GNATdoc.Comments.Structured_Comment_Access;
+
    begin
       Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
 
@@ -2702,14 +2724,42 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
+      --  Extract documentation with GNATdoc when supported.
+
+      if Decl.Kind in Ada_Abstract_Subp_Decl
+                    | Ada_Expr_Function
+                    | Ada_Null_Subp_Decl
+                    | Ada_Subp_Decl
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Subprogram_Description
+                (Documentation.all);
+
+      elsif Decl.Kind = Ada_Param_Spec
+        and then Decl.P_Parent_Basic_Decl.Kind in Ada_Subp_Decl
+      then
+         Documentation :=
+            GNATdoc.Comments.Extractor.Extract
+              (Decl.P_Parent_Basic_Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
+             (Documentation.all,
+              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+      end if;
+
       --  If the basic declaration is an enum literal, display the whole
       --  enumeration type declaration instead.
+
       if Decl.Kind in Ada_Enum_Literal_Decl then
          Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
          Decl_Text := Get_Hover_Text (Decl);
       else
-         Decl_Text := Get_Hover_Text (Decl);
+         Decl_Text := Get_Hover_Text (Decl, Documentation);
       end if;
+
+      GNATdoc.Comments.Free (Documentation);
 
       if Decl_Text.Is_Empty then
          return Response;
@@ -3401,6 +3451,33 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_Document_Links_Request;
 
+   -------------------------------------
+   -- On_Document_Tokens_Full_Request --
+   -------------------------------------
+
+   overriding function On_Document_Tokens_Full_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response
+   is
+      Value    : LSP.Messages.SemanticTokensParams renames Request.params;
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
+
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Response : LSP.Messages.Server_Responses.SemanticTokens_Response
+        (Is_Error => False);
+
+      Result   : LSP.Messages.uinteger_Vector :=
+        Document.Get_Tokens (Context.all, Self.Highlighter);
+   begin
+      Response.result.data.Move (Result);
+
+      return Response;
+   end On_Document_Tokens_Full_Request;
+
    ---------------------------------
    -- On_Document_Symbols_Request --
    ---------------------------------
@@ -3846,6 +3923,8 @@ package body LSP.Ada_Handlers is
         "displayMethodAncestryOnNavigation";
       followSymlinks                    : constant String :=
         "followSymlinks";
+      documentationStyle                : constant String :=
+        "documentationStyle";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : VSS.Strings.Virtual_String;
@@ -3936,6 +4015,19 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (followSymlinks) then
             Self.Follow_Symlinks := Ada.Get (followSymlinks);
+         end if;
+
+         if Ada.Has_Field (documentationStyle) then
+            begin
+               Self.Options.Documentation.Style :=
+                 GNATdoc.Comments.Extractor.Documentation_Style'Value
+                   (Ada.Get (documentationStyle));
+
+            exception
+               when Constraint_Error =>
+                  Self.Options.Documentation.Style :=
+                    GNATdoc.Comments.Extractor.GNAT;
+            end;
          end if;
       end if;
 

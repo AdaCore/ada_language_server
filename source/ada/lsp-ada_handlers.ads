@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,10 +26,13 @@ with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 
+private with GNATdoc.Comments.Extractor;
+
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
+with LSP.Ada_Highlighters;
 
 with LSP.File_Monitors;
 with LSP.Messages.Server_Requests;
@@ -90,13 +93,22 @@ private
       Comments : Boolean := True;
    end record;
 
+   --  Options for documentation
+   type Documentation_Options is record
+      Style : GNATdoc.Comments.Extractor.Documentation_Style :=
+        GNATdoc.Comments.Extractor.GNAT;
+   end record;
+
    -- Options holder --
    type Options_Holder is record
-      Refactoring : Refactoring_Options;
+      Refactoring   : Refactoring_Options;
       --  Configuration options for refactoring
 
-      Folding : Folding_Options;
+      Folding       : Folding_Options;
       --  folding options
+
+      Documentation : Documentation_Options;
+      --  Configuration options for documentation
    end record;
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
@@ -280,6 +292,9 @@ private
       --  URIs from client should match file names reported by LAL and
       --  GNATCOLL.Project.
 
+      Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
+      --  Semantic token highlighter for Ada
+
       ----------------------
       -- Project handling --
       ----------------------
@@ -395,6 +410,11 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Document_Links_Request)
       return LSP.Messages.Server_Responses.Links_Response;
+
+   overriding function On_Document_Tokens_Full_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response;
 
    overriding function On_Document_Symbols_Request
      (Self    : access Message_Handler;

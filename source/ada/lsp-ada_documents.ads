@@ -34,6 +34,7 @@ with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completions;
+with LSP.Ada_Highlighters;
 with LSP.Diagnostic_Sources;
 with LSP.Messages;
 with LSP.Search;
@@ -282,6 +283,13 @@ package LSP.Ada_Documents is
    function Line_Terminator
      (Self : Document'Class) return VSS.Strings.Virtual_String;
    --  Return line terminator for the document
+
+   function Get_Tokens
+     (Self        : Document'Class;
+      Context     : LSP.Ada_Contexts.Context;
+      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter)
+        return LSP.Messages.uinteger_Vector;
+   --  Return semantic tokens in the document. See details in LSP specification
 
 private
 

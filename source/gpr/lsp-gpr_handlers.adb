@@ -151,6 +151,18 @@ package body LSP.GPR_Handlers is
       return raise Program_Error with "Unimplemented request";
    end On_Document_Links_Request;
 
+   -------------------------------------
+   -- On_Document_Tokens_Full_Request --
+   -------------------------------------
+
+   overriding function On_Document_Tokens_Full_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_Document_Tokens_Full_Request;
+
    ---------------------------------
    -- On_Document_Symbols_Request --
    ---------------------------------

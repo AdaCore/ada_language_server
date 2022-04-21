@@ -26,6 +26,8 @@ with GNATCOLL.VFS;          use GNATCOLL.VFS;
 with VSS.Characters;
 with VSS.Strings;
 
+with GNATdoc.Comments;
+
 with LSP.Messages;
 with Libadalang.Analysis;   use Libadalang.Analysis;
 
@@ -60,7 +62,9 @@ package LSP.Common is
    --  Run the given command line and return the output.
 
    function Get_Hover_Text
-     (Decl : Basic_Decl'Class) return VSS.Strings.Virtual_String;
+     (Decl          : Basic_Decl'Class;
+      Documentation : GNATdoc.Comments.Structured_Comment_Access := null)
+      return VSS.Strings.Virtual_String;
    --  Return a pretty printed version of the declaration's text to be
    --  displayed on hover requests, removing unnecessary indentation
    --  whitespaces if needed and attaching extra information in some cases.

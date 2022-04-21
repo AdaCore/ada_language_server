@@ -1716,6 +1716,22 @@ package body LSP.Ada_Documents is
       return Token;
    end Get_Token_At;
 
+   ----------------
+   -- Get_Tokens --
+   ----------------
+
+   function Get_Tokens
+     (Self        : Document'Class;
+      Context     : LSP.Ada_Contexts.Context;
+      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter)
+        return LSP.Messages.uinteger_Vector
+   is
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+   begin
+      return Highlighter.Get_Tokens (Unit);
+   end Get_Tokens;
+
    -----------------
    -- Get_Word_At --
    -----------------

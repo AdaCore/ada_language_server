@@ -97,27 +97,11 @@ package body LSP.Lal_Utils is
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kind   : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
    is
-      function Is_Synthetic return Boolean;
-      --  Check if Node is in a synthetic file (like "__standard").
-      --  TODO: Replace this with LAL property as it will be available.
-
-      ------------------
-      -- Is_Synthetic --
-      ------------------
-
-      function Is_Synthetic return Boolean is
-         Std  : constant String := "__standard";
-         File : constant String := Node.Unit.Get_Filename;
-      begin
-         return File'Length >= Std'Length
-           and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
-      end Is_Synthetic;
-
       Location : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location
           (Libadalang.Analysis.As_Ada_Node (Node), Kind);
    begin
-      if not Is_Synthetic then
+      if not Is_Synthetic (Node) then
          Result.Append (Location);
       end if;
    end Append_Location;
@@ -1827,6 +1811,20 @@ package body LSP.Lal_Utils is
    begin
       return Token_Kind = Libadalang.Common.Ada_End;
    end Is_End_Token;
+
+   ------------------
+   -- Is_Synthetic --
+   ------------------
+
+   function Is_Synthetic
+     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean
+   is
+      Std  : constant String := "__standard";
+      File : constant String := Node.Unit.Get_Filename;
+   begin
+      return File'Length >= Std'Length
+        and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
+   end Is_Synthetic;
 
    -----------------------
    -- Skip_Dotted_Names --

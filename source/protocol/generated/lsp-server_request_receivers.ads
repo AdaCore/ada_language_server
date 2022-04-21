@@ -133,6 +133,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Selection_Range_Request)
         is abstract;
 
+   procedure On_Document_Tokens_Full_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+        is abstract;
+
    procedure On_Prepare_Call_Hierarchy_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)

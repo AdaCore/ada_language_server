@@ -3380,7 +3380,9 @@ package body LSP.Message_IO is
         VSS.Strings.Conversions.To_UTF_8_String (JS.R.String_Value);
    begin
       JS.R.Read_Next;
-      if Text = "type" then
+      if Text = "namespace" then
+         V := namespace;
+      elsif Text = "type" then
          V := a_type;
       elsif Text = "class" then
          V := class;
@@ -3443,6 +3445,8 @@ package body LSP.Message_IO is
          return VSS.Strings.Virtual_String is
       begin
          case Value is
+            when namespace =>
+               return "namespace";
             when a_type =>
                return "type";
             when class =>
@@ -9495,6 +9499,53 @@ package body LSP.Message_IO is
       AlsReferenceKind_Vector'Write (S, V.kinds);
       JS.End_Object;
    end Write_CallHierarchyOutgoingCall;
+
+   procedure Read_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out SemanticTokensParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "workDoneToken" then
+               Optional_ProgressToken'Read (S, V.workDoneToken);
+            elsif Key = "partialResultToken" then
+               Optional_ProgressToken'Read (S, V.partialResultToken);
+            elsif Key = "textDocument" then
+               TextDocumentIdentifier'Read (S, V.textDocument);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_SemanticTokensParams;
+
+   procedure Write_SemanticTokensParams
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : SemanticTokensParams)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("workDoneToken");
+      Optional_ProgressToken'Write (S, V.workDoneToken);
+      JS.Key ("partialResultToken");
+      Optional_ProgressToken'Write (S, V.partialResultToken);
+      JS.Key ("textDocument");
+      TextDocumentIdentifier'Write (S, V.textDocument);
+      JS.End_Object;
+   end Write_SemanticTokensParams;
 
    procedure Read_SemanticTokens
      (S : access Ada.Streams.Root_Stream_Type'Class;

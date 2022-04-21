@@ -14,6 +14,7 @@ Ada Language Server understands these settings:
  * [namedNotationThreshold](#namedNotationThreshold)
  * [foldComments](#foldComments)
  * [followSymlinks](#followSymlinks)
+ * [documentationStyle](#documentationStyle)
 
 ----
 
@@ -146,4 +147,24 @@ The value is a boolean. The default is `true`.
 
 ```javascript
     'followSymlinks': false
+```
+
+## documentationStyle
+The language server supports different styles to document entities in the source
+code. This setting controls primary documentation style of entities. When
+documentation for the entity is not found, the language server uses a few
+mechanisms to find the best fallback (lookup for comments before/after entity
+declaration, extract documentation from subprogram's body, etc.)
+
+Supported styles are:
+
+  * `gnat`: Default style, based on GNAT coding standard with some
+    enhancements.
+  * `leading`: Documentation for the entities extracted from the comments
+    before the entity declaration.
+
+For more information about documentation styles see GNATdoc User's Manual.
+
+```javascript
+    'documentationStyle': 'gnat'
 ```
