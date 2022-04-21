@@ -16,10 +16,12 @@
 ----------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { SymbolKind } from 'vscode';
 
 enum taskKinds {
     proveProject, // Run gnatprove for the project
     proveFile, // Run gnatprove for the single file
+    proveSubprogram, // Run gnatprove for the subprogram
     proveRegion, // Run gnatprove for the selection
     proveLine, // Run gnatprove for the single line
 }
@@ -51,6 +53,15 @@ export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode
             const args = getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-region=${fileBasename}:' + getSelectedRegion(vscode.window.activeTextEditor)]);
             const shell = new vscode.ShellExecution('gnatprove', args);
             return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
+        }
+        else if (definition.taskKind == taskKinds.proveSubprogram) {
+            return getSubprogram(vscode.window.activeTextEditor)
+                .then(subprogram =>
+                {
+                    const args = getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-subp=${fileBasename}:' + subprogram]);
+                    const shell = new vscode.ShellExecution('gnatprove', args);
+                    return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
+                });
         }
         else {
             return task;
@@ -87,6 +98,13 @@ const getTasks = (): vscode.Task[] => {
         'Prove file'
     );
 
+    //  Run gnatprove on a subprogram
+    const proveSubprogram = makeTask(
+        taskKinds.proveSubprogram,
+        [], //  Actual arguments added at the time of resolveTask
+        'Prove subprogram'
+    );
+
     //  Run gnatprove on a region
     const proveRegion = makeTask(
         taskKinds.proveRegion,
@@ -103,10 +121,47 @@ const getTasks = (): vscode.Task[] => {
 
     result.push(proveProject);
     result.push(proveFile);
+    result.push(proveSubprogram);
     result.push(proveRegion);
     result.push(proveLine);
 
     return result;
+};
+
+const getSubprogram = async (editor: vscode.TextEditor | undefined): Promise<string> => {
+    let subprogramLine = 0;
+    if (editor) {
+        const line = editor.selection.active.line;
+
+        //  First get all symbols for current file
+        const symbols: vscode.DocumentSymbol[] = await vscode.commands.executeCommand('vscode.executeDocumentSymbolProvider', editor.document.uri)
+
+        //  Then select all subprograms
+        let subprograms: vscode.DocumentSymbol[] = []
+
+        function getAllSubprograms(symbols: vscode.DocumentSymbol[]) {
+            var sym;
+            for (sym of symbols) {
+                if (sym.kind == SymbolKind.Function) {
+                    subprograms.push(sym);
+                }
+                if (sym.kind == SymbolKind.Function || sym.kind == SymbolKind.Module) {
+                    getAllSubprograms(sym.children)
+                }
+            }
+        }
+
+        getAllSubprograms(symbols)
+
+        //  Finally select from the subprograms the smallest one containing the current line
+        let scopeSymbols = subprograms.filter(sym => line >= sym.range.start.line && line <= sym.range.end.line);
+        if (scopeSymbols.length > 0) {
+            scopeSymbols.sort((a,b) => (a.range.end.line - a.range.start.line) - (b.range.end.line - b.range.start.line));
+            subprogramLine = scopeSymbols[0].range.start.line;
+        };
+    };
+    //  Line numbers start at 0 in VS Code, and at 1 in GNAT
+    return (subprogramLine + 1).toString();
 };
 
 const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
