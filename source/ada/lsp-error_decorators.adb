@@ -238,9 +238,9 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.FoldingRange_Response
         renames Folding_Range_Request;
 
-   ------------------------------
+   --------------------------------
    -- On_Selection_Range_Request --
-   ------------------------------
+   --------------------------------
 
    function Selection_Range_Request is new Generic_Request
      (Request    => LSP.Messages.Server_Requests.Selection_Range_Request,
@@ -253,6 +253,23 @@ package body LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)
       return LSP.Messages.Server_Responses.SelectionRange_Response
         renames Selection_Range_Request;
+
+   -------------------------------------
+   -- On_Document_Tokens_Full_Request --
+   -------------------------------------
+
+   function Document_Tokens_Full_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.Document_Tokens_Full_Request,
+      Response   => LSP.Messages.Server_Responses.SemanticTokens_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request =>
+         LSP.Server_Request_Handlers.On_Document_Tokens_Full_Request);
+
+   overriding function On_Document_Tokens_Full_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response
+        renames Document_Tokens_Full_Request;
 
    --------------------------
    -- On_Highlight_Request --

@@ -842,6 +842,8 @@ package body LSP.Ada_Contexts is
              (Position.position.line) + 1,
              Column => Langkit_Support.Slocs.Column_Number
                (Position.position.character) + Col_Incr));
+         --  ??? Incorrect conversion of UTF16 offset to Column_Number
+
       else
          return Libadalang.Analysis.No_Ada_Node;
       end if;

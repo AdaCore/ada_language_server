@@ -160,6 +160,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.SelectionRange_Response
         is abstract;
 
+   function On_Document_Tokens_Full_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response
+        is abstract;
+
    function On_Prepare_Call_Hierarchy_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)

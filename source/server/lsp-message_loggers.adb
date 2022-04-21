@@ -46,6 +46,7 @@ package body LSP.Message_Loggers is
    function Image (Value : LSP.Messages.TextDocumentIdentifier) return String;
    function Image (Value : LSP.Messages.FormattingOptions) return String;
    function Image (Value : LSP.Messages.TextEdit_Vector) return String;
+   function Image (Value : LSP.Messages.SemanticTokens) return String;
    function Image (Value : LSP.Messages.FileCreate) return String;
    function Image (Value : LSP.Messages.FileRename) return String;
    function Image (Value : LSP.Messages.FileDelete) return String;
@@ -98,6 +99,15 @@ package body LSP.Message_Loggers is
       Prefix : constant String := "Request ";
    begin
       return Prefix & Image (Value.id) & ' ';
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Value : LSP.Messages.SemanticTokens) return String is
+   begin
+      return Value.data.Length'Image;
    end Image;
 
    -----------
@@ -958,6 +968,40 @@ package body LSP.Message_Loggers is
          & Image (Value)
          & (+Value.params.textDocument.uri));
    end On_Document_Symbols_Request;
+
+   -------------------------------------
+   -- On_Document_Tokens_Full_Request --
+   -------------------------------------
+
+   overriding procedure On_Document_Tokens_Full_Request
+     (Self   : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Tokens_Full_Request) is
+   begin
+      Self.Trace.Trace
+        ("Document_Tokens_Full_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri));
+   end On_Document_Tokens_Full_Request;
+
+   --------------------------------
+   -- On_SemanticTokens_Response --
+   --------------------------------
+
+   overriding procedure On_SemanticTokens_Response
+     (Self  : in out Message_Logger;
+      Value : LSP.Messages.Server_Responses.SemanticTokens_Response) is
+   begin
+      if Value.Is_Error then
+         Self.Trace.Trace
+           ("SemanticTokens: " & Image (Value) & " Error");
+         return;
+      end if;
+
+      Self.Trace.Trace
+        ("SemanticTokens: "
+         & Image (Value)
+         & Image (Value.result));
+   end On_SemanticTokens_Response;
 
    --------------------------------
    -- On_Execute_Command_Request --

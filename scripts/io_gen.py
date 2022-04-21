@@ -255,6 +255,7 @@ types_to_print = {
     'CallHierarchyIncomingCallsParams',
     'CallHierarchyIncomingCall',
     'CallHierarchyOutgoingCall',
+    'SemanticTokensParams',
     'SemanticTokens',
     'SemanticTokensPartialResult',
     'SemanticTokensDeltaParams',
