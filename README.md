@@ -173,6 +173,7 @@ The extension includes a task provider. It provides the following "auto-detected
 * "ada: Clean current project" - launch `gprclean` to clean the current GPR project
 * "ada: Prove project" - launch `gnatprove` on the current GPR project
 * "ada: Prove file" - launch `gnatprove` on the file in the current editor
+* "ada: Prove subprogram" - launch `gnatprove` on the current subprogram in the current editor
 * "ada: Prove selected region" - launch `gnatprove` on the selected region in the current editor
 * "ada: Prove line" - launch `gnatprove` on the cursor line in the current editor
 
