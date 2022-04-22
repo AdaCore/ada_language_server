@@ -52,6 +52,7 @@ with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor_Add_Parameter;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
@@ -85,6 +86,7 @@ with Laltools.Refactor.Suppress_Separate;
 with Laltools.Refactor.Extract_Subprogram;
 with Laltools.Refactor.Pull_Up_Declaration;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
+with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1284,6 +1286,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Change Parameters Type refactoring tool is avaiable,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Change_Parameters_Default_Value_Code_Action;
+         --  Checks if the Change Parameters Default Value refactoring tool is
+         --  avaiable, and if so, appends a Code Action with its Command.
+
          procedure Extract_Subprogram_Code_Action;
          --  Checks if the Extract Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -1367,6 +1373,39 @@ package body LSP.Ada_Handlers is
                   Syntax_Rules                => Syntax_Rules);
             end if;
          end Change_Parameters_Type_Code_Action;
+
+         -------------------------------------------------
+         -- Change_Parameters_Default_Value_Code_Action --
+         -------------------------------------------------
+
+         procedure Change_Parameters_Default_Value_Code_Action is
+            use Langkit_Support.Slocs;
+            use Laltools.Refactor.Subprogram_Signature.
+                  Change_Parameters_Default_Value;
+            use LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
+               Column_Number (Params.span.first.character) + 1,
+               Column_Number (Params.span.last.character) + 1);
+
+            Change_Parameters_Default_Value_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Default_Value_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span)
+            then
+               Change_Parameters_Default_Value_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Params.textDocument.uri,
+                     span    => Params.span,
+                     alsKind => LSP.Messages.Empty_Set));
+            end if;
+         end Change_Parameters_Default_Value_Code_Action;
 
          ------------------------------------
          -- Extract_Subprogram_Code_Action --
@@ -1646,6 +1685,13 @@ package body LSP.Ada_Handlers is
               Advanced_Refactorings (Change_Parameters_Type)
          then
             Change_Parameters_Type_Code_Action;
+         end if;
+
+         --  Change Parameters Default Value
+         if Self.Experimental_Client_Capabilities.
+              Advanced_Refactorings (Change_Parameters_Default_Value)
+         then
+            Change_Parameters_Default_Value_Code_Action;
          end if;
 
          --  Remove Parameter

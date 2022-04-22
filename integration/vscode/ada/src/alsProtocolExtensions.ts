@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2021, AdaCore                        --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,7 @@ export enum AdaGrammarRule {
     Param_Spec_Rule = 'Param_Spec_Rule',
     Anonymous_Type_Rule = 'Anonymous_Type_Rule',
     Subtype_Indication_Rule = 'Subtype_Indication_Rule',
+    Expr_Rule = 'Expr_Rule',
 }
 
 /**
@@ -65,6 +66,7 @@ export class AdaSyntaxCheckProvider {
     private readonly client: LanguageClient;
     rules: string[];
     diagnostic?: string;
+    canBeEmpty: boolean;
 
     /**
      * AdaSyntaxCheckProvider constructor
@@ -72,11 +74,18 @@ export class AdaSyntaxCheckProvider {
      * @param client - An ALS LanguageClient
      * @param rules - Set of rules used to check an input against
      * @param diagnotic - And optional diagnostic message that overwrites the one sent by the server
+     * @param canBeEmpty - Flag to allow empty inputs
      */
-    constructor(client: LanguageClient, rules: AdaGrammarRule[], diagnotic?: string) {
+    constructor(
+        client: LanguageClient,
+        rules: AdaGrammarRule[],
+        diagnotic?: string,
+        canBeEmpty = false
+    ) {
         this.client = client;
         this.rules = rules.map((rule) => rule.toString());
         this.diagnostic = diagnotic;
+        this.canBeEmpty = canBeEmpty;
     }
 
     /**
@@ -87,6 +96,19 @@ export class AdaSyntaxCheckProvider {
      * string with a human-readable diagnostic message in case it is not.
      */
     public sendCheckSyntaxRequest = async (input: string): Promise<undefined | string> => {
+        // Resolve immediately for empty inputs
+        if (input === '') {
+            if (this.canBeEmpty) {
+                return new Promise<undefined | string>((resolve) => {
+                    resolve(undefined);
+                });
+            } else {
+                return new Promise<undefined | string>((reject) => {
+                    reject('Input cannot be empty');
+                });
+            }
+        }
+
         const method = '$/alsCheckSyntax';
 
         const request: AdaSyntaxCheckRequest = {
