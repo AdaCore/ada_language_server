@@ -171,6 +171,9 @@ The extension includes a task provider. It provides the following "auto-detected
 * "ada: Build current project" - launch `gprbuild` to build the current GPR project
 * "ada: Check current file" - launch `gprbuild` to check errors in the current editor
 * "ada: Clean current project" - launch `gprclean` to clean the current GPR project
+* "ada: Examine project" - launch `gnatprove` in flow analysis mode on the current GPR project
+* "ada: Examine file" - launch `gnatprove` in flow analysis mode on the file in the current editor
+* "ada: Examine subprogram" - launch `gnatprove` in flow analysis mode on the current subprogram in the current editor
 * "ada: Prove project" - launch `gnatprove` on the current GPR project
 * "ada: Prove file" - launch `gnatprove` on the file in the current editor
 * "ada: Prove subprogram" - launch `gnatprove` on the current subprogram in the current editor
