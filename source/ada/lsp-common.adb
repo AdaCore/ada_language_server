@@ -314,7 +314,7 @@ package body LSP.Common is
 
       begin
          if Documentation /= null then
-            Result := GNATdoc.Comments.Helpers.Get_Subprogram_Snippet
+            Result := GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
               (Documentation.all);
 
          else
@@ -531,6 +531,8 @@ package body LSP.Common is
       Documentation : GNATdoc.Comments.Structured_Comment_Access := null)
       return VSS.Strings.Virtual_String
    is
+      use type GNATdoc.Comments.Structured_Comment_Access;
+
       Decl_Text      : VSS.String_Vectors.Virtual_String_Vector;
       Subp_Spec_Node : Base_Subp_Spec;
 
@@ -566,6 +568,10 @@ package body LSP.Common is
                end if;
             end if;
          end;
+
+      elsif Documentation /= null then
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet (Documentation.all);
 
       else
          Decl_Text := Get_Hover_Text_For_Node (Decl, null);
