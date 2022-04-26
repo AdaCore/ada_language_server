@@ -2797,6 +2797,9 @@ package body LSP.Ada_Handlers is
            GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
              (Documentation.all,
               To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
+             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
 
       elsif Decl.Kind = Ada_Type_Decl
         and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Enum_Type_Def
