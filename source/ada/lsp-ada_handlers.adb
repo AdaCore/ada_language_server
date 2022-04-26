@@ -2821,6 +2821,13 @@ package body LSP.Ada_Handlers is
          Decl_Text :=
            GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
              (Documentation.all).Join_Lines (VSS.Strings.LF, False);
+
+      else
+         --  Obtain documentation when GNATdoc support is missing.
+
+         Comments_Text :=
+           VSS.Strings.To_Virtual_String
+             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
       end if;
 
       if Decl_Text.Is_Empty then
@@ -2860,15 +2867,6 @@ package body LSP.Ada_Handlers is
 
       --  Append the comments associated with the basic declaration
       --  if any.
-
-      if Comments_Text.Is_Empty then
-         --  Last chance to obtain documentation. It is not needed when
-         --  GNATdoc is used.
-
-         Comments_Text :=
-           VSS.Strings.To_Virtual_String
-             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
-      end if;
 
       if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
