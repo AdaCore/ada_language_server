@@ -2805,16 +2805,22 @@ package body LSP.Ada_Handlers is
            GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
          Comments_Text :=
            GNATdoc.Comments.Helpers.Get_Enumeration_Type_Description
-                (Documentation.all);
+             (Documentation.all);
+
+      elsif Decl.Kind = Ada_Enum_Literal_Decl then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract
+             (Decl.As_Enum_Literal_Decl.P_Enum_Type, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Enumeration_Literal_Description
+             (Documentation.all,
+              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
+             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
       end if;
 
-      --  If the basic declaration is an enum literal, display the whole
-      --  enumeration type declaration instead.
-
-      if Decl.Kind in Ada_Enum_Literal_Decl then
-         Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
-         Decl_Text := Get_Hover_Text (Decl);
-      else
+      if Decl_Text.Is_Empty then
          Decl_Text := Get_Hover_Text (Decl, Documentation);
       end if;
 
