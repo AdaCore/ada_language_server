@@ -2797,15 +2797,40 @@ package body LSP.Ada_Handlers is
            GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
              (Documentation.all,
               To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
+             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
+
+      elsif Decl.Kind = Ada_Type_Decl
+        and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Enum_Type_Def
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Enumeration_Type_Description
+             (Documentation.all);
+
+      elsif Decl.Kind = Ada_Enum_Literal_Decl then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract
+             (Decl.As_Enum_Literal_Decl.P_Enum_Type, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Enumeration_Literal_Description
+             (Documentation.all,
+              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
+             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
+
+      else
+         --  Obtain documentation when GNATdoc support is missing.
+
+         Comments_Text :=
+           VSS.Strings.To_Virtual_String
+             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
       end if;
 
-      --  If the basic declaration is an enum literal, display the whole
-      --  enumeration type declaration instead.
-
-      if Decl.Kind in Ada_Enum_Literal_Decl then
-         Decl := As_Enum_Literal_Decl (Decl).P_Enum_Type.As_Basic_Decl;
-         Decl_Text := Get_Hover_Text (Decl);
-      else
+      if Decl_Text.Is_Empty then
          Decl_Text := Get_Hover_Text (Decl, Documentation);
       end if;
 
@@ -2842,15 +2867,6 @@ package body LSP.Ada_Handlers is
 
       --  Append the comments associated with the basic declaration
       --  if any.
-
-      if Comments_Text.Is_Empty then
-         --  Last chance to obtain documentation. It is not needed when
-         --  GNATdoc is used.
-
-         Comments_Text :=
-           VSS.Strings.To_Virtual_String
-             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
-      end if;
 
       if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
@@ -5324,36 +5340,52 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
       return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
    is
-      Value : LSP.Messages.CallHierarchyPrepareParams renames
+      Value     : LSP.Messages.CallHierarchyPrepareParams renames
         Request.params;
 
-      Response : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
+      Response  : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
         (Is_Error => False);
 
       Imprecise : Boolean := False;
 
-      C : constant Context_Access :=
+      C         : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the PrepareCallHierarchy request, we're only interested in the
       --  "best" response value, not in the list of values for all contexts
 
-      Node : constant Libadalang.Analysis.Name :=
+      Node      : constant Libadalang.Analysis.Name :=
         Laltools.Common.Get_Node_As_Name
           (C.Get_Node_At
             (Get_Open_Document (Self, Value.textDocument.uri), Value));
 
-      Name : constant Libadalang.Analysis.Defining_Name :=
+      Name      : constant Libadalang.Analysis.Defining_Name :=
         Laltools.Common.Resolve_Name
           (Node,
            Self.Trace,
            Imprecise);
 
+      Decl      : Libadalang.Analysis.Basic_Decl;
+      Next_Part : Libadalang.Analysis.Basic_Decl;
    begin
       if Name.Is_Null then
          return Response;
       end if;
 
-      Response.result.Append (To_Call_Hierarchy_Item (Name));
+      Decl := Name.P_Basic_Decl;
+
+      if Decl.Is_Null or else not Decl.P_Is_Subprogram then
+         return Response;
+      end if;
+
+      Next_Part :=
+        Laltools.Common.Find_Next_Part_For_Decl (Decl, Self.Trace);
+
+      if Next_Part.Is_Null then
+         Next_Part := Decl;
+      end if;
+
+      Response.result.Append
+        (To_Call_Hierarchy_Item (Next_Part.P_Defining_Name));
 
       if Imprecise then
          Self.Show_Imprecise_Reference_Warning ("prepareCallHierarchy");
