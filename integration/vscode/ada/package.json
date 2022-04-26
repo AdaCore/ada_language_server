@@ -6,7 +6,7 @@
     "publisher": "AdaCore",
     "license": "GPL-3.0",
     "engines": {
-        "vscode": "^1.53.0"
+        "vscode": "^1.64.2"
     },
     "categories": [
         "Programming Languages"
@@ -101,80 +101,210 @@
             {
                 "language": "ada",
                 "scopes": {
-                    "namespace": [ "entity.name.label.ada" ],
-                    "type": [ "entity.name.type.ada" ],
-                    "class": [ "entity.name.type.class.ada" ],
-                    "enum": [ "entity.name.type.enum.ada" ],
-                    "interface": [ "entity.name.type.interface.ada" ],
-                    "struct": [ "entity.name.type.struct.ada" ],
-                    "typeParameter": [ "variable.other.constant.parameter.ada" ],
-                    "parameter": [ "entity.name.variable.parameter.ada" ],
-                    "variable": [ "entity.name.variable.ada" ],
-                    "property": [ "entity.name.variable.property.ada" ],
-                    "enumMember": [ "variable.other.enummember.ada" ],
-                    "function": [ "entity.name.function.ada" ],
-                    "keyword": [ "keyword.other.ada" ],
-                    "modifier": [ "storage.modifier.ada" ],
-                    "comment": [ "comment.line.ada" ],
-                    "string": [ "string.quoted.double.ada" ],
-                    "number": [ "constant.numeric.ada" ],
-                    "operator": [ "entity.name.operator.ada" ],
-
-                    "parameter.readonly": [ "variable.other.constant.parameter.ada" ],
-                    "variable.readonly": [ "variable.other.constant.ada" ],
-                    "property.readonly": [ "variable.other.constant.property.ada" ],
-
-                    "namespace.deprecated": [ "markup.strikethrough.namespace.ada" ],
-                    "type.deprecated": [ "markup.strikethrough.type.ada" ],
-                    "class.deprecated": [ "markup.strikethrough.class.ada" ],
-                    "enum.deprecated": [ "markup.strikethrough.enum.ada" ],
-                    "interface.deprecated": [ "markup.strikethrough.interface.ada" ],
-                    "struct.deprecated": [ "markup.strikethrough.struct.ada" ],
-                    "variable.deprecated": [ "markup.strikethrough.variable.ada" ],
-                    "property.deprecated": [ "markup.strikethrough.property.ada" ],
-                    "function.deprecated": [ "markup.strikethrough.function.ada" ],
-
-                    "type.abstract": [ "entity.name.type.abstract.ada" ],
-                    "class.abstract": [ "entity.name.type.class.abstract.ada" ],
-                    "function.abstract": [ "entity.name.function.abstract.ada" ],
-                    "operator.abstract": [ "entity.name.operator.abstract.ada" ],
-
-                    "parameter.modification": [ "variable.write.parameter.ada" ],
-                    "variable.modification": [ "variable.write.ada" ],
-                    "property.modification": [ "variable.write.property.ada" ],
-
-                    "namespace.documentation": [ "comment.block.namespace.ada" ],
-                    "type.documentation": [ "comment.block.type.ada" ],
-                    "class.documentation": [ "comment.block.class.ada" ],
-                    "enum.documentation": [ "comment.block.enum.ada" ],
-                    "interface.documentation": [ "comment.block.interface.ada" ],
-                    "struct.documentation": [ "comment.block.struct.ada" ],
-                    "typeParameter.documentation": [ "comment.block.typeParameter.ada" ],
-                    "parameter.documentation": [ "comment.block.parameter.ada" ],
-                    "variable.documentation": [ "comment.block.variable.ada" ],
-                    "property.documentation": [ "comment.block.property.ada" ],
-                    "enumMember.documentation": [ "comment.block.enumMember.ada" ],
-                    "function.documentation": [ "comment.block.function.ada" ],
-                    "keyword.documentation": [ "comment.block.keyword.ada" ],
-                    "modifier.documentation": [ "comment.block.modifier.ada" ],
-                    "comment.documentation": [ "comment.block.comment.ada" ],
-                    "string.documentation": [ "comment.block.string.ada" ],
-                    "number.documentation": [ "comment.block.number.ada" ],
-                    "operator.documentation": [ "comment.block.operator.ada" ],
-
-                    "namespace.defaultLibrary": [ "support.namespace.ada" ],
-                    "type.defaultLibrary": [ "support.type.ada" ],
-                    "class.defaultLibrary": [ "support.class.ada" ],
-                    "enum.defaultLibrary": [ "support.type.enum.ada" ],
-                    "interface.defaultLibrary": [ "support.type.interface.ada" ],
-                    "struct.defaultLibrary": [ "support.type.struct.ada" ],
-                    "typeParameter.defaultLibrary": [ "support.variable.discriminant.ada" ],
-                    "parameter.defaultLibrary": [ "support.variable.parameter.ada" ],
-                    "variable.defaultLibrary": [ "support.variable.ada" ],
-                    "property.defaultLibrary": [ "support.variable.property.ada" ],
-                    "enumMember.defaultLibrary": [ "support.constant.enummember.ada" ],
-                    "function.defaultLibrary": [ "support.function.ada" ],
-                    "operator.defaultLibrary": [ "support.function.operator.ada" ]
+                    "namespace": [
+                        "entity.name.label.ada"
+                    ],
+                    "type": [
+                        "entity.name.type.ada"
+                    ],
+                    "class": [
+                        "entity.name.type.class.ada"
+                    ],
+                    "enum": [
+                        "entity.name.type.enum.ada"
+                    ],
+                    "interface": [
+                        "entity.name.type.interface.ada"
+                    ],
+                    "struct": [
+                        "entity.name.type.struct.ada"
+                    ],
+                    "typeParameter": [
+                        "variable.other.constant.parameter.ada"
+                    ],
+                    "parameter": [
+                        "entity.name.variable.parameter.ada"
+                    ],
+                    "variable": [
+                        "entity.name.variable.ada"
+                    ],
+                    "property": [
+                        "entity.name.variable.property.ada"
+                    ],
+                    "enumMember": [
+                        "variable.other.enummember.ada"
+                    ],
+                    "function": [
+                        "entity.name.function.ada"
+                    ],
+                    "keyword": [
+                        "keyword.other.ada"
+                    ],
+                    "modifier": [
+                        "storage.modifier.ada"
+                    ],
+                    "comment": [
+                        "comment.line.ada"
+                    ],
+                    "string": [
+                        "string.quoted.double.ada"
+                    ],
+                    "number": [
+                        "constant.numeric.ada"
+                    ],
+                    "operator": [
+                        "entity.name.operator.ada"
+                    ],
+                    "parameter.readonly": [
+                        "variable.other.constant.parameter.ada"
+                    ],
+                    "variable.readonly": [
+                        "variable.other.constant.ada"
+                    ],
+                    "property.readonly": [
+                        "variable.other.constant.property.ada"
+                    ],
+                    "namespace.deprecated": [
+                        "markup.strikethrough.namespace.ada"
+                    ],
+                    "type.deprecated": [
+                        "markup.strikethrough.type.ada"
+                    ],
+                    "class.deprecated": [
+                        "markup.strikethrough.class.ada"
+                    ],
+                    "enum.deprecated": [
+                        "markup.strikethrough.enum.ada"
+                    ],
+                    "interface.deprecated": [
+                        "markup.strikethrough.interface.ada"
+                    ],
+                    "struct.deprecated": [
+                        "markup.strikethrough.struct.ada"
+                    ],
+                    "variable.deprecated": [
+                        "markup.strikethrough.variable.ada"
+                    ],
+                    "property.deprecated": [
+                        "markup.strikethrough.property.ada"
+                    ],
+                    "function.deprecated": [
+                        "markup.strikethrough.function.ada"
+                    ],
+                    "type.abstract": [
+                        "entity.name.type.abstract.ada"
+                    ],
+                    "class.abstract": [
+                        "entity.name.type.class.abstract.ada"
+                    ],
+                    "function.abstract": [
+                        "entity.name.function.abstract.ada"
+                    ],
+                    "operator.abstract": [
+                        "entity.name.operator.abstract.ada"
+                    ],
+                    "parameter.modification": [
+                        "variable.write.parameter.ada"
+                    ],
+                    "variable.modification": [
+                        "variable.write.ada"
+                    ],
+                    "property.modification": [
+                        "variable.write.property.ada"
+                    ],
+                    "namespace.documentation": [
+                        "comment.block.namespace.ada"
+                    ],
+                    "type.documentation": [
+                        "comment.block.type.ada"
+                    ],
+                    "class.documentation": [
+                        "comment.block.class.ada"
+                    ],
+                    "enum.documentation": [
+                        "comment.block.enum.ada"
+                    ],
+                    "interface.documentation": [
+                        "comment.block.interface.ada"
+                    ],
+                    "struct.documentation": [
+                        "comment.block.struct.ada"
+                    ],
+                    "typeParameter.documentation": [
+                        "comment.block.typeParameter.ada"
+                    ],
+                    "parameter.documentation": [
+                        "comment.block.parameter.ada"
+                    ],
+                    "variable.documentation": [
+                        "comment.block.variable.ada"
+                    ],
+                    "property.documentation": [
+                        "comment.block.property.ada"
+                    ],
+                    "enumMember.documentation": [
+                        "comment.block.enumMember.ada"
+                    ],
+                    "function.documentation": [
+                        "comment.block.function.ada"
+                    ],
+                    "keyword.documentation": [
+                        "comment.block.keyword.ada"
+                    ],
+                    "modifier.documentation": [
+                        "comment.block.modifier.ada"
+                    ],
+                    "comment.documentation": [
+                        "comment.block.comment.ada"
+                    ],
+                    "string.documentation": [
+                        "comment.block.string.ada"
+                    ],
+                    "number.documentation": [
+                        "comment.block.number.ada"
+                    ],
+                    "operator.documentation": [
+                        "comment.block.operator.ada"
+                    ],
+                    "namespace.defaultLibrary": [
+                        "support.namespace.ada"
+                    ],
+                    "type.defaultLibrary": [
+                        "support.type.ada"
+                    ],
+                    "class.defaultLibrary": [
+                        "support.class.ada"
+                    ],
+                    "enum.defaultLibrary": [
+                        "support.type.enum.ada"
+                    ],
+                    "interface.defaultLibrary": [
+                        "support.type.interface.ada"
+                    ],
+                    "struct.defaultLibrary": [
+                        "support.type.struct.ada"
+                    ],
+                    "typeParameter.defaultLibrary": [
+                        "support.variable.discriminant.ada"
+                    ],
+                    "parameter.defaultLibrary": [
+                        "support.variable.parameter.ada"
+                    ],
+                    "variable.defaultLibrary": [
+                        "support.variable.ada"
+                    ],
+                    "property.defaultLibrary": [
+                        "support.variable.property.ada"
+                    ],
+                    "enumMember.defaultLibrary": [
+                        "support.constant.enummember.ada"
+                    ],
+                    "function.defaultLibrary": [
+                        "support.function.ada"
+                    ],
+                    "operator.defaultLibrary": [
+                        "support.function.operator.ada"
+                    ]
                 }
             }
         ],
@@ -347,22 +477,22 @@
         ]
     },
     "devDependencies": {
-        "@types/glob": "^7.1.3",
-        "@types/mocha": "^8.2.2",
-        "@types/node": "^16.0.0",
-        "@types/vscode": "^1.53.0",
-        "@typescript-eslint/eslint-plugin": "^4.28.1",
-        "@typescript-eslint/parser": "^4.28.1",
-        "eslint": "^7.30.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^3.4.0",
-        "eslint-plugin-tsdoc": "^0.2.14",
-        "glob": "^7.1.7",
-        "mocha": "^9.0.2",
-        "prettier": "^2.3.2",
-        "typescript": "^4.3.5",
-        "vscode-test": "^1.5.2",
-        "vscode-tmgrammar-test": "^0.0.11"
+        "@types/glob": "7.2.0",
+        "@types/mocha": "9.1.1",
+        "@types/node": "14.17.6",
+        "@types/vscode": "1.64.0",
+        "@typescript-eslint/eslint-plugin": "5.21.0",
+        "@typescript-eslint/parser": "5.21.0",
+        "@vscode/test-electron": "2.1.3",
+        "eslint": "8.14.0",
+        "eslint-config-prettier": "8.5.0",
+        "eslint-plugin-prettier": "4.0.0",
+        "eslint-plugin-tsdoc": "0.2.16",
+        "glob": "7.2.0",
+        "mocha": "9.2.2",
+        "prettier": "2.6.2",
+        "typescript": "4.6.3",
+        "vscode-tmgrammar-test": "0.0.11"
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
@@ -373,8 +503,9 @@
         "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
-        "process": "^0.11.10",
-        "vscode-languageclient": "^7.0.0",
-        "ws": "^7.5.2"
+        "process": "0.11.10",
+        "fp-ts": "2.12.0",
+        "vscode-languageclient": "7.0.0",
+        "ws": "8.5.0"
     }
 }
