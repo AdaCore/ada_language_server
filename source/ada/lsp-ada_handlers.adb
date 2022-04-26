@@ -2797,6 +2797,15 @@ package body LSP.Ada_Handlers is
            GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
              (Documentation.all,
               To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+
+      elsif Decl.Kind = Ada_Type_Decl
+        and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Enum_Type_Def
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Enumeration_Type_Description
+                (Documentation.all);
       end if;
 
       --  If the basic declaration is an enum literal, display the whole
