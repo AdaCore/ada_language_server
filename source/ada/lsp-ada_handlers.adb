@@ -443,7 +443,8 @@ package body LSP.Ada_Handlers is
         Laltools.Common.Get_Node_As_Name
           (In_Context.Get_Node_At
              (Get_Open_Document (Self, Position.textDocument.uri),
-              Position));
+              Position,
+              Project_Only => False));
 
       Imprecise  : Boolean;
    begin
