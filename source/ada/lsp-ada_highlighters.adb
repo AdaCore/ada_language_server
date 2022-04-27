@@ -250,10 +250,15 @@ package body LSP.Ada_Highlighters is
       use type Libadalang.Common.Token_Reference;
 
       From_Token : constant Libadalang.Common.Token_Reference :=
-        Unit.First_Token;
+        (if Libadalang.Common.Is_Trivia (Unit.First_Token)
+         then Libadalang.Common.Next (Unit.First_Token, Exclude_Trivia => True)
+         else Unit.First_Token);
 
       To_Token : constant Libadalang.Common.Token_Reference :=
-        Unit.Last_Token;
+        (if Libadalang.Common.Is_Trivia (Unit.Last_Token)
+         then Libadalang.Common.Previous
+           (Unit.Last_Token, Exclude_Trivia => True)
+         else Unit.Last_Token);
 
       function Is_Ghost_Root_Node
         (Node  : Libadalang.Analysis.Ada_Node'Class) return Boolean;
@@ -446,7 +451,7 @@ package body LSP.Ada_Highlighters is
             case Decl.Kind is
                when Libadalang.Common.Ada_Basic_Subp_Decl =>
                   if Decl.Kind = Ada_Enum_Literal_Decl then
-                     return enum;
+                     return enumMember;
                   else
                      return a_function;
                   end if;
@@ -609,6 +614,8 @@ package body LSP.Ada_Highlighters is
 
                return;
             end if;
+         elsif Node.Kind = Ada_String_Literal then
+            return;
          end if;
 
          if Node.P_Is_Operator_Name then
