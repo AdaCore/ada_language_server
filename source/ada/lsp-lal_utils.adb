@@ -1638,11 +1638,10 @@ package body LSP.Lal_Utils is
       --  Corresponding To-token in Output document
       Ignore : Utils.Char_Vectors.Char_Subrange;
       Ok : Boolean;
+
    begin
-      --  it seems that Format_Vector does not use In_/Out_Range properly, so
-      --  using full text for now
       Pp.Actions.Format_Vector
-        (Cmd, Input, Node, Input.Full_Range, Output, Ignore, Messages);
+        (Cmd, Input, Node, Output, Messages);
 
       if In_Sloc = Langkit_Support.Slocs.No_Source_Location_Range then
          --  Return full range of Output
