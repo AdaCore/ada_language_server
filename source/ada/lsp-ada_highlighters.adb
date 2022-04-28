@@ -65,6 +65,8 @@ package body LSP.Ada_Highlighters is
         array (LSP.Messages.SemanticTokenModifiers) of Boolean
           with Pack;
 
+      Empty : constant Modifier_Set := (others => False);
+
       type Semantic_Token (Is_Set : Boolean := False) is record
          Modifiers  : Modifier_Set;
 
@@ -250,10 +252,15 @@ package body LSP.Ada_Highlighters is
       use type Libadalang.Common.Token_Reference;
 
       From_Token : constant Libadalang.Common.Token_Reference :=
-        Unit.First_Token;
+        (if Libadalang.Common.Is_Trivia (Unit.First_Token)
+         then Libadalang.Common.Next (Unit.First_Token, Exclude_Trivia => True)
+         else Unit.First_Token);
 
       To_Token : constant Libadalang.Common.Token_Reference :=
-        Unit.Last_Token;
+        (if Libadalang.Common.Is_Trivia (Unit.Last_Token)
+         then Libadalang.Common.Previous
+           (Unit.Last_Token, Exclude_Trivia => True)
+         else Unit.Last_Token);
 
       function Is_Ghost_Root_Node
         (Node  : Libadalang.Analysis.Ada_Node'Class) return Boolean;
@@ -290,16 +297,18 @@ package body LSP.Ada_Highlighters is
         (Holder : Highlights_Holders.Highlights_Holder;
          Result : out LSP.Messages.uinteger_Vector)
       is
-         subtype uint is LSP.Messages.uinteger;
          use all type LSP.Messages.SemanticTokenTypes;
          use all type Libadalang.Common.Token_Kind;
          use type Langkit_Support.Slocs.Line_Number;
          use type Langkit_Support.Slocs.Column_Number;
 
+         subtype uint is LSP.Messages.uinteger;
+
          Last : Langkit_Support.Slocs.Source_Location := (1, 1);
 
          Token : Libadalang.Common.Token_Reference := From_Token;
       begin
+         --  Scan over all tokens and find a corresponding value in Holder
          while Token < To_Token loop
 
             declare
@@ -310,7 +319,9 @@ package body LSP.Ada_Highlighters is
                  Libadalang.Common.Data (Token);
             begin
                declare
-                  Sloc_Range                                  : constant
+                  use type Highlights_Holders.Modifier_Set;
+
+                  Sloc_Range : constant
                     Langkit_Support.Slocs.Source_Location_Range :=
                       Libadalang.Common.Sloc_Range (Token_Data);
 
@@ -322,17 +333,26 @@ package body LSP.Ada_Highlighters is
                   Map   : constant array (Libadalang.Common.Token_Kind) of
                     LSP.Messages.SemanticTokenTypes :=
                       (Ada_All .. Ada_Xor | Ada_With => keyword,
-                       Ada_Lte .. Ada_Divide => operator,
+                       Ada_Par_Close .. Ada_Target => operator,
                        Ada_String | Ada_Char => a_string,
                        Ada_Decimal | Ada_Integer => number,
                        Ada_Comment => comment,
-                       Ada_Identifier => modifier,  --  ???
+                       Ada_Identifier => modifier,
                        others => Skip);
 
                   Mapped_Token : constant LSP.Messages.SemanticTokenTypes :=
                     Map (Libadalang.Common.Kind (Token_Data));
                begin
-                  if Value.Is_Set or Mapped_Token /= Skip then
+                  --  If we have no token type calculated and no modifiers then
+                  --  skip this token. For instance skip string literals those
+                  --  are not in GHost code. This lets VS Code use rule-based
+                  --  (lexical level) highlighter. Such highlighter is capable
+                  --  to highlight character escape sequences inside a string
+                  --  literal, or +/- before exponent in numeric literal, etc.
+                  if Value.Is_Set or
+                    (Mapped_Token /= Skip and then
+                       Value.Modifiers /= Highlights_Holders.Empty)
+                  then
                      pragma Assert
                        (Sloc_Range.End_Line = Sloc_Range.Start_Line);
 
@@ -341,19 +361,17 @@ package body LSP.Ada_Highlighters is
                      --  deltaStartChar
                      Result.Append
                        (uint
-                          (Start.Column -
-                               (if Start.Line = Last.Line
-                                then Last.Column else 1)));
+                         (Start.Column -
+                           (if Start.Line = Last.Line
+                            then Last.Column else 1)));
                      --  length
                      Result.Append
                        (uint
-                          (Sloc_Range.End_Column - Sloc_Range.Start_Column));
+                         (Sloc_Range.End_Column - Sloc_Range.Start_Column));
                      --  tokenType
-                     if Value.Is_Set then
-                        Result.Append (Self.Token_Types (Value.Kind));
-                     else
-                        Result.Append (Self.Token_Types (Mapped_Token));
-                     end if;
+                     Result.Append
+                       (Self.Token_Types
+                         (if Value.Is_Set then Value.Kind else Mapped_Token));
                      --  tokenModifiers
                      Result.Append (Self.To_Int (Value.Modifiers));
 
@@ -361,8 +379,7 @@ package body LSP.Ada_Highlighters is
                   end if;
                end;
 
-               Token := Libadalang.Common.Next
-                 (Token, Exclude_Trivia => True);
+               Token := Libadalang.Common.Next (Token, Exclude_Trivia => True);
 
                exit when not (Token < To_Token);
             end;
@@ -446,7 +463,7 @@ package body LSP.Ada_Highlighters is
             case Decl.Kind is
                when Libadalang.Common.Ada_Basic_Subp_Decl =>
                   if Decl.Kind = Ada_Enum_Literal_Decl then
-                     return enum;
+                     return enumMember;
                   else
                      return a_function;
                   end if;
@@ -539,6 +556,7 @@ package body LSP.Ada_Highlighters is
          Kind : LSP.Messages.SemanticTokenTypes;
       begin
          if Node.Kind not in Ada_Identifier | Ada_String_Literal then
+            --  Highlight only identifiers and operator symbols
             return;
          end if;
 
@@ -609,12 +627,15 @@ package body LSP.Ada_Highlighters is
 
                return;
             end if;
+         elsif Node.Kind = Ada_String_Literal then
+            return;  --  This is not an operator symbol, so do nothing
          end if;
 
          if Node.P_Is_Operator_Name then
             Highlight_Token (Node.Token_Start, operator);
          else
-            Highlight_Token (Node.Token_Start, modifier);  --  fallback?
+            --  Fallback to some default for any unresolved identifier
+            Highlight_Token (Node.Token_Start, modifier);
          end if;
 
       exception
@@ -696,6 +717,10 @@ package body LSP.Ada_Highlighters is
          case Node.Kind is
             when Libadalang.Common.Ada_Basic_Decl =>
                return Node.As_Basic_Decl.P_Is_Ghost_Code;
+            when Libadalang.Common.Ada_Aspect_Spec =>
+               --  Mark all aspects as a ghost code, because most of aspects
+               --  are contract specifications.
+               return True;
             when others =>
                return False;
          end case;
