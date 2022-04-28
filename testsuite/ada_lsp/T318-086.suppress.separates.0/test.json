@@ -288,7 +288,7 @@
                                        "character": 29
                                     }
                                  },
-                                 "newText": "\nis\nuse Ada.Characters.Conversions;\nuse Ada.Numerics.Elementary_Functions;\nB : Boolean;\nbegin\n   Put_Line (\"Separate_Do_Nothing\");\n   Put_Line (Ada.Numerics.Elementary_Functions.Log (10.0)'Image);\n   Ada.Assertions.Assert (1 = 1);\n   Ada.Assertions.Assert (Is_Character (Wide_Character'('a')));\n   B := Baz (2);\nend Bar;\n"
+                                 "newText": "\n   is\n      use Ada.Characters.Conversions;\n      use Ada.Numerics.Elementary_Functions;\n\n      B : Boolean;\n   begin\n      Put_Line (\"Separate_Do_Nothing\");\n      Put_Line (Ada.Numerics.Elementary_Functions.Log (10.0)'Image);\n      Ada.Assertions.Assert (1 = 1);\n      Ada.Assertions.Assert (Is_Character (Wide_Character'('a')));\n      B := Baz (2);\n   end Bar;\n"
                               }
                            ]
                         },
