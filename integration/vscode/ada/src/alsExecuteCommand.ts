@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2021, AdaCore                        --
+--                    Copyright (C) 2021-2022, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,11 +22,19 @@
 import { ExecuteCommandSignature } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/node';
 import {
-    AddParameterCommandArgs,
     alsAddParameterCommandExecutor,
+    AddParameterCommandArgs,
+} from './refactoring/alsAddParameterCommand';
+
+import {
     alsChangeParametersTypeCommandExecutor,
     ChangeParametersTypeCommandArgs,
-} from './refactoring/alsAddParameterCommand';
+} from './refactoring/alsChangeParametersTypeCommand';
+
+import {
+    alsChangeParametersDefaultValueCommandExecutor,
+    ChangeParametersDefaultValueCommandArgs,
+} from './refactoring/alsChangeParametersDefaultValueCommand';
 
 /**
  * Type alias for a function that intercepts a command and executes it by return a promise that
@@ -64,6 +72,12 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             const proceedWithExecution = await alsChangeParametersTypeCommandExecutor(
                 client,
                 args[0] as ChangeParametersTypeCommandArgs
+            );
+            if (!proceedWithExecution) return Promise.resolve(undefined);
+        } else if (command === 'als-refactor-change_parameters_default_value') {
+            const proceedWithExecution = await alsChangeParametersDefaultValueCommandExecutor(
+                client,
+                args[0] as ChangeParametersDefaultValueCommandArgs
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         }

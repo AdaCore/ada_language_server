@@ -46,6 +46,7 @@ with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
@@ -152,6 +153,9 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor_Change_Parameter_Mode.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Change_Parameters_Type.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value.
+           Command'Tag);
    end Register_Commands;
 
    use GNAT.Strings;
