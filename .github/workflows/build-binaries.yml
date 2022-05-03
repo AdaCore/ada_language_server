@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - edge
+      - no_alr_setup
     tags:
       - 2*.*.*
   pull_request:
@@ -38,6 +39,7 @@ jobs:
         with:
           path-type: inherit
           update: true
+          location: D:\
           install: >-
             mingw64/mingw-w64-x86_64-libiconv
             mingw64/mingw-w64-x86_64-gmp
@@ -92,10 +94,11 @@ jobs:
           key: ${{ runner.os }}-alire-2021
           restore-keys: ${{ runner.os }}-alire-2021
       - name: Get GNAT toolchain with alire
-        uses: alire-project/setup-alire@v1
+        uses: reznikmm/setup-alire@reuse_msys2
         with:
           toolchain: gnat_native^11 gprbuild^21
           toolchain_dir: ./cached_gnat
+          msys2_dir: D:\msys64
       - name: Build (Windows)
         if: ${{ runner.os == 'Windows' }}
         shell: msys2 {0}
