@@ -126,7 +126,10 @@
                         "language": "ada"
                      },
                       "at example_j.ads (4:1)",
-                     "\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57"
+                     {
+                        "value": "\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57\u6f22\u5b57",
+                        "language": "plaintext"
+                     }
                   ]
                }
             }

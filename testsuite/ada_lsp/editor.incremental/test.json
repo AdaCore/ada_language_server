@@ -1185,7 +1185,10 @@
                         "language": "ada"
                      },
                      "at hello.ads (2:4)",
-                     "documentation for foo"
+                     {
+                        "value": "documentation for foo",
+                        "language": "plaintext"
+                     }
                   ]
                }
             }
@@ -1347,7 +1350,10 @@
                         "language": "ada"
                      },
                      "at hello.ads (3:4)",
-                     "documentation for foo"
+                     {
+                        "value": "documentation for foo",
+                        "language": "plaintext"
+                     }
                   ]
                }
             }

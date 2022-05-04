@@ -134,7 +134,10 @@
                         "language": "ada"
                      },
                      "at x.ads (3:4)",
-                     "yo\n\n@return"
+                     {
+                        "value": "yo\n\n@return",
+                        "language": "plaintext"
+                     }
                   ]
                }
             }

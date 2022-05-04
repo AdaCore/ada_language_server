@@ -2918,7 +2918,8 @@ package body LSP.Ada_Handlers is
       if not Comments_Text.Is_Empty then
          Response.result.Value.contents.Vector.Append
            (LSP.Messages.MarkedString'
-              (Is_String => True,
+              (Is_String => False,
+               language  => "plaintext",
                value     => Comments_Text));
       end if;
 
