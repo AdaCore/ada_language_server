@@ -87,6 +87,7 @@ with Laltools.Refactor.Extract_Subprogram;
 with Laltools.Refactor.Pull_Up_Declaration;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1716,6 +1717,7 @@ package body LSP.Ada_Handlers is
             use LSP.Ada_Handlers.Refactor_Remove_Parameter;
             use Libadalang.Analysis;
             use Laltools.Refactor.Subprogram_Signature;
+            use Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
 
             Target_Subp              : Basic_Decl := No_Basic_Decl;
             Parameter_Indices_Range  : Parameter_Indices_Range_Type;
