@@ -4,6 +4,7 @@
 ## Available Refactorings
 
 <!-- no toc -->
+* [Named Parameters](#named-parameters)
 * [Add Parameter](#add-parameter)
 * [Remove Parameter](#remove-parameter)
 * [Move Parameter](#move-parameter)
@@ -13,6 +14,17 @@
 * [Extract Subprogram](#extract-subprogram)
 * [Pull Up Declaration](#pull-up-declaration)
 * [Suppress Separate](#suppress-separate)
+
+## Named Parameters
+
+* Adds the formal parameter name of each actual parameter in the subprogram call.
+
+[Source](https://github.com/AdaCore/ada_language_server/blob/master/source/ada/lsp-ada_handlers-named_parameters_commands.ads)
+
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/named_parameters/)
+
+![named_parameters](https://user-images.githubusercontent.com/22893717/166944482-cfebab94-adf8-4de5-9018-8415be94f8f5.gif)
+
 
 ## Add Parameter
 
@@ -24,7 +36,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
 
-[Demo Source](refactoring_demos/add_parameter)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/add_parameter/)
 
 ![add_parameter](https://user-images.githubusercontent.com/22893717/166926928-f6f5243c-6008-435f-9c2f-40aec0517936.gif)
 
@@ -36,7 +48,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-remove_parameter.ads)
 
-[Demo Source](refactoring_demos/remove_parameter)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/remove_parameter)
 
 ![remove parameter](https://user-images.githubusercontent.com/22893717/166926891-d621fb59-8524-4ba8-abfc-74c12fed2adf.gif)
 
@@ -48,7 +60,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
 
-[Demo Source](refactoring_demos/move_parameter)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/move_parameter)
 
 ![move_parameter](https://user-images.githubusercontent.com/22893717/166927234-ba038012-25be-476e-bd29-d85c10a5b2d3.gif)
 
@@ -59,7 +71,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
 
-[Demo Source](refactoring_demos/change_parameter_mode)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_mode)
 
 ![change_parameter_mode](https://user-images.githubusercontent.com/22893717/166927346-cbaa9789-eb44-44df-8a9a-c2b770d3a93e.gif)
 
@@ -71,7 +83,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-change_parameters_type.ads)
 
-[Demo Source](refactoring_demos/change_parameter_type)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_type)
 
 ![change_parameter_type](https://user-images.githubusercontent.com/22893717/166927382-b04c5415-dc3e-49e1-9ef3-2840579447d8.gif)
 
@@ -83,7 +95,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-change_parameters_defualt_value.ads)
 
-[Demo Source](refactoring_demos/change_parameter_default_value)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_default_value)
 
 ![change_parameter_default_value](https://user-images.githubusercontent.com/22893717/166927617-f6f33bc4-d660-44ce-b836-bf02b839887e.gif)
 
@@ -96,7 +108,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-extract_subprogram.ads)
 
-[Demo Source](refactoring_demos/extract_subprogram)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/extract_subprogram)
 
 ![extract_subprogram](https://user-images.githubusercontent.com/22893717/166927664-c61af27f-a446-4e3a-acbe-71b7fa88e925.gif)
 
@@ -107,7 +119,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-pull_up_declaration.ads)
 
-[Demo Source](refactoring_demos/pull_up_declaration)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/pull_up_declaration)
 
 ![pull_up_declaration](https://user-images.githubusercontent.com/22893717/166927695-e6b9e016-1374-4aa5-9640-60aaf1a4b7fe.gif)
 
@@ -119,7 +131,7 @@
 
 [Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-suppress_separate.ads)
 
-[Demo Source](refactoring_demos/suppress_separate)
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/suppress_separate)
 
 ![suppress_separate](https://user-images.githubusercontent.com/22893717/166927780-441fdb3f-271f-4f69-99ff-367e8eef301e.gif)
 
