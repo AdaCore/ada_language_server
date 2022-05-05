@@ -11,12 +11,13 @@ This repository contains an implementation of the [Microsoft Language Server Pro
 for Ada/SPARK.
 
 Current features:
- * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
- * Code completion for names, keywords, aggregates, etc.
- * Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
- * Code refactoring like insert named associations, auto-add `with`-clauses.
- * Document/Workspace symbol search.
- * Code folding and formatting.
+
+* [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
+* Code completion for names, keywords, aggregates, etc.
+* Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
+* Code refactoring like insert named associations, auto-add `with`-clauses.
+* Document/Workspace symbol search.
+* Code folding and formatting.
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
 extension at
@@ -24,31 +25,42 @@ extension at
 [the Open VSX Registry](https://open-vsx.org/extension/AdaCore/ada).
 
 ## Table of Contents
- * [Install](#Install)
-   * [Dependencies](#Dependencies)
- * [Usage](#Usage)
- * [Supported LSP Server Requests](#supported-lsp-server-requests)
-   * [General Requests](#General-Requests)
-   * [Workspace Requests](#Workspace-Requests)
-   * [Synchronization Requests](#Synchronization-Requests)
-   * [Text Document Requests](#Text-Document-Requests)
-   * [Protocol extensions](#Protocol-extensions)
- * [How to use the VScode extension](#How-to-use-the-VScode-extension)
- * [Integration with Coc.NVim](#integration-with-cocnvim)
- * [Integration with vim-lsp](#integration-with-vim-lsp)
- * [Integration with LanguageClient-Neovim](#Integration-with-LanguageClient-Neovim)
- * [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
- * [Integration with emacs lsp-mode](#Integration-with-emacs-lsp-mode)
- * [Integration with QtCreator](#Integration-with-QtCreator)
- * [Authors & Contributors](#Authors--Contributors)
- * [Contribute](#Contribute)
- * [License](#License)
+
+- [Ada Language Server](#ada-language-server)
+  - [Table of Contents](#table-of-contents)
+  - [Install](#install)
+    - [Dependencies](#dependencies)
+  - [Usage](#usage)
+  - [Supported LSP Server Requests](#supported-lsp-server-requests)
+    - [General Requests](#general-requests)
+    - [Workspace Requests](#workspace-requests)
+    - [Synchronization Requests](#synchronization-requests)
+    - [Text Document Requests](#text-document-requests)
+    - [Protocol extensions](#protocol-extensions)
+  - [How to use the VScode extension](#how-to-use-the-vscode-extension)
+    - [Getting started](#getting-started)
+    - [Auto-detected tasks](#auto-detected-tasks)
+      - [Short demo](#short-demo)
+    - [Go to other Ada file](#go-to-other-ada-file)
+    - [Launch the extension to debug it](#launch-the-extension-to-debug-it)
+    - [Configuration](#configuration)
+  - [Integration with Coc.NVim](#integration-with-cocnvim)
+  - [Integration with vim-lsp](#integration-with-vim-lsp)
+  - [Integration with LanguageClient-Neovim](#integration-with-languageclient-neovim)
+  - [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
+    - [Integration with emacs lsp-mode](#integration-with-emacs-lsp-mode)
+  - [Integration with QtCreator](#integration-with-qtcreator)
+  - [Refactoring Tools](#refactoring-tools)
+  - [Authors & Contributors](#authors--contributors)
+  - [Contribute](#contribute)
+  - [License](#license)
 
 ## Install
 
 You can build language server from sources.
 To build it from sources install dependencies and run
-```
+
+```sh
 make
 ```
 
@@ -58,12 +70,12 @@ It will build `.obj/server/ada_language_server` file.
 
 To build the language server you need:
 
- * A GNAT compiler
- * The [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
-   built)
- * The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
- * The [VSS](https://github.com/AdaCore/VSS) library
- * The a process [spawn](https://github.com/AdaCore/spawn) library
+* A GNAT compiler
+* The [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
+  built)
+* The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
+* The [VSS](https://github.com/AdaCore/VSS) library
+* The a process [spawn](https://github.com/AdaCore/spawn) library
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
 environment variable.
@@ -76,9 +88,8 @@ somewhere in the path.
 The `ada_language_server` doesn't require any command line options,
 but it understands these options:
 
- * `--tracefile=<FILE>` - Full path to a file containing traces
-   configuration
- * `--help` - Display supported command like options and exit.
+* `--tracefile=<FILE>` - Full path to a file containing traces configuration
+* `--help` - Display supported command like options and exit.
 
 You can turn some debugging and experimental features trought
 [the traces file](doc/traces.md).
@@ -162,12 +173,14 @@ specification. See [corresponding document](doc/README.md).
 ## How to use the VScode extension
 
 ### Getting started
+
 [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started).
 
 ### Auto-detected tasks
 
 The extension includes a task provider. It provides the following "auto-detected" tasks
 (under `/Terminal/Run Task...` menu):
+
 * "ada: Build current project" - launch `gprbuild` to build the current GPR project
 * "ada: Check current file" - launch `gprbuild` to check errors in the current editor
 * "ada: Clean current project" - launch `gprclean` to clean the current GPR project
@@ -192,8 +205,8 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 ```
 
 #### Short demo
-[A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
 
+[A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
 
 ### Go to other Ada file
 
@@ -208,7 +221,7 @@ reference extension for this implementation.
 
 You can try it by running:
 
-```
+```sh
 code --extensionDevelopmentPath=<path_to_this_repo>/integration/vscode/ada <workspace directory>
 ```
 
@@ -233,11 +246,13 @@ Here is an example config file from the gnatcov project:
 ```
 
 ## Integration with Coc.NVim
+
 If you want to use the Ada Language Server with Vim/Neovim, you can use the
 [Coc.NVim](https://github.com/neoclide/coc.nvim). You'll have to
 [install](#install) the Ada Language Server manually somewhere on your
 computer. Follow installation instructions on Coc.NVim website and then
 configure the Ada Language Server with `:CocConfig`:
+
 ```json
 {
   "languageserver": {
@@ -328,10 +343,10 @@ means is that the configuration is determined by where you open vim.
 Neovim 0.5.0 and later have a built-in LSP client which can be used with the
 Ada Language Server. In order to use it with minimal effort, follow these steps:
 
-- Install the ada language server and make sure it's in your $PATH.
-- Use your favorite Neovim plugin manager to add the default set of [LSP
+* Install the ada language server and make sure it's in your $PATH.
+* Use your favorite Neovim plugin manager to add the default set of [LSP
   configuration files](https://github.com/neovim/nvim-lspconfig) to Neovim.
-- Enable the Ada Language Server by adding `:lua require('lspconfig').als.setup{}` to
+* Enable the Ada Language Server by adding `:lua require('lspconfig').als.setup{}` to
   your init.vim.
 
 If you would rather not have the ada language server in your path, you can give
@@ -398,6 +413,7 @@ values in the `lsp-ada` group that can be edited similarly to
 `lsp-ada-project-file` in the example above.
 
 ## Integration with QtCreator
+
 Starting with version `4.9`, QtCreator supports a LSP plugin. Follow
 [the official documentation](https://doc.qt.io/qtcreator/creator-language-servers.html)
 to configure the Ada Language Server in this plugin. Make sure to set `Startup behavior`
@@ -407,11 +423,15 @@ option to enable project support is to have a single `.gpr` file in the QtCreato
 project folder. For a projectless configuration, you could also place all Ada sources in
 the project root folder, this should work as well.
 
+## Refactoring Tools
+
+See [corresponding document](doc/refactoring_tools.md).
+
 ## Authors & Contributors
 
- * Maintained by [AdaCore](https://www.adacore.com).
- * Original author [@MaximReznik](https://github.com/reznikmm).
- * Support for the Visual Studio Code classifier and snippets contributed by [@Entomy](https://github.com/Entomy).
+* Maintained by [AdaCore](https://www.adacore.com).
+* Original author [@MaximReznik](https://github.com/reznikmm).
+* Support for the Visual Studio Code classifier and snippets contributed by [@Entomy](https://github.com/Entomy).
 
 ## Contribute
 
