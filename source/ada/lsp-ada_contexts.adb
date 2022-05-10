@@ -795,6 +795,37 @@ package body LSP.Ada_Contexts is
          Messages => Messages);
    end Format;
 
+   ------------------
+   -- Range_Format --
+   ------------------
+
+   procedure Range_Format
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Success  : out Boolean;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector) is
+   begin
+      Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.Indentation,
+         Natural (Options.tabSize));
+
+      Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
+        (Self.PP_Options,
+         Pp.Command_Lines.No_Tab,
+         Options.insertSpaces);
+
+      Success := Document.Range_Formatting
+        (Context    => Self,
+         Span       => Span,
+         PP_Options => Self.PP_Options,
+         Edit       => Edit,
+         Messages   => Messages);
+   end Range_Format;
+
    ----------
    -- Free --
    ----------

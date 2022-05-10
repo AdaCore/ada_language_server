@@ -116,6 +116,12 @@ package body LSP.Ada_Handlers is
                              GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
+   Partial_GNATpp : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.PARTIAL_GNATPP",
+                             GNATCOLL.Traces.Off);
+   --  Use partial formatting mode of gnatpp if On. Otherwise, use diff
+   --  algorithm.
+
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
       As_Flags => [LSP.Messages.Parent => True, others => False]);
@@ -221,6 +227,14 @@ package body LSP.Ada_Handlers is
    --  notifications.
 
    function Format
+     (Self     : in out LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions)
+      return LSP.Messages.Server_Responses.Formatting_Response;
+   --  Format the text of the given document in the given range (span).
+
+   function Range_Format
      (Self     : in out LSP.Ada_Contexts.Context;
       Document : LSP.Ada_Documents.Document_Access;
       Span     : LSP.Messages.Span;
@@ -831,7 +845,7 @@ package body LSP.Ada_Handlers is
       Document : LSP.Ada_Documents.Document_Access;
       Span     : LSP.Messages.Span;
       Options  : LSP.Messages.FormattingOptions)
-         return LSP.Messages.Server_Responses.Formatting_Response
+      return LSP.Messages.Server_Responses.Formatting_Response
    is
       Response : LSP.Messages.Server_Responses.Formatting_Response
         (Is_Error => False);
@@ -870,6 +884,56 @@ package body LSP.Ada_Handlers is
 
       return Response;
    end Format;
+
+   ------------------
+   -- Range_Format --
+   ------------------
+
+   function Range_Format
+     (Self     : in out LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions)
+      return LSP.Messages.Server_Responses.Formatting_Response
+   is
+      Response : LSP.Messages.Server_Responses.Formatting_Response
+        (Is_Error => False);
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      Self.Range_Format
+        (Document => Document,
+         Span     => Span,
+         Options  => Options,
+         Edit     => Response.result,
+         Success  => Success,
+         Messages => Messages);
+
+      if not Success then
+         declare
+            use VSS.Strings;
+
+            Response  : LSP.Messages.Server_Responses.Formatting_Response
+              (Is_Error => True);
+            Error_Msg : VSS.Strings.Virtual_String;
+         begin
+            --  Display error messages from gnatpp, if any
+            for Msg of Messages loop
+               Error_Msg := Error_Msg & Msg;
+            end loop;
+
+            Response.error :=
+              (True,
+               (code    => LSP.Errors.InternalError,
+                message => Error_Msg,
+                data    => <>));
+            return Response;
+         end;
+      end if;
+
+      return Response;
+   end Range_Format;
 
    ------------------------
    -- Initialize_Request --
@@ -5862,7 +5926,7 @@ package body LSP.Ada_Handlers is
             Response.error :=
               (True,
                (code    => LSP.Errors.InternalError,
-                message => "Incorrect code can't be formatted",
+                message => "Syntactically incorrect code can't be formatted",
                 data    => <>));
          end return;
       end if;
@@ -5871,11 +5935,18 @@ package body LSP.Ada_Handlers is
          use LSP.Messages;
 
          Result   : constant Server_Responses.Formatting_Response :=
-           Format
-             (Self     => Context.all,
-              Document => Document,
-              Span     => Request.params.span,
-              Options  => Request.params.options);
+           (if Partial_GNATpp.Is_Active then
+              Range_Format
+                (Self     => Context.all,
+                 Document => Document,
+                 Span     => Request.params.span,
+                 Options  => Request.params.options)
+            else
+              Format
+                (Self     => Context.all,
+                 Document => Document,
+                 Span     => Request.params.span,
+                 Options  => Request.params.options));
          Response : Server_Responses.Range_Formatting_Response
            (Is_Error => Result.Is_Error);
       begin
