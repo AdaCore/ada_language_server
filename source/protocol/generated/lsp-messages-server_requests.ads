@@ -346,6 +346,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Document_Tokens_Full_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package Document_Tokens_Range_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        SemanticTokensRangeParams,
+        Server_Request_Receiver'Class);
+
+   type Document_Tokens_Range_Request is
+     new Document_Tokens_Range_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : Document_Tokens_Range_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Prepare_Call_Hierarchy_Requests is
      new LSP.Generic_Requests
        (Server_Request,
