@@ -181,6 +181,16 @@ package LSP.Ada_Documents is
       return Boolean;
    --  Format document or its part defined in Span
 
+   function Range_Formatting
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Span       : LSP.Messages.Span;
+      PP_Options : Pp.Command_Lines.Cmd_Line;
+      Edit       : out LSP.Messages.TextEdit_Vector;
+      Messages   : out VSS.String_Vectors.Virtual_String_Vector)
+      return Boolean;
+   --  Format document or its part defined in Span
+
    procedure Get_Imported_Units
      (Self          : Document;
       Context       : LSP.Ada_Contexts.Context;
@@ -353,9 +363,9 @@ private
       New_Span : LSP.Messages.Span := LSP.Messages.Empty_Span;
       Edit     : out LSP.Messages.TextEdit_Vector);
    --  Create a diff between document Text and New_Text and return Text_Edit
-   --  based on Needleman-Wunsch algorithm
+   --  based on Needleman-Wunsch algorithm.
    --  Old_Span and New_Span are used when we need to compare certain
-   --  old/new lines instead of whole buffers
+   --  old/new lines instead of whole buffers.
 
    function URI (Self : Document) return LSP.Messages.DocumentUri is
      (Self.URI);
