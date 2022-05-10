@@ -153,6 +153,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
       return LSP.Messages.Server_Responses.SemanticTokens_Response;
 
+   overriding function On_Document_Tokens_Range_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Range_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response;
+
    overriding function On_Prepare_Call_Hierarchy_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
