@@ -33,6 +33,7 @@ with Libadalang.Sources;
 with Libadalang.Iterators;
 
 with Laltools.Common;
+with Laltools.Partial_GNATPP;
 
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
@@ -45,7 +46,9 @@ with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 
+with Pp.Actions;
 with Pp.Scanner;
+
 with Utils.Char_Vectors;
 
 package body LSP.Ada_Documents is
@@ -671,7 +674,7 @@ package body LSP.Ada_Documents is
          Out_Sloc  => Out_Sloc,
          Messages  => PP_Messages);
 
-      --  Prolerly format the messages received from gnatpp, using the
+      --  Properly format the messages received from gnatpp, using the
       --  the GNAT standard way for messages (i.e: <filename>:<sloc>: <msg>)
 
       if not PP_Messages.Is_Empty then
@@ -731,6 +734,154 @@ package body LSP.Ada_Documents is
          GNAT.Strings.Free (S);
          return False;
    end Formatting;
+
+   ----------------------
+   -- Range_Formatting --
+   ----------------------
+
+   function Range_Formatting
+     (Self       : Document;
+      Context    : LSP.Ada_Contexts.Context;
+      Span       : LSP.Messages.Span;
+      PP_Options : Pp.Command_Lines.Cmd_Line;
+      Edit       : out LSP.Messages.TextEdit_Vector;
+      Messages   : out VSS.String_Vectors.Virtual_String_Vector)
+      return Boolean
+   is
+      use Langkit_Support.Slocs;
+      use Laltools.Partial_GNATPP;
+      use LSP.Types;
+      use LSP.Messages;
+      use Utils.Char_Vectors;
+      use Utils.Char_Vectors.Char_Vectors;
+
+      procedure Append_PP_Messages
+        (PP_Messages : Pp.Scanner.Source_Message_Vector);
+      --  Append any message of PP_Messages to Messages properly formatting
+      --  them using the GNAT standard way for messages
+      --  (i.e: <filename>:<sloc>: <msg>)
+
+      ------------------------
+      -- Append_PP_Messages --
+      ------------------------
+
+      procedure Append_PP_Messages
+        (PP_Messages : Pp.Scanner.Source_Message_Vector)
+      is
+         Filename : constant String :=
+           Context.URI_To_File (Self.URI);
+         File     : constant GNATCOLL.VFS.Virtual_File :=
+           GNATCOLL.VFS.Create_From_UTF8 (Filename);
+
+      begin
+         for Message of PP_Messages loop
+            Messages.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (File.Display_Base_Name
+                  & ":"
+                  & Pp.Scanner.Sloc_Image (Message.Sloc)
+                  & ": "
+                  & String (To_Array (Message.Text))));
+         end loop;
+      end Append_PP_Messages;
+
+      Input  : Char_Vector;
+      Output : Char_Vector;
+
+      PP_Messages : Pp.Scanner.Source_Message_Vector;
+
+      Input_Selection_Range : constant Source_Location_Range :=
+        (if Span = LSP.Messages.Empty_Span then
+           No_Source_Location_Range
+         else
+           Make_Range
+             (Self.Get_Source_Location (Span.first),
+              Self.Get_Source_Location (Span.last)));
+
+      Output_Selection_Range : Source_Location_Range;
+
+      Unit                 : constant Analysis_Unit :=
+        Self.Unit (Context);
+      Start_Node, End_Node : Ada_Node;
+      Enclosing_Node       : Ada_Node;
+
+      Offset : Natural := 0;
+
+   begin
+      Context.Trace.Trace ("On Range_Formatting");
+
+      Context.Trace.Trace ("Get_Selected_Region_Enclosing_Node");
+      Get_Selected_Region_Enclosing_Node
+        (Unit             => Unit,
+         SL_Range         => Input_Selection_Range,
+         Start_Node       => Start_Node,
+         End_Node         => End_Node,
+         Enclosing_Node   => Enclosing_Node,
+         Input_Sel        => Input,
+         Output_Sel_Range => Output_Selection_Range);
+      Context.Trace.Trace ("Start_Node: " & Start_Node.Image);
+      Context.Trace.Trace ("End_Node: " & End_Node.Image);
+      Context.Trace.Trace ("Enclosing_Node: " & Enclosing_Node.Image);
+      Context.Trace.Trace
+        ("Output_Selection_Range: " & Image (Output_Selection_Range));
+
+      Context.Trace.Trace
+        ("Get_Starting_Offset and Set_Partial_Gnatpp_Offset");
+      Offset :=
+        Get_Starting_Offset
+          (Node                   => Enclosing_Node,
+           PP_Indent              =>
+             Pp.Command_Lines.PP_Indentation (PP_Options),
+           PP_Indent_Continuation =>
+             Pp.Command_Lines.PP_Indent_Continuation (PP_Options));
+      Context.Trace.Trace (Offset'Image);
+      if Offset /= 0 then
+         Pp.Actions.Set_Partial_Gnatpp_Offset (Offset - 1);
+      end if;
+
+      Context.Trace.Trace ("Format_Vector");
+      begin
+         Pp.Actions.Format_Vector
+           (Cmd            => PP_Options,
+            Input          => Input,
+            Node           => Enclosing_Node,
+            Output         => Output,
+            Messages       => PP_Messages,
+            Partial_Gnatpp => True);
+      exception
+         when others =>
+            Append_PP_Messages (PP_Messages);
+            return False;
+      end;
+
+      if not PP_Messages.Is_Empty then
+         Context.Trace.Trace
+           ("Non empty PP_Messages - appending them to Messages");
+         Append_PP_Messages (PP_Messages);
+         return False;
+      end if;
+
+      Context.Trace.Trace ("Computing Range_Formatting Text_Edits");
+      declare
+         Edit_Span  : constant LSP.Messages.Span :=
+           Self.To_LSP_Range (Output_Selection_Range);
+         Output_Str : constant String :=
+           Char_Vectors.Elems (Output)
+             (1 .. Char_Vectors.Last_Index (Output) - 1);
+         Edit_Text  : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String (Output_Str);
+         Text_Edit  : constant LSP.Messages.TextEdit := (Edit_Span, Edit_Text);
+
+      begin
+         Edit.Append (Text_Edit);
+      end;
+
+      return True;
+
+   exception
+      when others =>
+         return False;
+   end Range_Formatting;
 
    ------------------------
    -- Get_Imported_Units --

@@ -111,6 +111,15 @@ package LSP.Ada_Contexts is
       Success  : out Boolean;
       Messages : out VSS.String_Vectors.Virtual_String_Vector);
 
+   procedure Range_Format
+     (Self     : in out Context;
+      Document : LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Messages.Span;
+      Options  : LSP.Messages.FormattingOptions;
+      Edit     : out LSP.Messages.TextEdit_Vector;
+      Success  : out Boolean;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector);
+
    procedure Find_All_References
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
