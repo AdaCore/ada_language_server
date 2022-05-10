@@ -287,7 +287,8 @@ package LSP.Ada_Documents is
    function Get_Tokens
      (Self        : Document'Class;
       Context     : LSP.Ada_Contexts.Context;
-      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter)
+      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter;
+      Span        : LSP.Messages.Span := ((1, 1), (0, 0)))
         return LSP.Messages.uinteger_Vector;
    --  Return semantic tokens in the document. See details in LSP specification
 
