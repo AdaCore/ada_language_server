@@ -191,6 +191,10 @@ private
      (Self   : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Document_Tokens_Full_Request);
 
+   overriding procedure On_Document_Tokens_Range_Request
+     (Self   : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Tokens_Range_Request);
+
    overriding procedure On_Rename_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Rename_Request);

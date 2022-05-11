@@ -417,6 +417,11 @@ private
       Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
       return LSP.Messages.Server_Responses.SemanticTokens_Response;
 
+   overriding function On_Document_Tokens_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Range_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response;
+
    overriding function On_Document_Symbols_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Document_Symbols_Request)

@@ -983,6 +983,21 @@ package body LSP.Message_Loggers is
          & (+Value.params.textDocument.uri));
    end On_Document_Tokens_Full_Request;
 
+   --------------------------------------
+   -- On_Document_Tokens_Range_Request --
+   --------------------------------------
+
+   overriding procedure On_Document_Tokens_Range_Request
+     (Self   : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.Document_Tokens_Range_Request) is
+   begin
+      Self.Trace.Trace
+        ("Document_Tokens_Range_Request: "
+         & Image (Value)
+         & (+Value.params.textDocument.uri)
+         & Image (Value.params.span));
+   end On_Document_Tokens_Range_Request;
+
    --------------------------------
    -- On_SemanticTokens_Response --
    --------------------------------

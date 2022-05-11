@@ -246,21 +246,32 @@ package body LSP.Ada_Highlighters is
 
    function Get_Tokens
      (Self : Ada_Highlighter'Class;
-      Unit : Libadalang.Analysis.Analysis_Unit)
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : LSP.Messages.Span)
       return LSP.Messages.uinteger_Vector
    is
+      use type LSP.Types.Line_Number;
       use type Libadalang.Common.Token_Reference;
 
+      First_Token : constant Libadalang.Common.Token_Reference :=
+        (if Span.last.line = 0 then Unit.First_Token
+         else Unit.Lookup_Token
+           ((Langkit_Support.Slocs.Line_Number (Span.first.line + 1), 1)));
+
+      Last_Token : constant Libadalang.Common.Token_Reference :=
+        (if Span.last.line = 0 then Unit.Last_Token
+         else Unit.Lookup_Token
+           ((Langkit_Support.Slocs.Line_Number (Span.last.line + 2), 1)));
+
       From_Token : constant Libadalang.Common.Token_Reference :=
-        (if Libadalang.Common.Is_Trivia (Unit.First_Token)
-         then Libadalang.Common.Next (Unit.First_Token, Exclude_Trivia => True)
-         else Unit.First_Token);
+        (if Libadalang.Common.Is_Trivia (First_Token)
+         then Libadalang.Common.Next (First_Token, Exclude_Trivia => True)
+         else First_Token);
 
       To_Token : constant Libadalang.Common.Token_Reference :=
-        (if Libadalang.Common.Is_Trivia (Unit.Last_Token)
-         then Libadalang.Common.Previous
-           (Unit.Last_Token, Exclude_Trivia => True)
-         else Unit.Last_Token);
+        (if Libadalang.Common.Is_Trivia (Last_Token)
+         then Libadalang.Common.Previous (Last_Token, Exclude_Trivia => True)
+         else Last_Token);
 
       function Is_Ghost_Root_Node
         (Node  : Libadalang.Analysis.Ada_Node'Class) return Boolean;

@@ -1015,6 +1015,7 @@ package body LSP.Ada_Handlers is
               (True,
                (legend => Legend,
                 full   => (True, (diff => <>)),
+                span   => LSP.Types.True,
                 others => <>));
          end;
       end if;
@@ -3578,6 +3579,33 @@ package body LSP.Ada_Handlers is
 
       return Response;
    end On_Document_Tokens_Full_Request;
+
+   --------------------------------------
+   -- On_Document_Tokens_Range_Request --
+   --------------------------------------
+
+   overriding function On_Document_Tokens_Range_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.Document_Tokens_Range_Request)
+      return LSP.Messages.Server_Responses.SemanticTokens_Response
+   is
+      Value    : LSP.Messages.SemanticTokensRangeParams renames Request.params;
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
+
+      Context  : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Response : LSP.Messages.Server_Responses.SemanticTokens_Response
+        (Is_Error => False);
+
+      Result   : LSP.Messages.uinteger_Vector :=
+        Document.Get_Tokens (Context.all, Self.Highlighter, Value.span);
+   begin
+      Response.result.data.Move (Result);
+
+      return Response;
+   end On_Document_Tokens_Range_Request;
 
    ---------------------------------
    -- On_Document_Symbols_Request --

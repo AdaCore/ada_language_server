@@ -34,8 +34,11 @@ package LSP.Ada_Highlighters is
 
    function Get_Tokens
      (Self : Ada_Highlighter'Class;
-      Unit : Libadalang.Analysis.Analysis_Unit)
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : LSP.Messages.Span)
       return LSP.Messages.uinteger_Vector;
+   --  If Span isn't empty then return unit tokens in given Span, otherwise
+   --  return all tokens in the Unit.
 
 private
 
