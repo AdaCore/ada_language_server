@@ -2872,6 +2872,31 @@ package body LSP.Ada_Handlers is
            GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
              (Documentation.all).Join_Lines (VSS.Strings.LF, False);
 
+      elsif Decl.Kind = Ada_Type_Decl
+        and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Record_Type_Def
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Record_Type_Description
+             (Documentation.all);
+
+      elsif Decl.Kind in Ada_Discriminant_Spec | Ada_Component_Decl
+        and then Decl.P_Parent_Basic_Decl.Kind = Ada_Type_Decl
+        and then Decl.P_Parent_Basic_Decl.As_Type_Decl.F_Type_Def.Kind
+                   = Ada_Record_Type_Def
+      then
+         Documentation :=
+           GNATdoc.Comments.Extractor.Extract
+             (Decl.P_Parent_Basic_Decl, Options);
+         Comments_Text :=
+           GNATdoc.Comments.Helpers.Get_Record_Member_Description
+             (Documentation.all,
+              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
+         Decl_Text :=
+           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
+             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
+
       else
          --  Obtain documentation when GNATdoc support is missing.
 
