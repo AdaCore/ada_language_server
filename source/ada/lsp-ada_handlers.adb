@@ -134,6 +134,11 @@ package body LSP.Ada_Handlers is
       Position : LSP.Messages.Position);
    --  Log a message to record that we have made an imprecise navigation
 
+   procedure Log_Unexpected_Null_Document
+     (Self     : access Message_Handler;
+      Where    : String);
+   --  Log a message saying we unexpectedly couldn't find an open document
+
    procedure Imprecise_Resolve_Name
      (Self       : access Message_Handler;
       In_Context : Context_Access;
@@ -411,6 +416,17 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document_Version;
 
+   ----------------------------------
+   -- Log_Unexpected_Null_Document --
+   ----------------------------------
+
+   procedure Log_Unexpected_Null_Document
+     (Self     : access Message_Handler;
+      Where    : String) is
+   begin
+      Self.Trace.Trace ("Unexpected null document in " & Where);
+   end Log_Unexpected_Null_Document;
+
    --------------------------------
    -- Log_Imprecise_Xref_Message --
    --------------------------------
@@ -448,7 +464,7 @@ package body LSP.Ada_Handlers is
               Position,
               Project_Only => False));
 
-      Imprecise  : Boolean;
+      Imprecise : Boolean;
    begin
       if Name_Node = Libadalang.Analysis.No_Name then
          return;
@@ -1917,6 +1933,7 @@ package body LSP.Ada_Handlers is
       Found : Boolean := False;
    begin
       if Document = null then
+         Self.Log_Unexpected_Null_Document ("On_CodeAction_Request");
          return Response;
       end if;
 
@@ -2472,6 +2489,11 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
    begin
+      if Document = null then
+         Self.Log_Unexpected_Null_Document
+           ("On_DidChangeTextDocument_Notification");
+      end if;
+
       if Allow_Incremental_Text_Changes.Active then
          --  If we are applying incremental changes, we can't skip the
          --  call to Apply_Changes, since this would break synchronization.
@@ -3156,6 +3178,12 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Params.textDocument.uri);
 
    begin
+      if Document = null then
+         Self.Log_Unexpected_Null_Document
+           ("On_ALS_Show_Dependencies_Request");
+         return Response;
+      end if;
+
       case Params.kind is
          when LSP.Messages.Show_Imported =>
             Document.Get_Imported_Units
@@ -3231,11 +3259,8 @@ package body LSP.Ada_Handlers is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      Node : Libadalang.Analysis.Ada_Node :=
-        C.Get_Node_At (Document, Value, Previous => True);
-
-      Sloc : constant Langkit_Support.Slocs.Source_Location :=
-        Document.Get_Source_Location (Value.position);
+      Node : Libadalang.Analysis.Ada_Node;
+      Sloc : Langkit_Support.Slocs.Source_Location;
 
       Name_Node        : Libadalang.Analysis.Name;
       Prev_Designators : Laltools.Common.Node_Vectors.Vector;
@@ -3416,6 +3441,9 @@ package body LSP.Ada_Handlers is
    begin
       Response.result := (others => <>);
 
+      Node := C.Get_Node_At (Document, Value, Previous => True);
+      Sloc := Document.Get_Source_Location (Value.position);
+
       --  Check if we are inside a function call and get the caller name
       Get_Call_Expr_Name
         (Node             => Node,
@@ -3595,9 +3623,15 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.SemanticTokens_Response
         (Is_Error => False);
 
-      Result   : LSP.Messages.uinteger_Vector :=
-        Document.Get_Tokens (Context.all, Self.Highlighter);
+      Result   : LSP.Messages.uinteger_Vector;
    begin
+      if Document = null then
+         Self.Log_Unexpected_Null_Document
+           ("On_Document_Tokens_Full_Request");
+         return Response;
+      end if;
+
+      Result := Document.Get_Tokens (Context.all, Self.Highlighter);
       Response.result.data.Move (Result);
 
       return Response;
@@ -3622,9 +3656,16 @@ package body LSP.Ada_Handlers is
       Response : LSP.Messages.Server_Responses.SemanticTokens_Response
         (Is_Error => False);
 
-      Result   : LSP.Messages.uinteger_Vector :=
-        Document.Get_Tokens (Context.all, Self.Highlighter, Value.span);
+      Result   : LSP.Messages.uinteger_Vector;
    begin
+      if Document = null then
+         Self.Log_Unexpected_Null_Document
+           ("On_Document_Tokens_Range_Request");
+         return Response;
+      end if;
+
+      Result := Document.Get_Tokens
+        (Context.all, Self.Highlighter, Value.span);
       Response.result.data.Move (Result);
 
       return Response;
