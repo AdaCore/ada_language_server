@@ -34,6 +34,7 @@ sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" package.json
                           -e '/displayName/s/Ada/Ada (with debug info)/' package.json
 npm install
 sudo npm install -g vsce --unsafe-perm
+sudo npm install -g esbuild --unsafe-perm
 make_change_log > CHANGELOG.md
 if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]] ; then
     vsce publish -p "$VSCE_TOKEN" || true

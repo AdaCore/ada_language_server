@@ -1,4 +1,13 @@
 .vscode/**
 .vscode-test/**
+node_modules/**
+out/test/**
+src/**
+testsuite_grammar/**
 .gitignore
-vsc-extension-quickstart.md
+.prettierrc
+run_grammar_tests.sh
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts

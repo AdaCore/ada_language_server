@@ -495,7 +495,8 @@
         "vscode-tmgrammar-test": "0.0.11"
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
+        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
         "compile": "node ./node_modules/typescript/bin/tsc",
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
