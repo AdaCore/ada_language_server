@@ -93,7 +93,6 @@ with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
-with GNATdoc.Comments.Extractor;
 with GNATdoc.Comments.Helpers;
 
 with URIs;
@@ -2816,7 +2815,9 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
+      Decl_Lines         : VSS.String_Vectors.Virtual_String_Vector;
       Decl_Text          : VSS.Strings.Virtual_String;
+      Comments_Lines     : VSS.String_Vectors.Virtual_String_Vector;
       Comments_Text      : VSS.Strings.Virtual_String;
       Location_Text      : VSS.Strings.Virtual_String;
 
@@ -2825,11 +2826,10 @@ package body LSP.Ada_Handlers is
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
-      Options       : constant
+      Options : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Self.Options.Documentation.Style,
            Fallback => True);
-      Documentation : GNATdoc.Comments.Structured_Comment_Access;
 
    begin
       Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
@@ -2847,90 +2847,28 @@ package body LSP.Ada_Handlers is
 
       --  Extract documentation with GNATdoc when supported.
 
-      if Decl.Kind in Ada_Abstract_Subp_Decl
-                    | Ada_Expr_Function
-                    | Ada_Null_Subp_Decl
-                    | Ada_Subp_Decl
-      then
-         Documentation :=
-           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Subprogram_Description
-                (Documentation.all);
+      GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
+        (Defining_Name_Node, Options, Decl_Lines, Comments_Lines);
 
-      elsif Decl.Kind = Ada_Param_Spec
-        and then Decl.P_Parent_Basic_Decl.Kind in Ada_Subp_Decl
-      then
-         Documentation :=
-            GNATdoc.Comments.Extractor.Extract
-              (Decl.P_Parent_Basic_Decl.As_Basic_Decl, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Subprogram_Parameter_Description
-             (Documentation.all,
-              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
-         Decl_Text :=
-           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
-             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
+      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
+      Comments_Text := Comments_Lines.Join_Lines (VSS.Strings.LF, False);
 
-      elsif Decl.Kind = Ada_Type_Decl
-        and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Enum_Type_Def
-      then
-         Documentation :=
-           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Enumeration_Type_Description
-             (Documentation.all);
+      --  Obtain documentation when GNATdoc support is missing.
 
-      elsif Decl.Kind = Ada_Enum_Literal_Decl then
-         Documentation :=
-           GNATdoc.Comments.Extractor.Extract
-             (Decl.As_Enum_Literal_Decl.P_Enum_Type, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Enumeration_Literal_Description
-             (Documentation.all,
-              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
-         Decl_Text :=
-           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
-             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
-
-      elsif Decl.Kind = Ada_Type_Decl
-        and then Decl.As_Type_Decl.F_Type_Def.Kind = Ada_Record_Type_Def
-      then
-         Documentation :=
-           GNATdoc.Comments.Extractor.Extract (Decl.As_Basic_Decl, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Record_Type_Description
-             (Documentation.all);
-
-      elsif Decl.Kind in Ada_Discriminant_Spec | Ada_Component_Decl
-        and then Decl.P_Parent_Basic_Decl.Kind = Ada_Type_Decl
-        and then Decl.P_Parent_Basic_Decl.As_Type_Decl.F_Type_Def.Kind
-                   = Ada_Record_Type_Def
-      then
-         Documentation :=
-           GNATdoc.Comments.Extractor.Extract
-             (Decl.P_Parent_Basic_Decl, Options);
-         Comments_Text :=
-           GNATdoc.Comments.Helpers.Get_Record_Member_Description
-             (Documentation.all,
-              To_Virtual_String (Defining_Name_Node.P_Canonical_Text));
-         Decl_Text :=
-           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
-             (Documentation.all).Join_Lines (VSS.Strings.LF, False);
-
-      else
-         --  Obtain documentation when GNATdoc support is missing.
-
+      if Comments_Text.Is_Empty then
          Comments_Text :=
            VSS.Strings.To_Virtual_String
              (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
       end if;
 
-      if Decl_Text.Is_Empty then
-         Decl_Text := Get_Hover_Text (Decl, Documentation);
-      end if;
+      if Decl_Text.Is_Empty
+        or else not Decl.P_Subp_Spec_Or_Null.Is_Null
+      then
+         --  For subprograms additional information is added, use old code to
+         --  obtain it yet.
 
-      GNATdoc.Comments.Free (Documentation);
+         Decl_Text := Get_Hover_Text (Decl, Decl_Lines);
+      end if;
 
       if Decl_Text.Is_Empty then
          return Response;

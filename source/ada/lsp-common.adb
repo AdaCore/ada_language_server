@@ -23,10 +23,7 @@ with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
 
-with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
-
-with GNATdoc.Comments.Helpers;
 
 with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
@@ -36,8 +33,8 @@ with LSP.Lal_Utils;
 package body LSP.Common is
 
    function Get_Hover_Text_For_Node
-     (Node          : Ada_Node'Class;
-      Documentation : GNATdoc.Comments.Structured_Comment_Access)
+     (Node         : Ada_Node'Class;
+      Code_Snippet : VSS.String_Vectors.Virtual_String_Vector)
       return VSS.String_Vectors.Virtual_String_Vector;
    --  Return a pretty printed version of the node's text to be
    --  displayed on hover requests, removing unnecessary indentation
@@ -162,8 +159,8 @@ package body LSP.Common is
    -----------------------------
 
    function Get_Hover_Text_For_Node
-     (Node          : Ada_Node'Class;
-      Documentation : GNATdoc.Comments.Structured_Comment_Access)
+     (Node         : Ada_Node'Class;
+      Code_Snippet : VSS.String_Vectors.Virtual_String_Vector)
       return VSS.String_Vectors.Virtual_String_Vector
    is
       Result : VSS.String_Vectors.Virtual_String_Vector;
@@ -309,13 +306,9 @@ package body LSP.Common is
       ------------------------------
 
       procedure Get_Subp_Spec_Hover_Text is
-
-         use type GNATdoc.Comments.Structured_Comment_Access;
-
       begin
-         if Documentation /= null then
-            Result := GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet
-              (Documentation.all);
+         if not Code_Snippet.Is_Empty then
+            Result := Code_Snippet;
 
          else
             declare
@@ -527,12 +520,11 @@ package body LSP.Common is
    --------------------
 
    function Get_Hover_Text
-     (Decl          : Basic_Decl'Class;
-      Documentation : GNATdoc.Comments.Structured_Comment_Access := null)
+     (Decl         : Basic_Decl'Class;
+      Code_Snippet : VSS.String_Vectors.Virtual_String_Vector :=
+        VSS.String_Vectors.Empty_Virtual_String_Vector)
       return VSS.Strings.Virtual_String
    is
-      use type GNATdoc.Comments.Structured_Comment_Access;
-
       Decl_Text      : VSS.String_Vectors.Virtual_String_Vector;
       Subp_Spec_Node : Base_Subp_Spec;
 
@@ -543,7 +535,7 @@ package body LSP.Common is
       Subp_Spec_Node := Decl.P_Subp_Spec_Or_Null;
 
       if Subp_Spec_Node /= No_Base_Subp_Spec then
-         Decl_Text := Get_Hover_Text_For_Node (Subp_Spec_Node, Documentation);
+         Decl_Text := Get_Hover_Text_For_Node (Subp_Spec_Node, Code_Snippet);
 
          --  Append the aspects to the declaration text, if any.
          declare
@@ -559,7 +551,10 @@ package body LSP.Common is
                      Append_To_Last_Line (Aspects_Text, ',');
                   end if;
 
-                  Aspects_Text.Append (Get_Hover_Text_For_Node (Aspect, null));
+                  Aspects_Text.Append
+                    (Get_Hover_Text_For_Node
+                       (Aspect,
+                        VSS.String_Vectors.Empty_Virtual_String_Vector));
                end loop;
 
                if not Aspects_Text.Is_Empty then
@@ -569,12 +564,13 @@ package body LSP.Common is
             end if;
          end;
 
-      elsif Documentation /= null then
-         Decl_Text :=
-           GNATdoc.Comments.Helpers.Get_Ada_Code_Snippet (Documentation.all);
+      elsif not Code_Snippet.Is_Empty then
+         Decl_Text := Code_Snippet;
 
       else
-         Decl_Text := Get_Hover_Text_For_Node (Decl, null);
+         Decl_Text :=
+           Get_Hover_Text_For_Node
+             (Decl, VSS.String_Vectors.Empty_Virtual_String_Vector);
       end if;
 
       return Decl_Text.Join_Lines (Document_LSP_New_Line_Function, False);
