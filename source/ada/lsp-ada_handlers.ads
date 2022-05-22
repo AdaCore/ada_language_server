@@ -26,7 +26,7 @@ with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 
-private with GNATdoc.Comments.Extractor;
+private with GNATdoc.Comments.Options;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -95,8 +95,8 @@ private
 
    --  Options for documentation
    type Documentation_Options is record
-      Style : GNATdoc.Comments.Extractor.Documentation_Style :=
-        GNATdoc.Comments.Extractor.GNAT;
+      Style : GNATdoc.Comments.Options.Documentation_Style :=
+        GNATdoc.Comments.Options.GNAT;
    end record;
 
    -- Options holder --
