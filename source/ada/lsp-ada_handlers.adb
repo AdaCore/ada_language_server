@@ -93,6 +93,7 @@ with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 
+with GNATdoc.Comments.Extractor;
 with GNATdoc.Comments.Helpers;
 
 with URIs;
@@ -2825,7 +2826,7 @@ package body LSP.Ada_Handlers is
       --  response value, not in the list of values for all contexts
 
       Options       : constant
-        GNATdoc.Comments.Extractor.Extractor_Options :=
+        GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Self.Options.Documentation.Style,
            Fallback => True);
       Documentation : GNATdoc.Comments.Structured_Comment_Access;
@@ -4213,13 +4214,13 @@ package body LSP.Ada_Handlers is
          if Ada.Has_Field (documentationStyle) then
             begin
                Self.Options.Documentation.Style :=
-                 GNATdoc.Comments.Extractor.Documentation_Style'Value
+                 GNATdoc.Comments.Options.Documentation_Style'Value
                    (Ada.Get (documentationStyle));
 
             exception
                when Constraint_Error =>
                   Self.Options.Documentation.Style :=
-                    GNATdoc.Comments.Extractor.GNAT;
+                    GNATdoc.Comments.Options.GNAT;
             end;
          end if;
       end if;
