@@ -53,6 +53,7 @@ with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor_Add_Parameter;
+with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Imports_Commands;
 with LSP.Ada_Handlers.Refactor_Move_Parameter;
@@ -83,6 +84,7 @@ with Laltools.Refactor.Subprogram_Signature;
 with Laltools.Refactor.Safe_Rename;
 with Laltools.Refactor.Suppress_Separate;
 with Laltools.Refactor.Extract_Subprogram;
+with Laltools.Refactor.Introduce_Parameter;
 with Laltools.Refactor.Pull_Up_Declaration;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
@@ -1416,6 +1418,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Extract Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Introduce_Parameter_Code_Action;
+         --  Checks if the Introduce Parameter refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Pull_Up_Declaration_Code_Action;
          --  Checks if the Pull Up Declaration refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -1590,6 +1596,38 @@ package body LSP.Ada_Handlers is
          end Extract_Subprogram_Code_Action;
 
          -------------------------------------
+         -- Introduce_Parameter_Code_Action --
+         -------------------------------------
+
+         procedure Introduce_Parameter_Code_Action is
+            use Langkit_Support.Slocs;
+            use Laltools.Refactor.Introduce_Parameter;
+            use LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
+               Column_Number (Params.span.first.character) + 1,
+               Column_Number (Params.span.last.character) + 1);
+
+            Introduce_Parameter_Command : Command;
+
+         begin
+            if Is_Introduce_Parameter_Available
+                 (Unit       => Node.Unit,
+                  SLOC_Range => Span)
+            then
+               Introduce_Parameter_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Params.textDocument.uri,
+                     span    => Params.span,
+                     alsKind => LSP.Messages.Empty_Set));
+            end if;
+         end Introduce_Parameter_Code_Action;
+
+         -------------------------------------
          -- Pull_Up_Declaration_Code_Action --
          -------------------------------------
 
@@ -1746,10 +1784,11 @@ package body LSP.Ada_Handlers is
          --  Pull Up Declaration
          Pull_Up_Declaration_Code_Action;
 
-         --  These refactorings iare only available for clients that can
+         --  These refactorings are only available for clients that can
          --  provide user inputs:
          --  - Add Parameter
          --  - Change Parameters Type
+         --  - Change Parameters Default Value
 
          --  Add Parameter
          if Self.Experimental_Client_Capabilities.
@@ -1901,6 +1940,9 @@ package body LSP.Ada_Handlers is
                Done := True;
             end if;
          end;
+
+         --  Introduce Parameter
+         Introduce_Parameter_Code_Action;
 
          --  Suppress Subprogram
          declare

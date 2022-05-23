@@ -14,6 +14,7 @@
 * [Extract Subprogram](#extract-subprogram)
 * [Pull Up Declaration](#pull-up-declaration)
 * [Suppress Separate](#suppress-separate)
+* [Introduce Parameter](#introduce-parameter)
 
 ## Named Parameters
 
@@ -134,4 +135,16 @@
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/suppress_separate)
 
 ![suppress_separate](https://user-images.githubusercontent.com/22893717/166927780-441fdb3f-271f-4f69-99ff-367e8eef301e.gif)
+
+## Introduce Parameter
+
+* Introduces a formal parameter based on an object declaration or expression inside a subprogram.
+* All references of the object declaration or expression are replaced by the introduced parameter.
+* The user must mannually fix the calls to the subprogram that was refactored by addings the corresponding actual parameter.
+
+[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-introduce_parameter.ads)
+
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/introduce_parameter)
+
+![introduce parameter](https://user-images.githubusercontent.com/22893717/181477996-564a1365-33df-4227-bb82-e9ed802b4ed0.gif)
 
