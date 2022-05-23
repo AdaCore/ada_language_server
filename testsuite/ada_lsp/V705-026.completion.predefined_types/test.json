@@ -111,22 +111,6 @@
                      "documentFormattingProvider": true,
                      "renameProvider": {},
                      "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "als-other-file",
-                           "als-named-parameters",
-                           "als-refactor-imports",
-                           "als-suppress-separate",
-                           "als-refactor-extract-subprogram",
-                           "als-refactor-pull_up_declaration",
-                           "als-refactor-add-parameters",
-                           "als-refactor-remove-parameters",
-                           "als-refactor-move-parameter",
-                           "als-refactor-change-parameter-mode",
-                           "als-refactor-change_parameters_type",
-                           "als-refactor-change_parameters_default_value"
-                        ]
-                     },
                      "workspaceSymbolProvider": true,
                      "callHierarchyProvider": {},
                      "alsShowDepsProvider": true,

@@ -132,7 +132,7 @@
             },
             "wait":[{
                 "id": "codeAction-1",
-                "result":[{
+                "result":["<HAS>",{
                     "title":"Name parameters in the call",
                     "kind":"refactor.rewrite",
                     "command":{
@@ -272,7 +272,7 @@
             },
             "wait":[{
                 "id": "codeAction-2",
-                "result":[{
+                "result":["<HAS>",{
                     "title":"Name parameters in the call",
                     "kind":"refactor.rewrite",
                     "command":{
@@ -435,7 +435,7 @@
             },
             "wait":[{
                 "id": "codeAction-3",
-                "result":[{
+                "result":["<HAS>",{
                     "title":"Name parameters in the call",
                     "kind":"refactor.rewrite",
                     "command":{
@@ -577,7 +577,7 @@
             },
             "wait":[{
                 "id": "codeAction-4",
-                "result":[{
+                "result":["<HAS>",{
                     "title":"Name parameters in the call",
                     "kind":"refactor.rewrite",
                     "command":{
