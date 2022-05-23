@@ -160,7 +160,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);",
+                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
                         "language": "ada"
                      },
                      "at foo.adb (8:4)"
@@ -448,7 +448,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n Record\n   J : Integer := 2;\n   K : Integer := 3;\nend record with Alignment => (8);",
+                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
                         "language": "ada"
                      },
                      "at foo.adb (8:4)"
