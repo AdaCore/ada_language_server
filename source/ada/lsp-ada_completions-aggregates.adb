@@ -50,7 +50,7 @@ package body LSP.Ada_Completions.Aggregates is
 
       function Get_Snippet_For_Component
         (Param              : Base_Formal_Param_Decl;
-         Idx                : Natural;
+         Idx                : in out Natural;
          Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String;
       --  Return a snippet for the given component
 
@@ -73,7 +73,7 @@ package body LSP.Ada_Completions.Aggregates is
 
       function Get_Snippet_For_Component
         (Param              : Base_Formal_Param_Decl;
-         Idx                : Natural;
+         Idx                : in out Natural;
          Use_Named_Notation : Boolean) return VSS.Strings.Virtual_String
       is
          Snippet    : VSS.Strings.Virtual_String;
@@ -117,7 +117,11 @@ package body LSP.Ada_Completions.Aggregates is
                  (VSS.Strings.To_Virtual_String (Param_Type.Text));
                Snippet.Append ("}, ");
             end if;
+
+            Idx := Idx + 1;
          end loop;
+
+         Idx := Idx - 1;
 
          return Snippet;
       end Get_Snippet_For_Component;
