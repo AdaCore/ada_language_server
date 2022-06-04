@@ -27,7 +27,6 @@ fi
 
 chmod -R -v +x als-*-$DEBUG
 for X in Linux macOS Windows ; do mv -v -f als-$X-$DEBUG/* integration/vscode/ada/; done
-cp -v -f LICENSE integration/vscode/ada/
 pushd integration/vscode/ada
 sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" package.json
 [ -z "$DEBUG" ] || sed -i -e '/^    "name"/s/ada/ada-debug/' \
