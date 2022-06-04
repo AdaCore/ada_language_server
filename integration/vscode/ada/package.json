@@ -212,60 +212,6 @@
                     "property.modification": [
                         "variable.write.property.ada"
                     ],
-                    "namespace.documentation": [
-                        "comment.block.namespace.ada"
-                    ],
-                    "type.documentation": [
-                        "comment.block.type.ada"
-                    ],
-                    "class.documentation": [
-                        "comment.block.class.ada"
-                    ],
-                    "enum.documentation": [
-                        "comment.block.enum.ada"
-                    ],
-                    "interface.documentation": [
-                        "comment.block.interface.ada"
-                    ],
-                    "struct.documentation": [
-                        "comment.block.struct.ada"
-                    ],
-                    "typeParameter.documentation": [
-                        "comment.block.typeParameter.ada"
-                    ],
-                    "parameter.documentation": [
-                        "comment.block.parameter.ada"
-                    ],
-                    "variable.documentation": [
-                        "comment.block.variable.ada"
-                    ],
-                    "property.documentation": [
-                        "comment.block.property.ada"
-                    ],
-                    "enumMember.documentation": [
-                        "comment.block.enumMember.ada"
-                    ],
-                    "function.documentation": [
-                        "comment.block.function.ada"
-                    ],
-                    "keyword.documentation": [
-                        "comment.block.keyword.ada"
-                    ],
-                    "modifier.documentation": [
-                        "comment.block.modifier.ada"
-                    ],
-                    "comment.documentation": [
-                        "comment.block.comment.ada"
-                    ],
-                    "string.documentation": [
-                        "comment.block.string.ada"
-                    ],
-                    "number.documentation": [
-                        "comment.block.number.ada"
-                    ],
-                    "operator.documentation": [
-                        "comment.block.operator.ada"
-                    ],
                     "namespace.defaultLibrary": [
                         "support.namespace.ada"
                     ],
