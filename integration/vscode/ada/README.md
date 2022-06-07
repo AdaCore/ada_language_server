@@ -37,6 +37,9 @@ Launch VS Code Quick Open (Ctrl+P), paste the following command, and press enter
 
 Some useful links:
  * [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started)
+ * [Supported refactoring tools](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md)
+ * [Custom colors for Ada sources](https://github.com/AdaCore/ada_language_server/wiki/Custom-colors-in-VS-Code)
+ * [Usage in a Remote container](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples/docker) example
  * Ada Language Server [README.md](https://github.com/AdaCore/ada_language_server/blob/master/README.md)
  * [Code Samples](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples) with Build and Debug tasks
 

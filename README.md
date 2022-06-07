@@ -70,11 +70,13 @@ It will build `.obj/server/ada_language_server` file.
 
 To build the language server you need:
 
-* A GNAT compiler
+* The GNAT compiler (at least GCC 11 or GNAT Community Edition 2021)
 * The [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
   built)
 * The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
 * The [VSS](https://github.com/AdaCore/VSS) library
+* The [gnatdoc](https://github.com/AdaCore/gnatdoc) library
+* The [gpr](https://github.com/AdaCore/gpr) library
 * The a process [spawn](https://github.com/AdaCore/spawn) library
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
@@ -100,69 +102,8 @@ client provides its-own way to set such settings.
 
 ## Supported LSP Server Requests
 
-### General Requests
-
-| Request                               | Supported          |
-| :------------------------------------ | :----------------: |
-| `initialize`                          | :white_check_mark: |
-| `initialized`                         | :white_check_mark: |
-| `shutdown`                            | :white_check_mark: |
-| `exit`                                | :white_check_mark: |
-| `$/cancelRequest`                     | :white_check_mark: |
-
-### Workspace Requests
-
-| Request                               | Supported          |
-| :------------------------------------ | :----------------: |
-| `workspace/didChangeWorkspaceFolders` |                    |
-| `workspace/didChangeConfiguration`    | :white_check_mark: |
-| `workspace/didChangeWorkspaceFolders` |                    |
-| `workspace/didChangeWatchedFiles`     | :white_check_mark: |
-| `workspace/symbol`                    | :white_check_mark: |
-| `workspace/executeCommand`            | :white_check_mark: |
-
-### Synchronization Requests
-
-| Request                               | Supported          |
-| :------------------------------------ | :----------------: |
-| `textDocument/didOpen`                | :white_check_mark: |
-| `textDocument/didChange`              | :white_check_mark: |
-| `textDocument/willSave`               |                    |
-| `textDocument/willSaveWaitUntil`      |                    |
-| `textDocument/didSave`                |                    |
-| `textDocument/didClose`               | :white_check_mark: |
-
-### Text Document Requests
-
-| Request                               | Supported          |
-| :------------------------------------ | :----------------: |
-| `textDocument/completion`             | :white_check_mark: |
-| `completionItem/resolve`              |                    |
-| `textDocument/hover`                  | :white_check_mark: |
-| `textDocument/signatureHelp`          | :white_check_mark: |
-| `textDocument/definition`             | :white_check_mark: |
-| `textDocument/declaration`            | :white_check_mark: |
-| `textDocument/typeDefinition`         | :white_check_mark: |
-| `textDocument/implementation`         | :white_check_mark: |
-| `textDocument/references`             | :white_check_mark: |
-| `textDocument/documentHighlight`      | :white_check_mark: |
-| `textDocument/documentSymbol`         | :white_check_mark: |
-| `textDocument/codeAction`             | :white_check_mark: |
-| `textDocument/codeLens`               |                    |
-| `codeLens/resolve`                    |                    |
-| `textDocument/documentLink`           |                    |
-| `documentLink/resolve`                |                    |
-| `textDocument/documentColor`          |                    |
-| `textDocument/colorPresentation`      |                    |
-| `textDocument/formatting`             | :white_check_mark: |
-| `textDocument/rangeFormatting`        |                    |
-| `textDocument/onTypeFormatting`       |                    |
-| `textDocument/rename`                 | :white_check_mark: |
-| `textDocument/prepareRename`          | :white_check_mark: |
-| `textDocument/foldingRange`           | :white_check_mark: |
-| `textDocument/prepareCallHierarchy`   | :white_check_mark: |
-| `callHierarchy/incomingCalls`         | :white_check_mark: |
-| `callHierarchy/outgoingCalls`         | :white_check_mark: |
+See [WiKi page](https://github.com/AdaCore/ada_language_server/wiki/Supported-LSP-requests)
+for the list of supported requests.
 
 ### Protocol extensions
 
@@ -175,6 +116,10 @@ specification. See [corresponding document](doc/README.md).
 ### Getting started
 
 [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started).
+
+### Refactoring
+
+See a [dedicated document](doc/refactoring_tools.md) with the list of available refactorings.
 
 ### Auto-detected tasks
 
