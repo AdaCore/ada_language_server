@@ -519,6 +519,7 @@ package body Tester.Tests is
       procedure Sort_Reply_In_JSON
         (JSON      : GNATCOLL.JSON.JSON_Value;
          Parameter : GNATCOLL.JSON.JSON_Value);
+      --  Sort JSON inplace taking Parameter as sorting key(s) definition.
 
       -----------
       -- Match --
@@ -694,9 +695,9 @@ package body Tester.Tests is
          procedure Sort_Reply
            (Name  : String;
             Value : GNATCOLL.JSON.JSON_Value);
-         --  Let Name be field name in the reply to be sorted, Value is
-         --  JSON string with a key. Then JSON[Name] should be array.
-         --  Each element in the array should have key field. Sort this array.
+         --  Let Name be field name in the reply (JSON) to be sorted, Value is
+         --  the rest of sorting key(s) definition. Then JSON[Name] should be
+         --  array (if presents). Sort this array according to Value.
 
          ----------------
          -- Sort_Reply --
@@ -708,54 +709,108 @@ package body Tester.Tests is
          is
             function Less
               (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean;
+            --  Compare two JSON values using key definition given in Value
 
             function Less
               (Left, Right : GNATCOLL.JSON.JSON_Value) return Boolean
             is
-               function Key_Count return Natural;
-               function Get_Key (Index : Positive) return String;
+               function Key_Count
+                 (Value  : GNATCOLL.JSON.JSON_Value) return Natural;
+               --  Count number of keys in given Value (keys definition)
+
+               function Get_Key_Value
+                 (Object : GNATCOLL.JSON.JSON_Value;
+                  Value  : GNATCOLL.JSON.JSON_Value;
+                  Index  : Positive) return GNATCOLL.JSON.JSON_Value;
+               --  Object is a JSON object under inspection.
+               --  Value is a key(s) definition.
+               --  Index is a key number (for compound keys could be > 1).
+               --  Return JSON value that corresponds to key definition.
 
                ---------------
                -- Key_Count --
                ---------------
 
-               function Key_Count return Natural is
+               function Key_Count
+                  (Value  : GNATCOLL.JSON.JSON_Value) return Natural is
                begin
                   case Value.Kind is
                      when GNATCOLL.JSON.JSON_String_Type =>
                         return 1;
                      when GNATCOLL.JSON.JSON_Array_Type =>
                         return GNATCOLL.JSON.Length (Value.Get);
+                     when GNATCOLL.JSON.JSON_Object_Type =>
+                        declare
+                           procedure On_Field
+                             (Ignore : UTF8_String; Value : JSON_Value);
+                           --  Fetch Value into Child variable
+
+                           Child     : GNATCOLL.JSON.JSON_Value;
+
+                           procedure On_Field
+                             (Ignore : UTF8_String; Value : JSON_Value) is
+                           begin
+                              Child := Value;
+                           end On_Field;
+                        begin
+                           --  Just one field expected
+                           Value.Map_JSON_Object (On_Field'Access);
+                           return Key_Count (Child);
+                        end;
                      when others =>
                         raise Program_Error;
                   end case;
                end Key_Count;
 
-               -------------
-               -- Get_Key --
-               -------------
+               -------------------
+               -- Get_Key_Value --
+               -------------------
 
-               function Get_Key (Index : Positive) return String is
+               function Get_Key_Value
+                 (Object : GNATCOLL.JSON.JSON_Value;
+                  Value  : GNATCOLL.JSON.JSON_Value;
+                  Index  : Positive) return GNATCOLL.JSON.JSON_Value is
                begin
                   case Value.Kind is
                      when GNATCOLL.JSON.JSON_String_Type =>
-                        return Value.Get;
+                        return Object.Get (Value.Get);
                      when GNATCOLL.JSON.JSON_Array_Type =>
-                        return GNATCOLL.JSON.Get (Value.Get, Index).Get;
+                        return Object.Get
+                          (GNATCOLL.JSON.Get (Value.Get, Index).Get);
+                     when GNATCOLL.JSON.JSON_Object_Type =>
+                        declare
+                           procedure On_Field
+                             (Name : UTF8_String; Value : JSON_Value);
+                           --  Fetch Object[Name] into Child variable and
+                           --  Value into Child_Key variable.
+
+                           Child     : GNATCOLL.JSON.JSON_Value;
+                           Child_Key : GNATCOLL.JSON.JSON_Value;
+
+                           procedure On_Field
+                             (Name : UTF8_String; Value : JSON_Value) is
+                           begin
+                              Child := Object.Get (Name);
+                              Child_Key := Value;
+                           end On_Field;
+                        begin
+                           --  Just one field expected
+                           Value.Map_JSON_Object (On_Field'Access);
+                           return Get_Key_Value (Child, Child_Key, Index);
+                        end;
                      when others =>
                         raise Program_Error;
                   end case;
-               end Get_Key;
+               end Get_Key_Value;
 
             begin
-               for J in 1 .. Key_Count loop
+               for J in 1 .. Key_Count (Value) loop
                   declare
-                     Key         : constant String := Get_Key (J);
                      Left_Value  : constant GNATCOLL.JSON.JSON_Value :=
-                       Left.Get (Key);
+                        Get_Key_Value (Left, Value, J);
 
                      Right_Value : constant GNATCOLL.JSON.JSON_Value :=
-                       Right.Get (Key);
+                        Get_Key_Value (Right, Value, J);
                   begin
                      if Left_Value.Kind /= Right_Value.Kind then
                         return Left_Value.Kind < Right_Value.Kind;
@@ -766,6 +821,16 @@ package body Tester.Tests is
                            declare
                               L : constant String := Left_Value.Get;
                               R : constant String := Right_Value.Get;
+                           begin
+                              if L /= R then
+                                 return L < R;
+                              end if;
+                           end;
+
+                        when GNATCOLL.JSON.JSON_Int_Type =>
+                           declare
+                              L : constant Integer := Left_Value.Get;
+                              R : constant Integer := Right_Value.Get;
                            begin
                               if L /= R then
                                  return L < R;
@@ -788,11 +853,16 @@ package body Tester.Tests is
             end if;
 
             List := JSON.Get (Name);
-            if Value.Kind = GNATCOLL.JSON.JSON_Object_Type then
-               Sort_Reply_In_JSON (List, Value);
+
+            if List.Kind = GNATCOLL.JSON.JSON_Null_Type then
+               return;  --  No such field, do nothing
             elsif List.Kind = GNATCOLL.JSON.JSON_Array_Type then
                GNATCOLL.JSON.Sort (List, Less'Access);
                JSON.Set_Field (Name, List);
+            elsif Value.Kind = GNATCOLL.JSON.JSON_Object_Type then
+               Sort_Reply_In_JSON (List, Value);
+            else
+               raise Program_Error;
             end if;
          end Sort_Reply;
 

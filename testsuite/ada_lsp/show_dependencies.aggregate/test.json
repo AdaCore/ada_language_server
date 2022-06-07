@@ -172,6 +172,7 @@
             "id": 2,
             "method": "textDocument/alsShowDependencies"
          },
+         "sortReply": {"result": "uri"},
          "wait": [
             {
                "id": 2,
@@ -181,11 +182,11 @@
                      "projectUri": "$URI{}"
                   },
                   {
-                     "uri": "$URI{p/main.adb}",
+                     "uri": "$URI{common/common_pack.ads}",
                      "projectUri": "$URI{}"
                   },
                   {
-                     "uri": "$URI{common/common_pack.ads}",
+                     "uri": "$URI{p/main.adb}",
                      "projectUri": "$URI{}"
                   },
                   {

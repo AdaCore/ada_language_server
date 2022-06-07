@@ -332,6 +332,7 @@
                }
             }
          },
+         "sortReply": {"result": {"from": "uri"}},
          "wait": [
             {
                "id": "ada-7",
