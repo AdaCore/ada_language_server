@@ -72,7 +72,7 @@ Property value - an object:
  * "wait" - array of _wait_ objects to expect them in any order.
  * "sortReply" - an object describing how to sort a server reply. Let's
    explain by examples:
-    1.  `"sortReply": {"result", "uri"}` - Server reply should have a property
+    1.  `"sortReply": {"result": "uri"}` - Server reply should have a property
        `result`, that is an array of objects, each of them has a property
        `uri`. Tester driver will sort the array using the `uri` as a sort key.
     2. `"sortReply": { "result": ["label", "detail"] }` - you can have a
@@ -84,6 +84,10 @@ Property value - an object:
        an object, that has a `items` property. Where `items` is an array of
        objects, that should be sorted using the `label` and `detail` as a
        composite sort key.
+    4. `"sortReply": { "result": { "from": "uri" } }` - Server reply should
+       have a property `result`, that is an array of objects. Array items
+       have property `from` which is an object. Tester driver will sort the
+       array using the `uri` property of `from` objects as a sort key.
  * "waitFactor" - see "Execution timeouts"
 
 Where _wait_ object is expected server answer. Each property of this object
