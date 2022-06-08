@@ -10882,6 +10882,26 @@ package LSP.Messages is
       V : ALSDebugParams);
    for ALSDebugParams'Write use Write_ALSDebugParams;
 
+   type ALS_Source_Dir_Description is record
+      name : VSS.Strings.Virtual_String;
+      uri  : DocumentUri;
+   end record;
+
+   procedure Read_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Source_Dir_Description);
+   for ALS_Source_Dir_Description'Read use Read_ALS_Source_Dir_Description;
+
+   procedure Write_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Source_Dir_Description);
+   for ALS_Source_Dir_Description'Write use Write_ALS_Source_Dir_Description;
+
+   package ALS_Source_Dir_Description_Vectors is new LSP.Generic_Vectors
+     (ALS_Source_Dir_Description, Write_Empty => LSP.Write_Array);
+   type ALS_Source_Dir_Description_Vector is
+     new ALS_Source_Dir_Description_Vectors.Vector with null record;
+
    type ALS_ShowDependenciesKind is (Show_Imported, Show_Importing);
 
    procedure Read_ALS_ShowDependenciesKind

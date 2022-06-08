@@ -262,6 +262,10 @@ private
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request);
 
+   overriding procedure On_ALS_Source_Dirs_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.ALS_Source_Dirs_Request);
+
    overriding procedure On_ALS_Debug_Request
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.ALS_Debug_Request);
@@ -341,6 +345,10 @@ private
    overriding procedure On_ALS_ShowDependencies_Response
      (Self   : in out Message_Logger;
       Value  : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response);
+
+   overriding procedure On_ALS_SourceDirs_Response
+     (Self   : in out Message_Logger;
+      Value  : LSP.Messages.Server_Responses.ALS_SourceDirs_Response);
 
    overriding procedure On_ALS_Debug_Response
      (Self   : in out Message_Logger;

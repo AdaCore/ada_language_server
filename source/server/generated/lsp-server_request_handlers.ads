@@ -226,6 +226,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
         is abstract;
 
+   function On_ALS_Source_Dirs_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Source_Dirs_Request)
+      return LSP.Messages.Server_Responses.ALS_SourceDirs_Response
+        is abstract;
+
    function On_ALS_Debug_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Debug_Request)

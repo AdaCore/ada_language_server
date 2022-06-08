@@ -326,6 +326,8 @@ package body LSP.Message_IO is
          V := Parent;
       elsif Text = "child" then
          V := Child;
+      elsif Text = "overriding" then
+         V := Overriding_Decl;
       else
          V := AlsReferenceKind'First;
       end if;
@@ -10476,6 +10478,49 @@ package body LSP.Message_IO is
       Location_Vector'Write (S, V.refs);
       JS.End_Object;
    end Write_ALS_Subprogram_And_References;
+
+   procedure Read_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Source_Dir_Description)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "name" then
+               LSP.Types.Read_String (S, V.name);
+            elsif Key = "uri" then
+               LSP.Types.Read_LSP_URI (S, V.uri);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_ALS_Source_Dir_Description;
+
+   procedure Write_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Source_Dir_Description)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      JS.Key ("name");
+      LSP.Types.Write_String (S, V.name);
+      JS.Key ("uri");
+      LSP.Types.Write_LSP_URI (S, V.uri);
+      JS.End_Object;
+   end Write_ALS_Source_Dir_Description;
 
    procedure Read_ALS_ShowDependenciesKind
      (S : access Ada.Streams.Root_Stream_Type'Class;

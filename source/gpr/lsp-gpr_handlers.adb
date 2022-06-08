@@ -56,6 +56,18 @@ package body LSP.GPR_Handlers is
       return raise Program_Error with "Unimplemented request";
    end On_ALS_Show_Dependencies_Request;
 
+   --------------------------------
+   -- On_ALS_Source_Dirs_Request --
+   --------------------------------
+
+   overriding function On_ALS_Source_Dirs_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Source_Dirs_Request)
+      return LSP.Messages.Server_Responses.ALS_SourceDirs_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_ALS_Source_Dirs_Request;
+
    ---------------------------
    -- On_CodeAction_Request --
    ---------------------------

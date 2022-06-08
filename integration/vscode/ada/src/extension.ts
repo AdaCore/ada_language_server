@@ -24,12 +24,12 @@ import {
     ServerOptions,
 } from 'vscode-languageclient/node';
 import * as process from 'process';
-
 import GPRTaskProvider from './gprTaskProvider';
 import cleanTaskProvider from './cleanTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
+import { string } from 'fp-ts';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
@@ -125,6 +125,60 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
+
+    //  Check if we need to add some source directories to the workspace (e.g: when imported projects'
+    //  source directories are not placed under the root project's directory).
+    client.onReady().then(() => {
+        client.sendRequest("workspace/alsSourceDirs").then(
+            data => {
+                const source_dirs = JSON.parse(JSON.stringify(data));
+                const workspace_folders = vscode.workspace.workspaceFolders ?? []
+                let workspace_dirs_to_add: { uri: vscode.Uri, name?: string | undefined}[] = []
+
+                for (var source_dir of source_dirs) {
+                    const source_dir_uri = vscode.Uri.parse(source_dir.uri)
+                    let source_dir_path = source_dir_uri.path
+                    let workspace_folder_path = workspace_folders[0].uri.path
+
+                    function is_subdirectory(dir: string, parent: string) {
+                        //  Use lower-case on Windows since drives can be specified in VS Code either
+                        //  with lower or upper case characters.
+                        if (process.platform == "win32") {
+                            dir = dir.toLowerCase();
+                            parent = parent.toLowerCase();
+                        }
+
+                        return dir.startsWith(parent + '/');
+
+                    }
+
+                    //  If the source directory is not under one of the workspace folders, push this
+                    //  source directory to the workspace folders to add later.
+                    if (!workspace_folders.some(workspace_folder =>
+                        is_subdirectory(source_dir_path, workspace_folder.uri.path))) {
+                        workspace_dirs_to_add.push({name: source_dir.name, uri: source_dir_uri});
+                    }
+                }
+
+                //  If there are some source directories missing in the workspace, ask the user
+                //  to add them in his workspace.
+                if (workspace_dirs_to_add.length > 0) {
+                    vscode.window
+                        .showInformationMessage("Some project source directories are not "
+                            + "listed in your workspace: do you want to add them?", "Yes", "No")
+                        .then(answer => {
+                            if (answer === "Yes") {
+                                for (var workspace_dir of workspace_dirs_to_add) {
+                                  vscode.workspace.updateWorkspaceFolders(
+                                        vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0, null,
+                                        workspace_dir);
+                                    }
+                            }
+                        })
+                }
+            }
+        )
+    })
 }
 
 export function deactivate(): void {
