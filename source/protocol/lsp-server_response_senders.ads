@@ -92,6 +92,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response)
    is abstract;
 
+   procedure On_ALS_SourceDirs_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.ALS_SourceDirs_Response)
+   is abstract;
+
    procedure On_ExecuteCommand_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response)
