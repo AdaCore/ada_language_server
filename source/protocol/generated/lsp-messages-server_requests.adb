@@ -266,6 +266,22 @@ package body LSP.Messages.Server_Requests is
       Handler.On_ALS_Show_Dependencies_Request (Self);
    end Visit;
 
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return ALS_Source_Dirs_Request is
+   begin
+      return V : ALS_Source_Dirs_Request do
+         RequestMessage'Read (JS, RequestMessage (V));
+      end return;
+   end Decode;
+
+   overriding procedure Visit
+     (Self    : ALS_Source_Dirs_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_ALS_Source_Dirs_Request (Self);
+   end Visit;
+
    overriding procedure Visit
      (Self    : ALS_Debug_Request;
       Handler : access Server_Request_Receiver'Class) is
@@ -421,6 +437,10 @@ begin
    Map.Insert
      ("textDocument/alsShowDependencies",
       ALS_Show_Dependencies_Request'Tag);
+
+   Map.Insert
+     ("workspace/alsSourceDirs",
+      ALS_Source_Dirs_Request'Tag);
 
    Map.Insert
      ("$/alsDebug",

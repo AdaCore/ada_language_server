@@ -1096,6 +1096,11 @@ package body LSP.Messages is
       V : out LSP.Messages.ALS_Subprogram_And_References)
       renames LSP.Message_IO.Read_ALS_Subprogram_And_References;
 
+   procedure Read_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out ALS_Source_Dir_Description)
+      renames LSP.Message_IO.Read_ALS_Source_Dir_Description;
+
    procedure Read_ALS_Unit_Description
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ALS_Unit_Description)
@@ -2235,6 +2240,11 @@ package body LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Subprogram_And_References)
       renames LSP.Message_IO.Write_ALS_Subprogram_And_References;
+
+   procedure Write_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : ALS_Source_Dir_Description)
+     renames LSP.Message_IO.Write_ALS_Source_Dir_Description;
 
    procedure Write_ALS_Unit_Description
      (S : access Ada.Streams.Root_Stream_Type'Class;

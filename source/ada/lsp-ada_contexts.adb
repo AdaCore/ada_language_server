@@ -237,9 +237,15 @@ package body LSP.Ada_Contexts is
    -----------------------------
 
    function List_Source_Directories
-     (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set is
+     (Self                     : Context;
+      Include_Externally_Built : Boolean := False)
+      return LSP.Ada_File_Sets.File_Sets.Set is
    begin
-      return Self.Source_Dirs;
+      if Include_Externally_Built then
+         return Self.External_Source_Dirs;
+      else
+         return Self.Source_Dirs;
+      end if;
    end List_Source_Directories;
 
    -------------------------
@@ -651,12 +657,22 @@ package body LSP.Ada_Contexts is
          end loop;
 
          Self.Source_Dirs.Clear;
+         Self.External_Source_Dirs.Clear;
+
          for Dir of Source_Dirs
            (Project                  => Root,
             Recursive                => True,
             Include_Externally_Built => False)
          loop
             Self.Source_Dirs.Include (Dir);
+         end loop;
+
+         for Dir of Source_Dirs
+           (Project                  => Root,
+            Recursive                => True,
+            Include_Externally_Built => True)
+         loop
+            Self.External_Source_Dirs.Include (Dir);
          end loop;
       end Update_Source_Files;
 
