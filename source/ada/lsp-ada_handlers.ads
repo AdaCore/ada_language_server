@@ -268,6 +268,10 @@ private
       Completion_Snippets_Enabled : Boolean := False;
       --  True if the client supports completion snippets
 
+      Use_Completion_Snippets : Boolean := True;
+      --  True if we should use snippets for completion (e.g:
+      --  subprogram calls).
+
       Completion_Resolve_Properties : VSS.String_Vectors.Virtual_String_Vector;
       --  The list of CompletionItem properties that can be resolved
       --  lazily (i.e: when the item is selected on client-side) via
