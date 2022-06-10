@@ -103,6 +103,16 @@ The value is a boolean.
     'renameInComments': false
 ```
 
+## useCompletionSnippets
+Whether we should use snippets in completion results. Snippets can be
+returned in case of subprogram calls for instance, with placeholders
+for each parameter needed by the subprogram.
+The value is a boolean.
+
+```javascript
+    'useCompletionSnippets': true
+```
+
 ## displayMethodAncestryOnNavigation
 This setting controls the policy for displaying overriding and overridden
 subprograms on navigation requests such as `textDocument/definition`,

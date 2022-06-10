@@ -4059,6 +4059,8 @@ package body LSP.Ada_Handlers is
         "followSymlinks";
       documentationStyle                : constant String :=
         "documentationStyle";
+      useCompletionSnippets             : constant String :=
+        "useCompletionSnippets";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : VSS.Strings.Virtual_String;
@@ -4135,6 +4137,14 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (namedNotationThreshold) then
             Self.Named_Notation_Threshold := Ada.Get (namedNotationThreshold);
+         end if;
+
+         --  Check the 'useCompletionSnippets' flag to see if we should use
+         --  snippets in completion (if the client supports it).
+         if not Self.Completion_Snippets_Enabled then
+            Self.Use_Completion_Snippets := False;
+         elsif Ada.Has_Field (useCompletionSnippets) then
+            Self.Use_Completion_Snippets := Ada.Get (useCompletionSnippets);
          end if;
 
          --  Retrieve the policy for displaying type hierarchy on navigation
@@ -5259,7 +5269,7 @@ package body LSP.Ada_Handlers is
         LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
 
       P6 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
-        (Self.Completion_Snippets_Enabled);
+        (Self.Use_Completion_Snippets);
       P7 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self, Context);
       P8 : aliased
