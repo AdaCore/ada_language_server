@@ -101,7 +101,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "procedure Main is\n\n   package My_Package is\n\n      type Base_Rec (Disc : Integer) is tagged private;\n\n   private\n\n      type Base_Rec (Disc : Integer) is tagged record\n         case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n         end case;\n      end record;\n   end My_Package;\n\n   use My_Package;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n      X : Float;\n   end record;\n\n   Obj : Derived_Rec :=\n   begin\n   null;\nend Main;\n",
+                  "text": "procedure Main is\n\n   package My_Package is\n\n      type Base_Rec (Disc : Integer) is tagged private;\n\n   private\n\n      type Base_Rec (Disc : Integer) is tagged record\n         case Disc is\n         when 1 =>\n            A : Integer;\n         when 2 =>\n            Z : Integer;\n         when others =>\n            B : Integer;\n         end case;\n      end record;\n   end My_Package;\n\n   use My_Package;\n\n   type Derived_Rec is new Base_Rec with record\n      D : Integer;\n      X : Float;\n   end record;\n\n   Obj : Derived_Rec := Derived_Rec'\nbegin\n   null;\nend Main;\n",
                   "version": 0,
                   "uri": "$URI{main.adb}",
                   "languageId": "Ada"
@@ -116,44 +116,29 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
             "params": {
                "textDocument": {
-                  "uri": "$URI{main.adb}"
-               }
-            },
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "textDocument/documentSymbol"
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "params": {
+                  "uri": "$URI{main.adb}",
+                  "version": 1
+               },
                "contentChanges": [
                   {
-                     "text": "(",
                      "range": {
                         "start": {
                            "line": 27,
-                           "character": 23
+                           "character": 36
                         },
                         "end": {
                            "line": 27,
-                           "character": 23
+                           "character": 36
                         }
-                     }
+                     },
+                     "text": "("
                   }
-               ],
-               "textDocument": {
-                  "version": 1,
-                  "uri": "$URI{main.adb}"
-               }
-            },
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange"
+               ]
+            }
          },
          "wait": []
       }
@@ -161,20 +146,65 @@
    {
       "send": {
          "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/completion",
             "params": {
-               "position": {
-                  "line": 27,
-                  "character": 24
-               },
                "textDocument": {
                   "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 27,
+                  "character": 37
+               },
+               "context": {
+                  "triggerKind": 2
                }
-            },
-            "jsonrpc": "2.0",
-            "id": 3,
-            "method": "textDocument/completion"
+            }
          },
-         "wait": []
+      "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Aggregate for Derived_Rec",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": "Base_Rec with Disc => ${1:Integer}, D => ${2:Integer}, X => ${3:Float})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at main.adb (23:4)"
+                     },
+                     {
+                        "label": "Disc",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "Disc => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+2",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+3",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
       }
    },
    {

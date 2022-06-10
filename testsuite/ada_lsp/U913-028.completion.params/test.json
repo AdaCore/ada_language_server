@@ -166,7 +166,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "I => $1, F => $2)$0",
+                        "insertText": "${1:I : Integer}, ${2:F : Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -203,7 +203,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+3",
-                        "insertText": "I => $1, J => $2)$0",
+                        "insertText": "${1:I : Integer}, ${2:J : Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -416,7 +416,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "I => $1)$0",
+                        "insertText": "${1:I : Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {

@@ -1,7 +1,9 @@
 [
    {
       "comment": [
-         "Test the completion parameter when there are more than 10 results"
+          "Test completion for aggregate with multiple discrimant.",
+          "Note: Some shapes have unused discriminant however they",
+          "should still be shown in the results"
       ]
    },
    {
@@ -32,12 +34,12 @@
                               "markdown",
                               "plaintext"
                            ],
-                           "resolveSupport": {
-                              "properties": [
-                                 "documentation",
-                                 "detail"
-                              ]
-                           }
+                            "resolveSupport": {
+                                "properties": [
+                                    "documentation",
+                                    "detail"
+                                ]
+                            }
                         }
                      }
                   },
@@ -48,24 +50,24 @@
             }
          },
          "wait": [
-            {
-               "jsonrpc": "2.0",
-               "id": 1,
-               "result": {
-                  "capabilities": {
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 ",",
+                                 "'",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
                      }
-                  }
-               }
-            }
+                 }
+             }
          ]
       }
    },
@@ -86,11 +88,13 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{test.gpr}",
+                     "projectFile": "/home/boulanger/ancr/src/gnatstudio/subprojects/ada_language_server/testsuite/ada_lsp/completion.aggregates.multiple_discriminants/default.gpr",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
                      "enableDiagnostics": true,
-                     "followSymlinks": false
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "foldComments": false
                   }
                }
             }
@@ -108,38 +112,8 @@
                   "uri": "$URI{foo.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "procedure Foo is\n   procedure Bar (I, J, K, L, M, N, O, P : Integer);\n   procedure Bar (I, J, K, L, M, N, O, P : Integer) is\n   begin\n      null;\n   end Bar;\n   procedure Bar (A, B, C, D, E, F : Float);\n   procedure Bar (A1, A2, A3, A4, A5 : String) is\n   begin\n      null;\n   end Bar;\n   procedure Bar (A1, A2, A3, A4, A5 : String);\n   procedure Bar (A1, A2, A3, A4, A5 : String) is\n   begin\n      null;\n   end Bar;\nbegin\n   Bar \nend Foo;\n"
+                  "text": "procedure Foo is\n   type Foo (X, Y, Z : Boolean) is record\n      case X is\n         when True =>\n            case Y is\n               when True =>\n                  A : Integer;\n               when False =>\n                  B : Integer;\n            end case;\n         when others =>\n            case Z is\n               when True =>\n                  C : Float;\n               when False =>\n                  D : Float;\n            end case;\n      end case;\n   end record;\n\n   F : Foo := Foo'(\nbegin\n   null;\nend Foo;\n"
                }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 2
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 17,
-                           "character": 7
-                        },
-                        "end": {
-                           "line": 17,
-                           "character": 7
-                        }
-                     },
-                     "text": "("
-                  }
-               ]
             }
          },
          "wait": []
@@ -156,8 +130,11 @@
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 17,
-                  "character": 8
+                  "line": 20,
+                  "character": 19
+               },
+               "context": {
+                  "triggerKind": 2
                }
             }
          },
@@ -168,140 +145,116 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Params of Bar",
+                        "label": "Aggregate when X => True, Y => True",
                         "kind": 15,
                         "sortText": "+00",
-                        "insertText": "A1 => ${1:String}, A2 => ${2:String}, A3 => ${3:String}, A4 => ${4:String}, A5 => ${5:String})$0",
+                        "insertText": "X => True, Y => True, Z => ${3:Boolean}, A => ${4:Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
                               "start": {
-                                 "line": 11,
+                                 "line": 1,
                                  "character": 3
                               },
                               "end": {
-                                 "line": 11,
-                                 "character": 47
+                                 "line": 18,
+                                 "character": 14
                               }
                            }
                         }
                      },
                      {
-                        "label": "A1",
+                        "label": "X => True",
                         "kind": 5,
                         "sortText": "+01",
-                        "insertText": "A1 => ",
+                        "insertText": "X => True",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "A2",
+                        "label": "Y => True",
                         "kind": 5,
                         "sortText": "+02",
-                        "insertText": "A2 => ",
+                        "insertText": "Y => True",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "A3",
+                        "label": "Z",
                         "kind": 5,
                         "sortText": "+03",
-                        "insertText": "A3 => ",
+                        "insertText": "Z => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
-                     },
-                     {
-                        "label": "A4",
-                        "kind": 5,
-                        "sortText": "+04",
-                        "insertText": "A4 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "A5",
-                        "kind": 5,
-                        "sortText": "+05",
-                        "insertText": "A5 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "Params of Bar",
-                        "kind": 15,
-                        "sortText": "+06",
-                        "insertText": "A => ${1:Float}, B => ${2:Float}, C => ${3:Float}, D => ${4:Float}, E => ${5:Float}, F => ${6:Float})$0",
-                        "insertTextFormat": 2,
-                        "additionalTextEdits": [],
-                        "data": {
-                           "uri": "$URI{foo.adb}",
-                           "range": {
-                              "start": {
-                                 "line": 6,
-                                 "character": 3
-                              },
-                              "end": {
-                                 "line": 6,
-                                 "character": 44
-                              }
-                           }
-                        }
                      },
                      {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "+07",
+                        "sortText": "+04",
                         "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Aggregate when X => True, Y => False",
+                        "kind": 15,
+                        "sortText": "+05",
+                        "insertText": "X => True, Y => False, Z => ${3:Boolean}, B => ${4:Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 18,
+                                 "character": 14
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "X => True",
+                        "kind": 5,
+                        "sortText": "+06",
+                        "insertText": "X => True",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Y => False",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "Y => False",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Z",
+                        "kind": 5,
+                        "sortText": "+08",
+                        "insertText": "Z => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
                         "label": "B",
                         "kind": 5,
-                        "sortText": "+08",
+                        "sortText": "+09",
                         "insertText": "B => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "C",
-                        "kind": 5,
-                        "sortText": "+09",
-                        "insertText": "C => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "D",
-                        "kind": 5,
-                        "sortText": "+10",
-                        "insertText": "D => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "E",
-                        "kind": 5,
-                        "sortText": "+11",
-                        "insertText": "E => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "F",
-                        "kind": 5,
-                        "sortText": "+12",
-                        "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "Params of Bar",
+                        "label": "Aggregate when X => others, Z => True",
                         "kind": 15,
-                        "sortText": "+13",
-                        "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Integer}, M => ${5:Integer}, N => ${6:Integer}, O => ${7:Integer}, P => ${8:Integer})$0",
+                        "sortText": "+10",
+                        "insertText": "X => ${1:others}, Z => True, Y => ${3:Boolean}, C => ${4:Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -312,73 +265,94 @@
                                  "character": 3
                               },
                               "end": {
-                                 "line": 1,
-                                 "character": 52
+                                 "line": 18,
+                                 "character": 14
                               }
                            }
                         }
                      },
                      {
-                        "label": "I",
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+11",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Z => True",
+                        "kind": 5,
+                        "sortText": "+12",
+                        "insertText": "Z => True",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Y",
+                        "kind": 5,
+                        "sortText": "+13",
+                        "insertText": "Y => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "C",
                         "kind": 5,
                         "sortText": "+14",
-                        "insertText": "I => ",
+                        "insertText": "C => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "J",
-                        "kind": 5,
+                        "label": "Aggregate when X => others, Z => False",
+                        "kind": 15,
                         "sortText": "+15",
-                        "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertText": "X => ${1:others}, Z => False, Y => ${3:Boolean}, D => ${4:Float})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 18,
+                                 "character": 14
+                              }
+                           }
+                        }
                      },
                      {
-                        "label": "K",
+                        "label": "X",
                         "kind": 5,
                         "sortText": "+16",
-                        "insertText": "K => ",
+                        "insertText": "X => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "L",
+                        "label": "Z => False",
                         "kind": 5,
                         "sortText": "+17",
-                        "insertText": "L => ",
+                        "insertText": "Z => False",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "M",
+                        "label": "Y",
                         "kind": 5,
                         "sortText": "+18",
-                        "insertText": "M => ",
+                        "insertText": "Y => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "N",
+                        "label": "D",
                         "kind": 5,
                         "sortText": "+19",
-                        "insertText": "N => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "O",
-                        "kind": 5,
-                        "sortText": "+20",
-                        "insertText": "O => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "P",
-                        "kind": 5,
-                        "sortText": "+21",
-                        "insertText": "P => ",
+                        "insertText": "D => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      }
@@ -399,30 +373,7 @@
                }
             }
          },
-         "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{foo.adb}",
-                  "diagnostics": []
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 8,
-            "method": "shutdown"
-         },
-         "wait": [
-            {
-               "id": 8,
-               "result": null
-            }
-         ]
+         "wait": []
       }
    },
    {

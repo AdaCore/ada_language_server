@@ -21,8 +21,9 @@ with LSP.Ada_Handlers;
 package LSP.Ada_Completions.Parameters is
 
    type Parameter_Completion_Provider
-     (Context                 : not null LSP.Ada_Handlers.Context_Access;
-      Compute_Doc_And_Details : Boolean)
+     (Context                  : not null LSP.Ada_Handlers.Context_Access;
+      Named_Notation_Threshold : Natural;
+      Compute_Doc_And_Details  : Boolean)
    is new Completion_Provider with null record;
 
    overriding procedure Propose_Completion

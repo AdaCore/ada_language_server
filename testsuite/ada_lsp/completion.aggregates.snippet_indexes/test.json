@@ -15,119 +15,100 @@
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "initialize",
             "params": {
-               "processId": 657005,
-               "rootUri": "$URI{.}",
+               "processId": 30170,
                "capabilities": {
-                  "workspace": {
-                     "applyEdit": true,
-                     "workspaceEdit": {
-                        "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
-                     }
-                  },
                   "textDocument": {
-                     "synchronization": {},
                      "completion": {
-                        "dynamicRegistration": true,
                         "completionItem": {
-                           "snippetSupport": false,
                            "documentationFormat": [
                               "plaintext",
                               "markdown"
                            ],
-                           "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
-                           }
-                        }
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
                      },
-                     "hover": {},
-                     "signatureHelp": {},
-                     "declaration": {},
                      "definition": {},
-                     "typeDefinition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
                      "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
                      "documentSymbol": {
                         "hierarchicalDocumentSymbolSupport": true
                      },
-                     "formatting": {
-                        "dynamicRegistration": false
-                     },
-                     "rangeFormatting": {
-                        "dynamicRegistration": false
-                     },
-                     "onTypeFormatting": {
-                        "dynamicRegistration": false
-                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
                      "foldingRange": {
                         "lineFoldingOnly": true
-                     }
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
                   }
-               }
-            }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
          },
-         "wait": [
-            {
-               "id": 1,
-               "result": {
-                  "capabilities": {
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ],
-                     "alsCheckSyntaxProvider": true
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  ",",
+                                  "'",
+                                  "("
+                              ],
+                              "resolveProvider": true
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {},
+                          "alsReferenceKinds": [
+                              "reference",
+                              "access",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child",
+                              "overriding"
+                          ]
+                      }
                   }
-               }
-            }
-         ]
+              }
+          ]
+
       }
    },
    {
@@ -235,10 +216,38 @@
                      {
                         "label": "Aggregate for Aggr_Type_1",
                         "kind": 15,
+                        "sortText": "+0",
                         "detail": "type Aggr_Type_1 is record\n   A, B, C : Integer;\nend record;",
                         "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "A => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                     },
+                     {
+                         "label": "B",
+                         "kind": 5,
+                         "sortText": "+2",
+                         "insertText": "B => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                     },
+                     {
+                         "label": "C",
+                         "kind": 5,
+                         "sortText": "+3",
+                         "insertText": "C => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
                      }
                   ]
                }
