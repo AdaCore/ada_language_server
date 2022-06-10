@@ -17,18 +17,413 @@
 
 with GNATCOLL.Utils;
 
-with Langkit_Support.Text;       use Langkit_Support.Text;
 with Laltools.Common;
-with Libadalang.Common;
 
-with VSS.Strings.Character_Iterators;
-with VSS.Strings.Conversions;
+with Libadalang.Analysis;        use Libadalang.Analysis;
+with Libadalang.Common;          use Libadalang.Common;
 
 with LSP.Ada_Completions.Filters;
-with LSP.Ada_Documents;
+with LSP.Ada_Completions.Generic_Assoc;
+with LSP.Ada_Completions.Generic_Assoc_Utils;
+
 with LSP.Lal_Utils;
 
+with VSS.Strings.Conversions;
+
 package body LSP.Ada_Completions.Parameters is
+
+   function Get_Spec_Call_Expr_Designators
+     (C       : Libadalang.Analysis.Call_Expr;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+
+   package Call_Expr_Completion is new
+     LSP.Ada_Completions.Generic_Assoc
+       (Element              => Libadalang.Analysis.Call_Expr,
+        Null_Element         => Libadalang.Analysis.No_Call_Expr,
+        Search_Element       => LSP.Lal_Utils.Get_Call_Expr,
+        Get_Designators      => LSP.Lal_Utils.Get_Call_Designators,
+        Get_Spec_Designators => Get_Spec_Call_Expr_Designators);
+
+   function Get_Aggregate
+     (N : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Aggregate;
+   function Get_Designators
+     (A : Libadalang.Analysis.Aggregate)
+      return Laltools.Common.Node_Vectors.Vector;
+   function Get_Spec_Aggregate_Designators
+     (A       : Libadalang.Analysis.Aggregate;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+
+   package Aggregate_Completion is new
+     LSP.Ada_Completions.Generic_Assoc
+       (Element              => Libadalang.Analysis.Aggregate,
+        Null_Element         => Libadalang.Analysis.No_Aggregate,
+        Search_Element       => Get_Aggregate,
+        Get_Designators      => Get_Designators,
+        Get_Spec_Designators => Get_Spec_Aggregate_Designators);
+
+   ------------------------------------
+   -- Get_Spec_Call_Expr_Designators --
+   ------------------------------------
+
+   function Get_Spec_Call_Expr_Designators
+     (C       : Libadalang.Analysis.Call_Expr;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
+   is
+      Is_First_Param : Boolean := True;
+      Res            :
+        LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+      Name_Node      : constant Libadalang.Analysis.Name := C.F_Name;
+      Is_Dotted_Name : constant Boolean :=
+        (Name_Node.Kind in Ada_Dotted_Name_Range
+         and then Name_Node.As_Dotted_Name.P_Is_Dot_Call (True));
+
+   begin
+      for N of reverse Context.Find_All_Env_Elements (Name_Node) loop
+         if N.Kind in Ada_Basic_Subp_Decl then
+            declare
+               Assoc : LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+               Spec : constant Libadalang.Analysis.Base_Subp_Spec
+                 := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
+            begin
+               if Spec /= Libadalang.Analysis.No_Base_Subp_Spec then
+                  Assoc.Title.Append ("Params of ");
+                  Assoc.Title.Append
+                    (VSS.Strings.To_Virtual_String (Name_Node.Text));
+                  Assoc.Decl := N.As_Basic_Decl;
+
+                  for Param of Spec.P_Params loop
+                     declare
+                        Param_Type : constant Type_Expr := Param.F_Type_Expr;
+                     begin
+                        for Id of Param.F_Ids loop
+                           if not (Is_First_Param and then Is_Dotted_Name) then
+                              Assoc.Param_Types.Include
+                                (Id,
+                                 (Node     => Param_Type.As_Ada_Node,
+                                  Is_Value => False));
+                              Assoc.Param_Vector.Append (Id.As_Ada_Node);
+                           end if;
+                           Is_First_Param := False;
+                        end loop;
+                     end;
+                  end loop;
+                  Res.Append (Assoc);
+               end if;
+            end;
+         end if;
+      end loop;
+
+      return Res;
+   end Get_Spec_Call_Expr_Designators;
+
+   -------------------
+   -- Get_Aggregate --
+   -------------------
+
+   function Get_Aggregate
+     (N : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Aggregate is
+   begin
+      if N.Kind in Libadalang.Common.Ada_Aggregate_Range then
+         return N.As_Aggregate;
+      end if;
+      return No_Aggregate;
+   end Get_Aggregate;
+
+   ---------------------
+   -- Get_Designators --
+   ---------------------
+
+   function Get_Designators
+     (A : Libadalang.Analysis.Aggregate)
+      return Laltools.Common.Node_Vectors.Vector
+   is
+      Res : Laltools.Common.Node_Vectors.Vector;
+   begin
+      for Assoc of A.F_Assocs loop
+         if Assoc.Kind in Ada_Aggregate_Assoc_Range then
+            for Alt of Assoc.As_Aggregate_Assoc.F_Designators loop
+               Res.Append (Alt.As_Ada_Node);
+            end loop;
+         end if;
+      end loop;
+
+      return Res;
+   end Get_Designators;
+
+   ------------------------------------
+   -- Get_Spec_Aggregate_Designators --
+   ------------------------------------
+
+   function Get_Spec_Aggregate_Designators
+     (A       : Libadalang.Analysis.Aggregate;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
+   is
+      pragma Unreferenced (Context);
+      Res       :
+        LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+      Expr_Type : constant Base_Type_Decl := A.P_Expression_Type;
+      Aggr_Type : constant Base_Type_Decl :=
+        (if Expr_Type.Is_Null then No_Base_Type_Decl else Expr_Type);
+
+      procedure Add_Component
+        (Assoc : in out LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+         Param : Base_Formal_Param_Decl;
+         Discs : Discriminant_Values_Array);
+      --  Add the components if they are not a bounded discriminants.
+      --  Ignore duplicated components.
+
+      procedure Add_Discriminant
+        (Assoc : in out LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+         Disc  : Discriminant_Values);
+      --  Add the bounded discriminants
+
+      function Get_Label_For_Shape
+        (Discriminants : Discriminant_Values_Array)
+         return VSS.Strings.Virtual_String;
+      --  Return an unique name for a shape
+
+      function Is_Discriminant
+        (Component     : Defining_Name'Class;
+         Discriminants : Discriminant_Values_Array)
+         return Boolean;
+      --  Return True if Component is a bounded discriminants
+
+      -------------------
+      -- Add_Component --
+      -------------------
+
+      procedure Add_Component
+        (Assoc : in out LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+         Param : Base_Formal_Param_Decl;
+         Discs : Discriminant_Values_Array)
+      is
+         Param_Ids  : constant Defining_Name_List :=
+           (case Param.Kind is
+               when Ada_Component_Decl_Range =>
+                 As_Component_Decl (Param).F_Ids,
+               when Ada_Discriminant_Spec    =>
+                 As_Discriminant_Spec (Param).F_Ids,
+               when others                   =>
+                 No_Defining_Name_List);
+         Param_Type : constant Type_Expr :=
+           (case Param.Kind is
+               when Ada_Component_Decl_Range =>
+                 As_Component_Decl (Param).
+                F_Component_Def.F_Type_Expr,
+               when Ada_Discriminant_Spec    =>
+                 As_Discriminant_Spec (Param).F_Type_Expr,
+               when others                   => No_Type_Expr);
+      begin
+         for Id of Param_Ids loop
+            --  Do nothing if this is a bounded discriminants
+            if not Is_Discriminant (Id, Discs)
+              --  or if the node is already present
+              and then not Assoc.Param_Vector.Contains (Id.As_Ada_Node)
+            then
+               if not Assoc.Param_Types.Contains (Id) then
+                  Assoc.Param_Types.Include
+                    (Id,
+                     (Node     => Param_Type.As_Ada_Node,
+                      Is_Value => False));
+               end if;
+               Assoc.Param_Vector.Append (Id.As_Ada_Node);
+            end if;
+         end loop;
+      end Add_Component;
+
+      ----------------------
+      -- Add_Discriminant --
+      ----------------------
+
+      procedure Add_Discriminant
+        (Assoc : in out LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+         Disc  : Discriminant_Values)
+      is
+         Id : constant Libadalang.Analysis.Identifier'Class :=
+           Discriminant (Disc);
+
+         function Is_Basic_Value
+           (L : Alternatives_List'Class) return Boolean;
+
+         --------------------
+         -- Is_Basic_Value --
+         --------------------
+
+         function Is_Basic_Value
+           (L : Alternatives_List'Class) return Boolean is
+         begin
+            if L.Children_Count = 1 then
+               declare
+                  Value_Node : constant Ada_Node :=
+                    L.Child (L.First_Child_Index);
+               begin
+                  case Value_Node.Kind is
+                     when Ada_Bin_Op_Range | Ada_Others_Designator_Range =>
+                        --  return a placeholder for "when X .. Y"
+                        return False;
+                     when Ada_Identifier_Range =>
+                        --  return a placeholder for "when Z" with Z a type
+                        return
+                          Value_Node.As_Identifier
+                            .P_Name_Designated_Type.Is_Null;
+                     when others =>
+                        return True;
+                  end case;
+               end;
+            else
+               return False;
+            end if;
+         end Is_Basic_Value;
+      begin
+         Assoc.Param_Vector.Append (Id.As_Ada_Node);
+         if not Assoc.Param_Types.Contains (Id) then
+            declare
+               Disc_Values : constant Alternatives_List'Class := Values (Disc);
+            begin
+               Assoc.Param_Types.Include
+                 (Id,
+                  (Node     => Disc_Values.As_Ada_Node,
+                   Is_Value => Is_Basic_Value (Disc_Values)));
+            end;
+         end if;
+      end Add_Discriminant;
+
+      -------------------------
+      -- Get_Label_For_Shape --
+      -------------------------
+
+      function Get_Label_For_Shape
+        (Discriminants : Discriminant_Values_Array)
+         return VSS.Strings.Virtual_String
+      is
+         Result : VSS.Strings.Virtual_String;
+         Length : constant Integer := Discriminants'Length;
+
+      begin
+         if Length = 0 then
+            return
+              LSP.Lal_Utils.To_Virtual_String
+                ("Aggregate for " & Aggr_Type.F_Name.Text);
+         end if;
+
+         Result := "Aggregate when ";
+
+         for Idx in Discriminants'Range loop
+            declare
+               Disc_Values : constant Discriminant_Values :=
+                 Discriminants (Idx);
+            begin
+               Result.Append
+                 (LSP.Lal_Utils.To_Virtual_String
+                    (Discriminant (Disc_Values).Text));
+               Result.Append (" => ");
+
+               Result.Append
+                 (LSP.Lal_Utils.To_Virtual_String (Values (Disc_Values).Text));
+
+               if Idx < Discriminants'Length then
+                  Result.Append (", ");
+               end if;
+            end;
+         end loop;
+
+         return Result;
+      end Get_Label_For_Shape;
+
+      ---------------------
+      -- Is_Discriminant --
+      ---------------------
+
+      function Is_Discriminant
+        (Component     : Defining_Name'Class;
+         Discriminants : Discriminant_Values_Array)
+         return Boolean is
+      begin
+         for Disc of Discriminants loop
+            if Discriminant (Disc).Text = Component.Text then
+               return True;
+            end if;
+         end loop;
+         return False;
+      end Is_Discriminant;
+
+   begin
+      --  If the aggregate node has no type (e.g: representation clauses),
+      --  return immediately.
+      if Expr_Type.Is_Null then
+         return Res;
+      end if;
+
+      if Aggr_Type.Kind in Ada_Type_Decl_Range then
+         declare
+            Base_Type  : constant Base_Type_Decl :=
+              Aggr_Type.P_Base_Type (Origin => A);
+            Is_Private : constant Boolean :=
+              not Base_Type.Is_Null and then Base_Type.P_Is_Private;
+         begin
+
+            for Shape of reverse Aggr_Type.As_Type_Decl.P_Shapes
+              (Include_Discriminants => True,
+               --  This is mandatory to retrieve unbounded discriminants
+               Origin                => A)
+            loop
+               declare
+                  Assoc         :
+                    LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+                  Discriminants : constant Discriminant_Values_Array :=
+                    Discriminants_Values (Shape);
+                  --  Discriminants_Values only returns the discrimants
+                  --  with bounded values
+                  Components    : constant Base_Formal_Param_Decl_Array :=
+                    Libadalang.Analysis.Components (Shape);
+                  --  Components contains all the components + all the
+                  --  Discriminants (P_Shapes was called with
+                  --  Include_Discriminants => True)
+               begin
+                  Assoc.Decl := Aggr_Type.As_Basic_Decl;
+                  Assoc.Title := Get_Label_For_Shape (Discriminants);
+
+                  --  If we are dealing with a derived type that does not have
+                  --  access to its parent full view, we should use the
+                  --  extension aggregate notation (see RM 4.3.2 for more
+                  --  info).
+                  if Is_Private then
+                     Assoc.Prefix.Append
+                       (VSS.Strings.To_Virtual_String (Base_Type.F_Name.Text));
+                     Assoc.Prefix.Append (" with ");
+                  end if;
+
+                  --  Add the bounded discriminant first
+                  for Disc of Discriminants loop
+                     Add_Discriminant (Assoc, Disc);
+                  end loop;
+
+                  declare
+                     All_Components : constant Base_Formal_Param_Decl_Array :=
+                       (if Is_Private
+                        then Base_Type.P_Discriminants_List & Components
+                        --  This union can have duplicates: add the parent
+                        --  discriminants first
+                        else Components);
+                  begin
+                     for Comp of All_Components loop
+                        Add_Component (Assoc, Comp, Discriminants);
+                     end loop;
+                  end;
+                  Res.Append (Assoc);
+               end;
+            end loop;
+         end;
+      end if;
+
+      return Res;
+   end Get_Spec_Aggregate_Designators;
 
    ------------------------
    -- Propose_Completion --
@@ -43,225 +438,44 @@ package body LSP.Ada_Completions.Parameters is
       Names  : in out Ada_Completions.Completion_Maps.Map;
       Result : in out LSP.Messages.CompletionList)
    is
-      pragma Unreferenced (Filter);
-      use Libadalang.Analysis;
-      use Libadalang.Common;
-
-      Call_Expr_Node    : constant Libadalang.Analysis.Call_Expr :=
-        LSP.Lal_Utils.Get_Call_Expr (Node);
-      Token_Kind        : Libadalang.Common.Token_Kind :=
-        Kind (Data (Token));
-      Whitespace_Prefix : VSS.Strings.Virtual_String;
-      --  Empty if we already have a whitespace before a ","
-
-      Designators     : Laltools.Common.Node_Vectors.Vector;
-
-      function Is_Present (Id_Text : Text_Type) return Boolean;
-      --  Return True if Id_Name match one of the designators
-
-      function Get_Param_Name_List
-        (Spec          : Libadalang.Analysis.Base_Subp_Spec;
-         Exclude_First : Boolean;
-         Length        : out Integer)
-         return Laltools.Common.Node_Vectors.Vector;
-      --  Return the list of parameters for Spec.
-
-      ----------------
-      -- Is_Present --
-      ----------------
-
-      function Is_Present (Id_Text : Text_Type) return Boolean is
-      begin
-         for Desig of Designators loop
-            if Id_Text = Desig.Text then
-               return True;
-            end if;
-         end loop;
-         return False;
-      end Is_Present;
-
-      -------------------------
-      -- Get_Param_Name_List --
-      -------------------------
-
-      function Get_Param_Name_List
-        (Spec          : Libadalang.Analysis.Base_Subp_Spec;
-         Exclude_First : Boolean;
-         Length        : out Integer)
-         return Laltools.Common.Node_Vectors.Vector
-      is
-         Is_First_Param : Boolean := True;
-         Res            : Laltools.Common.Node_Vectors.Vector;
-      begin
-         for Param of Spec.P_Params loop
-            for Id of Param.F_Ids loop
-               if not (Is_First_Param and then Exclude_First) then
-                  Res.Append (Id.As_Ada_Node);
-               end if;
-               Is_First_Param := False;
-            end loop;
-         end loop;
-
-         Length := Integer (Res.Length);
-         return Res;
-      end Get_Param_Name_List;
-
+      Count        : Natural := 0;
+      Unsorted_Res : LSP.Messages.CompletionItem_Vector;
    begin
-      if Call_Expr_Node = No_Ada_Node then
-         return;
-      end if;
+      Call_Expr_Completion.Propose_Completion
+        (Self         => Self,
+         Sloc         => Sloc,
+         Token        => Token,
+         Node         => Node,
+         Limit        => Self.Named_Notation_Threshold,
+         Filter       => Filter,
+         Names        => Names,
+         Unsorted_Res => Unsorted_Res);
 
-      Designators := LSP.Lal_Utils.Get_Call_Designators (Call_Expr_Node);
-
-      if Token_Kind = Ada_Whitespace then
-         Token_Kind := Kind (Data (Previous (Token, Exclude_Trivia => True)));
-
-      elsif Token_Kind = Ada_Comma then
-         Whitespace_Prefix.Append (" ");
-      end if;
+      Aggregate_Completion.Propose_Completion
+        (Self         => Self,
+         Sloc         => Sloc,
+         Token        => Token,
+         Node         => Node,
+         Limit        => Self.Named_Notation_Threshold,
+         Filter       => Filter,
+         Names        => Names,
+         Unsorted_Res => Unsorted_Res);
 
       declare
-         Prefix    : constant VSS.Strings.Virtual_String :=
-           VSS.Strings.To_Virtual_String (Node.Text);
-         Name_Node : constant Libadalang.Analysis.Name :=
-           Call_Expr_Node.F_Name;
-
-         Is_Dotted_Name : constant Boolean :=
-           (Name_Node.Kind in Ada_Dotted_Name_Range
-            and then Name_Node.As_Dotted_Name.P_Is_Dot_Call (True));
-
-         Unsorted_Res   : LSP.Messages.CompletionItem_Vector;
+         Min_Width : constant Natural := Unsorted_Res.Length'Img'Length - 1;
       begin
-         for N of reverse Self.Context.Find_All_Env_Elements (Name_Node) loop
-            if N.Kind in Ada_Basic_Subp_Decl then
-               declare
-                  Spec           : constant Libadalang.Analysis.Base_Subp_Spec
-                    := N.As_Basic_Decl.P_Subp_Spec_Or_Null;
-                  Params_Snippet : VSS.Strings.Virtual_String;
-                  Snippet_Index  : Integer;
-
-               begin
-                  if Spec /= Libadalang.Analysis.No_Base_Subp_Spec
-                    and then LSP.Lal_Utils.Match_Designators
-                      (Spec.P_Params, Designators)
-                  then
-                     for N of reverse Get_Param_Name_List
-                       (Spec          => Spec,
-                        Exclude_First => Is_Dotted_Name,
-                        Length        => Snippet_Index)
-                     loop
-                        declare
-                           Name_Text : constant Text_Type := N.Text;
-                           Name      : constant VSS.Strings.Virtual_String :=
-                             VSS.Strings.To_Virtual_String (Name_Text);
-                           Item      : LSP.Messages.CompletionItem;
-                           Aux       : VSS.Strings.Virtual_String;
-
-                        begin
-                           if not Is_Present (Name_Text) then
-                              if Token_Kind in Ada_Par_Open | Ada_Comma
-                                or else
-                                  Name.Starts_With
-                                    (Prefix,
-                                     VSS.Strings.Identifier_Caseless)
-                              then
-                                 Item.label := Name;
-                                 Item.insertTextFormat :=
-                                   (True, LSP.Messages.PlainText);
-                                 Item.insertText := (True, Value => <>);
-                                 Item.insertText.Value.Append
-                                   (Whitespace_Prefix);
-                                 Item.insertText.Value.Append (Name);
-                                 Item.insertText.Value.Append (" => ");
-                                 Item.kind := (True, LSP.Messages.Field);
-                                 Unsorted_Res.Append (Item);
-                              end if;
-
-                              Aux.Append (Name);
-                              Aux.Append (" => ");
-                              Aux.Append ("$");
-                              Aux.Append
-                                (VSS.Strings.Conversions.To_Virtual_String
-                                   (GNATCOLL.Utils.Image
-                                        (Snippet_Index, Min_Width => 1)));
-                              Aux.Append (", ");
-                              Params_Snippet.Prepend (Aux);
-                           end if;
-                           Snippet_Index := Snippet_Index - 1;
-                        end;
-                     end loop;
-
-                     --  If the string is empty => nothing to do
-                     if not Params_Snippet.Is_Empty
-                       and then Token_Kind in Ada_Par_Open | Ada_Comma
-                     then
-                        declare
-                           Last    :
-                            VSS.Strings.Character_Iterators.Character_Iterator
-                             := Params_Snippet.At_Last_Character;
-                           Success : Boolean with Unreferenced;
-
-                        begin
-                           --  Remove the last 2 characters which are ", " and
-                           --  replace it by ")" and the final tab stop
-                           Success := Last.Backward;
-                           Success := Last.Backward;
-
-                           Params_Snippet :=
-                             Params_Snippet.Slice
-                               (Params_Snippet.At_First_Character, Last);
-                           Params_Snippet.Append (")$0");
-                        end;
-
-                        declare
-                           use type VSS.Strings.Virtual_String;
-
-                           Snippet_Name : constant
-                             VSS.Strings.Virtual_String :=
-                               "Params of "
-                               & VSS.Strings.To_Virtual_String
-                                   (Name_Node.Text);
-                           Item         : LSP.Messages.CompletionItem;
-
-                        begin
-                           Item.label := Snippet_Name;
-                           Item.insertTextFormat :=
-                             (True, LSP.Messages.Snippet);
-                           Item.insertText := (True, Value => <>);
-                           Item.insertText.Value.Append (Whitespace_Prefix);
-                           Item.insertText.Value.Append (Params_Snippet);
-                           Item.kind := (True, LSP.Messages.Snippet);
-                           LSP.Ada_Documents.Set_Completion_Item_Documentation
-                             (Context                 => Self.Context.all,
-                              BD                      => N.As_Basic_Decl,
-                              Item                    => Item,
-                              Compute_Doc_And_Details =>
-                                Self.Compute_Doc_And_Details);
-                           Unsorted_Res.Append (Item);
-                        end;
-                     end if;
-                  end if;
-               end;
-            end if;
+         for Unsort_Item of reverse Unsorted_Res loop
+            --  Use a "+" as the first sorted character to be shown before
+            --  the items from the other providers ("+" is lower than
+            --  the alphanumeric symbol and "~" in the ASCII table)
+            Unsort_Item.sortText := (True, Value => <>);
+            Unsort_Item.sortText.Value.Append ('+');
+            Unsort_Item.sortText.Value.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (GNATCOLL.Utils.Image (Count, Min_Width => Min_Width)));
+            Result.items.Append (Unsort_Item);
+            Count := Count + 1;
          end loop;
-
-         declare
-            Min_Width : constant Natural := Unsorted_Res.Length'Img'Length - 1;
-            Cpt       : Natural := 0;
-         begin
-            for Unsort_Item of reverse Unsorted_Res loop
-               --  Use a "+" as the first sorted character to be shown before
-               --  the items from the other providers ("+" is lower than
-               --  the alphanumeric symbol and "~" in the ASCII table)
-               Unsort_Item.sortText := (True, Value => <>);
-               Unsort_Item.sortText.Value.Append ('+');
-               Unsort_Item.sortText.Value.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (GNATCOLL.Utils.Image (Cpt, Min_Width => Min_Width)));
-               Result.items.Append (Unsort_Item);
-               Cpt := Cpt + 1;
-            end loop;
-         end;
       end;
    end Propose_Completion;
 

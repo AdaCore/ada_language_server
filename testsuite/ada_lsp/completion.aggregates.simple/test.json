@@ -201,9 +201,38 @@
                         "kind": 15,
                         "detail": "type Aggr_Type_1 is record\n   A : Integer;\n   B : Integer;\n   C : Integer;\nend record;",
                         "label": "Aggregate for Aggr_Type_1",
+                        "documentation": "at main.adb (2:4)",
+                        "sortText": "+0",
                         "additionalTextEdits": [],
                         "insertTextFormat": 2
-                     }
+                     },
+                     {
+                        "label": "A",
+                         "kind": 5,
+                         "sortText": "+1",
+                         "insertText": "A => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                       },
+                       {
+                         "label": "B",
+                         "kind": 5,
+                         "sortText": "+2",
+                         "insertText": "B => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                       },
+                       {
+                         "label": "C",
+                         "kind": 5,
+                         "sortText": "+3",
+                         "insertText": "C => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                       }
                   ]
                }
             }
