@@ -4139,10 +4139,10 @@ package body LSP.Ada_Handlers is
 
          --  Check the 'useCompletionSnippets' flag to see if we should use
          --  snippets in completion (if the client supports it).
-         if Ada.Has_Field (useCompletionSnippets) then
-            Self.Use_Completion_Snippets :=
-              Self.Completion_Snippets_Enabled
-              and then Ada.Get (useCompletionSnippets);
+         if not Self.Completion_Snippets_Enabled then
+            Self.Use_Completion_Snippets := False;
+         elsif Ada.Has_Field (useCompletionSnippets) then
+            Self.Use_Completion_Snippets := Ada.Get (useCompletionSnippets);
          end if;
 
          --  Retrieve the policy for displaying type hierarchy on navigation
