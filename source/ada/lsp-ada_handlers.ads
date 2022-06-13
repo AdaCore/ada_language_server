@@ -20,15 +20,23 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Strings.Unbounded;
+with VSS.String_Vectors;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
-with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 
 with VSS.Strings;
-with VSS.String_Vectors;
 
 private with GNATdoc.Comments.Options;
+
+with GPR2;
+with GPR2.Context;
+with GPR2.File_Readers;
+with GPR2.Path_Name;
+with GPR2.Path_Name.Set;
+with GPR2.Project.Configuration;
+with GPR2.Project.Tree;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -204,6 +212,26 @@ private
      (Names  => VSS.String_Vectors.Empty_Virtual_String_Vector,
       Values => VSS.String_Vectors.Empty_Virtual_String_Vector);
 
+   type Environment is record
+      Filename         : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Context          : GPR2.Context.Object := GPR2.Context.Empty;
+      Config           : GPR2.Project.Configuration.Object :=
+                           GPR2.Project.Configuration.Undefined;
+      Project_Dir      : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Build_Path       : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Subdirs          : Ada.Strings.Unbounded.Unbounded_String;
+      Src_Subdirs      : Ada.Strings.Unbounded.Unbounded_String;
+      Check_Shared_Lib : Boolean := True;
+      Absent_Dir_Error : Boolean := False;
+      Implicit_With    : GPR2.Path_Name.Set.Object :=
+                           GPR2.Path_Name.Set.Empty_Set;
+      Pre_Conf_Mode    : Boolean := False;
+      File_Reader      : GPR2.File_Readers.File_Reader_Reference :=
+                           GPR2.File_Readers.No_File_Reader_Reference;
+   end record;
+
+   Empty_Environment : constant Environment := (others => <>);
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -332,10 +360,10 @@ private
       Scenario_Variables : Scenario_Variable_List;
       --  Scenario variables used to load a current project
 
-      Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
+      Project_Tree : GPR2.Project.Tree.Object;
       --  The currently loaded project tree
 
-      Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
+      Project_Environment : Environment;
       --  The project environment for the currently loaded project
 
       Project_Predefined_Sources : LSP.Ada_File_Sets.Indexed_File_Set;
