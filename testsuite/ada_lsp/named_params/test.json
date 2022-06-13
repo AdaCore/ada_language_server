@@ -139,7 +139,7 @@
                         "title":"",
                         "command":"als-named-parameters",
                         "arguments":[{
-                            "context":"empty",
+                            "context":"default",
                             "where":{
                                 "textDocument":{
                                     "uri": "$URI{test.adb}"
@@ -163,7 +163,7 @@
                 "params":{
                     "command":"als-named-parameters",
                     "arguments":[{
-                        "context":"empty",
+                        "context":"default",
                         "where":{
                             "textDocument":{
                                 "uri": "$URI{test.adb}"
@@ -279,7 +279,7 @@
                         "title":"",
                         "command":"als-named-parameters",
                         "arguments":[{
-                            "context":"empty",
+                            "context":"default",
                             "where":{
                                 "textDocument":{
                                     "uri": "$URI{test.adb}"
@@ -303,7 +303,7 @@
                 "params":{
                     "command":"als-named-parameters",
                     "arguments":[{
-                        "context":"empty",
+                        "context":"default",
                         "where":{
                             "textDocument":{
                                 "uri": "$URI{test.adb}"
@@ -442,7 +442,7 @@
                         "title":"",
                         "command":"als-named-parameters",
                         "arguments":[{
-                            "context":"empty",
+                            "context":"default",
                             "where":{
                                 "textDocument":{
                                     "uri": "$URI{test.adb}"
@@ -466,7 +466,7 @@
                 "params":{
                     "command":"als-named-parameters",
                     "arguments":[{
-                        "context":"empty",
+                        "context":"default",
                         "where":{
                             "textDocument":{
                                 "uri": "$URI{test.adb}"
@@ -584,7 +584,7 @@
                         "title":"",
                         "command":"als-named-parameters",
                         "arguments":[{
-                            "context":"empty",
+                            "context":"default",
                             "where":{
                                 "textDocument":{
                                     "uri": "$URI{test.adb}"
@@ -608,7 +608,7 @@
                 "params":{
                     "command":"als-named-parameters",
                     "arguments":[{
-                        "context":"empty",
+                        "context":"default",
                         "where":{
                             "textDocument":{
                                 "uri": "$URI{test.adb}"
