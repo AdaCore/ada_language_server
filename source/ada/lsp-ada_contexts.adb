@@ -19,9 +19,14 @@ with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
 with GNAT.Strings;
 
-with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
+
+with GPR2.Containers;
+with GPR2.Path_Name;
+with GPR2.Project.Attribute;
+with GPR2.Project.Attribute_Index;
+with GPR2.Project.Source;
 
 with VSS.Strings.Conversions;
 
@@ -215,7 +220,7 @@ package body LSP.Ada_Contexts is
       File    : GNATCOLL.VFS.Virtual_File;
       Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit is
    begin
-      if not Is_Ada_File (Self.Tree, File) then
+      if not Is_Ada_File (Self.Tree.all, File) then
          return Libadalang.Analysis.No_Analysis_Unit;
       end if;
 
@@ -634,10 +639,10 @@ package body LSP.Ada_Contexts is
    ------------------
 
    procedure Load_Project
-     (Self     : in out Context;
-      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
-      Root     : Project_Type;
-      Charset  : String)
+     (Self    : in out Context;
+      Tree    : GPR2.Project.Tree.Object;
+      Root    : GPR2.Project.View.Object;
+      Charset : String)
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
@@ -649,44 +654,47 @@ package body LSP.Ada_Contexts is
       -------------------------
 
       procedure Update_Source_Files is
-         All_Sources : File_Array_Access :=
-           Root.Source_Files (Recursive => True);
-         All_Ada_Sources : File_Array (1 .. All_Sources'Length);
-         Free_Index      : Natural := All_Ada_Sources'First;
-      begin
-         --  Iterate through all sources, returning only those that have Ada
-         --  as language.
-         for J in All_Sources'Range loop
-            if Is_Ada_File (Self.Tree, All_Sources (J)) then
-               All_Ada_Sources (Free_Index) := All_Sources (J);
-               Free_Index := Free_Index + 1;
-            end if;
-         end loop;
 
-         Unchecked_Free (All_Sources);
+         procedure Insert_Source (Source : GPR2.Project.Source.Object);
+         --  Insert Source in Self.Source_Files
+
+         -------------------
+         -- Insert_Source --
+         -------------------
+
+         procedure Insert_Source (Source : GPR2.Project.Source.Object) is
+            Path : constant Virtual_File := Source.Path_Name.Virtual_File;
+         begin
+            if not Self.Source_Files.Contains (Path) then
+               Self.Source_Files.Include (Path);
+            end if;
+         end Insert_Source;
+
+      begin
          Self.Source_Files.Clear;
 
-         for Index in 1 .. Free_Index - 1 loop
-            Self.Source_Files.Include (All_Ada_Sources (Index));
-         end loop;
+         Tree.For_Each_Source
+           (View             => Root,
+            Action           => Insert_Source'Access,
+            Language         => GPR2.Ada_Language,
+            Externally_Built => False);
 
          Self.Source_Dirs.Clear;
-         Self.External_Source_Dirs.Clear;
 
-         for Dir of Source_Dirs
-           (Project                  => Root,
-            Recursive                => True,
-            Include_Externally_Built => False)
+         for Dir of Tree.Source_Directories
+           (View             => Root,
+            Externally_Built => False)
          loop
-            Self.Source_Dirs.Include (Dir);
+            Self.Source_Dirs.Include (Dir.Virtual_File);
          end loop;
 
-         for Dir of Source_Dirs
-           (Project                  => Root,
-            Recursive                => True,
-            Include_Externally_Built => True)
+         Self.External_Source_Dirs.Clear;
+
+         for Dir of Tree.Source_Directories
+           (View             => Root,
+            Externally_Built => True)
          loop
-            Self.External_Source_Dirs.Include (Dir);
+            Self.External_Source_Dirs.Include (Dir.Virtual_File);
          end loop;
       end Update_Source_Files;
 
@@ -696,39 +704,45 @@ package body LSP.Ada_Contexts is
 
       procedure Pretty_Printer_Setup
       is
-         use type GNAT.Strings.String_Access;
-         Options   : GNAT.Strings.String_List_Access;
          Validated : GNAT.Strings.String_List_Access;
-         Last      : Integer;
-         Default   : Boolean;
+         Index     : Integer := 0;
+         Attribute : GPR2.Project.Attribute.Object;
+         Values    : GPR2.Containers.Value_List;
       begin
-         Root.Switches
-           (In_Pkg           => "Pretty_Printer",
-            File             => GNATCOLL.VFS.No_File,
-            Language         => "ada",
-            Value            => Options,
-            Is_Default_Value => Default);
 
          --  Initialize an gnatpp command line object
-         Last := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-            end if;
-         end loop;
 
-         Validated := new GNAT.Strings.String_List (Options'First .. Last);
-         Last      := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-               Validated (Last) := new String'(Item.all);
+         if Root.Check_Attribute
+           (Name   => LSP.Common.Pretty_Printer.Switches,
+            Index  => LSP.Common.Ada_Index,
+            Result => Attribute)
+         then
+
+            --  Fill 'Values' with non empty value
+
+            for Value of Attribute.Values loop
+               declare
+                  Text : constant String := Value.Text;
+               begin
+                  if Text /= "" then
+                     Values.Append (Text);
+                     Index := Index + 1;
+                  end if;
+               end;
+            end loop;
+
+            Validated := new GNAT.Strings.String_List (1 .. Index);
+
+            if Index > 0 then
+               Index := Validated'First;
+               for Text of Values loop
+                  Validated (Index) := new String'(Text);
+                  Index := Index + 1;
+               end loop;
             end if;
-         end loop;
+         else
+            Validated := new GNAT.Strings.String_List (1 .. 0);
+         end if;
 
          Utils.Command_Lines.Parse
            (Validated,
@@ -738,7 +752,6 @@ package body LSP.Ada_Contexts is
             Collect_File_Names => False,
             Ignore_Errors      => True);
 
-         GNAT.Strings.Free (Options);
          GNAT.Strings.Free (Validated);
 
          --  Set UTF-8 encoding
@@ -746,16 +759,14 @@ package body LSP.Ada_Contexts is
       end Pretty_Printer_Setup;
 
    begin
-      Self.Id := VSS.Strings.Conversions.To_Virtual_String (Root.Name);
-      Self.Tree := Tree;
+      Self.Id := VSS.Strings.Conversions.To_Virtual_String
+                   (String (Root.Name));
+      Self.Tree := Tree.Reference;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
         Libadalang.Project_Provider.Create_Project_Unit_Provider
-          (Tree             => Tree,
-           Project          => Root,
-           Env              => Get_Environment (Root),
-           Is_Project_Owner => False);
+          (Tree => Tree, Project => Root);
 
       Self.Reload;
       Update_Source_Files;
@@ -1061,12 +1072,49 @@ package body LSP.Ada_Contexts is
 
    function Project_Attribute_Value
      (Self         : Context;
-      Attribute    : Attribute_Pkg_String;
+      Attribute    : GPR2.Q_Attribute_Id;
       Index        : String := "";
       Default      : String := "";
       Use_Extended : Boolean := False) return String
-   is (if Self.Tree = null then Default
-       else Root_Project (Self.Tree.all).
-              Attribute_Value (Attribute, Index, Default,  Use_Extended));
+   is
+      Attribute_Index : constant GPR2.Project.Attribute_Index.Object :=
+        (if Index = ""
+         then GPR2.Project.Attribute_Index.Undefined
+         else GPR2.Project.Attribute_Index.Create (Index));
+
+      Attribute_Value : GPR2.Project.Attribute.Object;
+
+   begin
+      if Self.Tree.Root_Project.Check_Attribute
+        (Name   => Attribute,
+         Index  => Attribute_Index,
+         Result => Attribute_Value)
+      then
+         return Attribute_Value.Value.Text;
+      elsif Use_Extended and then Self.Tree.Root_Project.Is_Extending then
+            --  Look at Extended project list as attribute not found in
+            --  Root_Project and Use_Extended requested.
+
+         declare
+            Extended_Root : GPR2.Project.View.Object :=
+              Self.Tree.Root_Project.Extended_Root;
+         begin
+            while Extended_Root.Is_Defined loop
+               if Extended_Root.Check_Attribute
+                 (Name   => Attribute,
+                  Index  => Attribute_Index,
+                  Result => Attribute_Value)
+               then
+                  return Attribute_Value.Value.Text;
+               elsif Extended_Root.Is_Extending then
+                  Extended_Root := Extended_Root.Extended_Root;
+               else
+                  Extended_Root := GPR2.Project.View.Undefined;
+               end if;
+            end loop;
+         end;
+      end if;
+      return Default;
+   end Project_Attribute_Value;
 
 end LSP.Ada_Contexts;

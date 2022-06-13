@@ -27,9 +27,16 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with GNAT.Strings;
 with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
+
+with GPR2.Containers;
+with GPR2.Log;
+with GPR2.Message;
+with GPR2.Project.Registry.Attribute;
+with GPR2.Project.Source.Set;
+with GPR2.Project.Tree.View_Builder;
+with GPR2.Project.View;
 
 with VSS.Characters.Latin;
 with VSS.Strings.Character_Iterators;
@@ -62,7 +69,6 @@ with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
 with LSP.Ada_Handlers.Project_Diagnostics;
-with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
@@ -333,15 +339,13 @@ package body LSP.Ada_Handlers is
        (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
    --  Cast Virtual_String to Virtual_File
 
-   function To_FS
-     (Value : VSS.Strings.Virtual_String) return Filesystem_String is
-       (To_Virtual_File (Value).Full_Name);
-   --  Cast Virtual_String to Filesystem_String
-
    function To_Virtual_String
      (Value : Virtual_File) return VSS.Strings.Virtual_String is
        (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
    --  Cast Virtual_File to Virtual_String
+
+   procedure Update_Project_Predefined_Sources (Self : access Message_Handler);
+   --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
 
    -----------------------
    -- Contexts_For_File --
@@ -521,17 +525,11 @@ package body LSP.Ada_Handlers is
    procedure Release_Contexts_And_Project_Info
      (Self : access Message_Handler)
    is
-      use GNATCOLL.Projects;
    begin
       Self.Contexts.Cleanup;
 
-      if Self.Project_Tree /= null then
-         Self.Project_Tree.Unload;
-         Free (Self.Project_Tree);
-      end if;
-      if Self.Project_Environment /= null then
-         Free (Self.Project_Environment);
-      end if;
+      Self.Project_Tree.Unload;
+      Self.Project_Environment := Empty_Environment;
       Self.Project_Predefined_Sources.Clear;
       Self.Project_Dirs_Loaded.Clear;
 
@@ -610,25 +608,35 @@ package body LSP.Ada_Handlers is
    ----------------------------------
 
    procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler) is
-      Attr  : GNAT.Strings.String_List
-        (1 .. Natural (Self.Project_Dirs_Loaded.Length));
-      Index : Natural := 1;
-      use GNATCOLL.Projects;
+      Project : GPR2.Project.Tree.View_Builder.Object :=
+                   GPR2.Project.Tree.View_Builder.Create
+                     (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
+                      Name        => "default");
+      Values  : GPR2.Containers.Value_List;
    begin
       for Dir of Self.Project_Dirs_Loaded loop
-         Attr (Index) := new String'(Dir.Display_Full_Name);
-         Index := Index + 1;
+         Values.Append (Dir.Display_Full_Name);
       end loop;
 
-      Set_Attribute
-        (Self.Project_Tree.Root_Project,
-         Source_Dirs_Attribute,
-         Attr);
-      Self.Project_Tree.Recompute_View;
+      Project.Set_Attribute
+        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
 
-      for J in Attr'Range loop
-         GNAT.Strings.Free (Attr (J));
-      end loop;
+      --  Load_Autoconf is assuming loading unloaded tree.
+
+      Self.Project_Tree.Unload;
+
+      GPR2.Project.Tree.View_Builder.Load_Autoconf
+        (Self              => Self.Project_Tree,
+         Project           => Project,
+         Context           => Self.Project_Environment.Context,
+         Build_Path        => Self.Project_Environment.Build_Path);
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+   exception
+      when E : others =>
+         Self.Trace.Trace ("Exception loading implicit");
+         Self.Trace.Trace (E);
    end Reload_Implicit_Project_Dirs;
 
    --------------------
@@ -655,20 +663,12 @@ package body LSP.Ada_Handlers is
       Status : Implicit_Project_Loaded)
    is
       C    : constant Context_Access := new Context (Self.Trace);
-      Attr : GNAT.Strings.String_List (1 .. 1);
-      use GNATCOLL.Projects;
-
       Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
    begin
       Self.Trace.Trace ("Loading the implicit project");
 
       Self.Project_Status := Status;
       Self.Release_Contexts_And_Project_Info;
-      Self.Project_Environment :=
-        new LSP.Ada_Project_Environments.LSP_Project_Environment;
-      Initialize (Self.Project_Environment);
-      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
-      Self.Project_Tree := new Project_Tree;
 
       C.Initialize (Reader, Self.Follow_Symlinks,
                     As_Fallback_Context => True);
@@ -684,13 +684,6 @@ package body LSP.Ada_Handlers is
       --  Instead, use Load_Empty_Project and set the source dir and
       --  language manually: this does not have these inconvenients.
 
-      Load_Empty_Project
-        (Self.Project_Tree.all, Self.Project_Environment);
-      Attr := [1 => new String'("Ada")];
-      Set_Attribute
-        (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
-      GNAT.Strings.Free (Attr (1));
-
       --  When there is no .gpr, create a project which loads the
       --  root directory in the workspace.
 
@@ -700,9 +693,7 @@ package body LSP.Ada_Handlers is
                       Self.Project_Tree.Root_Project,
                       "iso-8859-1");
 
-      for File of Self.Project_Environment.Predefined_Source_Files loop
-         Self.Project_Predefined_Sources.Include (File);
-      end loop;
+      Update_Project_Predefined_Sources (Self);
 
       Self.Contexts.Prepend (C);
 
@@ -3178,7 +3169,7 @@ package body LSP.Ada_Handlers is
 
       Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
-      if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
+      if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
          Location_Text.Append (" in project ");
          Location_Text.Append (C.Id);
       end if;
@@ -4030,7 +4021,6 @@ package body LSP.Ada_Handlers is
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
-         use GNATCOLL.Projects;
          use Laltools.Refactor.Safe_Rename;
 
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
@@ -4040,7 +4030,7 @@ package body LSP.Ada_Handlers is
            Laltools.Common.Resolve_Name_Precisely (Name_Node);
 
          function Attribute_Value_Provider_Callback
-           (Attribute : GNATCOLL.Projects.Attribute_Pkg_String;
+           (Attribute : GPR2.Q_Attribute_Id;
             Index : String := "";
             Default : String := "";
             Use_Extended : Boolean := False)
@@ -4048,8 +4038,9 @@ package body LSP.Ada_Handlers is
           is (C.Project_Attribute_Value
                 (Attribute, Index, Default, Use_Extended));
 
-         Attribute_Value_Provider : constant Attribute_Value_Provider_Access :=
-           Attribute_Value_Provider_Callback'Unrestricted_Access;
+         Attribute_Value_Provider : constant
+           GPR2_Attribute_Value_Provider_Access :=
+             Attribute_Value_Provider_Callback'Unrestricted_Access;
 
          function Analysis_Units return Analysis_Unit_Array is
            (C.Analysis_Units);
@@ -4798,27 +4789,44 @@ package body LSP.Ada_Handlers is
       Relocate_Build_Tree : VSS.Strings.Virtual_String;
       Root_Dir            : VSS.Strings.Virtual_String)
    is
-      use GNATCOLL.Projects;
       Errors     : LSP.Messages.ShowMessageParams;
       Error_Text : VSS.String_Vectors.Virtual_String_Vector;
 
-      procedure Create_Context_For_Non_Aggregate (P : Project_Type);
-      procedure On_Error (Text : String);
+      procedure Create_Context_For_Non_Aggregate
+        (View : GPR2.Project.View.Object);
 
-      --------------
-      -- On_Error --
-      --------------
+      procedure Append_Errors;
 
-      procedure On_Error (Text : String) is
+      function To_Virtual_File
+        (Value : VSS.Strings.Virtual_String) return Virtual_File is
+        (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
+      --  Cast Virtual_String to Virtual_File
+
+      -------------------
+      -- Append_Errors --
+      -------------------
+
+      procedure Append_Errors is
       begin
-         Error_Text.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
-      end On_Error;
+         for C in Self.Project_Tree.Log_Messages.Iterate
+           (Information => False,
+            Warning     => False,
+            Error       => True,
+            Lint        => False,
+            Read        => True,
+            Unread      => True) loop
+            Error_Text.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (GPR2.Log.Element (C).Format));
+         end loop;
+      end Append_Errors;
 
       --------------------------------------
       -- Create_Context_For_Non_Aggregate --
       --------------------------------------
 
-      procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
+      procedure Create_Context_For_Non_Aggregate
+        (View : GPR2.Project.View.Object) is
          C : constant Context_Access := new Context (Self.Trace);
          Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
 
@@ -4849,8 +4857,8 @@ package body LSP.Ada_Handlers is
          --  accordingly.
 
          Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-           (Tree           => Self.Project_Tree.all,
-            Project        => P,
+           (Tree           => Self.Project_Tree,
+            Project        => View,
             Default_Config => Default_Config,
             File_Configs   => File_Configs);
 
@@ -4866,14 +4874,18 @@ package body LSP.Ada_Handlers is
          C.Initialize (Reader, Self.Follow_Symlinks);
 
          C.Load_Project
-           (Self.Project_Tree,
-            Root    => P,
+           (Tree    => Self.Project_Tree,
+            Root    => View,
             Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
-
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
-      GPR : Virtual_File := To_Virtual_File (Project_File);
+      GPR                    : Virtual_File := To_Virtual_File (Project_File);
+      Relocate_Build_Tree_VF : constant Virtual_File :=
+                                  To_Virtual_File (Relocate_Build_Tree);
+      Root_Dir_VF            : constant Virtual_File :=
+                                  To_Virtual_File (Root_Dir);
+      Default_Environment    : Environment;
 
    begin
       --  The projectFile may be either an absolute path or a
@@ -4897,49 +4909,56 @@ package body LSP.Ada_Handlers is
 
       --  Now load the new project
       Errors.a_type := LSP.Messages.Warning;
-      Self.Project_Environment :=
-        new LSP.Ada_Project_Environments.LSP_Project_Environment;
-      Initialize (Self.Project_Environment);
-      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
 
-      Self.Project_Environment.Set_Build_Tree_Dir
-        (To_FS (Relocate_Build_Tree));
+      Self.Project_Environment := Default_Environment;
 
-      Self.Project_Environment.Set_Root_Dir (To_FS (Root_Dir));
+      if Relocate_Build_Tree_VF /= No_File then
+         Self.Project_Environment.Build_Path :=
+           GPR2.Path_Name.Create (Relocate_Build_Tree_VF);
+         if Root_Dir_VF /= No_File and then GPR /= No_File
+         then
+            if not Root_Dir_VF.Is_Absolute_Path then
+               Self.Project_Environment.Build_Path :=
+                 GPR2.Path_Name.Create_Directory
+                   (GPR2.Path_Name.Create (GPR).Relative_Path
+                    (GPR2.Path_Name.Create (Root_Dir_VF)).Name,
+                    GPR2.Filename_Type
+                      (Self.Project_Environment.Build_Path.Value));
+            end if;
+         end if;
+      end if;
 
       for J in 1 .. Scenario.Names.Length loop
-         Self.Project_Environment.Change_Environment
-           (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J)),
+         Self.Project_Environment.Context.Insert
+           (GPR2.Optional_Name_Type
+              (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J))),
             VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
       end loop;
 
       begin
-         Self.Project_Tree := new Project_Tree;
-         Self.Project_Tree.Load
-           (GPR,
-            Self.Project_Environment,
-            Report_Missing_Dirs => False,
-            Errors              => On_Error'Unrestricted_Access);
-         for File of Self.Project_Environment.Predefined_Source_Files loop
-            if Self.Is_Ada_Source (File) then
-               Self.Project_Predefined_Sources.Include (File);
-            end if;
-         end loop;
-         if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
-            declare
-               Aggregated : Project_Array_Access :=
-                 Self.Project_Tree.Root_Project.Aggregated_Projects;
-            begin
-               for X of Aggregated.all loop
-                  Create_Context_For_Non_Aggregate (X);
-               end loop;
-               Unchecked_Free (Aggregated);
-            end;
+         Self.Project_Tree.Load_Autoconf
+           (Filename   => GPR2.Path_Name.Create (GPR),
+            Context    => Self.Project_Environment.Context,
+            Build_Path => Self.Project_Environment.Build_Path);
+
+         Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+         Append_Errors;
+
+         Update_Project_Predefined_Sources (Self);
+
+         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
+            for View of Self.Project_Tree.Root_Project.Aggregated loop
+               Create_Context_For_Non_Aggregate (View);
+            end loop;
          else
             Create_Context_For_Non_Aggregate (Self.Project_Tree.Root_Project);
          end if;
       exception
-         when E : Invalid_Project =>
+         when E : GPR2.Project_Error | GPR2.Processing_Error
+                  | GPR2.Attribute_Error =>
+            Append_Errors;
+
             Self.Release_Contexts_And_Project_Info;
 
             Self.Trace.Trace (E);
@@ -5212,7 +5231,7 @@ package body LSP.Ada_Handlers is
 
       --  New sources were created on this project, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each created file of Value.files:
       --  - find the contexts that contains its directory
@@ -5300,7 +5319,7 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were renamed, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each oldUri of Value.files:
       --  - map it to a list of context that contains it
@@ -5416,7 +5435,7 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were deleted, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each delete file of Value.files:
       --  - find the contexts that contains it
@@ -6501,5 +6520,28 @@ package body LSP.Ada_Handlers is
          end if;
       end return;
    end Parse;
+
+   ---------------------------------------
+   -- Update_Project_Predefined_Sources --
+   ---------------------------------------
+
+   procedure Update_Project_Predefined_Sources (Self : access Message_Handler)
+   is
+      use GPR2;
+      use GPR2.Project.Source.Set;
+   begin
+      Self.Project_Predefined_Sources.Clear;
+
+      if Self.Project_Tree.Is_Defined
+        and then Self.Project_Tree.Has_Runtime_Project
+      then
+         for Source of Self.Project_Tree.Runtime_Project.Sources loop
+            if Source.Language = GPR2.Ada_Language then
+               Self.Project_Predefined_Sources.Include
+                 (Source.Path_Name.Virtual_File);
+            end if;
+         end loop;
+      end if;
+   end Update_Project_Predefined_Sources;
 
 end LSP.Ada_Handlers;
