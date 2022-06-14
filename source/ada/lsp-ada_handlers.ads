@@ -20,13 +20,21 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Strings.Unbounded;
 with VSS.String_Vectors;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
-with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 
 private with GNATdoc.Comments.Options;
+
+with GPR2;
+with GPR2.Context;
+with GPR2.File_Readers;
+with GPR2.Path_Name;
+with GPR2.Path_Name.Set;
+with GPR2.Project.Configuration;
+with GPR2.Project.Tree;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -185,6 +193,33 @@ private
    --  Parses an LSP.Types.Optional_LSP_Any and creates an
    --  Experimental_Client_Capabilities object.
 
+   type Environment is record
+      Filename         : GPR2.Path_Name.Object;
+      Context          : GPR2.Context.Object;
+      Config           : GPR2.Project.Configuration.Object :=
+                           GPR2.Project.Configuration.Undefined;
+      Project_Dir      : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Build_Path       : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Subdirs          : Ada.Strings.Unbounded.Unbounded_String;
+      Src_Subdirs      : Ada.Strings.Unbounded.Unbounded_String;
+      Check_Shared_Lib : Boolean := True;
+      Absent_Dir_Error : Boolean := False;
+      Implicit_With    : GPR2.Path_Name.Set.Object :=
+                           GPR2.Path_Name.Set.Empty_Set;
+      Pre_Conf_Mode    : Boolean := False;
+      File_Reader      : GPR2.File_Readers.File_Reader_Reference :=
+                          GPR2.File_Readers.No_File_Reader_Reference;
+   end record;
+
+   --  Uninitialized environment
+
+   --  Container for Other_File indexed by Virtual_File
+   package Other_File_Map is new Ada.Containers.Hashed_Maps
+     (Key_Type        => GNATCOLL.VFS.Virtual_File,
+      Element_Type    => GNATCOLL.VFS.Virtual_File,
+      Hash            => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Keys => GNATCOLL.VFS."=");
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -250,6 +285,9 @@ private
       Open_Documents : Document_Maps.Map;
       --  The documents that are currently open
 
+      Open_Files : LSP.Ada_File_Sets.Indexed_File_Set;
+      --  The files that are currently open. It is Open_Documents key set
+
       Get_Symbols : Get_Symbol_Access;
       --  textDocument/documentSymbol handler. Actual value depends on
       --  client's capabilities.
@@ -304,10 +342,10 @@ private
       -- Project handling --
       ----------------------
 
-      Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
+      Project_Tree : GPR2.Project.Tree.Object;
       --  The currently loaded project tree
 
-      Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
+      Project_Environment : Environment;
       --  The project environment for the currently loaded project
 
       Project_Predefined_Sources : LSP.Ada_File_Sets.Indexed_File_Set;

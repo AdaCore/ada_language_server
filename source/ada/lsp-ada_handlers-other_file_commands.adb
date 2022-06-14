@@ -17,9 +17,15 @@
 
 with Ada.Strings.UTF_Encoding;
 
+with GNATCOLL.Tribooleans;
+
+with GPR2.Project.Source;
+
 with LSP.Messages.Client_Requests;
 
 with VSS.Strings.Conversions;
+
+with LSP.Common; use LSP.Common; --  PGI
 
 package body LSP.Ada_Handlers.Other_File_Commands is
 
@@ -68,14 +74,67 @@ package body LSP.Ada_Handlers.Other_File_Commands is
         Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
 
-      File : constant GNATCOLL.VFS.Virtual_File :=
-        Message_Handler.To_File (Self.URI);
+      File   : constant GNATCOLL.VFS.Virtual_File :=
+                Message_Handler.To_File (Self.URI);
 
-      Other_File : constant GNATCOLL.VFS.Virtual_File :=
-        Message_Handler.Project_Tree.Other_File (File);
+      function Other_File return GNATCOLL.VFS.Virtual_File;
+
+      ----------------
+      -- Other_File --
+      ----------------
+
+      function Other_File return GNATCOLL.VFS.Virtual_File is
+         F : constant GPR2.Path_Name.Object := GPR2.Path_Name.Create (File);
+      begin
+         PGI.Trace ("Other_File:");
+         for V in Message_Handler.Project_Tree.Iterate
+           (Status => (GPR2.Project.S_Externally_Built =>
+                           GNATCOLL.Tribooleans.Indeterminate))
+         loop
+            declare
+               Source     : constant GPR2.Project.Source.Object :=
+                               GPR2.Project.Tree.Element (V).Source (F);
+               Other_Part : GPR2.Project.Source.Source_Part;
+            begin
+               if Source.Is_Defined then
+                  Other_Part := Source.Other_Part_Unchecked (GPR2.No_Index);
+                  if Other_Part.Source.Is_Defined then
+                     PGI.Trace
+                       ("Other_File is " &
+                        String (Other_Part.Source.Path_Name.Value));
+
+                     return Other_Part.Source.Path_Name.Virtual_File;
+                  end if;
+               end if;
+            end;
+         end loop;
+
+         if Message_Handler.Project_Tree.Has_Runtime_Project then
+            declare
+               Source     : constant GPR2.Project.Source.Object :=
+                               Message_Handler.Project_Tree.Runtime_Project.
+                                 Source (F);
+               Other_Part : GPR2.Project.Source.Source_Part;
+            begin
+               if Source.Is_Defined then
+                  Other_Part := Source.Other_Part_Unchecked (GPR2.No_Index);
+                  if Other_Part.Source.Is_Defined then
+                     PGI.Trace
+                       ("Other_File is " &
+                          String (Other_Part.Source.Path_Name.Value));
+
+                     return Other_Part.Source.Path_Name.Virtual_File;
+                  end if;
+               end if;
+            end;
+         end if;
+         PGI.Trace ("Other_File is " & File.Display_Full_Name);
+         return File;
+      end Other_File;
 
       URI : constant LSP.Messages.DocumentUri :=
         Message_Handler.From_File (Other_File);
@@ -86,6 +145,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
             takeFocus => LSP.Types.True,
             others    => <>),
          others => <>);
+
    begin
       Client.On_ShowDocument_Request (Message);
    end Execute;

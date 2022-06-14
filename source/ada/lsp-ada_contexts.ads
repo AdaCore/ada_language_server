@@ -20,9 +20,11 @@
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
-with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
+
+with GPR2.Project.Tree;
+with GPR2.Project.View;
 
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Laltools.Common;
@@ -59,10 +61,11 @@ package LSP.Ada_Contexts is
    --  context based on the empty project.
 
    procedure Load_Project
-     (Self     : in out Context;
-      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
-      Root     : GNATCOLL.Projects.Project_Type;
-      Charset  : String);
+     (Self       : in out Context;
+      Tree       : GPR2.Project.Tree.Object;
+      Root       : GPR2.Project.View.Object;
+      Charset    : String;
+      Open_Files : LSP.Ada_File_Sets.Indexed_File_Set);
    --  Use the given project tree, and root project within this project
    --  tree, as project for this context. Root must be a non-aggregate
    --  project tree representing the root of a hierarchy inside Tree.
@@ -286,10 +289,14 @@ private
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
 
-      Tree                : GNATCOLL.Projects.Project_Tree_Access;
+      Tree                : access GPR2.Project.Tree.Object;
       --  The loaded project tree: we need to keep a reference to this
       --  in order to figure out which files are Ada and which are not.
       --  Do not deallocate: this is owned by the Message_Handler.
+
+      Existing_Source_Files : LSP.Ada_File_Sets.Indexed_File_Set;
+      --  Cache for the list of Ada source files in the loaded project tree.
+      --  Unexisting opened files are not included
 
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.

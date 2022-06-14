@@ -21,6 +21,39 @@ with LSP.Preprocessor;  use LSP.Preprocessor;
 
 package body LSP.Ada_Handlers.File_Readers is
 
+   procedure Internal_Read
+     (Handler  : access Message_Handler;
+      Filename : String;
+      Charset  : String;
+      Contents : out Langkit_Support.File_Readers.Decoded_File_Contents);
+
+   -------------------
+   -- Internal_Read --
+   -------------------
+
+   procedure Internal_Read
+     (Handler  : access Message_Handler;
+      Filename : String;
+      Charset  : String;
+      Contents : out Langkit_Support.File_Readers.Decoded_File_Contents) is
+      Doc : Document_Access;
+   begin
+      --  First check if the file is an open document
+      Doc := Handler.Get_Open_Document
+        (URI   => LSP.Types.File_To_URI (Filename),
+         Force => False);
+
+      if Doc /= null then
+         --  There is a document - we can get this and preprocess
+         Contents := Preprocess_Buffer (Buffer => Doc.Text);
+
+      else
+         --  No open document: preprocess from the file
+         Contents := Preprocess_File (Filename => Filename,
+                                      Charset  => Charset);
+      end if;
+   end Internal_Read;
+
    ----------
    -- Read --
    ----------
@@ -34,22 +67,24 @@ package body LSP.Ada_Handlers.File_Readers is
       Diagnostics : in out
         Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
    is
-      Doc : Document_Access;
    begin
-      --  First check if the file is an open document
-      Doc := Self.Handler.Get_Open_Document
-        (URI   => LSP.Types.File_To_URI (Filename),
-         Force => False);
+      Internal_Read (Self.Handler, Filename, Charset, Contents);
+   end Read;
 
-      if Doc /= null then
-         --  There is a document - we can get this and preprocess
-         Contents := Preprocess_Buffer (Buffer => Doc.Text);
+   overriding procedure Read
+     (Self         : GPR2_Reader_Interface;
+      Filename     : String;
+      Charset      : String;
+      Read_BOM     : Boolean;
+      Contents     : out GPR2.File_Readers.Decoded_File_Contents;
+      Diagnostics  : in out GPR2.Log.Object) is
+      LKS_Contents    : Langkit_Support.File_Readers.Decoded_File_Contents;
+   begin
+      Internal_Read (Self.Handler, Filename, Charset, LKS_Contents);
 
-      else
-         --  No open document: preprocess from the file
-         Contents := Preprocess_File (Filename => Filename,
-                                      Charset  => Charset);
-      end if;
+      Contents.Buffer := GPR2.File_Readers.Text_Access (LKS_Contents.Buffer);
+      Contents.First := LKS_Contents.First;
+      Contents.Last := LKS_Contents.Last;
    end Read;
 
 end LSP.Ada_Handlers.File_Readers;

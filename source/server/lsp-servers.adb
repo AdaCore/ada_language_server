@@ -39,6 +39,8 @@ with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 
+with LSP.Common; use LSP.Common; --  PGI
+
 package body LSP.Servers is
 
    New_Line : constant String :=
@@ -795,8 +797,11 @@ package body LSP.Servers is
       Self.Output_Task.Start;
       Self.Input_Task.Start;
 
+      PGI.Trace ("waiting Stop signal");
+
       --  Wait for stop signal
       Self.Stop.Seize;
+
    end Run;
 
    -----------------------------
@@ -948,7 +953,9 @@ package body LSP.Servers is
 
    procedure Stop (Self : in out Server) is
    begin
+      PGI.Trace ("Stop called");
       Self.Stop.Release;
+      PGI.Trace ("Stop called");
    end Stop;
 
    -----------------------------

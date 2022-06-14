@@ -15,12 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides a Langkit File_Reader which is able to
+--  This package provides a Langkit & GPR2 File_Reader which is able to
 --     - read files from open documents
 --     - preprocess code on the fly
 
 with Langkit_Support.File_Readers;
 with Langkit_Support.Diagnostics;
+
+with GPR2.File_Readers;
+with GPR2.Log;
 
 package LSP.Ada_Handlers.File_Readers is
 
@@ -38,5 +41,19 @@ package LSP.Ada_Handlers.File_Readers is
 
    overriding procedure Release
      (Self : in out LSP_Reader_Interface) is null;
+
+   type GPR2_Reader_Interface (Handler : access Message_Handler) is new
+     GPR2.File_Readers.File_Reader_Interface with null record;
+
+   overriding procedure Read
+     (Self        : GPR2_Reader_Interface;
+      Filename    : String;
+      Charset     : String;
+      Read_BOM    : Boolean;
+      Contents    : out GPR2.File_Readers.Decoded_File_Contents;
+      Diagnostics : in out GPR2.Log.Object);
+
+   overriding procedure Release
+     (Self : in out GPR2_Reader_Interface) is null;
 
 end LSP.Ada_Handlers.File_Readers;

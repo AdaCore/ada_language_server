@@ -19,9 +19,13 @@ with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
 with GNAT.Strings;
 
-with GNATCOLL.Projects;           use GNATCOLL.Projects;
 with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
+with GPR2.Containers;
+
+with GPR2.Path_Name;
+with GPR2.Project.Attribute;
+with GPR2.Project.Source;
 
 with VSS.Strings.Conversions;
 
@@ -31,7 +35,7 @@ with LSP.Common;                  use LSP.Common;
 with LSP.Lal_Utils;               use LSP.Lal_Utils;
 
 with Libadalang.Common;           use Libadalang.Common;
-with Libadalang.Project_Provider;
+with Libadalang.GPR2_Provider;
 
 with Langkit_Support.Slocs;
 
@@ -203,7 +207,7 @@ package body LSP.Ada_Contexts is
       File    : GNATCOLL.VFS.Virtual_File;
       Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit is
    begin
-      if not Is_Ada_File (Self.Tree, File) then
+      if not Is_Ada_File (Self.Tree.all, File) then
          return Libadalang.Analysis.No_Analysis_Unit;
       end if;
 
@@ -615,9 +619,10 @@ package body LSP.Ada_Contexts is
 
    procedure Load_Project
      (Self     : in out Context;
-      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
-      Root     : Project_Type;
-      Charset  : String)
+      Tree     : GPR2.Project.Tree.Object;
+      Root     : GPR2.Project.View.Object;
+      Charset  : String;
+      Open_Files : LSP.Ada_File_Sets.Indexed_File_Set)
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
@@ -629,35 +634,58 @@ package body LSP.Ada_Contexts is
       -------------------------
 
       procedure Update_Source_Files is
-         All_Sources : File_Array_Access :=
-           Root.Source_Files (Recursive => True);
-         All_Ada_Sources : File_Array (1 .. All_Sources'Length);
-         Free_Index      : Natural := All_Ada_Sources'First;
-      begin
-         --  Iterate through all sources, returning only those that have Ada
-         --  as language.
-         for J in All_Sources'Range loop
-            if Is_Ada_File (Self.Tree, All_Sources (J)) then
-               All_Ada_Sources (Free_Index) := All_Sources (J);
-               Free_Index := Free_Index + 1;
-            end if;
-         end loop;
 
-         Unchecked_Free (All_Sources);
+         procedure Insert_Source (Source : GPR2.Project.Source.Object);
+         --  Insert Source in Self.Source_Files & Existing_Source_Files
+
+         -------------------
+         -- Insert_Source --
+         -------------------
+
+         procedure Insert_Source (Source : GPR2.Project.Source.Object) is
+            Path : constant Virtual_File := Source.Path_Name.Virtual_File;
+         begin
+            if not Self.Source_Files.Contains (Path) then
+               Self.Existing_Source_Files.Include (Path);
+               Self.Source_Files.Include (Path);
+               PGI.Trace ("Add source: " &  Path.Display_Full_Name);
+            end if;
+         end Insert_Source;
+
+      begin
+         PGI.Trace ("Update_Source_Files");
+
+         Self.Existing_Source_Files.Clear;
          Self.Source_Files.Clear;
 
-         for Index in 1 .. Free_Index - 1 loop
-            Self.Source_Files.Include (All_Ada_Sources (Index));
+         Tree.For_Each_Source
+           (View             => Root,
+            Action           => Insert_Source'Access,
+            Language         => GPR2.Ada_Language,
+            Externally_Built => False);
+
+         for Dir of Tree.Source_Directories
+           (View             => Root,
+            Externally_Built => False)
+         loop
+            PGI.Trace ("Source_Dir:" & String (Dir.Filesystem_String));
+            Self.Source_Dirs.Include (Dir.Virtual_File);
          end loop;
 
-         Self.Source_Dirs.Clear;
-         for Dir of Source_Dirs
-           (Project                  => Root,
-            Recursive                => True,
-            Include_Externally_Built => False)
-         loop
-            Self.Source_Dirs.Include (Dir);
+         --  Add opened documents located in Source_Dirs to Source_Files
+         for C in Open_Files.Iterate loop
+            declare
+               File : GNATCOLL.VFS.Virtual_File renames
+                 LSP.Ada_File_Sets.File_Sets.Element (C);
+            begin
+               if not Self.Source_Files.Contains (File)
+                 and then Self.Source_Dirs.Contains (File.Dir)
+               then
+                  Self.Source_Files.Include (File);
+               end if;
+            end;
          end loop;
+
       end Update_Source_Files;
 
       --------------------------
@@ -666,39 +694,46 @@ package body LSP.Ada_Contexts is
 
       procedure Pretty_Printer_Setup
       is
-         use type GNAT.Strings.String_Access;
-         Options   : GNAT.Strings.String_List_Access;
          Validated : GNAT.Strings.String_List_Access;
-         Last      : Integer;
-         Default   : Boolean;
+         Index      : Integer := 0;
+         Attribute : GPR2.Project.Attribute.Object;
+         Values    : GPR2.Containers.Value_List;
       begin
-         Root.Switches
-           (In_Pkg           => "Pretty_Printer",
-            File             => GNATCOLL.VFS.No_File,
-            Language         => "ada",
-            Value            => Options,
-            Is_Default_Value => Default);
 
          --  Initialize an gnatpp command line object
-         Last := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-            end if;
-         end loop;
 
-         Validated := new GNAT.Strings.String_List (Options'First .. Last);
-         Last      := Options'First - 1;
-         for Item of Options.all loop
-            if Item /= null
-              and then Item.all /= ""
-            then
-               Last := Last + 1;
-               Validated (Last) := new String'(Item.all);
+         if Root.Check_Attribute
+           (Pack   => LSP.Common.Pretty_Printer,
+            Name   => LSP.Common.Switches,
+            Index  => LSP.Common.Ada_Index,
+            Result => Attribute)
+         then
+
+            --  Fill 'Values' with non empty value
+
+            for Value of Attribute.Values loop
+               declare
+                  Text : constant String := Value.Text;
+               begin
+                  if Text /= "" then
+                     Values.Append (Text);
+                     Index := Index + 1;
+                  end if;
+               end;
+            end loop;
+
+            Validated := new GNAT.Strings.String_List (1 .. Index);
+
+            if Index > 0 then
+               Index := Validated'First;
+               for Text of Values loop
+                  Validated (Index) := new String'(Text);
+                  Index := Index + 1;
+               end loop;
             end if;
-         end loop;
+         else
+            Validated := new GNAT.Strings.String_List (1 .. 0);
+         end if;
 
          Utils.Command_Lines.Parse
            (Validated,
@@ -708,7 +743,6 @@ package body LSP.Ada_Contexts is
             Collect_File_Names => False,
             Ignore_Errors      => True);
 
-         GNAT.Strings.Free (Options);
          GNAT.Strings.Free (Validated);
 
          --  Set UTF-8 encoding
@@ -716,16 +750,15 @@ package body LSP.Ada_Contexts is
       end Pretty_Printer_Setup;
 
    begin
-      Self.Id := VSS.Strings.Conversions.To_Virtual_String (Root.Name);
-      Self.Tree := Tree;
+      Self.Id := VSS.Strings.Conversions.To_Virtual_String
+                   (String (Root.Name));
+      Self.Tree := Tree.Reference;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
-        Libadalang.Project_Provider.Create_Project_Unit_Provider
-          (Tree             => Tree,
-           Project          => Root,
-           Env              => Get_Environment (Root),
-           Is_Project_Owner => False);
+        Libadalang.GPR2_Provider.Create_Project_Unit_Provider
+          (Tree => Tree,
+           View => Root);
 
       Self.Reload;
       Update_Source_Files;
@@ -785,6 +818,7 @@ package body LSP.Ada_Contexts is
 
    procedure Free (Self : in out Context) is
    begin
+      Self.Existing_Source_Files.Clear;
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
       Self.Tree := null;

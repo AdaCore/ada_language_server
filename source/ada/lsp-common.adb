@@ -23,6 +23,10 @@ with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
 
+with GPR2.Project.Registry.Pack;
+with GPR2.Project.Source;
+with GPR2.Project.View;
+
 with VSS.Strings.Character_Iterators;
 
 with Langkit_Support.Text;
@@ -621,32 +625,59 @@ package body LSP.Common is
    -----------------
 
    function Is_Ada_File
-     (Tree : GNATCOLL.Projects.Project_Tree_Access;
+     (Tree : GPR2.Project.Tree.Object;
       File : GNATCOLL.VFS.Virtual_File) return Boolean
    is
-      use GNATCOLL.Projects;
-      Set : File_Info_Set;
+      Name : constant GPR2.Simple_Name := GPR2.Simple_Name (File.Base_Name);
    begin
+      PGI.Trace ("Is_Ada_File:" & File.Display_Full_Name);
       --  Defensive programming; this shouldn't happen
-      if Tree = null then
+      if not Tree.Is_Defined then
          return False;
       end if;
 
-      Set := Tree.Info_Set (File);
-      if not Set.Is_Empty then
-         --  The file can be listed in several projects with different
-         --  Info_Sets, in the case of aggregate projects. However,
-         --  assume that the language is the same in all projects,
-         --  so look only at the first entry in the set.
+      --  The file can be listed in several projects with different
+      --  Info_Sets, in the case of aggregate projects. However,
+      --  assume that the language is the same in all projects,
+      --  so look only at the first entry in the set.
+      for Cursor in Tree.Iterate loop
          declare
-            Info : constant File_Info'Class :=
-                     File_Info'Class (Set.First_Element);
+            Source : Project.Source.Object;
          begin
-            return To_Lower (Info.Language) = "ada";
+            if Project.Tree.Element (Cursor).Check_Source (Name, Source)
+            then
+               if Source.Language = Ada_Language then
+                  PGI.Trace ("Is_Ada_File is True");
+                  return True;
+               end if;
+            end if;
          end;
-      end if;
+      end loop;
 
       return False;
    end Is_Ada_File;
+
+begin
+
+   PGI.Trace ("Init Pretty_Printer attribute");
+   GPR2.Project.Registry.Pack.Add
+     (Name     => Pretty_Printer,
+      Projects => GPR2.Project.Registry.Pack.Everywhere);
+
+   GPR2.Project.Registry.Attribute.Add
+     (Name                 => GPR2.Project.Registry.Attribute.Create
+                                (Switches, Pretty_Printer),
+      Index_Type           => GPR2.Project.Registry.Attribute.
+                                 FileGlob_Or_Language_Index,
+      Index_Optional       => True,
+      Value                => GPR2.Project.Registry.Attribute.List,
+      Value_Case_Sensitive => True,
+      Is_Allowed_In        => GPR2.Project.Registry.Attribute.Everywhere);
+
+   GPR2.Project.Registry.Attribute.Add_Alias
+     (GPR2.Project.Registry.Attribute.Create
+        (Default_Switches, Pretty_Printer),
+      GPR2.Project.Registry.Attribute.Create (Switches, Pretty_Printer));
+   PGI.Trace ("Pretty_Printer attribute initialized");
 
 end LSP.Common;
