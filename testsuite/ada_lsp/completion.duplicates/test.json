@@ -199,7 +199,7 @@
                      {
                         "label": "Do_Something",
                         "kind": 3,
-                        "sortText": "2Do_Something",
+                        "sortText": "100&2Do_Something",
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{main.adb}",

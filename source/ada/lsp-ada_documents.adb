@@ -1838,6 +1838,7 @@ package body LSP.Ada_Documents is
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;
       Pos                      : Integer;
+      Weight                   : Completion_Item_Weight_Type;
       Completions_Count        : Natural)
       return LSP.Messages.CompletionItem
    is
@@ -1860,14 +1861,22 @@ package body LSP.Ada_Documents is
 
       function Get_Sort_Text
         (Base_Label : VSS.Strings.Virtual_String)
-         return VSS.Strings.Virtual_String is
+         return VSS.Strings.Virtual_String
+      is
+         use VSS.Strings;
       begin
          return Sort_Text : VSS.Strings.Virtual_String do
-            if Pos /= -1 then
-               Sort_Text :=
-                 VSS.Strings.Conversions.To_Virtual_String
-                   (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width));
-            end if;
+
+            Sort_Text :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (GNATCOLL.Utils.Image
+                   (Value     => Completion_Item_Weight_Type'Last - Weight,
+                    Min_Width =>
+                      Completion_Item_Weight_Type'Last'Img'Length - 1)) & "&";
+
+            Sort_Text := Sort_Text &
+              VSS.Strings.Conversions.To_Virtual_String
+              (GNATCOLL.Utils.Image (Pos, Min_Width => Min_Width));
 
             Sort_Text.Append (Base_Label);
 
@@ -2146,7 +2155,8 @@ package body LSP.Ada_Documents is
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
                 Use_Snippets => False,
-                Pos          => <>));
+                Pos          => <>,
+                Weight       => <>));
          end if;
       end Insert;
 

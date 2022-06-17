@@ -156,7 +156,7 @@
                      {
                         "label": "Select_Some",
                         "kind": 3,
-                        "sortText": "2Select_Some",
+                        "sortText": "100&2Select_Some",
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{test.ads}",
@@ -188,7 +188,7 @@
                "label": "Select_Some",
                "insertTextFormat": 1,
                "kind": 3,
-               "sortText": "1Select_Some",
+               "sortText": "100&1Select_Some",
                "additionalTextEdits": [],
                "data": {
                   "uri": "$URI{test.ads}",
@@ -213,7 +213,7 @@
                   "kind": 3,
                   "detail": "procedure Select_Some is null",
                   "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
-                  "sortText": "1Select_Some",
+                  "sortText": "100&1Select_Some",
                   "insertTextFormat": 1,
                   "additionalTextEdits": [],
                   "data": {

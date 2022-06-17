@@ -99,6 +99,7 @@ package body LSP.Ada_Completions is
                         Is_Dot_Call              => Info.Is_Dot_Call,
                         Is_Visible               => Info.Is_Visible,
                         Pos                      => Info.Pos,
+                        Weight                   => Info.Weight,
                         Completions_Count        => Length));
                end if;
             end;

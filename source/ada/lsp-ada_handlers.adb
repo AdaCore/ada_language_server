@@ -5121,7 +5121,8 @@ package body LSP.Ada_Handlers is
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
                 Use_Snippets => False,
-                Pos          => <>));
+                Pos          => <>,
+                Weight       => <>));
          end if;
 
          Stop := Canceled.Has_Been_Canceled;
