@@ -128,7 +128,8 @@ package body LSP.Ada_Completions.Names is
                (Is_Dot_Call  => False,
                 Is_Visible   => True,
                 Use_Snippets => Use_Snippets,
-                Pos          => 1));
+                Pos          => 1,
+                Weight       => 0));
             return;
          end if;
       end if;
@@ -174,7 +175,8 @@ package body LSP.Ada_Completions.Names is
                         (Is_Dot_Call (Item),
                          Is_Visible (Item),
                          Use_Snippets,
-                         Completion_Count));
+                         Completion_Count,
+                         Weight (Item)));
                   end if;
                end loop;
             end if;

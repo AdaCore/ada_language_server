@@ -212,7 +212,7 @@
                                   "kind": 9,
                                   "detail": "package Ada.Decimal ",
                                   "documentation": "at a-decima.ads (38:1)\n\nThis is the 128-bit version of this package",
-                                  "sortText": "~08Decimal",
+                                  "sortText": "~100&08Decimal",
                                   "filterText": "Decimal",
                                   "insertText": "Decimal",
                                   "additionalTextEdits": [

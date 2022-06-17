@@ -68,7 +68,8 @@ package body LSP.Ada_Handlers.Invisibles is
                (Is_Dot_Call  => False,
                 Is_Visible   => False,
                 Use_Snippets => False,
-                Pos          => Pos));
+                Pos          => Pos,
+                Weight       => <>));
 
             Pos := Pos + 1;
 
