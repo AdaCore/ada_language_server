@@ -77,7 +77,6 @@ To build the language server you need:
 * The [VSS](https://github.com/AdaCore/VSS) library
 * The [gnatdoc](https://github.com/AdaCore/gnatdoc) library
 * The [gpr](https://github.com/AdaCore/gpr) library
-* The [gpr-unit-provider](https://github.com/AdaCore/gpr-unit-provider) library
 * The a process [spawn](https://github.com/AdaCore/spawn) library
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
