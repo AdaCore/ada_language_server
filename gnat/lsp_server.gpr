@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with "gpr2.gpr";
-with "gpr_unit_provider.gpr";
 with "libadalang";
 with "lal_tools.gpr";
 with "ada_libfswatch.gpr";

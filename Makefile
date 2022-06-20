@@ -25,7 +25,6 @@ LIBRARY_TYPE?=relocatable
 
 # Build mode (dev or prod)
 BUILD_MODE=dev
-GPR_UNIT_PROVIDER_BUILD=debug
 
 # Whether to enable coverage (empty for no, any other value for yes)
 COVERAGE=
@@ -51,8 +50,7 @@ else
    EXE=
 endif
 
-LIBRARY_FLAGS=-XGPR_UNIT_PROVIDER_BUILD=$(GPR_UNIT_PROVIDER_BUILD) \
-              -XBUILD_MODE=$(BUILD_MODE)	\
+LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
               -XOS=$(OS)			\
               -XLIBRARY_TYPE=$(LIBRARY_TYPE)	\
               -XXMLADA_BUILD=$(LIBRARY_TYPE)	\

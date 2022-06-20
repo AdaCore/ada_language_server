@@ -86,11 +86,6 @@ jobs:
         with:
           repository: AdaCore/gnatdoc
           path: subprojects/gnatdoc
-      - name: Get gpr-unit-provider
-        uses: actions/checkout@v2
-        with:
-          repository: AdaCore/gpr-unit-provider
-          path: subprojects/gpr-unit-provider
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
