@@ -244,7 +244,7 @@
                      {
                         "label": "Primitive",
                         "kind": 3,
-                        "sortText": "2Primitive",
+                        "sortText": "100&2Primitive",
                         "insertText": "Primitive (${1:Obj : Parent})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],

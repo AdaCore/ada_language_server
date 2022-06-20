@@ -43,6 +43,10 @@ package LSP.Ada_Completions is
    --  for completion, since LAL can return several times the same declaration
    --  and specially subprograms from generic instantiations.
 
+   subtype Completion_Item_Weight_Type is Integer range 0 .. 100;
+   --  Type representing the weight returned by LAL for each completion item.
+   --  Used to sort them accordingly on the client-side.
+
    type Name_Information is record
       Is_Dot_Call  : Boolean;
       --  True if we are dealing with a dotted call.
@@ -57,6 +61,9 @@ package LSP.Ada_Completions is
       Pos          : Integer := -1;
       --  The position of the item in the fully computed completion list. Used
       --  for sorting properly the items on client-side.
+
+      Weight : Completion_Item_Weight_Type := 0;
+      --  The completion item's weight. Used for sorting on the client-side.
    end record;
 
    package Completion_Maps is new Ada.Containers.Hashed_Maps

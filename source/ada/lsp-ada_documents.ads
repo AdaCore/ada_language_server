@@ -33,7 +33,7 @@ with GNATCOLL.Traces;
 with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
-with LSP.Ada_Completions;
+with LSP.Ada_Completions; use LSP.Ada_Completions;
 with LSP.Ada_Highlighters;
 with LSP.Diagnostic_Sources;
 with LSP.Messages;
@@ -252,6 +252,7 @@ package LSP.Ada_Documents is
       Is_Dot_Call              : Boolean;
       Is_Visible               : Boolean;
       Pos                      : Integer;
+      Weight                   : Completion_Item_Weight_Type;
       Completions_Count        : Natural)
       return LSP.Messages.CompletionItem;
    --  Compute a completion item.
@@ -264,6 +265,8 @@ package LSP.Ada_Documents is
    --  named notation is used for subprogram completion snippets.
    --  Is_Dot_Call is used to know if we should omit the first parameter
    --  when computing subprogram snippets.
+   --  Weight is used for sorting: items with an higher weight will be placed
+   --  at the top.
    --  Completions_Count is the total number of completion items.
 
    procedure Set_Completion_Item_Documentation

@@ -152,14 +152,14 @@
                         "kind": 6,
                         "detail": "Invisible : Integer;",
                         "documentation": "at aaa.ads (2:4)",
-                        "sortText": "~0Invisible"
+                        "sortText": "~100&0Invisible"
                      },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
                         "detail": "function Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
-                        "sortText": "~1Invisible_Function",
+                        "sortText": "~100&1Invisible_Function",
                         "insertText": "Invisible_Function",
                         "additionalTextEdits": [
                         ]
@@ -250,7 +250,7 @@
                         "kind": 6,
                         "detail": "Invisible : Integer;",
                         "documentation": "at aaa.ads (3:4)",
-                        "sortText": "~Invisible"
+                        "sortText": "~100&-1Invisible"
                      }
                   ]
                }
@@ -305,14 +305,14 @@
                         "kind": 6,
                         "detail": "Invisible : Integer;",
                         "documentation": "at aaa.ads (2:4)",
-                        "sortText": "~0Invisible"
+                        "sortText": "~100&0Invisible"
                      },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
                         "detail": "function Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
-                        "sortText": "~1Invisible_Function",
+                        "sortText": "~100&1Invisible_Function",
                         "insertText": "Invisible_Function",
                         "additionalTextEdits": [
                         ]
