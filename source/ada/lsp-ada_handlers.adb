@@ -119,7 +119,7 @@ package body LSP.Ada_Handlers is
 
    Partial_GNATpp : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.PARTIAL_GNATPP",
-                             GNATCOLL.Traces.Off);
+                             GNATCOLL.Traces.On);
    --  Use partial formatting mode of gnatpp if On. Otherwise, use diff
    --  algorithm.
 
@@ -953,19 +953,17 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => LSP.Types.None));
+      if Partial_GNATpp.Is_Active then
+         Response.result.capabilities.documentRangeFormattingProvider :=
+           (Is_Set => True,
+            Value  => (workDoneProgress => LSP.Types.None));
+      end if;
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
       Response.result.capabilities.documentHighlightProvider :=
         (Is_Set => True,
          Value => (workDoneProgress => LSP.Types.None));
-
-      --  lalpp does not support range formatting for now
-      --  do not set the option
-      --
-      --  Response.result.capabilities.documentRangeFormattingProvider :=
-      --    (Is_Set => True,
-      --     Value  => (workDoneProgress => LSP.Types.None));
 
       Response.result.capabilities.workspaceSymbolProvider :=
         (Is_Set => True,
