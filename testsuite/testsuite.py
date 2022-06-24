@@ -69,10 +69,7 @@ class ALSTestsuite(Testsuite):
 
         # Absolute paths to programs that test drivers can use
         if self.env.options.valgrind_memcheck:
-            self.env.als = "{} {} {}".format(
-                self.lookup_program("valgrind"),
-                " ".join(VALGRIND_OPTIONS).format(base=self.env.repo_base),
-                self.lookup_program('server', 'ada_language_server'))
+            self.env.als = os.path.join(self.env.repo_base, 'testsuite', 'valgrind_wrapper.sh')
             self.env.wait_factor = 40  # valgrind is slow
         else:
             self.env.als = self.lookup_program('server', 'ada_language_server')
