@@ -413,8 +413,30 @@ package body Tester.Tests is
            "You must specify the language server command line in $ALS";
       end if;
 
-      --  Set the program using $ALS env variable
-      Self.Set_Program (Program_Name (ALS_Exe));
+      --  If we have several arguments, check if we have specified a valgrind
+      --  command line, and set the program and its arguments accordingly
+      declare
+         ALS_Command_Line : constant Unbounded_String_Array :=
+           GNATCOLL.Utils.Split (ALS_Exe, ' ');
+         First_Arg        : constant String :=
+           To_String (ALS_Command_Line (ALS_Command_Line'First));
+      begin
+         if ALS_Command_Line'Length > 1 and
+           Ends_With
+             (Str    => First_Arg,
+              Suffix => "valgrind")
+         then
+            Self.Set_Program
+              (To_String (ALS_Command_Line (ALS_Command_Line'First)));
+
+            for J in ALS_Command_Line'First + 1 .. ALS_Command_Line'Last loop
+               Args.Append (To_String (ALS_Command_Line (J)));
+            end loop;
+         else
+            --  Set the program using $ALS env variable
+            Self.Set_Program (Program_Name (ALS_Exe));
+         end if;
+      end;
 
       --  Set the arguments using the 'cmd' field. Skip the first one, since
       --  it's "${ALS}".
