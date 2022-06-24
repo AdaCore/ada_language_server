@@ -476,6 +476,16 @@ package LSP.Messages.Server_Requests is
      (Self    : ALS_Show_Dependencies_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   type ALS_Source_Dirs_Request is new Server_Request with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return ALS_Source_Dirs_Request;
+
+   overriding procedure Visit
+     (Self    : ALS_Source_Dirs_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package ALS_Debug_Requests is
      new LSP.Generic_Requests
        (Server_Request,

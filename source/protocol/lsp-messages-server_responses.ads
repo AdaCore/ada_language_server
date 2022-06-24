@@ -252,6 +252,17 @@ package LSP.Messages.Server_Responses is
      (Self    : ALS_ShowDependencies_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package ALS_SourceDirs_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => ALS_Source_Dir_Description_Vector);
+
+   type ALS_SourceDirs_Response is
+     new ALS_SourceDirs_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : ALS_SourceDirs_Response;
+      Handler : access Server_Response_Sender'Class);
+
    type ExecuteCommand_Response is new Server_Response with null record;
 
    overriding procedure Visit

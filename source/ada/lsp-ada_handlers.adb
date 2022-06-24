@@ -3160,9 +3160,40 @@ package body LSP.Ada_Handlers is
       return Response;
    end On_References_Request;
 
-   ----------------------------------
+   --------------------------------
+   -- On_ALS_Source_Dirs_Request --
+   --------------------------------
+
+   overriding function On_ALS_Source_Dirs_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.ALS_Source_Dirs_Request)
+      return LSP.Messages.Server_Responses.ALS_SourceDirs_Response
+   is
+      Response : LSP.Messages.Server_Responses.ALS_SourceDirs_Response
+        (Is_Error => False);
+      Unit_Desc : LSP.Messages.ALS_Source_Dir_Description;
+      Source_Dirs : constant GNATCOLL.VFS.File_Array :=
+        Self.Contexts.All_Source_Directories
+          (Include_Externally_Built => True);
+   begin
+      for Dir of Source_Dirs loop
+         Unit_Desc :=
+           (name => VSS.Strings.Conversions.To_Virtual_String
+              (+Dir.Base_Dir_Name),
+            uri  =>
+              File_To_URI (Dir.Display_Full_Name));
+         Response.result.Append (Unit_Desc);
+      end loop;
+
+      Self.Trace.Trace
+        ("Response.result.length: " & Response.result.Length'Img);
+
+      return Response;
+   end On_ALS_Source_Dirs_Request;
+
+   --------------------------------------
    -- On_ALS_Show_Dependencies_Request --
-   ----------------------------------
+   --------------------------------------
 
    overriding function On_ALS_Show_Dependencies_Request
      (Self    : access Message_Handler;

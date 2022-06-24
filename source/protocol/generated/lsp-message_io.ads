@@ -1820,6 +1820,14 @@ package LSP.Message_IO is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : LSP.Messages.ALS_Subprogram_And_References);
 
+   procedure Read_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out LSP.Messages.ALS_Source_Dir_Description);
+
+   procedure Write_ALS_Source_Dir_Description
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : LSP.Messages.ALS_Source_Dir_Description);
+
    procedure Read_ALS_ShowDependenciesKind
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : out LSP.Messages.ALS_ShowDependenciesKind);
