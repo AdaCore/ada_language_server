@@ -4,4 +4,4 @@
 # and all the needed arguments from the testsuite.
 
 dir_path=$(dirname $0)
-valgrind --quiet --tool=memcheck --leak-check=full --suppressions=$dir_path/leaks.supp $dir_path/../.obj/server/ada_language_server $@
+valgrind --quiet --tool=memcheck --leak-check=full --suppressions=$dir_path/leaks.supp ada_language_server $@
