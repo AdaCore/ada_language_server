@@ -25,7 +25,7 @@ procedure Main is
       X : Float;
    end record;
 
-   Obj : Derived_Rec :=
-   begin
+   Obj : Derived_Rec := Derived_Rec'
+begin
    null;
 end Main;

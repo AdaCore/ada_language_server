@@ -202,7 +202,36 @@
                         "detail": "type Cell is\nrecord\n   Value : Integer;\n   Succ  : Link;\n   Pred  : Link;\nend record;",
                         "label": "Aggregate for Cell",
                         "additionalTextEdits": [],
-                        "insertTextFormat": 2
+                        "insertTextFormat": 2,
+                        "documentation": "at main.adb (6:4)",
+                        "sortText": "+0"
+                     },
+                     {
+                        "label": "Value",
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "Value => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                     },
+                     {
+                         "label": "Succ",
+                         "kind": 5,
+                         "sortText": "+2",
+                         "insertText": "Succ => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
+                     },
+                     {
+                         "label": "Pred",
+                         "kind": 5,
+                         "sortText": "+3",
+                         "insertText": "Pred => ",
+                         "insertTextFormat": 1,
+                         "additionalTextEdits": [
+                         ]
                      }
                   ]
                }

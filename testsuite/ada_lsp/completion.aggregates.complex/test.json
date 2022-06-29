@@ -1,0 +1,368 @@
+[
+   {
+      "comment": [
+          "Test completion for aggregate switch case for all format"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 31570,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  ",",
+                                  "'",
+                                  "("
+                              ],
+                              "resolveProvider": true
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {},
+                          "alsReferenceKinds": [
+                              "reference",
+                              "access",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child",
+                              "overriding"
+                          ]
+                      }
+                  }
+              }
+          ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   type Foo (X : Integer) is record\n      case X is\n         when -6 =>\n            A : Integer;\n         when -5 | -4 =>\n            B : Integer;\n         when -3 .. -1 =>\n            C : Integer;\n         when Natural =>\n            D : Integer;\n         when others =>\n            E : Integer;\n      end case;\n   end record;\n\n   Y : Foo := Foo'\nbegin\n   null;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 16,
+                           "character": 18
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 16,
+                  "character": 19
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Aggregate when X => -6",
+                        "kind": 15,
+                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "sortText": "+00",
+                        "insertText": "-6, ${2:A : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at foo.adb (2:4)"
+                     },
+                     {
+                        "label": "X => -6",
+                        "kind": 5,
+                        "sortText": "+01",
+                        "insertText": "X => -6",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+02",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Aggregate when X => -5 | -4",
+                        "kind": 15,
+                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "sortText": "+03",
+                        "insertText": "${1:X : -5 | -4}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at foo.adb (2:4)"
+                     },
+                     {
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+04",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+05",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Aggregate when X => -3 .. -1",
+                        "kind": 15,
+                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "sortText": "+06",
+                        "insertText": "${1:X : -3 .. -1}, ${2:C : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at foo.adb (2:4)"
+                     },
+                     {
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "C",
+                        "kind": 5,
+                        "sortText": "+08",
+                        "insertText": "C => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Aggregate when X => Natural",
+                        "kind": 15,
+                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "sortText": "+09",
+                        "insertText": "${1:X : Natural}, ${2:D : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at foo.adb (2:4)"
+                     },
+                     {
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+10",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+11",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Aggregate when X => others",
+                        "kind": 15,
+                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "sortText": "+12",
+                        "insertText": "${1:X : others}, ${2:E : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "documentation": "at foo.adb (2:4)"
+                     },
+                     {
+                        "label": "X",
+                        "kind": 5,
+                        "sortText": "+13",
+                        "insertText": "X => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "E",
+                        "kind": 5,
+                        "sortText": "+14",
+                        "insertText": "E => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

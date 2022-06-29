@@ -169,7 +169,7 @@
                         "label": "Params of Hello",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "M => $1, A => $2, B => $3)$0",
+                        "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -214,7 +214,7 @@
                         "label": "Params of Hello",
                         "kind": 15,
                         "sortText": "+4",
-                        "insertText": "A => $1, B => $2)$0",
+                        "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -263,7 +263,7 @@
                "label": "Params of Hello",
                "kind": 15,
                "sortText": "+0",
-               "insertText": "M => $1, A => $2, B => $3)$0",
+               "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
                "data": {
@@ -290,7 +290,7 @@
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
-                  "insertText": "M => $1, A => $2, B => $3)$0",
+                  "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
                   "data": {
@@ -397,7 +397,7 @@
                         "label": "Params of Bar.Hello",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "M => $1, A => $2, B => $3)$0",
+                        "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -442,7 +442,7 @@
                         "label": "Params of Bar.Hello",
                         "kind": 15,
                         "sortText": "+4",
-                        "insertText": "A => $1, B => $2)$0",
+                        "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -491,7 +491,7 @@
                "label": "Params of Bar.Hello",
                "kind": 15,
                "sortText": "+0",
-               "insertText": "M => $1, A => $2, B => $3)$0",
+               "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
                "data": {
@@ -518,7 +518,7 @@
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
-                  "insertText": "M => $1, A => $2, B => $3)$0",
+                  "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
                   "data": {
@@ -625,7 +625,7 @@
                         "label": "Params of M.Hello",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "A => $1, B => $2)$0",
+                        "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {
@@ -674,7 +674,7 @@
                "label": "Params of M.Hello",
                "kind": 15,
                "sortText": "+0",
-               "insertText": "A => $1, B => $2)$0",
+               "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                "insertTextFormat": 2,
                "additionalTextEdits": [],
                "data": {
@@ -701,7 +701,7 @@
                   "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
-                  "insertText": "A => $1, B => $2)$0",
+                  "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                   "insertTextFormat": 2,
                   "additionalTextEdits": [],
                   "data": {
@@ -747,22 +747,6 @@
                      "text": "A =>  , B =>  )"
                   }
                ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 13,
-            "method": "textDocument/documentSymbol",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "query": ""
             }
          },
          "wait": []

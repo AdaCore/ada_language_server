@@ -40,7 +40,6 @@ with LSP.Ada_Documents;        use LSP.Ada_Documents;
 with LSP.Search;               use LSP.Search;
 with LSP.Ada_Contexts;         use LSP.Ada_Contexts;
 with LSP.Ada_Completions;
-with LSP.Ada_Completions.Aggregates;
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
 with LSP.Ada_Completions.End_Names;
@@ -5352,25 +5351,22 @@ package body LSP.Ada_Handlers is
              Self.Completion_Resolve_Properties.Contains
                 (VSS.Strings.Conversions.To_Virtual_String ("documentation")));
 
-      P1 : aliased LSP.Ada_Completions.Aggregates
-        .Aggregate_Completion_Provider
-          (Named_Notation_Threshold => Self.Named_Notation_Threshold);
-
-      P2 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
-      P3 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
-      P4 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
-      P5 : aliased
+      P1 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
+      P2 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
+      P3 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
+      P4 : aliased
         LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
 
-      P6 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
+      P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
         (Self.Use_Completion_Snippets);
-      P7 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
+      P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self, Context);
-      P8 : aliased
+      P7 : aliased
         LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
-          (Context                 => Context,
-           Compute_Doc_And_Details => Compute_Doc_And_Details);
-      P9 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
+          (Context                  => Context,
+           Compute_Doc_And_Details  => Compute_Doc_And_Details,
+           Named_Notation_Threshold => Self.Named_Notation_Threshold);
+      P8 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
 
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         [P1'Unchecked_Access,
@@ -5380,8 +5376,7 @@ package body LSP.Ada_Handlers is
          P5'Unchecked_Access,
          P6'Unchecked_Access,
          P7'Unchecked_Access,
-         P8'Unchecked_Access,
-         P9'Unchecked_Access];
+         P8'Unchecked_Access];
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
