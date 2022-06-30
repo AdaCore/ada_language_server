@@ -59,6 +59,9 @@ package LSP.Ada_Documents is
    --  Create a new document from a TextDocumentItem. Use Diagnostic as
    --  project status diagnostic source.
 
+   procedure Cleanup (Self : in out Document);
+   --  Free all the data associated to this document.
+
    -----------------------
    -- Contents handling --
    -----------------------
