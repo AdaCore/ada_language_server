@@ -113,6 +113,9 @@ private
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
 
+   procedure Free (Self : in out Internal_Document_Access);
+   --  Free all the data for the given document.
+
    --  Container for documents indexed by URI
    package Document_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => GNATCOLL.VFS.Virtual_File,

@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
 with LSP.Messages;
 limited with LSP.Ada_Contexts;
 
@@ -37,5 +38,8 @@ package LSP.Diagnostic_Sources is
       Context : LSP.Ada_Contexts.Context) return Boolean is abstract;
    --  Return True if diagnostic changed since last call to Get_Diagnostic or
    --  if Get_Diagnostic was never called and any diagnostic presents.
+
+   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+     (Diagnostic_Source'Class, Diagnostic_Source_Access);
 
 end LSP.Diagnostic_Sources;

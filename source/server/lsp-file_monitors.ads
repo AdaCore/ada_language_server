@@ -18,6 +18,7 @@
 --  This package provides a file monitoring service interface.
 
 with GNATCOLL.VFS;
+with Ada.Unchecked_Deallocation;
 
 package LSP.File_Monitors is
 
@@ -42,5 +43,8 @@ package LSP.File_Monitors is
    procedure Stop_Monitoring_Directories (Self : access File_Monitor) is null;
    --  Stop filesystem monitoring. This is a no-op if no monitoring is
    --  ongoing.
+
+   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+     (File_Monitor'Class, File_Monitor_Access);
 
 end LSP.File_Monitors;

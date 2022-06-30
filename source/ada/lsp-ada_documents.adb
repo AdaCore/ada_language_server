@@ -1808,6 +1808,17 @@ package body LSP.Ada_Documents is
       Recompute_Indexes (Self);
    end Initialize;
 
+   -------------
+   -- Cleanup --
+   -------------
+
+   procedure Cleanup (Self : in out Document) is
+   begin
+      for Source of Self.Diagnostic_Sources loop
+         LSP.Diagnostic_Sources.Unchecked_Free (Source);
+      end loop;
+   end Cleanup;
+
    ------------------------
    -- Reset_Symbol_Cache --
    ------------------------
