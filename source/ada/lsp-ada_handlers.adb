@@ -233,7 +233,8 @@ package body LSP.Ada_Handlers is
      (Self     : in out LSP.Ada_Contexts.Context;
       Document : LSP.Ada_Documents.Document_Access;
       Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions)
+      Options  : LSP.Messages.FormattingOptions;
+      Handler  : access Message_Handler)
       return LSP.Messages.Server_Responses.Formatting_Response;
    --  Format the text of the given document in the given range (span).
 
@@ -812,7 +813,8 @@ package body LSP.Ada_Handlers is
      (Self     : in out LSP.Ada_Contexts.Context;
       Document : LSP.Ada_Documents.Document_Access;
       Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions)
+      Options  : LSP.Messages.FormattingOptions;
+      Handler  : access Message_Handler)
       return LSP.Messages.Server_Responses.Formatting_Response
    is
       Response : LSP.Messages.Server_Responses.Formatting_Response
@@ -848,6 +850,15 @@ package body LSP.Ada_Handlers is
                 data    => <>));
             return Response;
          end;
+      else
+         --  If the formntting succeeded, still display messages in the client
+         --  if any.
+         for Msg of Messages loop
+            Show_Message
+              (Self => Handler,
+               Text => Msg,
+               Mode => LSP.Messages.Info);
+         end loop;
       end if;
 
       return Response;
@@ -5507,7 +5518,8 @@ package body LSP.Ada_Handlers is
              (Self     => Context.all,
               Document => Document,
               Span     => LSP.Messages.Empty_Span,
-              Options  => Request.params.options);
+              Options  => Request.params.options,
+              Handler  => Self);
       begin
          return Response;
       end;
@@ -5906,7 +5918,8 @@ package body LSP.Ada_Handlers is
                 (Self     => Context.all,
                  Document => Document,
                  Span     => Request.params.span,
-                 Options  => Request.params.options));
+                 Options  => Request.params.options,
+                 Handler  => Self));
          Response : Server_Responses.Range_Formatting_Response
            (Is_Error => Result.Is_Error);
       begin
