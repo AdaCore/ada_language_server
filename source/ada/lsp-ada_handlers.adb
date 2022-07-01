@@ -174,9 +174,6 @@ package body LSP.Ada_Handlers is
    procedure Index_Files (Self : access Message_Handler);
    --  Index all loaded files in each context. Emit progresormation.
 
-   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-     (LSP.Ada_Documents.Document, Internal_Document_Access);
-
    procedure Release_Contexts_And_Project_Info (Self : access Message_Handler);
    --  Release the memory associated to project information in Self
 
@@ -528,7 +525,8 @@ package body LSP.Ada_Handlers is
    -- Cleanup --
    -------------
 
-   procedure Cleanup (Self : access Message_Handler) is
+   procedure Cleanup (Self : access Message_Handler)
+   is
    begin
       if Self.File_Monitor.Assigned then
          Self.File_Monitor.Stop_Monitoring_Directories;
@@ -536,12 +534,15 @@ package body LSP.Ada_Handlers is
 
       --  Cleanup documents
       for Document of Self.Open_Documents loop
-         Unchecked_Free (Document);
+         Free (Document);
       end loop;
       Self.Open_Documents.Clear;
 
       --  Cleanup contexts, project and environment
       Self.Release_Contexts_And_Project_Info;
+
+      --  Free the file monitor
+      LSP.File_Monitors.Unchecked_Free (Self.File_Monitor);
    end Cleanup;
 
    -----------------------
@@ -2615,7 +2616,7 @@ package body LSP.Ada_Handlers is
             Context.Flush_Document (File);
          end loop;
 
-         Unchecked_Free (Document);
+         Free (Document);
 
       else
          --  We have received a didCloseTextDocument but the document was
@@ -3748,7 +3749,7 @@ package body LSP.Ada_Handlers is
               (Document.all, Context.all, Pattern,
                Canceled.Has_Been_Canceled'Access, Result.result);
 
-            Unchecked_Free (Internal_Document_Access (Document));
+            Free (Internal_Document_Access (Document));
          end;
       else
          Self.Get_Symbols
@@ -5968,6 +5969,18 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
    end Publish_Diagnostics;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (Self : in out Internal_Document_Access) is
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (LSP.Ada_Documents.Document, Internal_Document_Access);
+   begin
+      Self.Cleanup;
+      Unchecked_Free (Self);
+   end Free;
 
    ------------------
    -- Show_Message --
