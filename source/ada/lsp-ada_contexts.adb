@@ -39,7 +39,9 @@ with Utils.Command_Lines.Common;
 
 package body LSP.Ada_Contexts is
 
-   Indexing_Trace : constant Trace_Handle := Create ("ALS.INDEXING", Off);
+   Indexing_Trace   : constant Trace_Handle := Create ("ALS.INDEXING", Off);
+
+   Formatting_Trace : constant Trace_Handle := Create ("ALS.FORMATTING", On);
 
    use type Libadalang.Analysis.Analysis_Unit;
 
@@ -68,8 +70,16 @@ package body LSP.Ada_Contexts is
    function URI_To_File
      (Self : Context;
       URI  : LSP.Types.LSP_URI)
-      return GNATCOLL.VFS.Virtual_File is
-        (GNATCOLL.VFS.Create_From_UTF8 (Self.URI_To_File (URI)));
+      return GNATCOLL.VFS.Virtual_File
+   is
+     (GNATCOLL.VFS.Create_From_UTF8 (Self.URI_To_File (URI)));
+
+   procedure Update_Pp_Formatting_Options
+     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
+      LSP_Options : LSP.Messages.FormattingOptions);
+   --  Update the gnatpp formatting options using the LSP ones.
+   --  Options that are explicitly specified in the .gpr file take precedence
+   --  over LSP options.
 
    -------------------------
    -- Append_Declarations --
@@ -763,6 +773,55 @@ package body LSP.Ada_Contexts is
       --  Tab stop is set 1 to disable "visible character guessing" by LAL.
    end Reload;
 
+   ----------------------------------
+   -- Update_Pp_Formatting_Options --
+   ----------------------------------
+
+   procedure Update_Pp_Formatting_Options
+     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
+      LSP_Options : LSP.Messages.FormattingOptions)
+   is
+      Pp_Indentation : constant Natural :=
+        Pp.Command_Lines.Pp_Nat_Switches.Arg
+          (Pp_Options, Pp.Command_Lines.Indentation);
+      Pp_No_Tab      : constant Boolean :=
+        Pp.Command_Lines.Pp_Flag_Switches.Arg
+          (Pp_Options, Pp.Command_Lines.No_Tab);
+   begin
+      --  Check if intentation and 'no tab' policy options have been explictly
+      --  set in the project.
+      --  If it's not the case, use the LSP options.
+
+      if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
+        (Pp_Options, Pp.Command_Lines.Indentation)
+      then
+         Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
+           (Pp_Options,
+            Pp.Command_Lines.Indentation,
+            Natural (LSP_Options.tabSize));
+
+      elsif Pp_Indentation /= Natural (LSP_Options.tabSize) then
+         Formatting_Trace.Trace
+           ("Project file defines an indentation "
+            & "of" & Pp_Indentation'Img & ", while LSP defines an "
+            & "indentation of" & LSP_Options.tabSize'Img & ".");
+      end if;
+
+      if not Pp.Command_Lines.Pp_Flag_Switches.Explicit
+        (Pp_Options, Pp.Command_Lines.No_Tab)
+      then
+         Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
+           (Pp_Options,
+            Pp.Command_Lines.No_Tab,
+            LSP_Options.insertSpaces);
+
+      elsif Pp_No_Tab /= LSP_Options.insertSpaces then
+         Formatting_Trace.Trace
+           ("Project file no tab policy is set to " & Pp_No_Tab'Img
+            & ", while LSP is set to " & LSP_Options.insertSpaces'Img);
+      end if;
+   end Update_Pp_Formatting_Options;
+
    ------------
    -- Format --
    ------------
@@ -774,18 +833,14 @@ package body LSP.Ada_Contexts is
       Options  : LSP.Messages.FormattingOptions;
       Edit     : out LSP.Messages.TextEdit_Vector;
       Success  : out Boolean;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector)
-   is
+      Messages : out VSS.String_Vectors.Virtual_String_Vector) is
    begin
-      Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-        (Self.PP_Options,
-         Pp.Command_Lines.Indentation,
-         Natural (Options.tabSize));
+      --  Take into account the options set by the request only if the
+      --  corresponding GPR switches are not explicitly set.
 
-      Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-        (Self.PP_Options,
-         Pp.Command_Lines.No_Tab,
-         Options.insertSpaces);
+      Update_Pp_Formatting_Options
+        (Pp_Options  => Self.PP_Options,
+         LSP_Options => Options);
 
       Success := Document.Formatting
         (Context  => Self,
@@ -808,15 +863,12 @@ package body LSP.Ada_Contexts is
       Success  : out Boolean;
       Messages : out VSS.String_Vectors.Virtual_String_Vector) is
    begin
-      Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-        (Self.PP_Options,
-         Pp.Command_Lines.Indentation,
-         Natural (Options.tabSize));
+      --  Take into account the options set by the request only if the
+      --  corresponding GPR switches are not explicitly set.
 
-      Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-        (Self.PP_Options,
-         Pp.Command_Lines.No_Tab,
-         Options.insertSpaces);
+      Update_Pp_Formatting_Options
+        (Pp_Options  => Self.PP_Options,
+         LSP_Options => Options);
 
       Success := Document.Range_Formatting
         (Context    => Self,
