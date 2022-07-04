@@ -1730,7 +1730,7 @@ package body LSP.Ada_Documents is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
    begin
-      return Highlighter.Get_Tokens (Unit, Span);
+      return Highlighter.Get_Tokens (Unit, Context.Trace, Span);
    end Get_Tokens;
 
    -----------------

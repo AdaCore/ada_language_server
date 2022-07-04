@@ -21,11 +21,15 @@ with Langkit_Support.Slocs;
 with Langkit_Support.Token_Data_Handlers;
 with Libadalang.Common;
 
-with VSS.Strings;
-
+with LSP.Common;
 with LSP.Lal_Utils;
 
+with VSS.Strings;
+
 package body LSP.Ada_Highlighters is
+
+   Highlighter_Debug : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.HIGHLIGHTERS.DEBUG", GNATCOLL.Traces.Off);
 
    package Highlights_Holders is
       type Highlights_Holder is tagged limited private;
@@ -245,9 +249,10 @@ package body LSP.Ada_Highlighters is
    ----------------
 
    function Get_Tokens
-     (Self : Ada_Highlighter'Class;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-      Span : LSP.Messages.Span)
+     (Self  : Ada_Highlighter'Class;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Trace : GNATCOLL.Traces.Trace_Handle;
+      Span  : LSP.Messages.Span)
       return LSP.Messages.uinteger_Vector
    is
       use type LSP.Types.Line_Number;
@@ -619,8 +624,8 @@ package body LSP.Ada_Highlighters is
                end;
 
                begin
-                  if Decl.P_Has_Aspect (Self.Obsolescent)
-                    or else not Decl.P_Get_Pragma (Self.Obsolescent).Is_Null
+                  if Def.P_Has_Aspect (Self.Obsolescent)
+                    or else not Def.P_Get_Pragma (Self.Obsolescent).Is_Null
                   then
                      Highlight_Token (Node.Token_Start, deprecated);
                   end if;
@@ -648,10 +653,6 @@ package body LSP.Ada_Highlighters is
             --  Fallback to some default for any unresolved identifier
             Highlight_Token (Node.Token_Start, modifier);
          end if;
-
-      exception
-         when Libadalang.Common.Property_Error =>
-            null;
       end Highlight_Name;
 
       Holder : Highlights_Holders.Highlights_Holder;
@@ -684,6 +685,12 @@ package body LSP.Ada_Highlighters is
          end case;
 
          return Libadalang.Common.Into;
+      exception
+         when E : Libadalang.Common.Property_Error =>
+            if Highlighter_Debug.Is_Active then
+               LSP.Common.Log (Trace, E, "In Highlight_Node");
+            end if;
+            return Libadalang.Common.Into;
       end Highlight_Node;
 
       ---------------------
@@ -727,7 +734,12 @@ package body LSP.Ada_Highlighters is
       begin
          case Node.Kind is
             when Libadalang.Common.Ada_Basic_Decl =>
-               return Node.As_Basic_Decl.P_Is_Ghost_Code;
+               declare
+                  Name : constant Libadalang.Analysis.Defining_Name :=
+                    Node.As_Basic_Decl.P_Defining_Name;
+               begin
+                  return (not Name.Is_Null) and then Name.P_Is_Ghost_Code;
+               end;
             when Libadalang.Common.Ada_Aspect_Spec =>
                --  Mark all aspects as a ghost code, because most of aspects
                --  are contract specifications.
@@ -735,6 +747,9 @@ package body LSP.Ada_Highlighters is
             when others =>
                return False;
          end case;
+      exception
+         when Libadalang.Common.Property_Error =>
+            return False;
       end Is_Ghost_Root_Node;
 
       Root  : constant Libadalang.Analysis.Ada_Node :=
