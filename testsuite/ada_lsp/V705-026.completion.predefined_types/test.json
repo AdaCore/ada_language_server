@@ -1,0 +1,323 @@
+[
+   {
+      "comment": [
+         "This test checks that the completionItem/resolve request",
+         "does not fail on predefined types defined in the standard ",
+         "package"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 422450,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "rename"
+                        ]
+                     }
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": false,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": [
+                           "als-other-file",
+                           "als-named-parameters",
+                           "als-refactor-imports",
+                           "als-suppress-separate",
+                           "als-refactor-extract-subprogram",
+                           "als-refactor-pull_up_declaration",
+                           "als-refactor-add-parameters",
+                           "als-refactor-remove-parameters",
+                           "als-refactor-move-parameter",
+                           "als-refactor-change-parameter-mode",
+                           "als-refactor-change_parameters_type",
+                           "als-refactor-change_parameters_default_value"
+                        ]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child",
+                        "overriding"
+                     ],
+                     "alsCheckSyntaxProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Main is\n   A : Int\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 10
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 10
+                        }
+                     },
+                     "text": "e"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 11
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "interface",
+                        "kind": 14,
+                        "insertText": "interface",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Integer",
+                        "kind": 7,
+                        "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
+                        "documentation": "at __standard (4:3)",
+                        "sortText": "000&2Integer",
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Integer",
+               "kind": 7,
+               "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
+               "documentation": "at __standard (4:3)",
+               "sortText": "000&2Integer",
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": {
+                  "label": "Integer",
+                  "kind": 7,
+                  "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
+                  "documentation": "at __standard (4:3)",
+                  "sortText": "000&2Integer",
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

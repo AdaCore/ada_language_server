@@ -2225,8 +2225,8 @@ package body LSP.Ada_Documents is
    begin
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
-      --  for these fields).
-      if Compute_Doc_And_Details then
+      --  for these fields or if we are dealing with predefined types).
+      if Compute_Doc_And_Details or else LSP.Lal_Utils.Is_Synthetic (BD) then
          Item.detail := (True, LSP.Lal_Utils.Compute_Completion_Detail (BD));
 
          --  Property_Errors can occur when calling
