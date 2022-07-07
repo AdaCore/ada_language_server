@@ -175,6 +175,7 @@ procedure LSP.Ada_Driver is
                      (VSS.Standard_Paths.Home_Location)
               else ALS_Home)));
    ALS_Dir                : constant Virtual_File := Home_Dir / ".als";
+   Clean_ALS_Dir          : Boolean := False;
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
 
@@ -248,6 +249,8 @@ begin
       Parse_Config_File (GNATdebug);
 
    elsif ALS_Dir.Is_Directory then
+      Clean_ALS_Dir := True;
+
       --  Search for custom traces config in traces.cfg
       Parse_Config_File (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
 
@@ -346,6 +349,9 @@ begin
    end if;
 
    Server.Finalize;
+   if Clean_ALS_Dir then
+      Ada_Handler.Clean_Logs (ALS_Dir);
+   end if;
    Ada_Handler.Cleanup;
 
    --  Clean secondary stack up

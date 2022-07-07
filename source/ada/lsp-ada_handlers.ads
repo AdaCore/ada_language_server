@@ -64,6 +64,9 @@ package LSP.Ada_Handlers is
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
+   procedure Clean_Logs (Self : access Message_Handler; Dir : Virtual_File);
+   --  Remove the oldest logs in Dir
+
    subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
 
    function From_File
@@ -331,6 +334,10 @@ private
 
       File_Monitor    : LSP.File_Monitors.File_Monitor_Access;
       --  Filesystem monitoring
+
+      Log_Threshold : Natural := 10;
+      --  Maximum number of logs (should be > to the number of servers run
+      --  simultaneously)
 
       ---------------------------------------
       --  Experimental Client Capabilities --
