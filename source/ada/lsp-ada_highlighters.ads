@@ -18,6 +18,8 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Wide_Wide_Unbounded;
 
+with GNATCOLL.Traces;
+
 with Libadalang.Analysis;
 
 with LSP.Messages;
@@ -33,9 +35,10 @@ package LSP.Ada_Highlighters is
       Legend : out LSP.Messages.SemanticTokensLegend);
 
    function Get_Tokens
-     (Self : Ada_Highlighter'Class;
-      Unit : Libadalang.Analysis.Analysis_Unit;
-      Span : LSP.Messages.Span)
+     (Self  : Ada_Highlighter'Class;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Trace : GNATCOLL.Traces.Trace_Handle;
+      Span  : LSP.Messages.Span)
       return LSP.Messages.uinteger_Vector;
    --  If Span isn't empty then return unit tokens in given Span, otherwise
    --  return all tokens in the Unit.
