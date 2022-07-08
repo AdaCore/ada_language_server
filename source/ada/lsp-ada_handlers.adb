@@ -522,6 +522,17 @@ package body LSP.Ada_Handlers is
       Self.Total_Files_Indexed := 0;
    end Release_Contexts_And_Project_Info;
 
+   --------------------------
+   -- Stop_File_Monitoring --
+   --------------------------
+
+   procedure Stop_File_Monitoring (Self : access Message_Handler) is
+   begin
+      if Self.File_Monitor.Assigned then
+         Self.File_Monitor.Stop_Monitoring_Directories;
+      end if;
+   end Stop_File_Monitoring;
+
    -------------
    -- Cleanup --
    -------------
@@ -529,10 +540,6 @@ package body LSP.Ada_Handlers is
    procedure Cleanup (Self : access Message_Handler)
    is
    begin
-      if Self.File_Monitor.Assigned then
-         Self.File_Monitor.Stop_Monitoring_Directories;
-      end if;
-
       --  Cleanup documents
       for Document of Self.Open_Documents loop
          Free (Document);
@@ -545,6 +552,30 @@ package body LSP.Ada_Handlers is
       --  Free the file monitor
       LSP.File_Monitors.Unchecked_Free (Self.File_Monitor);
    end Cleanup;
+
+   ----------------
+   -- Clean_Logs --
+   ----------------
+
+   procedure Clean_Logs (Self : access Message_Handler; Dir : Virtual_File) is
+      Files : File_Array_Access := Read_Dir (Dir, Files_Only);
+      Dummy : Boolean;
+      Cpt   : Integer := 0;
+   begin
+      Sort (Files.all);
+      --  Browse the log files in reverse timestamp order
+      for F of reverse Files.all loop
+         --  Filter out files like traces.cfg
+         if GNATCOLL.Utils.Ends_With (+F.Base_Name, ".log") then
+            Cpt := Cpt + 1;
+            --  Delete the old logs
+            if Cpt > Self.Log_Threshold then
+               Delete (F, Dummy);
+            end if;
+         end if;
+      end loop;
+      Unchecked_Free (Files);
+   end Clean_Logs;
 
    -----------------------
    -- Exit_Notification --
@@ -4165,6 +4196,8 @@ package body LSP.Ada_Handlers is
         "documentationStyle";
       useCompletionSnippets             : constant String :=
         "useCompletionSnippets";
+      logThreshold                      : constant String :=
+        "logThreshold";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       File      : VSS.Strings.Virtual_String;
@@ -4241,6 +4274,10 @@ package body LSP.Ada_Handlers is
 
          if Ada.Has_Field (namedNotationThreshold) then
             Self.Named_Notation_Threshold := Ada.Get (namedNotationThreshold);
+         end if;
+
+         if Ada.Has_Field (logThreshold) then
+            Self.Log_Threshold := Ada.Get (logThreshold);
          end if;
 
          --  Check the 'useCompletionSnippets' flag to see if we should use
