@@ -345,6 +345,7 @@ begin
       end;
    end if;
 
+   Ada_Handler.Stop_File_Monitoring;
    Server.Finalize;
    Ada_Handler.Cleanup;
 

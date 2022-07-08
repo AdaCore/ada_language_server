@@ -61,6 +61,8 @@ package LSP.Ada_Handlers is
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
 
+   procedure Stop_File_Monitoring (Self : access Message_Handler);
+
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
