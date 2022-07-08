@@ -507,6 +507,17 @@ package body LSP.Ada_Handlers is
       Self.Total_Files_Indexed := 0;
    end Release_Contexts_And_Project_Info;
 
+   --------------------------
+   -- Stop_File_Monitoring --
+   --------------------------
+
+   procedure Stop_File_Monitoring (Self : access Message_Handler) is
+   begin
+      if Self.File_Monitor.Assigned then
+         Self.File_Monitor.Stop_Monitoring_Directories;
+      end if;
+   end Stop_File_Monitoring;
+
    -------------
    -- Cleanup --
    -------------
@@ -514,10 +525,6 @@ package body LSP.Ada_Handlers is
    procedure Cleanup (Self : access Message_Handler)
    is
    begin
-      if Self.File_Monitor.Assigned then
-         Self.File_Monitor.Stop_Monitoring_Directories;
-      end if;
-
       --  Cleanup documents
       for Document of Self.Open_Documents loop
          Free (Document);

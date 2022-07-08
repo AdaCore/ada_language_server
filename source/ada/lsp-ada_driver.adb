@@ -348,6 +348,7 @@ begin
       end;
    end if;
 
+   Ada_Handler.Stop_File_Monitoring;
    Server.Finalize;
    if Clean_ALS_Dir then
       Ada_Handler.Clean_Logs (ALS_Dir);
