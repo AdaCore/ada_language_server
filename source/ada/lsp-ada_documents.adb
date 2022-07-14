@@ -2456,18 +2456,26 @@ package body LSP.Ada_Documents is
       Start_Line      : constant LSP.Types.Line_Number :=
         LSP.Types.Line_Number (Segment.Start_Line) - 1;
       Start_Line_Text : constant VSS.Strings.Virtual_String :=
-        Self.Text.Slice
-          (Self.Line_To_Marker (Start_Line),
-           Self.Line_To_Marker (Start_Line + 1));
+        (if Self.Line_To_Marker.Last_Index = Start_Line then
+           Self.Text.Slice
+             (Self.Line_To_Marker (Start_Line), Self.Text.After_Last_Character)
+         else
+           Self.Text.Slice
+             (Self.Line_To_Marker (Start_Line),
+              Self.Line_To_Marker (Start_Line + 1)));
       Start_Iterator  : VSS.Strings.Character_Iterators.Character_Iterator :=
         Start_Line_Text.At_First_Character;
 
       End_Line        : constant LSP.Types.Line_Number :=
         LSP.Types.Line_Number (Segment.End_Line) - 1;
       End_Line_Text   : constant VSS.Strings.Virtual_String :=
-        Self.Text.Slice
-          (Self.Line_To_Marker (End_Line),
-           Self.Line_To_Marker (End_Line + 1));
+        (if Self.Line_To_Marker.Last_Index = End_Line then
+           Self.Text.Slice
+             (Self.Line_To_Marker (End_Line), Self.Text.After_Last_Character)
+         else
+           Self.Text.Slice
+             (Self.Line_To_Marker (End_Line),
+              Self.Line_To_Marker (End_Line + 1)));
       End_Iterator   : VSS.Strings.Character_Iterators.Character_Iterator :=
         End_Line_Text.At_First_Character;
       Success        : Boolean with Unreferenced;
