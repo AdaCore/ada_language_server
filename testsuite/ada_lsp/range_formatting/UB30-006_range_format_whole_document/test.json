@@ -1,0 +1,181 @@
+[
+    {
+        "comment": [
+            "test automatically generated"
+        ]
+    },
+    {
+        "start": {
+            "cmd": [
+                "${ALS}"
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "processId": 84339,
+                    "locale": "en-gb",
+                    "rootPath": "$URI{.}",
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "workspace": {
+                            "applyEdit": true,
+                            "workspaceEdit": {
+                                "documentChanges": true,
+                                "resourceOperations": [
+                                    "create",
+                                    "rename",
+                                    "delete"
+                                ]
+                            },
+                            "executeCommand": {
+                                "dynamicRegistration": true
+                            }
+                        },
+                        "textDocument": {
+                            "codeAction": {
+                                "dynamicRegistration": true,
+                                "codeActionLiteralSupport": {
+                                    "codeActionKind": {
+                                        "valueSet": [
+                                            "<HAS>",
+                                            "refactor",
+                                            "refactor.extract",
+                                            "refactor.inline",
+                                            "refactor.rewrite"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 0
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "initialized",
+                "params": {}
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration",
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "trace": {
+                                "server": "verbose"
+                            },
+                            "projectFile": "default.gpr",
+                            "scenarioVariables": {},
+                            "defaultCharset": "iso-8859-1",
+                            "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                            "enableDiagnostics": true,
+                            "useCompletionSnippets": true,
+                            "renameInComments": true
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "method": "window/workDoneProgress/create",
+                    "params": {
+                        "token": "<ANY>"
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure Main is\n\nbegin\n   declare\n   A : Integer;\n      begin\n      null;\n      end;\n\nend Main;"
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "method": "textDocument/rangeFormatting",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{main.adb}"
+                    },
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 12
+                        },
+                        "end": {
+                            "line": 9,
+                            "character": 6
+                        }
+                    },
+                    "options": {
+                        "tabSize": 3,
+                        "insertSpaces": true
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "id": 12,
+                    "result": [
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 0,
+                                    "character": 0
+                                },
+                                "end": {
+                                    "line": 9,
+                                    "character": 9
+                                }
+                            },
+                            "newText": "procedure Main is\n\nbegin\n   declare\n      A : Integer;\n   begin\n      null;\n   end;\n\nend Main;"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
