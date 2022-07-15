@@ -25,6 +25,9 @@ else:
 
 test = traces_to_test(inout_file, root)
 
+print("create test directory {}".format(root))
+os.makedirs(root, exist_ok=True)
+
 test_yaml_file = os.path.join(root, 'test.yaml')
 print("generating {}".format(test_yaml_file))
 with open(test_yaml_file, "w") as f:
