@@ -273,24 +273,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 4,
-                           "character": 4
-                        }
-                     },
-                     "newText": ""
-                  },
-                  {
-                     "range": {
-                        "start": {
-                           "line": 5,
-                           "character": 0
-                        },
-                        "end": {
                            "line": 5,
                            "character": 0
                         }
                      },
-                     "newText": "\u0000"
+                     "newText": "   --  Insert code here.\n"
                   }
                ]
             }
