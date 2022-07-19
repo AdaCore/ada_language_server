@@ -5487,6 +5487,9 @@ package body LSP.Ada_Handlers is
       Context  : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
       Names     : LSP.Ada_Completions.Completion_Maps.Map;
 
       --  If lazy computation for the 'detail' and 'documentation' fields is
@@ -5513,6 +5516,7 @@ package body LSP.Ada_Handlers is
       P7 : aliased
         LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
           (Context                  => Context,
+           Document                 => Document,
            Compute_Doc_And_Details  => Compute_Doc_And_Details,
            Named_Notation_Threshold => Self.Named_Notation_Threshold);
       P8 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
@@ -5527,21 +5531,34 @@ package body LSP.Ada_Handlers is
          P7'Unchecked_Access,
          P8'Unchecked_Access];
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
       Response : LSP.Messages.Server_Responses.Completion_Response
         (Is_Error => False);
+
+      Sloc  : Langkit_Support.Slocs.Source_Location;
+      Token : Libadalang.Common.Token_Reference;
+      Node  : Libadalang.Analysis.Ada_Node;
    begin
+      Document.Get_Completion_Node
+        (Context  => Context.all,
+         Position => Value.position,
+         Sloc     => Sloc,
+         Token    => Token,
+         Node     => Node);
+
       Document.Get_Completions_At
-        (Context                  => Context.all,
-         Providers                => Providers,
-         Position                 => Value.position,
-         Names                    => Names,
-         Result                   => Response.result);
+        (Context   => Context.all,
+         Providers => Providers,
+         Sloc      => Sloc,
+         Token     => Token,
+         Node      => Node,
+         Names     => Names,
+         Result    => Response.result);
 
       LSP.Ada_Completions.Write_Completions
         (Context                  => Context.all,
+         Document                 => Document.all,
+         Sloc                     => Sloc,
+         Node                     => Node,
          Names                    => Names,
          Named_Notation_Threshold => Self.Named_Notation_Threshold,
          Compute_Doc_And_Details  => Compute_Doc_And_Details,

@@ -2327,7 +2327,10 @@ package body LSP.Ada_Documents is
    -----------------------------
 
    function Compute_Completion_Item
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Document                 : LSP.Ada_Documents.Document;
+      Context                  : LSP.Ada_Contexts.Context;
+      Sloc                     : Langkit_Support.Slocs.Source_Location;
+      Node                     : Libadalang.Analysis.Ada_Node;
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
@@ -2541,6 +2544,23 @@ package body LSP.Ada_Documents is
             Insert_Text.Append (")$0");
 
             Item.insertText := (True, Insert_Text);
+            --  For performance reason, don't do a call to GNATpp for each
+            --  fonction
+            --  Pretty_Print_Snippet
+            --    (Context => Context,
+            --     Prefix  =>
+            --       (if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range
+            --        then VSS.Strings.Conversions.To_UTF_8_String
+            --          (LSP.Lal_Utils.To_Virtual_String (Node.Text))
+            --        else ""),
+            --     Span    =>
+            --       Document.To_LSP_Range
+            --         (Langkit_Support.Slocs.Make_Range
+            --              (Langkit_Support.Slocs.Start_Sloc
+            --                 (Node.Sloc_Range),
+            --               Sloc)),
+            --     Rule    => Libadalang.Common.Call_Suffix_Rule,
+            --     Result  => Item);
          end if;
       end;
 
@@ -2774,17 +2794,17 @@ package body LSP.Ada_Documents is
       end loop;
    end Get_Any_Symbol;
 
-   ------------------------
-   -- Get_Completions_At --
-   ------------------------
+   -------------------------
+   -- Get_Completion_Node --
+   -------------------------
 
-   procedure Get_Completions_At
-     (Self      : Document;
-      Providers : LSP.Ada_Completions.Completion_Provider_List;
-      Context   : LSP.Ada_Contexts.Context;
-      Position  : LSP.Messages.Position;
-      Names     : out Ada_Completions.Completion_Maps.Map;
-      Result    : out LSP.Messages.CompletionList)
+   procedure Get_Completion_Node
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position;
+      Sloc     : out Langkit_Support.Slocs.Source_Location;
+      Token    : out Libadalang.Common.Token_Reference;
+      Node     : out Libadalang.Analysis.Ada_Node)
    is
       use Libadalang.Common;
 
@@ -2832,24 +2852,36 @@ package body LSP.Ada_Documents is
 
          return Token;
       end Completion_Token;
+   begin
+      Sloc := Self.Get_Source_Location (Position);
+      Token := Completion_Token (Sloc);
+      declare
+         From : constant Langkit_Support.Slocs.Source_Location :=
+           Langkit_Support.Slocs.Start_Sloc
+             (Libadalang.Common.Sloc_Range
+                (Libadalang.Common.Data (Token)));
 
-      Sloc  : constant Langkit_Support.Slocs.Source_Location :=
-        Self.Get_Source_Location (Position);
+         Root : constant Libadalang.Analysis.Ada_Node :=
+           Self.Unit (Context).Root;
+      begin
+         Node := (if Root = No_Ada_Node then Root else Root.Lookup (From));
+      end;
+   end Get_Completion_Node;
 
-      Token : constant Libadalang.Common.Token_Reference :=
-        Completion_Token (Sloc);
+   ------------------------
+   -- Get_Completions_At --
+   ------------------------
 
-      From  : constant Langkit_Support.Slocs.Source_Location :=
-        Langkit_Support.Slocs.Start_Sloc
-          (Libadalang.Common.Sloc_Range
-             (Libadalang.Common.Data (Token)));
-
-      Root  : constant Libadalang.Analysis.Ada_Node :=
-        Self.Unit (Context).Root;
-
-      Node  : constant Libadalang.Analysis.Ada_Node :=
-        (if Root = No_Ada_Node then Root else Root.Lookup (From));
-
+   procedure Get_Completions_At
+     (Self      : Document;
+      Providers : LSP.Ada_Completions.Completion_Provider_List;
+      Context   : LSP.Ada_Contexts.Context;
+      Sloc      : Langkit_Support.Slocs.Source_Location;
+      Token     : Libadalang.Common.Token_Reference;
+      Node      : Libadalang.Analysis.Ada_Node;
+      Names     : out Ada_Completions.Completion_Maps.Map;
+      Result    : out LSP.Messages.CompletionList)
+   is
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node = No_Ada_Node then Node else Node.Parent);
 

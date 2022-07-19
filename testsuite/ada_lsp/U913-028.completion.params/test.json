@@ -416,7 +416,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "${1:I : Integer})$0",
+                        "insertText": "I => ${1:Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
                         "data": {

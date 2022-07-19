@@ -26,6 +26,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 limited with LSP.Ada_Contexts;
+limited with LSP.Ada_Documents;
 limited with LSP.Ada_Completions.Filters;
 
 with LSP.Messages;
@@ -96,6 +97,9 @@ package LSP.Ada_Completions is
 
    procedure Write_Completions
      (Context                  : LSP.Ada_Contexts.Context;
+      Document                 : LSP.Ada_Documents.Document;
+      Sloc                     : Langkit_Support.Slocs.Source_Location;
+      Node                     : Libadalang.Analysis.Ada_Node;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
       Compute_Doc_And_Details  : Boolean;
@@ -107,6 +111,15 @@ package LSP.Ada_Completions is
    --  If Compute_Doc_And_Details is True, the 'detail' and 'documentation'
    --  fields for all the resulting completion items will be computed
    --  immediately, which might take time.
+
+   procedure Pretty_Print_Snippet
+     (Context : LSP.Ada_Contexts.Context;
+      Prefix  : String;
+      Span    : LSP.Messages.Span;
+      Rule    : Libadalang.Common.Grammar_Rule;
+      Result  : in out LSP.Messages.CompletionItem);
+   --  If Result is a snippet then generate a textEdit over span using GNATpp.
+   --  Rule must match the content of "Prefix & Result.insertText.Value"
 
    generic
       with function Has_Been_Canceled return Boolean;
