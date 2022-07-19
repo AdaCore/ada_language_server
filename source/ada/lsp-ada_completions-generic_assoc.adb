@@ -37,7 +37,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Names        : in out Ada_Completions.Completion_Maps.Map;
       Unsorted_Res : in out LSP.Messages.CompletionItem_Vector)
    is
-      pragma Unreferenced (Filter, Sloc, Names);
+      pragma Unreferenced (Filter, Names);
       use Libadalang.Analysis;
       use Libadalang.Common;
       use LSP.Ada_Completions.Generic_Assoc_Utils;
@@ -48,6 +48,12 @@ package body LSP.Ada_Completions.Generic_Assoc is
       --  Empty if we already have a whitespace before a ","
 
       Designators       : Laltools.Common.Node_Vectors.Vector;
+
+      Prefix      : VSS.Strings.Virtual_String;
+      --  The whole string before the snippet (including whitespaces)
+
+      Prefix_Span : LSP.Messages.Span;
+      --  The span covering Prefix.
 
       function Match_Designators
         (Child  : Laltools.Common.Node_Vectors.Vector;
@@ -120,8 +126,10 @@ package body LSP.Ada_Completions.Generic_Assoc is
          Snippet_Index      : Integer :=
            Integer (Spec_Designators.Length);
          Use_Named_Notation : constant Boolean :=
-           Limit > 0
-           and then (Snippet_Index = 1 or else Snippet_Index >= Limit);
+           (not Designators.Is_Empty)
+           or else (Limit > 0
+                    and then (Snippet_Index = 1
+                              or else Snippet_Index >= Limit));
       begin
          if Match_Designators (Designators, Spec_Designators) then
 
@@ -229,8 +237,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
               and then Token_Kind in Ada_Par_Open | Ada_Comma
             then
                declare
-                  Last    :
-                  VSS.Strings.Character_Iterators.Character_Iterator
+                  Last    : VSS.Strings.Character_Iterators.Character_Iterator
                     := Params_Snippet.At_Last_Character;
                   Success : Boolean with Unreferenced;
 
@@ -249,7 +256,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                Params_Snippet.Prepend (Snippet_Prefix);
 
                declare
-                  Item : LSP.Messages.CompletionItem;
+                  Item   : LSP.Messages.CompletionItem;
                begin
                   Item.label := Title;
                   Item.insertTextFormat :=
@@ -264,6 +271,13 @@ package body LSP.Ada_Completions.Generic_Assoc is
                      Item                    => Item,
                      Compute_Doc_And_Details =>
                        Self.Compute_Doc_And_Details);
+                  Pretty_Print_Snippet
+                    (Context => Self.Context.all,
+                     Prefix  =>
+                       VSS.Strings.Conversions.To_UTF_8_String (Prefix),
+                     Span    => Prefix_Span,
+                     Rule    => Libadalang.Common.Param_Assoc_Rule,
+                     Result  => Item);
                   Unsorted_Res.Append (Item);
                end;
             end if;
@@ -274,6 +288,14 @@ package body LSP.Ada_Completions.Generic_Assoc is
       if Elem_Node = Null_Element then
          return;
       end if;
+
+      Prefix_Span :=
+        Self.Document.To_LSP_Range
+          (Langkit_Support.Slocs.Make_Range
+             (Langkit_Support.Slocs.Start_Sloc (Node.Parent.Sloc_Range),
+              Sloc));
+      Prefix := Self.Document.Get_Text_At
+        (Prefix_Span.first, Prefix_Span.last);
 
       Designators := Get_Designators (Elem_Node);
 

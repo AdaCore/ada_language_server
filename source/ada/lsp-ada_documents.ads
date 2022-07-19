@@ -143,14 +143,25 @@ package LSP.Ada_Documents is
       return VSS.Strings.Virtual_String;
    --  Get an identifier at given position in the document or an empty string.
 
+   procedure Get_Completion_Node
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position;
+      Sloc     : out Langkit_Support.Slocs.Source_Location;
+      Token    : out Libadalang.Common.Token_Reference;
+      Node     : out Libadalang.Analysis.Ada_Node);
+   --  Look at the tokens to find the best completion context.
+
    procedure Get_Completions_At
      (Self      : Document;
       Providers : LSP.Ada_Completions.Completion_Provider_List;
       Context   : LSP.Ada_Contexts.Context;
-      Position  : LSP.Messages.Position;
+      Sloc      : Langkit_Support.Slocs.Source_Location;
+      Token     : Libadalang.Common.Token_Reference;
+      Node      : Libadalang.Analysis.Ada_Node;
       Names     : out Ada_Completions.Completion_Maps.Map;
       Result    : out LSP.Messages.CompletionList);
-   --  Populate Result/Names with completions for given position in the
+   --  Populate Result/Names with completions Node in the
    --  document. Names works for defining name completions to create snippets
    --  and to avoid duplicates.
 
@@ -256,7 +267,10 @@ package LSP.Ada_Documents is
    --  VersionedTextDocumentIdentifier with a null version.
 
    function Compute_Completion_Item
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Document                 : LSP.Ada_Documents.Document;
+      Context                  : LSP.Ada_Contexts.Context;
+      Sloc                     : Langkit_Support.Slocs.Source_Location;
+      Node                     : Libadalang.Analysis.Ada_Node;
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;

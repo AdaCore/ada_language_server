@@ -51,6 +51,7 @@ package body LSP.Ada_Completions.Names is
       Use_Snippets : Boolean := Self.Snippets_Enabled;
 
    begin
+
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
       --
