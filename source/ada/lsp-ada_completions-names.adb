@@ -67,6 +67,7 @@ package body LSP.Ada_Completions.Names is
                   (Token, Exclude_Trivia => True)))
           = Libadalang.Common.Ada_Dot;
    begin
+
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
       --
