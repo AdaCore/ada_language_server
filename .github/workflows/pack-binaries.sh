@@ -17,14 +17,6 @@ function make_change_log()
     done
 }
 
-if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]] ; then
-    # For tags `actions/checkout@v2` action fetches a tag's commit, but
-    # not the tag annotation itself. Let's refetch the tag from origin.
-    # This makes `git show --no-patch --format=%n $TAG` work again.
-    git tag --delete ${GITHUB_REF##*/}
-    git fetch --tags
-fi
-
 chmod -R -v +x als-*-$DEBUG
 for X in Linux macOS Windows ; do mv -v -f als-$X-$DEBUG/* integration/vscode/ada/; done
 pushd integration/vscode/ada
