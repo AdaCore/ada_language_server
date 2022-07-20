@@ -1,0 +1,275 @@
+[
+   {
+      "comment": [
+         "Tests if symbols diff works"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 22245,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "rename"
+                        ]
+                     }
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": false,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{hello.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Text_IO;\n\nprocedure Main is\n   procedure Print (I : Integer; B : Boolean) is\n   begin\n      Ada.Text_IO.Put_Line (\"Hello\" & B'Img & I'Img);\n   end;\n\nI : constant Integer := 0;\nB : constant Boolean := False;\nbegin\n   Print (I, B);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 26
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 26
+                        }
+                     },
+                     "text": "\n"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/rangeFormatting",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 8,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 10,
+                     "character": 1
+                  }
+               },
+               "options": {
+                  "tabSize": 3,
+                  "insertSpaces": true,
+                  "trimTrailingWhitespace": true,
+                  "insertFinalNewline": false,
+                  "trimFinalNewlines": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 0
+                        }
+                     },
+                     "newText": "   "
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 9,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 9,
+                           "character": 0
+                        }
+                     },
+                     "newText": "\u0000"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 10,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 10,
+                           "character": 0
+                        }
+                     },
+                     "newText": "   "
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "file:///home/ogorodnik/adacore/tests/hello/src/main.adb"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "file:///home/ogorodnik/adacore/tests/hello/src/main.adb",
+                  "diagnostics": []
+               }
+            },
+            {
+               "id": 9,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

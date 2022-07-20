@@ -124,6 +124,12 @@ package LSP.Lal_Utils is
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
    --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
+   procedure Span_To_Slice
+     (Text  : VSS.Strings.Virtual_String;
+      Span  : LSP.Messages.Span;
+      Slice : out VSS.Strings.Virtual_String);
+   --  Return a slice of the Text in Span range
+
    function To_TextEdit
      (E : Laltools.Refactor.Text_Edit)
       return LSP.Messages.TextEdit;

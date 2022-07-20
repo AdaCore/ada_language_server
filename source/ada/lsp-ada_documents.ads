@@ -360,6 +360,16 @@ private
    --  Old_Span and New_Span are used when we need to compare certain
    --  old/new lines instead of whole buffers
 
+   procedure Diff_Symbols
+     (Self     : Document;
+      Span     : LSP.Messages.Span;
+      New_Text : VSS.Strings.Virtual_String;
+      Edit     : out LSP.Messages.TextEdit_Vector);
+   --  Create a diff between document Text inside Span and New_Chunk and
+   --  return Text_Edit. Tests individual symbols instead of lines
+   --  as above. Do not use it for large text slices because it
+   --  creates an N^M map for symbols.
+
    function URI (Self : Document) return LSP.Messages.DocumentUri is
      (Self.URI);
    function Text (Self : Document) return VSS.Strings.Virtual_String is
