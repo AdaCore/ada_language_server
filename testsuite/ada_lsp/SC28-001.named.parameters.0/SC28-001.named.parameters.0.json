@@ -192,7 +192,7 @@
         "send": {
             "request": {
                 "jsonrpc": "2.0",
-                "id": "ada-1",
+                "id": "ada-2",
                 "method": "textDocument/codeAction",
                 "params": {
                     "textDocument": {
@@ -216,7 +216,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": "ada-1",
+                    "id": "ada-2",
                     "result": [
                         {
                             "title": "Name parameters in the call",

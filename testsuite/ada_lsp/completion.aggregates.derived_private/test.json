@@ -225,7 +225,7 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 6,
+            "id": 7,
             "method": "shutdown"
          },
          "wait": []

@@ -16,9 +16,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Calendar;
+with Ada.Containers.Hashed_Sets;
 with Ada.Strings.Unbounded;
 
 private with VSS.Strings;
+private with VSS.Strings.Hash;
 
 with GNATCOLL.JSON;
 
@@ -47,6 +49,12 @@ private
       entry Cancel;
    end Watch_Dog_Task;
 
+   package String_Sets is new Ada.Containers.Hashed_Sets
+     (VSS.Strings.Virtual_String,
+      VSS.Strings.Hash,
+      VSS.Strings."=",
+      VSS.Strings."=");
+
    type Test is new LSP.Raw_Clients.Raw_Client with record
       Index        : Positive := 1;
       Sort_Reply   : GNATCOLL.JSON.JSON_Value;
@@ -58,9 +66,12 @@ private
       --  Task to restrict a command execution time
       Started      : Ada.Calendar.Time;
       --  Command execution start/reset time
+      Known_Ids    : String_Sets.Set;
+      --  Set of processed request ids
 
       Full_Server_Output : GNATCOLL.JSON.JSON_Array;
       --  Complete output received from the server
+
    end record;
 
    overriding procedure On_Error
