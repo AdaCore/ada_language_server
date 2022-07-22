@@ -151,6 +151,40 @@ package body Tester.Tests is
    is
       use type Ada.Calendar.Time;
 
+      procedure Check_Unique_Id (Request_Id : GNATCOLL.JSON.JSON_Value);
+      --  Check if Request_Id is unique over all request ids
+
+      ---------------------
+      -- Check_Unique_Id --
+      ---------------------
+
+      procedure Check_Unique_Id (Request_Id : GNATCOLL.JSON.JSON_Value) is
+         Id : VSS.Strings.Virtual_String;
+      begin
+         case Request_Id.Kind is
+            when GNATCOLL.JSON.JSON_String_Type =>
+               Id := VSS.Strings.Conversions.To_Virtual_String
+                 (String'(Request_Id.Get));
+            when GNATCOLL.JSON.JSON_Int_Type =>
+               Id := VSS.Strings.Conversions.To_Virtual_String
+                 (Integer'Image (Request_Id.Get));
+            when others =>
+               raise Program_Error with "Unexpected 'id' type!";
+         end case;
+
+         if Self.Known_Ids.Contains (Id) then
+            declare
+               Text : Spawn.String_Vectors.UTF_8_String_Vector;
+            begin
+               Text.Append ("Duplicated request id:");
+               Text.Append (VSS.Strings.Conversions.To_UTF_8_String (Id));
+               Self.Do_Fail (Text);
+            end;
+         else
+            Self.Known_Ids.Insert (Id);
+         end if;
+      end Check_Unique_Id;
+
       Request : constant GNATCOLL.JSON.JSON_Value := Command.Get ("request");
       Wait    : constant GNATCOLL.JSON.JSON_Array := Get (Command, "wait");
       Sort    : constant GNATCOLL.JSON.JSON_Value := Command.Get ("sortReply");
@@ -160,6 +194,10 @@ package body Tester.Tests is
 
       Timeout : constant Duration := Max_Wait * Wait_Factor (Command);
    begin
+      if Request.Has_Field ("id") and Request.Has_Field ("method") then
+         Check_Unique_Id (Request.Get ("id"));
+      end if;
+
       Self.Started := Ada.Calendar.Clock;
       Self.Waits := Wait;
       Self.Sort_Reply := Sort;
