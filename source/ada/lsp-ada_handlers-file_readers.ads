@@ -21,11 +21,16 @@
 
 with Langkit_Support.File_Readers;
 with Langkit_Support.Diagnostics;
+with Libadalang.Preprocessing;
 
 package LSP.Ada_Handlers.File_Readers is
 
    type LSP_Reader_Interface (Handler : access Message_Handler) is new
-     Langkit_Support.File_Readers.File_Reader_Interface with null record;
+     Langkit_Support.File_Readers.File_Reader_Interface with
+   record
+      Preprocessing_Data : Libadalang.Preprocessing.Preprocessor_Data :=
+           Libadalang.Preprocessing.No_Preprocessor_Data;
+   end record;
 
    overriding procedure Read
      (Self        : LSP_Reader_Interface;
