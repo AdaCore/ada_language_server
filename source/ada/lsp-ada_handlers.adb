@@ -94,6 +94,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
+with Libadalang.Preprocessing;
 
 with GNATdoc.Comments.Helpers;
 
@@ -4682,7 +4683,48 @@ package body LSP.Ada_Handlers is
       procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
          C : constant Context_Access := new Context (Self.Trace);
          Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
+
+         Default_Config : Libadalang.Preprocessing.File_Config;
+         File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
+
+         procedure Set_Line_Mode
+           (Config : in out Libadalang.Preprocessing.File_Config);
+         --  Used to force the preprocessing line mode to Blank_Lines, which
+         --  is needed to preserve the number of lines after preprocessing a
+         --  source file, otherwise LSP requests based on SLOCs will fail.
+
+         -------------------
+         -- Set_Line_Mode --
+         -------------------
+
+         procedure Set_Line_Mode
+           (Config : in out Libadalang.Preprocessing.File_Config) is
+         begin
+            if Config.Enabled then
+               Config.Line_Mode := Libadalang.Preprocessing.Blank_Lines;
+            end if;
+         end Set_Line_Mode;
+
       begin
+         --  Extract the preprocessing options from the context's project
+         --  and create the file reader which will preprocess the files
+         --  accordingly.
+
+         Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
+           (Tree           => Self.Project_Tree.all,
+            Project        => P,
+            Default_Config => Default_Config,
+            File_Configs   => File_Configs);
+
+         Libadalang.Preprocessing.Iterate
+           (Default_Config => Default_Config,
+            File_Configs   => File_Configs,
+            Process        => Set_Line_Mode'Access);
+
+         Reader.Preprocessing_Data :=
+           Libadalang.Preprocessing.Create_Preprocessor_Data
+             (Default_Config, File_Configs);
+
          C.Initialize (Reader, Self.Follow_Symlinks);
          C.Load_Project (Tree    => Self.Project_Tree,
                          Root    => P,

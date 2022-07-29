@@ -1,2 +1,6 @@
 project p is
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnateDdebug=true");
+   end Compiler;
 end p;
