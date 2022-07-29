@@ -1,0 +1,402 @@
+[
+   {
+      "comment": [
+         "Test find all references on a statement defining multiple names."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "signatureHelp": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   X, Y : Integer := 1;\nbegin\n   X := X + Y;\n   Y := X - Y;\n   X := X - Y;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/references",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 3
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 4
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 4
+                        }
+                     },
+                     "alsKind": [
+                        "write"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 9
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 9
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 4
+                        }
+                     },
+                     "alsKind": [
+                        "write"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 9
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/references",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 6
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": [
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 6
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 7
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 4
+                        }
+                     },
+                     "alsKind": [
+                        "write"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
