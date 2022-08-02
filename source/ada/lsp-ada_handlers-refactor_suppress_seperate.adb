@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,16 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with Ada.Strings.UTF_Encoding;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
-with Laltools.Common; use Laltools.Common;
 
+with Laltools.Common; use Laltools.Common;
 with Laltools.Refactor.Suppress_Separate;
 use Laltools.Refactor.Suppress_Separate;
 
+with LSP.Common;
 with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
@@ -131,45 +130,44 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+      use Laltools.Refactor;
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings.Conversions;
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
-
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
-      Apply    : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
 
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Node : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
-      Target_Separate : Basic_Decl := No_Basic_Decl;
+      Target_Separate : constant Basic_Decl :=
+        Get_Node_As_Name (Node).Parent.Parent.Parent.As_Basic_Decl;
 
       Suppressor : Separate_Suppressor;
-      Edits      : Laltools.Refactor.Refactoring_Edits;
+      Edits      : Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
    begin
-      Apply.params.label :=
-        (Is_Set => True,
-         Value  =>
-           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
-      Target_Separate :=
-        Get_Node_As_Name (Node).Parent.Parent.Parent.As_Basic_Decl;
-
       if Target_Separate.Is_Null then
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.InvalidRequest,
                message => VSS.Strings.To_Virtual_String
-                 ("Could not execute Suppress Separate command. "
+                 ("Failed to execute the Suppress Separate refactoring. "
                   & "The target subprogram could not be resolved precisely."),
                data    => <>));
          return;
@@ -179,23 +177,39 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
 
       Edits := Suppressor.Refactor (Analysis_Units'Access);
 
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits,
-         Message_Handler.Resource_Operations,
-         Message_Handler.Versioned_Documents,
-         Message_Handler'Access,
-         True);
-
-      Client.On_Workspace_Apply_Edit_Request (Apply);
-
-   exception
-      when E : others =>
+      if Edits = No_Refactoring_Edits then
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Suppress Separate refactoring."),
+               data    => <>));
+
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access,
+              Rename              => True);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
+
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
+
+   exception
+      when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Suppress Separate refactoring."),
                data    => <>));
    end Execute;
 
