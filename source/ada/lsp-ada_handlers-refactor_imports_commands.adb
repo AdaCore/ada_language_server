@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2021, AdaCore                     --
+--                     Copyright (C) 2020-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,17 +14,18 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
-with Ada.Exceptions;
+
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Wide_Wide_Unbounded;
 
-with Laltools.Common;
+with Langkit_Support.Text;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with Langkit_Support.Text;
+with Laltools.Common;
 
+with LSP.Common;
 with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
@@ -303,14 +304,16 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       end if;
 
       Client.On_Workspace_Apply_Edit_Request (Apply);
+
    exception
       when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Auto Imports refactoring"),
                data    => <>));
    end Execute;
 

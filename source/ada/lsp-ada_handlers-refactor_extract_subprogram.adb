@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
@@ -27,6 +26,7 @@ with Laltools.Refactor; use Laltools.Refactor;
 with Laltools.Refactor.Extract_Subprogram;
 use Laltools.Refactor.Extract_Subprogram;
 
+with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
@@ -147,14 +147,18 @@ package body LSP.Ada_Handlers.Refactor_Extract_Subprogram is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings.Conversions;
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context_Id).all;
 
-      Apply : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
@@ -164,8 +168,10 @@ package body LSP.Ada_Handlers.Refactor_Extract_Subprogram is
         Context.LAL_Context.Get_From_File
           (Context.URI_To_File (Self.Section_To_Extract_SLOC.uri));
       Section_To_Extract : constant Source_Location_Range :=
-        (Line_Number (Self.Section_To_Extract_SLOC.span.first.line) + 1,
-         Line_Number (Self.Section_To_Extract_SLOC.span.last.line) + 1,
+        (Langkit_Support.Slocs.Line_Number
+           (Self.Section_To_Extract_SLOC.span.first.line) + 1,
+         Langkit_Support.Slocs.Line_Number
+           (Self.Section_To_Extract_SLOC.span.last.line) + 1,
          Column_Number (Self.Section_To_Extract_SLOC.span.first.character) + 1,
          Column_Number (Self.Section_To_Extract_SLOC.span.last.character) + 1);
 
@@ -180,26 +186,42 @@ package body LSP.Ada_Handlers.Refactor_Extract_Subprogram is
                 Location        =>
                   (Section_To_Extract.Start_Line,
                    Section_To_Extract.Start_Column)));
-
-      Edits : constant Refactoring_Edits :=
+      Edits     : constant Refactoring_Edits :=
         Extractor.Refactor (Analysis_Units'Access);
 
    begin
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits.Text_Edits,
-         Message_Handler.Versioned_Documents,
-         Message_Handler'Access);
+      if Edits = No_Refactoring_Edits then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Extract Subprogram refactoring."),
+               data    => <>));
 
-      Client.On_Workspace_Apply_Edit_Request (Apply);
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
+
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
 
    exception
       when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
          Error :=
            (Is_Set => True,
             Value  =>
               (code => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Extract Subprogram refactoring."),
                data => <>));
    end Execute;
 
