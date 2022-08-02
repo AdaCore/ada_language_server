@@ -15,19 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 
+with Laltools.Refactor.Pull_Up_Declaration;
+
+with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
-
-with Laltools.Refactor.Pull_Up_Declaration;
 
 package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
 
@@ -130,54 +130,73 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
    is
       use Langkit_Support.Slocs;
       use Libadalang.Analysis;
+      use Laltools.Refactor;
       use Laltools.Refactor.Pull_Up_Declaration;
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
-      Apply : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Unit : constant Analysis_Unit :=
         Context.LAL_Context.Get_From_File
           (Context.URI_To_File (Self.Where.uri));
 
       Declaration_SLOC : constant Source_Location :=
-        (Line_Number (Self.Where.span.first.line) + 1,
-         Column_Number (Self.Where.span.first.character) + 1);
-
-      Pull_Upper : constant Declaration_Extractor :=
-        Create_Declaration_Pull_Upper (Unit, Declaration_SLOC);
-
-      Edits : Laltools.Refactor.Refactoring_Edits;
+        (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
+         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
+         + 1);
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Pull_Upper
 
+      Pull_Upper : constant Declaration_Extractor :=
+        Create_Declaration_Pull_Upper (Unit, Declaration_SLOC);
+      Edits      : constant Refactoring_Edits :=
+        Pull_Upper.Refactor (Analysis_Units'Access);
+
    begin
-      Edits := Pull_Upper.Refactor (Analysis_Units'Access);
-
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits               => Edits,
-         Resource_Operations => Message_Handler.Resource_Operations,
-         Versioned_Documents => Message_Handler.Versioned_Documents,
-         Document_Provider   => Message_Handler'Access);
-
-      Client.On_Workspace_Apply_Edit_Request (Apply);
-
-   exception
-      when E : others =>
+      if Edits = No_Refactoring_Edits then
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
+              (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
-               data => <>));
+                 ("Failed to execute the Pull Up Declaration refactoring."),
+               data    => <>));
+
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
+
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
+
+   exception
+      when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Pull Up Declaration refactoring."),
+               data    => <>));
    end Execute;
 
    ----------------

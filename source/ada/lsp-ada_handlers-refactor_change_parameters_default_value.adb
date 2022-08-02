@@ -21,15 +21,15 @@
 -- <http://www.gnu.org/licenses/>.                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
-with  Libadalang.Analysis; use  Libadalang.Analysis;
+with Libadalang.Analysis; use  Libadalang.Analysis;
 
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 
+with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
@@ -138,8 +138,11 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         Client_Message_Receiver'Class;
       Error   : in out LSP.Errors.Optional_ResponseError)
    is
+      use Laltools.Refactor;
       use Laltools.Refactor.Subprogram_Signature.
             Change_Parameters_Default_Value;
+      use LSP.Messages;
+      use LSP.Types;
       use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
@@ -147,17 +150,17 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
-      Apply : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Unit : constant Analysis_Unit :=
         Context.LAL_Context.Get_From_File
           (Context.URI_To_File (Self.Where.uri));
 
       Parameters_SLOC_Range : constant Source_Location_Range :=
-        (Line_Number (Self.Where.span.first.line) + 1,
-         Line_Number (Self.Where.span.last.line) + 1,
+        (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
+         Langkit_Support.Slocs.Line_Number (Self.Where.span.last.line) + 1,
          Column_Number (Self.Where.span.first.character) + 1,
          Column_Number (Self.Where.span.last.character) + 1);
 
@@ -169,31 +172,48 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
            New_Parameters_Default_Value     =>
              To_Unbounded_UTF_8_String (Self.New_Parameters_Default_Value));
 
-      Edits : Laltools.Refactor.Refactoring_Edits;
-
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Pull_Upper
 
+      Edits : constant Laltools.Refactor.Refactoring_Edits :=
+        Changer.Refactor (Analysis_Units'Access);
+
    begin
-      Edits := Changer.Refactor (Analysis_Units'Access);
+      if Edits = No_Refactoring_Edits then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Change Parameter Default Value "
+                  & "refactoring."),
+               data    => <>));
 
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits               => Edits,
-         Resource_Operations => Message_Handler.Resource_Operations,
-         Versioned_Documents => Message_Handler.Versioned_Documents,
-         Document_Provider   => Message_Handler'Access);
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
 
-      Client.On_Workspace_Apply_Edit_Request (Apply);
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
 
    exception
       when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
          Error :=
            (Is_Set => True,
             Value  =>
               (code => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Change Parameter Default Value "
+                  & "refactoring."),
                data => <>));
    end Execute;
 

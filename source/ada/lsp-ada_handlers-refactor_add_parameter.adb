@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,19 +15,20 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
+
+with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
+with Laltools.Refactor.Subprogram_Signature;
+use Laltools.Refactor.Subprogram_Signature;
+
+with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
-
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
-with Langkit_Support.Slocs;
 
 package body LSP.Ada_Handlers.Refactor_Add_Parameter is
 
@@ -130,55 +131,73 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+      use Langkit_Support.Slocs;
+      use Laltools.Refactor;
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings.Conversions;
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
-
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context_Id).all;
 
-      Apply    : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
-
-      Adder : Parameter_Adder;
-      Edits : Laltools.Refactor.Refactoring_Edits;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      use type Langkit_Support.Slocs.Line_Number;
-      use type Langkit_Support.Slocs.Column_Number;
+      Adder : constant Parameter_Adder :=
+        Create
+          (Unit          => Context.Get_AU
+             (Context.URI_To_File (Self.Where.uri)),
+           Location      =>
+             (Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.first.line) + 1,
+              Langkit_Support.Slocs.Column_Number
+                (Self.Where.span.first.character) + 1),
+           New_Parameter =>
+             VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+               (Self.New_Parameter));
+      Edits : constant Laltools.Refactor.Refactoring_Edits :=
+        Adder.Refactor (Analysis_Units'Access);
 
    begin
-      Adder := Create
-        (Unit          => Context.Get_AU
-           (Context.URI_To_File (Self.Where.uri)),
-         Location      =>
-           (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-            Langkit_Support.Slocs.Column_Number
-              (Self.Where.span.first.character) + 1),
-         New_Parameter =>
-           VSS.Strings.Conversions.To_Unbounded_UTF_8_String
-             (Self.New_Parameter));
+      if Edits = No_Refactoring_Edits then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Add Parameter refactoring."),
+               data    => <>));
 
-      Edits := Adder.Refactor (Analysis_Units'Access);
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
 
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits.Text_Edits,
-         Message_Handler.Versioned_Documents,
-         Message_Handler'Access);
-
-      Client.On_Workspace_Apply_Edit_Request (Apply);
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
 
    exception
       when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
          Error :=
            (Is_Set => True,
             Value  =>
               (code => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Add Parameter refactoring."),
                data => <>));
    end Execute;
 

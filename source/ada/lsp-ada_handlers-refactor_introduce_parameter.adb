@@ -15,18 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Strings.UTF_Encoding;
 
-with Libadalang.Analysis; use Libadalang.Analysis;
-
 with Langkit_Support.Slocs;
+
+with Libadalang.Analysis; use Libadalang.Analysis;
 
 with Laltools.Refactor.Introduce_Parameter;
 use Laltools.Refactor.Introduce_Parameter;
 
+with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
+with LSP.Types;
 
 with VSS.Strings.Conversions;
 
@@ -123,12 +124,11 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Ada.Exceptions;
       use Langkit_Support.Slocs;
       use Laltools.Refactor;
       use LSP.Errors;
-      use LSP.Lal_Utils;
       use LSP.Messages;
+      use LSP.Types;
       use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
@@ -136,44 +136,62 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context_Id).all;
 
-      Apply : Client_Requests.Workspace_Apply_Edit_Request;
-
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
       Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Introducer : constant Parameter_Introducer :=
         Create_Parameter_Introducer
           (Unit       =>
              Context.Get_AU (Context.URI_To_File (Self.Where.uri)),
            SLOC_Range =>
-             (Line_Number (Self.Where.span.first.line) + 1,
-              Line_Number (Self.Where.span.last.line) + 1,
+             (Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.first.line) + 1,
+              Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.last.line) + 1,
               Column_Number (Self.Where.span.first.character) + 1,
               Column_Number (Self.Where.span.last.character) + 1));
-
-      Edits : Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Parameter_Introducer
 
+      Edits : constant Refactoring_Edits :=
+        Introducer.Refactor (Analysis_Units'Access);
+
    begin
-      Edits := Introducer.Refactor (Analysis_Units'Access);
+      if Edits = No_Refactoring_Edits then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Introduce Parameter refactoring."),
+               data    => <>));
 
-      Workspace_Edits :=
-        To_Workspace_Edit
-          (EM                  => Edits.Text_Edits,
-           Versioned_Documents => Message_Handler.Versioned_Documents,
-           Document_Provider   => Message_Handler'Access);
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
 
-      Client.On_Workspace_Apply_Edit_Request (Message => Apply);
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
 
    exception
       when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => UnknownErrorCode,
-               message => To_Virtual_String (Exception_Information (E)),
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Introduce Parameter refactoring."),
                data    => <>));
    end Execute;
 
