@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
-
 with Ada.Strings.UTF_Encoding;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
@@ -25,6 +23,7 @@ with Laltools.Common; use Laltools.Common;
 with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
 use Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
 
+with LSP.Common;
 with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
@@ -183,47 +182,47 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
+      use Laltools.Refactor;
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings.Conversions;
+
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
-
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
-      Apply    : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
 
-      Workspace_Edits : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Node : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
-      Target_Subp               : Defining_Name := No_Defining_Name;
+      Target_Subp               : constant Defining_Name :=
+        Resolve_Name_Precisely (Get_Node_As_Name (Node));
       Target_Parameters_Indices : constant Parameter_Indices_Range_Type :=
         (First => Positive (Self.First_Parameter),
          Last  => Positive (Self.Last_Parameter));
 
       Remover : Parameter_Remover;
-      Edits   : Laltools.Refactor.Refactoring_Edits;
+      Edits   : Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
    begin
-      Apply.params.label :=
-        (Is_Set => True,
-         Value  =>
-           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
-      Target_Subp := Resolve_Name_Precisely (Get_Node_As_Name (Node));
-
       if Target_Subp.Is_Null then
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.InvalidRequest,
                message => VSS.Strings.To_Virtual_String
-                 ("Could not execute Remove Parameter command. "
+                 ("Failed to execute the Remove Parameter refactoring. "
                   & "The target subprogram could not be resolved precisely."),
                data    => <>));
          return;
@@ -233,22 +232,38 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
 
       Edits := Remover.Refactor (Analysis_Units'Access);
 
-      Workspace_Edits := LSP.Lal_Utils.To_Workspace_Edit
-        (Edits,
-         Message_Handler.Resource_Operations,
-         Message_Handler.Versioned_Documents,
-         Message_Handler'Access);
-
-      Client.On_Workspace_Apply_Edit_Request (Apply);
-
-   exception
-      when E : others =>
+      if Edits = Laltools.Refactor.No_Refactoring_Edits then
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
+                 ("Failed to execute the Remove Parameter refactoring."),
+               data    => <>));
+
+      else
+         Workspace_Edits :=
+           LSP.Lal_Utils.To_Workspace_Edit
+             (Edits               => Edits,
+              Resource_Operations => Message_Handler.Resource_Operations,
+              Versioned_Documents => Message_Handler.Versioned_Documents,
+              Document_Provider   => Message_Handler'Access);
+         Label :=
+           (Is_Set => True,
+            Value  => To_Virtual_String (Command'External_Tag));
+
+         Client.On_Workspace_Apply_Edit_Request (Apply);
+      end if;
+
+   exception
+      when E : others =>
+         LSP.Common.Log (Message_Handler.Trace, E);
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.UnknownErrorCode,
+               message => VSS.Strings.Conversions.To_Virtual_String
+                 ("Failed to execute the Remove Parameter refactoring."),
                data    => <>));
    end Execute;
 
