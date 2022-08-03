@@ -183,33 +183,7 @@
                 {
                     "id": 2,
                     "result": [
-                        {
-                            "title": "Extract Procedure",
-                            "kind": "refactor.extract",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-extract-subprogram",
-                                "arguments": [
-                                    {
-                                        "context_id": "Default",
-                                        "section_to_extract_sloc": {
-                                            "uri": "$URI{main.adb}",
-                                            "range": {
-                                                "start": {
-                                                    "line": 4,
-                                                    "character": 33
-                                                },
-                                                "end": {
-                                                    "line": 4,
-                                                    "character": 46
-                                                }
-                                            }
-                                        },
-                                        "subprogram_kind": "ADA_SUBP_KIND_PROCEDURE"
-                                    }
-                                ]
-                            }
-                        },
+                        "<HAS>",
                         {
                             "title": "Introduce Parameter",
                             "kind": "refactor.rewrite",
